@@ -17,7 +17,7 @@
       			<requires facet="jst.web" version="2.2,2.3,2.4,2.5"/>
     		</constraint>
     		<action type="INSTALL">
-      			<delegate class=""/>
+      			<delegate class="org.jboss.tools.ws.core.facet.delegate.JbossWSInstallRuntimeDelegate"/>
     		</action>
 <!--
     		<action type="UNINSTALL">

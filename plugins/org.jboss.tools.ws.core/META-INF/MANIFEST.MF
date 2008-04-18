@@ -7,6 +7,8 @@ Bundle-Localization: plugin
 Bundle-Activator: org.jboss.tools.ws.core.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.wst.common.project.facet.core
+ org.eclipse.wst.common.project.facet.core,
+ org.eclipse.wst.common.frameworks,
+ org.eclipse.core.resources
 Eclipse-LazyStart: true
 Bundle-Vendor: %PLUGIN_PROVIDER
