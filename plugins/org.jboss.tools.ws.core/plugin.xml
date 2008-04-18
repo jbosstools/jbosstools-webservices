@@ -1,0 +1,50 @@
+<plugin>
+   <extension
+         point="org.eclipse.wst.common.project.facet.core.facets">
+      <category id="jbossws.category">
+    	<label>%JBOSSWS_CATOGERY_LABEL</label>
+    	<description>%JBOSSWS_CATOGERY_DISCRIPTION</description>
+  	  </category>
+
+		  <project-facet id="jbossws.core">
+			<label>%JBOSSWS_FACET_CORE_LABEL</label>
+			<description>%JBOSSWS_FACET_CORE_DISCRIPTION</description>
+			<member category="jbossws.category "/>
+		  </project-facet>
+
+		<project-facet-version facet="jbossws.core" version="1.1">
+		    <constraint>
+      			<requires facet="jst.web" version="2.2,2.3,2.4,2.5"/>
+    		</constraint>
+    		<action type="INSTALL">
+      			<delegate class=""/>
+    		</action>
+<!--
+    		<action type="UNINSTALL">
+      			<delegate class="org.eclipse.jst.ws.axis2.facet.deligate.Axis2CoreFacetUnInstallDelegate"/>
+    		</action>
+-->
+  		</project-facet-version>
+<!--
+	    <project-facet id="axis2.ext">
+			<label>%JBOSSWS_FACET_EXT_LABEL</label>
+			<description>%JBOSSWS_FACET_EXT_DISCRIPTION</description>
+			<member category="axis2.category" />
+		</project-facet>
+
+		<project-facet-version facet="axis2.ext" version="1.1">
+		    <constraint>
+      			<requires facet="axis2.core" version="1.1"/>
+    		</constraint>
+    		<action type="INSTALL">
+      			<delegate class="org.eclipse.jst.ws.axis2.facet.deligate.Axis2ExtFacetInstallDelegate"/>
+    		</action>
+
+    		<action type="UNINSTALL">
+      			<delegate class="org.eclipse.jst.ws.axis2.facet.deligate.Axis2ExtFacetUnInstallDelegate"/>
+    		</action>
+  		</project-facet-version>
+-->
+   </extension>
+
+</plugin>
