@@ -12,9 +12,11 @@
 package org.jboss.tools.ws.ui.preferences;
 
 import java.io.File;
+import java.io.IOException;
 
-import org.eclipse.core.runtime.Plugin;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.jboss.tools.ws.ui.UIUtils;
 import org.jboss.tools.ws.ui.Activator;
 import org.jboss.tools.ws.ui.JbossWSUIMessages;
@@ -39,7 +41,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 public class JbossWSRuntimePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
-		private Text axis2Path; 
+		private Text jbosswsPath; 
 		private Text statusLabel;
 		private Combo aarExtensionCombo; 
 		private Combo serviceDatabindingCombo;
@@ -54,26 +56,34 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 
 		protected Control createContents(Composite superparent) {
 			
+			PreferenceStore ps = new PreferenceStore("jbosswsui.properties");
+		    try {
+		        ps.load();
+		      } catch (IOException e) {
+		        // Ignore
+		      }
+			this.setPreferenceStore(ps);
+			
 			UIUtils uiUtils = new UIUtils(Activator.PLUGIN_ID);
 			final Composite  mainComp = uiUtils.createComposite(superparent, 1);
 			
-			TabFolder axis2PreferenceTab = new TabFolder(mainComp, SWT.WRAP);
-			axis2PreferenceTab.setLayoutData( new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.FILL_BOTH) );
+			TabFolder jbosswsPreferenceTab = new TabFolder(mainComp, SWT.WRAP);
+			jbosswsPreferenceTab.setLayoutData( new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.FILL_BOTH) );
 
 			
 			//-----------------------------Axis2 Runtime Location Group------------------------------//
-			TabItem runtimeInstalLocationItem = new TabItem(axis2PreferenceTab, SWT.WRAP);
+			TabItem runtimeInstalLocationItem = new TabItem(jbosswsPreferenceTab, SWT.WRAP);
 			runtimeInstalLocationItem.setText(JbossWSUIMessages.JBOSSWS_RUNTIME);
 			runtimeInstalLocationItem.setToolTipText(JbossWSUIMessages.JBOSSWS_RUNTIME_TOOLTIP);
 			
-			Composite runtimeTab = uiUtils.createComposite(axis2PreferenceTab, 1);
+			Composite runtimeTab = uiUtils.createComposite(jbosswsPreferenceTab, 1);
 			runtimeTab.setLayoutData( new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.FILL_BOTH ) );
 			Composite runtimeGroup = uiUtils.createComposite(runtimeTab, 3);
 
 			runtimeInstalLocationItem.setControl(runtimeTab);
 			runtimeTab.setToolTipText(JbossWSUIMessages.JBOSSWS_RUNTIME_TOOLTIP);
 
-			axis2Path = uiUtils.createText(runtimeGroup, JbossWSUIMessages.JBOSSWS_RUNTIME_LOCATION , null, null , SWT.BORDER);
+			jbosswsPath = uiUtils.createText(runtimeGroup, JbossWSUIMessages.JBOSSWS_RUNTIME_LOCATION , null, null , SWT.BORDER);
 			
 			Button browseButton = uiUtils.createPushButton(runtimeGroup, JbossWSUIMessages.LABEL_BROUSE, null, null);
 			browseButton.addSelectionListener( new SelectionAdapter() {
@@ -82,9 +92,9 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 				}     
 			}); 
 
-			axis2Path.addModifyListener( new ModifyListener(){
+			jbosswsPath.addModifyListener( new ModifyListener(){
 				public void modifyText(ModifyEvent e){
-					statusUpdate(runtimeExist(axis2Path.getText()));
+					statusUpdate(runtimeExist(jbosswsPath.getText()));
 					// runtimeTab.layout();
 				}
 			});
@@ -92,13 +102,13 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 			statusLabel = new Text(runtimeTab, SWT.BACKGROUND | SWT.READ_ONLY | SWT.CENTER | SWT.WRAP | SWT.H_SCROLL);
 			statusLabel.setLayoutData( new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.FILL_BOTH) );
 
-			//--------------------------------Axis2 Runtime Preferences------------------------------//
+			//--------------------------------jbossws Runtime Preferences------------------------------//
 
-			TabItem codegenPreferencesItem = new TabItem(axis2PreferenceTab, SWT.WRAP);
+			TabItem codegenPreferencesItem = new TabItem(jbosswsPreferenceTab, SWT.WRAP);
 			codegenPreferencesItem.setText(JbossWSUIMessages.JBOSSWS_PREFERENCES);
 			codegenPreferencesItem.setToolTipText(JbossWSUIMessages.JBOSSWS_PREFERENCES_TOOLTIP);
 
-			Composite codegenGroup = uiUtils.createComposite(axis2PreferenceTab, 1);
+			Composite codegenGroup = uiUtils.createComposite(jbosswsPreferenceTab, 1);
 			codegenPreferencesItem.setControl(codegenGroup);
 			codegenGroup.setToolTipText(JbossWSUIMessages.JBOSSWS_PREFERENCES_TOOLTIP);
 
@@ -161,8 +171,8 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 			aarExtensionCombo = uiUtils.createCombo(aarExtGroup, JbossWSUIMessages.LABEL_AAR_EXTENTION, null, null, SWT.READ_ONLY );
 
 			initializeValues();
-			axis2PreferenceTab.setEnabled(true);
-			axis2PreferenceTab.setVisible(true);
+			jbosswsPreferenceTab.setEnabled(true);
+			jbosswsPreferenceTab.setVisible(true);
 			return mainComp;
 		}
 
@@ -177,13 +187,13 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 			DirectoryDialog fileDialog = new DirectoryDialog(parent);
 			String fileName = fileDialog.open();
 			if (fileName != null) {
-				axis2Path.setText(fileName);
+				jbosswsPath.setText(fileName);
 			}
 		}
 
 		private void statusUpdate(boolean status){
 			if(statusLabel != null){
-				if(!axis2Path.getText().equals("")){
+				if(!jbosswsPath.getText().equals("")){
 					if (status) {
 						statusLabel.setText(JbossWSUIMessages.LABEL_JBOSSWS_RUNTIME_LOAD);
 					} else {
@@ -197,8 +207,8 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 
 		private boolean runtimeExist(String path){
 
-			File axis2HomeDir = new File(path);
-			if (!axis2HomeDir.isDirectory()) 
+			File jbosswsHomeDir = new File(path);
+			if (!jbosswsHomeDir.isDirectory()) 
 				return false;
 
 //			String axis2LibPath = Axis2CoreUtils.addAnotherNodeToPath(axis2HomeDir.getAbsolutePath(), "lib");
@@ -217,6 +227,11 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 		}
 
 		private void storeValues(){
+			IPreferenceStore store =  this.getPreferenceStore();
+			System.out.println(jbosswsPath.getText());
+			store.setValue("jbosswsruntimelocation", jbosswsPath.getText());
+			
+			
 //			// set values in the persistent context 
 //			Axis2EmitterContext context = WebServiceAxis2CorePlugin.getDefault().getAxisEmitterContext();
 //			context.setAxis2RuntimeLocation( axis2Path.getText());
@@ -237,6 +252,8 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 		 * in the preference store.
 		 */
 		private void initializeDefaults() {
+			IPreferenceStore preferenceStore = getPreferenceStore();
+			jbosswsPath.setText(preferenceStore.getDefaultString("jbosswsruntimelocation"));
 //			aarExtensionCombo.select(0);
 //			serviceDatabindingCombo.select(0);
 //			clientDatabindingCombo.select(0);
@@ -255,6 +272,8 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 
 		private void initializeValues()
 		{
+			IPreferenceStore preferenceStore = getPreferenceStore();
+			jbosswsPath.setText(preferenceStore.getString("jbosswsruntimelocation"));
 //			Axis2EmitterContext context = WebServiceAxis2CorePlugin.getDefault().getAxisEmitterContext();
 //
 //			String[] databindingItems = {context.getServiceDatabinding().toUpperCase()};
