@@ -34,7 +34,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jboss.tools.ws.core.*;
-import org.jboss.tools.ws.ui.JBossWSUIPlugin;
+import org.jboss.tools.ws.ui.JbossWSUIPlugin;
 import org.jboss.tools.ws.ui.JbossWSUIMessages;
 import org.jboss.tools.ws.ui.UIUtils;
 
@@ -58,7 +58,7 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 			IPreferenceStore ps = JbossWSCorePlugin.getDefault().getPreferenceStore();
 			this.setPreferenceStore(ps);
 			
-			UIUtils uiUtils = new UIUtils(JBossWSUIPlugin.PLUGIN_ID);
+			UIUtils uiUtils = new UIUtils(JbossWSUIPlugin.PLUGIN_ID);
 			final Composite  mainComp = uiUtils.createComposite(superparent, 1);
 			
 			TabFolder jbosswsPreferenceTab = new TabFolder(mainComp, SWT.WRAP);

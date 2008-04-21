@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %PLUGIN_NAME
 Bundle-SymbolicName: org.jboss.tools.ws.ui;singleton:=true
 Bundle-Version: 1.0.0
-Bundle-Activator: org.jboss.tools.ws.ui.JBossWSUIPlugin
+Bundle-Activator: org.jboss.tools.ws.ui.JbossWSUIPlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

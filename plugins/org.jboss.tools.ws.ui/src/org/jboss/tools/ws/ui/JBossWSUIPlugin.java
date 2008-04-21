@@ -6,18 +6,18 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class JBossWSUIPlugin extends AbstractUIPlugin {
+public class JbossWSUIPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "org.jboss.tools.ws.ui";
 
 	// The shared instance
-	private static JBossWSUIPlugin plugin;
+	private static JbossWSUIPlugin plugin;
 	
 	/**
 	 * The constructor
 	 */
-	public JBossWSUIPlugin() {
+	public JbossWSUIPlugin() {
 	}
 
 	/*
@@ -43,7 +43,7 @@ public class JBossWSUIPlugin extends AbstractUIPlugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static JBossWSUIPlugin getDefault() {
+	public static JbossWSUIPlugin getDefault() {
 		return plugin;
 	}
 
