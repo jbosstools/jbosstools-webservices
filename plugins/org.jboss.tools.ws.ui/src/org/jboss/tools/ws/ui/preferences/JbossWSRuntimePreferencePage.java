@@ -18,7 +18,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.jboss.tools.ws.ui.UIUtils;
-import org.jboss.tools.ws.ui.Activator;
+import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.JbossWSUIMessages;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -64,7 +64,7 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 		      }
 			this.setPreferenceStore(ps);
 			
-			UIUtils uiUtils = new UIUtils(Activator.PLUGIN_ID);
+			UIUtils uiUtils = new UIUtils(JBossWSUIPlugin.PLUGIN_ID);
 			final Composite  mainComp = uiUtils.createComposite(superparent, 1);
 			
 			TabFolder jbosswsPreferenceTab = new TabFolder(mainComp, SWT.WRAP);
