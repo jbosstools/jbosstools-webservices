@@ -12,14 +12,9 @@
 package org.jboss.tools.ws.ui.preferences;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.preference.PreferenceStore;
-import org.jboss.tools.ws.ui.UIUtils;
-import org.jboss.tools.ws.ui.JBossWSUIPlugin;
-import org.jboss.tools.ws.ui.JbossWSUIMessages;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -38,6 +33,10 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.jboss.tools.ws.core.*;
+import org.jboss.tools.ws.ui.JBossWSUIPlugin;
+import org.jboss.tools.ws.ui.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.UIUtils;
 
 public class JbossWSRuntimePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
@@ -56,12 +55,7 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 
 		protected Control createContents(Composite superparent) {
 			
-			PreferenceStore ps = new PreferenceStore("jbosswsui.properties");
-		    try {
-		        ps.load();
-		      } catch (IOException e) {
-		        // Ignore
-		      }
+			IPreferenceStore ps = JbossWSCorePlugin.getDefault().getPreferenceStore();
 			this.setPreferenceStore(ps);
 			
 			UIUtils uiUtils = new UIUtils(JBossWSUIPlugin.PLUGIN_ID);
