@@ -25,15 +25,7 @@ public class InitialCommnad extends AbstractDataModelOperation{
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
 		
-		if (scenario == WebServiceScenario.TOPDOWN) {
-			model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
-			model.setDatabindingType(Axis2Constants.DATA_BINDING_ADB);
-			DefaultCodegenUtil defaultCodegenUtil = new DefaultCodegenUtil(model);
-			defaultCodegenUtil.populateModelParamsFromWSDL();
-			model.setServicesXML(true);
-			model.setServerXMLCheck(true);
-			ServiceContext.getInstance().setServiceName(model.getServiceName());
-		}
+
 
 		return null;
 	}
