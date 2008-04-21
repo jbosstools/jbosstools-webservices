@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %PLUGIN_NAME
+Bundle-SymbolicName: org.jboos.tools.ws.creation.core
+Bundle-Version: 1.0.0
+Bundle-Activator: org.jboos.tools.ws.creation.core.JBossWSCreationCore
+Bundle-Vendor: %PLUGIN_PROVIDER
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.wst.common.frameworks,
+ org.eclipse.wst.ws
+Eclipse-LazyStart: true
+Export-Package: org.jboos.tools.ws.creation.core,
+ org.jboos.tools.ws.creation.core.commands,
+ org.jboos.tools.ws.creation.core.data
