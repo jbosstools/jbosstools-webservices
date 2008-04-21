@@ -18,18 +18,18 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends AbstractUIPlugin {
+public class JbossWSCorePlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "org.jboss.tools.ws.core";
 
 	// The shared instance
-	private static Activator plugin;
+	private static JbossWSCorePlugin plugin;
 	
 	/**
 	 * The constructor
 	 */
-	public Activator() {
+	public JbossWSCorePlugin() {
 	}
 
 	/*
@@ -55,7 +55,7 @@ public class Activator extends AbstractUIPlugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static Activator getDefault() {
+	public static JbossWSCorePlugin getDefault() {
 		return plugin;
 	}
 

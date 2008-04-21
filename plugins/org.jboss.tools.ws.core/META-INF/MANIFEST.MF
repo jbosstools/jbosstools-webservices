@@ -4,11 +4,14 @@ Bundle-Name: %PLUGIN_NAME
 Bundle-SymbolicName: org.jboss.tools.ws.core;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Localization: plugin
-Bundle-Activator: org.jboss.tools.ws.core.Activator
+Bundle-Activator: org.jboss.tools.ws.core.JbossWSCorePlugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.wst.common.project.facet.core,
  org.eclipse.wst.common.frameworks,
- org.eclipse.core.resources
+ org.eclipse.core.resources,
+ org.eclipse.jst.ws
 Eclipse-LazyStart: true
 Bundle-Vendor: %PLUGIN_PROVIDER
+Export-Package: org.jboss.tools.ws.core,
+ org.jboss.tools.ws.core.command
