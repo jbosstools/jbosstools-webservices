@@ -47,7 +47,7 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 		
 		try {
 				 
-			InputStreamReader ir = new InputStreamReader(Runtime.getRuntime().exec(commandLine).getInputStream());
+			InputStreamReader ir = new InputStreamReader(Runtime.getRuntime().exec(commandLine, null, new File(binLocation)).getInputStream());
             LineNumberReader input = new LineNumberReader(ir);
             
             String str = "";
