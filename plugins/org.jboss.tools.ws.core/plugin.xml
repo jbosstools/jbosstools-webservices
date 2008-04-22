@@ -46,5 +46,15 @@
   		</project-facet-version>
 -->
    </extension>
+   <extension
+         point="org.eclipse.wst.common.project.facet.core.runtimes">
+      <supported>
+         <facet
+               id="jbossws.core">
+         </facet>
+         <runtime-component
+         any="true"/>
+      </supported>
+   </extension>
 
 </plugin>
