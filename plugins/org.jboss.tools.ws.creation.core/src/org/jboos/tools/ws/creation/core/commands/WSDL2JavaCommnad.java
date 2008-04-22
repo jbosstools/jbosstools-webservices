@@ -1,5 +1,6 @@
 package org.jboos.tools.ws.creation.core.commands;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,6 +18,7 @@ import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboos.tools.ws.creation.core.utils.JBossWSCreationUtils;
+import org.jboss.tools.ws.core.JbossWSCorePlugin;
 
 public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 
@@ -31,21 +33,14 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
 
-		PreferenceStore prs = new PreferenceStore("jbosswsui.properties");
-		try {
-			prs.load();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		String runtimeLocation = prs.getString("jbosswsruntimelocation");//JBossWSUIPlugin.getDefault().getPreferenceStore().getString("jbosswsruntimelocation");
-		String binLocation = runtimeLocation + "bin";
+		String runtimeLocation = JbossWSCorePlugin.getDefault().getPreferenceStore().getString("jbosswsruntimelocation");
+		String binLocation = runtimeLocation + Path.SEPARATOR + "bin";
 		
 		String commandLine = binLocation + Path.SEPARATOR + "wsconsume.sh";		   
 		
 		String args = getCommandlineArgs();
 		
-		commandLine = commandLine + " -k -o " + args + " " + model.getWsdlURI();
+		commandLine = commandLine + " -k " + args + " " + model.getWsdlURI();
 		commandLine = "sh " + commandLine;
 		
 	    
@@ -83,12 +78,27 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 	}
 	
 	private String getCommandlineArgs(){
+		String commandLine;
 		String project = model.getWebProjectName();
 		String projectRoot = JBossWSCreationUtils.getProjectRoot(project).toOSString();
-		String targetSrc = projectRoot + Path.SEPARATOR + "src";
+		commandLine = "-o " + projectRoot + Path.SEPARATOR + "src";
 		
-		return targetSrc;
+		String customePkg = model.getPackageText();
+		if(customePkg != null && !"".equals(customePkg)){
+			commandLine += " -p " + customePkg; 
+		}
+		
+		String bindingFileLocation = model.getBindingFileLocation();
+		if(bindingFileLocation != null && !"".equals(bindingFileLocation)){
+			File bindingFile = new File(bindingFileLocation);
+			if(bindingFile.exists()){
+				commandLine += " -b " + bindingFileLocation;
+			}
+		}
+		
+		return commandLine;
 		
 	}
+
 
 }

@@ -3,6 +3,7 @@ package org.jboss.tools.ws.creation.ui.wsrt;
 import java.awt.image.SampleModel;
 import java.util.Vector;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.wst.command.internal.env.core.ICommandFactory;
 import org.eclipse.wst.command.internal.env.core.SimpleCommandFactory;
 import org.eclipse.wst.common.environment.IEnvironment;
@@ -14,6 +15,7 @@ import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
 import org.jboos.tools.ws.creation.core.commands.WSDL2JavaCommnad;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.core.command.JbossWSRuntimeCommand;
 
 public class JBossWebService extends AbstractWebService {
 
@@ -45,6 +47,7 @@ public class JBossWebService extends AbstractWebService {
 		if (ctx.getScenario().getValue() == WebServiceScenario.TOPDOWN)	{ 
 			commands.add(new InitialCommnad(model, this, WebServiceScenario.TOPDOWN));
 			commands.add(new WSDL2JavaCommnad(model));
+			commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		
 		return new SimpleCommandFactory(commands);

@@ -18,24 +18,22 @@
     </extension>
 
 
-	<!-- define support for Axis2 Java bean bottom up and top-down support in web projects -->
     <extension point="org.eclipse.jst.ws.consumption.ui.serviceRuntimes">
       <serviceRuntime
         id="org.jboss.tools.ws.creation.java" 
         serviceImplementationTypeId="org.eclipse.jst.ws.wsImpl.java"
         runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
-        bottomUp="true"
+        bottomUp="false"
         topDown="true"
         class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
 
         <required-facet-version facet="jst.web" version="2.3" allow-newer="true"/>
-        <!--required-facet-versiond facet="jbossws.core" version="1.0" allow-newer="true" />
-        <required-facet-version facet="jbossws.ext" version="1.0" allow-newer="true" / -->
+        <required-facet-versiond facet="jbossws.core" version="1.0" allow-newer="true" />
+        <!--required-facet-version facet="jbossws.ext" version="1.0" allow-newer="true" / -->
 
       </serviceRuntime>
     </extension>   
         
-    <!-- define support for Axis Java clients in Web projects -->
     <extension point="org.eclipse.jst.ws.consumption.ui.clientRuntimes">
       <clientRuntime
         id="org.jboss.tools.ws..consumption.web"
@@ -43,9 +41,8 @@
         runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
         class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
 
-        <!--required-facet-version facet="jst.web" version="2.3" allow-newer="true" />
-        <required-facet-version facet="axis2.core" version="1.1" allow-newer="true" />
-        <required-facet-version facet="axis2.ext" version="1.1" allow-newer="true" / -->
+        <required-facet-version facet="jst.web" version="2.3" allow-newer="true" />
+        
 
       </clientRuntime>
     </extension>    

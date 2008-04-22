@@ -31,4 +31,9 @@ public class InitialCommnad extends AbstractDataModelOperation{
 		return Status.OK_STATUS;
 	}
 
+	public ServiceModel getWebServiceDataModel()
+	{
+		return model;
+	}
+	
 }
