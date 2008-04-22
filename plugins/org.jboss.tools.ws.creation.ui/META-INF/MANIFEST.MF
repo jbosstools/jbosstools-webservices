@@ -18,10 +18,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jst.ws,
  org.eclipse.wst.command.env,
  org.eclipse.jdt.core,
- org.eclipse.jst.ws.axis2.creation.core,
- org.eclipse.jst.ws.axis2.consumption.ui,
- org.eclipse.jst.ws.axis2.consumption.core,
- org.eclipse.jst.ws.axis2.core,
  org.eclipse.jst.ws.ui,
  org.jboos.tools.ws.creation.core
 Eclipse-LazyStart: true

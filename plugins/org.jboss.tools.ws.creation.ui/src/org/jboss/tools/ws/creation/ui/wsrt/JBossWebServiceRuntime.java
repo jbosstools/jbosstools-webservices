@@ -10,7 +10,7 @@ public class JBossWebServiceRuntime extends AbstractWebServiceRuntime{
 
 	@Override
 	public IWebService getWebService(WebServiceInfo info) {
-		return null;
+		return new JBossWebService(info);
 	}
 
 	@Override

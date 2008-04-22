@@ -4,6 +4,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
@@ -25,9 +26,9 @@ public class InitialCommnad extends AbstractDataModelOperation{
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
 		
+		model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
 
-
-		return null;
+		return Status.OK_STATUS;
 	}
 
 }

@@ -8,7 +8,10 @@ Bundle-Vendor: %PLUGIN_PROVIDER
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.wst.common.frameworks,
- org.eclipse.wst.ws
+ org.eclipse.wst.ws,
+ org.jboss.tools.ws.ui,
+ org.eclipse.core.resources,
+ org.eclipse.jst.ws
 Eclipse-LazyStart: true
 Export-Package: org.jboos.tools.ws.creation.core,
  org.jboos.tools.ws.creation.core.commands,

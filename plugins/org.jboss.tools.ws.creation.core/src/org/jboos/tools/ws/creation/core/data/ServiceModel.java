@@ -9,6 +9,8 @@ private String  webProjectName;
 	private String portName;
 	private String serviceName;
 	private String packageText;
+	private String bindingFileLocation;
+	
 	
 	public String getPackageText() {
 		return packageText;
@@ -46,5 +48,12 @@ private String  webProjectName;
 	}
 	public void setWebProjectName(String webProjectName) {
 		this.webProjectName = webProjectName;
+	}
+	
+	public String getBindingFileLocation(){
+		return this.bindingFileLocation;
+	}
+	public void setBindingFileLcation(String bindingFileLocation){
+		this.bindingFileLocation = bindingFileLocation;
 	}
 }

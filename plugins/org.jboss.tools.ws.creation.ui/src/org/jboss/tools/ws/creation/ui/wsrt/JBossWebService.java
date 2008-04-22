@@ -11,6 +11,7 @@ import org.eclipse.wst.ws.internal.wsrt.IContext;
 import org.eclipse.wst.ws.internal.wsrt.ISelection;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
+import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
 import org.jboos.tools.ws.creation.core.commands.WSDL2JavaCommnad;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 
@@ -40,7 +41,9 @@ public class JBossWebService extends AbstractWebService {
 		
 		Vector commands = new Vector();
 		ServiceModel model = new ServiceModel();
-		if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP)	{ 
+		model.setWebProjectName(project);
+		if (ctx.getScenario().getValue() == WebServiceScenario.TOPDOWN)	{ 
+			commands.add(new InitialCommnad(model, this, WebServiceScenario.TOPDOWN));
 			commands.add(new WSDL2JavaCommnad(model));
 		}
 		
