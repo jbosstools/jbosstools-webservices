@@ -8,6 +8,11 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
+import org.eclipse.wst.wsdl.WSDLFactory;
+import org.eclipse.wst.wsdl.internal.impl.wsdl4j.WSDLFactoryImpl;
+import org.eclipse.wst.wsdl.internal.util.WSDLDefinitionFactory;
+import org.eclipse.wst.wsdl.internal.util.WSDLUtil;
+import org.eclipse.wst.wsdl.util.WSDLParser;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 
 public class InitialCommnad extends AbstractDataModelOperation{
@@ -32,7 +37,8 @@ public class InitialCommnad extends AbstractDataModelOperation{
 	}
 
 	public ServiceModel getWebServiceDataModel()
-	{
+	{		
+		
 		return model;
 	}
 	
