@@ -11,10 +11,6 @@
 
 package org.jboss.tools.ws.core.command;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -26,7 +22,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;

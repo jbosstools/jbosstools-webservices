@@ -14,4 +14,6 @@ Require-Bundle: org.eclipse.ui,
 Eclipse-LazyStart: true
 Bundle-Vendor: %PLUGIN_PROVIDER
 Export-Package: org.jboss.tools.ws.core,
- org.jboss.tools.ws.core.command
+ org.jboss.tools.ws.core.command,
+ org.jboss.tools.ws.core.facet.delegate,
+ org.jboss.tools.ws.core.utils

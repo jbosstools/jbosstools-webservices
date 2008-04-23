@@ -9,14 +9,12 @@
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/ 
 
-
 package org.jboss.tools.ws.core.facet.delegate;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.jboss.tools.ws.core.JbossWSCoreMessages;
