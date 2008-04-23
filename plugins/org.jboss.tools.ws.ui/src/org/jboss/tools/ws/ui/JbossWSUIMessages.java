@@ -61,6 +61,9 @@ public final class JbossWSUIMessages extends NLS {
 	public static String SERVER_STATUS_LOCATION_FILE;
 	public static String WAR_STATUS_LOCATION_FILE;
 	
+	public static String BIN;
+	public static String COMMOND;
+	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JbossWSUIMessages.class);
 	}
