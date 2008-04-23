@@ -11,8 +11,6 @@
 
 package org.jboss.tools.ws.core.command;
 
-import java.util.List;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
@@ -42,13 +40,13 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 	}
 
 	public IStatus executeOverride(IProgressMonitor monitor) {
-		IStatus status = null;
+		IStatus status = Status.OK_STATUS;
 
 		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
 				.getPreferenceStore();
 		runtimeLocation = ps.getString("jbosswsruntimelocation");
 
-		// copy lib to project's folder
+		// copy jars to project's folder
 		IPath libPath = new Path(runtimeLocation);
 		libPath = libPath.append(JbossWSCoreMessages.DIR_LIB);
 
@@ -57,54 +55,9 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 		targetPath = targetPath
 				.append(JbossWSCoreMessages.DIR_WEB_INF).append(
 						JbossWSCoreMessages.DIR_LIB);
-		JbossWSCoreUtils.copy(libPath, targetPath);
+		status = JbossWSCoreUtils.copy(libPath, targetPath);
 
-		status = Status.OK_STATUS;
 		return status;
-	}
-
-	private void cleanupIfFacetStatusFailed(String runtimeLocation) {
-		// File tempFacetDirectory = new File(runtimeLocation);
-		// if (tempFacetDirectory.exists()) {
-		// FileUtils.deleteDir(tempFacetDirectory);
-		// }
-	}
-
-	private IStatus handleExceptionStatus(Exception e) {
-		IStatus status = null;
-		// status = new
-		// Status(1,project.toString(),1,Axis2CoreUIMessages.ERROR_SERVER_IS_NOT_SET,e);
-		// cleanupIfFacetStatusFailed(Axis2CoreUtils.tempAxis2Directory());
-		return status;
-	}
-
-	/**
-	 * Load the exact libraries list from the axis2 jars with the correct
-	 * versions to the <code>path</code>. Doing it this way introduce the
-	 * scalability to the solution where the need comes in the future releases
-	 * to include additional libraries and if needed filter out some libraries.
-	 * 
-	 * @param runtimeLocation
-	 * @param includeList
-	 * @return loaded list
-	 */
-	private List loadIncludeListWithAxis2Libs(String path, List includeList) {
-		// for (int i = 0; i < Axis2Constants.AXIS2_LIB_PREFIXES.length; i++) {
-		// File[] jarFileList = FileUtils.getMatchingFiles(path,
-		// Axis2Constants.AXIS2_LIB_PREFIXES[i],
-		// Axis2Constants.JAR);
-		// for (int j = 0; j < jarFileList.length; j++) {
-		// includeList.add(jarFileList[j].getAbsolutePath());
-		// }
-		// // Fix for the 205972
-		// File[] licenseFileList = FileUtils.getMatchingFiles(path,
-		// Axis2Constants.AXIS2_LIB_PREFIXES[i],
-		// Axis2Constants.TXT);
-		// for (int k = 0; k < licenseFileList.length; k++) {
-		// includeList.add(licenseFileList[k].getAbsolutePath());
-		// }
-		// }
-		return includeList;
 	}
 
 }

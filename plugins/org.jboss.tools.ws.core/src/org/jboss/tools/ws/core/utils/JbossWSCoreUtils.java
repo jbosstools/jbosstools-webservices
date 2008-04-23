@@ -7,7 +7,7 @@
  * 
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
- ******************************************************************************/ 
+ ******************************************************************************/
 
 package org.jboss.tools.ws.core.utils;
 
@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.osgi.util.NLS;
+import org.jboss.tools.ws.core.JbossWSCoreMessages;
 
 public class JbossWSCoreUtils {
 
@@ -108,9 +109,10 @@ public class JbossWSCoreUtils {
 				getProjectNameFromFramewokNameString(projectString));
 	}
 
-	public static void copy(IPath sourcePath, IPath targetPath) {
+	public static IStatus copy(IPath sourcePath, IPath targetPath) {
 		System.out.println(sourcePath + " >> " + targetPath);
 
+		IStatus status = Status.OK_STATUS;
 		File sourceDir = sourcePath.toFile();
 		File[] children = sourceDir.listFiles();
 
@@ -120,26 +122,32 @@ public class JbossWSCoreUtils {
 				try {
 					finStream = new FileInputStream(children[i]);
 				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					status = StatusUtils.errorStatus(
+							NLS.bind(JbossWSCoreMessages.ERROR_COPY,
+									 new String[]{e.getLocalizedMessage()}), e);
 				}
 				try {
 					makeFile(getWorkspaceRoot().getContainerForLocation(
 							targetPath), children[i].getName(), finStream);
 				} catch (CoreException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					status = StatusUtils.errorStatus(
+							NLS.bind(JbossWSCoreMessages.ERROR_COPY,
+									 new String[]{e.getLocalizedMessage()}), e);
 				}
 			} else {
 				try {
-					copy(sourcePath.append(children[i].getName()),makeFolder(getWorkspaceRoot().getContainerForLocation(
-							targetPath),children[i].getName()).getFullPath());
+					copy(sourcePath.append(children[i].getName()), makeFolder(
+							getWorkspaceRoot().getContainerForLocation(
+									targetPath), children[i].getName())
+							.getFullPath());
 				} catch (CoreException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					status = StatusUtils.errorStatus(
+							NLS.bind(JbossWSCoreMessages.ERROR_COPY,
+									 new String[]{e.getLocalizedMessage()}), e);
 				}
 			}
 		}
+		return status;
 	}
 
 	private static IFolder makeFolder(IContainer parent, String folderName)
