@@ -492,7 +492,7 @@ public class UIUtils {
      *         <code>extension</code>
      */
     public static File[] getMatchingFiles(String sourceDir, String fileNamePrefix, String extension) {
-        List fileList = new ArrayList();
+        List<File> fileList = new ArrayList<File>();
         File libDir = new File(sourceDir);
         String libDirPath = libDir.getAbsolutePath();
         String[] items = libDir.list();
