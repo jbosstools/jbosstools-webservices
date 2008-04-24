@@ -1,6 +1,5 @@
 package org.jboss.tools.ws.creation.ui.wsrt;
 
-import java.awt.image.SampleModel;
 import java.util.Vector;
 
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -14,6 +13,7 @@ import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
 import org.jboos.tools.ws.creation.core.commands.WSDL2JavaCommnad;
+import org.jboos.tools.ws.creation.core.commands.WSProviderInvokeCommnad;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.core.command.JbossWSRuntimeCommand;
 
@@ -37,6 +37,7 @@ public class JBossWebService extends AbstractWebService {
 		return null;
 	}
 
+	@SuppressWarnings({ "restriction", "unchecked" })
 	@Override
 	public ICommandFactory develop(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
@@ -47,6 +48,11 @@ public class JBossWebService extends AbstractWebService {
 		if (ctx.getScenario().getValue() == WebServiceScenario.TOPDOWN)	{ 
 			commands.add(new InitialCommnad(model, this, WebServiceScenario.TOPDOWN));
 			commands.add(new WSDL2JavaCommnad(model));
+			commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
+		}
+		else if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP){
+			commands.add(new InitialCommnad(model, this, WebServiceScenario.BOTTOMUP));
+			commands.add(new WSProviderInvokeCommnad(model));
 			commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		

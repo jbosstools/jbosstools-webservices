@@ -8,15 +8,24 @@ private String  webProjectName;
 	private String  wsdlURI;
 	private String portName;
 	private String serviceName;
-	private String packageText;
+	private String customPackage;
 	private String bindingFileLocation;
+	private String serviceClass;
 	
 	
-	public String getPackageText() {
-		return packageText;
+	public String getServiceClass() {
+		return serviceClass;
 	}
-	public void setPackageText(String packageText) {
-		this.packageText = packageText;
+
+	public void setServiceClass(String serviceClass) {
+		this.serviceClass = serviceClass;
+	}
+	
+	public String getCustomPackage() {
+		return customPackage;
+	}
+	public void setCustomPackage(String packageText) {
+		this.customPackage = packageText;
 	}
 	public String getPortName() {
 		return portName;

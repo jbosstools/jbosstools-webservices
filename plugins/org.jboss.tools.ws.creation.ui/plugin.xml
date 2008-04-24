@@ -23,7 +23,7 @@
         id="org.jboss.tools.ws.creation.java" 
         serviceImplementationTypeId="org.eclipse.jst.ws.wsImpl.java"
         runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
-        bottomUp="false"
+        bottomUp="true"
         topDown="true"
         class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
 

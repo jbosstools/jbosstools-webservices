@@ -41,7 +41,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		txtCustomPkgName.addModifyListener(new ModifyListener(){
 
 			public void modifyText(ModifyEvent e) {
-				model.setPackageText(txtCustomPkgName.getText());
+				model.setCustomPackage(txtCustomPkgName.getText());
 			}});
 		
 		new Label(configCom, SWT.NONE).setText("Binding file:");

@@ -17,12 +17,12 @@ import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboos.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
 
-public class WSDL2JavaCommnad extends AbstractDataModelOperation{
+public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
 
 	private ServiceModel model;
 	
 	
-	public WSDL2JavaCommnad(ServiceModel model){
+	public WSProviderInvokeCommnad(ServiceModel model){
 		this.model = model;
 	}
 	
@@ -32,9 +32,9 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 
 		String runtimeLocation = JbossWSCorePlugin.getDefault().getPreferenceStore().getString("jbosswsruntimelocation");
 		String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";		
-		String command =  "sh wsconsume.sh ";
+		String command =  "sh wsprovide.sh ";
 		if(System.getProperty("os.name").toLowerCase().indexOf("win") >= 0){
-			command +=  "cmd wsconsume.bat";		   
+			command +=  "cmd wsprovide.bat";		   
 		}		
 		String args = getCommandlineArgs();		
 		command += " -k " + args + " " + model.getWsdlURI();
@@ -73,7 +73,7 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 		String commandLine;
 		String project = model.getWebProjectName();
 		String projectRoot = JBossWSCreationUtils.getProjectRoot(project).toOSString();
-		commandLine = "-s " + projectRoot + Path.SEPARATOR + "src";
+		commandLine = "-o " + projectRoot + Path.SEPARATOR + "src";
 		
 		String customePkg = model.getCustomPackage();
 		if(customePkg != null && !"".equals(customePkg)){
@@ -91,29 +91,4 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 		return commandLine;
 		
 	}
-
-/*	private List<String> getEnv(){
-		List<String> env = new ArrayList<String>();
-		
-		String project = model.getWebProjectName();
-		String projectRoot = JBossWSCreationUtils.getProjectRoot(project).toOSString();
-		env.add("o=" + projectRoot + Path.SEPARATOR + "src");
-		
-		String customePkg = model.getPackageText();		
-		if(customePkg != null && !"".equals(customePkg)){
-			env.add(" p=" + customePkg);
-		}
-		
-		String bindingFileLocation = model.getBindingFileLocation();
-		if(bindingFileLocation != null && !"".equals(bindingFileLocation)){
-			File bindingFile = new File(bindingFileLocation);
-			if(bindingFile.exists()){
-				env.add("b=" + bindingFileLocation);
-			}
-		}
-		
-		return env;
-		
-	}
-*/
 }
