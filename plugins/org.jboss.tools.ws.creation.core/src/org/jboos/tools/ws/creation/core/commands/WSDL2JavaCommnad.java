@@ -35,7 +35,7 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 		String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";		
 		String command =  "sh wsconsume.sh ";
 		if(System.getProperty("os.name").toLowerCase().indexOf("win") >= 0){
-			command +=  "cmd wsconsume.bat";		   
+			command =  "cmd wsconsume.bat";		   
 		}		
 		String args = getCommandlineArgs();		
 		command += " -k " + args + " " + model.getWsdlURI();
@@ -76,9 +76,8 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 		String projectRoot = JBossWSCreationUtils.getProjectRoot(project).toOSString();
 		commandLine = "-s " + projectRoot + Path.SEPARATOR + "src";
 		
-		String customePkg = model.getCustomPackage();
-		if(customePkg != null && !"".equals(customePkg)){
-			commandLine += " -p " + customePkg; 
+		if(model.getCustomPackage() != null && !"".equals(model.getCustomPackage())){
+			commandLine += " -p " + model.getCustomPackage(); 
 		}
 		
 		List<String> bindingFiles = model.getBindingFiles();
@@ -87,6 +86,17 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 			if(bindingFile.exists()){
 				commandLine += " -b " + bindingFileLocation;
 			}
+		}
+		
+		if(model.getCatalog() != null && !"".equals(model.getCatalog().trim())){
+			File catalog = new File(model.getCatalog());
+			if(catalog.exists()){
+				commandLine += " -c " + model.getCatalog();
+			}
+		}
+		
+		if(model.getTarget() != null){
+			commandLine += " -t " + model.getTarget();
 		}
 		 
 		

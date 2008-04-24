@@ -37,7 +37,7 @@ public class InitialCommnad extends AbstractDataModelOperation {
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
 		
-		model.setTarget(JBossWSCreationCoreMessages.getString("VALUE_TARGET_2"));
+		model.setTarget(JBossWSCreationCoreMessages.getString("VALUE_TARGET_1"));
 		if (scenario == WebServiceScenario.TOPDOWN) {
 			try{
 			model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
