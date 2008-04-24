@@ -1,3 +1,14 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Red Hat, Inc. - initial API and implementation 
+ ******************************************************************************/ 
+
 package org.jboss.tools.ws.creation.ui.wsrt;
 
 import org.eclipse.wst.command.internal.env.core.data.DataMappingRegistry;
@@ -10,6 +21,7 @@ import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
 import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.ui.widgets.CodeGenConfigWidget;
+import org.jboss.tools.ws.creation.ui.widgets.Java2WSDLCodeGenConfigWidget;
 
 public class JBossWSJava2WSDLConfigWidgetFactory implements
 		INamedWidgetContributorFactory {
@@ -50,13 +62,13 @@ public class JBossWSJava2WSDLConfigWidgetFactory implements
 	}
 
 	private void init() {
-		// Pages of Axis2 Web Services Java Bean Scenario
-		CodeGenConfigWidget servicesXMLSelectWidget = new CodeGenConfigWidget(
+		// Pages of JBossWS Java2WSDL
+		Java2WSDLCodeGenConfigWidget java2WSDLWidget = new Java2WSDLCodeGenConfigWidget(
 				model);
 		servicesXMLSelectWidgetContrib = createWidgetContributor(
 				"JBoss Web Service Code Generation Configuration",
 				"Please input the appropriate option for the code generation",
-				servicesXMLSelectWidget);
+				java2WSDLWidget);
 	}
 
 	private SimpleWidgetContributor createWidgetContributor(String title,
