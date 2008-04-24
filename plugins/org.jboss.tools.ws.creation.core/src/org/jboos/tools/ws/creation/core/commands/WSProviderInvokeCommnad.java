@@ -37,7 +37,7 @@ public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
 			command =  "cmd wsprovide.bat";		   
 		}		
 		String args = getCommandlineArgs();		
-		command += " -k " + args + " " + model.getWsdlURI();
+		command += " -k " + args + " " + model.getServiceClass();
 		
 		try {
 			
@@ -73,14 +73,12 @@ public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
 		String commandLine;
 		String project = model.getWebProjectName();
 		String projectRoot = JBossWSCreationUtils.getProjectRoot(project).toOSString();
-		commandLine = "-o " + projectRoot + Path.SEPARATOR + "src";
+		commandLine = "-s " + projectRoot + Path.SEPARATOR + "src";
 		
-		String customePkg = model.getCustomPackage();
-		if(customePkg != null && !"".equals(customePkg)){
-			commandLine += " -p " + customePkg; 
-		}
-		
-		
+        if(model.isGenWSDL()){
+        	commandLine += " -w "; 
+        }
+        commandLine += " -o " + projectRoot + Path.SEPARATOR + "WebContext" + Path.SEPARATOR + "wsdl";
 		
 		return commandLine;
 		

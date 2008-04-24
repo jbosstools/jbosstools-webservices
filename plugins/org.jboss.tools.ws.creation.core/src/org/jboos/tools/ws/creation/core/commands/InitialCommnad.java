@@ -21,22 +21,21 @@ import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboos.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboos.tools.ws.creation.core.utils.WSDLPropertyReader;
 
-public class InitialCommnad extends AbstractDataModelOperation{
+public class InitialCommnad extends AbstractDataModelOperation {
 
 	private ServiceModel model;
 	private IWebService ws;
 	private int scenario;
-	
-	public InitialCommnad(ServiceModel model ,IWebService ws, int scenario){
+
+	public InitialCommnad(ServiceModel model, IWebService ws, int scenario) {
 		this.model = model;
 		this.ws = ws;
-		this.scenario = scenario;		
+		this.scenario = scenario;
 	}
-	
+
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		IStatus status = Status.OK_STATUS;
 		
 		model.setTarget(JBossWSCreationCoreMessages.getString("VALUE_TARGET_2"));
 		if (scenario == WebServiceScenario.TOPDOWN) {
@@ -48,15 +47,16 @@ public class InitialCommnad extends AbstractDataModelOperation{
 			}catch (WSDLException e) {
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
 			}
+		}else {
+			model.setServiceClass(ws.getWebServiceInfo().getImplURL());
 		}
 
 		return Status.OK_STATUS;
 	}
 
-	public ServiceModel getWebServiceDataModel()
-	{		
-		
+	public ServiceModel getWebServiceDataModel() {
+
 		return model;
 	}
-	
+
 }

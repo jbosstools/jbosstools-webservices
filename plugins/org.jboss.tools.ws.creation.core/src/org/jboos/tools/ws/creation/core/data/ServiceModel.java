@@ -15,6 +15,7 @@ private String  webProjectName;
 	private List<String> bindingFileLocation = new ArrayList<String>();
 	private String catalog;
 	private String serviceClass;
+	private boolean isGenWSDL;
 	private String target;
 	
 	
@@ -69,6 +70,14 @@ private String  webProjectName;
 	}
 	public void addBindingFile(String bindingFileLocation){
 		this.bindingFileLocation.add(bindingFileLocation);
+	}
+
+	public boolean isGenWSDL() {
+		return isGenWSDL;
+	}
+
+	public void setGenWSDL(boolean isGenWSDL) {
+		this.isGenWSDL = isGenWSDL;
 	}
 	
 	public String getCatalog(){
