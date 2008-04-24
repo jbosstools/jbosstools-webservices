@@ -1,5 +1,8 @@
 package org.jboos.tools.ws.creation.core.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ServiceModel {
 
 private String  webProjectName;
@@ -9,8 +12,10 @@ private String  webProjectName;
 	private String portName;
 	private String serviceName;
 	private String customPackage;
-	private String bindingFileLocation;
+	private List<String> bindingFileLocation = new ArrayList<String>();
+	private String catalog;
 	private String serviceClass;
+	private String target;
 	
 	
 	public String getServiceClass() {
@@ -59,10 +64,24 @@ private String  webProjectName;
 		this.webProjectName = webProjectName;
 	}
 	
-	public String getBindingFileLocation(){
+	public List<String> getBindingFiles(){
 		return this.bindingFileLocation;
 	}
-	public void setBindingFileLcation(String bindingFileLocation){
-		this.bindingFileLocation = bindingFileLocation;
+	public void addBindingFile(String bindingFileLocation){
+		this.bindingFileLocation.add(bindingFileLocation);
+	}
+	
+	public String getCatalog(){
+		return this.catalog;
+	}
+	public void setCatalog(String catalog){
+		this.catalog = catalog;
+	}
+	
+	public String getTarget(){
+		return this.target;
+	}
+	public void setTarget(String target){
+		this.target = target;
 	}
 }

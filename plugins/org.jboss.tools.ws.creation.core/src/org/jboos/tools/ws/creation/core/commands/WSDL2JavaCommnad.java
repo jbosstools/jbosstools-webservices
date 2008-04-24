@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
@@ -80,13 +81,14 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 			commandLine += " -p " + customePkg; 
 		}
 		
-		String bindingFileLocation = model.getBindingFileLocation();
-		if(bindingFileLocation != null && !"".equals(bindingFileLocation)){
+		List<String> bindingFiles = model.getBindingFiles();
+		for(String bindingFileLocation: bindingFiles){
 			File bindingFile = new File(bindingFileLocation);
 			if(bindingFile.exists()){
 				commandLine += " -b " + bindingFileLocation;
 			}
 		}
+		 
 		
 		return commandLine;
 		

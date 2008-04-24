@@ -53,21 +53,7 @@ public class ProviderInvokeCodeGenConfigWidget extends SimpleWidgetDataContribut
 				model.setCustomPackage(txtCustomPkgName.getText());
 			}});
 		
-		new Label(configCom, SWT.NONE).setText("Binding file:");
-		Composite fileSelection = new Composite(configCom, SWT.NONE);
-		fileSelection.setLayout(new GridLayout(2, false));
-		fileSelection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		final Text txtFiles = new Text(fileSelection, SWT.NONE);
-		txtFiles.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Button btnSelect = new Button(fileSelection, SWT.NONE);
-		btnSelect.setText("...");
-		btnSelect.addSelectionListener(new SelectionAdapter(){
-			public void widgetSelected(SelectionEvent e) {
-				String fileLocation = new FileDialog(Display.getCurrent().getActiveShell(), SWT.NONE).open();
-				txtFiles.setText(fileLocation);
-				model.setBindingFileLcation(fileLocation);
-			}
-		});
+
 		
 		return this;
 	}

@@ -13,8 +13,15 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.resources,
  org.eclipse.jst.ws,
  org.jboss.tools.ws.core,
- org.eclipse.wst.wsdl
+ org.eclipse.wst.wsdl,
+ org.eclipse.wst.command.env.core,
+ org.eclipse.wst.command.env,
+ org.eclipse.jst.ws.axis2.consumption.core,
+ org.apache.ant
 Eclipse-LazyStart: true
 Export-Package: org.jboos.tools.ws.creation.core,
  org.jboos.tools.ws.creation.core.commands,
- org.jboos.tools.ws.creation.core.data
+ org.jboos.tools.ws.creation.core.data,
+ org.jboos.tools.ws.creation.core.messages
+Bundle-ClassPath: lib/wsdl4j.jar,
+ .

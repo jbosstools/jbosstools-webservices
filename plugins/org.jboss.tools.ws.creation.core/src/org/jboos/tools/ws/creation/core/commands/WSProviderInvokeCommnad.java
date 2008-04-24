@@ -80,13 +80,7 @@ public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
 			commandLine += " -p " + customePkg; 
 		}
 		
-		String bindingFileLocation = model.getBindingFileLocation();
-		if(bindingFileLocation != null && !"".equals(bindingFileLocation)){
-			File bindingFile = new File(bindingFileLocation);
-			if(bindingFile.exists()){
-				commandLine += " -b " + bindingFileLocation;
-			}
-		}
+		
 		
 		return commandLine;
 		
