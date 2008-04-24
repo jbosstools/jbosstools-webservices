@@ -36,7 +36,7 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		return Status.OK_STATUS;
+		return executeOverride(monitor);
 	}
 
 	public IStatus executeOverride(IProgressMonitor monitor) {
