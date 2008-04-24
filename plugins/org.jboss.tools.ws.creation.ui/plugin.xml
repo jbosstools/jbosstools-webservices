@@ -45,6 +45,14 @@
         
 
       </clientRuntime>
+    </extension>
+    <extension
+          point="org.eclipse.wst.command.env.ui.widgetRegistry">
+       <widgetFactory
+             class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSJava2WSDLConfigWidgetFactory"
+             id="JBossWSJava2WSDLConfig"
+             insertBeforeCommandId="org.jboos.tools.ws.creation.core.commands.Java2WSDLCommnad">
+       </widgetFactory>
     </extension>    
 
 </plugin>
