@@ -53,7 +53,16 @@ public class ProviderInvokeCodeGenConfigWidget extends SimpleWidgetDataContribut
 				model.setCustomPackage(txtCustomPkgName.getText());
 			}});
 		
+		Button wsdlGen = new Button(configCom, SWT.CHECK|SWT.NONE);
+		GridData wsdlGenData = new GridData();
+		wsdlGenData.horizontalSpan = 2;
+		wsdlGen.setLayoutData(wsdlGenData);
+		wsdlGen.setText("Generete WSDL file");
+		wsdlGen.setSelection(true);
 
+		
+		
+		
 		
 		return this;
 	}
