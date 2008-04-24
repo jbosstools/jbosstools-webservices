@@ -34,7 +34,7 @@ public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
 		String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";		
 		String command =  "sh wsprovide.sh ";
 		if(System.getProperty("os.name").toLowerCase().indexOf("win") >= 0){
-			command +=  "cmd wsprovide.bat";		   
+			command =  "cmd wsprovide.bat";		   
 		}		
 		String args = getCommandlineArgs();		
 		command += " -k " + args + " " + model.getWsdlURI();
