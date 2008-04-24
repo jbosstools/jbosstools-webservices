@@ -29,11 +29,11 @@ import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetDataContribut
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataEvents;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 
-public class Java2WSDLCodeGenConfigWidget extends SimpleWidgetDataContributor {
+public class ProviderInvokeCodeGenConfigWidget extends SimpleWidgetDataContributor {
 	
 	private ServiceModel model;
 
-	public Java2WSDLCodeGenConfigWidget(ServiceModel model){
+	public ProviderInvokeCodeGenConfigWidget(ServiceModel model){
 		this.model = model;
 	}
 	

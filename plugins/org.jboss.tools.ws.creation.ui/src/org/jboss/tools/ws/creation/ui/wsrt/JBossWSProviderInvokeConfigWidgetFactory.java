@@ -21,15 +21,15 @@ import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
 import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.ui.widgets.CodeGenConfigWidget;
-import org.jboss.tools.ws.creation.ui.widgets.Java2WSDLCodeGenConfigWidget;
+import org.jboss.tools.ws.creation.ui.widgets.ProviderInvokeCodeGenConfigWidget;
 
-public class JBossWSJava2WSDLConfigWidgetFactory implements
+public class JBossWSProviderInvokeConfigWidgetFactory implements
 		INamedWidgetContributorFactory {
 
 	private SimpleWidgetContributor servicesXMLSelectWidgetContrib;
 	private ServiceModel model;
 
-	public JBossWSJava2WSDLConfigWidgetFactory() {
+	public JBossWSProviderInvokeConfigWidgetFactory() {
 	}
 
 	public INamedWidgetContributor getFirstNamedWidget() {
@@ -54,7 +54,7 @@ public class JBossWSJava2WSDLConfigWidgetFactory implements
 		// setWebServiceDataModel
 		// method in this class.
 		dataRegistry.addMapping(InitialCommnad.class, "WebServiceDataModel", //$NON-NLS-1$
-				JBossWSJava2WSDLConfigWidgetFactory.class);
+				JBossWSProviderInvokeConfigWidgetFactory.class);
 	}
 
 	public void setWebServiceDataModel(ServiceModel model) {
@@ -63,7 +63,7 @@ public class JBossWSJava2WSDLConfigWidgetFactory implements
 
 	private void init() {
 		// Pages of JBossWS Java2WSDL
-		Java2WSDLCodeGenConfigWidget java2WSDLWidget = new Java2WSDLCodeGenConfigWidget(
+		ProviderInvokeCodeGenConfigWidget java2WSDLWidget = new ProviderInvokeCodeGenConfigWidget(
 				model);
 		servicesXMLSelectWidgetContrib = createWidgetContributor(
 				"JBoss Web Service Code Generation Configuration",

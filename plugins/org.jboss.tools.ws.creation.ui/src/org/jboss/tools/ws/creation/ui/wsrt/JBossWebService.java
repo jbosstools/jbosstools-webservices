@@ -12,8 +12,8 @@ import org.eclipse.wst.ws.internal.wsrt.ISelection;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
-import org.jboos.tools.ws.creation.core.commands.Java2WSDLCommand;
 import org.jboos.tools.ws.creation.core.commands.WSDL2JavaCommnad;
+import org.jboos.tools.ws.creation.core.commands.WSProviderInvokeCommnad;
 import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.core.command.JbossWSRuntimeCommand;
 
@@ -52,7 +52,7 @@ public class JBossWebService extends AbstractWebService {
 		}
 		else if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP){
 			commands.add(new InitialCommnad(model, this, WebServiceScenario.BOTTOMUP));
-			commands.add(new Java2WSDLCommand(model));
+			commands.add(new WSProviderInvokeCommnad(model));
 			commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		
