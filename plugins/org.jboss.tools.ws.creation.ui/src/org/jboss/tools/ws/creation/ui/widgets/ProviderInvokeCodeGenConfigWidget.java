@@ -45,15 +45,6 @@ public class ProviderInvokeCodeGenConfigWidget extends SimpleWidgetDataContribut
 		GridLayout layout = new GridLayout(2, false);		
 		configCom.setLayout(layout);
 		configCom.setLayoutData(new GridData(GridData.FILL_BOTH));
-		Label lblCustomPakage = new Label(configCom, SWT.NONE);
-		lblCustomPakage.setText("Custom package name:");
-		final Text txtCustomPkgName = new Text(configCom, SWT.NONE);
-		txtCustomPkgName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		txtCustomPkgName.addModifyListener(new ModifyListener(){
-
-			public void modifyText(ModifyEvent e) {
-				model.setCustomPackage(txtCustomPkgName.getText());
-			}});
 		
 		final Button wsdlGen = new Button(configCom, SWT.CHECK|SWT.NONE);
 		GridData wsdlGenData = new GridData();
