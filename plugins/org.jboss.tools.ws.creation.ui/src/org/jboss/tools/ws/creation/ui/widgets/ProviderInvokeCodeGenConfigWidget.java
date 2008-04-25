@@ -16,6 +16,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,6 +36,7 @@ public class ProviderInvokeCodeGenConfigWidget extends SimpleWidgetDataContribut
 
 	public ProviderInvokeCodeGenConfigWidget(ServiceModel model){
 		this.model = model;
+		model.setGenWSDL(true);
 	}
 	
 	public WidgetDataEvents addControls( Composite parent, Listener statusListener){
@@ -53,17 +55,24 @@ public class ProviderInvokeCodeGenConfigWidget extends SimpleWidgetDataContribut
 				model.setCustomPackage(txtCustomPkgName.getText());
 			}});
 		
-		Button wsdlGen = new Button(configCom, SWT.CHECK|SWT.NONE);
+		final Button wsdlGen = new Button(configCom, SWT.CHECK|SWT.NONE);
 		GridData wsdlGenData = new GridData();
 		wsdlGenData.horizontalSpan = 2;
 		wsdlGen.setLayoutData(wsdlGenData);
 		wsdlGen.setText("Generete WSDL file");
-		wsdlGen.setSelection(true);
+		wsdlGen.setSelection(true);		
+		wsdlGen.addSelectionListener(new SelectionListener(){
 
-		
-		
-		
-		
+			public void widgetDefaultSelected(SelectionEvent e) {				
+				
+			}
+
+			public void widgetSelected(SelectionEvent e) {
+				model.setGenWSDL(wsdlGen.getSelection());
+				
+			}
+			
+		});
 		return this;
 	}
 }
