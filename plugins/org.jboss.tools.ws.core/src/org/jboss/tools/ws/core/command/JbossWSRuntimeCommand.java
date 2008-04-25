@@ -57,10 +57,10 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 						JbossWSCoreMessages.DIR_LIB);
 		status = JbossWSCoreUtils.copy(libPath, targetPath);
 		
-		// copy lib jars to project's folder
-		IPath clientPath = new Path(runtimeLocation);
-		clientPath = clientPath.append(JbossWSCoreMessages.DIR_CLIENT);
-		JbossWSCoreUtils.copy(clientPath,targetPath);
+//		// copy lib jars to project's folder
+//		IPath clientPath = new Path(runtimeLocation);
+//		clientPath = clientPath.append(JbossWSCoreMessages.DIR_CLIENT);
+//		JbossWSCoreUtils.copy(clientPath,targetPath);
 
 		return status;
 	}
