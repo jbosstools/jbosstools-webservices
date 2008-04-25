@@ -136,10 +136,8 @@ public class JbossWSCoreUtils {
 				}
 			} else {
 				try {
-					copy(sourcePath.append(children[i].getName()), makeFolder(
-							getWorkspaceRoot().getContainerForLocation(
-									targetPath), children[i].getName())
-							.getFullPath());
+					IFolder temp = makeFolder(getWorkspaceRoot().getContainerForLocation(targetPath), children[i].getName());
+					copy(sourcePath.append(children[i].getName()), temp.getLocation());
 				} catch (CoreException e) {
 					status = StatusUtils.errorStatus(
 							NLS.bind(JbossWSCoreMessages.ERROR_COPY,

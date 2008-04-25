@@ -23,6 +23,7 @@ public class JbossWSCoreMessages {
 
 	public static String PROGRESS_INSTALL_JBOSSWS_RUNTIME;
 	public static String DIR_LIB;
+	public static String DIR_CLIENT;
 	public static String DIR_WEB_INF;
 	public static String DIR_WEB_CONTENT;
 	public static String ERROR_COPY;

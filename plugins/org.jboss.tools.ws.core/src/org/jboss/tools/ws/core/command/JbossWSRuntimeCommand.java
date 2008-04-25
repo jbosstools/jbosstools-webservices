@@ -46,7 +46,7 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 				.getPreferenceStore();
 		runtimeLocation = ps.getString("jbosswsruntimelocation");
 
-		// copy jars to project's folder
+		// copy lib jars to project's folder
 		IPath libPath = new Path(runtimeLocation);
 		libPath = libPath.append(JbossWSCoreMessages.DIR_LIB);
 
@@ -56,6 +56,11 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 				.append(JbossWSCoreMessages.DIR_WEB_INF).append(
 						JbossWSCoreMessages.DIR_LIB);
 		status = JbossWSCoreUtils.copy(libPath, targetPath);
+		
+		// copy lib jars to project's folder
+		IPath clientPath = new Path(runtimeLocation);
+		clientPath = clientPath.append(JbossWSCoreMessages.DIR_CLIENT);
+		JbossWSCoreUtils.copy(clientPath,targetPath);
 
 		return status;
 	}
