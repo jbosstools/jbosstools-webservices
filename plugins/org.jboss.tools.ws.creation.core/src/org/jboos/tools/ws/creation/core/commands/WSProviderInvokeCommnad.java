@@ -37,7 +37,7 @@ public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
 			command =  "cmd wsprovide.bat";		   
 		}		
 		String args = getCommandlineArgs();		
-		command += " -k " + args + " " + model.getServiceClass();
+		command += " -k " + args;
 		
 		try {
 			
@@ -78,7 +78,11 @@ public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
         if(model.isGenWSDL()){
         	commandLine += " -w "; 
         }
-        commandLine += " -o " + projectRoot + Path.SEPARATOR + "WebContext" + Path.SEPARATOR + "wsdl";
+        commandLine += " -r " + projectRoot + Path.SEPARATOR + "WebContent" + Path.SEPARATOR + "wsdl ";
+        
+        commandLine += " -c " + projectRoot + Path.SEPARATOR + "build/classes/ ";
+        
+        commandLine += model.getServiceClass();
 		
 		return commandLine;
 		
