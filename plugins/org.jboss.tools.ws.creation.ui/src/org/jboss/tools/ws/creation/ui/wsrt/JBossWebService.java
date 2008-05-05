@@ -48,12 +48,12 @@ public class JBossWebService extends AbstractWebService {
 		if (ctx.getScenario().getValue() == WebServiceScenario.TOPDOWN)	{ 
 			commands.add(new InitialCommnad(model, this, WebServiceScenario.TOPDOWN));
 			commands.add(new WSDL2JavaCommnad(model));
-			commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
+			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		else if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP){
 			commands.add(new InitialCommnad(model, this, WebServiceScenario.BOTTOMUP));
 			commands.add(new WSProviderInvokeCommnad(model));
-			commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
+			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		
 		return new SimpleCommandFactory(commands);
