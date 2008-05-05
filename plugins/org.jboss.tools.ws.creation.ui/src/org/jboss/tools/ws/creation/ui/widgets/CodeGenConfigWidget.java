@@ -116,7 +116,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		});
 		
 		new Label(configCom, SWT.NONE);
-		btnRemove = new Button(configCom, SWT.BORDER);
+		btnRemove = new Button(configCom, SWT.NONE);
 		btnRemove.setEnabled(false);
 		btnRemove.setText(JBossWSCreationCoreMessages.getString("LABEL_BUTTON_TEXT_REMOVE"));
 		btnRemove.addSelectionListener(new SelectionAdapter(){
