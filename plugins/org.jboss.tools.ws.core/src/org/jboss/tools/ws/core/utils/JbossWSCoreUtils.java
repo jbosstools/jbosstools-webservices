@@ -26,11 +26,18 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.osgi.util.NLS;
 import org.jboss.tools.ws.core.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.JbossWSCorePlugin;
 
 public class JbossWSCoreUtils {
 
@@ -122,26 +129,29 @@ public class JbossWSCoreUtils {
 				try {
 					finStream = new FileInputStream(children[i]);
 				} catch (FileNotFoundException e) {
-					status = StatusUtils.errorStatus(
-							NLS.bind(JbossWSCoreMessages.ERROR_COPY,
-									 new String[]{e.getLocalizedMessage()}), e);
+					status = StatusUtils.errorStatus(NLS.bind(
+							JbossWSCoreMessages.ERROR_COPY, new String[] { e
+									.getLocalizedMessage() }), e);
 				}
 				try {
 					makeFile(getWorkspaceRoot().getContainerForLocation(
 							targetPath), children[i].getName(), finStream);
 				} catch (CoreException e) {
-					status = StatusUtils.errorStatus(
-							NLS.bind(JbossWSCoreMessages.ERROR_COPY,
-									 new String[]{e.getLocalizedMessage()}), e);
+					status = StatusUtils.errorStatus(NLS.bind(
+							JbossWSCoreMessages.ERROR_COPY, new String[] { e
+									.getLocalizedMessage() }), e);
 				}
 			} else {
 				try {
-					IFolder temp = makeFolder(getWorkspaceRoot().getContainerForLocation(targetPath), children[i].getName());
-					copy(sourcePath.append(children[i].getName()), temp.getLocation());
+					IFolder temp = makeFolder(getWorkspaceRoot()
+							.getContainerForLocation(targetPath), children[i]
+							.getName());
+					copy(sourcePath.append(children[i].getName()), temp
+							.getLocation());
 				} catch (CoreException e) {
-					status = StatusUtils.errorStatus(
-							NLS.bind(JbossWSCoreMessages.ERROR_COPY,
-									 new String[]{e.getLocalizedMessage()}), e);
+					status = StatusUtils.errorStatus(NLS.bind(
+							JbossWSCoreMessages.ERROR_COPY, new String[] { e
+									.getLocalizedMessage() }), e);
 				}
 			}
 		}
@@ -206,6 +216,57 @@ public class JbossWSCoreUtils {
 
 			return file;
 		}
+	}
+
+	public static IStatus addClassPath(IProject project) {
+		IStatus status = Status.OK_STATUS;
+		try {
+
+			IJavaProject javaProject = JavaCore.create(project);
+			IClasspathEntry newClasspath = JavaCore
+					.newContainerEntry(getJbossLibPath());
+
+			IClasspathEntry[] oldClasspathEntries = javaProject
+					.getRawClasspath();
+
+			boolean isFolderInClassPathAlready = false;
+			for (int i = 0; i < oldClasspathEntries.length
+					&& !isFolderInClassPathAlready; i++) {
+				if (oldClasspathEntries[i].getPath().equals(
+						project.getFullPath())) {
+					isFolderInClassPathAlready = true;
+					break;
+				}
+			}
+
+			if (!isFolderInClassPathAlready) {
+
+				IClasspathEntry[] newClasspathEntries = new IClasspathEntry[oldClasspathEntries.length + 1];
+				for (int i = 0; i < oldClasspathEntries.length; i++) {
+					newClasspathEntries[i] = oldClasspathEntries[i];
+				}
+				newClasspathEntries[oldClasspathEntries.length] = newClasspath;
+
+				javaProject.setRawClasspath(newClasspathEntries,
+						new NullProgressMonitor());
+			}
+		} catch (JavaModelException e) {
+			status = StatusUtils.errorStatus(NLS.bind(
+					JbossWSCoreMessages.ERROR_COPY, new String[] { e
+							.getLocalizedMessage() }), e);
+			return status;
+		}
+
+		return status;
+	}
+
+	public static IPath getJbossLibPath() {
+		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
+				.getPreferenceStore();
+		String runtimeLocation = ps.getString("jbosswsruntimelocation");
+
+		IPath libPath = new Path(runtimeLocation);
+		return libPath.append(JbossWSCoreMessages.DIR_LIB);
 	}
 
 }

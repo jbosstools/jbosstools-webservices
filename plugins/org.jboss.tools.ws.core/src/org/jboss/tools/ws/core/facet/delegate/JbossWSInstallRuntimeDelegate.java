@@ -17,7 +17,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.jboss.tools.ws.core.JbossWSCoreMessages;
-import org.jboss.tools.ws.core.command.JbossWSRuntimeCommand;
+import org.jboss.tools.ws.core.command.JbossWSClassPathCommand;
 
 public class JbossWSInstallRuntimeDelegate implements IDelegate {
 
@@ -25,7 +25,7 @@ public class JbossWSInstallRuntimeDelegate implements IDelegate {
 			IProgressMonitor monitor) throws CoreException {
 		monitor.beginTask(JbossWSCoreMessages.PROGRESS_INSTALL_JBOSSWS_RUNTIME, 2 );
 
-		JbossWSRuntimeCommand command = new JbossWSRuntimeCommand(project); 
+		JbossWSClassPathCommand command = new JbossWSClassPathCommand(project); 
 	    command.executeOverride(monitor);
 		monitor.worked( 1 );
 		monitor.done();

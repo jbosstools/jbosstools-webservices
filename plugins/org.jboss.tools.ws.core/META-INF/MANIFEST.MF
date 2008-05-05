@@ -10,7 +10,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.common.project.facet.core,
  org.eclipse.wst.common.frameworks,
  org.eclipse.core.resources,
- org.eclipse.jst.ws
+ org.eclipse.jst.ws,
+ org.eclipse.jdt.core
 Eclipse-LazyStart: true
 Bundle-Vendor: %PLUGIN_PROVIDER
 Export-Package: org.jboss.tools.ws.core,

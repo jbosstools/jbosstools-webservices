@@ -42,14 +42,8 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 	public IStatus executeOverride(IProgressMonitor monitor) {
 		IStatus status = Status.OK_STATUS;
 
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
-				.getPreferenceStore();
-		runtimeLocation = ps.getString("jbosswsruntimelocation");
-
 		// copy lib jars to project's folder
-		IPath libPath = new Path(runtimeLocation);
-		libPath = libPath.append(JbossWSCoreMessages.DIR_LIB);
-
+		IPath libPath = JbossWSCoreUtils.getJbossLibPath();
 		IPath targetPath = JbossWSCoreUtils.pathToWebProjectContainer(project
 				.toString());
 		targetPath = targetPath
@@ -57,11 +51,6 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 						JbossWSCoreMessages.DIR_LIB);
 		status = JbossWSCoreUtils.copy(libPath, targetPath);
 		
-//		// copy lib jars to project's folder
-//		IPath clientPath = new Path(runtimeLocation);
-//		clientPath = clientPath.append(JbossWSCoreMessages.DIR_CLIENT);
-//		JbossWSCoreUtils.copy(clientPath,targetPath);
-
 		return status;
 	}
 
