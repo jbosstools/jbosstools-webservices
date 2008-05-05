@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.List;
 
+import javax.xml.parsers.SAXParserFactory;
+
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -35,28 +37,37 @@ public class WSDL2JavaCommnad extends AbstractDataModelOperation{
 		String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";		
 		String command =  "sh wsconsume.sh ";
 		if(System.getProperty("os.name").toLowerCase().indexOf("win") >= 0){
-			command =  "cmd wsconsume.bat";		   
+			command =  "cmd.exe /c wsconsume.bat ";		   
 		}		
 		String args = getCommandlineArgs();		
 		command += " -k " + args + " " + model.getWsdlURI();
 		
 		try {
-			
-			InputStreamReader ir = new InputStreamReader(Runtime.getRuntime().exec(command, null, new File(commandLocation)).getInputStream());
+			Runtime rt = Runtime.getRuntime();
+            Process proc = rt.exec(command, null, new File(commandLocation));
+			InputStreamReader ir = new InputStreamReader(proc.getErrorStream());
             LineNumberReader input = new LineNumberReader(ir);            
             String str = input.readLine();
+            StringBuffer result = new StringBuffer();
             while(str != null){                
                 System.out.println(str);
+                result.append(str).append("\t\r");
                 str = input.readLine();
+                
            }
-            
+            proc.waitFor();
+            System.out.print(result);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
+		SAXParserFactory spf = SAXParserFactory.newInstance();
 		refreshProject(model.getWebProjectName(), monitor);
+		
 		
 		return Status.OK_STATUS;
 	}
