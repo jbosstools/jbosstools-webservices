@@ -20,8 +20,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetDataContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataEvents;
-import org.jboos.tools.ws.creation.core.data.ServiceModel;
-import org.jboos.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
 public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 	

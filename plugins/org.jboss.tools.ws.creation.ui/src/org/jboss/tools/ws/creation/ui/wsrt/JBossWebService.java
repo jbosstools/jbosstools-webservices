@@ -11,11 +11,11 @@ import org.eclipse.wst.ws.internal.wsrt.IContext;
 import org.eclipse.wst.ws.internal.wsrt.ISelection;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
-import org.jboos.tools.ws.creation.core.commands.WSDL2JavaCommnad;
-import org.jboos.tools.ws.creation.core.commands.WSProviderInvokeCommnad;
-import org.jboos.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.core.command.JbossWSRuntimeCommand;
+import org.jboss.tools.ws.creation.core.commands.InitialCommnad;
+import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommnad;
+import org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommnad;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
 public class JBossWebService extends AbstractWebService {
 

@@ -7,8 +7,8 @@ import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetContributorFactory;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
-import org.jboos.tools.ws.creation.core.commands.InitialCommnad;
-import org.jboos.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.commands.InitialCommnad;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.ui.widgets.CodeGenConfigWidget;
 
 public class JBossWSConfigWidgetFactory implements INamedWidgetContributorFactory {
