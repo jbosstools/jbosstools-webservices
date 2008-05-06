@@ -1,4 +1,4 @@
-package org.jboos.tools.ws.creation.core.commands;
+package org.jboss.tools.ws.creation.core.commands;
 
 import javax.wsdl.WSDLException;
 
@@ -17,9 +17,9 @@ import org.eclipse.wst.wsdl.internal.impl.wsdl4j.WSDLFactoryImpl;
 import org.eclipse.wst.wsdl.internal.util.WSDLDefinitionFactory;
 import org.eclipse.wst.wsdl.internal.util.WSDLUtil;
 import org.eclipse.wst.wsdl.util.WSDLParser;
-import org.jboos.tools.ws.creation.core.data.ServiceModel;
-import org.jboos.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
-import org.jboos.tools.ws.creation.core.utils.WSDLPropertyReader;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
 public class InitialCommnad extends AbstractDataModelOperation {
 

@@ -1,4 +1,4 @@
-package org.jboos.tools.ws.creation.core.commands;
+package org.jboss.tools.ws.creation.core.commands;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,9 +13,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboos.tools.ws.creation.core.data.ServiceModel;
-import org.jboos.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class WSProviderInvokeCommnad extends AbstractDataModelOperation{
 

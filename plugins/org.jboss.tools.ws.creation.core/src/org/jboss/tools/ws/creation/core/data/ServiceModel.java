@@ -1,4 +1,4 @@
-package org.jboos.tools.ws.creation.core.data;
+package org.jboss.tools.ws.creation.core.data;
 
 import java.util.ArrayList;
 import java.util.List;

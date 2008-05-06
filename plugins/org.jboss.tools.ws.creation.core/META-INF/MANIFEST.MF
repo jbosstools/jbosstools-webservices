@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %PLUGIN_NAME
 Bundle-SymbolicName: org.jboss.tools.ws.creation.core
 Bundle-Version: 1.0.0
-Bundle-Activator: org.jboos.tools.ws.creation.core.JBossWSCreationCore
+Bundle-Activator: org.jboss.tools.ws.creation.core.JBossWSCreationCore
 Bundle-Vendor: %PLUGIN_PROVIDER
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -20,9 +20,9 @@ Require-Bundle: org.eclipse.ui,
  org.apache.ant,
  org.apache.xerces
 Eclipse-LazyStart: true
-Export-Package: org.jboos.tools.ws.creation.core,
- org.jboos.tools.ws.creation.core.commands,
- org.jboos.tools.ws.creation.core.data,
- org.jboos.tools.ws.creation.core.messages
+Export-Package: org.jboss.tools.ws.creation.core,
+ org.jboss.tools.ws.creation.core.commands,
+ org.jboss.tools.ws.creation.core.data,
+ org.jboss.tools.ws.creation.core.messages
 Bundle-ClassPath: lib/wsdl4j.jar,
  .

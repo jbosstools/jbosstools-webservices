@@ -1,4 +1,4 @@
-package org.jboos.tools.ws.creation.core.commands;
+package org.jboss.tools.ws.creation.core.commands;
 
 import java.io.IOException;
 
@@ -12,8 +12,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.command.internal.env.core.common.StatusUtils;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboos.tools.ws.creation.core.data.ServiceModel;
-import org.jboos.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;

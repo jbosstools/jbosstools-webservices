@@ -1,4 +1,4 @@
-package org.jboos.tools.ws.creation.core;
+package org.jboss.tools.ws.creation.core;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
