@@ -1,10 +1,10 @@
-package org.jboos.tools.ws.creation.core.messages;
+package org.jboss.tools.ws.creation.core.messages;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 public class JBossWSCreationCoreMessages {
-	private static final String BUNDLE_NAME = "org.jboos.tools.ws.creation.core.messages.JBossWSCreationCore"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "org.jboss.tools.ws.creation.core.messages.JBossWSCreationCore"; //$NON-NLS-1$
 
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle
 			.getBundle(BUNDLE_NAME);
