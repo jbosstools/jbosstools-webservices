@@ -6,7 +6,7 @@
     <widgetFactory
           class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSConfigWidgetFactory"
           id="JBossWSWSDL2JavaConfig"
-          insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommnad">
+          insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand">
     </widgetFactory>
  </extension>
     
@@ -51,7 +51,7 @@
        <widgetFactory
              class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSProviderInvokeConfigWidgetFactory"
              id="JBossWSProviderInvokeConfig"
-             insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommnad">
+             insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand">
        </widgetFactory>
     </extension>    
 

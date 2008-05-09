@@ -12,9 +12,9 @@ import org.eclipse.wst.ws.internal.wsrt.ISelection;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.core.command.JbossWSRuntimeCommand;
-import org.jboss.tools.ws.creation.core.commands.InitialCommnad;
-import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommnad;
-import org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommnad;
+import org.jboss.tools.ws.creation.core.commands.InitialCommand;
+import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
+import org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
 public class JBossWebService extends AbstractWebService {
@@ -46,13 +46,13 @@ public class JBossWebService extends AbstractWebService {
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(project);
 		if (ctx.getScenario().getValue() == WebServiceScenario.TOPDOWN)	{ 
-			commands.add(new InitialCommnad(model, this, WebServiceScenario.TOPDOWN));
-			commands.add(new WSDL2JavaCommnad(model));
+			commands.add(new InitialCommand(model, this, WebServiceScenario.TOPDOWN));
+			commands.add(new WSDL2JavaCommand(model));
 			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		else if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP){
-			commands.add(new InitialCommnad(model, this, WebServiceScenario.BOTTOMUP));
-			commands.add(new WSProviderInvokeCommnad(model));
+			commands.add(new InitialCommand(model, this, WebServiceScenario.BOTTOMUP));
+			commands.add(new WSProviderInvokeCommand(model));
 			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		
