@@ -22,6 +22,9 @@
 package org.jboss.tools.ws.creation.core.utils;
 
 import java.io.File;
+import java.text.Collator;
+import java.util.Arrays;
+import java.util.Locale;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -30,6 +33,40 @@ import org.eclipse.jst.ws.internal.common.J2EEUtils;
 
 public class JBossWSCreationUtils {
 	
+    static final String javaKeyWords[] =
+    {
+            "abstract", "assert", "boolean", "break", "byte", "case",
+            "catch", "char", "class", "const", "continue",
+            "default", "do", "double", "else", "extends",
+            "false", "final", "finally", "float", "for",
+            "goto", "if", "implements", "import", "instanceof",
+            "int", "interface", "long", "native", "new",
+            "null", "package", "private", "protected", "public",
+            "return", "short", "static", "strictfp", "super",
+            "switch", "synchronized", "this", "throw", "throws",
+            "transient", "true", "try", "void", "volatile",
+            "while"
+    };
+    
+    public static boolean isJavaKeyword(String keyword) {
+        if (hasUpperCase(keyword)) {
+            return false;
+        }
+        return (Arrays.binarySearch(javaKeyWords, keyword, Collator.getInstance(Locale.ENGLISH)) >= 0);
+    }
+
+    private static boolean hasUpperCase(String nodeName) {
+        if (nodeName == null) {
+            return false;
+        }
+        for (int i = 0; i < nodeName.length(); i++) {
+            if (Character.isUpperCase(nodeName.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
 	public static IPath getWorkspace(){
 		return ResourcesPlugin.getWorkspace().getRoot().getLocation();
 	}
@@ -114,6 +151,7 @@ public class JBossWSCreationUtils {
 			return File.separator;
 		}
 	}
+	
 	
 	
 	

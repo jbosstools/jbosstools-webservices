@@ -41,7 +41,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		
 		//custom package name
 		Label lblCustomPakage = new Label(configCom, SWT.NONE);
-		lblCustomPakage.setText(JBossWSCreationCoreMessages.getString("LABEL_CUSTOM_PACKAGE_NAME")); //$NON-NLS-1$
+		lblCustomPakage.setText(JBossWSCreationCoreMessages.LABEL_CUSTOM_PACKAGE_NAME); //$NON-NLS-1$
 		final Text txtCustomPkgName = new Text(configCom, SWT.BORDER);
 		txtCustomPkgName.setText(model.getCustomPackage());
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -54,11 +54,16 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 			}});
 		
 		//target
-		new Label(configCom, SWT.NONE).setText(JBossWSCreationCoreMessages.getString("LABEL_JAXWS_TARGET")); //$NON-NLS-1$
+		new Label(configCom, SWT.NONE).setText(JBossWSCreationCoreMessages.LABEL_JAXWS_TARGET); //$NON-NLS-1$
 		final Combo cbSpec = new Combo(configCom, SWT.BORDER | SWT.READ_ONLY);
-		cbSpec.add(JBossWSCreationCoreMessages.getString("VALUE_TARGET_0"), 0); //$NON-NLS-1$
-		cbSpec.add(JBossWSCreationCoreMessages.getString("VALUE_TARGET_1"), 1);		 //$NON-NLS-1$
-		cbSpec.select(1);
+		cbSpec.add(JBossWSCreationCoreMessages.VALUE_TARGET_0, 0); //$NON-NLS-1$
+		cbSpec.add(JBossWSCreationCoreMessages.VALUE_TARGET_1, 1);		 //$NON-NLS-1$
+		if(JBossWSCreationCoreMessages.VALUE_TARGET_0.equals(model.getTarget())){
+			cbSpec.select(0);
+		}
+		else{
+			cbSpec.select(1);
+		}
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		cbSpec.setLayoutData(gd);
@@ -69,11 +74,11 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 			}});
 		
 		//catalog file
-		new Label(configCom, SWT.NONE).setText(JBossWSCreationCoreMessages.getString("LABEL_CATALOG_FILE")); //$NON-NLS-1$
+		new Label(configCom, SWT.NONE).setText(JBossWSCreationCoreMessages.LABEL_CATALOG_FILE); //$NON-NLS-1$
 		final Text txtCatlog = new Text(configCom, SWT.BORDER);
 		txtCatlog.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Button btnCatlog = new Button(configCom, SWT.NONE);
-		btnCatlog.setText(JBossWSCreationCoreMessages.getString("LABEL_BUTTON_TEXT_SELECTION")); //$NON-NLS-1$
+		btnCatlog.setText(JBossWSCreationCoreMessages.LABEL_BUTTON_TEXT_SELECTION); //$NON-NLS-1$
 		btnCatlog.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e) {
 				String fileLocation = new FileDialog(Display.getCurrent().getActiveShell(), SWT.NONE).open();
@@ -83,7 +88,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		});
 		
 		//binding files
-		new Label(configCom, SWT.NONE).setText(JBossWSCreationCoreMessages.getString("LABEL_BINDING_FILE")); //$NON-NLS-1$
+		new Label(configCom, SWT.NONE).setText(JBossWSCreationCoreMessages.LABEL_BINDING_FILE); //$NON-NLS-1$
 		
 		final List bindingList = new List(configCom, SWT.BORDER | SWT.SCROLL_LINE | SWT.V_SCROLL | SWT.H_SCROLL);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -103,11 +108,13 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		
 
 		Button btnSelect = new Button(configCom, SWT.NONE);
-		btnSelect.setText(JBossWSCreationCoreMessages.getString("LABEL_BUTTON_TEXT_SELECTION")); //$NON-NLS-1$
+		btnSelect.setText(JBossWSCreationCoreMessages.LABEL_BUTTON_TEXT_SELECTION); //$NON-NLS-1$
 		btnSelect.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e) {
+				
 				String fileLocation = new FileDialog(Display.getCurrent().getActiveShell(), SWT.NONE).open();
-				if(!model.getBindingFiles().contains(fileLocation)){
+				if(fileLocation != null && 
+						!model.getBindingFiles().contains(fileLocation)){
 					bindingList.add(fileLocation);
 					model.addBindingFile(fileLocation);
 				}
@@ -118,7 +125,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		new Label(configCom, SWT.NONE);
 		btnRemove = new Button(configCom, SWT.NONE);
 		btnRemove.setEnabled(false);
-		btnRemove.setText(JBossWSCreationCoreMessages.getString("LABEL_BUTTON_TEXT_REMOVE"));
+		btnRemove.setText(JBossWSCreationCoreMessages.LABEL_BUTTON_TEXT_REMOVE);
 		btnRemove.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e) {
 				model.getBindingFiles().remove(bindingList.getSelectionIndex());

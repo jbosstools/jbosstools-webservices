@@ -1,22 +1,27 @@
 package org.jboss.tools.ws.creation.core.messages;
 
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import org.eclipse.osgi.util.NLS;
 
-public class JBossWSCreationCoreMessages {
+public class JBossWSCreationCoreMessages extends NLS {
 	private static final String BUNDLE_NAME = "org.jboss.tools.ws.creation.core.messages.JBossWSCreationCore"; //$NON-NLS-1$
 
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle
-			.getBundle(BUNDLE_NAME);
+	public static String LABEL_CUSTOM_PACKAGE_NAME;
+	public static String LABEL_CATALOG_FILE;
+	public static String LABEL_BUTTON_TEXT_SELECTION;  
+	public static String LABEL_BINDING_FILE;
+	public static String LABEL_JAXWS_TARGET;
+	public static String VALUE_TARGET_0;
+	public static String VALUE_TARGET_1;
+	public static String LABEL_BUTTON_TEXT_REMOVE;
+
+	public static String ERROR_MESSAGE_INVALID_BINDING_FILE;
+	public static String ERROR_READ_BINDING_FILE;
 
 	private JBossWSCreationCoreMessages() {
 	}
 
-	public static String getString(String key) {
-		try {
-			return RESOURCE_BUNDLE.getString(key);
-		} catch (MissingResourceException e) {
-			return '!' + key + '!';
-		}
+	static {
+		NLS.initializeMessages(BUNDLE_NAME, JBossWSCreationCoreMessages.class);
 	}
+	
 }

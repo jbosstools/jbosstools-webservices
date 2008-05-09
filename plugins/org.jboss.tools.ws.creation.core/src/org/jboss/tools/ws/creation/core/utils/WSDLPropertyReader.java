@@ -21,6 +21,7 @@
  */
 package org.jboss.tools.ws.creation.core.utils;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -63,22 +64,107 @@ public class WSDLPropertyReader {
 	public String packageFromTargetNamespace(){
 		
 		String packageName = definition.getTargetNamespace(); 
-		packageName = packageName.substring(packageName.lastIndexOf("/") + 1);
-		String returnPkg = "";
-		StringTokenizer st = new StringTokenizer(packageName, ".");
-		while(st.hasMoreTokens()){
-			if("".equals(returnPkg)){
-				returnPkg = st.nextToken();
-			}else{
-				returnPkg = st.nextToken() + "." + returnPkg;
-			}
-		}
+		String returnPkg = getPackageNameFromNamespce(packageName);
 		
 		return returnPkg;
 		
 		
 	}
 
+    private static String getPackageNameFromNamespce(String namespace) {
+
+        String hostname = null;
+        String path = "";
+
+        try {
+            java.net.URL url = new java.net.URL(namespace);
+
+            hostname = url.getHost();
+            path = url.getPath();
+        } catch (MalformedURLException e) {
+            if (namespace.indexOf(":") > -1) {
+                hostname = namespace.substring(namespace.indexOf(":") + 1);
+
+                while (hostname.startsWith("/")) {
+                    hostname = hostname.substring(1);
+                }
+
+                if (hostname.indexOf("/") > -1) {
+                    hostname = hostname.substring(0, hostname.indexOf("/"));
+                }
+            } else {
+                hostname = namespace.replace('/','.');
+            }
+        }
+
+        if (hostname == null || hostname.length() == 0) {
+            return null;
+        }
+
+        hostname = hostname.replace('-', '_');
+        path = path.replace('-', '_');
+
+        path = path.replace(':', '_');
+
+     
+        if ((path.length() > 0) && (path.charAt(path.length() - 1) == '/')) {
+            path = path.substring(0, path.length() - 1);
+        }
+
+   
+        StringTokenizer st = new StringTokenizer(hostname, ".:");
+        String[] nodes = new String[st.countTokens()];
+
+        for (int i = 0; i < nodes.length; ++i) {
+            nodes[i] = st.nextToken();
+        }
+
+        StringBuffer sb = new StringBuffer(namespace.length());
+
+        for (int i = nodes.length - 1; i >= 0; --i) {
+            appendToPackage(sb, nodes[i], (i == nodes.length - 1));
+        }
+
+        StringTokenizer st2 = new StringTokenizer(path, "/");
+
+        while (st2.hasMoreTokens()) {
+            appendToPackage(sb, st2.nextToken(), false);
+        }
+        
+        return sb.toString().toLowerCase();
+    }
+
+    private static void appendToPackage(StringBuffer sb, String nodeName,
+			boolean firstNode) {
+
+		if (JBossWSCreationUtils.isJavaKeyword(nodeName)) {
+			nodeName = "_" + nodeName;
+		}
+
+		if (!firstNode) {
+			sb.append('.');
+		}
+
+		if (Character.isDigit(nodeName.charAt(0))) {
+			sb.append('_');
+		}
+
+		if (nodeName.indexOf('.') != -1) {
+			char[] buf = nodeName.toCharArray();
+
+			for (int i = 0; i < nodeName.length(); i++) {
+				if (buf[i] == '.') {
+					buf[i] = '_';
+				}
+			}
+
+			nodeName = new String(buf);
+		}
+
+		sb.append(nodeName);
+	}
+    
+    
 	/**
 	 * Returns a list of service names the names are QNames
 	 * 
