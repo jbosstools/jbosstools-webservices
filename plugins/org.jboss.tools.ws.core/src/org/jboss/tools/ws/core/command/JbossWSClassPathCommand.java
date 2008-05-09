@@ -14,15 +14,10 @@ package org.jboss.tools.ws.core.command;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.JbossWSCoreMessages;
-import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
 
 public class JbossWSClassPathCommand extends AbstractDataModelOperation {

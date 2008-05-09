@@ -223,11 +223,12 @@ public class JbossWSCoreUtils {
 		try {
 
 			IJavaProject javaProject = JavaCore.create(project);
+			
 			IClasspathEntry newClasspath = JavaCore
-					.newContainerEntry(getJbossLibPath());
+					.newContainerEntry(new Path("JbossWSRuntimeLib"));
 
 			IClasspathEntry[] oldClasspathEntries = javaProject
-					.getRawClasspath();
+					.readRawClasspath();
 
 			boolean isFolderInClassPathAlready = false;
 			for (int i = 0; i < oldClasspathEntries.length
@@ -263,10 +264,38 @@ public class JbossWSCoreUtils {
 	public static IPath getJbossLibPath() {
 		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
 				.getPreferenceStore();
-		String runtimeLocation = ps.getString("jbosswsruntimelocation");
+		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
+		
+		if(runtimeLocation == null || runtimeLocation.equals("")){
+			
+		}
 
 		IPath libPath = new Path(runtimeLocation);
 		return libPath.append(JbossWSCoreMessages.DIR_LIB);
 	}
+	
+	public static IPath getJbossClientPath() {
+		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
+				.getPreferenceStore();
+		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
+		
+		if(runtimeLocation == null || runtimeLocation.equals("")){
+			
+		}
+
+		IPath libPath = new Path(runtimeLocation);
+		return libPath.append(JbossWSCoreMessages.DIR_CLIENT);
+	}
+	
+	public static IPath getJbossWSRuntimePath() {
+		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
+				.getPreferenceStore();
+		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
+		
+		if(runtimeLocation == null || runtimeLocation.equals("")){
+			
+		}
+		return new Path(runtimeLocation);
+	}	
 
 }

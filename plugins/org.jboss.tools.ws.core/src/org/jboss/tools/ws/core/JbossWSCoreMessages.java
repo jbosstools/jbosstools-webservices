@@ -27,6 +27,7 @@ public class JbossWSCoreMessages {
 	public static String DIR_WEB_INF;
 	public static String DIR_WEB_CONTENT;
 	public static String ERROR_COPY;
+	public static String WS_LOCATION;
 
 
 	static {
