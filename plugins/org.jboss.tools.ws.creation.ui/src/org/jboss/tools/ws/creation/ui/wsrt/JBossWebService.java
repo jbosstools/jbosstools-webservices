@@ -12,7 +12,7 @@ import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.creation.core.commands.BindingFilesValidationCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
-import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommnad;
+import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
@@ -47,7 +47,7 @@ public class JBossWebService extends AbstractWebService {
 		if (ctx.getScenario().getValue() == WebServiceScenario.TOPDOWN)	{ 
 			commands.add(new InitialCommand(model, this, WebServiceScenario.TOPDOWN));
 			commands.add(new BindingFilesValidationCommand(model));
-			commands.add(new WSDL2JavaCommnad(model));
+			commands.add(new WSDL2JavaCommand(model));
 			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		else if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP){
