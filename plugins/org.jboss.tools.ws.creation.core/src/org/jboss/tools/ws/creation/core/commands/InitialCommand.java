@@ -21,13 +21,13 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
-public class InitialCommnad extends AbstractDataModelOperation {
+public class InitialCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
 	private IWebService ws;
 	private int scenario;
 
-	public InitialCommnad(ServiceModel model, IWebService ws, int scenario) {
+	public InitialCommand(ServiceModel model, IWebService ws, int scenario) {
 		this.model = model;
 		this.ws = ws;
 		this.scenario = scenario;

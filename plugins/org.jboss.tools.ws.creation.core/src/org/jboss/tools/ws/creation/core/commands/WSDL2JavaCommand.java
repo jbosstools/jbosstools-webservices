@@ -20,12 +20,12 @@ import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
-public class WSDL2JavaCommnad extends AbstractDataModelOperation{
+public class WSDL2JavaCommand extends AbstractDataModelOperation{
 
 	private ServiceModel model;
 	
 	
-	public WSDL2JavaCommnad(ServiceModel model){
+	public WSDL2JavaCommand(ServiceModel model){
 		this.model = model;
 	}
 	
