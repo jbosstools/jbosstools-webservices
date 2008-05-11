@@ -17,6 +17,9 @@ import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
+/**
+ * @author Grid Qian
+ */
 public class WSProviderInvokeCommand extends AbstractDataModelOperation{
 
 	private ServiceModel model;
