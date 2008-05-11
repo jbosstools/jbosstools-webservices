@@ -23,7 +23,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -39,6 +38,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * @author Grid Qian
+ */
 public class UIUtils {
 	/**
 	 * A default padding value for horizontalResize().
@@ -46,10 +48,6 @@ public class UIUtils {
 	public final static int DEFAULT_PADDING = 35;
 
 	String infoPopid_;
-	
-	// verify the jbossws jar directory
-	private static boolean alreadyComputedTempAxis2Directory = false;
-	private static String tempJbosswsDir = null;
 
 	public UIUtils(String infoPopid) {
 		infoPopid_ = infoPopid;
@@ -273,40 +271,6 @@ public class UIUtils {
 
 		if (referenceSize.x + padding > originalSize.x)
 			target.setSize(referenceSize.x + padding, originalSize.y);
-	}
-	
-	//
-	// jboss ws lib copy
-	
-	public static String tempAxis2Directory() {
-		if (!alreadyComputedTempAxis2Directory){
-			String[] nodes = {JbossWSUIMessages.DIR_DOT_METADATA,
-					JbossWSUIMessages.DIR_DOT_PLUGINS,
-					JbossWSUIMessages.TEMP_JBOSSWS_FACET_DIR};
-			tempJbosswsDir =addNodesToPath(
-					ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString(), nodes); 
-			alreadyComputedTempAxis2Directory= true;
-		}
-		return tempJbosswsDir;
-	}
-	
-	public static String tempAxis2WebappFileLocation() {
-		return
-		addAnotherNodeToPath(tempAxis2Directory(),
-				JbossWSUIMessages.WEBAPP_EXPLODED_SERVER_LOCATION_FILE);
-	}
-	
-	
-	public static String tempRuntimeStatusFileLocation() {
-		return
-		addAnotherNodeToPath(tempAxis2Directory(),
-				JbossWSUIMessages.SERVER_STATUS_LOCATION_FILE);
-	}
-	
-	public static String tempWarStatusFileLocation() {
-		return
-		addAnotherNodeToPath(tempAxis2Directory(),
-				JbossWSUIMessages.WAR_STATUS_LOCATION_FILE);
 	}
 	
 	public static void  writePropertyToFile(File file,String key, String value) throws IOException {

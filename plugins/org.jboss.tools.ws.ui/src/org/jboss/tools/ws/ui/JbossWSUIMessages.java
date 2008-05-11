@@ -13,6 +13,9 @@ package org.jboss.tools.ws.ui;
 
 import org.eclipse.osgi.util.NLS;
 
+/**
+ * @author Grid Qian
+ */
 public final class JbossWSUIMessages extends NLS {
 
 	private static final String BUNDLE_NAME = 

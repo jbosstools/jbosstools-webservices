@@ -38,6 +38,9 @@ import org.jboss.tools.ws.ui.JbossWSUIMessages;
 import org.jboss.tools.ws.ui.JbossWSUIPlugin;
 import org.jboss.tools.ws.ui.UIUtils;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSRuntimePreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
 
