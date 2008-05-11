@@ -11,12 +11,14 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSRuntimeClassPathInitializer extends
 		ClasspathContainerInitializer {
-
-	public static final String ID = "JbossWSRuntimeLib";
 
 	public JbossWSRuntimeClassPathInitializer() {
 	}
@@ -25,20 +27,13 @@ public class JbossWSRuntimeClassPathInitializer extends
 	public void initialize(IPath containerPath, IJavaProject project)
 			throws CoreException {
 
-		if (containerPath.segment(0).equals(ID)) {
+		if (containerPath.segment(0).equals(
+				JbossWSCoreMessages.JBOSSWS_RUNTIME_LIB)) {
 			JbossWSRuntimeClasspathContainer container = new JbossWSRuntimeClasspathContainer(
 					containerPath);
-			System.out.println(project.getElementName()+ " before "+project.getRawClasspath().length);
-			for(int i=0;i<project.getRawClasspath().length;i++){
-				System.out.println(i+" classpath entry = " + project.getRawClasspath()[i]);
-			}
 			JavaCore.setClasspathContainer(containerPath,
-					new IJavaProject[] {project},
-					new IClasspathContainer[] {container}, null);
-			System.out.println(project.getElementName()+" after "+project.getRawClasspath().length);
-			for(int i=0;i<project.getRawClasspath().length;i++){
-				System.out.println(i+" classpath entry = " + project.getRawClasspath()[i]);
-			}
+					new IJavaProject[] { project },
+					new IClasspathContainer[] { container }, null);
 		}
 	}
 
@@ -56,7 +51,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 		}
 
 		public String getDescription() {
-				return "JBoss WS Runtime";
+			return JbossWSCoreMessages.JBOSSWS_RUNTIME;
 		}
 
 		public int getKind() {
@@ -69,22 +64,19 @@ public class JbossWSRuntimeClassPathInitializer extends
 
 		public IClasspathEntry[] getClasspathEntries() {
 			if (entries == null) {
-				loadClasspathEntries();
+				ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
+				IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath();
+				if (wsPath != null) {
+					IPath libPath = wsPath.append(JbossWSCoreMessages.DIR_LIB);
+					list.addAll(Arrays.asList(getEntries(libPath)));
+					libPath = wsPath.append(JbossWSCoreMessages.DIR_CLIENT);
+					list.addAll(Arrays.asList(getEntries(libPath)));
+					entries = list.toArray(new IClasspathEntry[list.size()]);
+				}
 				if (entries == null)
 					return new IClasspathEntry[0];
 			}
 			return entries;
-		}
-
-		private void loadClasspathEntries() {
-			ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
-			IPath libpath = JbossWSCoreUtils.getJbossLibPath();
-			list.addAll(Arrays.asList(getEntries(libpath)));
-			libpath = JbossWSCoreUtils.getJbossClientPath();
-			
-			list.addAll(Arrays.asList(getEntries(libpath)));
-
-			entries = list.toArray(new IClasspathEntry[list.size()]);
 		}
 
 		protected IClasspathEntry getEntry(IPath path) {
@@ -98,7 +90,10 @@ public class JbossWSRuntimeClassPathInitializer extends
 			for (int i = 0; i < files.length; i++) {
 				if (files[i].endsWith(".jar")) {
 					list.add(getEntry(folder.append(files[i])));
-				}//else if(new File(files[i] instanceof Folder)){}
+				} else if (folder.append(files[i]).toFile().isDirectory()) {
+					list.addAll(Arrays.asList(getEntries(folder
+							.append(files[i]))));
+				}
 			}
 			return list.toArray(new IClasspathEntry[list.size()]);
 		}

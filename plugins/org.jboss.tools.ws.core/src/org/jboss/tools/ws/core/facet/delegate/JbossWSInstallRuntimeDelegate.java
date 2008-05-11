@@ -19,6 +19,9 @@ import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.command.JbossWSClassPathCommand;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSInstallRuntimeDelegate implements IDelegate {
 
 	public void execute(IProject project, IProjectFacetVersion arg1, Object arg2,

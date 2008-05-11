@@ -39,6 +39,9 @@ import org.eclipse.osgi.util.NLS;
 import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSCoreUtils {
 
 	public static IPath pathToWebProjectContainer(String project) {
@@ -217,75 +220,6 @@ public class JbossWSCoreUtils {
 			return file;
 		}
 	}
-
-	public static IStatus addClassPath(IProject project) {
-		IStatus status = Status.OK_STATUS;
-		try {
-
-			IJavaProject javaProject = JavaCore.create(project);
-			
-			IClasspathEntry newClasspath = JavaCore
-					.newContainerEntry(new Path("JbossWSRuntimeLib"));
-
-			IClasspathEntry[] oldClasspathEntries = javaProject
-					.readRawClasspath();
-
-			boolean isFolderInClassPathAlready = false;
-			for (int i = 0; i < oldClasspathEntries.length
-					&& !isFolderInClassPathAlready; i++) {
-				if (oldClasspathEntries[i].getPath().equals(
-						project.getFullPath())) {
-					isFolderInClassPathAlready = true;
-					break;
-				}
-			}
-
-			if (!isFolderInClassPathAlready) {
-
-				IClasspathEntry[] newClasspathEntries = new IClasspathEntry[oldClasspathEntries.length + 1];
-				for (int i = 0; i < oldClasspathEntries.length; i++) {
-					newClasspathEntries[i] = oldClasspathEntries[i];
-				}
-				newClasspathEntries[oldClasspathEntries.length] = newClasspath;
-
-				javaProject.setRawClasspath(newClasspathEntries,
-						new NullProgressMonitor());
-			}
-		} catch (JavaModelException e) {
-			status = StatusUtils.errorStatus(NLS.bind(
-					JbossWSCoreMessages.ERROR_COPY, new String[] { e
-							.getLocalizedMessage() }), e);
-			return status;
-		}
-
-		return status;
-	}
-
-	public static IPath getJbossLibPath() {
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
-				.getPreferenceStore();
-		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
-		
-		if(runtimeLocation == null || runtimeLocation.equals("")){
-			
-		}
-
-		IPath libPath = new Path(runtimeLocation);
-		return libPath.append(JbossWSCoreMessages.DIR_LIB);
-	}
-	
-	public static IPath getJbossClientPath() {
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
-				.getPreferenceStore();
-		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
-		
-		if(runtimeLocation == null || runtimeLocation.equals("")){
-			
-		}
-
-		IPath libPath = new Path(runtimeLocation);
-		return libPath.append(JbossWSCoreMessages.DIR_CLIENT);
-	}
 	
 	public static IPath getJbossWSRuntimePath() {
 		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
@@ -293,7 +227,7 @@ public class JbossWSCoreUtils {
 		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
 		
 		if(runtimeLocation == null || runtimeLocation.equals("")){
-			
+			return null;
 		}
 		return new Path(runtimeLocation);
 	}	

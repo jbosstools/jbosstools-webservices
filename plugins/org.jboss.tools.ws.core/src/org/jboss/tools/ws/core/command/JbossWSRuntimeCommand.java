@@ -18,10 +18,15 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 
 	IProject project;
@@ -40,14 +45,28 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 		IStatus status = Status.OK_STATUS;
 
 		// copy lib jars to project's folder
-		IPath libPath = JbossWSCoreUtils.getJbossLibPath();
+		IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath();
+		IPath libPath = null;
+		try {
+			libPath = wsPath.append(JbossWSCoreMessages.DIR_LIB);
+		} catch (Exception e) {
+			status = StatusUtils.errorStatus(NLS.bind(
+					JbossWSCoreMessages.ERROR_WS_LOCATION, new String[] { e
+							.getLocalizedMessage() }), e);
+			return status;
+		}
 		IPath targetPath = JbossWSCoreUtils.pathToWebProjectContainer(project
 				.toString());
-		targetPath = targetPath
-				.append(JbossWSCoreMessages.DIR_WEB_INF).append(
-						JbossWSCoreMessages.DIR_LIB);
+		targetPath = targetPath.append(JbossWSCoreMessages.DIR_WEB_INF).append(
+				JbossWSCoreMessages.DIR_LIB);
 		status = JbossWSCoreUtils.copy(libPath, targetPath);
-		
+
+		if (status == Status.OK_STATUS) {
+			// copy client jars to project's folder
+			libPath = wsPath.append(JbossWSCoreMessages.DIR_CLIENT);
+			status = JbossWSCoreUtils.copy(libPath, targetPath);
+		}
+
 		return status;
 	}
 

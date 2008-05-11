@@ -16,10 +16,21 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
+import org.jboss.tools.ws.core.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 
 	IProject project;
@@ -36,7 +47,53 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 
 	public IStatus executeOverride(IProgressMonitor monitor) {
 		IStatus status = Status.OK_STATUS;
-        JbossWSCoreUtils.addClassPath(project);
+		status = addClassPath(project);
+		return status;
+	}
+
+	public IStatus addClassPath(IProject project) {
+		IStatus status = Status.OK_STATUS;
+		try {
+
+			IJavaProject javaProject = JavaCore.create(project);
+
+			IClasspathEntry newClasspath = JavaCore.newContainerEntry(new Path(
+					JbossWSCoreMessages.JBOSSWS_RUNTIME_LIB));
+
+			IClasspathEntry[] oldClasspathEntries = javaProject
+					.readRawClasspath();
+
+			boolean isFolderInClassPathAlready = false;
+			for (int i = 0; i < oldClasspathEntries.length
+					&& !isFolderInClassPathAlready; i++) {
+				if (oldClasspathEntries[i].getPath().equals(
+						project.getFullPath())
+						|| oldClasspathEntries[i].getPath().lastSegment()
+								.toUpperCase().contains(
+										JbossWSCoreMessages.JBOSSAS)) {
+					isFolderInClassPathAlready = true;
+					break;
+				}
+			}
+
+			if (!isFolderInClassPathAlready) {
+
+				IClasspathEntry[] newClasspathEntries = new IClasspathEntry[oldClasspathEntries.length + 1];
+				for (int i = 0; i < oldClasspathEntries.length; i++) {
+					newClasspathEntries[i] = oldClasspathEntries[i];
+				}
+				newClasspathEntries[oldClasspathEntries.length] = newClasspath;
+
+				javaProject.setRawClasspath(newClasspathEntries,
+						new NullProgressMonitor());
+			}
+		} catch (JavaModelException e) {
+			status = StatusUtils.errorStatus(NLS.bind(
+					JbossWSCoreMessages.ERROR_COPY, new String[] { e
+							.getLocalizedMessage() }), e);
+			return status;
+		}
+
 		return status;
 	}
 

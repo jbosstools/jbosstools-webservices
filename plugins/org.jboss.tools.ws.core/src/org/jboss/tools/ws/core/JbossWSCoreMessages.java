@@ -13,6 +13,9 @@ package org.jboss.tools.ws.core;
 
 import org.eclipse.osgi.util.NLS;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSCoreMessages {
 
 	private static final String BUNDLE_NAME = "org.jboss.tools.ws.core.JbossWSCore"; //$NON-NLS-1$
@@ -28,6 +31,11 @@ public class JbossWSCoreMessages {
 	public static String DIR_WEB_CONTENT;
 	public static String ERROR_COPY;
 	public static String WS_LOCATION;
+	public static String JBOSSWS_RUNTIME_LIB;
+	public static String JBOSSWS_RUNTIME;
+	public static String JBOSSAS;
+	public static String ERROR_WS_LOCATION;
+	public static String ERROR_WS_CLASSPATH;
 
 
 	static {
