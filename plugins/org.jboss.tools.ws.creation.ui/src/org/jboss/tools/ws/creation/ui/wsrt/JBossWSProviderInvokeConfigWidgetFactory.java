@@ -20,9 +20,11 @@ import org.eclipse.wst.command.internal.env.ui.widgets.WidgetContributorFactory;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
-import org.jboss.tools.ws.creation.ui.widgets.CodeGenConfigWidget;
 import org.jboss.tools.ws.creation.ui.widgets.ProviderInvokeCodeGenConfigWidget;
 
+/**
+ * @author Grid Qian
+ */
 public class JBossWSProviderInvokeConfigWidgetFactory implements
 		INamedWidgetContributorFactory {
 
