@@ -16,6 +16,7 @@ public class JBossWSCreationCoreMessages extends NLS {
 
 	public static String ERROR_MESSAGE_INVALID_BINDING_FILE;
 	public static String ERROR_READ_BINDING_FILE;
+	public static String SEPARATOR_JAVA;
 
 	private JBossWSCreationCoreMessages() {
 	}

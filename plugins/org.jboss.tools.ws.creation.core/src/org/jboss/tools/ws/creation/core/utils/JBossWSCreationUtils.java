@@ -152,7 +152,15 @@ public class JBossWSCreationUtils {
 		}
 	}
 	
-	
+	 public static String classNameFromQualifiedName(String qualifiedCalssName){
+		 //This was done due to not splitting with . Strange
+		 qualifiedCalssName = qualifiedCalssName.replace('.', ':');
+		 String[] parts = qualifiedCalssName.split(":");
+		 if (parts.length == 0){
+			 return "";
+		 }
+		 return parts[parts.length-1];
+	 }	
 	
 	
 	
