@@ -30,15 +30,12 @@ import java.util.StringTokenizer;
 
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
+import javax.wsdl.PortType;
 import javax.wsdl.Service;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
-
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.wst.command.internal.env.core.common.StatusUtils;
 
 
 
@@ -166,13 +163,13 @@ public class WSDLPropertyReader {
     
     
 	/**
-	 * Returns a list of service names the names are QNames
+	 * Returns a list of service names the names are local parts
 	 * 
 	 * @return
 	 */
-	public List<QName> getServiceList() { 
+	public List<String> getServiceList() { 
 		
-		List<QName> returnList = new ArrayList<QName>();
+		List<String> returnList = new ArrayList<String>();
 
 		Service service;
 		Map serviceMap = definition.getServices();
@@ -182,7 +179,30 @@ public class WSDLPropertyReader {
 			while (serviceIterator.hasNext()) {
 
 				service = (Service) serviceIterator.next();
-				returnList.add(service.getQName());
+				returnList.add(service.getQName().getLocalPart());
+			}
+		}
+		return returnList;
+	}
+	
+	/**
+	 * Returns a list of service names the names are local parts
+	 * 
+	 * @return
+	 */
+	public List<String> getPortTypeList() { 
+		
+		List<String> returnList = new ArrayList<String>();
+
+		PortType portType;
+		Map portTypeMap = definition.getPortTypes();
+
+		if (portTypeMap != null && !portTypeMap.isEmpty()) {
+			Iterator<Service> portTypeIterator = portTypeMap.values().iterator();
+			while (portTypeIterator.hasNext()) {
+
+				portType = (PortType) portTypeIterator.next();
+				returnList.add(portType.getQName().getLocalPart());
 			}
 		}
 		return returnList;

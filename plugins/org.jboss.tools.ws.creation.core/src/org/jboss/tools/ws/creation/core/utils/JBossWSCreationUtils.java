@@ -26,9 +26,18 @@ import java.text.Collator;
 import java.util.Arrays;
 import java.util.Locale;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModel;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IParent;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 
 public class JBossWSCreationUtils {
@@ -115,7 +124,6 @@ public class JBossWSCreationUtils {
 	}
 	
 	
-	//Fix for the windows build not working
 	private static String replaceEscapecharactors(String vulnarableString){
 		if (vulnarableString.indexOf("/")!=-1){
 			vulnarableString = vulnarableString.replace('/', File.separator.charAt(0));
@@ -162,7 +170,94 @@ public class JBossWSCreationUtils {
 		 return parts[parts.length-1];
 	 }	
 	
+	// JDT utils
+	/**
+	 * get JavaProject object from project name
+	 */
+    public static IJavaProject getJavaProjectByName(String projectName) throws JavaModelException {
+
+        IJavaModel model = JavaCore.create(ResourcesPlugin.getWorkspace().getRoot());
+        model.open(null);
+
+        IJavaProject[] projects = model.getJavaProjects();
+
+        for (IJavaProject proj : projects) {
+            if (proj.getProject().getName().equals(projectName)) {
+                return proj;
+            }
+        }
+
+        return null;
+    }
 	
-	
+    public static ICompilationUnit findUnitByFileName(IJavaElement javaElem,
+			String filePath) throws Exception {
+		ICompilationUnit unit = null;
+
+		if (!javaElem.getOpenable().isOpen()) {
+			javaElem.getOpenable().open(null);
+		}
+
+		IJavaElement[] elems = null;
+
+		if (javaElem instanceof IParent) {
+			IParent parent = (IParent) javaElem;
+			elems = parent.getChildren();
+		}
+
+		if (elems == null) {
+			return null;
+		}
+
+		for (IJavaElement elem : elems) {
+			if (elem.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT) {
+				IPackageFragmentRoot root = (IPackageFragmentRoot) elem;
+
+				if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
+					unit = findUnitByFileName(elem, filePath);
+
+					if (unit != null) {
+						return unit;
+					}
+				}
+			} else if ((elem.getElementType() == IJavaElement.PACKAGE_FRAGMENT)
+					|| (elem.getElementType() == IJavaElement.JAVA_PROJECT)) {
+				unit = findUnitByFileName(elem, filePath);
+
+				if (unit != null) {
+					return unit;
+				}
+			} else if (elem.getElementType() == IJavaElement.COMPILATION_UNIT) {
+				ICompilationUnit compUnit = (ICompilationUnit) elem;
+
+				if (compUnit.getPath().toString().equals(filePath)) {
+					compUnit.open(null);
+
+					return compUnit;
+				}
+			}
+		}
+
+		return null;
+	}
+    
+    /**
+     * get Java compilation unit by file path
+     * @param javaFile the java sour file to look
+     * @return ICompilationUnit, JDK compilation unit for this java file.
+     */
+    public static ICompilationUnit getJavaUnitFromFile(IFile javaFile) {
+        try {
+            IJavaProject project = getJavaProjectByName(javaFile.getProject().getName());
+
+            if (project == null) {
+                return null;
+            }
+
+            return findUnitByFileName(project, javaFile.getFullPath().toString());
+        } catch (Exception e) {
+            return null;
+        }
+    }
 	
 }

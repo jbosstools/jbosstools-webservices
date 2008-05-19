@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.utils.JBossStatusUtils;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class WSDL2JavaCommand extends AbstractDataModelOperation{
@@ -50,13 +51,14 @@ public class WSDL2JavaCommand extends AbstractDataModelOperation{
             String str = input.readLine();
             StringBuffer result = new StringBuffer();
             while(str != null){                
-                System.out.println(str);
                 result.append(str).append("\t\r");
                 str = input.readLine();
                 
            }
-            proc.waitFor();
-            System.out.print(result);
+            int exitValue = proc.waitFor();
+            if(exitValue != 0){
+            	return JBossStatusUtils.errorStatus(result.toString());
+            }
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -65,7 +67,7 @@ public class WSDL2JavaCommand extends AbstractDataModelOperation{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		SAXParserFactory spf = SAXParserFactory.newInstance();
+		
 		refreshProject(model.getWebProjectName(), monitor);
 		
 		

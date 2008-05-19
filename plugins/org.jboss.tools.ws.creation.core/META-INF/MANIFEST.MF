@@ -22,7 +22,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jst.j2ee,
  org.eclipse.jst.j2ee.core,
  org.eclipse.emf.common,
- org.eclipse.emf.ecore
+ org.eclipse.emf.ecore,
+ org.eclipse.jdt.core,
+ org.eclipse.jface.text
 Eclipse-LazyStart: true
 Export-Package: org.jboss.tools.ws.creation.core,
  org.jboss.tools.ws.creation.core.commands,

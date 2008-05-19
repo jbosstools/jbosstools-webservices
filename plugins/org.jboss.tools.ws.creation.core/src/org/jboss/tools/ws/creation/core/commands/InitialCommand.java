@@ -44,6 +44,9 @@ public class InitialCommand extends AbstractDataModelOperation {
 			WSDLPropertyReader reader = new WSDLPropertyReader();
 			reader.readWSDL(ws.getWebServiceInfo().getWsdlURL());
 			model.setCustomPackage(reader.packageFromTargetNamespace());
+			model.setServiceList(reader.getServiceList());
+			model.setPortTypeList(reader.getPortTypeList());
+			
 			}catch (WSDLException e) {
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
 			}

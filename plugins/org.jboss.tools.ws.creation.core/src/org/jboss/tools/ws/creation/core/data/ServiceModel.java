@@ -9,10 +9,10 @@ private String  webProjectName;
 	
 	private boolean serverStatus;
 	private String  wsdlURI;
-	private String portName;
-	private String serviceName;
+	private List<String> portTypes;
+	private List<String> serviceName;
 	private String customPackage;
-	private List<String> bindingFileLocation = new ArrayList<String>();
+	private List<String> bindingFileLocation;
 	private String catalog;
 	private String serviceClass;
 	private boolean isGenWSDL;
@@ -33,24 +33,37 @@ private String  webProjectName;
 	public void setCustomPackage(String packageText) {
 		this.customPackage = packageText;
 	}
-	public String getPortName() {
-		return portName;
+	
+	public List<String> getPortTypes() {
+		if(portTypes == null){
+			portTypes = new ArrayList<String>();
+		}
+		return portTypes;
 	}
-	public void setPortName(String portName) {
-		this.portName = portName;
+	public void addPortTypes(String portType) {		
+		this.getPortTypes().add(portType);
 	}
-	public String getServiceName() {
+	public void setPortTypeList(List<String> portTypeList) {		
+		this.portTypes = portTypeList;
+	}
+	
+	public List<String> getServiceNames() {
 		return serviceName;
 	}
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
+	public void addServiceName(String serviceName) {
+		this.getServiceNames().add(serviceName);
 	}
+	public void setServiceList(List<String> serviceList) {
+		this.serviceName = serviceList;
+	}
+	
 	public String getWsdlURI() {
 		return wsdlURI;
 	}
 	public void setWsdlURI(String wsdlURI) {
 		this.wsdlURI = wsdlURI;
 	}
+	
 	public boolean getServerStatus() {
 		return serverStatus;
 	}
@@ -66,6 +79,9 @@ private String  webProjectName;
 	}
 	
 	public List<String> getBindingFiles(){
+		if(bindingFileLocation == null){
+			bindingFileLocation = new ArrayList<String>();
+		}
 		return this.bindingFileLocation;
 	}
 	public void addBindingFile(String bindingFileLocation){
