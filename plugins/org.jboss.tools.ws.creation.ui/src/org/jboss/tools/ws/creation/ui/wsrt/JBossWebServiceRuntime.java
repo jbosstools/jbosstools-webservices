@@ -15,8 +15,7 @@ public class JBossWebServiceRuntime extends AbstractWebServiceRuntime{
 
 	@Override
 	public IWebServiceClient getWebServiceClient(WebServiceClientInfo info) {
-		// TODO Auto-generated method stub
-		return null;
+		return new JBossWebServiceClient(info);
 	}
 
 }

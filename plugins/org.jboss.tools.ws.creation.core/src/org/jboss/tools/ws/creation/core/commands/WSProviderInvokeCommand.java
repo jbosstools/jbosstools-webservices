@@ -1,3 +1,14 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Red Hat, Inc. - initial API and implementation 
+ ******************************************************************************/ 
+
 package org.jboss.tools.ws.creation.core.commands;
 
 import java.io.File;
@@ -50,11 +61,10 @@ public class WSProviderInvokeCommand extends AbstractDataModelOperation{
             while(str != null){                
                 System.out.println(str);
                 str = input.readLine();
-           }
+            }
             
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

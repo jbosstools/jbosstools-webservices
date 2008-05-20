@@ -53,6 +53,7 @@
              id="JBossWSProviderInvokeConfig"
              insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand">
        </widgetFactory>
-    </extension>    
+    </extension>
+  
 
 </plugin>
