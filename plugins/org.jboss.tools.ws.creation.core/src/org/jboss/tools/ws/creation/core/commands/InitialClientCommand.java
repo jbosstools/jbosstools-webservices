@@ -7,7 +7,7 @@
  * 
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
- ******************************************************************************/ 
+ ******************************************************************************/
 
 package org.jboss.tools.ws.creation.core.commands;
 
@@ -18,13 +18,14 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.wst.command.internal.env.core.common.StatusUtils;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
 /**
@@ -35,7 +36,8 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 	private IWebServiceClient wsClient;
 	private int scenario;
 
-	public InitialClientCommand(ServiceModel model, IWebServiceClient wsClient, int scenario) {
+	public InitialClientCommand(ServiceModel model, IWebServiceClient wsClient,
+			int scenario) {
 		this.model = model;
 		this.wsClient = wsClient;
 		this.scenario = scenario;
@@ -44,15 +46,22 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		
+
+		if (!JBossWSCreationUtils.validateJBossWSLocation()) {
+			return StatusUtils
+					.errorStatus(JBossWSCreationCoreMessages.ERROR_WS_LOCATION);
+		}
 		model.setTarget(JBossWSCreationCoreMessages.VALUE_TARGET_0);
 		if (scenario == WebServiceScenario.CLIENT) {
-			try{
-			model.setWsdlURI(wsClient.getWebServiceClientInfo().getWsdlURL());
-			WSDLPropertyReader reader = new WSDLPropertyReader();
-			reader.readWSDL(wsClient.getWebServiceClientInfo().getWsdlURL());
-			model.setCustomPackage(reader.packageFromTargetNamespace());
-			}catch (WSDLException e) {
+			try {
+				model.setWsdlURI(wsClient.getWebServiceClientInfo()
+						.getWsdlURL());
+				WSDLPropertyReader reader = new WSDLPropertyReader();
+				reader
+						.readWSDL(wsClient.getWebServiceClientInfo()
+								.getWsdlURL());
+				model.setCustomPackage(reader.packageFromTargetNamespace());
+			} catch (WSDLException e) {
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
 			}
 		}

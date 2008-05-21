@@ -25,7 +25,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 
 /**

@@ -11,7 +11,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.jboss.tools.ws.core.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
 
 /**

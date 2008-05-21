@@ -7,18 +7,14 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jst.ws.axis2.consumption.core.utils.DefaultCodegenUtil;
-import org.eclipse.wst.command.internal.env.core.common.StatusUtils;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.eclipse.wst.wsdl.WSDLFactory;
-import org.eclipse.wst.wsdl.internal.impl.wsdl4j.WSDLFactoryImpl;
-import org.eclipse.wst.wsdl.internal.util.WSDLDefinitionFactory;
-import org.eclipse.wst.wsdl.internal.util.WSDLUtil;
-import org.eclipse.wst.wsdl.util.WSDLParser;
+import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
 public class InitialCommand extends AbstractDataModelOperation {
@@ -36,21 +32,25 @@ public class InitialCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		
+
+		if (!JBossWSCreationUtils.validateJBossWSLocation()) {
+			return StatusUtils
+					.errorStatus(JBossWSCreationCoreMessages.ERROR_WS_LOCATION);
+		}
 		model.setTarget(JBossWSCreationCoreMessages.VALUE_TARGET_0);
 		if (scenario == WebServiceScenario.TOPDOWN) {
-			try{
-			model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
-			WSDLPropertyReader reader = new WSDLPropertyReader();
-			reader.readWSDL(ws.getWebServiceInfo().getWsdlURL());
-			model.setCustomPackage(reader.packageFromTargetNamespace());
-			model.setServiceList(reader.getServiceList());
-			model.setPortTypeList(reader.getPortTypeList());
-			
-			}catch (WSDLException e) {
+			try {
+				model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
+				WSDLPropertyReader reader = new WSDLPropertyReader();
+				reader.readWSDL(ws.getWebServiceInfo().getWsdlURL());
+				model.setCustomPackage(reader.packageFromTargetNamespace());
+				model.setServiceList(reader.getServiceList());
+				model.setPortTypeList(reader.getPortTypeList());
+
+			} catch (WSDLException e) {
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
 			}
-		}else {
+		} else {
 			model.setServiceClass(ws.getWebServiceInfo().getImplURL());
 		}
 

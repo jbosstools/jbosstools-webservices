@@ -32,11 +32,11 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
-import org.jboss.tools.ws.ui.JbossWSUIMessages;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 import org.jboss.tools.ws.ui.JbossWSUIPlugin;
-import org.jboss.tools.ws.ui.UIUtils;
+import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.utils.UIUtils;
 
 /**
  * @author Grid Qian
@@ -153,7 +153,6 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 	 */
 	private void storeValues() {
 		IPreferenceStore store = this.getPreferenceStore();
-		System.out.println(jbosswsPath.getText());
 		store.setValue(JbossWSCoreMessages.WS_LOCATION, jbosswsPath.getText());
 	}
 

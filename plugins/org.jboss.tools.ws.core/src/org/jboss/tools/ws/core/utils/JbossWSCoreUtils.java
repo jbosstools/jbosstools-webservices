@@ -36,8 +36,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.osgi.util.NLS;
-import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
 /**
  * @author Grid Qian
@@ -120,7 +120,6 @@ public class JbossWSCoreUtils {
 	}
 
 	public static IStatus copy(IPath sourcePath, IPath targetPath) {
-		System.out.println(sourcePath + " >> " + targetPath);
 
 		IStatus status = Status.OK_STATUS;
 		File sourceDir = sourcePath.toFile();

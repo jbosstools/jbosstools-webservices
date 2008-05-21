@@ -16,8 +16,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
-import org.jboss.tools.ws.core.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.command.JbossWSClassPathCommand;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
 /**
  * @author Grid Qian

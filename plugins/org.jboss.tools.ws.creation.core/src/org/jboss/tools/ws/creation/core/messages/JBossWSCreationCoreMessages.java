@@ -20,6 +20,8 @@ public class JBossWSCreationCoreMessages extends NLS {
 	
 	public static String ERROR_NO_ANNOTATION;
 	public static String WEBSERVICE_ANNOTATION;
+	public static String ERROR_NO_CLASS;
+	public static String ERROR_WS_LOCATION;
 
 	private JBossWSCreationCoreMessages() {
 	}

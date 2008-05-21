@@ -9,7 +9,7 @@
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.ui;
+package org.jboss.tools.ws.ui.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;

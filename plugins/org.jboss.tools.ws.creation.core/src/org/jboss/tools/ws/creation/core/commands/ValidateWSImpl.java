@@ -7,7 +7,7 @@
  * 
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
- ******************************************************************************/ 
+ ******************************************************************************/
 
 package org.jboss.tools.ws.creation.core.commands;
 
@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
@@ -38,22 +39,30 @@ public class ValidateWSImpl extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
+		
 		String implClass = model.getServiceClass();
 		String project = model.getWebProjectName();
 		ICompilationUnit unit = null;
 		try {
-			unit = JBossWSCreationUtils.getJavaProjectByName(project).findType(
-					implClass).getCompilationUnit();
-		} catch (JavaModelException e) {
-			e.printStackTrace();
-		}
-		try {
-			if(!unit.getSource().contains(JBossWSCreationCoreMessages.WEBSERVICE_ANNOTATION)){
-				return StatusUtils.errorStatus(JBossWSCreationCoreMessages.ERROR_NO_ANNOTATION);
+			if (JBossWSCreationUtils.getJavaProjectByName(project).findType(
+					implClass) != null) {
+				unit = JBossWSCreationUtils.getJavaProjectByName(project)
+						.findType(implClass).getCompilationUnit();
+			} else {
+				return StatusUtils.errorStatus(NLS.bind(
+						JBossWSCreationCoreMessages.ERROR_NO_CLASS,
+						new String[] { implClass, project }));
+			}
+			if (!unit.getSource().contains(
+					JBossWSCreationCoreMessages.WEBSERVICE_ANNOTATION)) {
+				return StatusUtils
+						.errorStatus(JBossWSCreationCoreMessages.ERROR_NO_ANNOTATION);
 			}
 		} catch (JavaModelException e) {
-			e.printStackTrace();
-		}
+			return StatusUtils.errorStatus(NLS.bind(
+					JBossWSCreationCoreMessages.ERROR_NO_CLASS, new String[] {
+							implClass, project }));
+		} 
 		return Status.OK_STATUS;
 	}
 

@@ -9,7 +9,7 @@
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/ 
 
-package org.jboss.tools.ws.ui;
+package org.jboss.tools.ws.ui.messages;
 
 import org.eclipse.osgi.util.NLS;
 

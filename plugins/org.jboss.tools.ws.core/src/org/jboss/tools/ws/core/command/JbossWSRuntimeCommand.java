@@ -20,7 +20,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 
