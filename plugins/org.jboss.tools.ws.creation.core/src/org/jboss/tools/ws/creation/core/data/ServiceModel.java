@@ -10,21 +10,27 @@ private String  webProjectName;
 	private boolean serverStatus;
 	private String  wsdlURI;
 	private List<String> portTypes;
-	private List<String> serviceName;
+	private List<String> serviceNames;
 	private String customPackage;
-	private List<String> bindingFileLocation;
+	private List<String> bindingFiles;
 	private String catalog;
-	private String serviceClass;
+	private List<String> serviceClasses;
 	private boolean isGenWSDL;
 	private String target;
 	
-	
-	public String getServiceClass() {
-		return serviceClass;
-	}
 
-	public void setServiceClass(String serviceClass) {
-		this.serviceClass = serviceClass;
+	public List<String> getServiceClasses(){
+		if(serviceClasses == null){
+			serviceClasses = new ArrayList<String>();
+		}
+		return this.serviceClasses;
+	}
+	
+	public void addServiceClasses(String serviceCls){
+		this.serviceClasses = getServiceClasses();
+		if(!serviceClasses.contains(serviceCls)){
+			serviceClasses.add(serviceCls);
+		}
 	}
 	
 	public String getCustomPackage() {
@@ -41,20 +47,29 @@ private String  webProjectName;
 		return portTypes;
 	}
 	public void addPortTypes(String portType) {		
-		this.getPortTypes().add(portType);
+		this.portTypes = getPortTypes();
+		if(!this.portTypes.contains(portType)){
+			this.portTypes.add(portType);
+		}
 	}
 	public void setPortTypeList(List<String> portTypeList) {		
 		this.portTypes = portTypeList;
 	}
 	
 	public List<String> getServiceNames() {
-		return serviceName;
+		if(serviceNames == null){
+			serviceNames = new ArrayList<String>();
+		}
+		return serviceNames;
 	}
 	public void addServiceName(String serviceName) {
-		this.getServiceNames().add(serviceName);
+		this.serviceNames = getServiceClasses();
+		if(!serviceName.contains(serviceName)){
+			this.serviceNames.add(serviceName);
+		}
 	}
 	public void setServiceList(List<String> serviceList) {
-		this.serviceName = serviceList;
+		this.serviceNames = serviceList;
 	}
 	
 	public String getWsdlURI() {
@@ -79,13 +94,16 @@ private String  webProjectName;
 	}
 	
 	public List<String> getBindingFiles(){
-		if(bindingFileLocation == null){
-			bindingFileLocation = new ArrayList<String>();
+		if(bindingFiles == null){
+			bindingFiles = new ArrayList<String>();
 		}
-		return this.bindingFileLocation;
+		return this.bindingFiles;
 	}
 	public void addBindingFile(String bindingFileLocation){
-		this.bindingFileLocation.add(bindingFileLocation);
+		this.bindingFiles = this.getBindingFiles();
+		if(!this.bindingFiles.contains(bindingFileLocation)){
+			this.bindingFiles.add(bindingFileLocation);
+		}
 	}
 
 	public boolean isGenWSDL() {

@@ -55,6 +55,9 @@ public class BindingFilesValidationCommand extends AbstractDataModelOperation {
 		return status;
 	}
 	
+	/*
+	 * just ensure that the file is a readable xml file to avoid breaking code generation
+	 */
 	private IStatus validateXMLFile(XMLReader reader, String filename){
 		try {
 			InputSource is = new InputSource(filename);

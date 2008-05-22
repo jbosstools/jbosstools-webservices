@@ -40,7 +40,7 @@ public class ValidateWSImpl extends AbstractDataModelOperation {
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
 		
-		String implClass = model.getServiceClass();
+		String implClass = model.getServiceClasses().get(0);
 		String project = model.getWebProjectName();
 		ICompilationUnit unit = null;
 		try {

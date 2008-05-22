@@ -51,7 +51,7 @@ public class InitialCommand extends AbstractDataModelOperation {
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
 			}
 		} else {
-			model.setServiceClass(ws.getWebServiceInfo().getImplURL());
+			model.addServiceClasses(ws.getWebServiceInfo().getImplURL());
 		}
 
 		return Status.OK_STATUS;

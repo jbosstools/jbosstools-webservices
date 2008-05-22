@@ -50,7 +50,13 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			throws ExecutionException {
 		IEnvironment environment = getEnvironment();
 		IStatus status = null;
-		status = mergeWebXML(getAxisServletDescriptor());
+		ServletDescriptor[] servletDescriptors = new ServletDescriptor[model.getServiceClasses().size()];
+		List<String> serviceClasses = model.getServiceClasses();
+		for(int i = 0; i < serviceClasses.size(); i++){
+			servletDescriptors[i] = getAxisServletDescriptor(serviceClasses.get(i));
+		}
+		
+		status = mergeWebXML(servletDescriptors);
 		if (status.getSeverity() == Status.ERROR) {
 			environment.getStatusHandler().reportError(status);
 			return status;
@@ -58,7 +64,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		return Status.OK_STATUS;
 	}
 
-	private IStatus mergeWebXML(final ServletDescriptor servletDescriptor) {
+	private IStatus mergeWebXML(final ServletDescriptor[] servletDescriptors) {
 		IStatus status = Status.OK_STATUS;
 		final IModelProvider provider = ModelProviderManager
 				.getModelProvider(JBossWSCreationUtils.getProjectByName(model
@@ -68,8 +74,10 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 				Object object = provider.getModelObject();
 				if (object instanceof org.eclipse.jst.javaee.web.WebApp) {
 					WebApp webApp = (WebApp) object;
+					for(int i = 0; i < servletDescriptors.length; i++){
 					addServlet(JBossWSCreationUtils.getProjectByName(model
-							.getWebProjectName()), servletDescriptor, webApp);
+							.getWebProjectName()), servletDescriptors[i], webApp);
+					}
 				}
 			}
 
@@ -77,13 +85,12 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		return status;
 	}
 
-	private ServletDescriptor getAxisServletDescriptor() {
+	private ServletDescriptor getAxisServletDescriptor(String clsName) {
 
 		ServletDescriptor sd = new ServletDescriptor();
-		sd._name = JBossWSCreationUtils.classNameFromQualifiedName(model
-				.getServiceClass());
+		sd._name = JBossWSCreationUtils.classNameFromQualifiedName(clsName);
 		sd._displayName = sd._name;
-		sd._className = model.getServiceClass();
+		sd._className = clsName;
 		sd._mappings = JBossWSCreationCoreMessages.SEPARATOR_JAVA + sd._name;
 		return sd;
 	}

@@ -52,7 +52,7 @@ public class JBossWebService extends AbstractWebService {
 			commands.add(new BindingFilesValidationCommand(model));
 			commands.add(new WSDL2JavaCommand(model));
 			commands.add(new ImplementationClassCreationCommand(model));
-			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
+			commands.add(new MergeWebXMLCommand(model));
 		}
 		else if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP){
 			commands.add(new InitialCommand(model, this, WebServiceScenario.BOTTOMUP));

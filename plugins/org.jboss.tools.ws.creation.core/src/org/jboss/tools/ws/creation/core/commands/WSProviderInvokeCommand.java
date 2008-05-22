@@ -112,7 +112,7 @@ public class WSProviderInvokeCommand extends AbstractDataModelOperation {
 		commandLine += " -c " + projectRoot + Path.SEPARATOR
 				+ "build/classes/ ";
 
-		commandLine += model.getServiceClass();
+		commandLine += model.getServiceClasses().get(0);
 
 		return commandLine;
 
