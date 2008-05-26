@@ -3,7 +3,6 @@ package org.jboss.tools.ws.creation.core.commands;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
@@ -23,19 +22,14 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.Annotation;
-import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.ArrayType;
-import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
@@ -43,7 +37,6 @@ import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
@@ -56,16 +49,10 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.core.dom.TypeLiteral;
-import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.WildcardType;
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
-import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
@@ -73,8 +60,6 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossStatusUtils;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
-
-import com.sun.org.apache.xpath.internal.Expression;
 
 public class ImplementationClassCreationCommand extends
 		AbstractDataModelOperation {
@@ -114,7 +99,8 @@ public class ImplementationClassCreationCommand extends
 			List<String> portTypes = model.getPortTypes();
 			for (String portTypeName : portTypes) {
 				generateImplClass(portTypeName);
-				String implClsName = getImplPackageName() + "." + getImplClassName(portTypeName);
+				String implClsName = getImplPackageName() + "."
+						+ getImplClassName(portTypeName);
 				model.addServiceClasses(implClsName);
 			}
 
@@ -381,10 +367,8 @@ public class ImplementationClassCreationCommand extends
 		md.setName(ast
 				.newSimpleName(inMethod.getName().getFullyQualifiedName()));
 
-		SimpleType sType = (SimpleType) inMethod.getReturnType2();
-		Name sTypeName = sType.getName();
-		md.setReturnType2(ast.newSimpleType(ast.newName(sTypeName
-				.getFullyQualifiedName())));
+		Type sType = copyTypeFromOtherASTNode(ast, inMethod.getReturnType2());
+		md.setReturnType2(sType);
 
 		List parameters = inMethod.parameters();
 		
@@ -402,9 +386,8 @@ public class ImplementationClassCreationCommand extends
 		Block block = ast.newBlock();
 		Type returnType = inMethod.getReturnType2();
 		ReturnStatement rs = ast.newReturnStatement();
-		String typeName = ((SimpleType) returnType).getName()
-				.getFullyQualifiedName();
-		if (returnType.isPrimitiveType() && returnType.isSimpleType()) {
+
+		if (returnType.isPrimitiveType()) {
 			if (((PrimitiveType) returnType).getPrimitiveTypeCode().equals(
 					PrimitiveType.BOOLEAN)) {
 				BooleanLiteral bl = ast.newBooleanLiteral(false);
@@ -415,21 +398,27 @@ public class ImplementationClassCreationCommand extends
 				rs.setExpression(nl);
 			}
 
-		} else if ("String".equals(typeName)) {
-			StringLiteral sl = ast.newStringLiteral();
-			sl.setLiteralValue("");
-			rs.setExpression(sl);
+		} else if (returnType.isSimpleType()) {
+			String typeName = ((SimpleType) returnType).getName()
+					.getFullyQualifiedName();
+			if ("String".equals(typeName)) {
 
-		} else if(!"void".equals(typeName)){
+				StringLiteral sl = ast.newStringLiteral();
+				sl.setLiteralValue("");
+				rs.setExpression(sl);
+			} else if(!"void".equals(typeName)){
+				rs.setExpression(ast.newNullLiteral());
+			}
+		} else {
 			rs.setExpression(ast.newNullLiteral());
 		}
+
 		block.statements().add(rs);
 
 		md.setBody(block);
 
 		return md;
 	}
-
 
 	private Type copyTypeFromOtherASTNode(AST ast, Type type) {
 		if (type instanceof PrimitiveType) {
