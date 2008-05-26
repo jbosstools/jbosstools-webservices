@@ -18,7 +18,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public class JbossWSCoreMessages {
 
-	private static final String BUNDLE_NAME = "org.jboss.tools.ws.core.JbossWSCore"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "org.jboss.tools.ws.core.messages.JbossWSCore"; //$NON-NLS-1$
 
 	private JbossWSCoreMessages() {
 		// Do not instantiate
