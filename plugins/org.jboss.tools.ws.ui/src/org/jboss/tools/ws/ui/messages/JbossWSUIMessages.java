@@ -19,7 +19,7 @@ import org.eclipse.osgi.util.NLS;
 public final class JbossWSUIMessages extends NLS {
 
 	private static final String BUNDLE_NAME = 
-			"org.jboss.tools.ws.ui.JbossWSUI";		//$NON-NLS-1$
+			"org.jboss.tools.ws.ui.messages.JbossWSUI";		//$NON-NLS-1$
 
 	private JbossWSUIMessages() {
 		// Do not instantiate
