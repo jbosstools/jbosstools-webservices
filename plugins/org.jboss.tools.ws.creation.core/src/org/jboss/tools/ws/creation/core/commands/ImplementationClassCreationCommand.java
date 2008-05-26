@@ -3,6 +3,7 @@ package org.jboss.tools.ws.creation.core.commands;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
@@ -30,6 +31,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -54,6 +56,8 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.TypeLiteral;
+import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.WildcardType;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
@@ -70,6 +74,8 @@ import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossStatusUtils;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
+import com.sun.org.apache.xpath.internal.Expression;
+
 public class ImplementationClassCreationCommand extends
 		AbstractDataModelOperation {
 
@@ -80,10 +86,16 @@ public class ImplementationClassCreationCommand extends
 	private static final String SUFFIX_PACKAGENAME_IMPL = "impl";
 	private static final String DEFAULT_CU_SUFFIX = ".java";
 
+	private static final String ANNOTATION_WEB_SERVICE_FULLNAME = "javax.jws.WebService";
 	private static final String ANNOTATION_TYPE_NAME_WEBSERVICE = "WebService";;
 	private static final String ANNOTATION_PROPERTY_NAME = "name";
 	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName";
 	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface";
+	
+	private static final String LOGGER_VARIABLE_NAME = "log";
+	private static final String LOGGER_CLASS_FULLNAME = "org.jboss.logging.Logger";
+	private static final String LOGGER_CLASS_NAME = "Logger";
+	private static final String LOGGER_METHOD_GETLOGGER = "getLogger";
 
 	private ServiceModel model;
 	private IWorkspaceRoot fWorkspaceRoot;
@@ -99,10 +111,6 @@ public class ImplementationClassCreationCommand extends
 			throws ExecutionException {
 		IStatus status = Status.OK_STATUS;
 		try {
-			/*
-			 * so far, it only generate implementation for first port type, need
-			 * to generate impl class for all port type interfaces
-			 */
 			List<String> portTypes = model.getPortTypes();
 			for (String portTypeName : portTypes) {
 				generateImplClass(portTypeName);
@@ -199,6 +207,7 @@ public class ImplementationClassCreationCommand extends
 		}
 
 		implCu.types().add(type);
+		
 
 		// try to save the Java file
 		TextEdit edits = implCu.rewrite(document, icu.getJavaProject()
@@ -281,13 +290,13 @@ public class ImplementationClassCreationCommand extends
 		importDec.setName(portTypeImport);
 		implCU.imports().add(importDec);
 		importDec = implAST.newImportDeclaration();
-		importDec.setName(implAST.newName("org.jboss.logging.Logger"));
+		importDec.setName(implAST.newName(LOGGER_CLASS_FULLNAME));
 		implCU.imports().add(importDec);
 
 		// import jaxws WebService
 		importDec = implAST.newImportDeclaration();
 		// hardcode here?
-		importDec.setName(implAST.newName("javax.jws.WebService"));
+		importDec.setName(implAST.newName(ANNOTATION_WEB_SERVICE_FULLNAME));
 		implCU.imports().add(importDec);
 	}
 
@@ -322,27 +331,23 @@ public class ImplementationClassCreationCommand extends
 		return member;
 	}
 
-	protected FieldDeclaration createLoggerField(AST ast, TypeDeclaration type) {
-		// for now, have no idea how to generate a field like:
-		// private static Logger log = Logger.getLooger(TestEdnpointImpl.class);
-		// TODO
-		// ast.newWildcardType().setBound(type.);
+	protected FieldDeclaration createLoggerField(AST ast, TypeDeclaration type, String portTypeName) {
 		VariableDeclarationFragment vdf = ast.newVariableDeclarationFragment();
-		vdf.setName(ast.newSimpleName("log"));
+		vdf.setName(ast.newSimpleName(LOGGER_VARIABLE_NAME));
 		Initializer clsAccesss = ast.newInitializer();
-		Block clsAccessBlk = ast.newBlock();
-		FieldAccess fa = ast.newFieldAccess();
-		fa.setExpression(ast.newSimpleName("Test"));
-		fa.setName(ast.newSimpleName("class"));
-		clsAccessBlk.statements().add(ast.newExpressionStatement(fa));
-		clsAccesss.setBody(clsAccessBlk);
+		FieldDeclaration fd = ast.newFieldDeclaration(vdf);
+		fd.modifiers().add(Modifier.ModifierKeyword.PRIVATE_KEYWORD);
+		fd.modifiers().add(Modifier.ModifierKeyword.STATIC_KEYWORD);
+		fd.setType(ast.newSimpleType(ast.newSimpleName(LOGGER_CLASS_NAME)));
 		MethodInvocation mi = ast.newMethodInvocation();
-		mi.setExpression(ast.newSimpleName("Logger"));
-		mi.setName(ast.newSimpleName("getLogger"));
-		mi.arguments().add(fa);
+		mi.setExpression(ast.newSimpleName(LOGGER_CLASS_NAME));
+		mi.setName(ast.newSimpleName(LOGGER_METHOD_GETLOGGER));
+		String implClsName = getImplPackageName() + "." + getImplClassName(portTypeName);
+		StringLiteral sl = ast.newStringLiteral();
+		sl.setLiteralValue(implClsName);
+		mi.arguments().add(sl);
 		vdf.setInitializer(mi);
-
-		type.bodyDeclarations().add(vdf);
+		type.bodyDeclarations().add(fd);
 
 		/*
 		 * SingleVariableDeclaration svd = ast.newSingleVariableDeclaration();
@@ -382,7 +387,7 @@ public class ImplementationClassCreationCommand extends
 				.getFullyQualifiedName())));
 
 		List parameters = inMethod.parameters();
-		;
+		
 		for (Object obj : parameters) {
 			SingleVariableDeclaration implSvd = ast
 					.newSingleVariableDeclaration();
@@ -415,7 +420,7 @@ public class ImplementationClassCreationCommand extends
 			sl.setLiteralValue("");
 			rs.setExpression(sl);
 
-		} else {
+		} else if(!"void".equals(typeName)){
 			rs.setExpression(ast.newNullLiteral());
 		}
 		block.statements().add(rs);
