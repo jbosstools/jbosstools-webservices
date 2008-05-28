@@ -33,7 +33,7 @@ public class ProviderInvokeCodeGenConfigWidget extends
 
 	public ProviderInvokeCodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
-		model.setGenWSDL(true);
+		model.setGenWSDL(false);
 	}
 
 	public WidgetDataEvents addControls(Composite parent,
@@ -49,7 +49,7 @@ public class ProviderInvokeCodeGenConfigWidget extends
 		wsdlGenData.horizontalSpan = 2;
 		wsdlGen.setLayoutData(wsdlGenData);
 		wsdlGen.setText("Generete WSDL file");
-		wsdlGen.setSelection(true);
+		wsdlGen.setSelection(false);
 		wsdlGen.addSelectionListener(new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {
 
