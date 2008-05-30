@@ -24,6 +24,7 @@ import org.eclipse.wst.ws.internal.wsrt.WebServiceClientInfo;
 import org.eclipse.wst.ws.internal.wsrt.AbstractWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.creation.core.commands.BindingFilesValidationCommand;
+import org.jboss.tools.ws.creation.core.commands.ClientSampleCreationCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialClientCommand;
 import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
@@ -56,7 +57,7 @@ public class JBossWebServiceClient extends AbstractWebServiceClient {
 		commands.add(new InitialClientCommand(model, this, WebServiceScenario.CLIENT));
 		commands.add(new BindingFilesValidationCommand(model));
 		commands.add(new WSDL2JavaCommand(model));
-		
+		commands.add(new ClientSampleCreationCommand(model));
 		return new SimpleCommandFactory(commands);
 	}
 

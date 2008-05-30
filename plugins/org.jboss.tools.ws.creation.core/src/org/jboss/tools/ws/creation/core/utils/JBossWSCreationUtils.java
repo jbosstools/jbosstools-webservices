@@ -40,6 +40,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
 public class JBossWSCreationUtils {
 	
@@ -263,7 +264,7 @@ public class JBossWSCreationUtils {
     
 	public static boolean validateJBossWSLocation() {
 		String location = JbossWSCorePlugin.getDefault().getPreferenceStore()
-				.getString("jbosswsruntimelocation");
+				.getString(JbossWSCoreMessages.WS_LOCATION);
 		if (location == null || location.equals("")) {
 			return false;
 		}

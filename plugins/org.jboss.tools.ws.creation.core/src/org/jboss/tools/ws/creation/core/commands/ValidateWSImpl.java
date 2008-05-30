@@ -47,7 +47,7 @@ public class ValidateWSImpl extends AbstractDataModelOperation {
 			if (JBossWSCreationUtils.getJavaProjectByName(project).findType(
 					implClass) != null) {
 				unit = JBossWSCreationUtils.getJavaProjectByName(project)
-						.findType(implClass).getCompilationUnit();
+						.findType(implClass).getCompilationUnit();				
 			} else {
 				return StatusUtils.errorStatus(NLS.bind(
 						JBossWSCreationCoreMessages.ERROR_NO_CLASS,
