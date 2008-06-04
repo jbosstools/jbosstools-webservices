@@ -7,7 +7,7 @@
  * 
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
- ******************************************************************************/ 
+ ******************************************************************************/
 
 package org.jboss.tools.ws.creation.core.commands;
 
@@ -50,12 +50,13 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			throws ExecutionException {
 		IEnvironment environment = getEnvironment();
 		IStatus status = null;
-		ServletDescriptor[] servletDescriptors = new ServletDescriptor[model.getServiceClasses().size()];
+		ServletDescriptor[] servletDescriptors = new ServletDescriptor[model
+				.getServiceClasses().size()];
 		List<String> serviceClasses = model.getServiceClasses();
-		for(int i = 0; i < serviceClasses.size(); i++){
-			servletDescriptors[i] = getAxisServletDescriptor(serviceClasses.get(i));
+		for (int i = 0; i < serviceClasses.size(); i++) {
+			servletDescriptors[i] = getServletDescriptor(serviceClasses.get(i));
 		}
-		
+
 		status = mergeWebXML(servletDescriptors);
 		if (status.getSeverity() == Status.ERROR) {
 			environment.getStatusHandler().reportError(status);
@@ -72,11 +73,20 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		provider.modify(new Runnable() {
 			public void run() {
 				Object object = provider.getModelObject();
-				if (object instanceof org.eclipse.jst.javaee.web.WebApp) {
+				if (object instanceof WebApp) {
 					WebApp webApp = (WebApp) object;
-					for(int i = 0; i < servletDescriptors.length; i++){
-					addServlet(JBossWSCreationUtils.getProjectByName(model
-							.getWebProjectName()), servletDescriptors[i], webApp);
+					for (int i = 0; i < servletDescriptors.length; i++) {
+						addjeeServlet(JBossWSCreationUtils
+								.getProjectByName(model.getWebProjectName()),
+								servletDescriptors[i], webApp);
+					}
+				}
+				if (object instanceof org.eclipse.jst.j2ee.webapplication.WebApp) {
+					org.eclipse.jst.j2ee.webapplication.WebApp webApp = (org.eclipse.jst.j2ee.webapplication.WebApp) object;
+					for (int i = 0; i < servletDescriptors.length; i++) {
+						addServlet(JBossWSCreationUtils.getProjectByName(model
+								.getWebProjectName()), servletDescriptors[i],
+								webApp);
 					}
 				}
 			}
@@ -85,7 +95,41 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		return status;
 	}
 
-	private ServletDescriptor getAxisServletDescriptor(String clsName) {
+	@SuppressWarnings("unchecked")
+	protected void addServlet(IProject projectByName,
+			ServletDescriptor servletDescriptor,
+			org.eclipse.jst.j2ee.webapplication.WebApp webapp) {
+		List theServlets = webapp.getServlets();
+		for (int i = 0; i < theServlets.size(); i++) {
+			Servlet aServlet = (Servlet) theServlets.get(i);
+			if (aServlet.getServletName().equals(servletDescriptor._name)) {
+				return;
+			}
+		}
+		org.eclipse.jst.j2ee.webapplication.WebapplicationFactory factory = org.eclipse.jst.j2ee.webapplication.WebapplicationFactory.eINSTANCE;
+		org.eclipse.jst.j2ee.webapplication.Servlet servlet = factory
+				.createServlet();
+		org.eclipse.jst.j2ee.webapplication.ServletType servletType = factory
+				.createServletType();
+		servlet.setWebType(servletType);
+		servlet.setServletName(servletDescriptor._name);
+		servletType.setClassName(servletDescriptor._className);
+		if (servletDescriptor._displayName != null) {
+			servlet.setDisplayName(servletDescriptor._displayName);
+		}
+		webapp.getServlets().add(servlet);
+
+		if (servletDescriptor._mappings != null) {
+			org.eclipse.jst.j2ee.webapplication.ServletMapping servletMapping = factory
+					.createServletMapping();
+			servletMapping.setServlet(servlet);
+			servletMapping.setUrlPattern(servletDescriptor._mappings);
+			webapp.getServletMappings().add(servletMapping);
+		}
+
+	}
+
+	private ServletDescriptor getServletDescriptor(String clsName) {
 
 		ServletDescriptor sd = new ServletDescriptor();
 		sd._name = JBossWSCreationUtils.classNameFromQualifiedName(clsName);
@@ -96,7 +140,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void addServlet(IProject webProject,
+	public void addjeeServlet(IProject webProject,
 			ServletDescriptor servletDescriptor, WebApp webapp) {
 		List theServlets = webapp.getServlets();
 		for (int i = 0; i < theServlets.size(); i++) {
