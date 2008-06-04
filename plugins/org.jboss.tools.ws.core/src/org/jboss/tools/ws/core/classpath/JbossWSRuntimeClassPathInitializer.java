@@ -97,6 +97,19 @@ public class JbossWSRuntimeClassPathInitializer extends
 			}
 			return list.toArray(new IClasspathEntry[list.size()]);
 		}
+		public void removeEntry(String jarName){
+			if(entries == null){
+				return; 
+			}
+			IClasspathEntry[] newEntries = new IClasspathEntry[entries.length-1];
+			int i=0;
+			for(IClasspathEntry entry: entries){
+				if(!entry.toString().contains(jarName)){
+				   newEntries[i++] = entry;
+				}
+			}
+			entries = newEntries;
+		}
 
 	}
 
