@@ -101,7 +101,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			org.eclipse.jst.j2ee.webapplication.WebApp webapp) {
 		List theServlets = webapp.getServlets();
 		for (int i = 0; i < theServlets.size(); i++) {
-			Servlet aServlet = (Servlet) theServlets.get(i);
+			org.eclipse.jst.j2ee.webapplication.Servlet aServlet = (org.eclipse.jst.j2ee.webapplication.Servlet) theServlets.get(i);
 			if (aServlet.getServletName().equals(servletDescriptor._name)) {
 				return;
 			}
