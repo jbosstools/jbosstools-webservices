@@ -1,4 +1,16 @@
-package org.jboss.tools.ws.ui.preferences;
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Red Hat, Inc. - initial API and implementation 
+ ******************************************************************************/
+
+package org.jboss.tools.ws.core.classpath;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,10 +26,13 @@ import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
-import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
+/**
+ * @author Grid Qian
+ */
 public class JbossWSRuntimeManager {
 
 		private static JbossWSRuntimeListConverter converter = new JbossWSRuntimeListConverter();
@@ -30,7 +45,7 @@ public class JbossWSRuntimeManager {
 		private JbossWSRuntimeManager() {
 			IPreferenceStore ps = JbossWSCorePlugin.getDefault().getPreferenceStore();
 			
-			String runtimeListString = ps.getDefaultString("jbosswsruntimelocation");
+			String runtimeListString = ps.getString(JbossWSCoreMessages.WS_LOCATION);
 
 			runtimes = converter.getMap(runtimeListString);
 		}
@@ -45,20 +60,20 @@ public class JbossWSRuntimeManager {
 		}
 
 		/**
-		 * Return SeamRuntimeManaher instance
+		 * Return JbossWSRuntimeManaher instance
 		 * 
 		 * @return
-		 * 		SeamRuntimeManager instance
+		 * 		JbossWSRuntimeManager instance
 		 */
 		public static JbossWSRuntimeManager getInstance() {
 			return JbossWSRuntimeManagerHolder.INSTANCE;
 		}
 
 		/**
-		 * Return Array of configured SeamRuntimes
+		 * Return Array of configured JbossWSRuntimes
 		 * 
 		 * @return
-		 * 		SeamRuntime[]
+		 * 		JbossWSRuntime[]
 		 */
 		public JbossWSRuntime[] getRuntimes() {
 			Collection<JbossWSRuntime> c = runtimes.values();
@@ -66,10 +81,10 @@ public class JbossWSRuntimeManager {
 		}
 
 		/**
-		 * Add new SeamRuntime
+		 * Add new JbossWSRuntime
 		 * 
 		 * @param runtime
-		 * 		SeamRuntime
+		 * 		JbossWSRuntime
 		 */
 		public void addRuntime(JbossWSRuntime runtime) {
 			if (runtimes.size() == 0) {
@@ -85,7 +100,7 @@ public class JbossWSRuntimeManager {
 		}
 
 		/**
-		 * Add new SeamRuntime with given parameters
+		 * Add new JbossWSRuntime with given parameters
 		 * 
 		 * @param name
 		 * 	String - runtime name
@@ -98,34 +113,34 @@ public class JbossWSRuntimeManager {
 		 */
 		public void addRuntime(String name, String path,
 				boolean defaultRt) {
-			JbossWSRuntime seamRt = new JbossWSRuntime();
-			seamRt.setHomeDir(path);
-			seamRt.setName(name);
-			seamRt.setDefault(defaultRt);
-			addRuntime(seamRt);
+			JbossWSRuntime jbossWSRt = new JbossWSRuntime();
+			jbossWSRt.setHomeDir(path);
+			jbossWSRt.setName(name);
+			jbossWSRt.setDefault(defaultRt);
+			addRuntime(jbossWSRt);
 		}
 
 		/**
-		 * Return SeamRuntime by given name
+		 * Return JbossWSRuntime by given name
 		 * 
 		 * @param name
-		 * 	String - SeamRuntime name
+		 * 	String - JbossWSRuntime name
 		 * @return
-		 * 	SeamRuntime - found SeamRuntime instance or null
+		 * 	JbossWSRuntime - found JbossWSRuntime instance or null
 		 */
 		public JbossWSRuntime findRuntimeByName(String name) {
-			for (JbossWSRuntime seamRuntime : runtimes.values()) {
-				if (seamRuntime.getName().equals(name)) {
-					return seamRuntime;
+			for (JbossWSRuntime jbossWSRuntime : runtimes.values()) {
+				if (jbossWSRuntime.getName().equals(name)) {
+					return jbossWSRuntime;
 				}
 			}
 			return null;
 		}
 
 		/**
-		 * Remove given SeamRuntime from manager
+		 * Remove given JbossWSRuntime from manager
 		 * @param rt
-		 * 	SeamRuntime
+		 * 	JbossWSRuntime
 		 */
 		public void removeRuntime(JbossWSRuntime rt) {
 			runtimes.remove(rt.getName());
@@ -162,10 +177,10 @@ public class JbossWSRuntimeManager {
 		}
 
 		/**
-		 * Return first default SeamRuntime
+		 * Return first default JbossWSRuntime
 		 * 
 		 * @return
-		 * 	SeamRuntime
+		 * 	JbossWSRuntime
 		 */
 		public JbossWSRuntime getDefaultRuntime() {
 			for (JbossWSRuntime rt : runtimes.values()) {
@@ -177,7 +192,7 @@ public class JbossWSRuntimeManager {
 		}
 
 		/**
-		 * If project has seam facet then this method returns default seam runtime for proper version of facet.
+		 * If project has JbossWS facet then this method returns default JbossWS runtime for proper version of facet.
 		 * Otherwise return first default runtime.  
 		 * @param project
 		 * @return
@@ -201,7 +216,7 @@ public class JbossWSRuntimeManager {
 		}
 
 		/**
-		 * Return list of available SeamRuntime names
+		 * Return list of available JbossWSRuntime names
 		 * 
 		 * @return
 		 * 	List&lt;String&gt;
@@ -209,8 +224,8 @@ public class JbossWSRuntimeManager {
 		public List<String> getRuntimeNames() {
 			JbossWSRuntime[] rts = getRuntimes();
 			List<String> result = new ArrayList<String>();
-			for (JbossWSRuntime seamRuntime : rts) {
-				result.add(seamRuntime.getName());
+			for (JbossWSRuntime jbossWSRuntime : rts) {
+				result.add(jbossWSRuntime.getName());
 			}
 			return result;
 		}
@@ -224,8 +239,8 @@ public class JbossWSRuntimeManager {
 		public List<String> getAllRuntimeNames() {
 			JbossWSRuntime[] rts = getRuntimes();
 			List<String> result = new ArrayList<String>();
-			for (JbossWSRuntime seamRuntime : rts) {
-				result.add(seamRuntime.getName());
+			for (JbossWSRuntime jbossWSRuntime : rts) {
+				result.add(jbossWSRuntime.getName());
 			}
 			return result;
 		}

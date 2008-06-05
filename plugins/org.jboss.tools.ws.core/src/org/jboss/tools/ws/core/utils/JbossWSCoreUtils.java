@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -37,6 +39,8 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.osgi.util.NLS;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntimeListConverter;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
 /**
@@ -219,16 +223,29 @@ public class JbossWSCoreUtils {
 			return file;
 		}
 	}
-	
-	public static IPath getJbossWSRuntimePath() {
+
+	public static IPath getJbossWSRuntimePath(String runtimeName) {
+		Map<String, JbossWSRuntime> runtimes = new HashMap<String, JbossWSRuntime>();
+		JbossWSRuntimeListConverter converter = new JbossWSRuntimeListConverter();
 		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
 				.getPreferenceStore();
 		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
-		
-		if(runtimeLocation == null || runtimeLocation.equals("")){
+		runtimes = converter.getMap(runtimeLocation);
+		if (runtimeLocation == null || runtimeLocation.equals("")) {
 			return null;
 		}
-		return new Path(runtimeLocation);
-	}	
+		if (runtimeName == null || runtimeName.equals("")) {
+			for (JbossWSRuntime rt : runtimes.values()) {
+				if (rt.isDefault()) {
+					return new Path(rt.getHomeDir());
+				}
+			}
+			return null;
+		}
+		if (runtimes.get(runtimeName) != null) {
+			return new Path(runtimes.get(runtimeName).getHomeDir());
+		}
+		return null;
+	}
 
 }

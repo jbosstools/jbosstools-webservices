@@ -45,7 +45,7 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 		IStatus status = Status.OK_STATUS;
 
 		// copy lib jars to project's folder
-		IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath();
+		IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(null);
 		IPath libPath = null;
 		try {
 			libPath = wsPath.append(JbossWSCoreMessages.DIR_LIB);

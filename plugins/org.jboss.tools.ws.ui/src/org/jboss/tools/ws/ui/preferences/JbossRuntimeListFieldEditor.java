@@ -56,12 +56,13 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TableColumn;
 import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
 
 /**
  * @author Grid Qian
  */
 public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
-	
+
 	// ------------------------------------------------------------------------
 	// Layout parameters
 	// ------------------------------------------------------------------------
@@ -76,16 +77,16 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	// ------------------------------------------------------------------------
 	// Field declarations
 	// ------------------------------------------------------------------------
- 
+
 	private CheckboxTableViewer tableView = null;
 
 	private Composite root = null;
 
 	private ActionPanel actionPanel;
-	
+
 	private Map<JbossWSRuntime, JbossWSRuntime> changed = new HashMap<JbossWSRuntime, JbossWSRuntime>();
 
-	private List<JbossWSRuntime> checkedElements = new ArrayList<JbossWSRuntime>();
+	private JbossWSRuntime checkedElement = new JbossWSRuntime();
 
 	private List<JbossWSRuntime> added = new ArrayList<JbossWSRuntime>();
 
@@ -94,7 +95,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	// ------------------------------------------------------------------------
 	// Constructors
 	// ------------------------------------------------------------------------
-	
+
 	/**
 	 * Control for editing jbossWSRuntime list
 	 * 
@@ -113,10 +114,14 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	/**
 	 * TBD
 	 * 
-	 * @return List&lt;JbossWSRuntime&gt;
+	 * @return JbossWSRuntime;
 	 */
-	public List<JbossWSRuntime> getDefaultJbossWSRuntimes() {
-		return checkedElements;
+	public JbossWSRuntime getDefaultJbossWSRuntime() {
+		return checkedElement;
+	}
+
+	public void setDefaultJbossWSRuntime(JbossWSRuntime rt) {
+		checkedElement = rt;
 	}
 
 	/**
@@ -165,22 +170,22 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		root.setLayout(new FormLayout());
 		createTableView();
 		createActionBar();
-		
+
 		FormData tableData = new FormData();
-		tableData.left = new FormAttachment(0,5);
+		tableData.left = new FormAttachment(0, 5);
 		tableData.right = new FormAttachment(actionPanel, -5);
-		tableData.top = new FormAttachment(0,5);
-		tableData.bottom = new FormAttachment(100,-5);
+		tableData.top = new FormAttachment(0, 5);
+		tableData.bottom = new FormAttachment(100, -5);
 		tableView.getControl().setLayoutData(tableData);
-		
+
 		FormData actionsData = new FormData();
-		actionsData.top = new FormAttachment(0,5);
-		actionsData.bottom = new FormAttachment(100,-5);
-		actionsData.right = new FormAttachment(100,-5);
+		actionsData.top = new FormAttachment(0, 5);
+		actionsData.bottom = new FormAttachment(100, -5);
+		actionsData.right = new FormAttachment(100, -5);
 		actionPanel.setLayoutData(actionsData);
-		return new Control[] {root};
+		return new Control[] { root };
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected void createTableView() {
 		tableView = CheckboxTableViewer.newCheckList(root, SWT.V_SCROLL
@@ -278,22 +283,24 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 					if (deselRt != null) {
 						Object[] newChecked = new Object[selRts.length - 1];
-						checkedElements.clear();
+						checkedElement = null;
 						int i = 0;
 						for (Object object : selRts) {
 							JbossWSRuntime rt = (JbossWSRuntime) object;
 							if (rt == selRt) {
 								newChecked[i] = rt;
-								checkedElements.add(rt);
+								checkedElement = rt;
 								i++;
 							}
 						}
 						tableView.setCheckedElements(newChecked);
 					} else {
-						checkedElements.add((JbossWSRuntime)event.getElement());
+						checkedElement = (JbossWSRuntime) event.getElement();
 					}
 				} else {
-					checkedElements.remove(selRt);
+					if (checkedElement == selRt) {
+						checkedElement = null;
+					}
 				}
 				pcs.firePropertyChange(getName(), null, getValue());
 			}
@@ -302,36 +309,36 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		for (JbossWSRuntime rt : (List<JbossWSRuntime>) getValue()) {
 			if (rt.isDefault()) {
 				tableView.setChecked(rt, true);
-				checkedElements.add(rt);
+				checkedElement = rt;
 			}
 		}
 	}
-	
+
 	protected void createActionBar() {
-		actionPanel = new ActionPanel(root, new BaseAction[] {
-				new AddAction(), new EditAction(), new RemoveAction()});
+		actionPanel = new ActionPanel(root, new BaseAction[] { new AddAction(),
+				new EditAction(), new RemoveAction() });
 		tableView.addSelectionChangedListener(actionPanel);
 	}
 
 	/**
-	 * Checks all runtimes and set default one if user did not do it. 
+	 * Checks all runtimes and set default one if user did not do it.
 	 */
 	@SuppressWarnings("unchecked")
-	private void setDefaultRuntimes() {
-		List<JbossWSRuntime> runtimes = (List<JbossWSRuntime>)getValue();
+	private void setDefaultRuntime() {
+		List<JbossWSRuntime> runtimes = (List<JbossWSRuntime>) getValue();
+		boolean checked = false;
 		for (JbossWSRuntime jbossWSRuntime : runtimes) {
-			boolean checked = false;
-			for(JbossWSRuntime checkedElement: checkedElements) {
-				if(checkedElement == jbossWSRuntime) {
-					checked = true;
-					break;
-				}
-			}
-			if(!checked) {
-				tableView.setChecked(jbossWSRuntime, true);
-				checkedElements.add(jbossWSRuntime);
+
+			if (checkedElement == jbossWSRuntime) {
+				checked = true;
+				break;
 			}
 		}
+		if (!checked) {
+			tableView.setChecked(runtimes.get(0), true);
+			checkedElement = runtimes.get(0);
+		}
+
 	}
 
 	/**
@@ -341,7 +348,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	 */
 	@Override
 	public Object[] getEditorControls() {
-		return new Control[] {root};
+		return new Control[] { root };
 	}
 
 	/**
@@ -362,14 +369,10 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	 */
 	@Override
 	public void doFillIntoGrid(Object parent) {
-		Assert
-				.isTrue(
-						parent instanceof Composite,
-						JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_COMPOSITE);
-		Assert
-				.isTrue(
-						((Composite) parent).getLayout() instanceof GridLayout,
-						JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_SUPPORT);
+		Assert.isTrue(parent instanceof Composite,
+				JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_COMPOSITE);
+		Assert.isTrue(((Composite) parent).getLayout() instanceof GridLayout,
+				JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_SUPPORT);
 		Composite aComposite = (Composite) parent;
 		getEditorControls(aComposite);
 		GridLayout gl = (GridLayout) ((Composite) parent).getLayout();
@@ -397,19 +400,19 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 		List<JbossWSRuntime> value = null;
 
-		IFieldEditor name = createTextEditor(
-				SRT_NAME, JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NAME2,
-				""); //$NON-NLS-1$ 
+		IFieldEditor name = createTextEditor(SRT_NAME,
+				JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NAME2, ""); //$NON-NLS-1$ 
 
 		IFieldEditor homeDir = createBrowseFolderEditor(
-						SRT_HOMEDIR,
-						JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_HOME_FOLDER,
-						""); //$NON-NLS-1$ 
+				SRT_HOMEDIR,
+				JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_HOME_FOLDER,
+				""); //$NON-NLS-1$ 
 
 		JbossWSRuntime current = null;
 
 		public JbossWSRuntimeWizardPage(List<JbossWSRuntime> editedList) {
-			super(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NEW_RUNTIME);
+			super(
+					JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NEW_RUNTIME);
 
 			setMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_CREATE_A_RUNTIME);
 			setTitle(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_RUNTIME);
@@ -458,7 +461,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 					name.setValue(homeDirName);
 				}
 			}
-			
+
 			if (name.getValueAsString() == null || "".equals(//$NON-NLS-1$
 					name.getValueAsString().toString().trim())) {
 				setErrorMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NAME_CANNOT_BE_EMPTY);
@@ -499,7 +502,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				setPageComplete(false);
 				return;
 			}
-			
+
 			setErrorMessage(null);
 			setPageComplete(true);
 		}
@@ -515,32 +518,45 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			newRt.setHomeDir(homeDir.getValueAsString());
 			return newRt;
 		}
-		
-		public IFieldEditor createTextEditor(String name, String label, String defaultValue) {
-			CompositeEditor editor = new CompositeEditor(name,label, defaultValue);
-			editor.addFieldEditors(new IFieldEditor[]{new LabelFieldEditor(name,label),
-					new TextFieldEditor(name,label, defaultValue)});
+
+		public IFieldEditor createTextEditor(String name, String label,
+				String defaultValue) {
+			CompositeEditor editor = new CompositeEditor(name, label,
+					defaultValue);
+			editor.addFieldEditors(new IFieldEditor[] {
+					new LabelFieldEditor(name, label),
+					new TextFieldEditor(name, label, defaultValue) });
 			return editor;
 		}
-		
-		public IFieldEditor createBrowseFolderEditor(String name, String label, String defaultValue) {
-			CompositeEditor editor = new CompositeEditor(name, label, defaultValue);
-			editor.addFieldEditors(new IFieldEditor[]{new LabelFieldEditor(name,label),
-					new TextFieldEditor(name,label, defaultValue),
-					new ButtonFieldEditor(name,createSelectFolderAction(JbossWSUIMessages.JBOSSWS_SWT_FIELD_EDITOR_FACTORY_BROWSE),defaultValue)});
+
+		public IFieldEditor createBrowseFolderEditor(String name, String label,
+				String defaultValue) {
+			CompositeEditor editor = new CompositeEditor(name, label,
+					defaultValue);
+			editor
+					.addFieldEditors(new IFieldEditor[] {
+							new LabelFieldEditor(name, label),
+							new TextFieldEditor(name, label, defaultValue),
+							new ButtonFieldEditor(
+									name,
+									createSelectFolderAction(JbossWSUIMessages.JBOSSWS_SWT_FIELD_EDITOR_FACTORY_BROWSE),
+									defaultValue) });
 			return editor;
 		}
-		
-		public ButtonFieldEditor.ButtonPressedAction createSelectFolderAction(String buttonName) {
+
+		public ButtonFieldEditor.ButtonPressedAction createSelectFolderAction(
+				String buttonName) {
 			return new ButtonFieldEditor.ButtonPressedAction(buttonName) {
 				@Override
 				public void run() {
-					DirectoryDialog dialog = new DirectoryDialog(Display.getCurrent().getActiveShell());
+					DirectoryDialog dialog = new DirectoryDialog(Display
+							.getCurrent().getActiveShell());
 					dialog.setFilterPath(getFieldEditor().getValueAsString());
-					dialog.setMessage(JbossWSUIMessages.JBOSSWS_SWT_FIELD_EDITOR_FACTORY_SELECT_HOME_FOLDER);
+					dialog
+							.setMessage(JbossWSUIMessages.JBOSSWS_SWT_FIELD_EDITOR_FACTORY_SELECT_HOME_FOLDER);
 					dialog.setFilterPath(getFieldEditor().getValueAsString());
 					String directory = dialog.open();
-					if(directory!=null) {
+					if (directory != null) {
 						getFieldEditor().setValue(directory);
 					}
 				}
@@ -558,7 +574,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		List<JbossWSRuntime> added = null;
 		List<JbossWSRuntime> value = null;
 
-		public JbossWSRuntimeNewWizard(List<JbossWSRuntime> exist,List<JbossWSRuntime> added) {
+		public JbossWSRuntimeNewWizard(List<JbossWSRuntime> exist,
+				List<JbossWSRuntime> added) {
 			super();
 			setWindowTitle(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NEW_RUNTIME);
 			page1 = new JbossWSRuntimeWizardPage(exist);
@@ -597,7 +614,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		 * Constructor with almost all initialization parameters
 		 * 
 		 * @param existing
-		 *            List&lt;JbossWSRuntime&gt; - edited list of JbossWS Runtimes
+		 *            List&lt;JbossWSRuntime&gt; - edited list of JbossWS
+		 *            Runtimes
 		 * @param source
 		 *            JbossWSRuntime - edited JbossWS Runtime
 		 * @param added
@@ -657,7 +675,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	/**
 	 * Composite that holds list of BaseActions and presents them as column of
 	 * buttons
-	 *
+	 * 
 	 */
 	public static class ActionPanel extends Composite implements
 			ISelectionChangedListener {
@@ -715,7 +733,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	/**
 	 * Class represents an BaseAction as SWT button control and runs action when
 	 * button is prtessed
-	 *
+	 * 
 	 */
 	public static class ActionButton implements IPropertyChangeListener {
 
@@ -829,7 +847,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	public class AddAction extends BaseAction {
 
 		static final String ACTION_NAME = "&Add";
-		
+
 		/**
 		 * Constructor create Add action with default name
 		 */
@@ -861,20 +879,19 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 					.getActiveShell(), wiz);
 			dialog.open();
 			tableView.refresh();
-			setDefaultRuntimes();
+			setDefaultRuntime();
 		}
 	}
 
 	/**
 	 * Action starts an editing selected JbossWS Runtime in Edit JbossWS Runtime
 	 * dialog
-	 *
+	 * 
 	 */
 	public class EditAction extends BaseAction {
 
 		static final String ACTION_NAME = "&Edit";
-		
-		
+
 		/**
 		 * Create EditAction with default name
 		 * 
@@ -904,7 +921,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		public void run() {
 			JbossWSRuntime selected = runtimes[0];
 			Wizard wiz = new JbossWSRuntimeEditWizard(
-					(List<JbossWSRuntime>) getValue(), runtimes[0], added, changed);
+					(List<JbossWSRuntime>) getValue(), runtimes[0], added,
+					changed);
 			WizardDialog dialog = new WizardDialog(Display.getCurrent()
 					.getActiveShell(), wiz);
 			dialog.open();
@@ -928,13 +946,14 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	}
 
 	/**
-	 * Action deletes all selected JbossWS Runtimes. A warning message is shown for
-	 * used JbossWS Runtimes
+	 * Action deletes all selected JbossWS Runtimes. A warning message is shown
+	 * for used JbossWS Runtimes
 	 * 
 	 */
 	public class RemoveAction extends BaseAction {
-		
+
 		static final String ACTION_NAME = "&Remove";
+
 		/**
 		 * Create DeleteAction action with default name
 		 */
@@ -958,7 +977,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				removeRuntime(rt);
 			}
 			tableView.refresh();
-			setDefaultRuntimes();
+			setDefaultRuntime();
 		}
 
 		@SuppressWarnings("unchecked")
@@ -966,9 +985,10 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			boolean used = isRuntimeUsed(r.getName());
 			String title = JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_CONFIRM_TITLE;
 			String message = (used) ? NLS.bind(
-					JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_USED_CONFIRM, r.getName())
-					: NLS.bind(JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_NOT_USED_CONFIRM,
-							r.getName());
+					JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_USED_CONFIRM, r
+							.getName()) : NLS.bind(
+					JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_NOT_USED_CONFIRM,
+					r.getName());
 			boolean b = MessageDialog.openConfirm(tableView.getControl()
 					.getShell(), title, message);
 			if (b) {
@@ -981,18 +1001,20 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				}
 				((List) getValue()).remove(r);
 			}
-			checkedElements.remove(r);
+			if (checkedElement == r) {
+				checkedElement = null;
+			}
 		}
 
 		private boolean isRuntimeUsed(String runtimeName) {
-//			IProject[] ps = ResourcesPlugin.getWorkspace().getRoot()
-//					.getProjects();
-//			for (int i = 0; i < ps.length; i++) {
-//				ISeamProject sp = SeamCorePlugin.getSeamProject(ps[i], false);
-//				if (sp != null && runtimeName.equals(sp.getRuntimeName())) {
-//					return true;
-//				}
-//			}
+			// IProject[] ps = ResourcesPlugin.getWorkspace().getRoot()
+			// .getProjects();
+			// for (int i = 0; i < ps.length; i++) {
+			// ISeamProject sp = SeamCorePlugin.getSeamProject(ps[i], false);
+			// if (sp != null && runtimeName.equals(sp.getRuntimeName())) {
+			// return true;
+			// }
+			// }
 			return false;
 		}
 	}

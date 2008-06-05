@@ -22,14 +22,10 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Widget;
 import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 
 /**
@@ -95,16 +91,10 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 		
 	}
 
-	/**
-	 * 
-	 */
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}
 
-	/**
-	 * 
-	 */
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		pcs.removePropertyChangeListener(listener);
 	}
@@ -125,61 +115,32 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 		return labelControl;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public Label getLabelControl() {
 		return createLabelControl(null);
 	}
 
-	/**
-	 * 
-	 */
 	public abstract Object[] getEditorControls(Object composite);
-	
-	/**
-	 * 
-	 */
+
 	public abstract Object[] getEditorControls();
-	
-	/**
-	 * 
-	 * @return
-	 */
+
 	public Control[] getSwtControls() {
 		return (Control[])getEditorControls();
 	}
 
-	/**
-	 * 
-	 */
 	public abstract int getNumberOfControls();
 
-	/**
-	 * 
-	 */
 	public Object getValue() {
 		return value;
 	}
 
-	/**
-	 * 
-	 */
 	public String getValueAsString() {
 		return getValue().toString();
 	}
 
-	/**
-	 * 
-	 */
 	public boolean isEnabled() {
 		return this.enabled ;
 	}
 
-	/**
-	 * 
-	 */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 		Control[] controls = getSwtControls();
@@ -206,9 +167,6 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 		}
 	}
 
-	/**
-	 * 
-	 */
 	public boolean setFocus() {
 		return true;
 	}
@@ -223,24 +181,14 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 		pcs.firePropertyChange(nameText,oldValue,newValue);
 	}
 
-	/**
-	 * 
-	 */
 	public void setValueAsString(String stringValue) {
 		value = stringValue;
 	}
 
-	/**
-	 * 
-	 */
 	public String getName() {
 		return nameText;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.seam.ui.widget.editor.IFieldEditor#dispose()
-	 */
 	public void dispose() {
 		PropertyChangeListener[] listeners = pcs.getPropertyChangeListeners();
 		for (int i = 0; i < listeners.length; i++) {
@@ -249,10 +197,6 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.seam.ui.widget.editor.IFieldEditor#dispose(org.eclipse.swt.events.DisposeEvent)
-	 */
 	public void dispose(DisposeEvent e) {
 		dispose();
 		for (DisposeListener disposeListener : disposeListeners) {
@@ -261,26 +205,14 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 		disposeListeners.clear();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.seam.ui.widget.editor.IFieldEditor#addDisposeListener(org.eclipse.swt.events.DisposeListener)
-	 */
 	public void addDisposeListener(DisposeListener listener) {
 		disposeListeners.add(listener);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.seam.ui.widget.editor.IFieldEditor#removeDisposeListener(org.eclipse.swt.events.DisposeListener)
-	 */
 	public void removeDisposeListener(DisposeListener listener) {
 		disposeListeners.remove(listener);
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
 	public String getLabelText() {
 		return labelText;
 	}
@@ -292,22 +224,13 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 	public void setLabelText(String labelText) {
 		this.labelText = labelText;
 	}
-	
-	/**
-	 * 
-	 */
+
 	private boolean editable = true;
-	
-	/**
-	 * 
-	 */
+
 	public boolean isEditable() {
 		return editable;
 	}
 
-	/**
-	 * 
-	 */
 	public void setEditable(boolean aEditable) {
 		this.editable = aEditable;
 	}

@@ -18,27 +18,12 @@ public interface INamedElement {
 
 	public abstract String getName();
 
-	/**
-	 * 
-	 * @return
-	 */
 	public abstract Object getValue();
 
-	/**
-	 * 
-	 */
 	public abstract void setValue(Object newValue);
 
-	/**
-	 * 
-	 * @return
-	 */
 	public abstract String getValueAsString();
-
-	/**
-	 * 
-	 * @param aValue
-	 */
+	
 	public abstract void setValueAsString(String aValue);
 
 }

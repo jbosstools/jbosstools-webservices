@@ -16,6 +16,9 @@ import java.beans.PropertyChangeSupport;
 
 import org.eclipse.swt.widgets.Control;
 
+/**
+ * @author Grid Qian
+ */
 public abstract class BaseField {
 
 	public static final String PROPERTY_NAME = "value"; //$NON-NLS-1$

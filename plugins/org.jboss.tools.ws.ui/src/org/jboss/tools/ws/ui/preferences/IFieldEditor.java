@@ -27,16 +27,8 @@ public interface IFieldEditor extends INamedElement {
 	 */
 	public Object[] getEditorControls(Object composite);
 
-	/**
-	 * 
-	 * @return
-	 */
 	public Object[] getEditorControls();
 
-	/**
-	 * 
-	 * @return
-	 */
 	public int getNumberOfControls();
 
 	/**
@@ -69,10 +61,6 @@ public interface IFieldEditor extends INamedElement {
 	 */
 	public void removePropertyChangeListener(PropertyChangeListener listener);
 
-	/**
-	 * 
-	 * @return
-	 */
 	public boolean isEditable();
 
 	/**
@@ -81,16 +69,8 @@ public interface IFieldEditor extends INamedElement {
 	 */
 	public void setEditable(boolean aEdiatble);
 
-	/**
-	 * @return
-	 * 
-	 */
 	public boolean setFocus();
 
-	/**
-	 * 
-	 * @return
-	 */
 	public boolean isEnabled();
 
 	/**
@@ -99,9 +79,6 @@ public interface IFieldEditor extends INamedElement {
 	 */
 	public void setEnabled(boolean enabled);
 
-	/**
-	 * 
-	 */
 	public void dispose();
 
 	/**

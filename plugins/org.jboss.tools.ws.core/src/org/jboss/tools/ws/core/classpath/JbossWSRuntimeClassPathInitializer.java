@@ -65,7 +65,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 		public IClasspathEntry[] getClasspathEntries() {
 			if (entries == null) {
 				ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
-				IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath();
+				IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(null);
 				if (wsPath != null) {
 					IPath libPath = wsPath.append(JbossWSCoreMessages.DIR_LIB);
 					list.addAll(Arrays.asList(getEntries(libPath)));

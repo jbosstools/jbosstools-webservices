@@ -19,8 +19,7 @@ import org.eclipse.swt.widgets.Control;
 import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 
 /**
- * @author eskimo
- *
+ * @author Grid Qian
  */
 public class ButtonFieldEditor extends BaseFieldEditor {
 
@@ -104,9 +103,6 @@ public class ButtonFieldEditor extends BaseFieldEditor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jboss.tools.seam.ui.widget.editor.BaseFieldEditor#getNumberOfControls()
-	 */
 	@Override
 	public int getNumberOfControls() {
 		return 1;

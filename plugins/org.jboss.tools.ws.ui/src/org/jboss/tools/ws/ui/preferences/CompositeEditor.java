@@ -30,8 +30,7 @@ import org.eclipse.swt.widgets.Control;
 import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 
 /**
- * @author eskimo
- *
+ * @author Grid Qian
  */
 public class CompositeEditor extends BaseFieldEditor implements PropertyChangeListener {
 

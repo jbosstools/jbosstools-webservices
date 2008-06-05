@@ -1,9 +1,16 @@
-package org.jboss.tools.ws.ui.preferences;
+package org.jboss.tools.ws.core.classpath;
+
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+
+/**
+ * 
+ * @author Grid Qian
+ *
+ */
 public class JbossWSRuntimeListConverter {
 
 		/*
@@ -18,11 +25,11 @@ public class JbossWSRuntimeListConverter {
 		private static final String NAME = "name";
 
 		/**
-		 * Load String to SeamRuntime map from String
+		 * Load String to JbossWSRuntime map from String
 		 * @param input
 		 * 		String representation of map
 		 * @return
-		 * 		Map&lt;String, SeamRuntime&gt; loaded from string
+		 * 		Map&lt;String, JbossWSRuntime&gt; loaded from string
 		 * TODO - switch to XML?
 		 * TODO - write converter from old serialization format to XML?
 		 * TODO - handle errors in string format
@@ -57,12 +64,12 @@ public class JbossWSRuntimeListConverter {
 		}
 
 		/**
-		 * Convert map String to SeamRUntime to string representation 
+		 * Convert map String to JbossWSRUntime to string representation 
 		 * @param runtimeMap
-		 * 		Map&lt;String, SeamRuntime&gt; - map of String to Seam Runtime to convert 
+		 * 		Map&lt;String, JbossWSRuntime&gt; - map of String to JbossWS Runtime to convert 
 		 * 		in String 
 		 * @return
-		 * 		String representation of String to Seam Runtime map
+		 * 		String representation of String to JbossWS Runtime map
 		 */
 		public String getString(Map<String, JbossWSRuntime> runtimeMap) {
 			StringBuffer buffer = new StringBuffer();

@@ -26,14 +26,11 @@ import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 
 /**
  * 
- * @author eskimo
+ * @author Grid Qian
  *
  */
 public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeListener{
 	
-	/**
-	 * 
-	 */
 	public static final int UNLIMITED = -1;
 	
 	protected int style = -1;
@@ -60,28 +57,15 @@ public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeLi
 		setEditable(editable);
 	}	
 	
-	/**
-	 * 
-	 */
 	protected TextField  fTextField = null;
 	
-	/**
-	 * 
-	 */
 	protected int fWidthInChars = 0;
 
-	/**
-	 * 
-	 */
 	@Override
 	public Object[] getEditorControls() {
 		return new Control[] {getTextControl()};
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.seam.ui.widget.editor.BaseFieldEditor#doFillIntoGrid(java.lang.Object)
-	 */
 	@Override
 	public void doFillIntoGrid(Object aParent) {
 		Assert.isTrue(aParent instanceof Composite, JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_COMPOSITE);
@@ -120,17 +104,10 @@ public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeLi
         return fTextField.getTextControl();
     }
     
-    /**
-     * 
-     */
 	protected void updateWidgetValues() {
 		setValueAsString(getValueAsString());
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
 	protected int getInitialStyle() {
 		if(this.style >= 0) return style;
     	return SWT.SINGLE | SWT.BORDER;
@@ -173,9 +150,6 @@ public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeLi
     	return (value != null) ? value.toString() : ""; //$NON-NLS-1$
     }
     
-    /**
-     * 
-     */
 	@Override
 	public int getNumberOfControls() {
 		return 2;
@@ -191,10 +165,6 @@ public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeLi
         return fTextField!=null?fTextField.getTextControl():null;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.jboss.tools.seam.ui.widget.editor.BaseFieldEditor#setFocus()
-     */
     @Override
 	public boolean setFocus() {
     	boolean setfocus = false;
@@ -203,9 +173,6 @@ public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeLi
         return setfocus;
     }
 
-    /**
-     * 
-     */
 	@Override
 	public Object[] getEditorControls(Object composite) {
 		return new Control[]{getTextControl((Composite)composite)};
@@ -231,18 +198,12 @@ public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeLi
 		}
 	}
 	
-	/**
-	 * 
-	 */
 	@Override
 	public void setEditable(boolean aEditable) {
 		super.setEditable(aEditable);
 		if(getTextControl()!=null) getTextControl().setEditable(aEditable);
 	}
 	
-	/**
-	 * 
-	 */
 	public void propertyChange(PropertyChangeEvent evt) {
 		super.setValue(evt.getNewValue());
 	}
