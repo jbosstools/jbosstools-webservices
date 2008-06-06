@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.creation.ui.project.facet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
@@ -183,8 +184,6 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 
 	protected void initializeRuntimesCombo(Combo cmRuntime) {
 		cmRuntime.removeAll();
-		Map<String, JbossWSRuntime> mpRuntimes = JbossWSCoreUtils
-				.getJbossWSRutntimeMap();
 		JbossWSRuntime[] runtimes = JbossWSRuntimeManager.getInstance()
 				.getRuntimes();
 		for (int i = 0; i < runtimes.length; i++) {
@@ -203,9 +202,9 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 	 * create a new jbossws runtime and set user supplied runtime to the new one
 	 */
 	protected void newJBossWSRuntime() {
-		List<JbossWSRuntime> exists = new ArrayList<JbossWSRuntime>();
+		List<JbossWSRuntime> exists = new ArrayList<JbossWSRuntime>(Arrays.asList(JbossWSRuntimeManager.getInstance().getRuntimes()));
 		List<JbossWSRuntime> added = new ArrayList<JbossWSRuntime>();
-		exists.addAll(JbossWSCoreUtils.getJbossWSRutntimeMap().values());
+		
 		JbossRuntimeListFieldEditor.JbossWSRuntimeNewWizard newRtwizard = new JbossRuntimeListFieldEditor.JbossWSRuntimeNewWizard(
 				exists, added) {
 			public boolean performFinish() {
