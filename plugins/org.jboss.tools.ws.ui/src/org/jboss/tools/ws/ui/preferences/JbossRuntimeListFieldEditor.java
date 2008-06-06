@@ -506,7 +506,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			}
 
 			if (!runtimeExist(homeDir.getValueAsString())) {
-				setErrorMessage(JbossWSUIMessages.Label_JBOSSWS_Runtime_Load_Error);
+				setErrorMessage(JbossWSUIMessages.Label_JBossWS_Runtime_Load_Error);
 				setPageComplete(false);
 				return;
 			}
@@ -577,7 +577,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			if (!jbosswsHomeDir.isDirectory())
 				return false;
 			String[] newNode = { JbossWSUIMessages.Bin,
-					JbossWSUIMessages.Commond };
+					JbossWSUIMessages.Command };
 			String jbosswsBinPath = UIUtils.addNodesToPath(jbosswsHomeDir
 					.getAbsolutePath(), newNode);
 			if (new File(jbosswsBinPath).isFile()) {
