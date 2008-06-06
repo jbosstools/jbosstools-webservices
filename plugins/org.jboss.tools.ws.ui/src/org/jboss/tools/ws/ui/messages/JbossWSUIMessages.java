@@ -25,10 +25,10 @@ public final class JbossWSUIMessages extends NLS {
 		// Do not instantiate
 	}
 
-	public static String Label_JBOSSWS_Runtime_Load_Error;
+	public static String Label_JBossWS_Runtime_Load_Error;
 
 	public static String Bin;
-	public static String Commond;
+	public static String Command;
 	
 	public static String Error_JBossWS_Basic_Editor_Composite;
 	public static String Error_JBossWS_Basic_Editor_Support;
