@@ -56,6 +56,7 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TableColumn;
 import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.utils.UIUtils;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
 
 /**
@@ -434,10 +435,10 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			root.setLayoutData(dg);
 			GridLayout gl = new GridLayout(GL_CONTENT_COLUMNS, false);
 			root.setLayout(gl);
-			homeDir.doFillIntoGrid(root);
-			homeDir.addPropertyChangeListener(this);
 			name.doFillIntoGrid(root);
 			name.addPropertyChangeListener(this);
+			homeDir.doFillIntoGrid(root);
+			homeDir.addPropertyChangeListener(this);
 			setPageComplete(false);
 			setControl(root);
 		}
@@ -452,7 +453,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		public void propertyChange(java.beans.PropertyChangeEvent evt) {
 			if ("homeDir".equals(evt.getPropertyName())) {
 				if (name.getValueAsString() == null
-						|| "".equals(name.getValueAsString().trim())) {
+						|| "".equals(name.getValueAsString().trim())
+						|| this.getErrorMessage() != null) {
 					String homeDirName = homeDir.getValueAsString();
 					if (homeDirName != null && !"".equals(homeDirName.trim())) {
 						File folder = new File(homeDirName);
@@ -499,6 +501,12 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			if (homeDir.getValueAsString() == null
 					|| "".equals(homeDir.getValueAsString().trim())) { //$NON-NLS-1$
 				setErrorMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_PATH_TO_HOME_DIRECTORY_CANNOT_BE_EMPTY);
+				setPageComplete(false);
+				return;
+			}
+
+			if (!runtimeExist(homeDir.getValueAsString())) {
+				setErrorMessage(JbossWSUIMessages.LABEL_JBOSSWS_RUNTIME_LOAD_ERROR);
 				setPageComplete(false);
 				return;
 			}
@@ -562,6 +570,21 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				}
 			};
 		}
+
+		private boolean runtimeExist(String path) {
+
+			File jbosswsHomeDir = new File(path);
+			if (!jbosswsHomeDir.isDirectory())
+				return false;
+			String[] newNode = { JbossWSUIMessages.BIN,
+					JbossWSUIMessages.COMMOND };
+			String jbosswsBinPath = UIUtils.addNodesToPath(jbosswsHomeDir
+					.getAbsolutePath(), newNode);
+			if (new File(jbosswsBinPath).isFile()) {
+				return true;
+			}
+			return false;
+		}
 	}
 
 	/**
@@ -599,7 +622,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	}
 
 	/**
-	 * Wizard for editing JbossWS Runrtime parameters: name, version and path to
+	 * Wizard for editing JbossWS Runtime parameters: name and path to
 	 * home folder
 	 * 
 	 */
@@ -657,7 +680,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			}
 			if (added.contains(source) || changed.containsKey(source)) {
 				source.setName(rt.getName());
-				source.setHomeDir(rt.getName());
+				source.setHomeDir(rt.getHomeDir());
 			} else {
 				changed.put(rt, source);
 				int i = value.indexOf(source);

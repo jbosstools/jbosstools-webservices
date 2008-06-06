@@ -12,9 +12,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.resources,
  org.eclipse.jst.ws,
  org.eclipse.jdt.core,
- org.eclipse.jdt.launching,
- org.eclipse.jst.jsf.core,
- org.eclipse.jst.jsf.ui
+ org.eclipse.jdt.launching
 Eclipse-LazyStart: true
 Bundle-Vendor: %PLUGIN_PROVIDER
 Export-Package: org.jboss.tools.ws.core,

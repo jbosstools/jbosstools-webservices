@@ -11,191 +11,116 @@
 
 package org.jboss.tools.ws.ui.preferences;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.jboss.tools.ws.core.JbossWSCorePlugin;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
-import org.jboss.tools.ws.ui.JbossWSUIPlugin;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
-import org.jboss.tools.ws.ui.utils.UIUtils;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSRuntimePreferencePage extends PreferencePage implements
-		IWorkbenchPreferencePage {
+public class JbossWSRuntimePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
-	private Text jbosswsPath;
-	private Label statusLabel;
-
-	protected Control createContents(Composite superparent) {
-
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
-				.getPreferenceStore();
-		this.setPreferenceStore(ps);
-
-		UIUtils uiUtils = new UIUtils(JbossWSUIPlugin.PLUGIN_ID);
-		final Composite mainComp = uiUtils.createComposite(superparent, 1);
-
-		TabFolder jbosswsPreferenceTab = new TabFolder(mainComp, SWT.WRAP);
-		jbosswsPreferenceTab.setLayoutData(new GridData(
-				GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL
-						| GridData.FILL_BOTH));
-
-		TabItem runtimeInstalLocationItem = new TabItem(jbosswsPreferenceTab,
-				SWT.WRAP);
-		runtimeInstalLocationItem.setText(JbossWSUIMessages.JBOSSWS_RUNTIME);
-		runtimeInstalLocationItem
-				.setToolTipText(JbossWSUIMessages.JBOSSWS_RUNTIME_TOOLTIP);
-
-		Composite runtimeTab = uiUtils.createComposite(jbosswsPreferenceTab, 1);
-		runtimeTab.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL
-				| GridData.GRAB_VERTICAL | GridData.FILL_BOTH));
-		Composite runtimeGroup = uiUtils.createComposite(runtimeTab, 3);
-
-		runtimeInstalLocationItem.setControl(runtimeTab);
-		runtimeTab.setToolTipText(JbossWSUIMessages.JBOSSWS_RUNTIME_TOOLTIP);
-
-		jbosswsPath = uiUtils.createText(runtimeGroup,
-				JbossWSUIMessages.JBOSSWS_RUNTIME_LOCATION, null, null,
-				SWT.BORDER);
-
-		Button browseButton = uiUtils.createPushButton(runtimeGroup,
-				JbossWSUIMessages.LABEL_BROUSE, null, null);
-		browseButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				handleBrowse(mainComp.getShell());
-			}
-		});
-
-		jbosswsPath.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				statusUpdate(runtimeExist(jbosswsPath.getText()));
-
-			}
-		});
-		new Label(runtimeTab, SWT.HORIZONTAL);
-		statusLabel = new Label(runtimeTab, SWT.BACKGROUND | SWT.READ_ONLY | SWT.CENTER | SWT.WRAP | SWT.H_SCROLL);
-		statusLabel.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL
-				| GridData.GRAB_VERTICAL | GridData.FILL_BOTH));
-		
-		initializeValues();
-		jbosswsPreferenceTab.setEnabled(true);
-		jbosswsPreferenceTab.setVisible(true);
-		return mainComp;
+	public JbossWSRuntimePreferencePage() {
+		super();
+		noDefaultAndApplyButton();
 	}
 
+	private static final int COLUMNS = 3;
+
+	JbossRuntimeListFieldEditor jbossWSRuntimes = new JbossRuntimeListFieldEditor(
+			"rtlist", JbossWSUIMessages.JBOSSWS_PREFERENCE_PAGE_RUNTIMES, new ArrayList<JbossWSRuntime>(Arrays.asList(JbossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
+
+	/**
+	 * Create contents of JbossWS preferences page. JbossWSRuntime list editor is
+	 * created
+	 * 
+	 * @return Control
+	 */
+	@Override
+	protected Control createContents(Composite parent) {
+		Composite root = new Composite(parent, SWT.NONE);
+		GridLayout gl = new GridLayout(COLUMNS, false);
+		root.setLayout(gl);
+		jbossWSRuntimes.doFillIntoGrid(root);
+
+		return root;
+	}
+
+	/**
+	 * Inherited from IWorkbenchPreferencePage
+	 * 
+	 * @param workbench
+	 *            {@link IWorkbench}
+	 * 
+	 */
 	public void init(IWorkbench workbench) {
 	}
 
 	/**
-	 * Pops up the file browse dialog box
+	 * Save JbossWSRuntime list
 	 */
-	private void handleBrowse(Shell parent) {
-		DirectoryDialog fileDialog = new DirectoryDialog(parent);
-		String fileName = fileDialog.open();
-		if (fileName != null) {
-			jbosswsPath.setText(fileName);
+	@Override
+	protected void performApply() {
+		for (JbossWSRuntime rt : jbossWSRuntimes.getAddedJbossWSRuntimes()) {
+			JbossWSRuntimeManager.getInstance().addRuntime(rt);
 		}
-	}
-
-	private void statusUpdate(boolean status) {
-		if (statusLabel != null) {
-			if (!jbosswsPath.getText().equals("")) {
-				if (status) {
-					statusLabel
-							.setText(JbossWSUIMessages.LABEL_JBOSSWS_RUNTIME_LOAD);
-				} else {
-					statusLabel
-							.setText(JbossWSUIMessages.LABEL_JBOSSWS_RUNTIME_LOAD_ERROR);
-				}
-			} else {
-				statusLabel
-						.setText(JbossWSUIMessages.LABEL_JBOSSWS_RUNTIME_NOT_EXIT);
+		jbossWSRuntimes.getAddedJbossWSRuntimes().clear();
+		for (JbossWSRuntime rt : jbossWSRuntimes.getRemoved()) {
+			JbossWSRuntimeManager.getInstance().removeRuntime(rt);
+		}
+		jbossWSRuntimes.getRemoved().clear();
+		JbossWSRuntime defaultRuntime = jbossWSRuntimes.getDefaultJbossWSRuntime();
+		// reset default runtime 
+		for (JbossWSRuntime jbossWSRuntime : JbossWSRuntimeManager.getInstance().getRuntimes()) {
+			jbossWSRuntime.setDefault(false);
+		}
+		// set deafult runtime
+		defaultRuntime.setDefault(true);
+		jbossWSRuntimes.setDefaultJbossWSRuntime(null);
+		Map<JbossWSRuntime, JbossWSRuntime> changed = jbossWSRuntimes.getChangedJbossWSRuntimes();
+		for (JbossWSRuntime c : changed.keySet()) {
+			JbossWSRuntime o = changed.get(c);
+			o.setHomeDir(c.getHomeDir());
+			String oldName = o.getName();
+			String newName = c.getName();
+			if (!oldName.equals(newName)) {
+				JbossWSRuntimeManager.getInstance().changeRuntimeName(oldName, newName);
 			}
 		}
-	}
+		jbossWSRuntimes.getChangedJbossWSRuntimes().clear();
 
-	private boolean runtimeExist(String path) {
-
-		File jbosswsHomeDir = new File(path);
-		if (!jbosswsHomeDir.isDirectory())
-			return false;
-		String[] newNode = {JbossWSUIMessages.BIN, JbossWSUIMessages.COMMOND};
-		String jbosswsBinPath = UIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), newNode);
-		if(new File(jbosswsBinPath).isFile()){
-			return true;
-		}
-		return false;
+		JbossWSRuntimeManager.getInstance().save();
 	}
 
 	/**
-	 * store the location to the preference
+	 * Restore original preferences values
 	 */
-	private void storeValues() {
-		IPreferenceStore store = this.getPreferenceStore();
-		store.setValue(JbossWSCoreMessages.WS_LOCATION, jbosswsPath.getText());
-	}
-
-	/**
-	 * Initializes location using default values in the preference store.
-	 */
-	private void initializeDefaults() {
-		IPreferenceStore preferenceStore = this.getPreferenceStore();
-		jbosswsPath.setText(preferenceStore
-				.getDefaultString("jbosswsruntimelocation"));
-	}
-
-	/**
-	 * Initializes the location using default values in the preference
-	 */
-	private void initializeValues() {
-		IPreferenceStore preferenceStore = this.getPreferenceStore();
-		jbosswsPath
-				.setText(preferenceStore.getString("jbosswsruntimelocation"));
-
-	}
-
-	/**
-	 * Default button has been pressed.
-	 */
+	@Override
 	protected void performDefaults() {
-		super.performDefaults();
-		initializeDefaults();
+		setValid(true);
+		setMessage(null);
+		performApply();
 	}
 
 	/**
-	 * Apply button has been pressed.
+	 * See {@link PreferencePage} for details
+	 * 
+	 * @return Boolean
 	 */
-	protected void performApply() {
-		performOk();
-	}
-
-	/**
-	 * OK button has been pressed.
-	 */
+	@Override
 	public boolean performOk() {
-		storeValues();
-		return true;
+		performApply();
+		return super.performOk();
 	}
-
 }

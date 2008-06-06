@@ -28,13 +28,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.osgi.util.NLS;
@@ -225,15 +220,7 @@ public class JbossWSCoreUtils {
 	}
 
 	public static IPath getJbossWSRuntimePath(String runtimeName) {
-		Map<String, JbossWSRuntime> runtimes = new HashMap<String, JbossWSRuntime>();
-		JbossWSRuntimeListConverter converter = new JbossWSRuntimeListConverter();
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
-				.getPreferenceStore();
-		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
-		runtimes = converter.getMap(runtimeLocation);
-		if (runtimeLocation == null || runtimeLocation.equals("")) {
-			return null;
-		}
+		Map<String, JbossWSRuntime> runtimes = getJbossWSRutntimeMap();
 		if (runtimeName == null || runtimeName.equals("")) {
 			for (JbossWSRuntime rt : runtimes.values()) {
 				if (rt.isDefault()) {
@@ -246,6 +233,19 @@ public class JbossWSCoreUtils {
 			return new Path(runtimes.get(runtimeName).getHomeDir());
 		}
 		return null;
+	}
+	
+	public static Map<String, JbossWSRuntime> getJbossWSRutntimeMap(){
+		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
+		.getPreferenceStore();
+		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
+		if (runtimeLocation == null || runtimeLocation.equals("")) {
+			return new HashMap<String, JbossWSRuntime>();
+		}
+		Map<String, JbossWSRuntime> runtimes = new HashMap<String, JbossWSRuntime>();
+		JbossWSRuntimeListConverter converter = new JbossWSRuntimeListConverter();
+		runtimes = converter.getMap(runtimeLocation);
+		return runtimes;
 	}
 
 }
