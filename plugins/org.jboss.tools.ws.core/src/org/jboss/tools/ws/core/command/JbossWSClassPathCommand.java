@@ -58,7 +58,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 			IJavaProject javaProject = JavaCore.create(project);
 
 			IClasspathEntry newClasspath = JavaCore.newContainerEntry(new Path(
-					JbossWSCoreMessages.JBOSSWS_RUNTIME_LIB));
+					JbossWSCoreMessages.JBossWS_Runtime_Lib));
 
 			IClasspathEntry[] oldClasspathEntries = javaProject
 					.readRawClasspath();
@@ -70,7 +70,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 						project.getFullPath())
 						|| oldClasspathEntries[i].getPath().lastSegment()
 								.toUpperCase().contains(
-										JbossWSCoreMessages.JBOSSAS)) {
+										JbossWSCoreMessages.JBossAS)) {
 					isFolderInClassPathAlready = true;
 					break;
 				}
@@ -89,7 +89,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 			}
 		} catch (JavaModelException e) {
 			status = StatusUtils.errorStatus(NLS.bind(
-					JbossWSCoreMessages.ERROR_COPY, new String[] { e
+					JbossWSCoreMessages.Error_Copy, new String[] { e
 							.getLocalizedMessage() }), e);
 			return status;
 		}

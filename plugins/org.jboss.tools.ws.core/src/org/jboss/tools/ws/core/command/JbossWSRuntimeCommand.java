@@ -48,22 +48,22 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 		IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(null);
 		IPath libPath = null;
 		try {
-			libPath = wsPath.append(JbossWSCoreMessages.DIR_LIB);
+			libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);
 		} catch (Exception e) {
 			status = StatusUtils.errorStatus(NLS.bind(
-					JbossWSCoreMessages.ERROR_WS_LOCATION, new String[] { e
+					JbossWSCoreMessages.Error_WS_Location, new String[] { e
 							.getLocalizedMessage() }), e);
 			return status;
 		}
 		IPath targetPath = JbossWSCoreUtils.pathToWebProjectContainer(project
 				.toString());
-		targetPath = targetPath.append(JbossWSCoreMessages.DIR_WEB_INF).append(
-				JbossWSCoreMessages.DIR_LIB);
+		targetPath = targetPath.append(JbossWSCoreMessages.Dir_Web_Inf).append(
+				JbossWSCoreMessages.Dir_Lib);
 		status = JbossWSCoreUtils.copy(libPath, targetPath);
 
 		if (status == Status.OK_STATUS) {
 			// copy client jars to project's folder
-			libPath = wsPath.append(JbossWSCoreMessages.DIR_CLIENT);
+			libPath = wsPath.append(JbossWSCoreMessages.Dir_Client);
 			status = JbossWSCoreUtils.copy(libPath, targetPath);
 		}
 

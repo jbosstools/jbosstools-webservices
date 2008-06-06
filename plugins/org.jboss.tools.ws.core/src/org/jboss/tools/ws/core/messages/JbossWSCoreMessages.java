@@ -24,18 +24,18 @@ public class JbossWSCoreMessages {
 		// Do not instantiate
 	}
 
-	public static String PROGRESS_INSTALL_JBOSSWS_RUNTIME;
-	public static String DIR_LIB;
-	public static String DIR_CLIENT;
-	public static String DIR_WEB_INF;
-	public static String DIR_WEB_CONTENT;
-	public static String ERROR_COPY;
-	public static String WS_LOCATION;
-	public static String JBOSSWS_RUNTIME_LIB;
-	public static String JBOSSWS_RUNTIME;
-	public static String JBOSSAS;
-	public static String ERROR_WS_LOCATION;
-	public static String ERROR_WS_CLASSPATH;
+	public static String Progress_Install_JBossWS_Runtime;
+	public static String Dir_Lib;
+	public static String Dir_Client;
+	public static String Dir_Web_Inf;
+	public static String Dir_Web_Content;
+	public static String Error_Copy;
+	public static String WS_Location;
+	public static String JBossWS_Runtime_Lib;
+	public static String JBossWS_Runtime;
+	public static String JBossAS;
+	public static String Error_WS_Location;
+	public static String Error_WS_Classpath;
 
 
 	static {

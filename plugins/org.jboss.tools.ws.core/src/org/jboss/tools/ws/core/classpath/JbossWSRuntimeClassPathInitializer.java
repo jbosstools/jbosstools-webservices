@@ -28,7 +28,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 			throws CoreException {
 
 		if (containerPath.segment(0).equals(
-				JbossWSCoreMessages.JBOSSWS_RUNTIME_LIB)) {
+				JbossWSCoreMessages.JBossWS_Runtime_Lib)) {
 			JbossWSRuntimeClasspathContainer container = new JbossWSRuntimeClasspathContainer(
 					containerPath);
 			JavaCore.setClasspathContainer(containerPath,
@@ -51,7 +51,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 		}
 
 		public String getDescription() {
-			return JbossWSCoreMessages.JBOSSWS_RUNTIME;
+			return JbossWSCoreMessages.JBossWS_Runtime;
 		}
 
 		public int getKind() {
@@ -67,9 +67,9 @@ public class JbossWSRuntimeClassPathInitializer extends
 				ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
 				IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(null);
 				if (wsPath != null) {
-					IPath libPath = wsPath.append(JbossWSCoreMessages.DIR_LIB);
+					IPath libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);
 					list.addAll(Arrays.asList(getEntries(libPath)));
-					libPath = wsPath.append(JbossWSCoreMessages.DIR_CLIENT);
+					libPath = wsPath.append(JbossWSCoreMessages.Dir_Client);
 					list.addAll(Arrays.asList(getEntries(libPath)));
 					entries = list.toArray(new IClasspathEntry[list.size()]);
 				}

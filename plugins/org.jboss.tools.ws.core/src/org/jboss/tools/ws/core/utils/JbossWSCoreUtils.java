@@ -131,7 +131,7 @@ public class JbossWSCoreUtils {
 					finStream = new FileInputStream(children[i]);
 				} catch (FileNotFoundException e) {
 					status = StatusUtils.errorStatus(NLS.bind(
-							JbossWSCoreMessages.ERROR_COPY, new String[] { e
+							JbossWSCoreMessages.Error_Copy, new String[] { e
 									.getLocalizedMessage() }), e);
 				}
 				try {
@@ -139,7 +139,7 @@ public class JbossWSCoreUtils {
 							targetPath), children[i].getName(), finStream);
 				} catch (CoreException e) {
 					status = StatusUtils.errorStatus(NLS.bind(
-							JbossWSCoreMessages.ERROR_COPY, new String[] { e
+							JbossWSCoreMessages.Error_Copy, new String[] { e
 									.getLocalizedMessage() }), e);
 				}
 			} else {
@@ -151,7 +151,7 @@ public class JbossWSCoreUtils {
 							.getLocation());
 				} catch (CoreException e) {
 					status = StatusUtils.errorStatus(NLS.bind(
-							JbossWSCoreMessages.ERROR_COPY, new String[] { e
+							JbossWSCoreMessages.Error_Copy, new String[] { e
 									.getLocalizedMessage() }), e);
 				}
 			}
@@ -238,7 +238,7 @@ public class JbossWSCoreUtils {
 	public static Map<String, JbossWSRuntime> getJbossWSRutntimeMap(){
 		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
 		.getPreferenceStore();
-		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_LOCATION);
+		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_Location);
 		if (runtimeLocation == null || runtimeLocation.equals("")) {
 			return new HashMap<String, JbossWSRuntime>();
 		}

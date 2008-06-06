@@ -26,7 +26,7 @@ public class JbossWSInstallRuntimeDelegate implements IDelegate {
 
 	public void execute(IProject project, IProjectFacetVersion arg1, Object arg2,
 			IProgressMonitor monitor) throws CoreException {
-		monitor.beginTask(JbossWSCoreMessages.PROGRESS_INSTALL_JBOSSWS_RUNTIME, 2 );
+		monitor.beginTask(JbossWSCoreMessages.Progress_Install_JBossWS_Runtime, 2 );
 
 		JbossWSClassPathCommand command = new JbossWSClassPathCommand(project); 
 	    command.executeOverride(monitor);

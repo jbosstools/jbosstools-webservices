@@ -21,12 +21,8 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.wst.common.project.facet.core.IFacetedProject;
-import org.eclipse.wst.common.project.facet.core.IProjectFacet;
-import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
@@ -45,7 +41,7 @@ public class JbossWSRuntimeManager {
 		private JbossWSRuntimeManager() {
 			IPreferenceStore ps = JbossWSCorePlugin.getDefault().getPreferenceStore();
 			
-			String runtimeListString = ps.getString(JbossWSCoreMessages.WS_LOCATION);
+			String runtimeListString = ps.getString(JbossWSCoreMessages.WS_Location);
 
 			runtimes = converter.getMap(runtimeListString);
 		}
@@ -191,29 +187,6 @@ public class JbossWSRuntimeManager {
 			return null;
 		}
 
-		/**
-		 * If project has JbossWS facet then this method returns default JbossWS runtime for proper version of facet.
-		 * Otherwise return first default runtime.  
-		 * @param project
-		 * @return
-		 */
-		public static JbossWSRuntime getDefaultRuntimeForProject(IProject project) {
-			if(project==null) {
-				throw new IllegalArgumentException("Project must not be null.");
-			}
-			try {
-				IProjectFacet facet = ProjectFacetsManager.getProjectFacet("jbossws.core");
-				IFacetedProject facetedProject = ProjectFacetsManager.create(project);
-				if(facetedProject!=null) {
-					return getInstance().getDefaultRuntime();
-				}
-			} catch (CoreException e) {
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			}
-			return getInstance().getDefaultRuntime();
-		}
 
 		/**
 		 * Return list of available JbossWSRuntime names
