@@ -25,10 +25,10 @@ public class ButtonFieldEditor extends BaseFieldEditor {
 
 	PushButtonField button= null;
 	
-	private ButtonPressedAction buttonAction = new ButtonPressedAction(JbossWSUIMessages.JBOSSWS_BUTTON_FIELD_EDITOR_BROWSE) {
+	private ButtonPressedAction buttonAction = new ButtonPressedAction(JbossWSUIMessages.JBossWS_Button_Field_Editor_Browse) {
 		@Override
 		public void run() {
-			throw new RuntimeException(JbossWSUIMessages.JBOSSWS_BUTTON_FIELD_EDITOR_NOT_IMPLEMENTED_YET);
+			throw new RuntimeException(JbossWSUIMessages.Error_JBossWS_Button_Field_Editor_Not_Implemented_Yet);
 		}
 	};
 	

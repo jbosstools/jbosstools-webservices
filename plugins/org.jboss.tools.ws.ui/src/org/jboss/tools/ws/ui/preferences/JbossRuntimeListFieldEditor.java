@@ -198,11 +198,11 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 		TableColumn tc2 = new TableColumn(tableView.getTable(), SWT.LEFT);
 		tc2.setWidth(TC_NAME_WIDTH);
-		tc2.setText(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NAME);
+		tc2.setText(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name);
 
 		TableColumn tc3 = new TableColumn(tableView.getTable(), SWT.LEFT);
 		tc3.setWidth(TC_PATH_WIDTH);
-		tc3.setText(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_PATH);
+		tc3.setText(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Path);
 
 		tableView.setContentProvider(new IStructuredContentProvider() {
 
@@ -212,8 +212,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 					return ((List<JbossWSRuntime>) inputElement).toArray();
 				} else {
 					throw new IllegalArgumentException(
-							JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_INPUTELEMENT_MUST_BE
-									+ JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_AN_INSTANCEOF_OF_LIST);
+							JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be
+									+ JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_An_Instance_Of_List);
 				}
 			}
 
@@ -371,9 +371,9 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 	@Override
 	public void doFillIntoGrid(Object parent) {
 		Assert.isTrue(parent instanceof Composite,
-				JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_COMPOSITE);
+				JbossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
 		Assert.isTrue(((Composite) parent).getLayout() instanceof GridLayout,
-				JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_SUPPORT);
+				JbossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
 		Composite aComposite = (Composite) parent;
 		getEditorControls(aComposite);
 		GridLayout gl = (GridLayout) ((Composite) parent).getLayout();
@@ -402,21 +402,21 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		List<JbossWSRuntime> value = null;
 
 		IFieldEditor name = createTextEditor(SRT_NAME,
-				JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NAME2, ""); //$NON-NLS-1$ 
+				JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name2, ""); //$NON-NLS-1$ 
 
 		IFieldEditor homeDir = createBrowseFolderEditor(
 				SRT_HOMEDIR,
-				JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_HOME_FOLDER,
+				JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Home_Folder,
 				""); //$NON-NLS-1$ 
 
 		JbossWSRuntime current = null;
 
 		public JbossWSRuntimeWizardPage(List<JbossWSRuntime> editedList) {
 			super(
-					JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NEW_RUNTIME);
+					JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_New_Runtime);
 
-			setMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_CREATE_A_RUNTIME);
-			setTitle(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_RUNTIME);
+			setMessage(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Create_A_Runtime);
+			setTitle(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime);
 			value = editedList;
 		}
 
@@ -466,14 +466,14 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 			if (name.getValueAsString() == null || "".equals(//$NON-NLS-1$
 					name.getValueAsString().toString().trim())) {
-				setErrorMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NAME_CANNOT_BE_EMPTY);
+				setErrorMessage(JbossWSUIMessages.Error_JBossWS_Runtime_List_Field_Editor_Name_Cannot_Be_Empty);
 				setPageComplete(false);
 				return;
 			}
 
 			if (!name.getValueAsString().matches(
 					"[a-zA-Z_][a-zA-Z0-9_\\-\\. ]*")) { //$NON-NLS-1$
-				setErrorMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_RUNTIME_NAME_IS_NOT_CORRECT);
+				setErrorMessage(JbossWSUIMessages.Error_JBossWS_Runtime_List_Field_Editor_Runtime_Name_Is_Not_Correct);
 				setPageComplete(false);
 				return;
 			}
@@ -482,9 +482,9 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 					continue;
 				}
 				if (rt.getName().equals(name.getValueAsString())) {
-					setErrorMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_RUNTIME
+					setErrorMessage(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime
 							+ name.getValueAsString()
-							+ JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_ALREADY_EXISTS);
+							+ JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Already_Exists);
 					setPageComplete(false);
 					return;
 				}
@@ -500,13 +500,13 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 			if (homeDir.getValueAsString() == null
 					|| "".equals(homeDir.getValueAsString().trim())) { //$NON-NLS-1$
-				setErrorMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_PATH_TO_HOME_DIRECTORY_CANNOT_BE_EMPTY);
+				setErrorMessage(JbossWSUIMessages.Error_JBossWS_Runtime_List_Field_Editor_Path_To_Home_Diretory_Cannot_Be_Empty);
 				setPageComplete(false);
 				return;
 			}
 
 			if (!runtimeExist(homeDir.getValueAsString())) {
-				setErrorMessage(JbossWSUIMessages.LABEL_JBOSSWS_RUNTIME_LOAD_ERROR);
+				setErrorMessage(JbossWSUIMessages.Label_JBOSSWS_Runtime_Load_Error);
 				setPageComplete(false);
 				return;
 			}
@@ -547,7 +547,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 							new TextFieldEditor(name, label, defaultValue),
 							new ButtonFieldEditor(
 									name,
-									createSelectFolderAction(JbossWSUIMessages.JBOSSWS_SWT_FIELD_EDITOR_FACTORY_BROWSE),
+									createSelectFolderAction(JbossWSUIMessages.JBossWS_SWT_Field_Editor_Factory_Browse),
 									defaultValue) });
 			return editor;
 		}
@@ -561,7 +561,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 							.getCurrent().getActiveShell());
 					dialog.setFilterPath(getFieldEditor().getValueAsString());
 					dialog
-							.setMessage(JbossWSUIMessages.JBOSSWS_SWT_FIELD_EDITOR_FACTORY_SELECT_HOME_FOLDER);
+							.setMessage(JbossWSUIMessages.JBossWS_SWT_Field_Editor_Factory_Select_Home_Folder);
 					dialog.setFilterPath(getFieldEditor().getValueAsString());
 					String directory = dialog.open();
 					if (directory != null) {
@@ -576,8 +576,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			File jbosswsHomeDir = new File(path);
 			if (!jbosswsHomeDir.isDirectory())
 				return false;
-			String[] newNode = { JbossWSUIMessages.BIN,
-					JbossWSUIMessages.COMMOND };
+			String[] newNode = { JbossWSUIMessages.Bin,
+					JbossWSUIMessages.Commond };
 			String jbosswsBinPath = UIUtils.addNodesToPath(jbosswsHomeDir
 					.getAbsolutePath(), newNode);
 			if (new File(jbosswsBinPath).isFile()) {
@@ -600,7 +600,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		public JbossWSRuntimeNewWizard(List<JbossWSRuntime> exist,
 				List<JbossWSRuntime> added) {
 			super();
-			setWindowTitle(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_NEW_RUNTIME);
+			setWindowTitle(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_New_Runtime);
 			page1 = new JbossWSRuntimeWizardPage(exist);
 			addPage(page1);
 			this.value = exist;
@@ -650,12 +650,12 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				JbossWSRuntime source, List<JbossWSRuntime> added,
 				Map<JbossWSRuntime, JbossWSRuntime> changed) {
 			super();
-			setWindowTitle(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_EDIT_RUNTIME);
+			setWindowTitle(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Edit_Runtime);
 			page1 = new JbossWSRuntimeWizardPage(existing);
 			page1
-					.setMessage(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_MODIFY_RUNTIME);
+					.setMessage(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Modify_Runtime);
 			page1
-					.setTitle(JbossWSUIMessages.JBOSSWS_RUNTIME_LIST_FIELD_EDITOR_EDIT_RUNTIME);
+					.setTitle(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Edit_Runtime);
 			addPage(page1);
 			this.value = existing;
 			this.added = added;
@@ -1006,11 +1006,11 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		@SuppressWarnings("unchecked")
 		private void removeRuntime(JbossWSRuntime r) {
 			boolean used = isRuntimeUsed(r.getName());
-			String title = JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_CONFIRM_TITLE;
+			String title = JbossWSUIMessages.JBossWS_Runtime_Delete_Confirm_Title;
 			String message = (used) ? NLS.bind(
-					JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_USED_CONFIRM, r
+					JbossWSUIMessages.JBossWS_Runtime_Delete_Used_Confirm, r
 							.getName()) : NLS.bind(
-					JbossWSUIMessages.JBOSSWS_RUNTIME_DELETE_NOT_USED_CONFIRM,
+					JbossWSUIMessages.JBossWS_Runtime_Delete_Not_Used_Confirm,
 					r.getName());
 			boolean b = MessageDialog.openConfirm(tableView.getControl()
 					.getShell(), title, message);

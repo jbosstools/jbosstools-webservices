@@ -41,9 +41,9 @@ public class CompositeEditor extends BaseFieldEditor implements PropertyChangeLi
 	@Override
 	public void doFillIntoGrid(Object parent) {
 		Assert.isTrue(parent instanceof Composite,
-			JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_COMPOSITE);
+			JbossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
 		Assert.isTrue(((Composite) parent).getLayout() instanceof GridLayout,
-				JbossWSUIMessages.JBOSSWS_BASIC_EDITOR_SUPPORT);
+				JbossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
 
 		Composite aComposite = (Composite) parent;
 		final Control[] controls = (Control[]) getEditorControls(aComposite);
@@ -78,7 +78,7 @@ public class CompositeEditor extends BaseFieldEditor implements PropertyChangeLi
 	@Override
 	public Object[] getEditorControls() {
 			if(controls.size()>0) return controls.toArray();
-			else throw new IllegalStateException(JbossWSUIMessages.JBOSSWS_COMPOSITE_EDITOR_THIS_METOD_CAN_BE_INVOKED);
+			else throw new IllegalStateException(JbossWSUIMessages.JBossWS_Composite_Editor_This_Method_Can_Be_Invoked);
 	}
 
 	@Override

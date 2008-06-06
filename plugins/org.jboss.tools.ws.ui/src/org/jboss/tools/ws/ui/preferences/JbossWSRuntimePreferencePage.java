@@ -39,7 +39,7 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 	private static final int COLUMNS = 3;
 
 	JbossRuntimeListFieldEditor jbossWSRuntimes = new JbossRuntimeListFieldEditor(
-			"rtlist", JbossWSUIMessages.JBOSSWS_PREFERENCE_PAGE_RUNTIMES, new ArrayList<JbossWSRuntime>(Arrays.asList(JbossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
+			"rtlist", JbossWSUIMessages.JBossWS_Preference_Page_Runtimes, new ArrayList<JbossWSRuntime>(Arrays.asList(JbossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
 
 	/**
 	 * Create contents of JbossWS preferences page. JbossWSRuntime list editor is
