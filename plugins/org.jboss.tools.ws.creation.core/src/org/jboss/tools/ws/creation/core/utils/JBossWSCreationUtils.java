@@ -264,7 +264,7 @@ public class JBossWSCreationUtils {
     
 	public static boolean validateJBossWSLocation() {
 		String location = JbossWSCorePlugin.getDefault().getPreferenceStore()
-				.getString(JbossWSCoreMessages.WS_LOCATION);
+				.getString(JbossWSCoreMessages.WS_Location);
 		if (location == null || location.equals("")) {
 			return false;
 		}

@@ -135,7 +135,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		sd._name = JBossWSCreationUtils.classNameFromQualifiedName(clsName);
 		sd._displayName = sd._name;
 		sd._className = clsName;
-		sd._mappings = JBossWSCreationCoreMessages.SEPARATOR_JAVA + sd._name;
+		sd._mappings = JBossWSCreationCoreMessages.Separator_Java + sd._name;
 		return sd;
 	}
 

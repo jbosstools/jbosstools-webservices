@@ -50,17 +50,17 @@ public class ValidateWSImpl extends AbstractDataModelOperation {
 						.findType(implClass).getCompilationUnit();				
 			} else {
 				return StatusUtils.errorStatus(NLS.bind(
-						JBossWSCreationCoreMessages.ERROR_NO_CLASS,
+						JBossWSCreationCoreMessages.Error_No_Class,
 						new String[] { implClass, project }));
 			}
 			if (!unit.getSource().contains(
-					JBossWSCreationCoreMessages.WEBSERVICE_ANNOTATION)) {
+					JBossWSCreationCoreMessages.Webservice_Annotation)) {
 				return StatusUtils
-						.errorStatus(JBossWSCreationCoreMessages.ERROR_NO_ANNOTATION);
+						.errorStatus(JBossWSCreationCoreMessages.Error_No_Annotation);
 			}
 		} catch (JavaModelException e) {
 			return StatusUtils.errorStatus(NLS.bind(
-					JBossWSCreationCoreMessages.ERROR_NO_CLASS, new String[] {
+					JBossWSCreationCoreMessages.Error_No_Class, new String[] {
 							implClass, project }));
 		} 
 		return Status.OK_STATUS;

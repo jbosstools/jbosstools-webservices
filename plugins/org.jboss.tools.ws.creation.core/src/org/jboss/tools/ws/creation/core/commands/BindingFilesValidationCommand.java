@@ -66,13 +66,13 @@ public class BindingFilesValidationCommand extends AbstractDataModelOperation {
 		} catch (SAXException e) {
 			return JBossStatusUtils
 					.errorStatus(
-							NLS.bind(JBossWSCreationCoreMessages.ERROR_MESSAGE_INVALID_BINDING_FILE,
+							NLS.bind(JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
 											new String[] {filename, e.getLocalizedMessage() }), e);
 			
 		} catch (IOException e) {
 			return JBossStatusUtils
 					.errorStatus(
-							NLS.bind(JBossWSCreationCoreMessages.ERROR_MESSAGE_INVALID_BINDING_FILE,
+							NLS.bind(JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
 											new String[] {filename, e.getLocalizedMessage() }), e);
 		}
 		return Status.OK_STATUS;

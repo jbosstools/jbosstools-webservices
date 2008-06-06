@@ -107,17 +107,17 @@ public class ImplementationClassCreationCommand extends
 		} catch (CoreException e) {
 			status = JBossStatusUtils
 					.errorStatus(
-							JBossWSCreationCoreMessages.ERROR_MESSAGE_INVALID_BINDING_FILE,
+							JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
 							e);
 		} catch (MalformedTreeException e) {
 			status = JBossStatusUtils
 					.errorStatus(
-							JBossWSCreationCoreMessages.ERROR_MESSAGE_INVALID_BINDING_FILE,
+							JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
 							e);
 		} catch (BadLocationException e) {
 			status = JBossStatusUtils
 					.errorStatus(
-							JBossWSCreationCoreMessages.ERROR_MESSAGE_INVALID_BINDING_FILE,
+							JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
 							e);
 		}
 		return status;

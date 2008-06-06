@@ -66,24 +66,24 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			project = JBossWSCreationUtils.getJavaProjectByName(model
 					.getWebProjectName());
 		} catch (JavaModelException e) {
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.ERROR_CREATECLIENTSAMPLE);
+			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		// find web service client classes
 		List<ICompilationUnit> clientUnits = findJavaUnitsByAnnotation(project,
-				JBossWSCreationCoreMessages.WEBSERVICEClient_ANNOTATION);
+				JBossWSCreationCoreMessages.WebserviceClient_Annotation);
 
 		// find web service classes
 		List<ICompilationUnit> serviceUnits = findJavaUnitsByAnnotation(
-				project, JBossWSCreationCoreMessages.WEBSERVICE_ANNOTATION_CHECK);
+				project, JBossWSCreationCoreMessages.Webservice_Annotation_Check);
 
 		// create a client sample class
 		ICompilationUnit clientCls = createJavaClass(model.getCustomPackage()
-				+ JBossWSCreationCoreMessages.CLIENTSAMPLEPACKAGENAME,
-				JBossWSCreationCoreMessages.CLIENTSAMPLECLASSNAME, false, null,
+				+ JBossWSCreationCoreMessages.Client_Sample_Package_Name,
+				JBossWSCreationCoreMessages.Client_Sample_Class_Name, false, null,
 				project);
 		if(clientCls == null){
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.ERROR_CREATECLIENTSAMPLE);
+			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		// add imports to client sample class
@@ -92,7 +92,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 					null);
 			clientCls.save(null, true);
 		} catch (Exception e1) {
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.ERROR_CREATECLIENTSAMPLE);
+			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		// create main method
@@ -111,7 +111,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			clientClsType.createMethod(sb.toString(), null, true, null);
 			clientCls.save(null, true);
 		} catch (JavaModelException e) {
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.ERROR_CREATECLIENTSAMPLE);
+			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		return status;
@@ -222,7 +222,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 					NormalAnnotation anno = (NormalAnnotation) method
 							.modifiers().get(0);
 					if (anno.getTypeName().getFullyQualifiedName().equals(
-							JBossWSCreationCoreMessages.WEBENDPOINT)) {
+							JBossWSCreationCoreMessages.WebEndpoint)) {
 						createWebService(serviceUnits, method, sb, i);
 					}
 				}

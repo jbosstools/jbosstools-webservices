@@ -5,30 +5,30 @@ import org.eclipse.osgi.util.NLS;
 public class JBossWSCreationCoreMessages extends NLS {
 	private static final String BUNDLE_NAME = "org.jboss.tools.ws.creation.core.messages.JBossWSCreationCore"; //$NON-NLS-1$
 
-	public static String LABEL_CUSTOM_PACKAGE_NAME;
-	public static String LABEL_CATALOG_FILE;
-	public static String LABEL_BUTTON_TEXT_SELECTION;  
-	public static String LABEL_BINDING_FILE;
-	public static String LABEL_JAXWS_TARGET;
-	public static String VALUE_TARGET_0;
-	public static String VALUE_TARGET_1;
-	public static String LABEL_BUTTON_TEXT_REMOVE;
+	public static String Label_Custom_Package_Name;
+	public static String Label_Catalog_File;
+	public static String Label_Button_Text_Seletion;  
+	public static String Label_Binding_File;
+	public static String Label_JaxWS_Target;
+	public static String Value_Target_0;
+	public static String Value_Target_1;
+	public static String Label_Button_Text_Remove;
 
-	public static String ERROR_MESSAGE_INVALID_BINDING_FILE;
-	public static String ERROR_READ_BINDING_FILE;
-	public static String SEPARATOR_JAVA;
+	public static String Error_Message_Invalid_Binding_File;
+	public static String Error_Read_Binding_File;
+	public static String Separator_Java;
 	
-	public static String ERROR_IMPLEMENTATION_CODE_GENERATION;
-	public static String ERROR_NO_ANNOTATION;
-	public static String WEBSERVICEClient_ANNOTATION;
-	public static String ERROR_NO_CLASS;
-	public static String ERROR_WS_LOCATION;
-	public static String WEBSERVICE_ANNOTATION_CHECK;
-	public static String WEBSERVICE_ANNOTATION;
-	public static String CLIENTSAMPLEPACKAGENAME;
-	public static String CLIENTSAMPLECLASSNAME;
-	public static String ERROR_CREATECLIENTSAMPLE;
-    public static String WEBENDPOINT;
+	public static String Error_Implemetation_Code_Generation;
+	public static String Error_No_Annotation;
+	public static String WebserviceClient_Annotation;
+	public static String Error_No_Class;
+	public static String Error_WS_Location;
+	public static String Webservice_Annotation_Check;
+	public static String Webservice_Annotation;
+	public static String Client_Sample_Package_Name;
+	public static String Client_Sample_Class_Name;
+	public static String Error_Create_Client_Sample;
+    public static String WebEndpoint;
 
 	private JBossWSCreationCoreMessages() {
 	}

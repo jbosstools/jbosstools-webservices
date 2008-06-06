@@ -56,7 +56,7 @@ public class RemoveClientJarsCommand extends AbstractDataModelOperation{
 			project = JBossWSCreationUtils.getJavaProjectByName(model
 					.getWebProjectName());
 		} catch (JavaModelException e) {
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.ERROR_CREATECLIENTSAMPLE);
+			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 		status = removeClassPath(project);
 		return status;

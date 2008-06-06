@@ -49,9 +49,9 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 
 		if (!JBossWSCreationUtils.validateJBossWSLocation()) {
 			return StatusUtils
-					.errorStatus(JBossWSCreationCoreMessages.ERROR_WS_LOCATION);
+					.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 		}
-		model.setTarget(JBossWSCreationCoreMessages.VALUE_TARGET_0);
+		model.setTarget(JBossWSCreationCoreMessages.Value_Target_0);
 		if (scenario == WebServiceScenario.CLIENT) {
 			try {
 				model.setWsdlURI(wsClient.getWebServiceClientInfo()
