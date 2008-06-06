@@ -36,6 +36,7 @@ import org.eclipse.osgi.util.NLS;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntimeListConverter;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
 /**
@@ -220,32 +221,26 @@ public class JbossWSCoreUtils {
 	}
 
 	public static IPath getJbossWSRuntimePath(String runtimeName) {
-		Map<String, JbossWSRuntime> runtimes = getJbossWSRutntimeMap();
+		JbossWSRuntime[] runtimes = JbossWSRuntimeManager.getInstance().getRuntimes();
+		if(runtimes == null || runtimes.length == 0){
+			return null;
+		}
 		if (runtimeName == null || runtimeName.equals("")) {
-			for (JbossWSRuntime rt : runtimes.values()) {
+			for (JbossWSRuntime rt : runtimes) {
 				if (rt.isDefault()) {
 					return new Path(rt.getHomeDir());
 				}
 			}
 			return null;
-		}
-		if (runtimes.get(runtimeName) != null) {
-			return new Path(runtimes.get(runtimeName).getHomeDir());
+		} else {
+			for (JbossWSRuntime rt : runtimes) {
+				if(rt.getName().equals(runtimeName)){
+					return new Path(rt.getHomeDir());
+				}
+			}
 		}
 		return null;
 	}
 	
-	public static Map<String, JbossWSRuntime> getJbossWSRutntimeMap(){
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
-		.getPreferenceStore();
-		String runtimeLocation = ps.getString(JbossWSCoreMessages.WS_Location);
-		if (runtimeLocation == null || runtimeLocation.equals("")) {
-			return new HashMap<String, JbossWSRuntime>();
-		}
-		Map<String, JbossWSRuntime> runtimes = new HashMap<String, JbossWSRuntime>();
-		JbossWSRuntimeListConverter converter = new JbossWSRuntimeListConverter();
-		runtimes = converter.getMap(runtimeLocation);
-		return runtimes;
-	}
 
 }

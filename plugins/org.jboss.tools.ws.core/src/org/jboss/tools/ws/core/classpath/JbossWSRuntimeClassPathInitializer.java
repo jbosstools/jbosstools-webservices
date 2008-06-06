@@ -22,6 +22,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 
 	public JbossWSRuntimeClassPathInitializer() {
 	}
+	private String segment;
 
 	@Override
 	public void initialize(IPath containerPath, IJavaProject project)
@@ -34,6 +35,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 			JavaCore.setClasspathContainer(containerPath,
 					new IJavaProject[] { project },
 					new IClasspathContainer[] { container }, null);
+			segment = containerPath.segment(1);
 		}
 	}
 
@@ -65,7 +67,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 		public IClasspathEntry[] getClasspathEntries() {
 			if (entries == null) {
 				ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
-				IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(null);
+				IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(segment);
 				if (wsPath != null) {
 					IPath libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);
 					list.addAll(Arrays.asList(getEntries(libPath)));
