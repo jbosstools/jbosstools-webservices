@@ -16,8 +16,14 @@
 		    <constraint>
       			<requires facet="jst.web" version="2.2,2.3,2.4,2.5"/>
     		</constraint>
-    		<action type="INSTALL">
+    		<action
+            facet="jbossws.core"
+            id="jbossws.core.install"
+            type="INSTALL">
       			<delegate class="org.jboss.tools.ws.core.facet.delegate.JbossWSInstallRuntimeDelegate"/>
+         <config-factory
+               class="org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider">
+         </config-factory>
     		</action>
 <!--
     		<action type="UNINSTALL">
@@ -63,5 +69,6 @@
             id="JbossWSRuntimeLib">
       </classpathContainerInitializer>
    </extension>
+   
 
 </plugin>

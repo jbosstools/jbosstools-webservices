@@ -20,5 +20,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.core,
  org.eclipse.jst.ws.ui,
  org.jboss.tools.ws.creation.core,
- org.jboss.tools.ws.core
+ org.jboss.tools.ws.core,
+ org.eclipse.jst.ws.creation.ui,
+ org.eclipse.wst.common.modulecore,
+ org.eclipse.wst.common.project.facet.ui,
+ org.jboss.tools.ws.ui
 Eclipse-LazyStart: true

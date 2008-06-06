@@ -54,6 +54,14 @@
              insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand">
        </widgetFactory>
     </extension>
-  
+  <extension
+         point="org.eclipse.wst.common.project.facet.ui.wizardPages">
+      <wizard-pages
+            action="jbossws.core.install">
+         <page
+               class="org.jboss.tools.ws.creation.ui.project.facet.JBossWSFacetInstallPage">
+         </page>
+      </wizard-pages>
+   </extension>
 
 </plugin>

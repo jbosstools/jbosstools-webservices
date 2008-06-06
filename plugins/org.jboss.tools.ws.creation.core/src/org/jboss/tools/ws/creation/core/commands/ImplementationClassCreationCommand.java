@@ -30,13 +30,16 @@ import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
@@ -67,7 +70,6 @@ public class ImplementationClassCreationCommand extends
 	private static final String RESOURCE_FOLDER = "src";
 
 	private static final String PREFIX_JAXWS_ANNOTATION_CLASS = "javax.jws";
-	private static final String CLASS_LOGGER = "Logger";
 	private static final String SUFFIX_PACKAGENAME_IMPL = "impl";
 	private static final String DEFAULT_CU_SUFFIX = ".java";
 
@@ -77,10 +79,11 @@ public class ImplementationClassCreationCommand extends
 	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName";
 	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface";
 	
-	private static final String LOGGER_VARIABLE_NAME = "log";
+	private static final String LOGGER_FIELD_NAME = "log";
 	private static final String LOGGER_CLASS_FULLNAME = "org.jboss.logging.Logger";
 	private static final String LOGGER_CLASS_NAME = "Logger";
-	private static final String LOGGER_METHOD_GETLOGGER = "getLogger";
+	private static final String LOGGER_METHOD_NAME_GETLOGGER = "getLogger";
+	private static final String LOGGER_METHOD_NAME_INFO = "info";
 
 	private ServiceModel model;
 	private IWorkspaceRoot fWorkspaceRoot;
@@ -178,7 +181,7 @@ public class ImplementationClassCreationCommand extends
 				ast.newSimpleType(ast.newName(portTypeName)));
 
 		// add Logger variable declaration
-		// createLoggerField(ast, type);
+		//createLoggerField(ast, type, portTypeName);
 
 		// add method implementation
 		TypeDeclaration inTD = (TypeDeclaration) portTypeCU.types().get(0);
@@ -317,46 +320,7 @@ public class ImplementationClassCreationCommand extends
 		return member;
 	}
 
-	protected FieldDeclaration createLoggerField(AST ast, TypeDeclaration type, String portTypeName) {
-		VariableDeclarationFragment vdf = ast.newVariableDeclarationFragment();
-		vdf.setName(ast.newSimpleName(LOGGER_VARIABLE_NAME));
-		Initializer clsAccesss = ast.newInitializer();
-		FieldDeclaration fd = ast.newFieldDeclaration(vdf);
-		fd.modifiers().add(Modifier.ModifierKeyword.PRIVATE_KEYWORD);
-		fd.modifiers().add(Modifier.ModifierKeyword.STATIC_KEYWORD);
-		fd.setType(ast.newSimpleType(ast.newSimpleName(LOGGER_CLASS_NAME)));
-		MethodInvocation mi = ast.newMethodInvocation();
-		mi.setExpression(ast.newSimpleName(LOGGER_CLASS_NAME));
-		mi.setName(ast.newSimpleName(LOGGER_METHOD_GETLOGGER));
-		String implClsName = getImplPackageName() + "." + getImplClassName(portTypeName);
-		StringLiteral sl = ast.newStringLiteral();
-		sl.setLiteralValue(implClsName);
-		mi.arguments().add(sl);
-		vdf.setInitializer(mi);
-		type.bodyDeclarations().add(fd);
-
-		/*
-		 * SingleVariableDeclaration svd = ast.newSingleVariableDeclaration();
-		 * svd.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD));
-		 * svd.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.STATIC_KEYWORD));
-		 * svd.setType(ast.newSimpleType(ast.newSimpleName(CLASS_LOGGER)));
-		 * svd.setName(ast.newSimpleName("log")); Initializer initializer =
-		 * ast.newInitializer(); Block initBlock = ast.newBlock();
-		 * 
-		 * MethodInvocation mi = ast.newMethodInvocation();
-		 * mi.setExpression(ast.newName("Logger"));
-		 * mi.setName(ast.newSimpleName("getLogger"));
-		 * 
-		 * 
-		 * MethodInvocation invokCls = ast.newMethodInvocation();
-		 * invokCls.setExpression((ast.newSimpleName("TestImpl"));
-		 * invokCls.setName(ast.newSimpleName("class"));
-		 * mi.arguments().add(invokCls.getExpression();
-		 * svd.setInitializer(ast.newExpressionStatement(mi).getExpression());
-		 */
-		return null;
-	}
-
+	
 	protected MethodDeclaration createMethodForImplClass(AST ast,
 			MethodDeclaration inMethod) {
 
@@ -384,6 +348,9 @@ public class ImplementationClassCreationCommand extends
 
 		// create method body
 		Block block = ast.newBlock();
+		// add log info statement
+		//block.statements().add(createLoggerInvokeStatement(ast, md.getName().getFullyQualifiedName()));
+		
 		Type returnType = inMethod.getReturnType2();
 		ReturnStatement rs = ast.newReturnStatement();
 
@@ -406,9 +373,13 @@ public class ImplementationClassCreationCommand extends
 				StringLiteral sl = ast.newStringLiteral();
 				sl.setLiteralValue("");
 				rs.setExpression(sl);
-			} else if(!"void".equals(typeName)){
+			} else if("void".equals(typeName)){
+				// do nothing
+			}else{
 				rs.setExpression(ast.newNullLiteral());
 			}
+				
+			
 		} else {
 			rs.setExpression(ast.newNullLiteral());
 		}
@@ -420,6 +391,41 @@ public class ImplementationClassCreationCommand extends
 		return md;
 	}
 
+/*	protected FieldDeclaration createLoggerField(AST ast, TypeDeclaration type, String portTypeName) {
+		VariableDeclarationFragment vdf = ast.newVariableDeclarationFragment();
+		vdf.setName(ast.newSimpleName(LOGGER_FIELD_NAME));
+		Initializer clsAccesss = ast.newInitializer();
+		FieldDeclaration fd = ast.newFieldDeclaration(vdf);
+		fd.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD));
+		fd.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.STATIC_KEYWORD));
+		fd.setType(ast.newSimpleType(ast.newSimpleName(LOGGER_CLASS_NAME)));
+		MethodInvocation mi = ast.newMethodInvocation();
+		mi.setExpression(ast.newSimpleName(LOGGER_CLASS_NAME));
+		mi.setName(ast.newSimpleName(LOGGER_METHOD_NAME_GETLOGGER));
+		String implClsName = getImplPackageName() + "." + getImplClassName(portTypeName);
+		StringLiteral sl = ast.newStringLiteral();
+		sl.setLiteralValue(implClsName);
+		mi.arguments().add(sl);
+		vdf.setInitializer(mi);
+		type.bodyDeclarations().add(fd);
+		
+		return fd;
+	}
+
+	protected ExpressionStatement createLoggerInvokeStatement(AST ast, String methodName){
+		MethodInvocation methodInvocation = ast.newMethodInvocation();
+		Name fieldName = ast.newSimpleName(LOGGER_FIELD_NAME);
+		methodInvocation.setExpression(fieldName);
+		methodInvocation.setName(ast.newSimpleName(LOGGER_METHOD_NAME_INFO));
+		StringLiteral param = ast.newStringLiteral();
+		param.setLiteralValue("The method: " + methodName + "() is invoked.");
+		methodInvocation.arguments().add(param);
+		ExpressionStatement infoStatement = ast.newExpressionStatement(methodInvocation);
+		
+		return infoStatement;
+		
+	}*/
+	
 	private Type copyTypeFromOtherASTNode(AST ast, Type type) {
 		if (type instanceof PrimitiveType) {
 			return ast.newPrimitiveType(((PrimitiveType) type)
