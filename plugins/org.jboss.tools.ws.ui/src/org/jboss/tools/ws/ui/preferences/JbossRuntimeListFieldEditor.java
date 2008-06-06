@@ -621,6 +621,10 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			return true;
 		}
 		
+		protected JbossWSRuntime getRuntime(){
+			return page1.getRuntime();
+		}
+		
 	}
 
 	/**

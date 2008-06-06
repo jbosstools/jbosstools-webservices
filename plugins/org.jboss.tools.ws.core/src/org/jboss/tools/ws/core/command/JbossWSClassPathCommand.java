@@ -38,7 +38,6 @@ import org.jboss.tools.ws.core.utils.StatusUtils;
 public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 
 	IProject project;
-	String runtimeLocation;
 	private IDataModel model;
 
 	public JbossWSClassPathCommand(IProject project, IDataModel model) {
@@ -53,28 +52,48 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 
 	public IStatus executeOverride(IProgressMonitor monitor) {
 		IStatus status = Status.OK_STATUS;
-		try{
-		boolean isServerSupplied = model.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED);
-		if(isServerSupplied){
-			QualifiedName serverSupplied_qn = new QualifiedName(IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED, IJBossWSFacetDataModelProperties.PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME);
-			project.setPersistentProperty(serverSupplied_qn, "1");
-		}
-			status = addClassPath(project);
-		}catch(CoreException e){
+		try {
+			boolean isServerSupplied = model
+					.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED);
+			if (isServerSupplied) {
+				QualifiedName serverSupplied_qn = new QualifiedName(
+						IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED,
+						IJBossWSFacetDataModelProperties.PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME);
+				project.setPersistentProperty(serverSupplied_qn, "1");
+			} else {
+				// store runtime name and runtime location to the project
+				QualifiedName qRuntimeName = new QualifiedName(
+						IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED,
+						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
+				QualifiedName qRuntimeLocation = new QualifiedName(
+						IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED,
+						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
+				String runtimeName = model
+						.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
+				String runtimeLocation = model
+						.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME);
+				project.setPersistentProperty(qRuntimeName, runtimeName);
+				project
+						.setPersistentProperty(qRuntimeLocation,
+								runtimeLocation);
+				status = addClassPath(project, runtimeName);
+			}
+
+		} catch (CoreException e) {
 			status = StatusUtils.errorStatus(
 					JbossWSCoreMessages.ERROR_ADD_FACET_JBOSSWS, e);
 		}
 		return status;
 	}
 
-	public IStatus addClassPath(IProject project) {
+	public IStatus addClassPath(IProject project, String segment) {
 		IStatus status = Status.OK_STATUS;
 		try {
 
 			IJavaProject javaProject = JavaCore.create(project);
 
 			IClasspathEntry newClasspath = JavaCore.newContainerEntry(new Path(
-					JbossWSCoreMessages.JBossWS_Runtime_Lib));
+					JbossWSCoreMessages.JBossWS_Runtime_Lib).append(segment));
 
 			IClasspathEntry[] oldClasspathEntries = javaProject
 					.readRawClasspath();
