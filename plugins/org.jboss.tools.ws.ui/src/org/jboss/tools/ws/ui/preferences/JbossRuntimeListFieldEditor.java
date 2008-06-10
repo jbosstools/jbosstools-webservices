@@ -580,7 +580,15 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 					JbossWSUIMessages.Command };
 			String jbosswsBinPath = UIUtils.addNodesToPath(jbosswsHomeDir
 					.getAbsolutePath(), newNode);
-			if (new File(jbosswsBinPath).isFile()) {
+			if (new File(jbosswsBinPath).isFile()
+					&& new File(UIUtils.addAnotherNodeToPath(jbosswsHomeDir
+							.getAbsolutePath(), JbossWSUIMessages.Client))
+							.isDirectory()
+					&& new File(UIUtils
+							.addNodesToPath(jbosswsHomeDir.getAbsolutePath(),
+									new String[] { JbossWSUIMessages.Lib,
+											JbossWSUIMessages.Endorsed }))
+							.isDirectory()) {
 				return true;
 			}
 			return false;
@@ -617,19 +625,19 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			JbossWSRuntime rt = page1.getRuntime();
 			added.add(rt);
 			value.add(rt);
-			
+
 			return true;
 		}
-		
-		protected JbossWSRuntime getRuntime(){
+
+		protected JbossWSRuntime getRuntime() {
 			return page1.getRuntime();
 		}
-		
+
 	}
 
 	/**
-	 * Wizard for editing JbossWS Runtime parameters: name and path to
-	 * home folder
+	 * Wizard for editing JbossWS Runtime parameters: name and path to home
+	 * folder
 	 * 
 	 */
 	public static class JbossWSRuntimeEditWizard extends Wizard {

@@ -29,6 +29,9 @@ public final class JbossWSUIMessages extends NLS {
 
 	public static String Bin;
 	public static String Command;
+	public static String Client;
+	public static String Lib;
+	public static String Endorsed;
 	
 	public static String Error_JBossWS_Basic_Editor_Composite;
 	public static String Error_JBossWS_Basic_Editor_Support;
