@@ -29,7 +29,8 @@ import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 /**
  * @author Grid Qian
  */
-public class JbossWSRuntimePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
+public class JbossWSRuntimePreferencePage extends PreferencePage implements
+		IWorkbenchPreferencePage {
 
 	public JbossWSRuntimePreferencePage() {
 		super();
@@ -42,8 +43,8 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 			"rtlist", JbossWSUIMessages.JBossWS_Preference_Page_Runtimes, new ArrayList<JbossWSRuntime>(Arrays.asList(JbossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
 
 	/**
-	 * Create contents of JbossWS preferences page. JbossWSRuntime list editor is
-	 * created
+	 * Create contents of JbossWS preferences page. JbossWSRuntime list editor
+	 * is created
 	 * 
 	 * @return Control
 	 */
@@ -80,23 +81,30 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements IWor
 			JbossWSRuntimeManager.getInstance().removeRuntime(rt);
 		}
 		jbossWSRuntimes.getRemoved().clear();
-		JbossWSRuntime defaultRuntime = jbossWSRuntimes.getDefaultJbossWSRuntime();
-		// reset default runtime 
-		for (JbossWSRuntime jbossWSRuntime : JbossWSRuntimeManager.getInstance().getRuntimes()) {
-			jbossWSRuntime.setDefault(false);
+		JbossWSRuntime defaultRuntime = jbossWSRuntimes
+				.getDefaultJbossWSRuntime();
+		// reset default runtime
+		for (JbossWSRuntime jbossWSRuntime : JbossWSRuntimeManager
+				.getInstance().getRuntimes()) {
+				jbossWSRuntime.setDefault(false);
 		}
 		// set deafult runtime
-		defaultRuntime.setDefault(true);
+		if (defaultRuntime != null) {
+			defaultRuntime.setDefault(true);
+		}
 		jbossWSRuntimes.setDefaultJbossWSRuntime(null);
-		Map<JbossWSRuntime, JbossWSRuntime> changed = jbossWSRuntimes.getChangedJbossWSRuntimes();
+		Map<JbossWSRuntime, JbossWSRuntime> changed = jbossWSRuntimes
+				.getChangedJbossWSRuntimes();
 		for (JbossWSRuntime c : changed.keySet()) {
 			JbossWSRuntime o = changed.get(c);
 			o.setHomeDir(c.getHomeDir());
 			String oldName = o.getName();
 			String newName = c.getName();
 			if (!oldName.equals(newName)) {
-				JbossWSRuntimeManager.getInstance().changeRuntimeName(oldName, newName);
+				JbossWSRuntimeManager.getInstance().changeRuntimeName(oldName,
+						newName);
 			}
+			o.setDefault(c.isDefault());
 		}
 		jbossWSRuntimes.getChangedJbossWSRuntimes().clear();
 

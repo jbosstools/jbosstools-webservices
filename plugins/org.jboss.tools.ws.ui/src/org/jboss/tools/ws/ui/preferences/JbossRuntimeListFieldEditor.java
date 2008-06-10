@@ -332,12 +332,15 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 			if (checkedElement == jbossWSRuntime) {
 				checked = true;
+				tableView.setChecked(checkedElement, true);
 				break;
 			}
 		}
 		if (!checked) {
-			tableView.setChecked(runtimes.get(0), true);
-			checkedElement = runtimes.get(0);
+			if (tableView.getCheckedElements() == null) {
+				tableView.setChecked(runtimes.get(0), true);
+				checkedElement = runtimes.get(0);
+			}
 		}
 
 	}
@@ -697,9 +700,13 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				source.setHomeDir(rt.getHomeDir());
 			} else {
 				changed.put(rt, source);
+				if (source.isDefault()) {
+					rt.setDefault(true);
+				}
 				int i = value.indexOf(source);
 				if (i >= 0) {
 					value.set(i, rt);
+
 				} else {
 					value.remove(source);
 					value.add(rt);
@@ -964,12 +971,17 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 					.getActiveShell(), wiz);
 			dialog.open();
 			tableView.refresh();
+			JbossWSRuntime c = null;
 			if (changed.containsValue(selected)) {
-				JbossWSRuntime c = findChangedRuntime(selected);
+				c = findChangedRuntime(selected);
 				if (c != null) {
 					tableView.setSelection(new StructuredSelection(c));
 				}
 			}
+			if (c != null & c.isDefault()) {
+				checkedElement = c;
+			}
+			setDefaultRuntime();
 		}
 
 		private JbossWSRuntime findChangedRuntime(JbossWSRuntime source) {
