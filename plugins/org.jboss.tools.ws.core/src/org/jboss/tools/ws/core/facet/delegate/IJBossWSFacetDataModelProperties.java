@@ -11,38 +11,31 @@
 
 package org.jboss.tools.ws.core.facet.delegate;
 
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.wst.common.project.facet.core.IActionConfigFactory;
 
-/**
- * Seam facet properties collected in Seam Web Project Wizard.
- * Only properties listed below are saved in Seam WebProject Preferences:
- * 		ISeamFacetDataModelProperties.SESSION_BEAN_SOURCE_FOLDER, 
- * 		ISeamFacetDataModelProperties.SESION_BEAN_PACKAGE_NAME,
- * 		ISeamFacetDataModelProperties.ENTITY_BEAN_SOURCE_FOLDER, 
- * 		ISeamFacetDataModelProperties.ENTITY_BEAN_PACKAGE_NAME,
- *  	ISeamFacetDataModelProperties.SEAM_CONNECTION_PROFILE,
- * 		ISeamFacetDataModelProperties.JBOSS_AS_DEPLOY_AS,
- * 		ISeamFacetDataModelProperties.SEAM_TEST_PROJECT,
- * 		ISeamFacetDataModelProperties.SEAM_RUNTIME_NAME,
- * 		ISeamFacetDataModelProperties.SEAM_SETTINGS_VERSION,
- * 		ISeamFacetDataModelProperties.TEST_SOURCE_FOLDER,
- * 		ISeamFacetDataModelProperties.TEST_CASES_PACKAGE_NAME,
- * 		ISeamFacetDataModelProperties.TEST_CREATING,
- * 		ISeamFacetDataModelProperties.SEAM_EJB_PROJECT,
- * 		ISeamFacetDataModelProperties.SEAM_EAR_PROJECT
- * @author eskimo
- */
+
 public interface IJBossWSFacetDataModelProperties extends IActionConfigFactory {
 
 	// Seam Preferences names constants
 
 	String JBOSS_WS_FACET_ID = "jbossws.core";
+	String JBOSS_WS_DEPLOY = "jboss.ws.deploy";	
+	String QUALIFIEDNAME_IDENTIFIER = "jboss.tools.jbossws";	
 	String JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED = "jboss.ws.is.server.supplied";
 	String JBOSS_WS_RUNTIME_ID = "jboss.ws.runtime_id";
-	String JBOSS_WS_DEPLOY = "jboss.ws.deploy";
-	String JBOSS_WS_RUNTIME_HOME = "jboss.ws.runtime.home";
-	String QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED = "jboss.tools.jbossws";
-	String PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME = "is.server.supplied.runtime";
 	
+	String PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME = "is.server.supplied.runtime";
+	String JBOSS_WS_RUNTIME_HOME = "jboss.ws.runtime.home";
+	String DEFAULT_VALUE_IS_SERVER_SUPPLIED = "1";
+	
+	
+	QualifiedName PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME = new QualifiedName(QUALIFIEDNAME_IDENTIFIER,
+			JBOSS_WS_RUNTIME_ID);
+	QualifiedName PERSISTENCE_PROPERTY_RNTIME_LOCATION = new QualifiedName(QUALIFIEDNAME_IDENTIFIER,
+			JBOSS_WS_RUNTIME_HOME);
+	QualifiedName PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME = new QualifiedName(
+			QUALIFIEDNAME_IDENTIFIER,
+			PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME);
 
 }

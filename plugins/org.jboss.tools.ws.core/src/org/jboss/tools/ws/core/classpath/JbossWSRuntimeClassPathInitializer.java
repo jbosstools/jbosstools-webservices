@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ClasspathContainerInitializer;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -67,7 +68,8 @@ public class JbossWSRuntimeClassPathInitializer extends
 		public IClasspathEntry[] getClasspathEntries() {
 			if (entries == null) {
 				ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
-				IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(segment);
+				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(segment);
+				IPath wsPath = new Path(jbws.getHomeDir());
 				if (wsPath != null) {
 					IPath libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);
 					list.addAll(Arrays.asList(getEntries(libPath)));

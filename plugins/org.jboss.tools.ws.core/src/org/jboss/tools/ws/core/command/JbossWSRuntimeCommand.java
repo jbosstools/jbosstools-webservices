@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
@@ -45,7 +46,7 @@ public class JbossWSRuntimeCommand extends AbstractDataModelOperation {
 		IStatus status = Status.OK_STATUS;
 
 		// copy lib jars to project's folder
-		IPath wsPath = JbossWSCoreUtils.getJbossWSRuntimePath(null);
+		IPath wsPath = new Path("");
 		IPath libPath = null;
 		try {
 			libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);

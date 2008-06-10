@@ -21,10 +21,14 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IAccessRule;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jst.j2ee.classpathdep.ClasspathDependencyUtil;
+import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
@@ -56,27 +60,29 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 			boolean isServerSupplied = model
 					.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED);
 			if (isServerSupplied) {
-				QualifiedName serverSupplied_qn = new QualifiedName(
-						IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED,
-						IJBossWSFacetDataModelProperties.PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME);
-				project.setPersistentProperty(serverSupplied_qn, "1");
+				project
+						.setPersistentProperty(
+								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME,
+								IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED);
 			} else {
 				// store runtime name and runtime location to the project
-				QualifiedName qRuntimeName = new QualifiedName(
-						IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED,
-						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
-				QualifiedName qRuntimeLocation = new QualifiedName(
-						IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED,
-						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
+				
 				String runtimeName = model
 						.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
 				String runtimeLocation = model
 						.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME);
-				project.setPersistentProperty(qRuntimeName, runtimeName);
 				project
-						.setPersistentProperty(qRuntimeLocation,
+						.setPersistentProperty(
+								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME,
+								runtimeName);
+				project
+						.setPersistentProperty(
+								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_RNTIME_LOCATION,
 								runtimeLocation);
-				status = addClassPath(project, runtimeName);
+				boolean isDeployed = model
+						.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_DEPLOY);
+
+				status = addClassPath(project, runtimeName, isDeployed);
 			}
 
 		} catch (CoreException e) {
@@ -86,14 +92,29 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 		return status;
 	}
 
-	public IStatus addClassPath(IProject project, String segment) {
+	public IStatus addClassPath(IProject project, String segment,
+			boolean isDeployed) {
 		IStatus status = Status.OK_STATUS;
 		try {
 
+			IClasspathEntry newClasspath;
 			IJavaProject javaProject = JavaCore.create(project);
 
-			IClasspathEntry newClasspath = JavaCore.newContainerEntry(new Path(
-					JbossWSCoreMessages.JBossWS_Runtime_Lib).append(segment));
+			if (isDeployed) {
+				IClasspathAttribute depAttrib = JavaCore
+						.newClasspathAttribute(
+								IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY,
+								ClasspathDependencyUtil.getDefaultRuntimePath(
+										true).toString());
+				newClasspath = JavaCore.newContainerEntry(new Path(
+						JbossWSCoreMessages.JBossWS_Runtime_Lib)
+						.append(segment), null,
+						new IClasspathAttribute[] { depAttrib }, true);
+			} else {
+				newClasspath = JavaCore.newContainerEntry(new Path(
+						JbossWSCoreMessages.JBossWS_Runtime_Lib)
+						.append(segment));
+			}
 
 			IClasspathEntry[] oldClasspathEntries = javaProject
 					.readRawClasspath();

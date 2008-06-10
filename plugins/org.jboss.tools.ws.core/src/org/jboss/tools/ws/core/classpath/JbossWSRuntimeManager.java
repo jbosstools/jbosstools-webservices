@@ -246,9 +246,7 @@ public class JbossWSRuntimeManager {
 			e.printStackTrace();
 		}
 		for (IFacetedProject facetedProject : facetedProjects) {
-			QualifiedName qRuntimeName = new QualifiedName(
-					IJBossWSFacetDataModelProperties.QUALIFIEDNAME_IDENTIFIER_IS_SERVER_SUPPLIED,
-					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
+			QualifiedName qRuntimeName = IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME;
 			String name = null;
 			try {
 				name = facetedProject.getProject().getPersistentProperty(qRuntimeName);

@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventObject;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
@@ -37,8 +36,6 @@ import org.eclipse.wst.common.project.facet.ui.IFacetWizardPage;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
-import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.ui.preferences.JbossRuntimeListFieldEditor;
 
@@ -138,6 +135,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		btnNew.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				newJBossWSRuntime();
+				changePageStatus();
 			}
 		});
 
@@ -189,7 +187,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		for (int i = 0; i < runtimes.length; i++) {
 			JbossWSRuntime jr = runtimes[i];
 			cmRuntime.add(jr.getName());
-			cmRuntime.setData(jr.getName(), jr.getHomeDir());
+			cmRuntime.setData(jr.getName(), jr);
 
 			// get default jbossws runtime
 			if (jr.isDefault()) {
@@ -209,6 +207,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 				exists, added) {
 			public boolean performFinish() {
 				JbossWSRuntime rt = getRuntime();
+				rt.setDefault(true);
 				JbossWSRuntimeManager.getInstance().addRuntime(rt);
 				JbossWSRuntimeManager.getInstance().save();
 
@@ -217,9 +216,9 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		};
 		WizardDialog dialog = new WizardDialog(Display.getCurrent()
 				.getActiveShell(), newRtwizard);
-		if (dialog.open() == dialog.OK) {
+		if (dialog.open() == WizardDialog.OK) {
 			initializeRuntimesCombo(cmbRuntimes);
-			cmbRuntimes.select(cmbRuntimes.getItemCount() - 1);
+			//cmbRuntimes.select(0);
 		}
 	}
 

@@ -30,16 +30,10 @@ import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ExpressionStatement;
-import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
-import org.eclipse.jdt.core.dom.InfixExpression;
-import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
@@ -52,16 +46,15 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.WildcardType;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
-import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
+import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
-import org.jboss.tools.ws.creation.core.utils.JBossStatusUtils;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class ImplementationClassCreationCommand extends
@@ -70,7 +63,6 @@ public class ImplementationClassCreationCommand extends
 	private static final String RESOURCE_FOLDER = "src";
 
 	private static final String PREFIX_JAXWS_ANNOTATION_CLASS = "javax.jws";
-	private static final String SUFFIX_PACKAGENAME_IMPL = "impl";
 	private static final String DEFAULT_CU_SUFFIX = ".java";
 
 	private static final String ANNOTATION_WEB_SERVICE_FULLNAME = "javax.jws.WebService";
@@ -79,11 +71,6 @@ public class ImplementationClassCreationCommand extends
 	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName";
 	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface";
 	
-	private static final String LOGGER_FIELD_NAME = "log";
-	private static final String LOGGER_CLASS_FULLNAME = "org.jboss.logging.Logger";
-	private static final String LOGGER_CLASS_NAME = "Logger";
-	private static final String LOGGER_METHOD_NAME_GETLOGGER = "getLogger";
-	private static final String LOGGER_METHOD_NAME_INFO = "info";
 
 	private ServiceModel model;
 	private IWorkspaceRoot fWorkspaceRoot;
@@ -108,35 +95,31 @@ public class ImplementationClassCreationCommand extends
 			}
 
 		} catch (CoreException e) {
-			status = JBossStatusUtils
+			status = StatusUtils
 					.errorStatus(
-							JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
+							JBossWSCreationCoreMessages.Error_Message_Failed_to_Generate_Implementation,
 							e);
-		} catch (MalformedTreeException e) {
-			status = JBossStatusUtils
-					.errorStatus(
-							JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
-							e);
+			JBossWSCreationCore.getDefault().logError(e);
 		} catch (BadLocationException e) {
-			status = JBossStatusUtils
+			status = StatusUtils
 					.errorStatus(
-							JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
+							JBossWSCreationCoreMessages.Error_Message_Failed_to_Generate_Implementation,
 							e);
+			JBossWSCreationCore.getDefault().logError(e);
 		}
 		return status;
 	}
 
 	protected void generateImplClass(String portTypeName/* , IFile implJavaFile */)
-			throws CoreException, MalformedTreeException, BadLocationException {
+			throws CoreException, BadLocationException {
 
 		CompilationUnit portTypeCU = getCompilationUnitForInterface(portTypeName);
-		Object obj = portTypeCU.imports();
 		List<ImportDeclaration> imports = getImportsWithoutJaxwsAnnotation(portTypeCU);
 
 		IPackageFragment pack = getImplPakcage();
 
-		String cuName = getJavaFileName(portTypeName);
-		ICompilationUnit icu = pack.createCompilationUnit(cuName,
+		String implFileName = getJavaFileName(portTypeName);
+		ICompilationUnit icu = pack.createCompilationUnit(implFileName,
 				"", true, null); //$NON-NLS-1$
 		// create a working copy with a new owner
 
@@ -270,7 +253,7 @@ public class ImplementationClassCreationCommand extends
 			implCU.imports().add(newId);
 		}
 
-		// import port type interface and jboss Logger
+		// import port type interface 
 		ImportDeclaration importDec = implAST.newImportDeclaration();
 		QualifiedName portTypeImport = implAST.newQualifiedName(implAST
 				.newName(portTypeCU.getPackage().getName()
@@ -278,8 +261,8 @@ public class ImplementationClassCreationCommand extends
 				.newSimpleName(portTypeName));
 		importDec.setName(portTypeImport);
 		implCU.imports().add(importDec);
-		importDec = implAST.newImportDeclaration();
-		importDec.setName(implAST.newName(LOGGER_CLASS_FULLNAME));
+		//importDec = implAST.newImportDeclaration();
+		//importDec.setName(implAST.newName(LOGGER_CLASS_FULLNAME));
 		implCU.imports().add(importDec);
 
 		// import jaxws WebService
@@ -391,40 +374,6 @@ public class ImplementationClassCreationCommand extends
 		return md;
 	}
 
-/*	protected FieldDeclaration createLoggerField(AST ast, TypeDeclaration type, String portTypeName) {
-		VariableDeclarationFragment vdf = ast.newVariableDeclarationFragment();
-		vdf.setName(ast.newSimpleName(LOGGER_FIELD_NAME));
-		Initializer clsAccesss = ast.newInitializer();
-		FieldDeclaration fd = ast.newFieldDeclaration(vdf);
-		fd.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD));
-		fd.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.STATIC_KEYWORD));
-		fd.setType(ast.newSimpleType(ast.newSimpleName(LOGGER_CLASS_NAME)));
-		MethodInvocation mi = ast.newMethodInvocation();
-		mi.setExpression(ast.newSimpleName(LOGGER_CLASS_NAME));
-		mi.setName(ast.newSimpleName(LOGGER_METHOD_NAME_GETLOGGER));
-		String implClsName = getImplPackageName() + "." + getImplClassName(portTypeName);
-		StringLiteral sl = ast.newStringLiteral();
-		sl.setLiteralValue(implClsName);
-		mi.arguments().add(sl);
-		vdf.setInitializer(mi);
-		type.bodyDeclarations().add(fd);
-		
-		return fd;
-	}
-
-	protected ExpressionStatement createLoggerInvokeStatement(AST ast, String methodName){
-		MethodInvocation methodInvocation = ast.newMethodInvocation();
-		Name fieldName = ast.newSimpleName(LOGGER_FIELD_NAME);
-		methodInvocation.setExpression(fieldName);
-		methodInvocation.setName(ast.newSimpleName(LOGGER_METHOD_NAME_INFO));
-		StringLiteral param = ast.newStringLiteral();
-		param.setLiteralValue("The method: " + methodName + "() is invoked.");
-		methodInvocation.arguments().add(param);
-		ExpressionStatement infoStatement = ast.newExpressionStatement(methodInvocation);
-		
-		return infoStatement;
-		
-	}*/
 	
 	private Type copyTypeFromOtherASTNode(AST ast, Type type) {
 		if (type instanceof PrimitiveType) {
@@ -468,8 +417,11 @@ public class ImplementationClassCreationCommand extends
 		return importList;
 	}
 
-	private CompilationUnit getCompilationUnitForInterface(String portTypeName) {
+	private CompilationUnit getCompilationUnitForInterface(String portTypeName) throws CoreException {
 		IFile inFile = getServiceInterfaceFile(portTypeName);
+		if(!inFile.exists()){
+			throw new CoreException(StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code));
+		}
 		ICompilationUnit icu = JBossWSCreationUtils.getJavaUnitFromFile(inFile);
 		ASTParser astp = ASTParser.newParser(AST.JLS3);
 		astp.setSource(icu);

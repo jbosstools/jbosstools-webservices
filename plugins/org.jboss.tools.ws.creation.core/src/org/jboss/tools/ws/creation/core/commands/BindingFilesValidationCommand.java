@@ -12,9 +12,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
-import org.jboss.tools.ws.creation.core.utils.JBossStatusUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -64,13 +64,13 @@ public class BindingFilesValidationCommand extends AbstractDataModelOperation {
 			reader.parse(is);
 
 		} catch (SAXException e) {
-			return JBossStatusUtils
+			return StatusUtils
 					.errorStatus(
 							NLS.bind(JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
 											new String[] {filename, e.getLocalizedMessage() }), e);
 			
 		} catch (IOException e) {
-			return JBossStatusUtils
+			return StatusUtils
 					.errorStatus(
 							NLS.bind(JBossWSCreationCoreMessages.Error_Message_Invalid_Binding_File,
 											new String[] {filename, e.getLocalizedMessage() }), e);

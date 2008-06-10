@@ -25,8 +25,8 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
-import org.jboss.tools.ws.creation.core.utils.JBossStatusUtils;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 /**
@@ -68,7 +68,7 @@ public class WSProviderInvokeCommand extends AbstractDataModelOperation {
 			}
 			int exitValue = proc.waitFor();
 			if (exitValue != 0) {
-				return JBossStatusUtils.errorStatus(result.toString());
+				return StatusUtils.errorStatus(result.toString());
 			}
 
 		} catch (IOException e) {

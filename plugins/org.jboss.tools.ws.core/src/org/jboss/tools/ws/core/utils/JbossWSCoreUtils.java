@@ -220,27 +220,7 @@ public class JbossWSCoreUtils {
 		}
 	}
 
-	public static IPath getJbossWSRuntimePath(String runtimeName) {
-		JbossWSRuntime[] runtimes = JbossWSRuntimeManager.getInstance().getRuntimes();
-		if(runtimes == null || runtimes.length == 0){
-			return null;
-		}
-		if (runtimeName == null || runtimeName.equals("")) {
-			for (JbossWSRuntime rt : runtimes) {
-				if (rt.isDefault()) {
-					return new Path(rt.getHomeDir());
-				}
-			}
-			return null;
-		} else {
-			for (JbossWSRuntime rt : runtimes) {
-				if(rt.getName().equals(runtimeName)){
-					return new Path(rt.getHomeDir());
-				}
-			}
-		}
-		return null;
-	}
+	
 	
 
 }

@@ -29,6 +29,7 @@ import java.util.Locale;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -39,8 +40,18 @@ import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
+import org.eclipse.wst.common.project.facet.core.IFacetedProject;
+import org.eclipse.wst.common.project.facet.core.IProjectFacet;
+import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.eclipse.wst.common.project.facet.core.internal.FacetedProject;
+import org.eclipse.wst.common.project.facet.core.runtime.IRuntime;
+import org.eclipse.wst.server.core.ServerCore;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
+import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 
 public class JBossWSCreationUtils {
 	
@@ -269,6 +280,41 @@ public class JBossWSCreationUtils {
 			return false;
 		}
 		return true;
+	}
+	
+	public static String getJbossWSRuntimeLocation(IProject project) throws CoreException{
+		
+			
+		//if users select server as its jbossws runtime, then get runtime location from project target runtime
+		String isServerSupplied = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME);
+		if(IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED.equals(isServerSupplied)){
+			IFacetedProject facetedPrj = ProjectFacetsManager.create( project );
+			IRuntime prjRuntime = facetedPrj.getPrimaryRuntime();
+			// TODO get runtime location from specified project target runtime
+			prjRuntime.getRuntimeComponents().get(0).getProperties();
+			
+			//if no target runtime specified, get runtime location from default jbossws runtime from jbossws preference
+			if(prjRuntime == null){
+				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().getDefaultRuntime();
+				if(jbws != null){
+					return jbws.getHomeDir();
+				}else{
+					throw new CoreException(StatusUtils.errorStatus("No JBoss Web Service runtime specified."));
+				}
+				
+			}
+		}else{
+			String jbwsRuntimeName = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
+			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(jbwsRuntimeName);
+			if(jbws != null){
+				return jbws.getHomeDir();
+			}else{
+				String jbwsHomeDir = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_RNTIME_LOCATION);
+				return jbwsHomeDir;
+			}
+		}
+		return "";
+		
 	}
 	
 }
