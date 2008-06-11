@@ -67,7 +67,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 
 		public IClasspathEntry[] getClasspathEntries() {
 			if (entries == null) {
-				ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
+				ArrayList<IClasspathEntry> entryList = new ArrayList<IClasspathEntry>();
 				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
 						.findRuntimeByName(segment);
 				IPath wsPath = null;
@@ -76,10 +76,10 @@ public class JbossWSRuntimeClassPathInitializer extends
 				}
 				if (wsPath != null) {
 					IPath libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);
-					list.addAll(Arrays.asList(getEntries(libPath)));
+					entryList.addAll(Arrays.asList(getEntries(libPath,entryList)));
 					libPath = wsPath.append(JbossWSCoreMessages.Dir_Client);
-					list.addAll(Arrays.asList(getEntries(libPath)));
-					entries = list.toArray(new IClasspathEntry[list.size()]);
+					entryList.addAll(Arrays.asList(getEntries(libPath,entryList)));
+					entries = entryList.toArray(new IClasspathEntry[entryList.size()]);
 				}
 				if (entries == null)
 					return new IClasspathEntry[0];
@@ -92,15 +92,15 @@ public class JbossWSRuntimeClassPathInitializer extends
 					.getClasspathEntry();
 		}
 
-		protected IClasspathEntry[] getEntries(IPath folder) {
+		protected IClasspathEntry[] getEntries(IPath folder, ArrayList<IClasspathEntry> entryList) {
 			String[] files = folder.toFile().list();
 			ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
 			for (int i = 0; i < files.length; i++) {
-				if (files[i].endsWith(".jar")) {
+				if (files[i].endsWith(".jar") && filterJars(files[i],entryList)) {
 					list.add(getEntry(folder.append(files[i])));
 				} else if (folder.append(files[i]).toFile().isDirectory()) {
 					list.addAll(Arrays.asList(getEntries(folder
-							.append(files[i]))));
+							.append(files[i]),entryList)));
 				}
 			}
 			return list.toArray(new IClasspathEntry[list.size()]);
@@ -120,6 +120,15 @@ public class JbossWSRuntimeClassPathInitializer extends
 			entries = newEntries;
 		}
 
+	}
+
+	public boolean filterJars(String jarName, ArrayList<IClasspathEntry> list) {
+		for(IClasspathEntry entry : list){
+			if(entry.getPath().lastSegment().equals(jarName)){
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

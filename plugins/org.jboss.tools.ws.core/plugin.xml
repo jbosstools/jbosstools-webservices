@@ -66,7 +66,7 @@
          point="org.eclipse.jdt.core.classpathContainerInitializer">
       <classpathContainerInitializer
             class="org.jboss.tools.ws.core.classpath.JbossWSRuntimeClassPathInitializer"
-            id="JbossWSRuntimeLib">
+            id="JBossWS_Runtime">
       </classpathContainerInitializer>
    </extension>
    
