@@ -23,6 +23,7 @@ import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -62,6 +63,7 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 								.getWsdlURL());
 				model.setCustomPackage(reader.packageFromTargetNamespace());
 			} catch (WSDLException e) {
+				JBossWSCreationCore.getDefault().logError(e);
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
 			}
 		}

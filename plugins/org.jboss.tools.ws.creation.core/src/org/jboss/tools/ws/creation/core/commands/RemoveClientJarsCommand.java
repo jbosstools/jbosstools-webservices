@@ -25,6 +25,7 @@ import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntimeClassPathInitializer.JbossWSRuntimeClasspathContainer;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -56,6 +57,7 @@ public class RemoveClientJarsCommand extends AbstractDataModelOperation{
 			project = JBossWSCreationUtils.getJavaProjectByName(model
 					.getWebProjectName());
 		} catch (JavaModelException e) {
+			JBossWSCreationCore.getDefault().logError(e);
 			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 		status = removeClassPath(project);
@@ -75,14 +77,12 @@ public class RemoveClientJarsCommand extends AbstractDataModelOperation{
 					}
 			}
 		} catch (JavaModelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			JBossWSCreationCore.getDefault().logError(e);
 		}
 		try {
 			project.getRawClasspath();
 		} catch (JavaModelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			JBossWSCreationCore.getDefault().logError(e);
 		}
 		return status;
 	}

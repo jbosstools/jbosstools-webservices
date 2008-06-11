@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -24,8 +25,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
@@ -44,8 +45,15 @@ public class WSProviderInvokeCommand extends AbstractDataModelOperation {
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
 
-		String runtimeLocation = JbossWSCorePlugin.getDefault()
-				.getPreferenceStore().getString("jbosswsruntimelocation");
+		String runtimeLocation;
+		try {
+			runtimeLocation = JBossWSCreationUtils.getJbossWSRuntimeLocation(ResourcesPlugin.getWorkspace().getRoot().getProject(model
+					.getWebProjectName()));
+		} catch (CoreException e1) {
+			JBossWSCreationCore.getDefault().logError(e1);
+			//unable to get runtime location
+			return e1.getStatus();
+		}
 		String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";
 		String command = "sh wsprovide.sh ";
 		if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
@@ -72,9 +80,9 @@ public class WSProviderInvokeCommand extends AbstractDataModelOperation {
 			}
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			JBossWSCreationCore.getDefault().logError(e);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			JBossWSCreationCore.getDefault().logError(e);
 		}
 
 		refreshProject(model.getWebProjectName(), monitor);
@@ -87,8 +95,7 @@ public class WSProviderInvokeCommand extends AbstractDataModelOperation {
 			JBossWSCreationUtils.getProjectByName(project).refreshLocal(2,
 					monitor);
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			JBossWSCreationCore.getDefault().logError(e);
 		}
 	}
 

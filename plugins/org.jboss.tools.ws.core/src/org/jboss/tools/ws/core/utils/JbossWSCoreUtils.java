@@ -15,8 +15,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -30,13 +28,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.osgi.util.NLS;
-import org.jboss.tools.ws.core.JbossWSCorePlugin;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeListConverter;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 
 /**
