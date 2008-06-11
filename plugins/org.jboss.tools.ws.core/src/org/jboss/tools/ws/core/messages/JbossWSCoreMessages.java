@@ -36,7 +36,7 @@ public class JbossWSCoreMessages {
 	public static String JBossAS;
 	public static String Error_WS_Location;
 	public static String Error_WS_Classpath;
-	public static String ERROR_ADD_FACET_JBOSSWS;
+	public static String Error_Add_Facet_JBossWS;
 
 
 	static {

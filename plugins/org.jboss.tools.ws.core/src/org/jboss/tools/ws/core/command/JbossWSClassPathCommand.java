@@ -19,9 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.IAccessRule;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -87,7 +85,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 
 		} catch (CoreException e) {
 			status = StatusUtils.errorStatus(
-					JbossWSCoreMessages.ERROR_ADD_FACET_JBOSSWS, e);
+					JbossWSCoreMessages.Error_Add_Facet_JBossWS, e);
 		}
 		return status;
 	}
