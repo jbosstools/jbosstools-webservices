@@ -58,6 +58,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 import org.jboss.tools.ws.ui.utils.UIUtils;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 
 /**
  * @author Grid Qian
@@ -337,7 +338,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			}
 		}
 		if (!checked) {
-			if (tableView.getCheckedElements() == null) {
+			if (tableView.getCheckedElements() == null
+					|| tableView.getCheckedElements().length == 0) {
 				tableView.setChecked(runtimes.get(0), true);
 				checkedElement = runtimes.get(0);
 			}
@@ -1031,7 +1033,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 		@SuppressWarnings("unchecked")
 		private void removeRuntime(JbossWSRuntime r) {
-			boolean used = isRuntimeUsed(r.getName());
+			boolean used = JbossWSRuntimeManager.isRuntimeUsed(r.getName());
 			String title = JbossWSUIMessages.JBossWS_Runtime_Delete_Confirm_Title;
 			String message = (used) ? NLS.bind(
 					JbossWSUIMessages.JBossWS_Runtime_Delete_Used_Confirm, r
@@ -1053,18 +1055,6 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			if (checkedElement == r) {
 				checkedElement = null;
 			}
-		}
-
-		private boolean isRuntimeUsed(String runtimeName) {
-			// IProject[] ps = ResourcesPlugin.getWorkspace().getRoot()
-			// .getProjects();
-			// for (int i = 0; i < ps.length; i++) {
-			// ISeamProject sp = SeamCorePlugin.getSeamProject(ps[i], false);
-			// if (sp != null && runtimeName.equals(sp.getRuntimeName())) {
-			// return true;
-			// }
-			// }
-			return false;
 		}
 	}
 }

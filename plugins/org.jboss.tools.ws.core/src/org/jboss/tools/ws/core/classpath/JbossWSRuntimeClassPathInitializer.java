@@ -13,7 +13,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
-import org.jboss.tools.ws.core.utils.JbossWSCoreUtils;
 
 /**
  * @author Grid Qian
@@ -23,6 +22,7 @@ public class JbossWSRuntimeClassPathInitializer extends
 
 	public JbossWSRuntimeClassPathInitializer() {
 	}
+
 	private String segment;
 
 	@Override
@@ -33,10 +33,10 @@ public class JbossWSRuntimeClassPathInitializer extends
 				JbossWSCoreMessages.JBossWS_Runtime_Lib)) {
 			JbossWSRuntimeClasspathContainer container = new JbossWSRuntimeClasspathContainer(
 					containerPath);
+			segment = containerPath.segment(1);
 			JavaCore.setClasspathContainer(containerPath,
 					new IJavaProject[] { project },
 					new IClasspathContainer[] { container }, null);
-			segment = containerPath.segment(1);
 		}
 	}
 
@@ -68,8 +68,12 @@ public class JbossWSRuntimeClassPathInitializer extends
 		public IClasspathEntry[] getClasspathEntries() {
 			if (entries == null) {
 				ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
-				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(segment);
-				IPath wsPath = new Path(jbws.getHomeDir());
+				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
+						.findRuntimeByName(segment);
+				IPath wsPath = null;
+				if (jbws != null) {
+					wsPath = new Path(jbws.getHomeDir());
+				}
 				if (wsPath != null) {
 					IPath libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);
 					list.addAll(Arrays.asList(getEntries(libPath)));
@@ -101,15 +105,16 @@ public class JbossWSRuntimeClassPathInitializer extends
 			}
 			return list.toArray(new IClasspathEntry[list.size()]);
 		}
-		public void removeEntry(String jarName){
-			if(entries == null){
-				return; 
+
+		public void removeEntry(String jarName) {
+			if (entries == null) {
+				return;
 			}
-			IClasspathEntry[] newEntries = new IClasspathEntry[entries.length-1];
-			int i=0;
-			for(IClasspathEntry entry: entries){
-				if(!entry.toString().contains(jarName)){
-				   newEntries[i++] = entry;
+			IClasspathEntry[] newEntries = new IClasspathEntry[entries.length - 1];
+			int i = 0;
+			for (IClasspathEntry entry : entries) {
+				if (!entry.toString().contains(jarName)) {
+					newEntries[i++] = entry;
 				}
 			}
 			entries = newEntries;

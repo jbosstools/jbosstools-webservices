@@ -249,9 +249,11 @@ public class JbossWSRuntimeManager {
 			QualifiedName qRuntimeName = IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME;
 			String name = null;
 			try {
-				name = facetedProject.getProject().getPersistentProperty(qRuntimeName);
+				name = facetedProject.getProject().getPersistentProperty(
+						qRuntimeName);
 				if (name != null && name.equals(oldName)) {
-					facetedProject.getProject().setPersistentProperty(qRuntimeName, newName);
+					facetedProject.getProject().setPersistentProperty(
+							qRuntimeName, newName);
 				}
 			} catch (CoreException e) {
 				// TODO Auto-generated catch block
@@ -259,6 +261,29 @@ public class JbossWSRuntimeManager {
 			}
 
 		}
+	}
+
+	public static boolean isRuntimeUsed(String name) {
+		IProjectFacet facet = ProjectFacetsManager
+				.getProjectFacet("jbossws.core");
+		Set<IFacetedProject> facetedProjects = null;
+		try {
+			facetedProjects = ProjectFacetsManager.getFacetedProjects(facet);
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for (IFacetedProject facetedProject : facetedProjects) {
+			QualifiedName qRuntimeName = IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME;
+			try {
+				if(name.equals(facetedProject.getProject().getPersistentProperty(qRuntimeName))){
+					return true;
+				}
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
 
 }
