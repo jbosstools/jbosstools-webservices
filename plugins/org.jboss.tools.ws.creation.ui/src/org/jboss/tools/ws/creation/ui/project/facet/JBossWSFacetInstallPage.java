@@ -163,11 +163,16 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 				.setBooleanProperty(
 						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED,
 						false);
-		String runtimeId = cmbRuntimes.getText();
-		model
-				.setStringProperty(
-						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID,
-						runtimeId);
+		String runtimeId = cmbRuntimes.getText();		
+		JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(runtimeId);
+		if (jbws != null) {
+			model.setStringProperty(
+					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, jbws
+							.getName());
+			model.setStringProperty(
+					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
+					jbws.getHomeDir());
+		}
 		enableUserSupplied(true);
 		changePageStatus();
 

@@ -299,7 +299,7 @@ public class JBossWSCreationUtils {
 				if(jbws != null){
 					return jbws.getHomeDir();
 				}else{
-					throw new CoreException(StatusUtils.errorStatus("No JBoss Web Service runtime specified."));
+					throw new CoreException(StatusUtils.errorStatus("No JBoss Web Service runtime has been specified."));
 				}
 				
 			}

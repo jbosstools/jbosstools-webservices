@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.creation.ui.widgets;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -22,6 +23,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetDataContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataEvents;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
 /**
  * @author Grid Qian
@@ -30,6 +32,7 @@ public class ProviderInvokeCodeGenConfigWidget extends
 		SimpleWidgetDataContributor {
 
 	private ServiceModel model;
+	private Button btnUpdateWebxml;
 
 	public ProviderInvokeCodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
@@ -48,18 +51,24 @@ public class ProviderInvokeCodeGenConfigWidget extends
 		GridData wsdlGenData = new GridData();
 		wsdlGenData.horizontalSpan = 2;
 		wsdlGen.setLayoutData(wsdlGenData);
-		wsdlGen.setText("Generete WSDL file");
+		wsdlGen.setText(JBossWSCreationCoreMessages.Label_Generate_WSDL);
 		wsdlGen.setSelection(false);
-		wsdlGen.addSelectionListener(new SelectionListener() {
-			public void widgetDefaultSelected(SelectionEvent e) {
-
-			}
-
+		wsdlGen.addSelectionListener(new SelectionAdapter() {
+			
 			public void widgetSelected(SelectionEvent e) {
 				model.setGenWSDL(wsdlGen.getSelection());
 
 			}
 
+		});
+		
+		btnUpdateWebxml = new Button(configCom, SWT.CHECK);
+		btnUpdateWebxml.setText(JBossWSCreationCoreMessages.Label_Update_Webxml);
+		btnUpdateWebxml.setSelection(true);
+		btnUpdateWebxml.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e) {
+				model.setUpdateWebxml(btnUpdateWebxml.getSelection());
+			}
 		});
 		return this;
 	}

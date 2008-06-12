@@ -48,6 +48,10 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
+		if(!model.isUpdateWebxml()){
+			return Status.OK_STATUS;
+		}
+		
 		IEnvironment environment = getEnvironment();
 		IStatus status = null;
 		ServletDescriptor[] servletDescriptors = new ServletDescriptor[model

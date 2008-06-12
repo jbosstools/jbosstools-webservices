@@ -27,6 +27,8 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 	
 	private ServiceModel model;
 	private Button btnRemove;
+	private Button btnUpdateWebxml;
+	private Button btnGenDefaultImpl;
 
 	public CodeGenConfigWidget(ServiceModel model){
 		this.model = model;
@@ -133,6 +135,36 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 				if(bindingList.getSelectionIndex() == -1){
 					btnRemove.setEnabled(false);
 				}
+			}
+		});
+		
+		btnGenDefaultImpl = new Button(configCom, SWT.CHECK);
+		gd = new GridData();
+		gd.horizontalSpan = 3;
+		btnGenDefaultImpl.setLayoutData(gd);
+		btnGenDefaultImpl.setText(JBossWSCreationCoreMessages.Label_Generate_Impelemtation);
+		btnGenDefaultImpl.setSelection(true);
+		btnGenDefaultImpl.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e) {
+				model.setGenerateImplementatoin(btnGenDefaultImpl.getSelection());
+				btnUpdateWebxml.setEnabled(btnGenDefaultImpl.getSelection());
+				if(!btnGenDefaultImpl.getSelection()){
+					model.setUpdateWebxml(false);
+				}else{
+					model.setUpdateWebxml(btnUpdateWebxml.getSelection());
+				}
+			}
+		});
+		
+		btnUpdateWebxml = new Button(configCom, SWT.CHECK);
+		gd = new GridData();
+		gd.horizontalSpan = 3;
+		btnUpdateWebxml.setLayoutData(gd);
+		btnUpdateWebxml.setText(JBossWSCreationCoreMessages.Label_Upate_Webxml);
+		btnUpdateWebxml.setSelection(true);
+		btnUpdateWebxml.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e) {
+				model.setUpdateWebxml(btnUpdateWebxml.getSelection());
 			}
 		});
 		

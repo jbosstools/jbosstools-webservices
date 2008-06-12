@@ -50,12 +50,12 @@ public class WSDL2JavaCommand extends AbstractDataModelOperation{
 			String command =  "sh " + WSCONSUEM_FILE_NAME_LINUX;
 			if(System.getProperty("os.name").toLowerCase().indexOf("win") >= 0){
 				command =  "cmd.exe /c " + WSCONSUEM_FILE_NAME_WIN;
-				path.append(WSCONSUEM_FILE_NAME_WIN);
+				path = path.append(WSCONSUEM_FILE_NAME_WIN);
 			}else{
-				path.append(WSCONSUEM_FILE_NAME_LINUX);
+				path = path.append(WSCONSUEM_FILE_NAME_LINUX);
 			}
 			
-			if(!path.toFile().exists()){
+			if(!path.toFile().getAbsoluteFile().exists()){
 				return StatusUtils.errorStatus(
 						NLS.bind(JBossWSCreationCoreMessages.Error_Message_Command_File_Not_Found,
 								new String[] {path.toOSString()}));

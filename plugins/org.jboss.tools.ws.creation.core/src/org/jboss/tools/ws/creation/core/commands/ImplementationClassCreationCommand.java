@@ -84,7 +84,14 @@ public class ImplementationClassCreationCommand extends
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
+		
+		// if the user does not check the generate implementation class button, do nothing
+		if(!model.isGenImplementation()){
+			return Status.OK_STATUS;
+		}
+		
 		IStatus status = Status.OK_STATUS;
+		
 		try {
 			List<String> portTypes = model.getPortTypes();
 			for (String portTypeName : portTypes) {
@@ -263,7 +270,7 @@ public class ImplementationClassCreationCommand extends
 		implCU.imports().add(importDec);
 		//importDec = implAST.newImportDeclaration();
 		//importDec.setName(implAST.newName(LOGGER_CLASS_FULLNAME));
-		implCU.imports().add(importDec);
+		//implCU.imports().add(importDec);
 
 		// import jaxws WebService
 		importDec = implAST.newImportDeclaration();

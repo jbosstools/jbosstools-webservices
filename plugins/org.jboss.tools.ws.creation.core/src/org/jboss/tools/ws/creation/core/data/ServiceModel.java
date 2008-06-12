@@ -17,6 +17,10 @@ private String  webProjectName;
 	private List<String> serviceClasses;
 	private boolean isGenWSDL;
 	private String target;
+
+	private boolean isGenImplementation = true;
+
+	private boolean UpdateWebxml = true;
 	
 
 	public List<String> getServiceClasses(){
@@ -126,5 +130,21 @@ private String  webProjectName;
 	}
 	public void setTarget(String target){
 		this.target = target;
+	}
+	
+	public void setGenerateImplementatoin(boolean isGenImpl){
+		this.isGenImplementation = isGenImpl;
+	}
+	
+	public boolean isGenImplementation(){
+		return this.isGenImplementation;
+	}
+	
+	public boolean isUpdateWebxml(){
+		return this.UpdateWebxml;
+	}
+	
+	public void setUpdateWebxml(boolean updateWebxml){
+		this.UpdateWebxml = updateWebxml;
 	}
 }
