@@ -11,6 +11,9 @@
 
 package org.jboss.tools.ws.core.classpath;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Grid Qian
  */
@@ -21,11 +24,16 @@ public class JbossWSRuntime {
 	String homeDir = null;
 
 	boolean defaultRt = false;
+	
+	List<String> libraries;
+
+	private boolean userConfigClasspath;
 
 	/**
 	 * Default constructor
 	 */
 	public JbossWSRuntime() {
+		libraries = new ArrayList<String>();
 	}
 
 	/**
@@ -83,6 +91,23 @@ public class JbossWSRuntime {
 	 */
 	public boolean isDefault() {
 		return defaultRt;
+	}
+	
+	public  List<String> getLibraries(){
+		
+		return this.libraries;
+	}
+	
+	public void setLibraries(List<String> libraries){
+		this.libraries = libraries;
+	}
+	
+	public boolean isUserConfigClasspath(){
+		return this.userConfigClasspath;
+	}
+	
+	public void setUserConfigClasspath(boolean userConfigClasspath){
+		this.userConfigClasspath = userConfigClasspath;
 	}
 
 }

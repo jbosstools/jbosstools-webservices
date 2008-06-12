@@ -1,7 +1,10 @@
 package org.jboss.tools.ws.core.classpath;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -18,11 +21,14 @@ public class JbossWSRuntimeListConverter {
 		 */
 		private static final String REGEXP_ESCAPE = "\\";
 		private static final String COMMA = ",";
+		private static final String LIBRARY_SEPARATOR = ";";
 		private static final String EMPTY_STRING = "";
 		private static final String FIELD_SEPARATOR = "|";
 		private static final String DEFAULT = "default";
 		private static final String HOME_DIR = "homeDir";
 		private static final String NAME = "name";
+		private static final String USER_CONFIG_CLASSPATH = "userConfig";
+		private static final String LIBRARY = "libraries";
 
 		/**
 		 * Load String to JbossWSRuntime map from String
@@ -55,12 +61,44 @@ public class JbossWSRuntimeListConverter {
 						rt.setHomeDir(value);
 					} else if (DEFAULT.equals(name)) {
 						rt.setDefault(Boolean.parseBoolean(value));
+					}else if(USER_CONFIG_CLASSPATH.equals(name)){
+						rt.setUserConfigClasspath(Boolean.parseBoolean(value));
+					}else if(LIBRARY.equals(name)){
+						if(value != null && !EMPTY_STRING.equals(value)){
+							rt.setLibraries(getLibrariesFromString(value));
+						}
 					}
+					
 				}
 				result.put(rt.getName(), rt);
 			}
 
 			return result;
+		}
+		
+		private List<String> getLibrariesFromString(String strLibraries){
+			List<String> libraries = new ArrayList<String>();
+			StringTokenizer st = new StringTokenizer(strLibraries, LIBRARY_SEPARATOR);
+			while(st.hasMoreTokens()){
+				String library = st.nextToken();
+				if(!libraries.contains(library)){
+					libraries.add(library);
+				}
+			}
+			return libraries;
+			
+		}
+		
+		private String convertListToString(List<String> libraries){
+			String strLib = "";
+			for(String library: libraries){
+				if("".equals(strLib)){
+					strLib = library;
+				}else{
+					strLib = strLib + LIBRARY_SEPARATOR + library;
+				}
+			}
+			return strLib;
 		}
 
 		/**
@@ -84,6 +122,10 @@ public class JbossWSRuntimeListConverter {
 				buffer.append(FIELD_SEPARATOR).append(DEFAULT).append(
 						FIELD_SEPARATOR);
 				buffer.append(runtimes[i].isDefault());
+				buffer.append(FIELD_SEPARATOR).append(USER_CONFIG_CLASSPATH).append(FIELD_SEPARATOR);
+				buffer.append(runtimes[i].isUserConfigClasspath());
+				buffer.append(FIELD_SEPARATOR).append(LIBRARY).append(FIELD_SEPARATOR);
+				buffer.append(convertListToString(runtimes[i].getLibraries()));
 				if (i != runtimes.length - 1) {
 					buffer.append(COMMA);
 				}

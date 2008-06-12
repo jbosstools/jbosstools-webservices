@@ -10,24 +10,14 @@
  ******************************************************************************/
 package org.jboss.tools.ws.core.facet.delegate;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Set;
 
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.wst.common.componentcore.datamodel.FacetInstallDataModelProvider;
 
-/**
- * Data model provider for Seam facet wizard page
- * 
- * @author eskimo
- * 
- */
+
 public class JBossWSFacetInstallDataModelProvider extends
 		FacetInstallDataModelProvider implements IJBossWSFacetDataModelProperties {
 
-	private static final String EMPTY_STRING = "";
 
 	/**
 	 * Returns set of facet properties for facet wizard page

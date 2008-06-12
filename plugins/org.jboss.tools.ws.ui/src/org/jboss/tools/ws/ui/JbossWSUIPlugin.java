@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.ui;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -58,4 +59,8 @@ public class JbossWSUIPlugin extends AbstractUIPlugin {
 		return plugin;
 	}
 
+	public static ImageDescriptor getImageDescriptor(String path) {
+		path = "icons/" + path; //$NON-NLS-1$
+		return AbstractUIPlugin.imageDescriptorFromPlugin("org.jboss.tools.ws.ui", path); //$NON-NLS-1$
+	}
 }

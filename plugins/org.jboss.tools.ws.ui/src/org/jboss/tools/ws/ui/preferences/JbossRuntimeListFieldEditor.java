@@ -400,6 +400,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 		private static final String SRT_NAME = "name";
 		private static final String SRT_HOMEDIR = "homeDir";
+		private static final String SRT_DEFAULT = "defaultClasspath";
 
 		private static final int GL_PARENT_COLUMNS = 1;
 		private static final int GL_CONTENT_COLUMNS = 3;
@@ -415,6 +416,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				""); //$NON-NLS-1$ 
 
 		JbossWSRuntime current = null;
+		
+		IFieldEditor jars = null;
 
 		public JbossWSRuntimeWizardPage(List<JbossWSRuntime> editedList) {
 			super(
@@ -444,9 +447,15 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			name.addPropertyChangeListener(this);
 			homeDir.doFillIntoGrid(root);
 			homeDir.addPropertyChangeListener(this);
+			
+			jars = new JbwsLibraryListFieldEditor("", "",
+					current);
+			jars.doFillIntoGrid(root);
+			jars.addPropertyChangeListener(this);
 			setPageComplete(false);
 			setControl(root);
 		}
+		
 
 		/**
 		 * Process evt: setup default values based on JbossWS Home folder and
@@ -495,10 +504,22 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				}
 			}
 
+			JbossWSRuntime jarJbws = (JbossWSRuntime)jars.getValue();
 			if (current != null
 					&& current.getName().equals(name.getValueAsString())
-					&& current.getHomeDir().equals(homeDir.getValueAsString())) {
+					&& current.getHomeDir().equals(homeDir.getValueAsString())
+					&& current.isUserConfigClasspath() == jarJbws.isUserConfigClasspath()
+					&& (!jarJbws.isUserConfigClasspath() 
+							|| hasSameLibraies(current.getLibraries(), jarJbws.getLibraries()))) {
+				
 				setErrorMessage(null);
+				setPageComplete(false);
+				return;
+			}
+			
+			if(jarJbws.isUserConfigClasspath() 
+					&& jarJbws.getLibraries().size() == 0){
+				setErrorMessage("The library must contian at least one jar.");
 				setPageComplete(false);
 				return;
 			}
@@ -520,6 +541,14 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			setPageComplete(true);
 		}
 
+		private boolean hasSameLibraies(List<String> lib1, List<String> lib2){
+			if(lib1.size() != lib2.size()) return false;
+			for(String jar: lib1){
+				if(!lib2.contains(jar)) return false;
+			}
+			
+			return true;
+		}
 		/**
 		 * Return JbossWS Runtime instance initialized by user input
 		 * 
@@ -529,6 +558,9 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			JbossWSRuntime newRt = new JbossWSRuntime();
 			newRt.setName(name.getValueAsString());
 			newRt.setHomeDir(homeDir.getValueAsString());
+			JbossWSRuntime rt = (JbossWSRuntime)jars.getValue();
+			newRt.setLibraries(rt.getLibraries());
+			newRt.setUserConfigClasspath(rt.isUserConfigClasspath());
 			return newRt;
 		}
 
@@ -557,6 +589,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			return editor;
 		}
 
+		
+		
 		public ButtonFieldEditor.ButtonPressedAction createSelectFolderAction(
 				String buttonName) {
 			return new ButtonFieldEditor.ButtonPressedAction(buttonName) {
@@ -693,13 +727,12 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		@Override
 		public boolean performFinish() {
 			JbossWSRuntime rt = page1.getRuntime();
-			if (rt.getName().equals(source.getName())
-					&& rt.getHomeDir().equals(source.getHomeDir())) {
-				return true;
-			}
+
 			if (added.contains(source) || changed.containsKey(source)) {
 				source.setName(rt.getName());
 				source.setHomeDir(rt.getHomeDir());
+				source.setUserConfigClasspath(rt.isUserConfigClasspath());
+				source.setLibraries(rt.getLibraries());
 			} else {
 				changed.put(rt, source);
 				if (source.isDefault()) {
@@ -980,7 +1013,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 					tableView.setSelection(new StructuredSelection(c));
 				}
 			}
-			if (c != null & c.isDefault()) {
+			if (c != null && c.isDefault()) {
 				checkedElement = c;
 			}
 			setDefaultRuntime();

@@ -24,6 +24,7 @@ import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 public class ButtonFieldEditor extends BaseFieldEditor {
 
 	PushButtonField button= null;
+	int style;
 	
 	private ButtonPressedAction buttonAction = new ButtonPressedAction(JbossWSUIMessages.JBossWS_Button_Field_Editor_Browse) {
 		@Override
@@ -32,8 +33,9 @@ public class ButtonFieldEditor extends BaseFieldEditor {
 		}
 	};
 	
-	public ButtonFieldEditor(String name, String label) {
+	public ButtonFieldEditor(String name, String label, int style) {
 		super(name, label, new Object());
+		this.style = style;
 	}
 	
 	public ButtonFieldEditor(String name, ButtonPressedAction action, Object defaultValue) {
@@ -69,7 +71,7 @@ public class ButtonFieldEditor extends BaseFieldEditor {
 	@Override
 	public Object[] getEditorControls(Object composite) {
 		if(button==null && composite!=null) {
-			button = new PushButtonField((Composite)composite,buttonAction);
+			button = new PushButtonField((Composite)composite, style, buttonAction);
 			setEnabled(isEnabled());
 		}
 		return new Control[]{button.getControl()};

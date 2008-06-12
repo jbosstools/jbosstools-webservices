@@ -105,6 +105,8 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 						newName);
 			}
 			o.setDefault(c.isDefault());
+			o.setUserConfigClasspath(c.isUserConfigClasspath());
+			o.setLibraries(c.getLibraries());
 		}
 		jbossWSRuntimes.getChangedJbossWSRuntimes().clear();
 

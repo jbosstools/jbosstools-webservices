@@ -59,6 +59,7 @@ public final class JbossWSUIMessages extends NLS {
 	public static String JBossWS_SWT_Field_Editor_Factory_Browse;
 	public static String JBossWS_SWT_Field_Editor_Factory_Select_Home_Folder;
 	public static String JBossWS_Runtime_List_Field_Editor_Name2;
+	public static String JBossWS_Runtime_Check_Field_Default_Classpath;
 	public static String JBossWS_Preference_Page_Runtimes;
 	
 	

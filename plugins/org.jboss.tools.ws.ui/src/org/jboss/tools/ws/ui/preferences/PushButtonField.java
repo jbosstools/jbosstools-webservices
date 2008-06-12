@@ -11,7 +11,6 @@
 
 package org.jboss.tools.ws.ui.preferences;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -34,8 +33,8 @@ public class PushButtonField extends BaseField {
 	}
 
 
-	public PushButtonField(Composite composite, ButtonPressedAction listener) {
-		button = new Button(composite,SWT.PUSH);
+	public PushButtonField(Composite composite, int style, ButtonPressedAction listener) {
+		button = new Button(composite, style);
 		button.setText(listener.getText());
 		button.addSelectionListener(listener);
 	}
