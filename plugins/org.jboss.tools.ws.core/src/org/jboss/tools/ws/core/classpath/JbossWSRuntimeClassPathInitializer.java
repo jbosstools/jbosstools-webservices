@@ -70,16 +70,28 @@ public class JbossWSRuntimeClassPathInitializer extends
 				ArrayList<IClasspathEntry> entryList = new ArrayList<IClasspathEntry>();
 				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
 						.findRuntimeByName(segment);
-				IPath wsPath = null;
-				if (jbws != null) {
-					wsPath = new Path(jbws.getHomeDir());
-				}
-				if (wsPath != null) {
-					IPath libPath = wsPath.append(JbossWSCoreMessages.Dir_Lib);
-					entryList.addAll(Arrays.asList(getEntries(libPath,entryList)));
-					libPath = wsPath.append(JbossWSCoreMessages.Dir_Client);
-					entryList.addAll(Arrays.asList(getEntries(libPath,entryList)));
-					entries = entryList.toArray(new IClasspathEntry[entryList.size()]);
+				if (jbws.isUserConfigClasspath()) {
+					for (String jar : jbws.getLibraries()) {
+						entryList.add(getEntry(new Path(jar)));
+					}
+					entries = entryList.toArray(new IClasspathEntry[entryList
+							.size()]);
+				} else {
+					IPath wsPath = null;
+					if (jbws != null) {
+						wsPath = new Path(jbws.getHomeDir());
+					}
+					if (wsPath != null) {
+						IPath libPath = wsPath
+								.append(JbossWSCoreMessages.Dir_Lib);
+						entryList.addAll(Arrays.asList(getEntries(libPath,
+								entryList)));
+						libPath = wsPath.append(JbossWSCoreMessages.Dir_Client);
+						entryList.addAll(Arrays.asList(getEntries(libPath,
+								entryList)));
+						entries = entryList
+								.toArray(new IClasspathEntry[entryList.size()]);
+					}
 				}
 				if (entries == null)
 					return new IClasspathEntry[0];
@@ -92,15 +104,17 @@ public class JbossWSRuntimeClassPathInitializer extends
 					.getClasspathEntry();
 		}
 
-		protected IClasspathEntry[] getEntries(IPath folder, ArrayList<IClasspathEntry> entryList) {
+		protected IClasspathEntry[] getEntries(IPath folder,
+				ArrayList<IClasspathEntry> entryList) {
 			String[] files = folder.toFile().list();
 			ArrayList<IClasspathEntry> list = new ArrayList<IClasspathEntry>();
 			for (int i = 0; i < files.length; i++) {
-				if (files[i].endsWith(".jar") && filterJars(files[i],entryList)) {
+				if (files[i].endsWith(".jar")
+						&& filterJars(files[i], entryList)) {
 					list.add(getEntry(folder.append(files[i])));
 				} else if (folder.append(files[i]).toFile().isDirectory()) {
 					list.addAll(Arrays.asList(getEntries(folder
-							.append(files[i]),entryList)));
+							.append(files[i]), entryList)));
 				}
 			}
 			return list.toArray(new IClasspathEntry[list.size()]);
@@ -123,8 +137,8 @@ public class JbossWSRuntimeClassPathInitializer extends
 	}
 
 	public boolean filterJars(String jarName, ArrayList<IClasspathEntry> list) {
-		for(IClasspathEntry entry : list){
-			if(entry.getPath().lastSegment().equals(jarName)){
+		for (IClasspathEntry entry : list) {
+			if (entry.getPath().lastSegment().equals(jarName)) {
 				return false;
 			}
 		}
