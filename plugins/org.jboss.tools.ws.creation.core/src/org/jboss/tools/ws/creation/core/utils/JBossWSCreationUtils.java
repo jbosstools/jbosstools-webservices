@@ -41,10 +41,8 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
-import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.eclipse.wst.common.project.facet.core.internal.FacetedProject;
-import org.eclipse.wst.common.project.facet.core.runtime.IRuntime;
+import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.ServerCore;
 import org.jboss.tools.ws.core.JbossWSCorePlugin;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
@@ -52,6 +50,7 @@ import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
 public class JBossWSCreationUtils {
 	
@@ -283,27 +282,10 @@ public class JBossWSCreationUtils {
 	}
 	
 	public static String getJbossWSRuntimeLocation(IProject project) throws CoreException{
-		
 			
-		//if users select server as its jbossws runtime, then get runtime location from project target runtime
 		String isServerSupplied = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME);
-		if(IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED.equals(isServerSupplied)){
-			IFacetedProject facetedPrj = ProjectFacetsManager.create( project );
-			IRuntime prjRuntime = facetedPrj.getPrimaryRuntime();
-			// TODO get runtime location from specified project target runtime
-			prjRuntime.getRuntimeComponents().get(0).getProperties();
-			
-			//if no target runtime specified, get runtime location from default jbossws runtime from jbossws preference
-			if(prjRuntime == null){
-				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().getDefaultRuntime();
-				if(jbws != null){
-					return jbws.getHomeDir();
-				}else{
-					throw new CoreException(StatusUtils.errorStatus("No JBoss Web Service runtime has been specified."));
-				}
-				
-			}
-		}else{
+		if(isServerSupplied != null && 
+				!IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED.equals(isServerSupplied)){
 			String jbwsRuntimeName = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
 			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(jbwsRuntimeName);
 			if(jbws != null){
@@ -313,8 +295,55 @@ public class JBossWSCreationUtils {
 				return jbwsHomeDir;
 			}
 		}
+		//if users select server as its jbossws runtime, then get runtime location from project target runtime
+		else{
+			IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
+			org.eclipse.wst.common.project.facet.core.runtime.IRuntime prjFacetRuntime = facetedPrj.getPrimaryRuntime();
+
+			IRuntime serverRuntime = getRuntime(prjFacetRuntime);
+			
+			if(serverRuntime != null){ 
+				String runtimeTypeName = serverRuntime.getRuntimeType().getName(); 
+				if(runtimeTypeName == null){
+					runtimeTypeName = "";
+				}
+				if(runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0){
+					return serverRuntime.getLocation().removeLastSegments(1).toOSString();
+				}
+			}
+			
+			//if no target runtime has been specified, get runtime location from default jbossws runtime 
+			if(prjFacetRuntime == null){
+				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().getDefaultRuntime();
+				if(jbws != null){
+					return jbws.getHomeDir();
+				}else{
+					throw new CoreException(StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_No_Runtime_Specified));
+				}
+				
+			}
+			
+		}
 		return "";
 		
+	}
+	
+	public static IRuntime getRuntime(org.eclipse.wst.common.project.facet.core.runtime.IRuntime runtime) {
+		if (runtime == null)
+			throw new IllegalArgumentException();
+		
+		String id = runtime.getProperty("id");
+		if (id == null)
+			return null;
+		
+		org.eclipse.wst.server.core.IRuntime[] runtimes = ServerCore.getRuntimes();
+		int size = runtimes.length;
+		for (int i = 0; i < size; i++) {
+			if (id.equals(runtimes[i].getId()))
+				return runtimes[i];
+		}
+		
+		return null;
 	}
 	
 }
