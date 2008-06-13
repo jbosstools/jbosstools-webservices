@@ -150,7 +150,7 @@ public class JbossWSRuntimeManager {
 	 */
 	public void save() {
 		JbossWSCorePlugin.getDefault().getPreferenceStore().setValue(
-				"jbosswsruntimelocation", converter.getString(runtimes));
+				JbossWSCoreMessages.WS_Location, converter.getString(runtimes));
 		IPreferenceStore store = JbossWSCorePlugin.getDefault()
 				.getPreferenceStore();
 		if (store instanceof IPersistentPreferenceStore) {

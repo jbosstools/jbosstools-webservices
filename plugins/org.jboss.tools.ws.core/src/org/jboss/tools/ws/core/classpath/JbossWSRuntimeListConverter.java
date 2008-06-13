@@ -2,7 +2,6 @@ package org.jboss.tools.ws.core.classpath;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,7 @@ public class JbossWSRuntimeListConverter {
 		private static final String FIELD_SEPARATOR = "|";
 		private static final String DEFAULT = "default";
 		private static final String HOME_DIR = "homeDir";
+		private static final String VERSION = "version";
 		private static final String NAME = "name";
 		private static final String USER_CONFIG_CLASSPATH = "userConfig";
 		private static final String LIBRARY = "libraries";
@@ -59,6 +59,8 @@ public class JbossWSRuntimeListConverter {
 						rt.setName(value);
 					} else if (HOME_DIR.equals(name)) {
 						rt.setHomeDir(value);
+					} else if (VERSION.equals(name)) {
+						rt.setVersion(value);
 					} else if (DEFAULT.equals(name)) {
 						rt.setDefault(Boolean.parseBoolean(value));
 					}else if(USER_CONFIG_CLASSPATH.equals(name)){
@@ -116,6 +118,9 @@ public class JbossWSRuntimeListConverter {
 			for (int i = 0; i < runtimes.length; i++) {
 				buffer.append(NAME).append(FIELD_SEPARATOR);
 				buffer.append(runtimes[i].getName());
+				buffer.append(FIELD_SEPARATOR).append(VERSION).append(
+						FIELD_SEPARATOR);
+				buffer.append(runtimes[i].getVersion());
 				buffer.append(FIELD_SEPARATOR).append(HOME_DIR).append(
 						FIELD_SEPARATOR);
 				buffer.append(runtimes[i].getHomeDir());

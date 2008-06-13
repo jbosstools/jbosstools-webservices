@@ -24,7 +24,8 @@ public class JBossWSFacetInstallDataModelProvider extends
 	 * 
 	 * @return set of property names
 	 */
-	public Set getPropertyNames() {
+	@SuppressWarnings("unchecked")
+	public Set<String> getPropertyNames() {
 		Set<String> names = super.getPropertyNames();
 
 		names.add(JBOSS_WS_DEPLOY);

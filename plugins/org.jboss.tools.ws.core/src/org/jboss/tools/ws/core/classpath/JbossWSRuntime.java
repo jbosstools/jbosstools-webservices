@@ -22,6 +22,8 @@ public class JbossWSRuntime {
 	String name = null;
 
 	String homeDir = null;
+	
+	String version = null;
 
 	boolean defaultRt = false;
 	
@@ -108,6 +110,14 @@ public class JbossWSRuntime {
 	
 	public void setUserConfigClasspath(boolean userConfigClasspath){
 		this.userConfigClasspath = userConfigClasspath;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
 	}
 
 }
