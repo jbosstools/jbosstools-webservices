@@ -37,6 +37,7 @@ public final class JbossWSUIMessages extends NLS {
 	public static String Error_JBossWS_Basic_Editor_Support;
 	public static String Error_JBossWS_Basic_Editor_Different;
 	public static String JBossWS_Runtime_List_Field_Editor_Name;
+	public static String JBossWS_Runtime_List_Field_Editor_Version;
 	public static String JBossWS_Runtime_List_Field_Editor_Path;
 	public static String JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be;
 	public static String JBossWS_Runtime_List_Field_Editor_An_Instance_Of_List;

@@ -200,10 +200,14 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		TableColumn tc2 = new TableColumn(tableView.getTable(), SWT.LEFT);
 		tc2.setWidth(TC_NAME_WIDTH);
 		tc2.setText(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name);
-
+		
 		TableColumn tc3 = new TableColumn(tableView.getTable(), SWT.LEFT);
-		tc3.setWidth(TC_PATH_WIDTH);
-		tc3.setText(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Path);
+		tc3.setWidth(TC_VERSION_WIDTH);
+		tc3.setText(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version);
+
+		TableColumn tc4 = new TableColumn(tableView.getTable(), SWT.LEFT);
+		tc4.setWidth(TC_PATH_WIDTH);
+		tc4.setText(JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Path);
 
 		tableView.setContentProvider(new IStructuredContentProvider() {
 
@@ -231,7 +235,8 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 
 			private static final int TC_DEFAULT_NUMBER = 0;
 			private static final int TC_NAME_NUMBER = 1;
-			private static final int TC_PATH_NUMBER = 2;
+			private static final int TC_VERSION_NUMBER = 2;
+			private static final int TC_PATH_NUMBER = 3;
 
 			public void addListener(ILabelProviderListener listener) {
 			}
@@ -257,6 +262,9 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 				}
 				if (columnIndex == TC_NAME_NUMBER) {
 					return rt.getName();
+				}
+				if (columnIndex == TC_VERSION_NUMBER) {
+					return rt.getVersion().toString();
 				}
 				if (columnIndex == TC_PATH_NUMBER) {
 					return rt.getHomeDir();
@@ -399,9 +407,9 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			PropertyChangeListener {
 
 		private static final String SRT_NAME = "name";
+		private static final String SRT_VERSION = "version";
 		private static final String SRT_HOMEDIR = "homeDir";
-		private static final String SRT_DEFAULT = "defaultClasspath";
-
+		
 		private static final int GL_PARENT_COLUMNS = 1;
 		private static final int GL_CONTENT_COLUMNS = 3;
 
@@ -410,6 +418,10 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		IFieldEditor name = createTextEditor(SRT_NAME,
 				JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name2, ""); //$NON-NLS-1$ 
 
+		IFieldEditor version = createTextEditor(SRT_VERSION,
+				JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version, ""); //$NON-NLS-1$ 
+
+		
 		IFieldEditor homeDir = createBrowseFolderEditor(
 				SRT_HOMEDIR,
 				JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Home_Folder,
@@ -445,6 +457,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			root.setLayout(gl);
 			name.doFillIntoGrid(root);
 			name.addPropertyChangeListener(this);
+			version.doFillIntoGrid(root);
 			homeDir.doFillIntoGrid(root);
 			homeDir.addPropertyChangeListener(this);
 			
@@ -557,6 +570,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 		public JbossWSRuntime getRuntime() {
 			JbossWSRuntime newRt = new JbossWSRuntime();
 			newRt.setName(name.getValueAsString());
+			newRt.setVersion(version.getValueAsString());
 			newRt.setHomeDir(homeDir.getValueAsString());
 			JbossWSRuntime rt = (JbossWSRuntime)jars.getValue();
 			newRt.setLibraries(rt.getLibraries());
