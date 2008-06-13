@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Test Plug-in
+Bundle-SymbolicName: org.jboss.tools.ws.core.test
+Bundle-Version: 1.0.0
+Bundle-Activator: org.jboss.tools.ws.core.test.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.junit,
+ org.jboss.tools.tests,
+ org.jboss.tools.ws.core
+Eclipse-LazyStart: true
