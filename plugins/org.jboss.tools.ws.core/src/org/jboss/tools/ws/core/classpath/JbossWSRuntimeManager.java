@@ -111,10 +111,11 @@ public class JbossWSRuntimeManager {
 	 * @param defaultRt
 	 *            boolean - default flag
 	 */
-	public void addRuntime(String name, String path, boolean defaultRt) {
+	public void addRuntime(String name, String path, String version, boolean defaultRt) {
 		JbossWSRuntime jbossWSRt = new JbossWSRuntime();
 		jbossWSRt.setHomeDir(path);
 		jbossWSRt.setName(name);
+		jbossWSRt.setVersion(version);
 		jbossWSRt.setDefault(defaultRt);
 		addRuntime(jbossWSRt);
 	}
