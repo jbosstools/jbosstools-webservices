@@ -13,6 +13,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.common.project.facet.core
 Eclipse-LazyStart: true
 Export-Package: org.jboss.tools.ws.ui,
+ org.jboss.tools.ws.ui.messages,
  org.jboss.tools.ws.ui.preferences
 Bundle-Vendor: %PLUGIN_PROVIDER
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
