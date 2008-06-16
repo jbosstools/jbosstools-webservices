@@ -64,7 +64,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 								IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED);
 			} else {
 				// store runtime name and runtime location to the project
-				
+
 				String runtimeName = model
 						.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
 				String runtimeLocation = model
@@ -121,10 +121,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 			for (int i = 0; i < oldClasspathEntries.length
 					&& !isFolderInClassPathAlready; i++) {
 				if (oldClasspathEntries[i].getPath().equals(
-						project.getFullPath())
-						|| oldClasspathEntries[i].getPath().lastSegment()
-								.toUpperCase().contains(
-										JbossWSCoreMessages.JBossAS)) {
+						newClasspath.getPath())) {
 					isFolderInClassPathAlready = true;
 					break;
 				}

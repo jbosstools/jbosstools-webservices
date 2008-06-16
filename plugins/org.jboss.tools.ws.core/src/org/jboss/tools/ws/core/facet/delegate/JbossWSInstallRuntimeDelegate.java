@@ -7,13 +7,15 @@
  * 
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
- ******************************************************************************/ 
+ ******************************************************************************/
 
 package org.jboss.tools.ws.core.facet.delegate;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -25,16 +27,20 @@ import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
  */
 public class JbossWSInstallRuntimeDelegate implements IDelegate {
 
-	public void execute(IProject project, IProjectFacetVersion arg1, Object arg2,
-			IProgressMonitor monitor) throws CoreException {
-		monitor.beginTask(JbossWSCoreMessages.Progress_Install_JBossWS_Runtime, 2 );
+	public void execute(IProject project, IProjectFacetVersion arg1,
+			Object arg2, IProgressMonitor monitor) throws CoreException {
+		monitor.beginTask(JbossWSCoreMessages.Progress_Install_JBossWS_Runtime,
+				2);
 
-		IDataModel model = (IDataModel)arg2;
-		
-		
-		JbossWSClassPathCommand command = new JbossWSClassPathCommand(project, model); 
-	    command.executeOverride(monitor);
-		monitor.worked( 1 );
+		IDataModel model = (IDataModel) arg2;
+
+		JbossWSClassPathCommand command = new JbossWSClassPathCommand(project,
+				model);
+		IStatus status = command.executeOverride(monitor);
+		if(!status.equals(Status.OK_STATUS)){
+			throw new CoreException(status);
+		}
+		monitor.worked(1);
 		monitor.done();
 	}
 

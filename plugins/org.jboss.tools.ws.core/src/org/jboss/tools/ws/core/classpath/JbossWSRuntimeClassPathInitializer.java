@@ -1,3 +1,14 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Red Hat, Inc. - initial API and implementation 
+ ******************************************************************************/
+
 package org.jboss.tools.ws.core.classpath;
 
 import java.util.ArrayList;
@@ -70,31 +81,32 @@ public class JbossWSRuntimeClassPathInitializer extends
 				ArrayList<IClasspathEntry> entryList = new ArrayList<IClasspathEntry>();
 				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
 						.findRuntimeByName(segment);
-				if (jbws.isUserConfigClasspath()) {
-					for (String jar : jbws.getLibraries()) {
-						entryList.add(getEntry(new Path(jar)));
-					}
-					entries = entryList.toArray(new IClasspathEntry[entryList
-							.size()]);
-				} else {
-					IPath wsPath = null;
-					if (jbws != null) {
-						wsPath = new Path(jbws.getHomeDir());
-					}
-					if (wsPath != null) {
-						IPath libPath = wsPath
-								.append(JbossWSCoreMessages.Dir_Lib);
-						entryList.addAll(Arrays.asList(getEntries(libPath,
-								entryList)));
-						libPath = wsPath.append(JbossWSCoreMessages.Dir_Client);
-						entryList.addAll(Arrays.asList(getEntries(libPath,
-								entryList)));
+				if (jbws != null) {
+					if (jbws.isUserConfigClasspath()) {
+						for (String jar : jbws.getLibraries()) {
+							entryList.add(getEntry(new Path(jar)));
+						}
 						entries = entryList
 								.toArray(new IClasspathEntry[entryList.size()]);
+					} else {
+						IPath wsPath = new Path(jbws.getHomeDir());
+						if (wsPath != null) {
+							IPath libPath = wsPath
+									.append(JbossWSCoreMessages.Dir_Lib);
+							entryList.addAll(Arrays.asList(getEntries(libPath,
+									entryList)));
+							libPath = wsPath
+									.append(JbossWSCoreMessages.Dir_Client);
+							entryList.addAll(Arrays.asList(getEntries(libPath,
+									entryList)));
+							entries = entryList
+									.toArray(new IClasspathEntry[entryList
+											.size()]);
+						}
 					}
+					if (entries == null)
+						return new IClasspathEntry[0];
 				}
-				if (entries == null)
-					return new IClasspathEntry[0];
 			}
 			return entries;
 		}
