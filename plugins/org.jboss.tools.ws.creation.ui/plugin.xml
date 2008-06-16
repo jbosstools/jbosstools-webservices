@@ -63,11 +63,5 @@
          </page>
       </wizard-pages>
    </extension>
-  <extension
-        point="org.eclipse.ui.startup">
-     <startup
-           class="org.jboss.tools.ws.creation.ui.startup.SetDefaultWebServiceServerRuntime">
-     </startup>
-  </extension>
 
 </plugin>
