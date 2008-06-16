@@ -14,9 +14,11 @@ package org.jboss.tools.ws.creation.core.commands;
 import javax.wsdl.WSDLException;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
@@ -28,6 +30,7 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
+import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
 
 /**
  * @author Grid Qian
@@ -48,9 +51,17 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
 
-		if (!JBossWSCreationUtils.validateJBossWSLocation()) {
-			return StatusUtils
-					.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
+		try {
+			String location = JBossWSCreationUtils.getJbossWSRuntimeLocation(JBossWSCreationUtils.getProjectByName(model.getWebProjectName()));
+			if (location.equals("")) {
+				return StatusUtils
+						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
+			} else if(!new Path(location).append(JbossWSUIMessages.Bin).append(JbossWSUIMessages.Command).toFile().exists()){
+				return StatusUtils
+				.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
+			}
+		} catch (CoreException e1) {
+			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 		}
 		model.setTarget(JBossWSCreationCoreMessages.Value_Target_0);
 		if (scenario == WebServiceScenario.CLIENT) {
