@@ -160,7 +160,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		gd = new GridData();
 		gd.horizontalSpan = 3;
 		btnUpdateWebxml.setLayoutData(gd);
-		btnUpdateWebxml.setText(JBossWSCreationCoreMessages.Label_Upate_Webxml);
+		btnUpdateWebxml.setText(JBossWSCreationCoreMessages.Label_Update_Webxml);
 		btnUpdateWebxml.setSelection(true);
 		btnUpdateWebxml.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e) {

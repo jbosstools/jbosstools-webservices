@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.EventObject;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -111,12 +112,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 				String runtimeName = cmbRuntimes.getText();
 				JbossWSRuntime jr = (JbossWSRuntime) cmbRuntimes
 						.getData(runtimeName);
-				model.setStringProperty(
-						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
-						jr.getHomeDir());
-				model.setStringProperty(
-						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID,
-						runtimeName);
+				saveJBosswsRuntimeToModel(jr);
 			}
 		});
 
@@ -142,6 +138,15 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		setControl(composite);
 		changePageStatus();
 
+	}
+	
+	protected void saveJBosswsRuntimeToModel(JbossWSRuntime jbws){
+		model.setStringProperty(
+				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
+				jbws.getHomeDir());
+		model.setStringProperty(
+				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID,
+				jbws.getName());
 	}
 
 	protected void setServerSuppliedSelection(EventObject e) {
@@ -197,6 +202,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 			// get default jbossws runtime
 			if (jr.isDefault()) {
 				cmRuntime.select(i);
+				saveJBosswsRuntimeToModel(jr);
 			}
 		}
 	}

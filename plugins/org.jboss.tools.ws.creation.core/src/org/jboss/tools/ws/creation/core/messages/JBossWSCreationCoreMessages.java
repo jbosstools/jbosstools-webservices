@@ -25,8 +25,6 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Label_Generate_WSDL;
 	public static String Label_JaxWS_Target;
 
-	public static String Label_Upate_Webxml;
-
 	public static String Label_Update_Webxml;
 	public static String Value_Target_0;
 	public static String Value_Target_1;
