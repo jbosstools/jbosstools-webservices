@@ -16,6 +16,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -23,13 +24,19 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.wst.command.internal.env.ui.widgets.DynamicWizard;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.eclipse.wst.ws.internal.common.WSDLUtility;
+import org.eclipse.wst.ws.internal.wsrt.IWebService;
+import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
+import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.common.test.util.TestProjectProvider;
 import org.jboss.tools.test.util.JUnitUtils;
 import org.jboss.tools.test.util.xpl.EditorTestHelper;
@@ -37,16 +44,19 @@ import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
+import org.jboss.tools.ws.creation.core.commands.InitialCommand;
+import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
 
-abstract public class AbstractJBossWSCommandTest extends TestCase {
+public class AbstractJBossWSCommandTest extends TestCase {
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
 	protected static final IWorkbench wb = PlatformUI.getWorkbench();
 	
  
 
 	protected static final String JBOSSWS_HOME = "jbosstools.test.jbossws.eap.home";
-	protected static final String JBOSSWS_HOME_DEFAULT = "F:/jbdevstudio-ga/jboss-eap/seam";
+	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-4.2.2.GA";
 	
 	
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
@@ -56,10 +66,9 @@ abstract public class AbstractJBossWSCommandTest extends TestCase {
 	protected static final IProjectFacetVersion jbosswsFacetVersion;
 	private static final IProjectFacet jbosswsFacet;
 	private static final String RuntimeName;
-	private static final String RuntimeLocation;
 	private static final boolean isDeployed;
 
-	static String wsdlFileName = "HelloWorld.wsdl";
+	static String wsdlFileName = "hello_world.wsdl";
 	static String BUNDLE = "org.jboss.tools.ws.core.test";
 	
 	IProject project;
@@ -71,7 +80,6 @@ abstract public class AbstractJBossWSCommandTest extends TestCase {
 		jbosswsFacet = ProjectFacetsManager.getProjectFacet("jbossws.core");
 		jbosswsFacetVersion = jbosswsFacet.getVersion("1.0");
 		RuntimeName = "testjbosswsruntime";
-		RuntimeLocation = "";
 		isDeployed = false;
 		
 		
@@ -121,11 +129,38 @@ abstract public class AbstractJBossWSCommandTest extends TestCase {
 		super.tearDown();
 	}
 
-	public void testInitialCommand() throws CoreException{
+	public void testCommands() throws CoreException, ExecutionException{
 		IFacetedProject fproject = createJBossWSProject("JBossWSTestProject", false);
 		IFile wsdlFile = fproject.getProject().getFile(wsdlFileName);
+		
+		assertTrue(wsdlFile.exists());
+		
 		ServiceModel model = new ServiceModel();
-		model.setWsdlURI(wsdlFile.getFullPath().toOSString());
+		model.setWebProjectName(fproject.getProject().getName());
+		model.setWsdlURI(wsdlFile.getLocation().toOSString());
+
+		
+		WebServiceInfo info = new WebServiceInfo();
+		info.setWsdlURL(wsdlFile.getFullPath().toOSString());
+		IWebService ws = new JBossWebService(info); 
+		
+		//test initial command
+		/*InitialCommand cmdInitial = new InitialCommand(model, ws, WebServiceScenario.TOPDOWN);
+		IStatus status = cmdInitial.execute(null, null);
+		assertTrue(status.getMessage(), status.isOK());
+		
+		assertTrue(model.getServiceNames().contains("SOAPService"));
+		assertEquals(wsdlFile.getFullPath().toOSString(), model.getWsdlURI());
+		assertTrue(model.getPortTypes().contains("Greeter"));
+		assertEquals("org.apache.hello_world_soap_http", model.getCustomPackage());
+		
+		//test wsdl2Javacommand
+		
+		WSDL2JavaCommand cmdW2j = new WSDL2JavaCommand(model);
+		status = cmdW2j.execute(null, null);
+		assertTrue("failed to execute WSDL2JavaCommand,namely failed to generate web service code", status.isOK());*/
+		
+		
 		
 		
 	}
@@ -134,7 +169,7 @@ abstract public class AbstractJBossWSCommandTest extends TestCase {
 		IProject project = createProject("JBossWSTestProject");
 		final IFacetedProject fproj = ProjectFacetsManager.create(project);
 	
-		installDependentFacets(fproj);
+		//installDependentFacets(fproj);
 		fproj.installProjectFacet(jbosswsFacetVersion, createJBossWSDataModel(isServerSupplied), null);
 		
 		assertNotNull(project);
@@ -148,19 +183,9 @@ abstract public class AbstractJBossWSCommandTest extends TestCase {
 	protected void installDependentFacets(final IFacetedProject fproj) throws CoreException {
 		fproj.installProjectFacet(javaVersion, null, null);
 		fproj.installProjectFacet(dynamicWebVersion, null, null);
-		fproj.installProjectFacet(jbosswsFacetVersion, null, null);
+		//fproj.installProjectFacet(jbosswsFacetVersion, null, null);
 	}
 	
-	
-	
-	
-	
-	
-	abstract protected IProject getProject();
-
-	abstract void setUpSeamProjects();
-
-	abstract void assertProjectsAreCreated();
 
 	
 	
@@ -171,7 +196,7 @@ abstract public class AbstractJBossWSCommandTest extends TestCase {
 		}else{
 			config.setBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_DEPLOY, isDeployed);
 			config.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, RuntimeName);
-			config.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME, RuntimeLocation);
+			config.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME, getJBossWSHomeFolder().toString());
 		}
 		return config;
 	}
