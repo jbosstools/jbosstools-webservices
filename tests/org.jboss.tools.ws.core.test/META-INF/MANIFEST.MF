@@ -17,5 +17,11 @@ Require-Bundle: org.eclipse.ui,
  org.jboss.tools.ws.creation.core,
  org.eclipse.wst.command.env.ui,
  org.eclipse.wst.ws,
- org.jboss.tools.ws.creation.ui
+ org.jboss.tools.ws.creation.ui,
+ org.eclipse.jst.j2ee,
+ org.eclipse.jst.j2ee.core,
+ org.eclipse.emf.common,
+ org.eclipse.jem,
+ org.eclipse.emf.ecore,
+ org.eclipse.wst.server.core
 Eclipse-LazyStart: true
