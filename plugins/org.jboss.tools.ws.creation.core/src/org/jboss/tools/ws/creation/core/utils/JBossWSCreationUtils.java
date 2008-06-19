@@ -284,9 +284,10 @@ public class JBossWSCreationUtils {
 	public static String getJbossWSRuntimeLocation(IProject project) throws CoreException{
 			
 		String isServerSupplied = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME);
-		if(isServerSupplied != null && 
+		String jbwsRuntimeName = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
+		
+		if(jbwsRuntimeName != null && 
 				!IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED.equals(isServerSupplied)){
-			String jbwsRuntimeName = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
 			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(jbwsRuntimeName);
 			if(jbws != null){
 				return jbws.getHomeDir();
@@ -300,9 +301,8 @@ public class JBossWSCreationUtils {
 			IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
 			org.eclipse.wst.common.project.facet.core.runtime.IRuntime prjFacetRuntime = facetedPrj.getPrimaryRuntime();
 
-			IRuntime serverRuntime = getRuntime(prjFacetRuntime);
-			
-			if(serverRuntime != null){ 
+			if(prjFacetRuntime != null){ 
+				IRuntime serverRuntime = getRuntime(prjFacetRuntime);
 				String runtimeTypeName = serverRuntime.getRuntimeType().getName(); 
 				if(runtimeTypeName == null){
 					runtimeTypeName = "";
