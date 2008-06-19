@@ -80,7 +80,17 @@ public class WSDL2JavaCommand extends AbstractDataModelOperation{
             }
             
             // log the result of the command execution
-            JBossWSCreationCore.getDefault().logInfo(convertInputStreamToString(proc.getInputStream()));
+            String resultOutput = convertInputStreamToString(proc.getInputStream());
+            if(resultOutput != null && resultOutput.indexOf("[ERROR]") >= 0){
+            	JBossWSCreationCore.getDefault().logError(resultOutput);
+            	IStatus errorStatus = StatusUtils.errorStatus(resultOutput);
+            	status = StatusUtils
+						.errorStatus(
+								JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
+								new CoreException(errorStatus));
+            }else{
+            	JBossWSCreationCore.getDefault().logInfo(resultOutput);
+            }
 		} catch (IOException e) {
 			JBossWSCreationCore.getDefault().logError(e);
 			

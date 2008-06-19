@@ -135,8 +135,12 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 
 	private ServletDescriptor getServletDescriptor(String clsName) {
 
+		String servletName = JBossWSCreationUtils.classNameFromQualifiedName(clsName);
+		if(servletName.endsWith("Impl") && servletName.length() > 4){
+			servletName = servletName.substring(0, servletName.length() - 4);
+		}
 		ServletDescriptor sd = new ServletDescriptor();
-		sd._name = JBossWSCreationUtils.classNameFromQualifiedName(clsName);
+		sd._name = servletName;
 		sd._displayName = sd._name;
 		sd._className = clsName;
 		sd._mappings = JBossWSCreationCoreMessages.Separator_Java + sd._name;

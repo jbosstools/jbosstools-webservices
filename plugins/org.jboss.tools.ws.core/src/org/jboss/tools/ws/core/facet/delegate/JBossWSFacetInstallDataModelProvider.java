@@ -13,6 +13,7 @@ package org.jboss.tools.ws.core.facet.delegate;
 import java.util.Set;
 
 import org.eclipse.wst.common.componentcore.datamodel.FacetInstallDataModelProvider;
+import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 
 
 public class JBossWSFacetInstallDataModelProvider extends
@@ -54,5 +55,7 @@ public class JBossWSFacetInstallDataModelProvider extends
 		return super.getDefaultProperty(propertyName);
 	}
 
-	
+	public Object create() {
+		return DataModelFactory.createDataModel(this);
+	}
 }

@@ -349,7 +349,10 @@ public class ImplementationClassCreationCommand extends
 					PrimitiveType.BOOLEAN)) {
 				BooleanLiteral bl = ast.newBooleanLiteral(false);
 				rs.setExpression(bl);
-			} else {
+			}else if(((PrimitiveType) returnType).getPrimitiveTypeCode().equals(
+					PrimitiveType.VOID)) {
+				// do nothing
+			}else {
 				NumberLiteral nl = ast.newNumberLiteral();
 				nl.setToken("0");
 				rs.setExpression(nl);
@@ -363,9 +366,7 @@ public class ImplementationClassCreationCommand extends
 				StringLiteral sl = ast.newStringLiteral();
 				sl.setLiteralValue("");
 				rs.setExpression(sl);
-			} else if("void".equals(typeName)){
-				// do nothing
-			}else{
+			} else{
 				rs.setExpression(ast.newNullLiteral());
 			}
 				
