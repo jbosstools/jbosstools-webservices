@@ -11,11 +11,16 @@
 package org.jboss.tools.ws.core.test.command;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.Set;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.httpclient.util.HttpURLConnection;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -24,6 +29,10 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jst.j2ee.internal.deployables.J2EEDeployableFactory;
 import org.eclipse.jst.j2ee.model.IModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.j2ee.webapplication.ServletType;
@@ -32,14 +41,23 @@ import org.eclipse.jst.javaee.web.ServletMapping;
 import org.eclipse.jst.javaee.web.WebApp;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.eclipse.wst.common.project.facet.core.runtime.RuntimeManager;
+import org.eclipse.wst.server.core.IModule;
+import org.eclipse.wst.server.core.IRuntime;
+import org.eclipse.wst.server.core.IRuntimeType;
+import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
 import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.IServerType;
+import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
+import org.eclipse.wst.server.core.ServerUtil;
+import org.eclipse.wst.server.core.internal.Server;
+import org.eclipse.wst.server.core.internal.ServerWorkingCopy;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
@@ -57,7 +75,7 @@ import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
 
-import com.sun.jmx.remote.internal.ServerCommunicatorAdmin;
+import sun.net.www.http.HttpClient;
 
 public class AbstractJBossWSCommandTest extends TestCase {
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
@@ -65,9 +83,10 @@ public class AbstractJBossWSCommandTest extends TestCase {
 	
  
 
-	protected static final String JBOSSWS_HOME = "jbosstools.test.jbossws.eap.home";
-	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-4.2.2.GA";
-	
+	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-4.2.1.GA";
+	public static final String JBOSS_RUNTIME_42 = "org.jboss.ide.eclipse.as.runtime.42";
+	public static final String JBOSS_AS_42_HOME = System.getProperty(JBOSS_RUNTIME_42, JBOSSWS_HOME_DEFAULT);
+	public static final String JBOSS_SERVER_42 = "org.jboss.ide.eclipse.as.42";
 	
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
 
@@ -83,6 +102,8 @@ public class AbstractJBossWSCommandTest extends TestCase {
 	
 	IFacetedProject fproject;
 	TestProjectProvider provider;
+	private IRuntime currentRuntime;
+	private IServer currentServer;
 	
 	static {
 		javaVersion = ProjectFacetsManager.getProjectFacet("jst.java").getVersion("5.0");
@@ -105,6 +126,9 @@ public class AbstractJBossWSCommandTest extends TestCase {
 		//create jbossws web project
 		fproject = createJBossWSProject("JBossWSTestProject", isServerSupplied());
 		IFile wsdlFile = fproject.getProject().getFile(wsdlFileName);
+		
+		
+		createServer(JBOSS_RUNTIME_42, JBOSS_SERVER_42, JBOSS_AS_42_HOME, "default");
 		
 		assertTrue(wsdlFile.exists());
 		try { EditorTestHelper.joinBackgroundActivities(); } 
@@ -142,6 +166,10 @@ public class AbstractJBossWSCommandTest extends TestCase {
 		resourcesToCleanup.clear();
 		JbossWSRuntime runtime = JbossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
 		JbossWSRuntimeManager.getInstance().removeRuntime(runtime);
+		
+		//cleanProjectFromServer() ;
+		currentServer.delete();
+		
 		super.tearDown();
 	}
 
@@ -240,8 +268,83 @@ public class AbstractJBossWSCommandTest extends TestCase {
 			assertEquals("url pattern: ","/Greeter", mapping.getUrlPattern());
 			assertEquals("Greeter", mapping.getServlet().getServletName());
 		}
+		//ServerType d; d.createServer(id, file, monitor)
+		
+	}
+	
+	public void remove_testDeployResult() throws ExecutionException, CoreException, IOException{
+		currentServer.start(ILaunchManager.RUN_MODE, new NullProgressMonitor());
+		
+		IFile wsdlFile = fproject.getProject().getFile(wsdlFileName);
+		ServiceModel model = new ServiceModel();
+		model.setWebProjectName(fproject.getProject().getName());
+		//model.setWsdlURI(wsdlFile.getLocation().toOSString());
+
+		
+		WebServiceInfo info = new WebServiceInfo();
+		info.setWsdlURL(wsdlFile.getLocation().toOSString());
+		IWebService ws = new JBossWebService(info); 
+		
+		//test initial command
+		AbstractDataModelOperation cmd = new InitialCommand(model, ws, WebServiceScenario.TOPDOWN);
+		IStatus status = cmd.execute(null, null);
+		assertTrue(status.getMessage(), status.isOK());
+		
+		cmd = new WSDL2JavaCommand(model);
+		status = cmd.execute(null, null);
+		assertTrue(status.getMessage(), status.isOK());
+		
+		cmd = new ImplementationClassCreationCommand(model);
+		status = cmd.execute(null, null);
+		assertTrue(status.getMessage(), status.isOK());
+		
+		cmd = new MergeWebXMLCommand(model);
+		status = cmd.execute(null, null);
+		assertTrue(status.getMessage(), status.isOK());
+		
+		fproject.getProject().refreshLocal(0, null);
+		publishWebProject();
+		
+		String webServiceUrl = "http://localhost:8080/JBossWSTestProject/IHelloWorld?wsdl";
+		URL url = new URL(webServiceUrl);
+		URLConnection conn =  url.openConnection();
+		assertEquals(currentServer.getServerState(), currentServer.STATE_STARTED);
+		conn.connect();
+		conn.getHeaderFields();
 		
 		
+	}
+	
+	
+	protected void createServer(String runtimeID, String serverID,
+			String location, String configuration) throws CoreException {
+		// if file doesnt exist, abort immediately.
+		assertTrue(new Path(location).toFile().exists());
+
+		currentRuntime = createRuntime(runtimeID, location, configuration);
+		IServerType serverType = ServerCore.findServerType(serverID);
+		IServerWorkingCopy serverWC = serverType.createServer(null, null,
+				new NullProgressMonitor());
+		serverWC.setRuntime(currentRuntime);
+		serverWC.setName(serverID);
+		serverWC.setServerConfiguration(null);
+		currentServer = serverWC.save(true, new NullProgressMonitor());
+		
+		
+	}
+
+	private IRuntime createRuntime(String runtimeId, String homeDir,
+			String config) throws CoreException {
+		IRuntimeType[] runtimeTypes = ServerUtil.getRuntimeTypes(null, null,
+				runtimeId);
+		assertEquals("expects only one runtime type", runtimeTypes.length, 1);
+		IRuntimeType runtimeType = runtimeTypes[0];
+		IRuntimeWorkingCopy runtimeWC = runtimeType.createRuntime(null,
+				new NullProgressMonitor());
+		runtimeWC.setName(runtimeId);
+		runtimeWC.setLocation(new Path(homeDir));
+		IRuntime savedRuntime = runtimeWC.save(true, new NullProgressMonitor());
+		return savedRuntime;
 	}
 	
 	protected ServiceModel createServiceModel(){
@@ -257,8 +360,25 @@ public class AbstractJBossWSCommandTest extends TestCase {
 		
 	}
 	
+	protected void publishWebProject() throws CoreException{
+		IModule[] modules = ServerUtil.getModules(currentServer.getServerType().getRuntimeType().getModuleTypes());
+		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
+		serverWC.modifyModules(modules, null, null);
+		currentServer.publish(0, null);
+		
+	}
+	
+	protected void cleanProjectFromServer() throws CoreException{
+		IModule[] modules = ServerUtil.getModules(currentServer.getServerType().getRuntimeType().getModuleTypes());
+		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
+		serverWC.modifyModules(null, modules, null);
+		currentServer.publish(0, null);
+		currentServer.stop(true);
+		
+	}
+	
 	protected boolean isServerSupplied(){
-		return true;
+		return false;
 	}
 	
 	
@@ -309,9 +429,9 @@ public class AbstractJBossWSCommandTest extends TestCase {
 	
 	protected File getJBossWSHomeFolder() {
 		
-		String jbosshome = System.getProperty("jbosstools.test.jboss.home.4.2", JBOSSWS_HOME_DEFAULT);
+		String jbosshome = System.getProperty(JBOSS_RUNTIME_42, JBOSSWS_HOME_DEFAULT);
 		File runtimelocation = new File(jbosshome);
-		assertTrue("Please set Jboss EAP Home in system property:" + JBOSSWS_HOME, runtimelocation.exists());
+		assertTrue("Please set Jboss EAP Home in system property:" + JBOSS_RUNTIME_42, runtimelocation.exists());
 		
 		String cmdFileLocation = jbosshome + File.separator + "bin" + File.separator + "wsconsume.sh";
 		assertTrue(jbosshome + " is not a valid jboss EAP home", new File(cmdFileLocation).exists());
