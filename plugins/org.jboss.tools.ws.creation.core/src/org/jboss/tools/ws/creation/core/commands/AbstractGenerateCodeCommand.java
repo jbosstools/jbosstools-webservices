@@ -66,18 +66,10 @@ abstract  class AbstractGenerateCodeCommand extends AbstractDataModelOperation{
 			command += " -k " + args + " " + model.getWsdlURI();
 			Runtime rt = Runtime.getRuntime();
             Process proc = rt.exec(command, null, new File(commandLocation));
-			InputStreamReader ir = new InputStreamReader(proc.getErrorStream());
-            LineNumberReader input = new LineNumberReader(ir);            
-            String str = input.readLine();
-            StringBuffer result = new StringBuffer();
-            while(str != null){                
-                result.append(str).append("\t\r");
-                str = input.readLine();
-                
-           }
             int exitValue = proc.waitFor();
+            
             if(exitValue != 0){
-            	return StatusUtils.errorStatus(result.toString());
+            	return StatusUtils.errorStatus(convertInputStreamToString(proc.getErrorStream()));
             }
             
             // log the result of the command execution
