@@ -458,6 +458,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			name.doFillIntoGrid(root);
 			name.addPropertyChangeListener(this);
 			version.doFillIntoGrid(root);
+			version.addPropertyChangeListener(this);
 			homeDir.doFillIntoGrid(root);
 			homeDir.addPropertyChangeListener(this);
 			
@@ -521,6 +522,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			if (current != null
 					&& current.getName().equals(name.getValueAsString())
 					&& current.getHomeDir().equals(homeDir.getValueAsString())
+					&& current.getVersion().equals(version.getValueAsString())
 					&& current.isUserConfigClasspath() == jarJbws.isUserConfigClasspath()
 					&& (!jarJbws.isUserConfigClasspath() 
 							|| hasSameLibraies(current.getLibraries(), jarJbws.getLibraries()))) {
@@ -729,6 +731,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			this.changed = changed;
 			this.source = source;
 			page1.name.setValue(source.getName());
+			page1.version.setValue(source.getVersion());
 			page1.homeDir.setValue(source.getHomeDir());
 			page1.current = source;
 		}
@@ -745,6 +748,7 @@ public class JbossRuntimeListFieldEditor extends BaseFieldEditor {
 			if (added.contains(source) || changed.containsKey(source)) {
 				source.setName(rt.getName());
 				source.setHomeDir(rt.getHomeDir());
+				source.setVersion(rt.getVersion());
 				source.setUserConfigClasspath(rt.isUserConfigClasspath());
 				source.setLibraries(rt.getLibraries());
 			} else {

@@ -86,7 +86,7 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 		// reset default runtime
 		for (JbossWSRuntime jbossWSRuntime : JbossWSRuntimeManager
 				.getInstance().getRuntimes()) {
-				jbossWSRuntime.setDefault(false);
+			jbossWSRuntime.setDefault(false);
 		}
 		// set deafult runtime
 		if (defaultRuntime != null) {
@@ -98,6 +98,7 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 		for (JbossWSRuntime c : changed.keySet()) {
 			JbossWSRuntime o = changed.get(c);
 			o.setHomeDir(c.getHomeDir());
+			o.setVersion(c.getVersion());
 			String oldName = o.getName();
 			String newName = c.getName();
 			if (!oldName.equals(newName)) {
@@ -132,5 +133,9 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 	public boolean performOk() {
 		performApply();
 		return super.performOk();
+	}
+
+	public JbossRuntimeListFieldEditor getJbossWSRuntimes() {
+		return jbossWSRuntimes;
 	}
 }
