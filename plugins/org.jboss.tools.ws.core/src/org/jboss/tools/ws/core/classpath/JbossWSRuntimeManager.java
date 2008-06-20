@@ -43,13 +43,7 @@ public class JbossWSRuntimeManager {
 	 * Private constructor
 	 */
 	private JbossWSRuntimeManager() {
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
-				.getPreferenceStore();
-
-		String runtimeListString = ps
-				.getString(JbossWSCoreMessages.WS_Location);
-
-		runtimes = converter.getMap(runtimeListString);
+		load();
 	}
 
 	/**
@@ -111,7 +105,8 @@ public class JbossWSRuntimeManager {
 	 * @param defaultRt
 	 *            boolean - default flag
 	 */
-	public void addRuntime(String name, String path, String version, boolean defaultRt) {
+	public void addRuntime(String name, String path, String version,
+			boolean defaultRt) {
 		JbossWSRuntime jbossWSRt = new JbossWSRuntime();
 		jbossWSRt.setHomeDir(path);
 		jbossWSRt.setName(name);
@@ -277,7 +272,8 @@ public class JbossWSRuntimeManager {
 		for (IFacetedProject facetedProject : facetedProjects) {
 			QualifiedName qRuntimeName = IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME;
 			try {
-				if(name.equals(facetedProject.getProject().getPersistentProperty(qRuntimeName))){
+				if (name.equals(facetedProject.getProject()
+						.getPersistentProperty(qRuntimeName))) {
 					return true;
 				}
 			} catch (CoreException e) {
@@ -285,6 +281,16 @@ public class JbossWSRuntimeManager {
 			}
 		}
 		return false;
+	}
+
+	public void load() {
+		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
+				.getPreferenceStore();
+
+		String runtimeListString = ps
+				.getString(JbossWSCoreMessages.WS_Location);
+
+		runtimes = converter.getMap(runtimeListString);
 	}
 
 }

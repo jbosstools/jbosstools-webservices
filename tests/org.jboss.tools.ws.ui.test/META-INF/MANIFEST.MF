@@ -8,5 +8,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.junit,
  org.jboss.tools.tests,
- org.jboss.tools.ws.ui
+ org.jboss.tools.ws.ui,
+ org.jboss.tools.ws.core
 Eclipse-LazyStart: true
