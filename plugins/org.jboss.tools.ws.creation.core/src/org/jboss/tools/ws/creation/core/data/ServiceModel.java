@@ -17,6 +17,15 @@ private String  webProjectName;
 	private List<String> serviceClasses;
 	private boolean isGenWSDL;
 	private String target;
+	private int wsScenario;
+
+	public int getWsScenario() {
+		return wsScenario;
+	}
+
+	public void setWsScenario(int wsScenario) {
+		this.wsScenario = wsScenario;
+	}
 
 	private boolean isGenImplementation = true;
 
