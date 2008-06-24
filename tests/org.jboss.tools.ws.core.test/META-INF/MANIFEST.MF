@@ -25,5 +25,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.emf.ecore,
  org.eclipse.wst.server.core,
  org.eclipse.debug.core,
- org.jboss.tools.common
+ org.jboss.tools.common,
+ org.jboss.ide.eclipse.as.core;bundle-version="1.0.0"
 Eclipse-LazyStart: true
