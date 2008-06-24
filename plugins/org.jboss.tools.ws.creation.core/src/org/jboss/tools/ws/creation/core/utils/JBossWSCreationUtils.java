@@ -281,51 +281,71 @@ public class JBossWSCreationUtils {
 		return true;
 	}
 	
-	public static String getJbossWSRuntimeLocation(IProject project) throws CoreException{
-			
-		String isServerSupplied = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME);
-		String jbwsRuntimeName = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
-		
-		if(jbwsRuntimeName != null && 
-				!IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED.equals(isServerSupplied)){
-			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(jbwsRuntimeName);
-			if(jbws != null){
-				return jbws.getHomeDir();
-			}else{
-				String jbwsHomeDir = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_RNTIME_LOCATION);
-				return jbwsHomeDir;
-			}
-		}
-		//if users select server as its jbossws runtime, then get runtime location from project target runtime
-		else{
-			IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
-			org.eclipse.wst.common.project.facet.core.runtime.IRuntime prjFacetRuntime = facetedPrj.getPrimaryRuntime();
+	public static String getJbossWSRuntimeLocation(IProject project)
+			throws CoreException {
 
-			if(prjFacetRuntime != null){ 
-				IRuntime serverRuntime = getRuntime(prjFacetRuntime);
-				String runtimeTypeName = serverRuntime.getRuntimeType().getName(); 
-				if(runtimeTypeName == null){
-					runtimeTypeName = "";
-				}
-				if(runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0){
-					return serverRuntime.getLocation().removeLastSegments(1).toOSString();
+		String isServerSupplied = project
+				.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME);
+		String jbwsRuntimeName = project
+				.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
+
+		if (jbwsRuntimeName != null
+				&& !"".equals(jbwsRuntimeName)
+				&& !IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED
+						.equals(isServerSupplied)) {
+			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
+					.findRuntimeByName(jbwsRuntimeName);
+			if (jbws != null) {
+				return jbws.getHomeDir();
+			} else {
+				String jbwsHomeDir = project
+						.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_RNTIME_LOCATION);
+				if (new File(jbwsHomeDir).exists()) {
+					return jbwsHomeDir;
 				}
 			}
-			
-			//if no target runtime has been specified, get runtime location from default jbossws runtime 
-			if(prjFacetRuntime == null){
-				JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().getDefaultRuntime();
-				if(jbws != null){
-					return jbws.getHomeDir();
-				}else{
-					throw new CoreException(StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_No_Runtime_Specified));
-				}
-				
-			}
-			
 		}
+		// if users select server as its jbossws runtime, then get runtime
+		// location from project target runtime
+
+		IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
+		org.eclipse.wst.common.project.facet.core.runtime.IRuntime prjFacetRuntime = facetedPrj
+				.getPrimaryRuntime();
+
+		if (prjFacetRuntime != null) {
+			IRuntime serverRuntime = getRuntime(prjFacetRuntime);
+			String runtimeTypeName = serverRuntime.getRuntimeType().getName();
+			if (runtimeTypeName == null) {
+				runtimeTypeName = "";
+			}
+			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0) {
+				String runtimeLocation = serverRuntime.getLocation().toOSString();
+				if(runtimeLocation.endsWith("bin")){
+					return serverRuntime.getLocation().removeLastSegments(1)
+						.toOSString();
+				}else{
+					return runtimeLocation;
+				}
+			}
+		}
+
+		// if no target runtime has been specified, get runtime location from
+		// default jbossws runtime
+		if (prjFacetRuntime == null) {
+			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
+					.getDefaultRuntime();
+			if (jbws != null) {
+				return jbws.getHomeDir();
+			} else {
+				throw new CoreException(
+						StatusUtils
+								.errorStatus(JBossWSCreationCoreMessages.Error_Message_No_Runtime_Specified));
+			}
+
+		}
+
 		return "";
-		
+
 	}
 	
 	public static IRuntime getRuntime(org.eclipse.wst.common.project.facet.core.runtime.IRuntime runtime) {
