@@ -19,7 +19,7 @@ import org.jboss.tools.common.util.test.HttpUtilTest;
 import org.jboss.tools.common.xml.test.SAXValidatorTest;
 import org.jboss.tools.common.xml.test.XMLUtilitiesTest;
 import org.jboss.tools.ws.core.test.classpath.JbossWSRuntimeManagerTest;
-import org.jboss.tools.ws.core.test.command.JBossWSTopDownCommandTest;
+import org.jboss.tools.ws.core.test.command.AbstractJBossWSCommandTest;
 
 public class JbossWSCoreAllTests extends TestCase {
 	public static final String PLUGIN_ID = "org.jboss.tools.common.test";
@@ -27,7 +27,7 @@ public class JbossWSCoreAllTests extends TestCase {
 	{
 		TestSuite suite = new TestSuite(JbossWSCoreAllTests.class.getName());
 		suite.addTestSuite(JbossWSRuntimeManagerTest.class);
-		suite.addTestSuite(JBossWSTopDownCommandTest.class);
+		suite.addTestSuite(AbstractJBossWSCommandTest.class);
 	
 		return suite;
 	}
