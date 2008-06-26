@@ -14,7 +14,7 @@ import org.jboss.tools.ws.creation.core.commands.BindingFilesValidationCommand;
 import org.jboss.tools.ws.creation.core.commands.ImplementationClassCreationCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
-import org.jboss.tools.ws.creation.core.commands.ValidateWSImpl;
+import org.jboss.tools.ws.creation.core.commands.ValidateWSImplCommand;
 import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
@@ -56,7 +56,7 @@ public class JBossWebService extends AbstractWebService {
 		}
 		else if (ctx.getScenario().getValue() == WebServiceScenario.BOTTOMUP){
 			commands.add(new InitialCommand(model, this, WebServiceScenario.BOTTOMUP));
-			commands.add(new ValidateWSImpl(model));
+			commands.add(new ValidateWSImplCommand(model));
 			commands.add(new WSProviderInvokeCommand(model));
 			commands.add(new MergeWebXMLCommand(model));
 			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));

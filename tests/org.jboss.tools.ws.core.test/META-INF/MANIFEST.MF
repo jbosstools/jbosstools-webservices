@@ -26,5 +26,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.server.core,
  org.eclipse.debug.core,
  org.jboss.tools.common,
- org.jboss.ide.eclipse.as.core;bundle-version="1.0.0"
+ org.jboss.ide.eclipse.as.core;bundle-version="1.0.0",
+ org.eclipse.jdt.core,
+ org.eclipse.ui.console;bundle-version="3.3.0",
+ org.eclipse.jface.text;bundle-version="3.4.0"
 Eclipse-LazyStart: true

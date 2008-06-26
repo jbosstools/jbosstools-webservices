@@ -79,6 +79,8 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 						.readWSDL(wsClient.getWebServiceClientInfo()
 								.getWsdlURL());
 				model.setCustomPackage(reader.packageFromTargetNamespace());
+				model.setServiceList(reader.getServiceList());
+				model.setPortTypeList(reader.getPortTypeList());
 			} catch (WSDLException e) {
 				JBossWSCreationCore.getDefault().logError(e);
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);

@@ -79,11 +79,7 @@ public class RemoveClientJarsCommand extends AbstractDataModelOperation{
 		} catch (JavaModelException e) {
 			JBossWSCreationCore.getDefault().logError(e);
 		}
-		try {
-			project.getRawClasspath();
-		} catch (JavaModelException e) {
-			JBossWSCreationCore.getDefault().logError(e);
-		}
+		
 		return status;
 	}
 

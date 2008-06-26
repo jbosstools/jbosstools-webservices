@@ -14,12 +14,9 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.jboss.tools.common.reporting.test.ProblemReportingHelperTest;
-import org.jboss.tools.common.util.test.HttpUtilTest;
-import org.jboss.tools.common.xml.test.SAXValidatorTest;
-import org.jboss.tools.common.xml.test.XMLUtilitiesTest;
 import org.jboss.tools.ws.core.test.classpath.JbossWSRuntimeManagerTest;
-import org.jboss.tools.ws.core.test.command.AbstractJBossWSCommandTest;
+import org.jboss.tools.ws.core.test.command.JavaFirstCommandTest;
+import org.jboss.tools.ws.core.test.command.WSClientCommandTest;
 
 public class JbossWSCoreAllTests extends TestCase {
 	public static final String PLUGIN_ID = "org.jboss.tools.common.test";
@@ -27,7 +24,8 @@ public class JbossWSCoreAllTests extends TestCase {
 	{
 		TestSuite suite = new TestSuite(JbossWSCoreAllTests.class.getName());
 		suite.addTestSuite(JbossWSRuntimeManagerTest.class);
-		suite.addTestSuite(AbstractJBossWSCommandTest.class);
+		suite.addTestSuite(JavaFirstCommandTest.class);
+		suite.addTestSuite(WSClientCommandTest.class);
 	
 		return suite;
 	}

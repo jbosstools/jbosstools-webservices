@@ -29,11 +29,11 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 /**
  * @author Grid Qian
  */
-public class ValidateWSImpl extends AbstractDataModelOperation {
+public class ValidateWSImplCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
 
-	public ValidateWSImpl(ServiceModel model) {
+	public ValidateWSImplCommand(ServiceModel model) {
 		this.model = model;
 	}
 

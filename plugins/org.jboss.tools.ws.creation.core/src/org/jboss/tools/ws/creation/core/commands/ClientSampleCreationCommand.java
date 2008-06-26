@@ -109,6 +109,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		createWebServiceClient(clientUnits, serviceUnits, sb);
 		sb.append("        System.out.println(\"***********************\");");
 		sb.append(LINE_SEPARATOR);
+		sb.append(JBossWSCreationCoreMessages.Client_Sample_Run_Over);
+		sb.append(LINE_SEPARATOR);
 		sb.append("}");
 		try {
 			clientClsType.createMethod(sb.toString(), null, true, null);

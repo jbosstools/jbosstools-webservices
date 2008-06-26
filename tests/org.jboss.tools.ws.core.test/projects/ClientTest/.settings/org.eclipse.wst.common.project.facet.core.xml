@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faceted-project>
+  <runtime name="org.jboss.ide.eclipse.as.runtime.42"/>
+  <fixed facet="jst.java"/>
+  <fixed facet="jst.web"/>
+  <installed facet="jst.web" version="2.4"/>
+  <installed facet="jbossws.core" version="2.0.1"/>
+  <installed facet="jst.java" version="5.0"/>
+</faceted-project>

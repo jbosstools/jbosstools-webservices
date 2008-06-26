@@ -59,8 +59,6 @@ import org.jboss.ide.eclipse.as.core.server.internal.JBossServerBehavior;
 import org.jboss.tools.common.test.util.TestProjectProvider;
 import org.jboss.tools.test.util.JUnitUtils;
 import org.jboss.tools.test.util.xpl.EditorTestHelper;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
 public abstract class AbstractJBossWSCommandTest extends TestCase {
@@ -70,7 +68,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	protected static final int DEFAULT_STARTUP_TIME = 150000;
 	protected static final int DEFAULT_SHUTDOWN_TIME = 90000;
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-4.2.2.GA";
+	protected static final String JBOSSWS_HOME_DEFAULT = "/home/grid/Software/jboss-4.2.2.GA";
 	public static final String JBOSS_RUNTIME_42 = "org.jboss.ide.eclipse.as.runtime.42";
 	public static final String JBOSS_AS_42_HOME = System.getProperty(JBOSS_RUNTIME_42, JBOSSWS_HOME_DEFAULT);
 	public static final String JBOSS_SERVER_42 = "org.jboss.ide.eclipse.as.42";
@@ -114,7 +112,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		EditorTestHelper.runEventQueue(3000);
 	}
 	
-	private IProject createProject(String prjName) throws CoreException {
+	public IProject createProject(String prjName) throws CoreException {
 		provider = new TestProjectProvider(BUNDLE,"/projects/"+prjName , prjName, true);
 		IProject prj = provider.getProject();
 		EditorTestHelper.joinBackgroundActivities();

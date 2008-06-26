@@ -56,6 +56,7 @@ public class JBossWSCreationCoreMessages extends NLS {
     public static String WebEndpoint;
     
     public static String Error_Message_No_Runtime_Specified;
+    public static String Client_Sample_Run_Over;
 
 	private JBossWSCreationCoreMessages() {
 	}
