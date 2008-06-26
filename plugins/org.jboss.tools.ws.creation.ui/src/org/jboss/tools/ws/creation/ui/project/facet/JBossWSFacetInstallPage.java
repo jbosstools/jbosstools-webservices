@@ -16,6 +16,13 @@ import java.util.EventObject;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jdt.core.IClasspathContainer;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -29,6 +36,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetDataModelProperties;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelEvent;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModelListener;
@@ -37,7 +45,9 @@ import org.eclipse.wst.common.project.facet.ui.IFacetWizardPage;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.ui.CreationUIPlugin;
 import org.jboss.tools.ws.ui.preferences.JbossRuntimeListFieldEditor;
 
 /**
@@ -140,13 +150,27 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 
 	}
 	
-	protected void saveJBosswsRuntimeToModel(JbossWSRuntime jbws){
-		model.setStringProperty(
-				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
-				jbws.getHomeDir());
-		model.setStringProperty(
-				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID,
-				jbws.getName());
+	protected void saveJBosswsRuntimeToModel(JbossWSRuntime jbws) {
+		String duplicateMsg = "";
+		try {
+			duplicateMsg = getDuplicateJars(jbws.getName());
+		} catch (JavaModelException e1) {
+			CreationUIPlugin.getDefault().getLog().log(
+					StatusUtils.errorStatus(e1));
+		}
+		if ("".equals(duplicateMsg)) {
+			model.setStringProperty(
+					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
+					jbws.getHomeDir());
+			model.setStringProperty(
+					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, jbws
+							.getName());
+		}else{
+			model.setStringProperty(
+					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, null);
+			model.setStringProperty(
+					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,	null);	
+		}
 	}
 
 	protected void setServerSuppliedSelection(EventObject e) {
@@ -156,7 +180,12 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 				.setBooleanProperty(
 						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED,
 						true);
-		enableUserSupplied(false);
+		//remove user supplied properties
+		model.setStringProperty(
+				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, null);
+		model.setStringProperty(
+				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,	null);		
+		enableUserSupplied(false);		
 		changePageStatus();
 
 	}
@@ -170,13 +199,10 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 						false);
 		String runtimeId = cmbRuntimes.getText();		
 		JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(runtimeId);
+		
+		
 		if (jbws != null) {
-			model.setStringProperty(
-					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, jbws
-							.getName());
-			model.setStringProperty(
-					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
-					jbws.getHomeDir());
+			saveJBosswsRuntimeToModel(jbws);
 		}
 		enableUserSupplied(true);
 		changePageStatus();
@@ -234,15 +260,25 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 	}
 
 	protected void changePageStatus() {
+		
 		if (btnUserSupplied.getSelection()
 				&& cmbRuntimes.getSelectionIndex() == -1) {
 			setErrorMessage(JBossWSCreationCoreMessages.Error_WS_No_Runtime_Specifed);
 		} else if (!btnUserSupplied.getSelection()
 				&& !btnServerSupplied.getSelection()) {
 			setErrorMessage(JBossWSCreationCoreMessages.Error_WS_Chose_runtime);
+		}else if(btnUserSupplied.getSelection()){
+			String duplicateMsg = "";
+			try {
+				duplicateMsg = getDuplicateJars(cmbRuntimes.getText());
+			} catch (JavaModelException e1) {
+				CreationUIPlugin.getDefault().getLog().log(StatusUtils.errorStatus(e1));
+			}
+			setErrorMessage("Duplicated jar on classpath:" + duplicateMsg);
 		}else{
 			setErrorMessage(null);
 		}
+			
 		setPageComplete(isPageComplete());
 	}
 
@@ -250,7 +286,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 	public boolean isPageComplete() {
 		if (btnServerSupplied.getSelection()
 				|| (btnUserSupplied.getSelection() && cmbRuntimes
-						.getSelectionIndex() != -1)) {
+						.getSelectionIndex() != -1))  {
 			return true;
 		} else {
 			return false;
@@ -259,6 +295,42 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 
 	public void propertyChanged(DataModelEvent event) {
 
+	}
+	
+	protected String getDuplicateJars(String jbwsName) throws JavaModelException{
+		List<String> allExistingJars = new ArrayList<String>();
+		List<String> runtimeJars = new ArrayList<String>();
+
+		JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(jbwsName);
+		if(jbws.isUserConfigClasspath()){
+			runtimeJars.addAll(jbws.getLibraries());
+		}else{
+			runtimeJars.addAll(JbossWSRuntimeManager.getInstance().getAllRuntimeJars(jbws));
+		}
+		
+		String prjName = model.getStringProperty(IFacetDataModelProperties.FACET_PROJECT_NAME);
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(prjName);
+		IJavaProject javaProject = JavaCore.create(project);
+		IClasspathEntry[] entries = javaProject.getRawClasspath();
+		for(IClasspathEntry entry: entries){
+			if(entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER){
+				IClasspathContainer container = JavaCore.getClasspathContainer(entry.getPath(), javaProject);
+				for(IClasspathEntry containedEntry: container.getClasspathEntries()){
+					allExistingJars.add(containedEntry.getPath().toOSString());
+				}
+			}else if(entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY){
+				allExistingJars.add(entry.getPath().toOSString());
+			}
+		}
+		
+		for(String jarName: runtimeJars){
+			if(allExistingJars.contains(jarName)){
+				return jarName;
+			}
+		}
+		
+		 return "";
+		
 	}
 
 }

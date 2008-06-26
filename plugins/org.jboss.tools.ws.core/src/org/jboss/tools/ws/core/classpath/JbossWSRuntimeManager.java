@@ -11,8 +11,10 @@
 
 package org.jboss.tools.ws.core.classpath;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +22,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -131,6 +137,66 @@ public class JbossWSRuntimeManager {
 		return null;
 	}
 
+	public List<String> getAllRuntimeJars(JbossWSRuntime rt){
+		List<String> jarList = new ArrayList<String>();
+		if (rt != null) {
+			if (rt.isUserConfigClasspath()) {
+				jarList.addAll(rt.getLibraries());
+				 
+			} else {
+				IPath wsPath = new Path(rt.getHomeDir());
+				if (wsPath != null) {
+					IPath libPath = wsPath
+							.append(JbossWSCoreMessages.Dir_Lib);
+					List<File> libs = getJarsOfFolder(libPath.toFile());
+					libPath = wsPath
+							.append(JbossWSCoreMessages.Dir_Client);
+					List<File> clientJars = getJarsOfFolder(libPath.toFile());
+					
+					jarList = mergeTwoList(libs, clientJars);
+				}
+			}
+			
+		}
+		return jarList;
+	}
+	
+
+	
+	private List<File> getJarsOfFolder(File folder){
+		List<File> jars = new ArrayList<File>();
+		if(folder.isDirectory()){
+			for(File file: folder.listFiles()){
+				if(file.isFile() && (file.getName().endsWith(".jar") || file.getName().endsWith(".zip"))){
+					jars.add(file);
+				}else if (folder.isDirectory()){
+					jars.addAll(getJarsOfFolder(file));
+				}
+			}
+		}
+		
+		return jars;
+	}
+	
+	// if two folders have the same jar file, one of them will be ignored.
+	private List<String> mergeTwoList(List<File> jarList1, List<File> jarList2){
+		List<String> rtList = new ArrayList<String>();
+		List<String> distinctFileNames = new ArrayList<String>();
+		
+		for(File jarFile: jarList1){
+			distinctFileNames.add(jarFile.getName());
+			rtList.add(jarFile.getAbsolutePath());
+		}
+		for(File jarFile: jarList2){
+			if(!distinctFileNames.contains(jarFile.getName())){
+				rtList.add(jarFile.getAbsolutePath());
+			}
+		}
+		
+		return rtList;
+		
+	}
+	
 	/**
 	 * Remove given JbossWSRuntime from manager
 	 * 

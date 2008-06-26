@@ -12,8 +12,11 @@ package org.jboss.tools.ws.core.facet.delegate;
 
 import java.util.Set;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.componentcore.datamodel.FacetInstallDataModelProvider;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 
 
 public class JBossWSFacetInstallDataModelProvider extends
@@ -57,5 +60,17 @@ public class JBossWSFacetInstallDataModelProvider extends
 
 	public Object create() {
 		return DataModelFactory.createDataModel(this);
+	}
+	
+
+	@Override
+	public IStatus validate(String name) {
+		boolean serverSupplied = getBooleanProperty(JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED);
+		String runtimeName = getStringProperty(JBOSS_WS_RUNTIME_ID);
+		if (!serverSupplied 
+				&& (runtimeName == null || runtimeName.equals(""))) {
+			return StatusUtils.errorStatus("");
+		}
+		return super.validate(name);
 	}
 }
