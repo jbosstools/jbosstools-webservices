@@ -22,7 +22,6 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -75,6 +74,22 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		this.model = (IDataModel) config;
 
 	}
+	
+	private void setInitialValues(){
+		boolean isServerSupplied = model.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED);
+		String runtimeName = model.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
+		boolean isDeploy = model.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_DEPLOY);
+		if(isServerSupplied){
+			btnServerSupplied.setSelection(true);
+		}else if(runtimeName != null && !runtimeName.equals("")){
+			btnUserSupplied.setSelection(true);
+			if(isDeploy){
+				btnDeploy.setSelection(true);
+			}
+		}
+		initializeRuntimesCombo(cmbRuntimes, runtimeName);
+			
+	}
 
 	public void createControl(Composite parent) {
 		initializeDialogUnits(parent);
@@ -108,6 +123,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		lblServerSupplied.setLayoutData(gd);
 
 		btnUserSupplied = new Button(composite, SWT.RADIO);
+		
 		btnUserSupplied.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				setUserSuppliedSelection(e);
@@ -115,7 +131,6 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		});
 
 		cmbRuntimes = new Combo(composite, SWT.READ_ONLY);
-		initializeRuntimesCombo(cmbRuntimes);
 		cmbRuntimes.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		cmbRuntimes.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -144,7 +159,8 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 				changePageStatus();
 			}
 		});
-
+		
+		setInitialValues();
 		setControl(composite);
 		changePageStatus();
 
@@ -216,7 +232,11 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 
 	}
 
-	protected void initializeRuntimesCombo(Combo cmRuntime) {
+	protected void initializeRuntimesCombo(Combo cmRuntime, String runtimeName) {
+		JbossWSRuntime selectedJbws = null;
+		JbossWSRuntime defaultJbws = null;
+		int selectIndex = 0;
+		int defaultIndex = 0;
 		cmRuntime.removeAll();
 		JbossWSRuntime[] runtimes = JbossWSRuntimeManager.getInstance()
 				.getRuntimes();
@@ -224,12 +244,24 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 			JbossWSRuntime jr = runtimes[i];
 			cmRuntime.add(jr.getName());
 			cmRuntime.setData(jr.getName(), jr);
-
+			
+			if(jr.getName().equals(runtimeName)){
+				selectedJbws = jr;
+				selectIndex = i;
+			}
 			// get default jbossws runtime
 			if (jr.isDefault()) {
-				cmRuntime.select(i);
-				saveJBosswsRuntimeToModel(jr);
+				defaultJbws = jr;
+				defaultIndex = i;
 			}
+		}
+		
+		if(selectedJbws != null){
+		cmRuntime.select(selectIndex);
+		saveJBosswsRuntimeToModel(selectedJbws);
+		}else{
+			cmRuntime.select(defaultIndex);
+			saveJBosswsRuntimeToModel(defaultJbws);
 		}
 	}
 
@@ -254,7 +286,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		WizardDialog dialog = new WizardDialog(Display.getCurrent()
 				.getActiveShell(), newRtwizard);
 		if (dialog.open() == WizardDialog.OK) {
-			initializeRuntimesCombo(cmbRuntimes);
+			initializeRuntimesCombo(cmbRuntimes, null);
 			//cmbRuntimes.select(0);
 		}
 	}
