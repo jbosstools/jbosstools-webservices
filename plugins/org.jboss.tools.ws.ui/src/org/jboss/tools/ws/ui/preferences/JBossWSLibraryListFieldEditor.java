@@ -48,14 +48,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.ui.JbossWSUIPlugin;
-import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.ui.JBossWSUIPlugin;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * @author Grid Qian
  */
-public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
+public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 
 	// ------------------------------------------------------------------------
 	// Layout parameters
@@ -78,7 +78,7 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 
 	private ActionPanel actionPanel;
 	
-	private JbossWSRuntime tempJbws;
+	private JBossWSRuntime tempJbws;
 
 
 
@@ -99,10 +99,10 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 	 * @param defaultValue
 	 *            Object
 	 */
-	public JbwsLibraryListFieldEditor(String name, String label,
-			JbossWSRuntime jbws) {
+	public JBossWSLibraryListFieldEditor(String name, String label,
+			JBossWSRuntime jbws) {
 		super(name, label, jbws);
-		this.tempJbws = new JbossWSRuntime();
+		this.tempJbws = new JBossWSRuntime();
 		if(jbws != null){
 			this.tempJbws.setUserConfigClasspath(jbws.isUserConfigClasspath());
 			this.tempJbws.getLibraries().addAll(jbws.getLibraries());
@@ -166,7 +166,7 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 
 	protected void createCheckButton(Composite parent){
 		final Button btnDefault = new Button(parent, SWT.CHECK);
-		btnDefault.setText(JbossWSUIMessages.JBossWS_Runtime_Check_Field_Default_Classpath);
+		btnDefault.setText(JBossWSUIMessages.JBossWS_Runtime_Check_Field_Default_Classpath);
 		GridData gd = new GridData();
 		gd.horizontalSpan = 2;
 		btnDefault.setLayoutData(gd);
@@ -189,21 +189,20 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 		listView.getTree().setEnabled(isUserConfig);
 		actionPanel.setEnabled(isUserConfig);
 	}
-	@SuppressWarnings("unchecked")
+
 	protected void createListView(Composite parent) {
 		listView = new TreeViewer(parent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		listView.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		listView.setContentProvider(new ITreeContentProvider() {
 
-			@SuppressWarnings("unchecked")
 			public Object[] getElements(Object inputElement) {
-				if (inputElement instanceof JbossWSRuntime) {
-					return ((JbossWSRuntime) inputElement).getLibraries().toArray();
+				if (inputElement instanceof JBossWSRuntime) {
+					return ((JBossWSRuntime) inputElement).getLibraries().toArray();
 				} else {
 					throw new IllegalArgumentException(
-							JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be
-									+ JbossWSUIMessages.JBossWS_Runtime_List_Field_Editor_An_Instance_Of_List);
+							JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be
+									+ JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_An_Instance_Of_List);
 				}
 			}
 
@@ -249,7 +248,7 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 
 			public Image getImage(Object element) {
 				if (jarImg == null){
-					ImageDescriptor jarImgDesc = JbossWSUIPlugin.getImageDescriptor("obj16/jar_obj.gif"); 
+					ImageDescriptor jarImgDesc = JBossWSUIPlugin.getImageDescriptor("obj16/jar_obj.gif"); 
 					jarImg = jarImgDesc.createImage();
 				}
 				return jarImg;
@@ -304,9 +303,9 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 	@Override
 	public void doFillIntoGrid(Object parent) {
 		Assert.isTrue(parent instanceof Composite,
-				JbossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
+				JBossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
 		Assert.isTrue(((Composite) parent).getLayout() instanceof GridLayout,
-				JbossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
+				JBossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
 		Composite aComposite = (Composite) parent;
 		getEditorControls(aComposite);
 		GridLayout gl = (GridLayout) ((Composite) parent).getLayout();
@@ -490,7 +489,7 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 	}
 
 	/**
-	 * Action that invokes New JbossWS Runtime Dialog
+	 * Action that invokes New JBossWS Runtime Dialog
 	 * 
 	 */
 	public class AddAction extends BaseAction {
@@ -515,11 +514,10 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 		}
 
 		/**
-		 * Invoke New JbossWS Runtime Dialog
+		 * Invoke New JBossWS Runtime Dialog
 		 * 
 		 * @see org.eclipse.jface.action.Action#run()
 		 */
-		@SuppressWarnings("unchecked")
 		@Override
 		public void run() {
 			FileDialog dialog = new FileDialog(Display.getCurrent()
@@ -546,8 +544,8 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
  
 
 	/**
-	 * Action deletes all selected JbossWS Runtimes. A warning message is shown
-	 * for used JbossWS Runtimes
+	 * Action deletes all selected JBossWS Runtimes. A warning message is shown
+	 * for used JBossWS Runtimes
 	 * 
 	 */
 	public class RemoveAction extends BaseAction {
@@ -567,7 +565,7 @@ public class JbwsLibraryListFieldEditor extends BaseFieldEditor {
 		}
 
 		/**
-		 * Remove all selected JbossWS Runtimes one by one
+		 * Remove all selected JBossWS Runtimes one by one
 		 * 
 		 * @see org.eclipse.jface.action.Action#run()
 		 */

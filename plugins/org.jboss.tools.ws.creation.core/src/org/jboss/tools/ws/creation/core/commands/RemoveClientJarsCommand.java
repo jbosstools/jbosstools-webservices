@@ -22,8 +22,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeClassPathInitializer.JbossWSRuntimeClasspathContainer;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeClassPathInitializer.JBossWSRuntimeClasspathContainer;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
@@ -71,9 +70,9 @@ public class RemoveClientJarsCommand extends AbstractDataModelOperation{
 			
 			for(IClasspathEntry entry:entries){
 					IClasspathContainer container = JavaCore.getClasspathContainer(entry.getPath(), project);
-					if(container instanceof JbossWSRuntimeClasspathContainer){
-						((JbossWSRuntimeClasspathContainer)container).removeEntry("jaxws-rt.jar");
-						((JbossWSRuntimeClasspathContainer)container).removeEntry("jaxws-tools.jar");
+					if(container instanceof JBossWSRuntimeClasspathContainer){
+						((JBossWSRuntimeClasspathContainer)container).removeEntry("jaxws-rt.jar");
+						((JBossWSRuntimeClasspathContainer)container).removeEntry("jaxws-tools.jar");
 					}
 			}
 		} catch (JavaModelException e) {

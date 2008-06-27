@@ -19,13 +19,13 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 
-public class UninstallJbossWSClassPathCommand {
+public class UninstallJBossWSClassPathCommand {
 	IProject project;
 
-	public UninstallJbossWSClassPathCommand(IProject project, IDataModel model) {
+	public UninstallJBossWSClassPathCommand(IProject project, IDataModel model) {
 		this.project = project;
 	}
 
@@ -62,7 +62,7 @@ public class UninstallJbossWSClassPathCommand {
 
 		} catch (CoreException e) {
 			status = StatusUtils.errorStatus(
-					JbossWSCoreMessages.Error_Remove_Facet_JBossWS, e);
+					JBossWSCoreMessages.Error_Remove_Facet_JBossWS, e);
 		}
 		return status;
 	}
@@ -79,7 +79,7 @@ public class UninstallJbossWSClassPathCommand {
 			for (int i = 0; i < oldClasspathEntries.length
 					&& !isFolderInClassPathAlready; i++) {
 				if (!oldClasspathEntries[i].getPath().equals(
-						new Path(JbossWSCoreMessages.JBossWS_Runtime_Lib)
+						new Path(JBossWSCoreMessages.JBossWS_Runtime_Lib)
 								.append(segment))) {
 					classpathEntries.add(oldClasspathEntries[i]);
 				}
@@ -91,7 +91,7 @@ public class UninstallJbossWSClassPathCommand {
 			}
 		} catch (JavaModelException e) {
 			status = StatusUtils.errorStatus(NLS.bind(
-					JbossWSCoreMessages.Error_Remove_Facet_JBossWS,
+					JBossWSCoreMessages.Error_Remove_Facet_JBossWS,
 					new String[] { e.getLocalizedMessage() }), e);
 			return status;
 		}

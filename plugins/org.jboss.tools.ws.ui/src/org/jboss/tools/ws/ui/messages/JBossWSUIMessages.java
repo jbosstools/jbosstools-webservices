@@ -16,12 +16,12 @@ import org.eclipse.osgi.util.NLS;
 /**
  * @author Grid Qian
  */
-public final class JbossWSUIMessages extends NLS {
+public final class JBossWSUIMessages extends NLS {
 
 	private static final String BUNDLE_NAME = 
-			"org.jboss.tools.ws.ui.messages.JbossWSUI";		//$NON-NLS-1$
+			"org.jboss.tools.ws.ui.messages.JBossWSUI";		//$NON-NLS-1$
 
-	private JbossWSUIMessages() {
+	private JBossWSUIMessages() {
 		// Do not instantiate
 	}
 
@@ -65,6 +65,6 @@ public final class JbossWSUIMessages extends NLS {
 	
 	
 	static {
-		NLS.initializeMessages(BUNDLE_NAME, JbossWSUIMessages.class);
+		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);
 	}
 }

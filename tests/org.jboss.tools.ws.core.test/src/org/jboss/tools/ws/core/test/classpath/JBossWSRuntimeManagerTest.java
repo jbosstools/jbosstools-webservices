@@ -11,22 +11,22 @@
 
 package org.jboss.tools.ws.core.test.classpath;
 
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 
 import junit.framework.TestCase;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSRuntimeManagerTest extends TestCase {
+public class JBossWSRuntimeManagerTest extends TestCase {
 
-	JbossWSRuntimeManager manager;
+	JBossWSRuntimeManager manager;
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		manager = JbossWSRuntimeManager.getInstance();
-		assertNotNull("Cannot obtainJbossWSRuntimeManager instance", manager);
+		manager = JBossWSRuntimeManager.getInstance();
+		assertNotNull("Cannot obtainJBossWSRuntimeManager instance", manager);
 		if (manager.findRuntimeByName("JBossWS Runtime 4.2") != null)
 			return;
 		manager.addRuntime("JBossWS Runtime 4.2", "runtimelocation", "4.2",
@@ -34,15 +34,15 @@ public class JbossWSRuntimeManagerTest extends TestCase {
 	}
 
 	public void testGetRuntimes() {
-		JbossWSRuntime[] rtms = manager.getRuntimes();
-		assertTrue("JbossWS runtime 'JBossWS Runtime 4.2' is not created",
+		JBossWSRuntime[] rtms = manager.getRuntimes();
+		assertTrue("JBossWS runtime 'JBossWS Runtime 4.2' is not created",
 				rtms.length == 1);
-		assertTrue("JbossWS runtime 'JBossWS Runtime 4.2' is not created",
+		assertTrue("JBossWS runtime 'JBossWS Runtime 4.2' is not created",
 				rtms[0].getName().equals("JBossWS Runtime 4.2"));
 	}
 
 	public void testFindRuntimeByName() {
-		JbossWSRuntime srt = manager.findRuntimeByName("JBossWS Runtime 4.2");
+		JBossWSRuntime srt = manager.findRuntimeByName("JBossWS Runtime 4.2");
 		assertNotNull("Cannot find runtime 'JBossWS Runtime 4.2'", srt);
 	}
 

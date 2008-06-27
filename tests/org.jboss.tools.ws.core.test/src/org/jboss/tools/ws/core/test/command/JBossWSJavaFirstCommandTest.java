@@ -41,8 +41,8 @@ import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
@@ -57,7 +57,7 @@ import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
 /**
  * @author Grid Qian
  */
-public class JavaFirstCommandTest extends AbstractJBossWSCommandTest {
+public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
 	protected static final IWorkbench wb = PlatformUI.getWorkbench();
 
@@ -70,13 +70,13 @@ public class JavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		isDeployed = false;
 	}
 
-	public JavaFirstCommandTest() {
+	public JBossWSJavaFirstCommandTest() {
 	}
 
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		JbossWSRuntimeManager.getInstance().addRuntime(RuntimeName,
+		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName,
 				getJBossWSHomeFolder().toString(), "", true);
 		// create jbossws web project
 		fproject = createJBossWSProject("JavaFirstTestProject",
@@ -88,9 +88,9 @@ public class JavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		super.tearDown();
 
 		resourcesToCleanup.clear();
-		JbossWSRuntime runtime = JbossWSRuntimeManager.getInstance()
+		JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance()
 				.findRuntimeByName(RuntimeName);
-		JbossWSRuntimeManager.getInstance().removeRuntime(runtime);
+		JBossWSRuntimeManager.getInstance().removeRuntime(runtime);
 	}
 
 	public void testInitialCommand() throws CoreException, ExecutionException {

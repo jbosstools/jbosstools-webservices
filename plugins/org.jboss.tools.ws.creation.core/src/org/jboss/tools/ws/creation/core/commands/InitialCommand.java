@@ -15,13 +15,13 @@ import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.jboss.tools.ws.core.JbossWSCorePlugin;
+import org.jboss.tools.ws.core.JBossWSCorePlugin;
 import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
-import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 public class InitialCommand extends AbstractDataModelOperation {
 
@@ -40,11 +40,11 @@ public class InitialCommand extends AbstractDataModelOperation {
 			throws ExecutionException {
 
 		try {
-			String location = JBossWSCreationUtils.getJbossWSRuntimeLocation(JBossWSCreationUtils.getProjectByName(model.getWebProjectName()));
+			String location = JBossWSCreationUtils.getJBossWSRuntimeLocation(JBossWSCreationUtils.getProjectByName(model.getWebProjectName()));
 			if (location.equals("")) {
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
-			} else if(!new Path(location).append(JbossWSUIMessages.Bin).append(JbossWSUIMessages.Command).toFile().exists()){
+			} else if(!new Path(location).append(JBossWSUIMessages.Bin).append(JBossWSUIMessages.Command).toFile().exists()){
 				return StatusUtils
 				.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 			}

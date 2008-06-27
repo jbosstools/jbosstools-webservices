@@ -13,7 +13,6 @@ package org.jboss.tools.ws.core.facet.delegate;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.componentcore.datamodel.FacetInstallDataModelProvider;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.jboss.tools.ws.core.utils.StatusUtils;

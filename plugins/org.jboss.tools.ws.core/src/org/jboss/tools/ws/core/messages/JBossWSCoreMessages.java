@@ -16,11 +16,11 @@ import org.eclipse.osgi.util.NLS;
 /**
  * @author Grid Qian
  */
-public class JbossWSCoreMessages {
+public class JBossWSCoreMessages {
 
-	private static final String BUNDLE_NAME = "org.jboss.tools.ws.core.messages.JbossWSCore"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "org.jboss.tools.ws.core.messages.JBossWSCore"; //$NON-NLS-1$
 
-	private JbossWSCoreMessages() {
+	private JBossWSCoreMessages() {
 		// Do not instantiate
 	}
 
@@ -42,6 +42,6 @@ public class JbossWSCoreMessages {
 
 
 	static {
-		NLS.initializeMessages(BUNDLE_NAME, JbossWSCoreMessages.class);
+		NLS.initializeMessages(BUNDLE_NAME, JBossWSCoreMessages.class);
 	}
 }

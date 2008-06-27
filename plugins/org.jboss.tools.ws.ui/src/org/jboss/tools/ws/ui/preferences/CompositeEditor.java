@@ -27,7 +27,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * @author Grid Qian
@@ -41,9 +41,9 @@ public class CompositeEditor extends BaseFieldEditor implements PropertyChangeLi
 	@Override
 	public void doFillIntoGrid(Object parent) {
 		Assert.isTrue(parent instanceof Composite,
-			JbossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
+			JBossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
 		Assert.isTrue(((Composite) parent).getLayout() instanceof GridLayout,
-				JbossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
+				JBossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
 
 		Composite aComposite = (Composite) parent;
 		final Control[] controls = (Control[]) getEditorControls(aComposite);
@@ -78,7 +78,7 @@ public class CompositeEditor extends BaseFieldEditor implements PropertyChangeLi
 	@Override
 	public Object[] getEditorControls() {
 			if(controls.size()>0) return controls.toArray();
-			else throw new IllegalStateException(JbossWSUIMessages.JBossWS_Composite_Editor_This_Method_Can_Be_Invoked);
+			else throw new IllegalStateException(JBossWSUIMessages.JBossWS_Composite_Editor_This_Method_Can_Be_Invoked);
 	}
 
 	@Override

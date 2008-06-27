@@ -59,7 +59,7 @@ public class JBossWebService extends AbstractWebService {
 			commands.add(new ValidateWSImplCommand(model));
 			commands.add(new WSProviderInvokeCommand(model));
 			commands.add(new MergeWebXMLCommand(model));
-			//commands.add(new JbossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
+			//commands.add(new JBossWSRuntimeCommand(ResourcesPlugin.getWorkspace().getRoot().getProject(project)));
 		}
 		
 		return new SimpleCommandFactory(commands);

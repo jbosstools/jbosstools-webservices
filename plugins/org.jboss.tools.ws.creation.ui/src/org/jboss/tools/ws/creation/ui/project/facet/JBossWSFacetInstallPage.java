@@ -41,13 +41,13 @@ import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModelListener;
 import org.eclipse.wst.common.project.facet.ui.AbstractFacetWizardPage;
 import org.eclipse.wst.common.project.facet.ui.IFacetWizardPage;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.ui.CreationUIPlugin;
-import org.jboss.tools.ws.ui.preferences.JbossRuntimeListFieldEditor;
+import org.jboss.tools.ws.ui.preferences.JBossRuntimeListFieldEditor;
 
 /**
  * @author Dennyxu
@@ -135,7 +135,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		cmbRuntimes.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				String runtimeName = cmbRuntimes.getText();
-				JbossWSRuntime jr = (JbossWSRuntime) cmbRuntimes
+				JBossWSRuntime jr = (JBossWSRuntime) cmbRuntimes
 						.getData(runtimeName);
 				saveJBosswsRuntimeToModel(jr);
 			}
@@ -166,7 +166,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 
 	}
 	
-	protected void saveJBosswsRuntimeToModel(JbossWSRuntime jbws) {
+	protected void saveJBosswsRuntimeToModel(JBossWSRuntime jbws) {
 		String duplicateMsg = "";
 		try {
 			duplicateMsg = getDuplicateJars(jbws.getName());
@@ -214,7 +214,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED,
 						false);
 		String runtimeId = cmbRuntimes.getText();		
-		JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(runtimeId);
+		JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance().findRuntimeByName(runtimeId);
 		
 		
 		if (jbws != null) {
@@ -233,15 +233,15 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 	}
 
 	protected void initializeRuntimesCombo(Combo cmRuntime, String runtimeName) {
-		JbossWSRuntime selectedJbws = null;
-		JbossWSRuntime defaultJbws = null;
+		JBossWSRuntime selectedJbws = null;
+		JBossWSRuntime defaultJbws = null;
 		int selectIndex = 0;
 		int defaultIndex = 0;
 		cmRuntime.removeAll();
-		JbossWSRuntime[] runtimes = JbossWSRuntimeManager.getInstance()
+		JBossWSRuntime[] runtimes = JBossWSRuntimeManager.getInstance()
 				.getRuntimes();
 		for (int i = 0; i < runtimes.length; i++) {
-			JbossWSRuntime jr = runtimes[i];
+			JBossWSRuntime jr = runtimes[i];
 			cmRuntime.add(jr.getName());
 			cmRuntime.setData(jr.getName(), jr);
 			
@@ -269,16 +269,16 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 	 * create a new jbossws runtime and set user supplied runtime to the new one
 	 */
 	protected void newJBossWSRuntime() {
-		List<JbossWSRuntime> exists = new ArrayList<JbossWSRuntime>(Arrays.asList(JbossWSRuntimeManager.getInstance().getRuntimes()));
-		List<JbossWSRuntime> added = new ArrayList<JbossWSRuntime>();
+		List<JBossWSRuntime> exists = new ArrayList<JBossWSRuntime>(Arrays.asList(JBossWSRuntimeManager.getInstance().getRuntimes()));
+		List<JBossWSRuntime> added = new ArrayList<JBossWSRuntime>();
 		
-		JbossRuntimeListFieldEditor.JbossWSRuntimeNewWizard newRtwizard = new JbossRuntimeListFieldEditor.JbossWSRuntimeNewWizard(
+		JBossRuntimeListFieldEditor.JBossWSRuntimeNewWizard newRtwizard = new JBossRuntimeListFieldEditor.JBossWSRuntimeNewWizard(
 				exists, added) {
 			public boolean performFinish() {
-				JbossWSRuntime rt = getRuntime();
+				JBossWSRuntime rt = getRuntime();
 				rt.setDefault(true);
-				JbossWSRuntimeManager.getInstance().addRuntime(rt);
-				JbossWSRuntimeManager.getInstance().save();
+				JBossWSRuntimeManager.getInstance().addRuntime(rt);
+				JBossWSRuntimeManager.getInstance().save();
 
 				return true;
 			}
@@ -333,11 +333,11 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		List<String> allExistingJars = new ArrayList<String>();
 		List<String> runtimeJars = new ArrayList<String>();
 
-		JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance().findRuntimeByName(jbwsName);
+		JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance().findRuntimeByName(jbwsName);
 		if(jbws.isUserConfigClasspath()){
 			runtimeJars.addAll(jbws.getLibraries());
 		}else{
-			runtimeJars.addAll(JbossWSRuntimeManager.getInstance().getAllRuntimeJars(jbws));
+			runtimeJars.addAll(JBossWSRuntimeManager.getInstance().getAllRuntimeJars(jbws));
 		}
 		
 		String prjName = model.getStringProperty(IFacetDataModelProperties.FACET_PROJECT_NAME);

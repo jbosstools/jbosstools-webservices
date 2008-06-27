@@ -19,33 +19,33 @@ import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.jboss.tools.test.util.WorkbenchUtils;
-import org.jboss.tools.ws.core.JbossWSCorePlugin;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeListConverter;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
-import org.jboss.tools.ws.ui.preferences.JbossRuntimeListFieldEditor;
-import org.jboss.tools.ws.ui.preferences.JbossWSRuntimePreferencePage;
+import org.jboss.tools.ws.core.JBossWSCorePlugin;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeListConverter;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
+import org.jboss.tools.ws.ui.preferences.JBossRuntimeListFieldEditor;
+import org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage;
 
 import junit.framework.TestCase;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSRuntimePreferencePageTest extends TestCase {
+public class JBossWSRuntimePreferencePageTest extends TestCase {
 
 	/**
 	 * Test that preference page is showed up without errors
 	 */
-	public void testShowJbossWSRuntimePreferencePage() {
+	public void testShowJBossWSRuntimePreferencePage() {
 
 		PreferenceDialog prefDialog = WorkbenchUtils
-				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JbossWSRuntimePreferencePage");
+				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage");
 		try {
 			Object object = openPreferencepage(prefDialog);
 			assertTrue(
-					"Selected page is not an instance of JbossWSRuntimePreferencePage",
-					object instanceof JbossWSRuntimePreferencePage);
+					"Selected page is not an instance of JBossWSRuntimePreferencePage",
+					object instanceof JBossWSRuntimePreferencePage);
 		} finally {
 			prefDialog.close();
 		}
@@ -61,28 +61,28 @@ public class JbossWSRuntimePreferencePageTest extends TestCase {
 	 * Test correct contents in that preference page
 	 */
 	@SuppressWarnings("unchecked")
-	public void testDisplayJbossWSRuntimePreferencePage() {
+	public void testDisplayJBossWSRuntimePreferencePage() {
 		PreferenceDialog prefDialog = WorkbenchUtils
-				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JbossWSRuntimePreferencePage");
-		JbossWSRuntimePreferencePage selectedPage = null;
+				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage");
+		JBossWSRuntimePreferencePage selectedPage = null;
 		try {
 			Object object = openPreferencepage(prefDialog);
 			String runtime = getRuntimeList();
-			selectedPage = (JbossWSRuntimePreferencePage) object;
-			JbossRuntimeListFieldEditor jbossWSRuntimes = selectedPage
-					.getJbossWSRuntimes();
+			selectedPage = (JBossWSRuntimePreferencePage) object;
+			JBossRuntimeListFieldEditor jbossWSRuntimes = selectedPage
+					.getJBossWSRuntimes();
 			if (runtime.equals("")) {
 				assertTrue(
 						"The JBoss Ws Runtime locations are not displayed",
-						((ArrayList<JbossWSRuntime>) jbossWSRuntimes.getValue())
+						((ArrayList<JBossWSRuntime>) jbossWSRuntimes.getValue())
 								.size() == 0);
 			} else {
-				JbossWSRuntimeListConverter converter = new JbossWSRuntimeListConverter();
-				Map<String, JbossWSRuntime> runtimes = converter
+				JBossWSRuntimeListConverter converter = new JBossWSRuntimeListConverter();
+				Map<String, JBossWSRuntime> runtimes = converter
 						.getMap(runtime);
 				assertTrue(
 						"The JBoss Ws Runtime locations are not displayed",
-						runtimes.values().size() == ((ArrayList<JbossWSRuntime>) jbossWSRuntimes
+						runtimes.values().size() == ((ArrayList<JBossWSRuntime>) jbossWSRuntimes
 								.getValue()).size());
 			}
 		} finally {
@@ -95,24 +95,24 @@ public class JbossWSRuntimePreferencePageTest extends TestCase {
 	 * Set and Test correct contents in that preference page
 	 */
 	@SuppressWarnings("unchecked")
-	public void testSetAndDisplayJbossWSRuntimePreferencePage() {
+	public void testSetAndDisplayJBossWSRuntimePreferencePage() {
 		setRuntimeList();
 		PreferenceDialog prefDialog = WorkbenchUtils
-				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JbossWSRuntimePreferencePage");
-		JbossWSRuntimePreferencePage selectedPage = null;
+				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage");
+		JBossWSRuntimePreferencePage selectedPage = null;
 		try {
 			Object object = openPreferencepage(prefDialog);
 			String runtime = getRuntimeList();
-			selectedPage = (JbossWSRuntimePreferencePage) object;
-			JbossRuntimeListFieldEditor jbossWSRuntimes = selectedPage
-					.getJbossWSRuntimes();
+			selectedPage = (JBossWSRuntimePreferencePage) object;
+			JBossRuntimeListFieldEditor jbossWSRuntimes = selectedPage
+					.getJBossWSRuntimes();
 			assertTrue("The preference store for jboss ws runtime is wrong",
 					!runtime.equals(""));
-			JbossWSRuntimeListConverter converter = new JbossWSRuntimeListConverter();
-			Map<String, JbossWSRuntime> runtimes = converter.getMap(runtime);
+			JBossWSRuntimeListConverter converter = new JBossWSRuntimeListConverter();
+			Map<String, JBossWSRuntime> runtimes = converter.getMap(runtime);
 			assertTrue(
 					"The JBoss Ws Runtime locations are not displayed correctly",
-					runtimes.values().size() == ((ArrayList<JbossWSRuntime>) jbossWSRuntimes
+					runtimes.values().size() == ((ArrayList<JBossWSRuntime>) jbossWSRuntimes
 							.getValue()).size());
 		} finally {
 			prefDialog.close();
@@ -127,9 +127,9 @@ public class JbossWSRuntimePreferencePageTest extends TestCase {
 				+ "|default|false|userConfig|true|libraries|" + jbosshome
 				+ "/lib/commons-codec.jar,name|jboss|version|2.0|homeDir|"
 				+ jbosshome + "|default|true|userConfig|false|libraries|";
-		JbossWSCorePlugin.getDefault().getPreferenceStore().setValue(
-				JbossWSCoreMessages.WS_Location, runtime);
-		IPreferenceStore store = JbossWSCorePlugin.getDefault()
+		JBossWSCorePlugin.getDefault().getPreferenceStore().setValue(
+				JBossWSCoreMessages.WS_Location, runtime);
+		IPreferenceStore store = JBossWSCorePlugin.getDefault()
 				.getPreferenceStore();
 		if (store instanceof IPersistentPreferenceStore) {
 			try {
@@ -138,15 +138,15 @@ public class JbossWSRuntimePreferencePageTest extends TestCase {
 				e.printStackTrace();
 			}
 		}
-		JbossWSRuntimeManager.getInstance().load();
+		JBossWSRuntimeManager.getInstance().load();
 
 	}
 
 	private String getRuntimeList() {
-		IPreferenceStore ps = JbossWSCorePlugin.getDefault()
+		IPreferenceStore ps = JBossWSCorePlugin.getDefault()
 				.getPreferenceStore();
 		String runtimeListString = ps
-				.getString(JbossWSCoreMessages.WS_Location);
+				.getString(JBossWSCoreMessages.WS_Location);
 		return runtimeListString;
 	}
 

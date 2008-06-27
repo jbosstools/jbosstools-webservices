@@ -3,8 +3,8 @@
       <page
             name="%JBOSSWS_PREFERENCE_PAGE"
             category="org.eclipse.wst.ws.internal.ui.preferences.name"
-            class="org.jboss.tools.ws.ui.preferences.JbossWSRuntimePreferencePage"
-            id="org.jboss.tools.ws.ui.preferences.JbossWSRuntimePreferencePage">
+            class="org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage"
+            id="org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage">
       </page>
    </extension>
 </plugin>

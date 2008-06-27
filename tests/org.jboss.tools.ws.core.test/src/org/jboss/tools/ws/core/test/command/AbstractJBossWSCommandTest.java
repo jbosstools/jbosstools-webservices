@@ -261,7 +261,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		
 		String jbosshome = System.getProperty(JBOSS_RUNTIME_42, JBOSSWS_HOME_DEFAULT);
 		File runtimelocation = new File(jbosshome);
-		assertTrue("Please set Jboss EAP Home in system property:" + JBOSS_RUNTIME_42, runtimelocation.exists());
+		assertTrue("Please set JBoss EAP Home in system property:" + JBOSS_RUNTIME_42, runtimelocation.exists());
 		
 		String cmdFileLocation = jbosshome + File.separator + "bin" + File.separator + "wsconsume.sh";
 		assertTrue(jbosshome + " is not a valid jboss EAP home", new File(cmdFileLocation).exists());

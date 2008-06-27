@@ -45,7 +45,7 @@ abstract  class AbstractGenerateCodeCommand extends AbstractDataModelOperation{
 				.getWebProjectName());
 		
 		try {
-			String runtimeLocation = JBossWSCreationUtils.getJbossWSRuntimeLocation(project);
+			String runtimeLocation = JBossWSCreationUtils.getJBossWSRuntimeLocation(project);
 			String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";		
 			IPath path = new Path(commandLocation);
 			String command =  "sh " + cmdFileName_linux;

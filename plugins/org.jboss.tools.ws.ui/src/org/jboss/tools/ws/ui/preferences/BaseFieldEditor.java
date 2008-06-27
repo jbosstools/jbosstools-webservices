@@ -26,7 +26,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * @author Grid Qian
@@ -66,8 +66,8 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 	 * @param parent
 	 */
 	public void doFillIntoGrid(Object parent) {
-		Assert.isTrue(parent instanceof Composite, JbossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
-		Assert.isTrue(((Composite)parent).getLayout() instanceof GridLayout,JbossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
+		Assert.isTrue(parent instanceof Composite, JBossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
+		Assert.isTrue(((Composite)parent).getLayout() instanceof GridLayout,JBossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
 		Composite aComposite = (Composite) parent;
 		final Control[] controls = (Control[])getEditorControls(aComposite);
 		GridLayout gl = (GridLayout)((Composite)parent).getLayout();
@@ -110,7 +110,7 @@ public abstract class BaseFieldEditor implements IFieldEditor {
 			labelControl.setText(this.labelText);
 		} else if(parent!=null) {
 			if(labelControl.getParent()!=parent)
-				throw new IllegalArgumentException(JbossWSUIMessages.Error_JBossWS_Basic_Editor_Different);
+				throw new IllegalArgumentException(JBossWSUIMessages.Error_JBossWS_Basic_Editor_Different);
 		}
 		return labelControl;
 	}

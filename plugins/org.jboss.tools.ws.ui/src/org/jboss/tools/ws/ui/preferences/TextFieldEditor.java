@@ -22,7 +22,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
-import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * 
@@ -68,8 +68,8 @@ public class TextFieldEditor extends BaseFieldEditor implements PropertyChangeLi
 
 	@Override
 	public void doFillIntoGrid(Object aParent) {
-		Assert.isTrue(aParent instanceof Composite, JbossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
-		Assert.isTrue(((Composite)aParent).getLayout() instanceof GridLayout,JbossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
+		Assert.isTrue(aParent instanceof Composite, JBossWSUIMessages.Error_JBossWS_Basic_Editor_Composite);
+		Assert.isTrue(((Composite)aParent).getLayout() instanceof GridLayout,JBossWSUIMessages.Error_JBossWS_Basic_Editor_Support);
 		Composite aComposite = (Composite) aParent;
 		getEditorControls(aComposite);
 		GridLayout gl = (GridLayout)((Composite)aParent).getLayout();

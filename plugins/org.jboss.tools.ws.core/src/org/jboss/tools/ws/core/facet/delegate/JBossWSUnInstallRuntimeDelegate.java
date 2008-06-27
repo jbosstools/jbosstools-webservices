@@ -17,22 +17,22 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
-import org.jboss.tools.ws.core.command.UninstallJbossWSClassPathCommand;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.command.UninstallJBossWSClassPathCommand;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSUnInstallRuntimeDelegate implements IDelegate {
+public class JBossWSUnInstallRuntimeDelegate implements IDelegate {
 
 	public void execute(IProject project, IProjectFacetVersion arg1,
 			Object arg2, IProgressMonitor monitor) throws CoreException {
 		monitor.beginTask(
-				JbossWSCoreMessages.Progress_UnInstall_JBossWS_Runtime, 2);
+				JBossWSCoreMessages.Progress_UnInstall_JBossWS_Runtime, 2);
 
 		IDataModel model = (IDataModel) arg2;
 
-		UninstallJbossWSClassPathCommand command = new UninstallJbossWSClassPathCommand(
+		UninstallJBossWSClassPathCommand command = new UninstallJBossWSClassPathCommand(
 				project, model);
 		command.executeOverride(monitor);
 		monitor.worked(1);

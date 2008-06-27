@@ -22,28 +22,28 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
-import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSRuntimePreferencePage extends PreferencePage implements
+public class JBossWSRuntimePreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
 
-	public JbossWSRuntimePreferencePage() {
+	public JBossWSRuntimePreferencePage() {
 		super();
 		noDefaultAndApplyButton();
 	}
 
 	private static final int COLUMNS = 3;
 
-	JbossRuntimeListFieldEditor jbossWSRuntimes = new JbossRuntimeListFieldEditor(
-			"rtlist", JbossWSUIMessages.JBossWS_Preference_Page_Runtimes, new ArrayList<JbossWSRuntime>(Arrays.asList(JbossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
+	JBossRuntimeListFieldEditor jbossWSRuntimes = new JBossRuntimeListFieldEditor(
+			"rtlist", JBossWSUIMessages.JBossWS_Preference_Page_Runtimes, new ArrayList<JBossWSRuntime>(Arrays.asList(JBossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
 
 	/**
-	 * Create contents of JbossWS preferences page. JbossWSRuntime list editor
+	 * Create contents of JBossWS preferences page. JBossWSRuntime list editor
 	 * is created
 	 * 
 	 * @return Control
@@ -69,22 +69,22 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 	}
 
 	/**
-	 * Save JbossWSRuntime list
+	 * Save JBossWSRuntime list
 	 */
 	@Override
 	protected void performApply() {
-		for (JbossWSRuntime rt : jbossWSRuntimes.getAddedJbossWSRuntimes()) {
-			JbossWSRuntimeManager.getInstance().addRuntime(rt);
+		for (JBossWSRuntime rt : jbossWSRuntimes.getAddedJBossWSRuntimes()) {
+			JBossWSRuntimeManager.getInstance().addRuntime(rt);
 		}
-		jbossWSRuntimes.getAddedJbossWSRuntimes().clear();
-		for (JbossWSRuntime rt : jbossWSRuntimes.getRemoved()) {
-			JbossWSRuntimeManager.getInstance().removeRuntime(rt);
+		jbossWSRuntimes.getAddedJBossWSRuntimes().clear();
+		for (JBossWSRuntime rt : jbossWSRuntimes.getRemoved()) {
+			JBossWSRuntimeManager.getInstance().removeRuntime(rt);
 		}
 		jbossWSRuntimes.getRemoved().clear();
-		JbossWSRuntime defaultRuntime = jbossWSRuntimes
-				.getDefaultJbossWSRuntime();
+		JBossWSRuntime defaultRuntime = jbossWSRuntimes
+				.getDefaultJBossWSRuntime();
 		// reset default runtime
-		for (JbossWSRuntime jbossWSRuntime : JbossWSRuntimeManager
+		for (JBossWSRuntime jbossWSRuntime : JBossWSRuntimeManager
 				.getInstance().getRuntimes()) {
 			jbossWSRuntime.setDefault(false);
 		}
@@ -92,26 +92,26 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 		if (defaultRuntime != null) {
 			defaultRuntime.setDefault(true);
 		}
-		jbossWSRuntimes.setDefaultJbossWSRuntime(null);
-		Map<JbossWSRuntime, JbossWSRuntime> changed = jbossWSRuntimes
-				.getChangedJbossWSRuntimes();
-		for (JbossWSRuntime c : changed.keySet()) {
-			JbossWSRuntime o = changed.get(c);
+		jbossWSRuntimes.setDefaultJBossWSRuntime(null);
+		Map<JBossWSRuntime, JBossWSRuntime> changed = jbossWSRuntimes
+				.getChangedJBossWSRuntimes();
+		for (JBossWSRuntime c : changed.keySet()) {
+			JBossWSRuntime o = changed.get(c);
 			o.setHomeDir(c.getHomeDir());
 			o.setVersion(c.getVersion());
 			String oldName = o.getName();
 			String newName = c.getName();
 			if (!oldName.equals(newName)) {
-				JbossWSRuntimeManager.getInstance().changeRuntimeName(oldName,
+				JBossWSRuntimeManager.getInstance().changeRuntimeName(oldName,
 						newName);
 			}
 			o.setDefault(c.isDefault());
 			o.setUserConfigClasspath(c.isUserConfigClasspath());
 			o.setLibraries(c.getLibraries());
 		}
-		jbossWSRuntimes.getChangedJbossWSRuntimes().clear();
+		jbossWSRuntimes.getChangedJBossWSRuntimes().clear();
 
-		JbossWSRuntimeManager.getInstance().save();
+		JBossWSRuntimeManager.getInstance().save();
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class JbossWSRuntimePreferencePage extends PreferencePage implements
 		return super.performOk();
 	}
 
-	public JbossRuntimeListFieldEditor getJbossWSRuntimes() {
+	public JBossRuntimeListFieldEditor getJBossWSRuntimes() {
 		return jbossWSRuntimes;
 	}
 }

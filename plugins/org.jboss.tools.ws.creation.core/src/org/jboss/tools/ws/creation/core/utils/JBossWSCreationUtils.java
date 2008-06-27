@@ -44,11 +44,11 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.ServerCore;
-import org.jboss.tools.ws.core.JbossWSCorePlugin;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
+import org.jboss.tools.ws.core.JBossWSCorePlugin;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
@@ -273,15 +273,15 @@ public class JBossWSCreationUtils {
     }
     
 	public static boolean validateJBossWSLocation() {
-		String location = JbossWSCorePlugin.getDefault().getPreferenceStore()
-				.getString(JbossWSCoreMessages.WS_Location);
+		String location = JBossWSCorePlugin.getDefault().getPreferenceStore()
+				.getString(JBossWSCoreMessages.WS_Location);
 		if (location == null || location.equals("")) {
 			return false;
 		}
 		return true;
 	}
 	
-	public static String getJbossWSRuntimeLocation(IProject project)
+	public static String getJBossWSRuntimeLocation(IProject project)
 			throws CoreException {
 
 		String isServerSupplied = project
@@ -293,7 +293,7 @@ public class JBossWSCreationUtils {
 				&& !"".equals(jbwsRuntimeName)
 				&& !IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED
 						.equals(isServerSupplied)) {
-			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
+			JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
 					.findRuntimeByName(jbwsRuntimeName);
 			if (jbws != null) {
 				return jbws.getHomeDir();
@@ -332,7 +332,7 @@ public class JBossWSCreationUtils {
 		// if no target runtime has been specified, get runtime location from
 		// default jbossws runtime
 		if (prjFacetRuntime == null) {
-			JbossWSRuntime jbws = JbossWSRuntimeManager.getInstance()
+			JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
 					.getDefaultRuntime();
 			if (jbws != null) {
 				return jbws.getHomeDir();

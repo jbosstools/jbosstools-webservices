@@ -16,7 +16,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.jboss.tools.ws.ui.messages.JbossWSUIMessages;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * @author Grid Qian
@@ -26,10 +26,10 @@ public class ButtonFieldEditor extends BaseFieldEditor {
 	PushButtonField button= null;
 	int style;
 	
-	private ButtonPressedAction buttonAction = new ButtonPressedAction(JbossWSUIMessages.JBossWS_Button_Field_Editor_Browse) {
+	private ButtonPressedAction buttonAction = new ButtonPressedAction(JBossWSUIMessages.JBossWS_Button_Field_Editor_Browse) {
 		@Override
 		public void run() {
-			throw new RuntimeException(JbossWSUIMessages.Error_JBossWS_Button_Field_Editor_Not_Implemented_Yet);
+			throw new RuntimeException(JBossWSUIMessages.Error_JBossWS_Button_Field_Editor_Not_Implemented_Yet);
 		}
 	};
 	

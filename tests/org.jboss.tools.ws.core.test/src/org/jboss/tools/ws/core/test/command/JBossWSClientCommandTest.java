@@ -28,9 +28,9 @@ import org.eclipse.wst.server.core.internal.ServerWorkingCopy;
 import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceClientInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeClassPathInitializer.JbossWSRuntimeClasspathContainer;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeClassPathInitializer.JBossWSRuntimeClasspathContainer;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
@@ -44,7 +44,7 @@ import org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceClient;
 /**
  * @author Grid Qian
  */
-public class WSClientCommandTest extends AbstractJBossWSCommandTest {
+public class JBossWSClientCommandTest extends AbstractJBossWSCommandTest {
 
 	protected static final String JBOSSWS_HOME_DEFAULT = "/home/grid/Software/jboss-4.2.2.GA";
 	private static final String RuntimeName;
@@ -55,12 +55,12 @@ public class WSClientCommandTest extends AbstractJBossWSCommandTest {
 		isDeployed = false;
 	}
 
-	public WSClientCommandTest() {
+	public JBossWSClientCommandTest() {
 	}
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		JbossWSRuntimeManager.getInstance().addRuntime(RuntimeName,
+		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName,
 				getJBossWSHomeFolder().toString(), "", true);
 
 		// create jbossws web project
@@ -74,9 +74,9 @@ public class WSClientCommandTest extends AbstractJBossWSCommandTest {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		resourcesToCleanup.clear();
-		JbossWSRuntime runtime = JbossWSRuntimeManager.getInstance()
+		JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance()
 				.findRuntimeByName(RuntimeName);
-		JbossWSRuntimeManager.getInstance().removeRuntime(runtime);
+		JBossWSRuntimeManager.getInstance().removeRuntime(runtime);
 	}
 
 	public void testInitialClientCommand() throws CoreException,
@@ -146,9 +146,9 @@ public class WSClientCommandTest extends AbstractJBossWSCommandTest {
 				IClasspathContainer container = JavaCore.getClasspathContainer(
 						entry.getPath(), getJavaProjectByName(fproject
 								.getProject().getName()));
-				if (container instanceof JbossWSRuntimeClasspathContainer) {
+				if (container instanceof JBossWSRuntimeClasspathContainer) {
 					boolean nojar = true;
-					for (IClasspathEntry jar : ((JbossWSRuntimeClasspathContainer) container)
+					for (IClasspathEntry jar : ((JBossWSRuntimeClasspathContainer) container)
 							.getClasspathEntries()) {
 						if (jar.getPath().toString().contains("jaxws-rt.jar")) {
 							nojar = false;

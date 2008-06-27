@@ -19,22 +19,22 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
-import org.jboss.tools.ws.core.command.JbossWSClassPathCommand;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.command.JBossWSClassPathCommand;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSInstallRuntimeDelegate implements IDelegate {
+public class JBossWSInstallRuntimeDelegate implements IDelegate {
 
 	public void execute(IProject project, IProjectFacetVersion arg1,
 			Object arg2, IProgressMonitor monitor) throws CoreException {
-		monitor.beginTask(JbossWSCoreMessages.Progress_Install_JBossWS_Runtime,
+		monitor.beginTask(JBossWSCoreMessages.Progress_Install_JBossWS_Runtime,
 				2);
 
 		IDataModel model = (IDataModel) arg2;
 
-		JbossWSClassPathCommand command = new JbossWSClassPathCommand(project,
+		JBossWSClassPathCommand command = new JBossWSClassPathCommand(project,
 				model);
 		IStatus status = command.executeOverride(monitor);
 		if(!status.equals(Status.OK_STATUS)){

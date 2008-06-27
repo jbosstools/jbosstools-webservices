@@ -13,7 +13,7 @@ import java.util.StringTokenizer;
  * @author Grid Qian
  *
  */
-public class JbossWSRuntimeListConverter {
+public class JBossWSRuntimeListConverter {
 
 		/*
 		 * Constants definitions 
@@ -31,18 +31,18 @@ public class JbossWSRuntimeListConverter {
 		private static final String LIBRARY = "libraries";
 
 		/**
-		 * Load String to JbossWSRuntime map from String
+		 * Load String to JBossWSRuntime map from String
 		 * @param input
 		 * 		String representation of map
 		 * @return
-		 * 		Map&lt;String, JbossWSRuntime&gt; loaded from string
+		 * 		Map&lt;String, JBossWSRuntime&gt; loaded from string
 		 * TODO - switch to XML?
 		 * TODO - write converter from old serialization format to XML?
 		 * TODO - handle errors in string format
 		 */
-		public Map<String, JbossWSRuntime> getMap(String input) {
+		public Map<String, JBossWSRuntime> getMap(String input) {
 
-			Map<String, JbossWSRuntime> result = new HashMap<String, JbossWSRuntime>();
+			Map<String, JBossWSRuntime> result = new HashMap<String, JBossWSRuntime>();
 			if (input == null || EMPTY_STRING.equals(input.trim())) {
 				return result;
 			}
@@ -50,7 +50,7 @@ public class JbossWSRuntimeListConverter {
 			while (runtimes.hasMoreTokens()) {
 				String runtime = runtimes.nextToken();
 				String[] map = runtime.split(REGEXP_ESCAPE + FIELD_SEPARATOR);
-				JbossWSRuntime rt = new JbossWSRuntime();
+				JBossWSRuntime rt = new JBossWSRuntime();
 				final int step = 2;
 				for (int i = 0; i < map.length; i += step) {
 					String name = map[i];
@@ -104,17 +104,17 @@ public class JbossWSRuntimeListConverter {
 		}
 
 		/**
-		 * Convert map String to JbossWSRUntime to string representation 
+		 * Convert map String to JBossWSRUntime to string representation 
 		 * @param runtimeMap
-		 * 		Map&lt;String, JbossWSRuntime&gt; - map of String to JbossWS Runtime to convert 
+		 * 		Map&lt;String, JBossWSRuntime&gt; - map of String to JBossWS Runtime to convert 
 		 * 		in String 
 		 * @return
-		 * 		String representation of String to JbossWS Runtime map
+		 * 		String representation of String to JBossWS Runtime map
 		 */
-		public String getString(Map<String, JbossWSRuntime> runtimeMap) {
+		public String getString(Map<String, JBossWSRuntime> runtimeMap) {
 			StringBuffer buffer = new StringBuffer();
-			JbossWSRuntime[] runtimes = runtimeMap.values().toArray(
-					new JbossWSRuntime[runtimeMap.size()]);
+			JBossWSRuntime[] runtimes = runtimeMap.values().toArray(
+					new JBossWSRuntime[runtimeMap.size()]);
 			for (int i = 0; i < runtimes.length; i++) {
 				buffer.append(NAME).append(FIELD_SEPARATOR);
 				buffer.append(runtimes[i].getName());

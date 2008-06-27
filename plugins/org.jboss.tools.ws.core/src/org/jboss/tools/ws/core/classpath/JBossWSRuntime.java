@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author Grid Qian
  */
-public class JbossWSRuntime {
+public class JBossWSRuntime {
 
 	String name = null;
 
@@ -34,12 +34,12 @@ public class JbossWSRuntime {
 	/**
 	 * Default constructor
 	 */
-	public JbossWSRuntime() {
+	public JBossWSRuntime() {
 		libraries = new ArrayList<String>();
 	}
 
 	/**
-	 * Get JbossWSRuntime name
+	 * Get JBossWSRuntime name
 	 * 
 	 * @return name
 	 */
@@ -57,10 +57,10 @@ public class JbossWSRuntime {
 	}
 
 	/**
-	 * Set JbossWSRuntime name
+	 * Set JBossWSRuntime name
 	 * 
 	 * @param name
-	 *            new JbossWSRuntime name
+	 *            new JBossWSRuntime name
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -70,7 +70,7 @@ public class JbossWSRuntime {
 	 * Set home directory
 	 * 
 	 * @param homeDir
-	 *            new JbossWSRuntime's home directory
+	 *            new JBossWSRuntime's home directory
 	 */
 	public void setHomeDir(String homeDir) {
 		this.homeDir = homeDir;

@@ -20,7 +20,7 @@
             facet="jbossws.core"
             id="jbossws.core.install"
             type="INSTALL">
-      			<delegate class="org.jboss.tools.ws.core.facet.delegate.JbossWSInstallRuntimeDelegate"/>
+      			<delegate class="org.jboss.tools.ws.core.facet.delegate.JBossWSInstallRuntimeDelegate"/>
          <config-factory
                class="org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider">
          </config-factory>
@@ -30,7 +30,7 @@
             id="jbossws.core.uninstall"
             type="UNINSTALL">
          <delegate
-               class="org.jboss.tools.ws.core.facet.delegate.JbossWSUnInstallRuntimeDelegate">
+               class="org.jboss.tools.ws.core.facet.delegate.JBossWSUnInstallRuntimeDelegate">
          </delegate>
       </action>
       
@@ -49,7 +49,7 @@
    <extension
          point="org.eclipse.jdt.core.classpathContainerInitializer">
       <classpathContainerInitializer
-            class="org.jboss.tools.ws.core.classpath.JbossWSRuntimeClassPathInitializer"
+            class="org.jboss.tools.ws.core.classpath.JBossWSRuntimeClassPathInitializer"
             id="JBossWS_Runtime">
       </classpathContainerInitializer>
    </extension>

@@ -37,8 +37,8 @@ import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JbossWSRuntimeManager;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.creation.core.commands.ImplementationClassCreationCommand;
@@ -72,7 +72,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		JbossWSRuntimeManager.getInstance().addRuntime(RuntimeName, getJBossWSHomeFolder().toString(), "", true);
+		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName, getJBossWSHomeFolder().toString(), "", true);
 
 		//create jbossws web project
 		fproject = createJBossWSProject("JBossWSTestProject", isServerSupplied());
@@ -87,8 +87,8 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 		// Wait until all jobs is finished to avoid delete project problems
 		super.tearDown();
 		resourcesToCleanup.clear();
-		JbossWSRuntime runtime = JbossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
-		JbossWSRuntimeManager.getInstance().removeRuntime(runtime);
+		JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
+		JBossWSRuntimeManager.getInstance().removeRuntime(runtime);
 	
 		
 		

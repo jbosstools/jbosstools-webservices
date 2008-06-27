@@ -30,12 +30,12 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.osgi.util.NLS;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSCoreUtils {
+public class JBossWSCoreUtils {
 
 	public static IPath pathToWebProjectContainer(String project) {
 		IPath projectRoot = getProjectRoot(project);
@@ -125,7 +125,7 @@ public class JbossWSCoreUtils {
 					finStream = new FileInputStream(children[i]);
 				} catch (FileNotFoundException e) {
 					status = StatusUtils.errorStatus(NLS.bind(
-							JbossWSCoreMessages.Error_Copy, new String[] { e
+							JBossWSCoreMessages.Error_Copy, new String[] { e
 									.getLocalizedMessage() }), e);
 				}
 				try {
@@ -133,7 +133,7 @@ public class JbossWSCoreUtils {
 							targetPath), children[i].getName(), finStream);
 				} catch (CoreException e) {
 					status = StatusUtils.errorStatus(NLS.bind(
-							JbossWSCoreMessages.Error_Copy, new String[] { e
+							JBossWSCoreMessages.Error_Copy, new String[] { e
 									.getLocalizedMessage() }), e);
 				}
 			} else {
@@ -145,7 +145,7 @@ public class JbossWSCoreUtils {
 							.getLocation());
 				} catch (CoreException e) {
 					status = StatusUtils.errorStatus(NLS.bind(
-							JbossWSCoreMessages.Error_Copy, new String[] { e
+							JBossWSCoreMessages.Error_Copy, new String[] { e
 									.getLocalizedMessage() }), e);
 				}
 			}

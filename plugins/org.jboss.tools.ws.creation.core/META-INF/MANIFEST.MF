@@ -30,7 +30,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.common.project.facet.core,
  org.eclipse.wst.server.core,
  org.jboss.tools.common
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.creation.core,
  org.jboss.tools.ws.creation.core.commands,
  org.jboss.tools.ws.creation.core.data,

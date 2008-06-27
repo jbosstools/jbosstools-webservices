@@ -31,18 +31,18 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
-import org.jboss.tools.ws.core.messages.JbossWSCoreMessages;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 
 /**
  * @author Grid Qian
  */
-public class JbossWSClassPathCommand extends AbstractDataModelOperation {
+public class JBossWSClassPathCommand extends AbstractDataModelOperation {
 
 	IProject project;
 	private IDataModel model;
 
-	public JbossWSClassPathCommand(IProject project, IDataModel model) {
+	public JBossWSClassPathCommand(IProject project, IDataModel model) {
 		this.project = project;
 		this.model = model;
 	}
@@ -85,7 +85,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 
 		} catch (CoreException e) {
 			status = StatusUtils.errorStatus(
-					JbossWSCoreMessages.Error_Add_Facet_JBossWS, e);
+					JBossWSCoreMessages.Error_Add_Facet_JBossWS, e);
 		}
 		return status;
 	}
@@ -105,12 +105,12 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 								ClasspathDependencyUtil.getDefaultRuntimePath(
 										true).toString());
 				newClasspath = JavaCore.newContainerEntry(new Path(
-						JbossWSCoreMessages.JBossWS_Runtime_Lib)
+						JBossWSCoreMessages.JBossWS_Runtime_Lib)
 						.append(segment), null,
 						new IClasspathAttribute[] { depAttrib }, true);
 			} else {
 				newClasspath = JavaCore.newContainerEntry(new Path(
-						JbossWSCoreMessages.JBossWS_Runtime_Lib)
+						JBossWSCoreMessages.JBossWS_Runtime_Lib)
 						.append(segment));
 			}
 
@@ -140,7 +140,7 @@ public class JbossWSClassPathCommand extends AbstractDataModelOperation {
 			}
 		} catch (JavaModelException e) {
 			status = StatusUtils.errorStatus(NLS.bind(
-					JbossWSCoreMessages.Error_Copy, new String[] { e
+					JBossWSCoreMessages.Error_Copy, new String[] { e
 							.getLocalizedMessage() }), e);
 			return status;
 		}
