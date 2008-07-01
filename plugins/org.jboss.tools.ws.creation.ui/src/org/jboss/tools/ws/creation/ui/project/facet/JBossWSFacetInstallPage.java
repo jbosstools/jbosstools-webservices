@@ -306,7 +306,11 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 			} catch (JavaModelException e1) {
 				CreationUIPlugin.getDefault().getLog().log(StatusUtils.errorStatus(e1));
 			}
-			setErrorMessage("Duplicated jar on classpath:" + duplicateMsg);
+			if(!duplicateMsg.equals("")){
+				setErrorMessage("Duplicated jar on classpath:" + duplicateMsg);
+			}else{
+				setErrorMessage(null);
+			}
 		}else{
 			setErrorMessage(null);
 		}
