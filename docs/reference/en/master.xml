@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3CR3//EN"
+"http://www.oasis-open.org/docbook/xml/4.3CR3/docbookx.dtd"
+
+[<!ENTITY preference SYSTEM "modules/preference.xml">
+<!ENTITY  facet SYSTEM "modules/facet.xml">
+<!ENTITY webproject SYSTEM "modules/webproject.xml">
+<!ENTITY bottomup SYSTEM "modules/bottomup.xml">
+<!ENTITY topdown SYSTEM "modules/topdown.xml">
+<!ENTITY client SYSTEM "modules/client.xml">
+]>
+
+<book>
+    
+     <bookinfo>
+         <title>JBoss WS User Guide</title>
+         <author><firstname>Grid</firstname><surname>Qian</surname><email>fqian@redhat.com</email></author>
+         <author><firstname>Denny</firstname><surname>Xu</surname><email>dxu@redhat.com</email></author>           
+         <pubdate>July 2008</pubdate>
+	     <copyright>
+	          <year>2008</year>
+	          <holder>JBoss, a division of Red Hat Inc.</holder>
+	     </copyright>
+         <releaseinfo>
+            Version: 3.0.GA
+         </releaseinfo>
+    </bookinfo>
+	
+    
+    <toc/> 
+    &preference;
+    &facet;
+    &webproject;
+    &bottomup;
+    &topdown;
+    &client;
+</book> 
