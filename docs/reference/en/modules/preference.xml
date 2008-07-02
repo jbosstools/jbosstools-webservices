@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <chapter id="preference" revisionflag="added">
-  <title>JBoss WS and development enviroment</title>
+  <title>JBoss WS and development environment</title>
 
   <section id="overview">
     <title>JBoss WS Overview</title>
@@ -11,18 +11,34 @@
 
   <section id="jbosswspreference">
     <title>Set JBossWS Runtime Location</title>
-
-    <para>Open Window->Preferences->Web Services-> JBossWS Preferences. In this Page , you can set JBossWS Runtime.</para>
-    <para>Now only support JBoss EAP or JBoss AS as JBossWS Runtime.</para>
-    <para>After you set JBoss WS Runtime, click 'OK' Button.</para>
+    <para>Open
+        <emphasis><property>Window > Preferences > Web Services > JBossWS Preferences</property></emphasis>. In this Page , you can set JBossWS Runtime.</para>
+    <para>Now JBoss Tools only support JBoss EAP or JBoss AS as JBossWS Runtime.</para>
+    <para>After set JBoss WS Runtime, click <property>OK</property> button to save the JBoss WS Runtime location.</para>
+    <figure>
+      <title></title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/"></imagedata>
+        </imageobject>
+      </mediaobject>
+     </figure>
   </section>
 
   <section id="serverruntime">
-
     <title>Set default Server and Runtime</title>
-    <para>Open Window->Preferences->Web Services-> Server and Runtime. In this page, you can set default server and runtime.</para>
+    <para>Open
+        <emphasis><property>Window > Preferences > Web Services > Server and Runtime</property></emphasis>. In this page, you can set default server and runtime.</para>
     <para>For ease of use, the better way is to set runtime = JBoss WS.</para>
-
+    <para>After set server and runtime, click <property>Aplly</property> button to save the value.</para>
+    <figure>
+      <title></title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/"/>
+        </imageobject>
+      </mediaobject>
+     </figure>
   </section>
   
 </chapter>

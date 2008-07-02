@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<chapter id="client" revisionflag="added">
+  <title>Creating a Web service Client from a WSDL file using JBoss WS</title>
+  <para>To create a Web service Client from a WSDL file using JBoss WS:</para>
+  <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
+  <para><link linkend="webproject">Creating a Dynamic Web project</link>.</para>
+  <para><link linkend="facet">Add JBossWS facet to web project</link>.</para>
+  <para>Create a Web Service Client from a WSDL file: </para>
+     <itemizedlist>
+        <listitem>
+           <para>Switch to the Java EE perspective <emphasis><property>Window > Open Perspective > Java EE</property></emphasis>.</para>
+        </listitem>
+        <listitem>
+           <para>In the Project Explorer view, select the bean that you created or imported into the source folder of your Web project.</para> 
+        </listitem>
+        <listitem>
+           <para>Click <emphasis><property>File > New > Other</property></emphasis>.Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click <property>Next</property> button.</para> 
+        </listitem>
+        <listitem>
+           <para>The first and second Web Service Client wizard page are same to <link linkend="topdown">Web Service from a WSDL document</link>.</para> 
+           <para>The differences are:</para>
+              <itemizedlist>
+                 <listitem>
+                    <para><property>Client Type:</property> Now only support Java Proxy.</para>
+                 </listitem>
+               </itemizedlist>
+           <para>Click <property>Finish</property> button.</para>
+        </listitem>     
+     </itemizedlist>
+     <para>After the Web Service Client has been created, the following may occur depending on the options you selected:</para>
+     <itemizedlist>
+        <listitem>
+           <para> the generated web service and client codes</para>
+        </listitem>
+        <listitem>
+           <para>a client sample class.</para>
+        </listitem>
+     </itemizedlist>
+     <para>JBoss WS support Java class test for Web Service. A client sample class will be generated, you may run this client as a java application to call the web service.</para>
+</chapter>
