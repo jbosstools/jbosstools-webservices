@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<chapter id="preference" revisionflag="added">
+  <title>JBoss WS and development enviroment</title>
+
+  <section id="overview">
+    <title>JBoss WS Overview</title>
+
+    <para>JBossWS is a web service framework developed as part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5)</para>
+
+  </section>
+
+  <section id="jbosswspreference">
+    <title>Set JBossWS Runtime Location</title>
+
+    <para>Open Window->Preferences->Web Services-> JBossWS Preferences. In this Page , you can set JBossWS Runtime.</para>
+    <para>Now only support JBoss EAP or JBoss AS as JBossWS Runtime.</para>
+    <para>After you set JBoss WS Runtime, click 'OK' Button.</para>
+  </section>
+
+  <section id="serverruntime">
+
+    <title>Set default Server and Runtime</title>
+    <para>Open Window->Preferences->Web Services-> Server and Runtime. In this page, you can set default server and runtime.</para>
+    <para>For ease of use, the better way is to set runtime = JBoss WS.</para>
+
+  </section>
+  
+</chapter>
