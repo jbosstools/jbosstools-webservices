@@ -20,7 +20,7 @@
       <title>Dynamic Web Project</title>
       <mediaobject>
         <imageobject>
-          <imagedata fileref="images/webproject1.png"></imagedata>
+          <imagedata fileref="images/jbossws_webproject_1.png"></imagedata>
         </imageobject>
       </mediaobject>
      </figure>
@@ -37,7 +37,7 @@
       <title>Dynamic Web Project Wizard</title>
       <mediaobject>
         <imageobject>
-          <imagedata fileref="images/webproject2.png"></imagedata>
+          <imagedata fileref="images/jbossws_webproject_2.png"></imagedata>
         </imageobject>
       </mediaobject>
      </figure>
@@ -48,7 +48,7 @@
                 <title>Configures Web Module Settings</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/webproject3.png"></imagedata>
+                      <imagedata fileref="images/jbossws_webproject_3.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
@@ -184,7 +184,7 @@
                 <title>Create a new Bean Class</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/bottomup.png"></imagedata>
+                      <imagedata fileref="images/jbossws_bottomup.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
@@ -195,7 +195,7 @@
                 <title>New Web Service</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/bottomup1.png"></imagedata>
+                      <imagedata fileref="images/jbossws_bottomup_1.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>        
@@ -206,7 +206,7 @@
                 <title>Set Web Service Common values</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/bottomup2.png"></imagedata>
+                      <imagedata fileref="images/jbossws_bottomup_2.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
@@ -247,7 +247,7 @@
                 <title>Set Web Service values about Code Generation</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/bottomup3.png"></imagedata>
+                      <imagedata fileref="images/jbossws_bottomup_3.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
@@ -267,7 +267,7 @@
                 <title>Start a Server</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/bottomup4.png"></imagedata>
+                      <imagedata fileref="images/jbossws_bottomup_4.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
@@ -284,7 +284,7 @@
                 <title>The generated WSDL file</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/bottomup6.png"></imagedata>
+                      <imagedata fileref="images/jbossws_bottomup_6.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
@@ -295,7 +295,7 @@
                 <title>The Updated web.xml</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/bottomup5.png"></imagedata>
+                      <imagedata fileref="images/jbossws_bottomup_5.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
