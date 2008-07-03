@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <chapter id="preference" revisionflag="added">
-
+<title>JBoss WS and development environment</title>
+ <section id="jbosswspreference">
    <title>JBossWS Preferences</title>
 
-<para>In this chapter you get to know how JBossWS preferences can be modified during the development process.</para>
+<para>In this section you get to know how JBossWS preferences can be modified during the development process.</para>
 
        <para>JBossWS preferences can be set using the JBossWS preference page. Click on <emphasis><property>Window > Preferences > JBoss Tools > Web > JBossWS Preference</property>.</emphasis></para>
    
@@ -29,4 +30,20 @@
                </imageobject>
            </mediaobject>
        </figure>
+  </section>
+  <section id="serverruntime">
+    <title>Default Server and Runtime</title>
+    <para>Open
+        <emphasis><property>Window > Preferences > Web Services > Server and Runtime</property></emphasis>. In this page, you can set default server and runtime.</para>
+    <para>For ease of use, the better way is to set runtime = JBoss WS.</para>
+    <para>After set server and runtime, click <property>Aplly</property> button to save the value.</para>
+    <figure>
+      <title></title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/jbossws_server_runtime.png"/>
+        </imageobject>
+      </mediaobject>
+     </figure>
+  </section>
 </chapter>
