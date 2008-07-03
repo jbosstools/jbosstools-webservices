@@ -9,36 +9,32 @@
 
   </section>
 
-  <section id="jbosswspreference">
-    <title>Set JBossWS Runtime Location</title>
-    <para>Open
-        <emphasis><property>Window > Preferences > Web Services > JBossWS Preferences</property></emphasis>. In this Page , you can set JBossWS Runtime.</para>
-    <para>Now JBoss Tools only support JBoss EAP or JBoss AS as JBossWS Runtime.</para>
-    <para>After set JBoss WS Runtime, click <property>OK</property> button to save the JBoss WS Runtime location.</para>
-    <figure>
-      <title></title>
-      <mediaobject>
-        <imageobject>
-          <imagedata fileref="images/"></imagedata>
-        </imageobject>
-      </mediaobject>
-     </figure>
-  </section>
+   <title>JBossWS Preferences</title>
 
-  <section id="serverruntime">
-    <title>Set default Server and Runtime</title>
-    <para>Open
-        <emphasis><property>Window > Preferences > Web Services > Server and Runtime</property></emphasis>. In this page, you can set default server and runtime.</para>
-    <para>For ease of use, the better way is to set runtime = JBoss WS.</para>
-    <para>After set server and runtime, click <property>Aplly</property> button to save the value.</para>
-    <figure>
-      <title></title>
-      <mediaobject>
-        <imageobject>
-          <imagedata fileref="images/"/>
-        </imageobject>
-      </mediaobject>
-     </figure>
-  </section>
-  
+<para>In this chapter you get to know how JBossWS preferences can be modified during the development process.</para>
+
+       <para>JBossWS preferences can be set using the JBossWS preference page. Click on <emphasis><property>Window > Preferences > JBoss Tools > Web > JBossWS Preference</property>.</emphasis></para>
+   
+       <para>On this page you can manage the JBossWS Runtime. Use the appropriate buttons to <property>Add</property> more runtimes or to <property>Remove</property> those that are not needed.</para>
+   
+       <figure>
+           <title>JBossWS Preferences Page</title>
+           <mediaobject> 
+               <imageobject>
+                   <imagedata fileref="images/Jbossws_preference.png"/>
+               </imageobject>
+           </mediaobject>
+       </figure>
+       
+       <para>Clicking on <property>Edit</property> button you will get the form where you can change the path of JBossWS runtime home folder, 
+           modify name and version. Press <property>Finish</property> to apply the changes.</para>
+       
+       <figure>
+           <title>Edit JBossWS Runtime</title>
+           <mediaobject> 
+               <imageobject>
+                   <imagedata fileref="images/Jbossws_preference_new.png"/>
+               </imageobject>
+           </mediaobject>
+       </figure>
 </chapter>
