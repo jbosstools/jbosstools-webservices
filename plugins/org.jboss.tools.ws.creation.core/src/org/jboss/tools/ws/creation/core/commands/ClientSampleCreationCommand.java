@@ -109,7 +109,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		createWebServiceClient(clientUnits, serviceUnits, sb);
 		sb.append("        System.out.println(\"***********************\");");
 		sb.append(LINE_SEPARATOR);
-		sb.append(JBossWSCreationCoreMessages.Client_Sample_Run_Over);
+		sb.append("        System.out.println(\"").append(JBossWSCreationCoreMessages.Client_Sample_Run_Over).append("\");");
 		sb.append(LINE_SEPARATOR);
 		sb.append("}");
 		try {
@@ -168,7 +168,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	private void callWebServiceOperation(TypeDeclaration typeDec,
 			StringBuffer sb, int i) {
 		sb.append("        System.out.println(\""
-				+ "Create Web Service Operation...\");");
+				+ "Call Web Service Operation...\");");
 		sb.append(LINE_SEPARATOR);
 		
 		MethodDeclaration methodDec[] = typeDec.getMethods();
