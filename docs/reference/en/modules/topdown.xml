@@ -8,19 +8,22 @@
             <keyword>JBossWS Web Service runtime</keyword>
         </keywordset>
     </chapterinfo>
-      <section id="overview">
-    <title>JBoss WS Overview</title>
-
-    <para>JBossWS is a web service framework developed as part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5)</para>
-
-  </section>
   
     <title>Creating a Web Service using JBossWS runtime</title>
     <para>In this chapter we provide you with the necessary steps to create a Web Service using JBossWS runtime.</para>
   
    <section id="createproject">
-   	<title>Creating a Dynamic Web project</title>
-    <para>Before create a web service, you must have a Dynamic Web Project</para>
+	<title>Creating a Dynamic Web project</title>
+
+  	<para>Before create a web service, you must have a Dynamic Web Project</para>
+    <figure>
+      <title>Dynamic Web Project</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/webproject1.png"></imagedata>
+        </imageobject>
+      </mediaobject>
+     </figure>
   	<para>Create the service Web project by selecting
         <emphasis><property>New > Project... > Dynamic Web project</property></emphasis>. Enter the following information: </para>
        <itemizedlist>
@@ -29,7 +32,26 @@
           </listitem>
           <listitem>
              <para>Target runtime: any server depending on you installed. If it is not listed, click New and browse to the location where it is installed. You may set <emphasis><property>Target Runtime</property></emphasis> to <emphasis><property>None</property></emphasis>, 
-             in this case, you must <link linkend="addfacet">add JBoss Web Service facet to the project</link> </para>
+             in this case, you must <link linkend="addfacet">add JBoss Web Service facet to the project</link> .</para>
+    <figure>
+      <title>Dynamic Web Project Wizard</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/webproject2.png"></imagedata>
+        </imageobject>
+      </mediaobject>
+     </figure>
+          </listitem>
+          <listitem>
+             <para>Set Web Module values</para>
+             <figure>
+                <title>Configures Web Module Settings</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/webproject3.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
           </listitem>
         </itemizedlist>
   	<para>Click <property>Finish</property> button.</para>
@@ -128,7 +150,140 @@
 	</section>
 	
 	<section id="bottomupws">
-	  <title>Creating a Web service from a Java bean using JBossWS runtime </title>
+	   <title>Creating a Web service from a Java bean using JBossWS runtime</title>
+  <para>The Web Service wizard assists you in creating a new Web service, configuring it for deployment, and deploying the Web service to a server.</para>
+  <para>To create a Web service from a bean using JBoss WS:</para>
+  <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
+  <para><link linkend="webproject">Creating a Dynamic Web project</link>.</para>
+  <para><link linkend="facet">Add JBossWS Facet to Web project</link>.</para>
+  <para>Create a Web Service from a java bean: </para>
+     <itemizedlist>
+        <listitem>
+           <para>Switch to the Java EE perspective <emphasis><property>Window > Open Perspective > Java EE</property></emphasis>.</para>
+        </listitem>
+        <listitem>
+           <para>In the Project Explorer view, select the bean that you created or imported into the source folder of your Web project.</para> 
+             <figure>
+                <title>Create a new Bean Class</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/bottomup.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+        </listitem>
+        <listitem>
+           <para>Click <emphasis><property>File > New > Other</property></emphasis>.Select Web Services in order to display the various Web service wizards. Select the Web Service wizard. Click <property>Next</property> button.</para> 
+             <figure>
+                <title>New Web Service</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/bottomup1.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>        
+        </listitem>
+        <listitem>
+           <para>In the first Web Service wizard page: select <property>Bottom up Java bean Web service</property> as your Web service type, and select the Java bean from which the service will be created.</para> 
+             <figure>
+                <title>Set Web Service Common values</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/bottomup2.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+           <itemizedlist>
+              <listitem>
+                 <para>Select the stages of Web service development that you want to complete using the slider: </para>
+                 <itemizedlist>
+                    <listitem> 
+                       <para>Develop: this will develop the WSDL definition and implementation of the Web service. This includes such tasks as creating the modules which will contain the generated code, WSDL files, deployment descriptors, and Java files when appropriate.</para>> 
+                    </listitem>
+                    <listitem> 
+                       <para>Assemble: this ensures the project that will host the Web service or client gets associated to an EAR when required by the target application server.</para>> 
+                    </listitem>
+                    <listitem> 
+                       <para>Deploy: this will create the deployment code for the service.</para>> 
+                    </listitem>
+                    <listitem> 
+                       <para>Install: this will install and configure the Web module and EARs on the target server.</para>> 
+                    </listitem>
+                    <listitem> 
+                       <para>Start: this will start the server once the service has been installed on it. The server-config.wsdd file will be generated.</para>> 
+                    </listitem>
+                     <listitem> 
+                       <para>Test: this will provide various options for testing the service, such as using the Web Service Explorer or sample JSPs</para>> 
+                    </listitem>                   
+                 </itemizedlist>              
+              </listitem>
+              <listitem>Select your server: the default server is displayed. If you want to deploy your service to a different server click the link to specify a different server.</listitem>
+              <listitem>Select your runtime: ensure the JBoss WS runtime is selected.</listitem>
+              <listitem>Select the service project: the project selected in your workspace is displayed. To select a different project click on the project link. If you are deploying to JBoss Application Server you will also be asked to select the EAR associated with the project. Ensure that the project selected as the Client Web Project is different from the Service Web Project, or the service will be overwritten by the client's generated artifacts.</listitem>
+              <listitem>If you want to create a client, select the type of proxy to be generated and repeat the above steps for the client. The better way is to create a web service client project seperately.</listitem>
+           </itemizedlist>
+           <para>Click <property>Next</property> button.</para>
+        </listitem>
+        <listitem>
+           <para>In the JBoss Web Service Code Generation Configuration page, you set values:</para> 
+             <figure>
+                <title>Set Web Service values about Code Generation</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/bottomup3.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+           <itemizedlist>
+              <listitem>
+                 <para>Generate WSDL file: select it, you will get a generated WSDL file in your project. But this wsdl's services' address location values are not real address. </para>
+              </listitem>
+              <listitem>After the Web service has been created, the following may occur depending on the options you selected:
+                 <para>Update the default web.xml: select it, you may test the web service by Explorer.</para>
+              </listitem>
+           </itemizedlist>
+           <para>Click <property>Next</property> button.</para>
+        </listitem> 
+        <listitem>
+           <para>In this page, the project is deployed to the server. you can start server and test the web service. If you want to publish the web service to a UDDI registry, you may click <property>Next</property> button to publish it. If not, you may click <property>Finish</property> button.</para>
+             <figure>
+                <title>Start a Server</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/bottomup4.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+        </listitem>       
+     </itemizedlist>
+     <para>After the Web Service has been created, the following may occur depending on the options you selected:</para>
+     <itemizedlist>
+        <listitem>
+           <para> the generated web services codes</para>
+        </listitem>
+        <listitem>
+           <para>If have selected to generate WSDL file, you will get the file in your project's WebContent > wsdl folder.</para>
+             <figure>
+                <title>The generated WSDL file</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/bottomup6.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+        </listitem>
+        <listitem>
+           <para>If have selected to update the default web.xml, you will test the web service in browser.Open the Explorer, input the url for the web service according to web.xml plus <property>?wsdl.</property>, you will get the WSDL file from Explorer. </para>
+             <figure>
+                <title>The Updated web.xml</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/bottomup5.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+        </listitem>
+     </itemizedlist>
 	</section>
 
 </chapter>

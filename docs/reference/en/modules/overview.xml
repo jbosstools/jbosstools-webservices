@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<chapter id="overview" revisionflag="overview">
+   <title>JBossWS Runtime Overview</title>
+
+    <para>JBossWS is a web service framework developed as part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5)</para>
+
+</chapter>S
