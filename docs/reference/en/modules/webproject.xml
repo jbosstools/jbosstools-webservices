@@ -3,6 +3,14 @@
   <title>Creating a Dynamic Web project</title>
 
   <para>Before create a web service, you must have a Dynamic Web Project</para>
+    <figure>
+      <title>Dynamic Web Project</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/webproject1.png"></imagedata>
+        </imageobject>
+      </mediaobject>
+     </figure>
   <para>Create the service Web project by selecting
         <emphasis><property>New > Project... > Dynamic Web project</property></emphasis>. Enter the following information: </para>
        <itemizedlist>
@@ -11,6 +19,25 @@
           </listitem>
           <listitem>
              <para>Target runtime: any server depending on you installed. If it is not listed, click New and browse to the location where it is installed. You may choose none of server.In this case, you must choose a JBoss WS runtime when you add a JBoss WS facet to this project.</para>
+    <figure>
+      <title>Dynamic Web Project Wizard</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/webproject2.png"></imagedata>
+        </imageobject>
+      </mediaobject>
+     </figure>
+          </listitem>
+          <listitem>
+             <para>Set Web Module values</para>
+             <figure>
+                <title>Configures Web Module Settings</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/webproject3.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
           </listitem>
         </itemizedlist>
   <para>Click <property>Finish</property> button.</para>

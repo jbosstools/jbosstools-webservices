@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <chapter id="client" revisionflag="added">
-  <title>Creating a Web service Client from a WSDL file using JBoss WS</title>
-  <para>To create a Web service Client from a WSDL file using JBoss WS:</para>
+  <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
+  <para>To create a Web Service Client from a WSDL Document using JBoss WS:</para>
   <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
   <para><link linkend="webproject">Creating a Dynamic Web project</link>.</para>
-  <para><link linkend="facet">Add JBossWS facet to web project</link>.</para>
-  <para>Create a Web Service Client from a WSDL file: </para>
+  <para><link linkend="facet">Add JBossWS Facet to Web project</link>.</para>
+  <para>Create a Web Service Client from a WSDL document: </para>
      <itemizedlist>
         <listitem>
            <para>Switch to the Java EE perspective <emphasis><property>Window > Open Perspective > Java EE</property></emphasis>.</para>
@@ -15,9 +15,33 @@
         </listitem>
         <listitem>
            <para>Click <emphasis><property>File > New > Other</property></emphasis>.Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click <property>Next</property> button.</para> 
+             <figure>
+                <title>New Web Service Client</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/client.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
         </listitem>
         <listitem>
            <para>The first and second Web Service Client wizard page are same to <link linkend="topdown">Web Service from a WSDL document</link>.</para> 
+             <figure>
+                <title>Set Web Service Common values</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/client1.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+             <figure>
+                <title>Set Web Service values about WSDL file</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/client2.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
            <para>The differences are:</para>
               <itemizedlist>
                  <listitem>
@@ -34,7 +58,15 @@
         </listitem>
         <listitem>
            <para>a client sample class.</para>
+             <figure>
+                <title>Client Sample Class</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/client3.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
         </listitem>
      </itemizedlist>
-     <para>JBoss WS support Java class test for Web Service. A client sample class will be generated, you may run this client as a java application to call the web service.</para>
+     <para>JBoss WS use a Java class to test Web Service. A client sample class will be generated, you may run this client as a java application to call a web service.</para>
 </chapter>
