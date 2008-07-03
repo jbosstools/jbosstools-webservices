@@ -2,11 +2,12 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3CR3//EN"
 "http://www.oasis-open.org/docbook/xml/4.3CR3/docbookx.dtd"
 
-[<!ENTITY preference SYSTEM "modules/preference.xml">
-<!ENTITY  facet SYSTEM "modules/facet.xml">
-<!ENTITY webproject SYSTEM "modules/webproject.xml">
-<!ENTITY bottomup SYSTEM "modules/bottomup.xml">
+[
 <!ENTITY topdown SYSTEM "modules/topdown.xml">
+<!ENTITY preference SYSTEM "modules/preference.xml">
+<!--ENTITY  facet SYSTEM "modules/facet.xml"-->
+<!--ENTITY webproject SYSTEM "modules/webproject.xml"-->
+<!ENTITY bottomup SYSTEM "modules/bottomup.xml">
 <!ENTITY client SYSTEM "modules/client.xml">
 ]>
 

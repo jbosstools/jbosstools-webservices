@@ -8,6 +8,13 @@
             <keyword>JBossWS Web Service runtime</keyword>
         </keywordset>
     </chapterinfo>
+      <section id="overview">
+    <title>JBoss WS Overview</title>
+
+    <para>JBossWS is a web service framework developed as part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5)</para>
+
+  </section>
+  
     <title>Creating a Web Service using JBossWS runtime</title>
     <para>In this chapter we provide you with the necessary steps to create a Web Service using JBossWS runtime.</para>
   

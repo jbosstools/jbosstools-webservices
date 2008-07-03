@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <chapter id="preference" revisionflag="added">
-  <title>JBoss WS and development environment</title>
-
-  <section id="overview">
-    <title>JBoss WS Overview</title>
-
-    <para>JBossWS is a web service framework developed as part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5)</para>
-
-  </section>
 
    <title>JBossWS Preferences</title>
 
@@ -26,8 +18,8 @@
            </mediaobject>
        </figure>
        
-       <para>Clicking on <property>Edit</property> button you will get the form where you can change the path of JBossWS runtime home folder, 
-           modify name and version. Press <property>Finish</property> to apply the changes.</para>
+       <para>Clicking on <emphasis><property>Add</property></emphasis> or <emphasis><property>Edit</property></emphasis> button you will get the form where you can configure a new JbossWS runtime and change the path of JBossWS runtime home folder, 
+           modify name and version of a existing JBossWS runtime settings. Press <property>Finish</property> to apply the changes.</para>
        
        <figure>
            <title>Edit JBossWS Runtime</title>
