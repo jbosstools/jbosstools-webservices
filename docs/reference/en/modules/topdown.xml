@@ -145,7 +145,24 @@
         If you want update the default Web.xml file with the Web Service servlets get configured, check <emphasis> <property>Update the default Web.xml</property> </emphasis> 
         check box. Click on <emphasis><property>Next</property> </emphasis> or <emphasis><property>Finish</property> </emphasis> button to generate code </para>
         
-        <para>In previous step, the Web Service code is generated, then you can view the implementation class and add business logic to each method.</para>
+        <para>Once the Web Service code is generated, you can view the implementation class and add business logic to each method.</para>
+         <figure id="figure_impl_code">
+            <title>The generated implementation Java code</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="images/jbossws_ws_Impl_code_view.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+        <para>View Web.xml</para>
+         <figure id="figure_webxml">
+            <title>Web.xml</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="images/jbossws_ws_webxml.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
 		
 	</section>
 	
