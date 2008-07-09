@@ -29,6 +29,7 @@ abstract  class AbstractGenerateCodeCommand extends AbstractDataModelOperation{
 	protected ServiceModel model;
 	private  String cmdFileName_linux; 
 	private  String cmdFileName_win;
+
 	
 	public AbstractGenerateCodeCommand(ServiceModel model){
 		this.model = model;
@@ -66,24 +67,30 @@ abstract  class AbstractGenerateCodeCommand extends AbstractDataModelOperation{
 			command += " -k " + args + " " + model.getWsdlURI();
 			Runtime rt = Runtime.getRuntime();
             Process proc = rt.exec(command, null, new File(commandLocation));
+            StringBuffer errorResult = new StringBuffer();
+            StringBuffer inputResult = new StringBuffer();
+            
+            convertInputStreamToString(errorResult, proc.getErrorStream());
+            convertInputStreamToString(errorResult, proc.getInputStream());
+            
             int exitValue = proc.waitFor();
             
             if(exitValue != 0){
-            	return StatusUtils.errorStatus(convertInputStreamToString(proc.getErrorStream()));
+            	return StatusUtils.errorStatus(errorResult.toString());
+            }else{
+            	 String resultInput = inputResult.toString();
+                 if(resultInput != null && resultInput.indexOf("[ERROR]") >= 0){
+                 	JBossWSCreationCore.getDefault().logError(resultInput);
+                 	IStatus errorStatus = StatusUtils.errorStatus(resultInput);
+                 	status = StatusUtils
+     						.errorStatus(
+     								JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
+     								new CoreException(errorStatus));
+                 }else{
+                 	JBossWSCreationCore.getDefault().logInfo(resultInput);
+                 }
             }
             
-            // log the result of the command execution
-            String resultOutput = convertInputStreamToString(proc.getInputStream());
-            if(resultOutput != null && resultOutput.indexOf("[ERROR]") >= 0){
-            	JBossWSCreationCore.getDefault().logError(resultOutput);
-            	IStatus errorStatus = StatusUtils.errorStatus(resultOutput);
-            	status = StatusUtils
-						.errorStatus(
-								JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
-								new CoreException(errorStatus));
-            }else{
-            	JBossWSCreationCore.getDefault().logInfo(resultOutput);
-            }
 		} catch (IOException e) {
 			JBossWSCreationCore.getDefault().logError(e);
 			
@@ -101,18 +108,32 @@ abstract  class AbstractGenerateCodeCommand extends AbstractDataModelOperation{
 		return status;
 	}
 	
-	private String convertInputStreamToString(InputStream input) throws IOException{
-		InputStreamReader ir = new InputStreamReader(input);
-        LineNumberReader reader = new LineNumberReader(ir);            
-        String str = reader.readLine();
-        StringBuffer result = new StringBuffer();
-        while(str != null){                
-            result.append(str).append("\t\r");
-            str = reader.readLine();
-            
-       }
-		return result.toString();
+	private void convertInputStreamToString(final StringBuffer result, final InputStream input) {
+
+		Thread thread = new Thread() {
+			public void run() {
+
+				try {
+					InputStreamReader ir = new InputStreamReader(input);
+					LineNumberReader reader = new LineNumberReader(ir);
+					String str;
+					str = reader.readLine();
+					while (str != null) {
+						result.append(str).append("\t\r");
+						str = reader.readLine();
+
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+		};
+		
+		thread.start();
+
 	}
+	
 	private void refreshProject(String project, IProgressMonitor monitor){
 		try {
 			JBossWSCreationUtils.getProjectByName(project).refreshLocal(2, monitor);
@@ -126,6 +147,7 @@ abstract  class AbstractGenerateCodeCommand extends AbstractDataModelOperation{
 	
 	abstract protected String getCommandLineFileName_linux();
 	abstract protected String getCommandLineFileName_win();
+	
 	
 
 }
