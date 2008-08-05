@@ -259,7 +259,7 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 		if(selectedJbws != null){
 		cmRuntime.select(selectIndex);
 		saveJBosswsRuntimeToModel(selectedJbws);
-		}else{
+		}else if(defaultJbws != null){
 			cmRuntime.select(defaultIndex);
 			saveJBosswsRuntimeToModel(defaultJbws);
 		}
