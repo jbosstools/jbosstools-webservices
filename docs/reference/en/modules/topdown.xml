@@ -73,7 +73,7 @@
      </para>
      <para>If the project has no <emphasis><property>Target Runtime</property></emphasis> settings, you must check the second radio button and specify a JBossWS runtime from the list.
       You also can create a new JBossWS runtime, click <emphasis><property>New...</property></emphasis> button will bring you to another dialog for configuring new JBossWS runtime.</para>
-     <figure id="figure_addfacet">
+     <figure id="figure_addfacet1">
             <title>Configure JBossWS Runtime</title>
             <mediaobject>
                 <imageobject>
@@ -120,7 +120,7 @@
                 <property>Finish</property>
             </emphasis> Button you will have the following wizard view.</para>
             
-                    <figure id="figure_create_ws_topdown">
+                    <figure id="figure_create_ws_topdown1">
             <title>New Web Service Wizard</title>
             <mediaobject>
                 <imageobject>
