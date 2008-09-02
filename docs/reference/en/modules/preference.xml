@@ -4,9 +4,9 @@
  <section id="jbosswspreference">
    <title>JBossWS Preferences</title>
 
-<para>In this section you get to know how JBossWS preferences can be modified during the development process.</para>
+<para>In this section you will know how JBossWS preferences can be modified during the development process.</para>
 
-       <para>JBossWS preferences can be set using the JBossWS preference page. Click on <emphasis><property>Window > Preferences > JBoss Tools > Web > JBossWS Preference</property>.</emphasis></para>
+       <para>JBossWS preferences can be set on the JBossWS preference page. Click on <emphasis><property>Window > Preferences > JBoss Tools > Web > JBossWS Preferences</property>.</emphasis></para>
    
        <para>On this page you can manage the JBossWS Runtime. Use the appropriate buttons to <property>Add</property> more runtimes or to <property>Remove</property> those that are not needed.</para>
    
@@ -19,8 +19,8 @@
            </mediaobject>
        </figure>
        
-       <para>Clicking on <emphasis><property>Add</property></emphasis> or <emphasis><property>Edit</property></emphasis> button you will get the form where you can configure a new JbossWS runtime and change the path of JBossWS runtime home folder, 
-           modify name and version of a existing JBossWS runtime settings. Press <property>Finish</property> to apply the changes.</para>
+       <para>Clicking on <emphasis><property>Add</property></emphasis> or <emphasis><property>Edit</property></emphasis> button will open the form where you can configure a new JbossWS runtime and change the path to JBossWS runtime home folder, 
+           modify the name and version of the existing JBossWS runtime settings. Press <property>Finish</property> to apply the changes.</para>
        
        <figure>
            <title>Edit JBossWS Runtime</title>
@@ -34,9 +34,9 @@
   <section id="serverruntime">
     <title>Default Server and Runtime</title>
     <para>Open
-        <emphasis><property>Window > Preferences > Web Services > Server and Runtime</property></emphasis>. In this page, you can set default server and runtime.</para>
-    <para>For ease of use, the better way is to set runtime = JBoss WS.</para>
-    <para>After set server and runtime, click <property>Aplly</property> button to save the value.</para>
+        <emphasis><property>Window > Preferences > Web Services > Server and Runtime</property></emphasis>. On this page, you can specify a default server and runtime.</para>
+    <para>For ease of use, the better way is to set runtime to JBoss WS.</para>
+    <para>After server and runtime are specified, click on the <property>Aply</property> button to save the values.</para>
     <figure>
       <title></title>
       <mediaobject>
