@@ -201,7 +201,7 @@
              </figure>        
         </listitem>
         <listitem>
-           <para>On the first Web Service wizard page: select <property>Bottom up Java bean Web service</property> as your Web service type, and select the Java bean from which the service will be created.</para> 
+           <para>On the first Web Service wizard page: select <property>Bottom up Java bean Web service</property> as your Web service type, and select the Java bean from which the service will be created:</para> 
              <figure>
                 <title>Set Web Service Common values</title>
                 <mediaobject>
@@ -215,7 +215,7 @@
                  <para>Select the stages of Web service development that you want to complete using the slider: </para>
                  <itemizedlist>
                     <listitem> 
-                       <para>Develop: this will develop the WSDL definition and implementation of the Web service. This includes such tasks as creating the modules which will contain the generated code, WSDL files, deployment descriptors, and Java files when appropriate.</para>> 
+                       <para>Develop: this will develop the WSDL definition and implementation of the Web service. This includes such tasks as creating modules that will contain generated code, WSDL files, deployment descriptors, and Java files when appropriate.</para>> 
                     </listitem>
                     <listitem> 
                        <para>Assemble: this ensures the project that will host the Web service or client gets associated to an EAR when required by the target application server.</para>> 
@@ -230,21 +230,21 @@
                        <para>Start: this will start the server once the service has been installed on it. The server-config.wsdd file will be generated.</para>> 
                     </listitem>
                      <listitem> 
-                       <para>Test: this will provide various options for testing the service, such as using the Web Service Explorer or sample JSPs</para>> 
+                       <para>Test: this will provide various options for testing the service, such as using the Web Service Explorer or sample JSPs.</para>> 
                     </listitem>                   
                  </itemizedlist>              
               </listitem>
               <listitem>Select your server: the default server is displayed. If you want to deploy your service to a different server click the link to specify a different server.</listitem>
               <listitem>Select your runtime: ensure the JBoss WS runtime is selected.</listitem>
               <listitem>Select the service project: the project selected in your workspace is displayed. To select a different project click on the project link. If you are deploying to JBoss Application Server you will also be asked to select the EAR associated with the project. Ensure that the project selected as the Client Web Project is different from the Service Web Project, or the service will be overwritten by the client's generated artifacts.</listitem>
-              <listitem>If you want to create a client, select the type of proxy to be generated and repeat the above steps for the client. The better way is to create a web service client project seperately.</listitem>
+              <listitem>If you want to create a client, select the type of proxy to be generated and repeat the above steps for the client. The better way is to create a web service client project separately.</listitem>
            </itemizedlist>
-           <para>Click <property>Next</property> button.</para>
+           <para>Click on the <property>Next</property> button.</para>
         </listitem>
         <listitem>
-           <para>In the JBoss Web Service Code Generation Configuration page, you set values:</para> 
+           <para>On the JBoss Web Service Code Generation Configuration page, set the following values:</para> 
              <figure>
-                <title>Set Web Service values about Code Generation</title>
+                <title>Set Web Service values for Code Generation</title>
                 <mediaobject>
                    <imageobject>
                       <imagedata fileref="images/jbossws_bottomup_3.png"></imagedata>
@@ -253,16 +253,16 @@
              </figure>
            <itemizedlist>
               <listitem>
-                 <para>Generate WSDL file: select it, you will get a generated WSDL file in your project. But this wsdl's services' address location values are not real address. </para>
+                 <para>Generate WSDL file: select it, you will get a generated WSDL file in your project. But this wsdl's services' address location values are not a real address. </para>
               </listitem>
-              <listitem>After the Web service has been created, the following may occur depending on the options you selected:
-                 <para>Update the default web.xml: select it, you may test the web service by Explorer.</para>
+              <listitem>After the Web service has been created, the following option can become available depending on the options you selected:
+                 <para>Update the default web.xm file: if selected, you may test the web service by Explorer.</para>
               </listitem>
            </itemizedlist>
-           <para>Click <property>Next</property> button.</para>
+           <para>Click on the <property>Next</property> button.</para>
         </listitem> 
         <listitem>
-           <para>In this page, the project is deployed to the server. you can start server and test the web service. If you want to publish the web service to a UDDI registry, you may click <property>Next</property> button to publish it. If not, you may click <property>Finish</property> button.</para>
+           <para>On this page, the project is deployed to the server. You can start the server and test the web service. If you want to publish the web service to a UDDI registry, you may click the <property>Next</property> button to publish it. If not, you may click the <property>Finish</property> button.</para>
              <figure>
                 <title>Start a Server</title>
                 <mediaobject>
@@ -273,29 +273,29 @@
              </figure>
         </listitem>       
      </itemizedlist>
-     <para>After the Web Service has been created, the following may occur depending on the options you selected:</para>
+     <para>After the Web Service has been created, the following options may become available depending on the options selected:</para>
      <itemizedlist>
         <listitem>
-           <para> the generated web services codes</para>
+           <para>the generated web services code</para>
         </listitem>
         <listitem>
-           <para>If have selected to generate WSDL file, you will get the file in your project's WebContent > wsdl folder.</para>
+           <para>If you selected to generate a WSDL file, you will get the file in your project's WebContent > wsdl folder.</para>
              <figure>
                 <title>The generated WSDL file</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/jbossws_bottomup_6.png"></imagedata>
+                      <imagedata scale="80" fileref="images/jbossws_bottomup_6.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
         </listitem>
         <listitem>
-           <para>If have selected to update the default web.xml, you will test the web service in browser.Open the Explorer, input the url for the web service according to web.xml plus <property>?wsdl.</property>, you will get the WSDL file from Explorer. </para>
+           <para>If you selected to update the default web.xml, you will test the web service in the browser. Open the Explorer, input the url for the web service according to web.xml plus <property>?wsdl.</property>, you will get the WSDL file from Explorer. </para>
              <figure>
-                <title>The Updated web.xml</title>
+                <title>The Updated web.xml file</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/jbossws_bottomup_5.png"></imagedata>
+                      <imagedata scale="80" fileref="images/jbossws_bottomup_5.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
