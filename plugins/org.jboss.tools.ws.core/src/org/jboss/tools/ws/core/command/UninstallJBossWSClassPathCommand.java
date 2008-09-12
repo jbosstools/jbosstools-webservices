@@ -69,6 +69,10 @@ public class UninstallJBossWSClassPathCommand {
 
 	public IStatus removeClassPath(IProject project, String segment) {
 		IStatus status = Status.OK_STATUS;
+		if(segment == null || "".equals(segment)){
+			return status;
+		}
+		
 		try {
 			IJavaProject javaProject = JavaCore.create(project);
 			IClasspathEntry[] oldClasspathEntries = javaProject

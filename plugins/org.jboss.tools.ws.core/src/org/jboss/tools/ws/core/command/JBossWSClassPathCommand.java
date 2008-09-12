@@ -62,6 +62,18 @@ public class JBossWSClassPathCommand extends AbstractDataModelOperation {
 						.setPersistentProperty(
 								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME,
 								IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED);
+				project
+						.setPersistentProperty(
+								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME,
+								null);
+				project
+						.setPersistentProperty(
+								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_RNTIME_LOCATION,
+								null);
+				project
+						.setPersistentProperty(
+								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_ISDEPLOYED,
+								null);
 			} else {
 				// store runtime name and runtime location to the project
 
@@ -69,6 +81,7 @@ public class JBossWSClassPathCommand extends AbstractDataModelOperation {
 						.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
 				String runtimeLocation = model
 						.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME);
+				boolean isDeployed = model.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_DEPLOY);
 				project
 						.setPersistentProperty(
 								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME,
@@ -77,8 +90,13 @@ public class JBossWSClassPathCommand extends AbstractDataModelOperation {
 						.setPersistentProperty(
 								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_RNTIME_LOCATION,
 								runtimeLocation);
-				boolean isDeployed = model
-						.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_DEPLOY);
+				project.setPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_ISDEPLOYED,
+						String.valueOf(isDeployed));
+				
+				project
+				.setPersistentProperty(
+						IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME,
+						null);
 
 				status = addClassPath(project, runtimeName, isDeployed);
 			}

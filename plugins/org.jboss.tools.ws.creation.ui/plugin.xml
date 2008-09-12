@@ -62,5 +62,13 @@
          </page>
       </wizard-pages>
    </extension>
+  <extension
+        point="org.eclipse.ui.propertyPages">
+     <page
+           class="org.jboss.tools.ws.creation.ui.project.facet.JBossWSPropertyPage"
+           id="org.jboss.tools.ws.creation.ui.page"
+           name="JBossWS Runtime">
+     </page>
+  </extension>
 
 </plugin>
