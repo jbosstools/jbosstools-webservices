@@ -23,8 +23,15 @@
          <releaseinfo>
             Version: 3.0.GA
          </releaseinfo>
+<abstract>
+   <title/>
+       <para>
+           <ulink url="http://download.jboss.org/jbosstools/nightly-docs/en/ws_ref_guide/pdf/WS_Reference_Guide.pdf">PDF version</ulink>
+       </para>
+</abstract>
+
+
     </bookinfo>
-	
     
     <toc/> 
     &overview;
