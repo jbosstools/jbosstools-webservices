@@ -77,11 +77,8 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 	private Composite root = null;
 
 	private ActionPanel actionPanel;
-	
+
 	private JBossWSRuntime tempJbws;
-
-
-
 
 	private Group jarGroup;
 
@@ -103,17 +100,17 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 			JBossWSRuntime jbws) {
 		super(name, label, jbws);
 		this.tempJbws = new JBossWSRuntime();
-		if(jbws != null){
+		if (jbws != null) {
 			this.tempJbws.setUserConfigClasspath(jbws.isUserConfigClasspath());
 			this.tempJbws.getLibraries().addAll(jbws.getLibraries());
 		}
-		
+
 	}
 
-
-	public Object getValue(){
+	public Object getValue() {
 		return this.tempJbws;
 	}
+
 	/**
 	 * TBD
 	 * 
@@ -131,19 +128,19 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		root.setLayoutData(gd);
 
 		root.setLayout(new GridLayout());
-		
+
 		createCheckButton(root);
-		
-		jarGroup = new Group(root, SWT.BORDER);
+
+		jarGroup = new Group(root, SWT.NONE);
 		jarGroup.setText("Library Jars");
 		gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalAlignment = GridData.FILL;
-		gd.grabExcessHorizontalSpace = true; 
-		
-		
+		gd.grabExcessHorizontalSpace = true;
+
+		jarGroup.setVisible(false);
 		jarGroup.setLayoutData(gd);
 		jarGroup.setLayout(new FormLayout());
-		
+
 		createListView(jarGroup);
 		createActionBar(jarGroup);
 
@@ -159,31 +156,37 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		actionsData.bottom = new FormAttachment(100, -5);
 		actionsData.right = new FormAttachment(100, -5);
 		actionPanel.setLayoutData(actionsData);
-		
+
 		setJarGroupStatus();
 		return new Control[] { root };
 	}
 
-	protected void createCheckButton(Composite parent){
+	protected void createCheckButton(Composite parent) {
 		final Button btnDefault = new Button(parent, SWT.CHECK);
-		btnDefault.setText(JBossWSUIMessages.JBossWS_Runtime_Check_Field_Default_Classpath);
+		btnDefault
+				.setText(JBossWSUIMessages.JBossWS_Runtime_Check_Field_Default_Classpath);
 		GridData gd = new GridData();
 		gd.horizontalSpan = 2;
 		btnDefault.setLayoutData(gd);
-		
+
 		btnDefault.setSelection(tempJbws.isUserConfigClasspath());
-		btnDefault.addSelectionListener(new SelectionAdapter(){
+		btnDefault.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				if (jarGroup.isVisible()) {
+					jarGroup.setVisible(false);
+				} else {
+					jarGroup.setVisible(true);
+				}
+
 				tempJbws.setUserConfigClasspath(btnDefault.getSelection());
 				setJarGroupStatus();
 				setValue(null);
 			}
 		});
-		
-		
+
 	}
-	
-	protected void setJarGroupStatus(){
+
+	protected void setJarGroupStatus() {
 		boolean isUserConfig = tempJbws.isUserConfigClasspath();
 		jarGroup.setEnabled(isUserConfig);
 		listView.getTree().setEnabled(isUserConfig);
@@ -191,14 +194,16 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 	}
 
 	protected void createListView(Composite parent) {
-		listView = new TreeViewer(parent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		listView = new TreeViewer(parent, SWT.BORDER | SWT.H_SCROLL
+				| SWT.V_SCROLL);
 		listView.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+
 		listView.setContentProvider(new ITreeContentProvider() {
 
 			public Object[] getElements(Object inputElement) {
 				if (inputElement instanceof JBossWSRuntime) {
-					return ((JBossWSRuntime) inputElement).getLibraries().toArray();
+					return ((JBossWSRuntime) inputElement).getLibraries()
+							.toArray();
 				} else {
 					throw new IllegalArgumentException(
 							JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be
@@ -233,6 +238,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		listView.setLabelProvider(new ILabelProvider() {
 
 			Image jarImg;
+
 			public void addListener(ILabelProviderListener listener) {
 			}
 
@@ -247,32 +253,31 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 			}
 
 			public Image getImage(Object element) {
-				if (jarImg == null){
-					ImageDescriptor jarImgDesc = JBossWSUIPlugin.getImageDescriptor("obj16/jar_obj.gif"); 
+				if (jarImg == null) {
+					ImageDescriptor jarImgDesc = JBossWSUIPlugin
+							.getImageDescriptor("obj16/jar_obj.gif");
 					jarImg = jarImgDesc.createImage();
 				}
 				return jarImg;
 			}
 
 			public String getText(Object element) {
-				String fullName = (String)element;
+				String fullName = (String) element;
 				File jarFile = new File(fullName);
-				return jarFile.getName() + " - " + jarFile.getParentFile().toString();
+				return jarFile.getName() + " - "
+						+ jarFile.getParentFile().toString();
 			}
 		});
 
-		
 		listView.setInput(getValue());
-		
+
 	}
 
 	protected void createActionBar(Composite parent) {
-		actionPanel = new ActionPanel(parent, new BaseAction[] { new AddAction(),
-				 new RemoveAction() });
+		actionPanel = new ActionPanel(parent, new BaseAction[] {
+				new AddAction(), new RemoveAction() });
 		listView.addSelectionChangedListener(actionPanel);
 	}
-
-	
 
 	/**
 	 * Return array of Controls that forms and editor
@@ -317,8 +322,6 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 
 		((Control) getEditorControls()[0]).setLayoutData(gd);
 	}
-
-
 
 	/**
 	 * Composite that holds list of BaseActions and presents them as column of
@@ -475,7 +478,8 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		public void setSelection(ISelection selection) {
 			if (selection instanceof IStructuredSelection) {
 				List<String> rts = new ArrayList<String>();
-				for (Object jarfile : ((IStructuredSelection) selection).toArray()) {
+				for (Object jarfile : ((IStructuredSelection) selection)
+						.toArray()) {
 					rts.add((String) jarfile);
 				}
 				jars = rts.toArray(new String[] {});
@@ -541,7 +545,6 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 			}
 		}
 	}
- 
 
 	/**
 	 * Action deletes all selected JBossWS Runtimes. A warning message is shown
@@ -579,6 +582,5 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 			setValue(null);
 		}
 
-		 
 	}
 }
