@@ -398,8 +398,15 @@ public class ImplementationClassCreationCommand extends
 					.getComponentType()));
 		} else if (type instanceof ParameterizedType) {
 			ParameterizedType ptype = (ParameterizedType) type;
-			ast.newParameterizedType(copyTypeFromOtherASTNode(ast, ptype
+			ParameterizedType newParaType = ast.newParameterizedType(copyTypeFromOtherASTNode(ast, ptype
 					.getType()));
+			for(Object arg : ptype.typeArguments()){
+				if(arg instanceof Type){
+					Type newArg = copyTypeFromOtherASTNode(ast, (Type)arg);
+					newParaType.typeArguments().add(newArg);
+				}
+			}
+			return newParaType;
 		} else if (type instanceof WildcardType) {
 			WildcardType sourcetype = (WildcardType) type;
 			WildcardType wtype = ast.newWildcardType();

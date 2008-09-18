@@ -71,7 +71,7 @@ abstract  class AbstractGenerateCodeCommand extends AbstractDataModelOperation{
             StringBuffer inputResult = new StringBuffer();
             
             convertInputStreamToString(errorResult, proc.getErrorStream());
-            convertInputStreamToString(errorResult, proc.getInputStream());
+            convertInputStreamToString(inputResult, proc.getInputStream());
             
             int exitValue = proc.waitFor();
             
