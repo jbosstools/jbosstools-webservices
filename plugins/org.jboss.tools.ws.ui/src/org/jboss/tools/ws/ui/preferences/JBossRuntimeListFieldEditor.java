@@ -55,6 +55,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.wst.common.project.facet.core.IProjectFacet;
+import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
+import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jboss.tools.ws.ui.utils.UIUtils;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
@@ -418,8 +421,8 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 		IFieldEditor name = createTextEditor(SRT_NAME,
 				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name2, ""); //$NON-NLS-1$ 
 
-		IFieldEditor version = createTextEditor(SRT_VERSION,
-				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version, ""); //$NON-NLS-1$ 
+		IFieldEditor version = createComboEditor(SRT_VERSION,
+				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version,getESBFacetVersions(), ""); //$NON-NLS-1$ 
 
 		IFieldEditor homeDir = createBrowseFolderEditor(
 				SRT_HOMEDIR,
@@ -564,6 +567,19 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 
 			return true;
 		}
+		
+		/*
+		 * get facet version.
+		 */
+		private List<String> getESBFacetVersions(){
+			List<String> versions = new ArrayList<String>();
+			IProjectFacet esbfacet = ProjectFacetsManager.getProjectFacet("jbossws.core");
+			for(IProjectFacetVersion version: esbfacet.getVersions()){
+				versions.add(version.getVersionString());
+			}
+			
+			return versions;
+		}
 
 		/**
 		 * Return JBossWS Runtime instance initialized by user input
@@ -603,6 +619,16 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 									name,
 									createSelectFolderAction(JBossWSUIMessages.JBossWS_SWT_Field_Editor_Factory_Browse),
 									defaultValue) });
+			return editor;
+		}
+		
+		public IFieldEditor createComboEditor(String name, String label,
+				List<String> values, String defaultValue) {
+			CompositeEditor editor = new CompositeEditor(name, label,
+					defaultValue);
+			editor.addFieldEditors(new IFieldEditor[] {
+					new LabelFieldEditor(name, label),
+					new ComboFieldEditor(name, label, values, defaultValue, false) });
 			return editor;
 		}
 
