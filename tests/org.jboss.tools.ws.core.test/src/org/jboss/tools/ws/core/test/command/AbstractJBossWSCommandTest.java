@@ -68,7 +68,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	protected static final int DEFAULT_STARTUP_TIME = 150000;
 	protected static final int DEFAULT_SHUTDOWN_TIME = 90000;
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "/home/grid/Software/jboss-4.2.2.GA";
+	protected static final String JBOSSWS_HOME_DEFAULT = "D:/softinstall/jboss-4.2.2.GA/jboss-4.2.2.GA";
 	public static final String JBOSS_RUNTIME_42 = "org.jboss.ide.eclipse.as.runtime.42";
 	public static final String JBOSS_AS_42_HOME = System.getProperty(JBOSS_RUNTIME_42, JBOSSWS_HOME_DEFAULT);
 	public static final String JBOSS_SERVER_42 = "org.jboss.ide.eclipse.as.42";
@@ -92,7 +92,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		javaVersion = ProjectFacetsManager.getProjectFacet("jst.java").getVersion("5.0");
 		dynamicWebVersion = ProjectFacetsManager.getProjectFacet("jst.web").getVersion("2.5");
 		jbosswsFacet = ProjectFacetsManager.getProjectFacet("jbossws.core");
-		jbosswsFacetVersion = jbosswsFacet.getVersion("2.0.1");
+		jbosswsFacetVersion = jbosswsFacet.getVersion("2.0");
 		
 		
 	}
