@@ -58,6 +58,8 @@ import org.jboss.ide.eclipse.as.core.server.internal.DeployableServer;
 import org.jboss.ide.eclipse.as.core.server.internal.JBossServerBehavior;
 import org.jboss.tools.common.test.util.TestProjectProvider;
 import org.jboss.tools.test.util.JUnitUtils;
+import org.jboss.tools.test.util.JobUtils;
+import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.test.util.xpl.EditorTestHelper;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
@@ -69,8 +71,9 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	protected static final int DEFAULT_SHUTDOWN_TIME = 90000;
 
 	protected static final String JBOSSWS_HOME_DEFAULT = "D:/softinstall/jboss-4.2.2.GA/jboss-4.2.2.GA";
+	public static final String JBOSSWS_42_HOME="jbosstools.test.jboss.home.4.2";
 	public static final String JBOSS_RUNTIME_42 = "org.jboss.ide.eclipse.as.runtime.42";
-	public static final String JBOSS_AS_42_HOME = System.getProperty(JBOSS_RUNTIME_42, JBOSSWS_HOME_DEFAULT);
+	public static final String JBOSS_AS_42_HOME = System.getProperty(JBOSSWS_42_HOME, JBOSSWS_HOME_DEFAULT);
 	public static final String JBOSS_SERVER_42 = "org.jboss.ide.eclipse.as.42";
 	
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
@@ -126,20 +129,27 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		
 		undeployWebProject();
 
-		EditorTestHelper.joinBackgroundActivities();
-		EditorTestHelper.runEventQueue(3000);
-		Exception last = null;
-		for (IResource r : this.resourcesToCleanup) {
-			try {
-				System.out.println("Deleting " + r);
-				r.delete(true, null);
-			} catch(Exception e) {
-				System.out.println("Error deleting " + r);
-				e.printStackTrace();
-				last = e;
+	    boolean oldAutoBuilding = ResourcesUtils.setBuildAutomatically(false); 
+	    Exception last = null;
+	    
+	    try {
+		    JobUtils.waitForIdle(); 
+			
+			for (IResource r : this.resourcesToCleanup) {
+				try {
+					System.out.println("Deleting " + r);
+					r.delete(true, null);
+					JobUtils.waitForIdle();
+				} catch(Exception e) {
+					System.out.println("Error deleting " + r);
+					e.printStackTrace();
+					last = e;
+				}
 			}
-		}
-
+	    } finally {
+	    	ResourcesUtils.setBuildAutomatically(oldAutoBuilding);
+	    }
+	    
 		if(last!=null) throw last;
 		
 		resourcesToCleanup.clear();
@@ -259,9 +269,9 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	
 	protected File getJBossWSHomeFolder() {
 		
-		String jbosshome = System.getProperty(JBOSS_RUNTIME_42, JBOSSWS_HOME_DEFAULT);
+		String jbosshome = System.getProperty(JBOSSWS_42_HOME, JBOSSWS_HOME_DEFAULT);
 		File runtimelocation = new File(jbosshome);
-		assertTrue("Please set JBoss EAP Home in system property:" + JBOSS_RUNTIME_42, runtimelocation.exists());
+		assertTrue("Please set JBoss EAP Home in system property:" + JBOSSWS_42_HOME, runtimelocation.exists());
 		
 		String cmdFileLocation = jbosshome + File.separator + "bin" + File.separator + "wsconsume.sh";
 		assertTrue(jbosshome + " is not a valid jboss EAP home", new File(cmdFileLocation).exists());
