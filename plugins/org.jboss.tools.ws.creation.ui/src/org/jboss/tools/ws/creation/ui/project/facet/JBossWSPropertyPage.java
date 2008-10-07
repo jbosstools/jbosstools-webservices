@@ -2,6 +2,7 @@ package org.jboss.tools.ws.creation.ui.project.facet;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.dialogs.PropertyPage;
@@ -26,7 +27,13 @@ public class JBossWSPropertyPage extends PropertyPage implements
 
 	@Override
 	protected Control createContents(Composite parent) {
-		project = (IProject)this.getElement();
+		if(this.getElement() instanceof IJavaProject){
+			IJavaProject javaProject = (IJavaProject)this.getElement();
+			project = javaProject.getProject();
+		}else if(this.getElement() instanceof IProject){
+			project = (IProject)this.getElement();
+		}
+		
 		model = (IDataModel)new JBossWSFacetInstallDataModelProvider().create();
 		try {
 			String isDeploy = project.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_ISDEPLOYED);
