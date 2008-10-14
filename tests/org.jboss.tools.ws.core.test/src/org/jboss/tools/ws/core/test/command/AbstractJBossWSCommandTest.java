@@ -60,7 +60,6 @@ import org.jboss.tools.common.test.util.TestProjectProvider;
 import org.jboss.tools.test.util.JUnitUtils;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
-import org.jboss.tools.test.util.xpl.EditorTestHelper;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
 public abstract class AbstractJBossWSCommandTest extends TestCase {
@@ -110,15 +109,19 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		
 		createServer(JBOSS_RUNTIME_42, JBOSS_SERVER_42, JBOSS_AS_42_HOME, "default");
 		
-		try { EditorTestHelper.joinBackgroundActivities(); } 
-		catch (Exception e) { JUnitUtils.fail(e.getMessage(), e); }
-		EditorTestHelper.runEventQueue(3000);
+		try { 
+			JobUtils.waitForIdle(); 
+		} catch (Exception e) { 
+			JUnitUtils.fail(e.getMessage(), e); 
+		}
+		
+		JobUtils.delay(3000);
 	}
 	
 	public IProject createProject(String prjName) throws CoreException {
 		provider = new TestProjectProvider(BUNDLE,"/projects/"+prjName , prjName, true);
 		IProject prj = provider.getProject();
-		EditorTestHelper.joinBackgroundActivities();
+		JobUtils.waitForIdle();
 		return prj;
 	}
 	
