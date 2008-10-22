@@ -82,12 +82,14 @@ public class JBossWSRuntimeClassPathInitializer extends
 				JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
 						.findRuntimeByName(segment);
 				if (jbws != null) {
-					
-					List<String> jars = JBossWSRuntimeManager.getInstance().getAllRuntimeJars(jbws);
+
+					List<String> jars = JBossWSRuntimeManager.getInstance()
+							.getAllRuntimeJars(jbws);
 					for (String jar : jars) {
 						entryList.add(getEntry(new Path(jar)));
 					}
-					entries = entryList.toArray(new IClasspathEntry[entryList.size()]);
+					entries = entryList.toArray(new IClasspathEntry[entryList
+							.size()]);
 					if (entries == null)
 						return new IClasspathEntry[0];
 				}
@@ -104,14 +106,21 @@ public class JBossWSRuntimeClassPathInitializer extends
 			if (entries == null) {
 				return;
 			}
-			IClasspathEntry[] newEntries = new IClasspathEntry[entries.length - 1];
-			int i = 0;
+
+			List<IClasspathEntry> entriesList = new ArrayList<IClasspathEntry>();
 			for (IClasspathEntry entry : entries) {
-				if (!entry.toString().contains(jarName)) {
-					newEntries[i++] = entry;
+				if (entry != null) {
+					IPath path = entry.getPath();
+					if (path != null) {
+						if (path != null && path.lastSegment() != null
+								&& path.lastSegment().equals(jarName)) {
+							continue;
+						}
+					}
+					entriesList.add(entry);
 				}
 			}
-			entries = newEntries;
+			entries = entriesList.toArray(new IClasspathEntry[0]);
 		}
 
 	}
