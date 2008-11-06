@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: %PLUGIN_NAME
+Bundle-Name: JBossWS Creation Core
 Bundle-SymbolicName: org.jboss.tools.ws.creation.core
 Bundle-Version: 1.0.0
 Bundle-Activator: org.jboss.tools.ws.creation.core.JBossWSCreationCore
-Bundle-Vendor: %PLUGIN_PROVIDER
+Bundle-Vendor: JBoss, a division of Red Hat
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.wst.common.frameworks,
