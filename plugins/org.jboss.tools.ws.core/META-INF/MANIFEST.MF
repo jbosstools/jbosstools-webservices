@@ -21,7 +21,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jst.jsf.ui,
  org.eclipse.jdt.launching,
  org.eclipse.jst.j2ee,
- org.eclipse.jst.ws.consumption.ui
+ org.eclipse.jst.ws.consumption.ui,
+ org.jboss.ide.eclipse.as.classpath.core
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %PLUGIN_PROVIDER
 Export-Package: org.jboss.tools.ws.core,

@@ -17,20 +17,24 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.ClasspathContainerInitializer;
+import org.eclipse.jdt.core.IAccessRule;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.jboss.ide.eclipse.as.classpath.core.jee.AbstractClasspathContainer;
+import org.jboss.ide.eclipse.as.classpath.core.jee.AbstractClasspathContainerInitializer;
+import org.jboss.ide.eclipse.as.classpath.core.xpl.ClasspathDecorations;
 import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 
 /**
  * @author Grid Qian
  */
 public class JBossWSRuntimeClassPathInitializer extends
-		ClasspathContainerInitializer {
-
+AbstractClasspathContainerInitializer {
+	public final static String JBOSS_WS_RUNTIME_CLASSPATH_CONTAINER_ID = "org.jboss.ws.runtime.classpath";
 	public JBossWSRuntimeClassPathInitializer() {
 	}
 
@@ -55,12 +59,13 @@ public class JBossWSRuntimeClassPathInitializer extends
 		return new JBossWSRuntimeClasspathContainer(path).getClasspathEntries();
 	}
 
-	public class JBossWSRuntimeClasspathContainer implements
-			IClasspathContainer {
+	public class JBossWSRuntimeClasspathContainer extends
+	AbstractClasspathContainer {
 		private IPath path;
 		private IClasspathEntry[] entries = null;
 
 		public JBossWSRuntimeClasspathContainer(IPath path) {
+			super(path,JBossWSCoreMessages.JBossWS_Runtime_Lib,null);
 			this.path = path;
 		}
 
@@ -74,6 +79,51 @@ public class JBossWSRuntimeClassPathInitializer extends
 
 		public IPath getPath() {
 			return path;
+		}
+		
+		public IClasspathEntry[] computeEntries() {
+			ArrayList<IClasspathEntry> entryList = new ArrayList<IClasspathEntry>();
+			JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
+					.findRuntimeByName(segment);
+			
+			List<String> jars = null;
+			if (jbws != null) {
+				jars = JBossWSRuntimeManager.getInstance().getAllRuntimeJars(jbws);
+				for (String jar : jars) {
+					entryList.add(getEntry(new Path(jar)));
+				}
+			}	
+				if(jars == null){
+					return new IClasspathEntry[0];
+				}
+				
+				for (String jar : jars) {
+
+					IPath entryPath = new Path(jar);
+
+					IPath sourceAttachementPath = null;
+					IPath sourceAttachementRootPath = null;
+
+					final ClasspathDecorations dec = decorations.getDecorations(
+							getDecorationManagerKey(getPath().toString()),
+							entryPath.toString());
+
+					IClasspathAttribute[] attrs = {};
+					if (dec != null) {
+						sourceAttachementPath = dec.getSourceAttachmentPath();
+						sourceAttachementRootPath = dec
+								.getSourceAttachmentRootPath();
+						attrs = dec.getExtraAttributes();
+					}
+
+					IAccessRule[] access = {};
+					IClasspathEntry entry = JavaCore.newLibraryEntry(entryPath,
+							sourceAttachementPath, sourceAttachementRootPath,
+							access, attrs, false);
+					entryList.add(entry);
+				}			
+				entries = entryList.toArray(new IClasspathEntry[entryList.size()]);
+			return entries;
 		}
 
 		public IClasspathEntry[] getClasspathEntries() {
@@ -90,8 +140,35 @@ public class JBossWSRuntimeClassPathInitializer extends
 					}
 					entries = entryList.toArray(new IClasspathEntry[entryList
 							.size()]);
-					if (entries == null)
+					if(entryList.size() == 0){
 						return new IClasspathEntry[0];
+					}
+					
+					for (String jar : jars) {
+
+						IPath entryPath = new Path(jar);
+
+						IPath sourceAttachementPath = null;
+						IPath sourceAttachementRootPath = null;
+
+						final ClasspathDecorations dec = decorations.getDecorations(
+								getDecorationManagerKey(getPath().toString()),
+								entryPath.toString());
+
+						IClasspathAttribute[] attrs = {};
+						if (dec != null) {
+							sourceAttachementPath = dec.getSourceAttachmentPath();
+							sourceAttachementRootPath = dec
+									.getSourceAttachmentRootPath();
+							attrs = dec.getExtraAttributes();
+						}
+
+						IAccessRule[] access = {};
+						IClasspathEntry entry = JavaCore.newLibraryEntry(entryPath,
+								sourceAttachementPath, sourceAttachementRootPath,
+								access, attrs, false);
+						entryList.add(entry);
+					}
 				}
 			}
 			return entries;
@@ -132,6 +209,16 @@ public class JBossWSRuntimeClassPathInitializer extends
 			}
 		}
 		return true;
+	}
+
+	@Override
+	protected AbstractClasspathContainer createClasspathContainer(IPath path) {
+		return new JBossWSRuntimeClasspathContainer(path);
+	}
+
+	@Override
+	protected String getClasspathContainerID() {
+		return JBOSS_WS_RUNTIME_CLASSPATH_CONTAINER_ID;
 	}
 
 }
