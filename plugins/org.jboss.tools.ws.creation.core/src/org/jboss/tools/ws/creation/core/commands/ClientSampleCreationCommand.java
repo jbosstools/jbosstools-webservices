@@ -42,7 +42,7 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 /**
  * @author Grid Qian
  * 
- * create a sample class to call web service according to wsdl
+ *         create a sample class to call web service according to wsdl
  */
 public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 
@@ -68,7 +68,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 					.getWebProjectName());
 		} catch (JavaModelException e) {
 			JBossWSCreationCore.getDefault().logError(e);
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
+			return StatusUtils
+					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		// find web service client classes
@@ -77,15 +78,17 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 
 		// find web service classes
 		List<ICompilationUnit> serviceUnits = findJavaUnitsByAnnotation(
-				project, JBossWSCreationCoreMessages.Webservice_Annotation_Check);
+				project,
+				JBossWSCreationCoreMessages.Webservice_Annotation_Check);
 
 		// create a client sample class
 		ICompilationUnit clientCls = createJavaClass(model.getCustomPackage()
 				+ JBossWSCreationCoreMessages.Client_Sample_Package_Name,
-				JBossWSCreationCoreMessages.Client_Sample_Class_Name, false, null,
-				project);
-		if(clientCls == null){
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
+				JBossWSCreationCoreMessages.Client_Sample_Class_Name, false,
+				null, project);
+		if (clientCls == null) {
+			return StatusUtils
+					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		// add imports to client sample class
@@ -95,7 +98,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			clientCls.save(null, true);
 		} catch (Exception e1) {
 			JBossWSCreationCore.getDefault().logError(e1);
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
+			return StatusUtils
+					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		// create main method
@@ -109,7 +113,9 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		createWebServiceClient(clientUnits, serviceUnits, sb);
 		sb.append("        System.out.println(\"***********************\");");
 		sb.append(LINE_SEPARATOR);
-		sb.append("        System.out.println(\"").append(JBossWSCreationCoreMessages.Client_Sample_Run_Over).append("\");");
+		sb.append("        System.out.println(\"").append(
+				JBossWSCreationCoreMessages.Client_Sample_Run_Over).append(
+				"\");");
 		sb.append(LINE_SEPARATOR);
 		sb.append("}");
 		try {
@@ -117,7 +123,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			clientCls.save(null, true);
 		} catch (JavaModelException e) {
 			JBossWSCreationCore.getDefault().logError(e);
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
+			return StatusUtils
+					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
 		return status;
@@ -133,16 +140,18 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * @param i
 	 */
 	@SuppressWarnings("unchecked")
-	private void createWebService(List<ICompilationUnit> serviceUnits,MethodDeclaration method, StringBuffer sb,int i) {
-		sb.append("        System.out.println(\""
-				+ "Create Web Service...\");");
+	private void createWebService(List<ICompilationUnit> serviceUnits,
+			MethodDeclaration method, StringBuffer sb, int i) {
+		sb
+				.append("        System.out.println(\""
+						+ "Create Web Service...\");");
 		sb.append(LINE_SEPARATOR);
-		sb.append("        "+method.getReturnType2().toString());
+		sb.append("        " + method.getReturnType2().toString());
 		sb.append(" port").append(i).append(" = ");
 		sb.append("service").append(i).append(".");
 		sb.append(method.getName()).append("();");
 		sb.append(LINE_SEPARATOR);
-		
+
 		for (ICompilationUnit unit : serviceUnits) {
 			// parse the unit
 			ASTParser parser = ASTParser.newParser(AST.JLS3);
@@ -152,9 +161,10 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			CompilationUnit result = (CompilationUnit) parser.createAST(null);
 			List types = result.types();
 			TypeDeclaration typeDec1 = (TypeDeclaration) types.get(0);
-		    if(typeDec1.getName().toString().equals(method.getReturnType2().toString())){
-		    	callWebServiceOperation(typeDec1,sb,i);
-		    }		
+			if (typeDec1.getName().toString().equals(
+					method.getReturnType2().toString())) {
+				callWebServiceOperation(typeDec1, sb, i);
+			}
 		}
 	}
 
@@ -170,23 +180,30 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		sb.append("        System.out.println(\""
 				+ "Call Web Service Operation...\");");
 		sb.append(LINE_SEPARATOR);
-		
+
 		MethodDeclaration methodDec[] = typeDec.getMethods();
 
 		// call web serivce Operation
 		for (MethodDeclaration method : methodDec) {
-			sb.append("        System.out.println(\"Server said: \" + ");
-			sb.append("port").append(i).append(".");
-			sb.append(method.getName()).append("(");
-			
-            for(int j=0;j<method.parameters().size();j++){
-            	sb.append("args[").append(j).append("]");
-            	if(j!=method.parameters().size()-1){
-            		sb.append(",");
-            	}
-            }
-            sb.append("));");
-            sb.append(LINE_SEPARATOR);
+			if (method.getReturnType2().toString().equals("void")) {
+				sb.append("        System.out.println(\"Server said: ");
+				sb.append("port").append(i).append(".");
+				sb.append(method.getName()).append("() is a void method!\");");
+				sb.append(LINE_SEPARATOR);
+			} else {
+				sb.append("        System.out.println(\"Server said: \" + ");
+				sb.append("port").append(i).append(".");
+				sb.append(method.getName()).append("(");
+
+				for (int j = 0; j < method.parameters().size(); j++) {
+					sb.append("args[").append(j).append("]");
+					if (j != method.parameters().size() - 1) {
+						sb.append(",");
+					}
+				}
+				sb.append("));");
+				sb.append(LINE_SEPARATOR);
+			}
 		}
 	}
 
