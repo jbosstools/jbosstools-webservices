@@ -50,6 +50,7 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Error_WS_Chose_runtime;
 	public static String Webservice_Annotation_Check;
 	public static String Webservice_Annotation;
+	public static String Webservice_Annotation_Prefix;
 	public static String Client_Sample_Package_Name;
 	public static String Client_Sample_Class_Name;
 	public static String Error_Create_Client_Sample;

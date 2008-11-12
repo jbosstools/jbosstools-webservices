@@ -40,7 +40,7 @@ public class ValidateWSImplCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		
+
 		String implClass = model.getServiceClasses().get(0);
 		String project = model.getWebProjectName();
 		ICompilationUnit unit = null;
@@ -48,14 +48,18 @@ public class ValidateWSImplCommand extends AbstractDataModelOperation {
 			if (JBossWSCreationUtils.getJavaProjectByName(project).findType(
 					implClass) != null) {
 				unit = JBossWSCreationUtils.getJavaProjectByName(project)
-						.findType(implClass).getCompilationUnit();				
+						.findType(implClass).getCompilationUnit();
 			} else {
 				return StatusUtils.errorStatus(NLS.bind(
 						JBossWSCreationCoreMessages.Error_No_Class,
 						new String[] { implClass, project }));
 			}
 			if (!unit.getSource().contains(
-					JBossWSCreationCoreMessages.Webservice_Annotation)) {
+					JBossWSCreationCoreMessages.Webservice_Annotation)
+					&& !unit
+							.getSource()
+							.contains(
+									JBossWSCreationCoreMessages.Webservice_Annotation_Prefix)) {
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_No_Annotation);
 			}
@@ -64,7 +68,7 @@ public class ValidateWSImplCommand extends AbstractDataModelOperation {
 			return StatusUtils.errorStatus(NLS.bind(
 					JBossWSCreationCoreMessages.Error_No_Class, new String[] {
 							implClass, project }));
-		} 
+		}
 		return Status.OK_STATUS;
 	}
 
