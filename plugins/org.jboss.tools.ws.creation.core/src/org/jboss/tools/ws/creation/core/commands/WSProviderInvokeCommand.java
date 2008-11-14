@@ -87,8 +87,7 @@ public class WSProviderInvokeCommand extends AbstractGenerateCodeCommand {
 		if (model.isGenWSDL()) {
 			commandLine.append(" -w ");
 		}
-		commandLine.append(" -r ").append(projectRoot).append(Path.SEPARATOR)
-				.append("WebContent").append(Path.SEPARATOR).append("wsdl ");
+		commandLine.append(" -r ").append(projectRoot).append(Path.SEPARATOR).append("wsdl ");
 		commandLine.append(model.getServiceClasses().get(0));
 
 		return commandLine.toString();
