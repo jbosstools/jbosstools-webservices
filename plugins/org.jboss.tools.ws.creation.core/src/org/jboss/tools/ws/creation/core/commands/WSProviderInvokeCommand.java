@@ -62,12 +62,12 @@ public class WSProviderInvokeCommand extends AbstractGenerateCodeCommand {
 			seperator = SEPERATOR_LINUX;
 		}
 		StringBuffer commandLine = new StringBuffer();
-		String project = model.getWebProjectName();
-		String projectRoot = JBossWSCreationUtils.getProjectRoot(project)
+		String projectName = model.getWebProjectName();
+		String projectRoot = JBossWSCreationUtils.getProjectRoot(projectName)
 				.toOSString();
 
 		IProject iProject = ResourcesPlugin.getWorkspace().getRoot()
-				.getProject(project);
+				.getProject(projectName);
 		IJavaProject javaProject = JavaCore.create(iProject);
 
 		commandLine.append(" -s ").append(projectRoot).append(Path.SEPARATOR)
@@ -80,10 +80,6 @@ public class WSProviderInvokeCommand extends AbstractGenerateCodeCommand {
 					javaProject.getOutputLocation().removeFirstSegments(1)
 							.toOSString()).append(seperator);
 			commandLine.append(getClasspathEntries(javaProject)).append("\" ");
-			commandLine.append(" -o ").append(projectRoot).append(
-					Path.SEPARATOR).append(
-					javaProject.getOutputLocation().removeFirstSegments(1)
-							.toOSString());
 		} catch (JavaModelException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
