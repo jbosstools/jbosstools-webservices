@@ -74,12 +74,19 @@ public class WSProviderInvokeCommand extends AbstractGenerateCodeCommand {
 				.append("src");
 
 		try {
-			commandLine.append(" -c ").append("\"");
+			commandLine.append(" -c ");
+			if(seperator.equals(SEPERATOR_WIN)){
+				commandLine.append("\"");
+			}
 
 			commandLine.append(projectRoot).append(Path.SEPARATOR).append(
 					javaProject.getOutputLocation().removeFirstSegments(1)
 							.toOSString()).append(seperator);
-			commandLine.append(getClasspathEntries(javaProject)).append("\" ");
+			commandLine.append(getClasspathEntries(javaProject));
+			if(seperator.equals(SEPERATOR_WIN)){
+				commandLine.append("\"");
+			}
+			commandLine.append(" ");
 		} catch (JavaModelException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -125,7 +132,11 @@ public class WSProviderInvokeCommand extends AbstractGenerateCodeCommand {
 			}
 			path.append(entry.getPath().toOSString()).append(seperator);
 		}
-		return path.toString();
+		String str = path.toString();
+		if(str.endsWith(seperator)){
+			str = str.substring(0, str.length()-1);
+		}
+		return str;
 
 	}
 }
