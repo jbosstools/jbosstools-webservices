@@ -353,8 +353,7 @@
             <para>the generated web services code</para>
          </listitem>
          <listitem>
-            <para>If you selected to generate a WSDL file, you will get the file in your project's
-               WebContent > wsdl folder.</para>
+            <para>If you selected to generate a WSDL file, you will get the file in your project's wsdl folder.</para>
             <figure>
                <title>The generated WSDL file</title>
                <mediaobject>
