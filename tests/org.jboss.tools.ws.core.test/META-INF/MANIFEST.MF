@@ -36,3 +36,4 @@ Bundle-ClassPath: ws-core-test.jar
 Export-Package: org.jboss.tools.ws.core.test,
  org.jboss.tools.ws.core.test.classpath,
  org.jboss.tools.ws.core.test.command
+Bundle-Vendor: JBoss, a division of Red Hat
