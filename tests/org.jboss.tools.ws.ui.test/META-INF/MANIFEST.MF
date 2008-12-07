@@ -11,3 +11,4 @@ Require-Bundle: org.eclipse.ui,
  org.jboss.tools.ws.ui,
  org.jboss.tools.ws.core
 Bundle-ActivationPolicy: lazy
+Bundle-Vendor: JBoss, a division of Red Hat
