@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<chapter id="webproject">
+<chapter id="webproject" revisionflag="added">
   <title>Creating a Dynamic Web project</title>
 
   <para>Before creating a web service, you should have a Dynamic Web Project created:</para>

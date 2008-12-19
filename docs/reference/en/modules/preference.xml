@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<chapter id="preference" >
+<chapter id="preference" revisionflag="added">
     <title>JBoss WS and development environment</title>
     <section id="jbosswspreference">
         <title>JBossWS Preferences</title>

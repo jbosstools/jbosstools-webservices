@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<chapter id="client" >
+<chapter id="client" revisionflag="added">
   <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
   <para>To create a Web Service Client from a WSDL Document using JBoss WS:</para>
   <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
