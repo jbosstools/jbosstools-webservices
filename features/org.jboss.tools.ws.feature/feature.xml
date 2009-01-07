@@ -6,7 +6,7 @@
       provider-name="%providerName"
       plugin="org.jboss.tools.ws.ui">
 
-	<description>
+   <description>
       %description
    </description>
 
@@ -17,9 +17,9 @@
    <license url="%licenseURL">
       %license
    </license>
+
    <url>
       <update label="%updateSiteName" url="http://download.jboss.org/jbosstools/updates/stable"/>
-      <discovery label="%discoverySiteName" url="http://download.jboss.org/updates/development"/>
    </url>
 
    <plugin
