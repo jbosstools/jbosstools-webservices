@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Test Plug-in
+Bundle-Name: %Bundle-Name.0
 Bundle-SymbolicName: org.jboss.tools.ws.ui.test
 Bundle-Version: 1.0.0
 Bundle-Activator: org.jboss.tools.ws.ui.test.Activator
@@ -11,4 +11,5 @@ Require-Bundle: org.eclipse.ui,
  org.jboss.tools.ws.ui,
  org.jboss.tools.ws.core
 Bundle-ActivationPolicy: lazy
-Bundle-Vendor: JBoss, a division of Red Hat
+Bundle-Vendor: %Bundle-Vendor.0
+Bundle-Localization: plugin

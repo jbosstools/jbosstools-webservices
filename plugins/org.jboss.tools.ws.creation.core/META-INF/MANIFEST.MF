@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: JBossWS Creation Core
+Bundle-Name: %Bundle-Name.0
 Bundle-SymbolicName: org.jboss.tools.ws.creation.core
 Bundle-Version: 1.0.0
 Bundle-Activator: org.jboss.tools.ws.creation.core.JBossWSCreationCore
-Bundle-Vendor: JBoss, a division of Red Hat
+Bundle-Vendor: %Bundle-Vendor.0
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.wst.common.frameworks,
@@ -40,3 +40,4 @@ Export-Package: org.jboss.tools.ws.creation.core,
  org.jboss.tools.ws.creation.core.messages
 Bundle-ClassPath: lib/wsdl4j.jar,
  .
+Bundle-Localization: plugin
