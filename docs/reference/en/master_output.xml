@@ -16,10 +16,11 @@
          <pubdate>July 2008</pubdate>
 	     <copyright>
 	          <year>2008</year>
-	          <holder>JBoss, a division of Red Hat Inc.</holder>
+	          <year>2009</year>
+	          <holder>JBoss, a division of Red Hat</holder>
 	     </copyright>
          <releaseinfo><diffmk:wrapper diffmk:change="changed">
-            Version: 3.0.0.CR1
+            Version: 3.0.0.GA
          </diffmk:wrapper></releaseinfo>
 <abstract>
    <title></title>
