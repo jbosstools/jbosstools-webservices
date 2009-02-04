@@ -43,11 +43,11 @@ AbstractClasspathContainerInitializer {
 	@Override
 	public void initialize(IPath containerPath, IJavaProject project)
 			throws CoreException {
-
+		this.javaProject = project;
 		if (containerPath.segment(0).equals(
 				JBossWSCoreMessages.JBossWS_Runtime_Lib)) {
 			JBossWSRuntimeClasspathContainer container = new JBossWSRuntimeClasspathContainer(
-					containerPath);
+					containerPath, project);
 			segment = containerPath.segment(1);
 			JavaCore.setClasspathContainer(containerPath,
 					new IJavaProject[] { project },
@@ -56,7 +56,7 @@ AbstractClasspathContainerInitializer {
 	}
 
 	public IClasspathEntry[] getEntries(IPath path) {
-		return new JBossWSRuntimeClasspathContainer(path).getClasspathEntries();
+		return new JBossWSRuntimeClasspathContainer(path, javaProject).getClasspathEntries();
 	}
 
 	public class JBossWSRuntimeClasspathContainer extends
@@ -64,8 +64,8 @@ AbstractClasspathContainerInitializer {
 		private IPath path;
 		private IClasspathEntry[] entries = null;
 
-		public JBossWSRuntimeClasspathContainer(IPath path) {
-			super(path,JBossWSCoreMessages.JBossWS_Runtime_Lib,null);
+		public JBossWSRuntimeClasspathContainer(IPath path, IJavaProject javaProject) {
+			super(path,JBossWSCoreMessages.JBossWS_Runtime_Lib,null, javaProject);
 			this.path = path;
 		}
 
@@ -200,6 +200,11 @@ AbstractClasspathContainerInitializer {
 			entries = entriesList.toArray(new IClasspathEntry[0]);
 		}
 
+		@Override
+		public void refresh() {
+			new JBossWSRuntimeClasspathContainer(path,javaProject).install();
+		}
+
 	}
 
 	public boolean filterJars(String jarName, ArrayList<IClasspathEntry> list) {
@@ -213,7 +218,7 @@ AbstractClasspathContainerInitializer {
 
 	@Override
 	protected AbstractClasspathContainer createClasspathContainer(IPath path) {
-		return new JBossWSRuntimeClasspathContainer(path);
+		return new JBossWSRuntimeClasspathContainer(path, javaProject);
 	}
 
 	@Override
