@@ -16,11 +16,11 @@
          <pubdate>July 2008</pubdate>
 	     <copyright>
 	          <year>2008</year>
-	          <year>2009</year>
-	          <holder>JBoss, a division of Red Hat</holder>
+	          <year diffmk:change="added"><diffmk:wrapper diffmk:change="added">2009</diffmk:wrapper></year>
+	          <holder><diffmk:wrapper diffmk:change="changed">JBoss, a division of Red Hat</diffmk:wrapper></holder>
 	     </copyright>
          <releaseinfo><diffmk:wrapper diffmk:change="changed">
-            Version: 3.0.0.GA
+            Version: 1.0.0.GA
          </diffmk:wrapper></releaseinfo>
 <abstract>
    <title></title>
@@ -129,7 +129,7 @@
          </emphasis> settings, you should check the second radio button and specify a JBossWS
          runtime from the list. You also can create a new JBossWS runtime, click on the <emphasis>
             <property moreinfo="none">New...</property>
-         </emphasis><diffmk:wrapper diffmk:change="changed"> button will bring you to another dialog to configure new JBossWS runtime.</diffmk:wrapper></para>
+         </emphasis> button will bring you to another dialog to configure new JBossWS runtime.</para>
       <figure float="0" id="figure_addfacet1">
          <title>Configure JBossWS Runtime</title>
          <mediaobject>
@@ -237,7 +237,7 @@
 
    </section>
 
-   <section id="bottomupws">
+   <section id="bottomupws" role="updated">
       <title>Creating a Web service from a Java bean using JBossWS runtime</title>
       <para>The Web Service wizard assists you in creating a new Web service, configuring it for
          deployment, and then deploying it to the server.</para>
@@ -324,9 +324,9 @@
                   </itemizedlist>
                </listitem>
                <listitem> 
-                  <para><diffmk:wrapper diffmk:change="changed">Select your server: the default server is displayed. If you want to deploy
+                  <para>Select your server: the default server is displayed. If you want to deploy
                   your service to a different server click the link to specify a different server.
-                  </diffmk:wrapper></para>
+                  </para>
                </listitem>
                <listitem>
                   <para>Select your runtime: ensure the JBoss WS runtime is selected.</para>
@@ -365,9 +365,9 @@
                      address. </para>
                </listitem>
                <listitem>
-                  <para><diffmk:wrapper diffmk:change="changed">After the Web service has been created, the following option can become
+                  <para>After the Web service has been created, the following option can become
                   available depending on the options you selected: Update the default web.xm
-                     file. If selected, you may test the web service by Explorer.</diffmk:wrapper></para>
+                     file. If selected, you may test the web service by Explorer.</para>
                </listitem>
             </itemizedlist>
             <para>Click on the <property moreinfo="none">Next</property> button.</para>
@@ -394,7 +394,7 @@
             <para>the generated web services code</para>
          </listitem>
          <listitem>
-            <para><diffmk:wrapper diffmk:change="changed">If you selected to generate a WSDL file, you will get the file in your project's wsdl folder.</diffmk:wrapper></para>
+            <para>If you selected to generate a WSDL file, you will get the file in your project's wsdl folder.</para>
             <figure float="0">
                <title>The generated WSDL file</title>
                <mediaobject>
@@ -423,7 +423,7 @@
 </chapter>
 
     
-<chapter id="client" xml:base="file:///home/ochikvina/WORK/for_compare/trunk/ws/docs/reference/en/modules/client.xml">
+<chapter id="client" revisionflag="added" xml:base="file:///home/ochikvina/WORK/for_compare/trunk/ws/docs/reference/en/modules/client.xml">
   <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
   <para>To create a Web Service Client from a WSDL Document using JBoss WS:</para>
   <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
@@ -496,21 +496,21 @@
 </chapter>
 
     
-<chapter id="preference" >
+<chapter id="preference" revisionflag="added" xml:base="file:///home/ochikvina/WORK/for_compare/trunk/ws/docs/reference/en/modules/preference.xml">
     <title>JBoss WS and development environment</title>
     <section id="jbosswspreference">
         <title>JBossWS Preferences</title>
 
-        <para><diffmk:wrapper diffmk:change="changed">In this section you will know how JBossWS preferences can be modified during the
-            development process.</diffmk:wrapper></para>
+        <para>In this section you will know how JBossWS preferences can be modified during the
+            development process.</para>
 
-        <para><diffmk:wrapper diffmk:change="changed">JBossWS preferences can be set on the JBossWS preference page. Click on
-                    </diffmk:wrapper><emphasis><property moreinfo="none"><diffmk:wrapper diffmk:change="changed">Window &gt; Preferences &gt; JBoss Tools &gt; Web &gt; JBossWS
-                    Preferences</diffmk:wrapper></property>.</emphasis></para>
+        <para>JBossWS preferences can be set on the JBossWS preference page. Click on
+                    <emphasis><property moreinfo="none">Window &gt; Preferences &gt; JBoss Tools &gt; Web &gt; JBossWS
+                    Preferences</property>.</emphasis></para>
 
-        <para><diffmk:wrapper diffmk:change="changed">On this page you can manage the JBossWS Runtime. Use the appropriate buttons to
-                </diffmk:wrapper><property moreinfo="none">Add</property> more runtimes or to <property moreinfo="none">Remove</property><diffmk:wrapper diffmk:change="changed"> those that
-            are not needed.</diffmk:wrapper></para>
+        <para>On this page you can manage the JBossWS Runtime. Use the appropriate buttons to
+                <property moreinfo="none">Add</property> more runtimes or to <property moreinfo="none">Remove</property> those that
+            are not needed.</para>
 
         <figure float="0">
             <title>JBossWS Preferences Page</title>
@@ -525,10 +525,10 @@
                 <property moreinfo="none">Add</property>
             </emphasis> or <emphasis>
                 <property moreinfo="none">Edit</property>
-            </emphasis><diffmk:wrapper diffmk:change="changed"> button will open the form where you can configure a new JbossWS runtime and
+            </emphasis> button will open the form where you can configure a new JbossWS runtime and
             change the path to JBossWS runtime home folder, modify the name and version of the
-            existing JBossWS runtime settings. Press </diffmk:wrapper><property moreinfo="none">Finish</property><diffmk:wrapper diffmk:change="changed"> to apply the
-            changes.</diffmk:wrapper></para>
+            existing JBossWS runtime settings. Press <property moreinfo="none">Finish</property> to apply the
+            changes.</para>
 
         <figure float="0">
             <title>Edit JBossWS Runtime</title>
@@ -538,15 +538,47 @@
                 </imageobject>
             </mediaobject>
         </figure>
+        
+        
+        
+        
+        <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">WS container allows Source and JavaDoc locations to be set via the Properties dialog on each contained .jar: right-click on any .jar file in the Project Explorer view, select </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Properties</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added">. Choose </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Java Source Attachment</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added"> and select location (folder, JAR or zip) containing new source for the chosen .jar using one of the suggested options (workspace, external folder or file) or enter the path manually:</diffmk:wrapper></para>
+        
+        <figure diffmk:change="added" float="0">
+            <title diffmk:change="added"><diffmk:wrapper diffmk:change="added">Classpath Container: Java Source Attachment</diffmk:wrapper></title>
+            <mediaobject diffmk:change="added">
+                <imageobject diffmk:change="added">
+                    <imagedata diffmk:change="added" fileref="images/jbossws_container1.png"></imagedata>
+                </imageobject>
+            </mediaobject>
+        </figure>
+        <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">Click on </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Apply</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added"> and then on </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Ok</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added">.</diffmk:wrapper></para>
+        <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">To change Javadoc Location choose </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Javadoc Location</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added"> and specify URL to the documentation generated by Javadoc. The Javadoc location will contain a file called </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">package-list</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added">:</diffmk:wrapper></para>
+        
+        <figure diffmk:change="added" float="0">
+            <title diffmk:change="added"><diffmk:wrapper diffmk:change="added">Classpath Container: Javadoc Location</diffmk:wrapper></title>
+            <mediaobject diffmk:change="added">
+                <imageobject diffmk:change="added">
+                    <imagedata diffmk:change="added" fileref="images/jbossws_container2.png"></imagedata>
+                </imageobject>
+            </mediaobject>
+        </figure>
+        <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">Click on </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Apply</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added"> and then on </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Ok</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added">.</diffmk:wrapper></para>
+        
+        
+        
+        
+        
+        
     </section>
-    <section diffmk:change="added" id="serverruntime">
+    <section id="serverruntime">
         <title>Default Server and Runtime</title>
-        <para><diffmk:wrapper diffmk:change="changed">Open </diffmk:wrapper><emphasis>
+        <para>Open <emphasis>
                 <property moreinfo="none">Window &gt; Preferences &gt; Web Services &gt; Server and Runtime</property>
             </emphasis>. On this page, you can specify a default server and runtime.</para>
         <para>For ease of use, the better way is to set runtime to JBoss WS.</para>
-        <para>After server and runtime are specified, click on the <property moreinfo="none">Aply</property><diffmk:wrapper diffmk:change="changed"> button
-            to save the values.</diffmk:wrapper></para>
+        <para>After server and runtime are specified, click on the <property moreinfo="none">Aply</property> button
+            to save the values.</para>
         <figure float="0">
             <title></title>
             <mediaobject>
@@ -556,12 +588,13 @@
             </mediaobject>
         </figure>
 
-        <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">On the whole, this guide covers the fundamental concepts of work with tooling for
-            </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">JBossWS</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added">. It describes how to easily create a Web Service and a Web Service Client using
-            JBossWS Runtime and adjust JBossWS and development environment as well.</diffmk:wrapper></para>
+        <para>On the whole, this guide covers the fundamental concepts of work with tooling for
+            <property moreinfo="none">JBossWS</property>. It describes how to easily create a Web Service and a Web Service Client using
+            JBossWS Runtime and adjust JBossWS and development environment as well.</para>
 
-        <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">If the information on JBossWS tools in this guide isn't enough for you, ask
-            questions on our </diffmk:wrapper><ulink diffmk:change="added" url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201"><diffmk:wrapper diffmk:change="added">forum</diffmk:wrapper></ulink><diffmk:wrapper diffmk:change="added">. Your comments and suggestions are also welcome.</diffmk:wrapper></para>
+        <para>If the information on JBossWS tools in this guide isn't enough for you, ask
+            questions on our <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
     </section>
-    </chapter>
+</chapter>
+
 </book>
