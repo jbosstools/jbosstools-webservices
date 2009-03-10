@@ -132,7 +132,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		createCheckButton(root);
 
 		jarGroup = new Group(root, SWT.NONE);
-		jarGroup.setText("Library Jars");
+		jarGroup.setText(JBossWSUIMessages.JBossWSLibraryListFieldEditor_LIBRARY_JARS);
 		gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalAlignment = GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;
@@ -255,7 +255,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 			public Image getImage(Object element) {
 				if (jarImg == null) {
 					ImageDescriptor jarImgDesc = JBossWSUIPlugin
-							.getImageDescriptor("obj16/jar_obj.gif");
+							.getImageDescriptor("obj16/jar_obj.gif"); //$NON-NLS-1$
 					jarImg = jarImgDesc.createImage();
 				}
 				return jarImg;
@@ -264,7 +264,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 			public String getText(Object element) {
 				String fullName = (String) element;
 				File jarFile = new File(fullName);
-				return jarFile.getName() + " - "
+				return jarFile.getName() + " - " //$NON-NLS-1$
 						+ jarFile.getParentFile().toString();
 			}
 		});
@@ -498,13 +498,11 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 	 */
 	public class AddAction extends BaseAction {
 
-		static final String ACTION_NAME = "&Add";
-
 		/**
 		 * Constructor create Add action with default name
 		 */
 		public AddAction() {
-			super(ACTION_NAME);
+			super(JBossWSUIMessages.JBossWSLibraryListFieldEditor_ActionAdd);
 			// This action is always available
 			setEnabled(true);
 		}
@@ -526,7 +524,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		public void run() {
 			FileDialog dialog = new FileDialog(Display.getCurrent()
 					.getActiveShell(), SWT.MULTI);
-			dialog.setFilterExtensions(new String[] { "*.jar;*.zip" });
+			dialog.setFilterExtensions(new String[] { "*.jar;*.zip" }); //$NON-NLS-1$
 			String fileName = dialog.open();
 			String[] fileNames = dialog.getFileNames();
 			if (fileName != null) {
@@ -553,13 +551,11 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 	 */
 	public class RemoveAction extends BaseAction {
 
-		static final String ACTION_NAME = "&Remove";
-
 		/**
 		 * Create DeleteAction action with default name
 		 */
 		public RemoveAction() {
-			super(ACTION_NAME);
+			super(JBossWSUIMessages.JBossWSLibraryListFieldEditor_ActionRemove);
 		}
 
 		@Override

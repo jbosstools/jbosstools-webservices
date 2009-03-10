@@ -36,6 +36,14 @@ public final class JBossWSUIMessages extends NLS {
 	public static String Error_JBossWS_Basic_Editor_Composite;
 	public static String Error_JBossWS_Basic_Editor_Support;
 	public static String Error_JBossWS_Basic_Editor_Different;
+	public static String JBossRuntimeListFieldEditor_ActionAdd;
+
+	public static String JBossRuntimeListFieldEditor_ActionEdit;
+
+	public static String JBossRuntimeListFieldEditor_ActionRemove;
+
+	public static String JBossRuntimeListFieldEditor_ErrorMessageAtLeastOneJar;
+
 	public static String JBossWS_Runtime_List_Field_Editor_Name;
 	public static String JBossWS_Runtime_List_Field_Editor_Version;
 	public static String JBossWS_Runtime_List_Field_Editor_Path;
@@ -64,6 +72,13 @@ public final class JBossWSUIMessages extends NLS {
 	public static String JBossWS_Preference_Page_Runtimes;
 	
 	
+	public static String JBossWSLibraryListFieldEditor_ActionAdd;
+
+	public static String JBossWSLibraryListFieldEditor_ActionRemove;
+
+	public static String JBossWSLibraryListFieldEditor_LIBRARY_JARS;
+
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);
 	}
