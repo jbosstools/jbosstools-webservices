@@ -11,9 +11,6 @@
            <para>Switch to the Java EE perspective <emphasis><property>Window > Open Perspective > Java EE</property></emphasis>.</para>
         </listitem>
         <listitem>
-           <para>In the Project Explorer view, select the bean that you created or imported into the source folder of your Web project.</para> 
-        </listitem>
-        <listitem>
            <para>Click <emphasis><property>File > New > Other</property></emphasis>.Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click <property>Next</property> button.</para> 
              <figure>
                 <title>New Web Service Client</title>
