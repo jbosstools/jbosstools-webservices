@@ -124,7 +124,7 @@
       </figure>
       <para>First, please select <property>Top down Java bean Web Service</property> from the Web
          Service type list, and select a WSDL document from workspace, click on the Server name
-         lilnk on the page will bring you to another dialog. Here you can specify the server to a
+         link on the page will bring you to another dialog. Here you can specify the server to a
          JBoss Server and Web Service runtime to JBossWS runtime:</para>
       <figure id="figure_create_ws_topdown_setserver">
          <title>Select Server and Web Service runtime</title>
