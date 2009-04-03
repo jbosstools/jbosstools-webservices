@@ -28,15 +28,10 @@ public class JBossWSCoreMessages {
 	public static String Progress_UnInstall_JBossWS_Runtime;
 	public static String Dir_Lib;
 	public static String Dir_Client;
-	public static String Dir_Web_Inf;
-	public static String Dir_Web_Content;
 	public static String Error_Copy;
 	public static String WS_Location;
 	public static String JBossWS_Runtime_Lib;
 	public static String JBossWS_Runtime;
-	public static String JBossAS;
-	public static String Error_WS_Location;
-	public static String Error_WS_Classpath;
 	public static String Error_Add_Facet_JBossWS;
 	public static String Error_Remove_Facet_JBossWS;
 

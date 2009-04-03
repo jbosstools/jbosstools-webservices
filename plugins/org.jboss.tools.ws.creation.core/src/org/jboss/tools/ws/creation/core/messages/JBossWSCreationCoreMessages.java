@@ -31,17 +31,14 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Label_Button_Text_Remove;
 
 	public static String Error_Message_Invalid_Binding_File;
-	public static String Error_Read_Binding_File;
+
 	public static String Separator_Java;
 	public static String Error_Message_Failed_To_Generate_Code;
 	public static String Error_Message_Failed_to_Generate_Implementation;
 	
 	public static String Error_Message_Command_File_Not_Found;
 	
-	public static String Error_Message_Execute_Command;
-	
-	
-	public static String Error_Implemetation_Code_Generation;
+
 	public static String Error_No_Annotation;
 	public static String WebserviceClient_Annotation;
 	public static String Error_No_Class;
