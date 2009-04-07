@@ -21,7 +21,7 @@
          <title>Dynamic Web Project</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_webproject_1.png"/>
+               <imagedata fileref="images/topdown/jbossws_webproject_1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -44,7 +44,7 @@
                <title>Dynamic Web Project Wizard</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_webproject_2.png"/>
+                     <imagedata fileref="images/topdown/jbossws_webproject_2.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -55,7 +55,7 @@
                <title>Web Module Settings Configuration</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_webproject_3.png"/>
+                     <imagedata fileref="images/topdown/jbossws_webproject_3.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -72,7 +72,7 @@
          <title>Configure JBoss Web Service Facet</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_facet.png"/>
+               <imagedata fileref="images/topdown/jbossws_facet.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -92,7 +92,7 @@
          <title>Configure JBossWS Runtime</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_newruntime.png"/>
+               <imagedata fileref="images/topdown/jbossws_newruntime.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -118,7 +118,7 @@
          <title>New Web Service Wizard</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation1.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -130,7 +130,7 @@
          <title>Select Server and Web Service runtime</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation1_1.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation1_1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -143,7 +143,7 @@
          <title>New Web Service Wizard</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation1.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -155,7 +155,7 @@
          <title>New Web Service Wizard</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation2.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation2.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -180,7 +180,7 @@
          <title>The generated implementation Java code</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_Impl_code_view.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_Impl_code_view.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -189,7 +189,7 @@
          <title>Web.xml</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_webxml.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_webxml.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -218,7 +218,7 @@
                <title>Create a new Bean Class</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata scale="80" fileref="images/jbossws_bottomup.png"/>
+                     <imagedata scale="80" fileref="images/topdown/jbossws_bottomup.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -232,7 +232,7 @@
                <title>New Web Service</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_1.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_1.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -245,7 +245,7 @@
                <title>Set Web Service Common values</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_2.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_2.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -313,7 +313,7 @@
                <title>Set Web Service values for Code Generation</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_3.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_3.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -340,7 +340,7 @@
                <title>Start a Server</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_4.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_4.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -358,7 +358,7 @@
                <title>The generated WSDL file</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata scale="80" fileref="images/jbossws_bottomup_6.png"/>
+                     <imagedata scale="80" fileref="images/topdown/jbossws_bottomup_6.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -371,7 +371,7 @@
                <title>The Updated web.xml file</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata scale="80" fileref="images/jbossws_bottomup_5.png"/>
+                     <imagedata scale="80" fileref="images/topdown/jbossws_bottomup_5.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
