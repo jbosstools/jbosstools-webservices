@@ -215,7 +215,7 @@
             <para>In the Project Explorer view, select the bean that you created or imported into
                the source folder of your Web project.</para>
             <figure>
-               <title>Create a new Bean Class</title>
+               <title>Select the Bean Created</title>
                <mediaobject>
                   <imageobject>
                      <imagedata scale="80" fileref="images/topdown/jbossws_bottomup.png"/>
@@ -355,7 +355,7 @@
          <listitem>
             <para>If you selected to generate a WSDL file, you will get the file in your project's wsdl folder.</para>
             <figure>
-               <title>The generated WSDL file</title>
+               <title>The Generated HelloWorldService.wsdl File in the wsdl Folder</title>
                <mediaobject>
                   <imageobject>
                      <imagedata scale="80" fileref="images/topdown/jbossws_bottomup_6.png"/>
