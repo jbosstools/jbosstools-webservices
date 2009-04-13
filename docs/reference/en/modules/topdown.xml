@@ -11,7 +11,7 @@
 
    <title>Creating a Web Service using JBossWS runtime</title>
    <para>In this chapter we provide you with the necessary steps to create a Web Service using
-      JBossWS runtime.</para>
+      JBossWS runtime. First you need to create a Dynamic Web project:</para>
 
    <section id="createproject">
       <title>Creating a Dynamic Web project</title>
@@ -61,7 +61,7 @@
             </figure>
          </listitem>
       </itemizedlist>
-      <para>Click on the <property>Finish</property> button.</para>
+      <para>Click on the <property>Finish</property> button. Next you will need to add JBoss Web Service facet to the project:</para>
    </section>
 
    <section id="addfacet">
@@ -96,7 +96,7 @@
             </imageobject>
          </mediaobject>
       </figure>
-      <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>:</para>
+      <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>.</para>
 
    </section>
 
@@ -107,7 +107,7 @@
          WSDL document using JBossWS runtime.</para>
       <para>At first, please make sure that you have already created a dynamic Web project with
          JBoss Web Service facet installed. </para>
-      <para>See how to make it <link linkend="createproject">here</link>> and <link
+      <para>See how to make it <link linkend="createproject">here</link> and <link
             linkend="addfacet">here</link>.</para>
 
       <para>To create a Web Service using JBossWS runtime select<emphasis>
