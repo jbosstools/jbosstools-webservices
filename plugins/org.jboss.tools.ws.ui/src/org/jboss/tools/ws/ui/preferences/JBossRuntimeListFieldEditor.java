@@ -220,8 +220,7 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 					return ((List<JBossWSRuntime>) inputElement).toArray();
 				} else {
 					throw new IllegalArgumentException(
-							JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be
-									+ JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_An_Instance_Of_List);
+							JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List);
 				}
 			}
 
@@ -510,9 +509,9 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 					continue;
 				}
 				if (rt.getName().equals(name.getValueAsString())) {
-					setErrorMessage(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime
-							+ name.getValueAsString()
-							+ JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Already_Exists);
+					setErrorMessage(
+							NLS.bind(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime_Already_Exists,
+							name.getValueAsString()));
 					setPageComplete(false);
 					return;
 				}

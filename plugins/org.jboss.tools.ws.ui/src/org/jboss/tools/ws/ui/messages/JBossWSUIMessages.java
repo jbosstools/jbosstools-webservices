@@ -47,8 +47,7 @@ public final class JBossWSUIMessages extends NLS {
 	public static String JBossWS_Runtime_List_Field_Editor_Name;
 	public static String JBossWS_Runtime_List_Field_Editor_Version;
 	public static String JBossWS_Runtime_List_Field_Editor_Path;
-	public static String JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be;
-	public static String JBossWS_Runtime_List_Field_Editor_An_Instance_Of_List;
+	public static String JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List;
 	public static String JBossWS_Runtime_Delete_Confirm_Title;
 	public static String JBossWS_Runtime_Delete_Used_Confirm;
 	public static String JBossWS_Runtime_Delete_Not_Used_Confirm;
@@ -56,7 +55,7 @@ public final class JBossWSUIMessages extends NLS {
 	public static String JBossWS_Runtime_List_Field_Editor_Modify_Runtime;
 	public static String JBossWS_Runtime_List_Field_Editor_New_Runtime;
 	public static String Error_JBossWS_Runtime_List_Field_Editor_Path_To_Home_Diretory_Cannot_Be_Empty;
-	public static String JBossWS_Runtime_List_Field_Editor_Already_Exists;
+	public static String JBossWS_Runtime_List_Field_Editor_Runtime_Already_Exists;
 	public static String JBossWS_Runtime_List_Field_Editor_Runtime;
 	public static String Error_JBossWS_Runtime_List_Field_Editor_Runtime_Name_Is_Not_Correct;
 	public static String Error_JBossWS_Runtime_List_Field_Editor_Name_Cannot_Be_Empty;
