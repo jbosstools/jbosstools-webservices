@@ -97,9 +97,9 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				String resultInput = inputResult.toString();
 				if (resultInput != null && resultInput.indexOf("[ERROR]") >= 0) {
 					JBossWSCreationCore.getDefault().logError(resultInput);
-					IStatus errorStatus = StatusUtils.errorStatus(resultInput);
+					IStatus errorStatus = StatusUtils.warningStatus(resultInput);
 					status = StatusUtils
-							.errorStatus(
+							.warningStatus(
 									JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
 									new CoreException(errorStatus));
 				} else {
