@@ -193,7 +193,7 @@
             </imageobject>
          </mediaobject>
       </figure>
-
+<para>In the next chapter you will find out how to create a Web service from a Java bean.</para>
    </section>
 
    <section id="bottomupws">
@@ -377,6 +377,8 @@
             </figure>
          </listitem>
       </itemizedlist>
+  <para>In the next chapter you will be able to create a Web Service Client from a WSDL document using JBoss WS.</para>
+   
    </section>
 
 </chapter>
