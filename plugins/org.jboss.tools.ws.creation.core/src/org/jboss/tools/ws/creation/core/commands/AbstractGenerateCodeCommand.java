@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
@@ -16,6 +18,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.osgi.util.NLS;
@@ -54,12 +57,17 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					.getJBossWSRuntimeLocation(project);
 			String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";
 			IPath path = new Path(commandLocation);
-			StringBuffer command = new StringBuffer();
+			
+			List<String> command = new ArrayList<String>();
+			
 			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
-				command.append("cmd.exe /c ").append(cmdFileName_win);
+				command.add("cmd.exe");
+				command.add("/c");
+				command.add(cmdFileName_win);
 				path = path.append(cmdFileName_win);
 			} else {
-				command.append("sh ").append(cmdFileName_linux);
+				command.add("sh");
+				command.add(cmdFileName_linux);
 				path = path.append(cmdFileName_linux);
 			}
 
@@ -71,18 +79,18 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 										new String[] { path.toOSString() }));
 			}
 
-			String args = getCommandlineArgs();
-			command.append(" -k ").append(args).append(" ");
+			command.add("-k");
+			addCommandlineArgs(command);
 			if(model.getWsdlURI() != null){
-				command.append(model.getWsdlURI());
+				command.add(model.getWsdlURI());
 			}
-			command.append(" -o ").append(projectRoot).append(Path.SEPARATOR)
-					.append(
-							javaProject.getOutputLocation()
-									.removeFirstSegments(1).toOSString());
-			Runtime rt = Runtime.getRuntime();
-			Process proc = rt.exec(command.toString(), null, new File(
-					commandLocation));
+			
+			command.add("-o");	
+			StringBuffer opDir = new StringBuffer();
+			opDir.append(projectRoot).append(Path.SEPARATOR).append(javaProject.getOutputLocation().removeFirstSegments(1).toOSString());
+			command.add(opDir.toString());
+          
+			Process proc = DebugPlugin.exec(command.toArray(new String[command.size()]), new File(commandLocation));
 			StringBuffer errorResult = new StringBuffer();
 			StringBuffer inputResult = new StringBuffer();
 
@@ -107,15 +115,16 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				}
 			}
 
-		} catch (IOException e) {
-			JBossWSCreationCore.getDefault().logError(e);
-
 		} catch (InterruptedException e) {
-			// ignore
+			JBossWSCreationCore.getDefault().logError(e);
+			return StatusUtils.errorStatus(e);
 		} catch (CoreException e) {
 			JBossWSCreationCore.getDefault().logError(e);
 			// unable to get runtime location
 			return e.getStatus();
+		} catch (Exception e) {
+			JBossWSCreationCore.getDefault().logError(e);
+			return StatusUtils.errorStatus(e);
 		}
 
 		refreshProject(model.getWebProjectName(), monitor);
@@ -160,7 +169,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		}
 	}
 
-	abstract protected String getCommandlineArgs();
+	abstract protected void addCommandlineArgs(List<String> command) throws Exception;
 
 	abstract protected String getCommandLineFileName_linux();
 

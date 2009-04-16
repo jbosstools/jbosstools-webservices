@@ -26,39 +26,41 @@ public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 	protected String getCommandLineFileName_win() {
 		return WSCONSUEM_FILE_NAME_WIN;
 	}
-
+	
 	@Override
-	protected String getCommandlineArgs() {
-		String commandLine;
+	protected void addCommandlineArgs(List<String> command) {
 		String project = model.getWebProjectName();
 		String projectRoot = JBossWSCreationUtils.getProjectRoot(project).toOSString();
-		commandLine = "-s " + projectRoot + Path.SEPARATOR + "src";
+		
+		command.add("-s");
+		command.add(projectRoot + Path.SEPARATOR + "src");
 		
 		if(model.getCustomPackage() != null && !"".equals(model.getCustomPackage())){
-			commandLine += " -p " + model.getCustomPackage(); 
+			command.add("-p");
+			command.add(model.getCustomPackage());
 		}
 		
 		List<String> bindingFiles = model.getBindingFiles();
 		for(String bindingFileLocation: bindingFiles){
 			File bindingFile = new File(bindingFileLocation);
 			if(bindingFile.exists()){
-				commandLine += " -b " + bindingFileLocation;
+				command.add("-b");
+				command.add(bindingFileLocation);
 			}
 		}
 		
 		if(model.getCatalog() != null && !"".equals(model.getCatalog().trim())){
 			File catalog = new File(model.getCatalog());
 			if(catalog.exists()){
-				commandLine += " -c " + model.getCatalog();
+				command.add("-c");
+				command.add(model.getCatalog());
 			}
 		}
 		
 		if(model.getTarget() != null){
-			commandLine += " -t " + model.getTarget();
+			command.add("-t");
+			command.add(model.getTarget());
 		}
-		 
-		
-		return commandLine;
 	}
 
 }
