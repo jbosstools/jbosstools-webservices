@@ -26,8 +26,7 @@
          </mediaobject>
       </figure>
       <para>Create a Web project by selecting <emphasis>
-            <property>New > Project... > Dynamic Web project</property>
-         </emphasis>. Enter the following information: </para>
+            <property>New > Project... > Dynamic Web project</property></emphasis>. Enter the following information: </para>
       <itemizedlist>
          <listitem>
             <para>Project Name: enter a project name</para>
@@ -37,8 +36,7 @@
                click New and browse to the location where it is installed to. You may set <emphasis>
                   <property>Target Runtime</property>
                </emphasis> to <emphasis>
-                  <property>None</property>
-               </emphasis>, in this case, you should add <link linkend="addfacet">JBoss Web Service
+                  <property>None</property></emphasis>, in this case, you should add <link linkend="addfacet">JBoss Web Service
                   facet to the project</link>.</para>
             <figure>
                <title>Dynamic Web Project Wizard</title>
@@ -67,7 +65,7 @@
    <section id="addfacet">
       <title>Configure JBoss Web Service facet settings</title>
       <para>If you have already created a new Dynamic Web project, the next step is to add JBoss Web
-         Service facet to the project:</para>
+         Service facet to the project. Right-click on the project, select its <emphasis><property>Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBossWS facet and open additional configuration for it:</para>
       <figure id="figure_addfacet">
          <title>Configure JBoss Web Service Facet</title>
          <mediaobject>
@@ -208,8 +206,7 @@
       <itemizedlist>
          <listitem>
             <para>Switch to the Java EE perspective <emphasis>
-                  <property>Window > Open Perspective > Java EE</property>
-               </emphasis>.</para>
+                  <property>Window > Open Perspective > Java EE</property></emphasis>.</para>
          </listitem>
          <listitem>
             <para>In the Project Explorer view, select the bean that you created or imported into
@@ -225,8 +222,7 @@
          </listitem>
          <listitem>
             <para>Click <emphasis>
-                  <property>File > New > Other</property>
-               </emphasis>. Select Web Services in order to display various Web service wizards.
+                  <property>File > New > Other</property></emphasis>. Select Web Services in order to display various Web service wizards.
                Select the Web Service wizard. Click on the <property>Next</property> button.</para>
             <figure>
                <title>New Web Service</title>

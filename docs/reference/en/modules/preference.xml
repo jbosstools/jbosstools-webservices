@@ -81,8 +81,7 @@
     <section id="serverruntime">
         <title>Default Server and Runtime</title>
         <para>Open <emphasis>
-                <property>Window > Preferences > Web Services > Server and Runtime</property>
-            </emphasis>. On this page, you can specify a default server and runtime.</para>
+                <property>Window > Preferences > Web Services > Server and Runtime</property></emphasis>. On this page, you can specify a default server and runtime.</para>
         <para>For ease of use, the better way is to set runtime to JBoss WS.</para>
         <para>After server and runtime are specified, click on the <property>Apply</property> button
             to save the values.</para>

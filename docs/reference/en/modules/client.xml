@@ -11,7 +11,7 @@
            <para>Switch to the Java EE perspective <emphasis><property>Window > Open Perspective > Java EE</property></emphasis>.</para>
         </listitem>
         <listitem>
-           <para>Click <emphasis><property>File > New > Other</property></emphasis>.Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click <property>Next</property> button.</para> 
+           <para>Click <emphasis><property>File > New > Other</property></emphasis>. Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click on the <property>Next</property> button.</para> 
              <figure>
                 <title>New Web Service Client</title>
                 <mediaobject>
@@ -22,7 +22,7 @@
              </figure>
         </listitem>
         <listitem>
-           <para>The first and second Web Service Client wizard page are same to <link linkend="topdownwebservice">Web Service from a WSDL document</link>.</para> 
+           <para>The first and the second Web Service Client wizard pages are the same as for <link linkend="topdownwebservice">Web Service from a WSDL document</link>.</para> 
              <figure>
                 <title>Set Web Service Common values</title>
                 <mediaobject>
@@ -32,20 +32,20 @@
                 </mediaobject>
              </figure>
              <figure>
-                <title>Set Web Service values about WSDL file</title>
+                <title>Set Web Service values related to WSDL file</title>
                 <mediaobject>
                    <imageobject>
                       <imagedata fileref="images/client/jbossws_client_2.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
-           <para>The differences are:</para>
+           <para>The only difference is:</para>
               <itemizedlist>
                  <listitem>
-                    <para><property>Client Type:</property> Now only support Java Proxy.</para>
+                    <para><property>Client Type:</property> Support  of Java Proxy only.</para>
                  </listitem>
                </itemizedlist>
-           <para>Click <property>Finish</property> button.</para>
+           <para>Click on the <property>Finish</property> button.</para>
         </listitem>     
      </itemizedlist>
      <para>After the Web Service Client has been created, the following may occur depending on the options you selected:</para>
