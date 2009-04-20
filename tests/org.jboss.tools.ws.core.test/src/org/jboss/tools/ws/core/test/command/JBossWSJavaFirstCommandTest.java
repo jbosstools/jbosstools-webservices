@@ -49,7 +49,6 @@ import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RemoveClientJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.ValidateWSImplCommand;
-import org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
@@ -124,7 +123,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 
 	}
 
-	public void testWSProviderInvokeCommand() throws ExecutionException, CoreException {
+	/*public void testWSProviderInvokeCommand() throws ExecutionException, CoreException {
 
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(fproject.getProject().getName());
@@ -216,7 +215,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		IConsoleManager consolemanager = getConsoleManager();
 		checkText(consolemanager.getConsoles());
 	}
-
+*/
 	private void checkText(IConsole[] consoles) {
 		// test run result
 		for (IConsole console : consoles) {
