@@ -65,7 +65,7 @@
    <section id="addfacet">
       <title>Configure JBoss Web Service facet settings</title>
       <para>If you have already created a new Dynamic Web project, the next step is to add JBoss Web
-         Service facet to the project. Right-click on the project, select its <emphasis><property>Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBossWS facet and open additional configuration for it:</para>
+         Service facet to the project. Right-click on the project, select its <emphasis><property>Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBoss Web Services and open additional configuration for it, having clicked on the <emphasis><property>Further configuration required...</property></emphasis> link. In the opened window</para>
       <figure id="figure_addfacet">
          <title>Configure JBoss Web Service Facet</title>
          <mediaobject>
