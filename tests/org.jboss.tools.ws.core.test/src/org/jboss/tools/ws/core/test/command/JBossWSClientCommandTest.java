@@ -16,6 +16,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModel;
@@ -112,7 +113,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSCommandTest {
 		// test wsdl2Javacommand
 		WSDL2JavaCommand cmdW2j = new WSDL2JavaCommand(model);
 		IStatus status = cmdW2j.execute(null, null);
-		assertTrue(status.getMessage(), status.isOK());
+		assertFalse(status.getMessage(), Status.ERROR == status.getSeverity());
 		assertTrue(project.getFile(
 				"src/org/apache/hello_world_soap_http/Greeter.java").exists());
 

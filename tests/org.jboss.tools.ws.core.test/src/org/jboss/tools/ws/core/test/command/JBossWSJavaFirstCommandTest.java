@@ -22,6 +22,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -61,7 +62,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
 	protected static final IWorkbench wb = PlatformUI.getWorkbench();
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "/home/grid/Software/jboss-4.2.2.GA";
+	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-soa-p.4.3.0/jboss-as";
 	private static final String RuntimeName;
 	private static final boolean isDeployed;
 
@@ -138,7 +139,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		Java2WSCommand command = new Java2WSCommand(model);
 		IStatus status = command.execute(null, null);
 
-		assertTrue(status.getMessage(), status.isOK());
+		assertFalse(status.getMessage(), Status.ERROR == status.getSeverity());
 		assertTrue(project.getFile(
 				"src/org/example/www/helloworld/jaxws/SayHello.java").exists());
 		assertTrue(project.getFile("WebContent/wsdl/HelloWorldService.wsdl")
