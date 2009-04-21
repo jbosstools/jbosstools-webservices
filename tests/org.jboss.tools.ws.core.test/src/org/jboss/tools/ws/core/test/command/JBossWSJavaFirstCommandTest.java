@@ -49,6 +49,7 @@ import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RemoveClientJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.ValidateWSImplCommand;
+import org.jboss.tools.ws.creation.core.commands.Java2WSCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
@@ -123,7 +124,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 
 	}
 
-	/*public void testWSProviderInvokeCommand() throws ExecutionException, CoreException {
+	public void testWSProviderInvokeCommand() throws ExecutionException, CoreException {
 
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(fproject.getProject().getName());
@@ -134,7 +135,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		fproject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
 		
-		WSProviderInvokeCommand command = new WSProviderInvokeCommand(model);
+		Java2WSCommand command = new Java2WSCommand(model);
 		IStatus status = command.execute(null, null);
 
 		assertTrue(status.getMessage(), status.isOK());
@@ -163,7 +164,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		fproject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
 		
-		cmd = new WSProviderInvokeCommand(model);
+		cmd = new Java2WSCommand(model);
 		status = cmd.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 
@@ -215,7 +216,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		IConsoleManager consolemanager = getConsoleManager();
 		checkText(consolemanager.getConsoles());
 	}
-*/
+
 	private void checkText(IConsole[] consoles) {
 		// test run result
 		for (IConsole console : consoles) {
