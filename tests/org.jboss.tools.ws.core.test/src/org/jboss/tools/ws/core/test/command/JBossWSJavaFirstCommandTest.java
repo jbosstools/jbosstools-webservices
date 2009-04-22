@@ -62,7 +62,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
 	protected static final IWorkbench wb = PlatformUI.getWorkbench();
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-soa-p.4.3.0/jboss-as";
+	protected static final String JBOSSWS_HOME_DEFAULT = "D:\\softinstall\\jboss-4.2.3GA\\jboss-4.2.3.GA";
 	private static final String RuntimeName;
 	private static final boolean isDeployed;
 
@@ -142,7 +142,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		assertFalse(status.getMessage(), Status.ERROR == status.getSeverity());
 		assertTrue(project.getFile(
 				"src/org/example/www/helloworld/jaxws/SayHello.java").exists());
-		assertTrue(project.getFile("WebContent/wsdl/HelloWorldService.wsdl")
+		assertTrue(project.getFile("wsdl/HelloWorldService.wsdl")
 				.exists());
 	}
 
