@@ -56,10 +56,7 @@ public class Java2WSCommand extends AbstractGenerateCodeCommand {
 
 		IProject iProject = ResourcesPlugin.getWorkspace().getRoot()
 				.getProject(projectName);
-
-		command.add("-s");
-		command.add(projectRoot + Path.SEPARATOR + "src");
-
+		
 		if (model.isGenWSDL()) {
 			command.add("-w");
 		}

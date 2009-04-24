@@ -3,9 +3,7 @@ package org.jboss.tools.ws.creation.core.commands;
 import java.io.File;
 import java.util.List;
 
-import org.eclipse.core.runtime.Path;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
-import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 
@@ -29,11 +27,6 @@ public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 	
 	@Override
 	protected void addCommandlineArgs(List<String> command) {
-		String project = model.getWebProjectName();
-		String projectRoot = JBossWSCreationUtils.getProjectRoot(project).toOSString();
-		
-		command.add("-s");
-		command.add(projectRoot + Path.SEPARATOR + "src");
 		
 		if(model.getCustomPackage() != null && !"".equals(model.getCustomPackage())){
 			command.add("-p");

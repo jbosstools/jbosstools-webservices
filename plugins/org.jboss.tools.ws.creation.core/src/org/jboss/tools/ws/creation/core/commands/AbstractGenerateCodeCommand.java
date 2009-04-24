@@ -49,17 +49,14 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(
 				model.getWebProjectName());
 
-		String projectRoot = JBossWSCreationUtils.getProjectRoot(
-				model.getWebProjectName()).toOSString();
-		IJavaProject javaProject = JavaCore.create(project);
 		try {
 			String runtimeLocation = JBossWSCreationUtils
 					.getJBossWSRuntimeLocation(project);
 			String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";
 			IPath path = new Path(commandLocation);
-			
+
 			List<String> command = new ArrayList<String>();
-			
+
 			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
 				command.add("cmd.exe");
 				command.add("/c");
@@ -79,18 +76,11 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 										new String[] { path.toOSString() }));
 			}
 
-			command.add("-k");
 			addCommandlineArgs(command);
-			if(model.getWsdlURI() != null){
-				command.add(model.getWsdlURI());
-			}
+			addCommonArgs(command, project);
 			
-			command.add("-o");	
-			StringBuffer opDir = new StringBuffer();
-			opDir.append(projectRoot).append(Path.SEPARATOR).append(javaProject.getOutputLocation().removeFirstSegments(1).toOSString());
-			command.add(opDir.toString());
-          
-			Process proc = DebugPlugin.exec(command.toArray(new String[command.size()]), new File(commandLocation));
+			Process proc = DebugPlugin.exec(command.toArray(new String[command
+					.size()]), new File(commandLocation));
 			StringBuffer errorResult = new StringBuffer();
 			StringBuffer inputResult = new StringBuffer();
 
@@ -105,7 +95,8 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				String resultInput = inputResult.toString();
 				if (resultInput != null && resultInput.indexOf("[ERROR]") >= 0) {
 					JBossWSCreationCore.getDefault().logError(resultInput);
-					IStatus errorStatus = StatusUtils.warningStatus(resultInput);
+					IStatus errorStatus = StatusUtils
+							.warningStatus(resultInput);
 					status = StatusUtils
 							.warningStatus(
 									JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
@@ -130,6 +121,28 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		refreshProject(model.getWebProjectName(), monitor);
 
 		return status;
+	}
+
+	private void addCommonArgs(List<String> command, IProject project) throws Exception {
+		String projectRoot = JBossWSCreationUtils.getProjectRoot(
+				model.getWebProjectName()).toOSString();
+		IJavaProject javaProject = JavaCore.create(project);
+
+		command.add("-k");
+
+		command.add("-s");
+		command.add(JBossWSCreationUtils.getJavaProjectSrcLocation(project));
+
+		command.add("-o");
+		StringBuffer opDir = new StringBuffer();
+		opDir.append(projectRoot).append(Path.SEPARATOR).append(
+				javaProject.getOutputLocation().removeFirstSegments(1)
+						.toOSString());
+		command.add(opDir.toString());
+		if (model.getWsdlURI() != null) {
+			command.add(model.getWsdlURI());
+		}
+
 	}
 
 	private void convertInputStreamToString(final StringBuffer result,
@@ -169,7 +182,8 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		}
 	}
 
-	abstract protected void addCommandlineArgs(List<String> command) throws Exception;
+	abstract protected void addCommandlineArgs(List<String> command)
+			throws Exception;
 
 	abstract protected String getCommandLineFileName_linux();
 
