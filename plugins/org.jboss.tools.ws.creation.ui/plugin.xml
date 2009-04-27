@@ -50,7 +50,7 @@
        <widgetFactory
              class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSProviderInvokeConfigWidgetFactory"
              id="JBossWSProviderInvokeConfig"
-             insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.WSProviderInvokeCommand">
+             insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.Java2WSCommand">
        </widgetFactory>
     </extension>
   <extension

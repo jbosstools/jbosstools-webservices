@@ -18,6 +18,7 @@ import junit.framework.TestSuite;
 import org.jboss.tools.ws.core.test.classpath.JBossWSRuntimeManagerTest;
 import org.jboss.tools.ws.core.test.command.JBossWSJavaFirstCommandTest;
 import org.jboss.tools.ws.core.test.command.JBossWSClientCommandTest;
+import org.jboss.tools.ws.core.test.command.JBossWSTopDownCommandTest;
 
 public class JBossWSCoreAllTests extends TestCase {
 	public static final String PLUGIN_ID = "org.jboss.tools.common.test";
@@ -27,7 +28,7 @@ public class JBossWSCoreAllTests extends TestCase {
 		suite.addTestSuite(JBossWSRuntimeManagerTest.class);
 		suite.addTestSuite(JBossWSJavaFirstCommandTest.class);
 		suite.addTestSuite(JBossWSClientCommandTest.class);
-	
+		suite.addTestSuite(JBossWSTopDownCommandTest.class);
 		return suite;
 	}
 }

@@ -69,7 +69,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	protected static final int DEFAULT_STARTUP_TIME = 150000;
 	protected static final int DEFAULT_SHUTDOWN_TIME = 90000;
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "D:/softinstall/jboss-4.2.2.GA/jboss-4.2.2.GA";
+	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-soa-p.4.3.0/jboss-as";
 	public static final String JBOSSWS_42_HOME="jbosstools.test.jboss.home.4.2";
 	public static final String JBOSS_RUNTIME_42 = "org.jboss.ide.eclipse.as.runtime.42";
 	public static final String JBOSS_AS_42_HOME = System.getProperty(JBOSSWS_42_HOME, JBOSSWS_HOME_DEFAULT);
