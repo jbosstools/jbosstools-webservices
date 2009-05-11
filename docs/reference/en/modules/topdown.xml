@@ -11,7 +11,7 @@
 
    <title>Creating a Web Service using JBossWS runtime</title>
    <para>In this chapter we provide you with the necessary steps to create a Web Service using
-      JBossWS runtime.</para>
+      JBossWS runtime. First you need to create a Dynamic Web project:</para>
 
    <section id="createproject">
       <title>Creating a Dynamic Web project</title>
@@ -21,13 +21,12 @@
          <title>Dynamic Web Project</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_webproject_1.png"/>
+               <imagedata fileref="images/topdown/jbossws_webproject_1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
       <para>Create a Web project by selecting <emphasis>
-            <property>New > Project... > Dynamic Web project</property>
-         </emphasis>. Enter the following information: </para>
+            <property>New > Project... > Dynamic Web project</property></emphasis>. Enter the following information: </para>
       <itemizedlist>
          <listitem>
             <para>Project Name: enter a project name</para>
@@ -37,14 +36,13 @@
                click New and browse to the location where it is installed to. You may set <emphasis>
                   <property>Target Runtime</property>
                </emphasis> to <emphasis>
-                  <property>None</property>
-               </emphasis>, in this case, you should add <link linkend="addfacet">JBoss Web Service
+                  <property>None</property></emphasis>, in this case, you should add <link linkend="addfacet">JBoss Web Service
                   facet to the project</link>.</para>
             <figure>
                <title>Dynamic Web Project Wizard</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_webproject_2.png"/>
+                     <imagedata fileref="images/topdown/jbossws_webproject_2.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -55,24 +53,24 @@
                <title>Web Module Settings Configuration</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_webproject_3.png"/>
+                     <imagedata fileref="images/topdown/jbossws_webproject_3.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
          </listitem>
       </itemizedlist>
-      <para>Click on the <property>Finish</property> button.</para>
+      <para>Click on the <property>Finish</property> button. Next you will need to add JBoss Web Service facet to the project:</para>
    </section>
 
    <section id="addfacet">
       <title>Configure JBoss Web Service facet settings</title>
       <para>If you have already created a new Dynamic Web project, the next step is to add JBoss Web
-         Service facet to the project:</para>
+         Service facet to the project. Right-click on the project, select its <emphasis><property>Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBoss Web Services and open additional configuration for it, having clicked on the <emphasis><property>Further configuration required...</property></emphasis> link. In the opened window</para>
       <figure id="figure_addfacet">
          <title>Configure JBoss Web Service Facet</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_facet.png"/>
+               <imagedata fileref="images/topdown/jbossws_facet.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -92,11 +90,11 @@
          <title>Configure JBossWS Runtime</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_newruntime.png"/>
+               <imagedata fileref="images/topdown/jbossws_newruntime.png"/>
             </imageobject>
          </mediaobject>
       </figure>
-      <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>:</para>
+      <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>.</para>
 
    </section>
 
@@ -107,7 +105,7 @@
          WSDL document using JBossWS runtime.</para>
       <para>At first, please make sure that you have already created a dynamic Web project with
          JBoss Web Service facet installed. </para>
-      <para>See how to make it <link linkend="createproject">here</link>> and <link
+      <para>See how to make it <link linkend="createproject">here</link> and <link
             linkend="addfacet">here</link>.</para>
 
       <para>To create a Web Service using JBossWS runtime select<emphasis>
@@ -118,19 +116,19 @@
          <title>New Web Service Wizard</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation1.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
       <para>First, please select <property>Top down Java bean Web Service</property> from the Web
          Service type list, and select a WSDL document from workspace, click on the Server name
-         lilnk on the page will bring you to another dialog. Here you can specify the server to a
+         link on the page will bring you to another dialog. Here you can specify the server to a
          JBoss Server and Web Service runtime to JBossWS runtime:</para>
       <figure id="figure_create_ws_topdown_setserver">
          <title>Select Server and Web Service runtime</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation1_1.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation1_1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -143,7 +141,7 @@
          <title>New Web Service Wizard</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation1.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation1.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -155,7 +153,7 @@
          <title>New Web Service Wizard</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_creation2.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_creation2.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -180,7 +178,7 @@
          <title>The generated implementation Java code</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_Impl_code_view.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_Impl_code_view.png"/>
             </imageobject>
          </mediaobject>
       </figure>
@@ -189,11 +187,11 @@
          <title>Web.xml</title>
          <mediaobject>
             <imageobject>
-               <imagedata fileref="images/jbossws_ws_webxml.png"/>
+               <imagedata fileref="images/topdown/jbossws_ws_webxml.png"/>
             </imageobject>
          </mediaobject>
       </figure>
-
+<para>In the next chapter you will find out how to create a Web service from a Java bean.</para>
    </section>
 
    <section id="bottomupws">
@@ -208,31 +206,29 @@
       <itemizedlist>
          <listitem>
             <para>Switch to the Java EE perspective <emphasis>
-                  <property>Window > Open Perspective > Java EE</property>
-               </emphasis>.</para>
+                  <property>Window > Open Perspective > Java EE</property></emphasis>.</para>
          </listitem>
          <listitem>
             <para>In the Project Explorer view, select the bean that you created or imported into
                the source folder of your Web project.</para>
             <figure>
-               <title>Create a new Bean Class</title>
+               <title>Select the Bean Created</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata scale="80" fileref="images/jbossws_bottomup.png"/>
+                     <imagedata scale="80" fileref="images/topdown/jbossws_bottomup.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
          </listitem>
          <listitem>
             <para>Click <emphasis>
-                  <property>File > New > Other</property>
-               </emphasis>. Select Web Services in order to display various Web service wizards.
+                  <property>File > New > Other</property></emphasis>. Select Web Services in order to display various Web service wizards.
                Select the Web Service wizard. Click on the <property>Next</property> button.</para>
             <figure>
                <title>New Web Service</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_1.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_1.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -245,7 +241,7 @@
                <title>Set Web Service Common values</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_2.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_2.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -313,7 +309,7 @@
                <title>Set Web Service values for Code Generation</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_3.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_3.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -340,7 +336,7 @@
                <title>Start a Server</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata fileref="images/jbossws_bottomup_4.png"/>
+                     <imagedata fileref="images/topdown/jbossws_bottomup_4.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -355,10 +351,10 @@
          <listitem>
             <para>If you selected to generate a WSDL file, you will get the file in your project's wsdl folder.</para>
             <figure>
-               <title>The generated WSDL file</title>
+               <title>The Generated HelloWorldService.wsdl File in the wsdl Folder</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata scale="80" fileref="images/jbossws_bottomup_6.png"/>
+                     <imagedata scale="80" fileref="images/topdown/jbossws_bottomup_6.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
@@ -371,12 +367,14 @@
                <title>The Updated web.xml file</title>
                <mediaobject>
                   <imageobject>
-                     <imagedata scale="80" fileref="images/jbossws_bottomup_5.png"/>
+                     <imagedata scale="80" fileref="images/topdown/jbossws_bottomup_5.png"/>
                   </imageobject>
                </mediaobject>
             </figure>
          </listitem>
       </itemizedlist>
+  <para>In the next chapter you will be able to create a Web Service Client from a WSDL document using JBoss WS.</para>
+   
    </section>
 
 </chapter>

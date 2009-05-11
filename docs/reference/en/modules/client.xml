@@ -1,54 +1,51 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <chapter id="client" revisionflag="added">
   <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
-  <para>To create a Web Service Client from a WSDL Document using JBoss WS:</para>
+  <para>To create a Web Service Client from a WSDL Document using JBoss WS you need to fulfil the following steps:</para>
   <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
-  <para><link linkend="createproject">Creating a Dynamic Web project</link>.</para>
+  <para><link linkend="createproject">Create a Dynamic Web project</link>.</para>
   <para><link linkend="addfacet">Add JBossWS Facet to Web project</link>.</para>
-  <para>Create a Web Service Client from a WSDL document: </para>
+  <para>Then you can create a Web Service Client from a WSDL document: </para>
      <itemizedlist>
         <listitem>
            <para>Switch to the Java EE perspective <emphasis><property>Window > Open Perspective > Java EE</property></emphasis>.</para>
         </listitem>
         <listitem>
-           <para>In the Project Explorer view, select the bean that you created or imported into the source folder of your Web project.</para> 
-        </listitem>
-        <listitem>
-           <para>Click <emphasis><property>File > New > Other</property></emphasis>.Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click <property>Next</property> button.</para> 
+           <para>Click <emphasis><property>File > New > Other</property></emphasis>. Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click on the <property>Next</property> button.</para> 
              <figure>
                 <title>New Web Service Client</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/jbossws_client.png"></imagedata>
+                      <imagedata fileref="images/client/jbossws_client.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
         </listitem>
         <listitem>
-           <para>The first and second Web Service Client wizard page are same to <link linkend="topdownwebservice">Web Service from a WSDL document</link>.</para> 
+           <para>The first and the second Web Service Client wizard pages are the same as for <link linkend="topdownwebservice">Web Service from a WSDL document</link>.</para> 
              <figure>
                 <title>Set Web Service Common values</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/jbossws_client_1.png"></imagedata>
+                      <imagedata fileref="images/client/jbossws_client_1.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
              <figure>
-                <title>Set Web Service values about WSDL file</title>
+                <title>Set Web Service values related to WSDL file</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata fileref="images/jbossws_client_2.png"></imagedata>
+                      <imagedata fileref="images/client/jbossws_client_2.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
-           <para>The differences are:</para>
+           <para>The only difference is:</para>
               <itemizedlist>
                  <listitem>
-                    <para><property>Client Type:</property> Now only support Java Proxy.</para>
+                    <para><property>Client Type:</property> Support  of Java Proxy only.</para>
                  </listitem>
                </itemizedlist>
-           <para>Click <property>Finish</property> button.</para>
+           <para>Click on the <property>Finish</property> button.</para>
         </listitem>     
      </itemizedlist>
      <para>After the Web Service Client has been created, the following may occur depending on the options you selected:</para>
@@ -62,7 +59,7 @@
                 <title>Client Sample Class</title>
                 <mediaobject>
                    <imageobject>
-                      <imagedata scale="80" fileref="images/jbossws_client_3.png"></imagedata>
+                      <imagedata scale="80" fileref="images/client/jbossws_client_3.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
