@@ -23,6 +23,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jst.j2ee.model.IModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.j2ee.webapplication.ServletType;
@@ -127,7 +128,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 		//test wsdl2Javacommand
 		WSDL2JavaCommand cmdW2j = new WSDL2JavaCommand(model);
 		IStatus status = cmdW2j.execute(null, null);
-		assertTrue(status.getMessage(), status.isOK());
+		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
 		
 		assertTrue(project.getFile("src/org/apache/hello_world_soap_http/Greeter.java").exists());
 		
@@ -135,13 +136,13 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 		model.setGenerateImplementatoin(false);
 		ImplementationClassCreationCommand cmdImpl = new ImplementationClassCreationCommand(model);
 		status = cmdImpl.execute(null, null);
-		assertTrue(status.getMessage(), status.isOK());
+		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
 		assertFalse(project.getFile("src/org/apache/hello_world_soap_http/GreeterImpl.java").exists());
 		
 		model.setGenerateImplementatoin(true);
 		cmdImpl = new ImplementationClassCreationCommand(model);
 		status = cmdImpl.execute(null, null);
-		assertTrue(status.getMessage(), status.isOK());
+		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
 		assertTrue("failed to generate implemenatation class", project.getFile("src/org/apache/hello_world_soap_http/GreeterImpl.java").exists());
 		
 		
@@ -209,15 +210,15 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 		//test initial command
 		AbstractDataModelOperation cmd = new InitialCommand(model, ws, WebServiceScenario.TOPDOWN);
 		IStatus status = cmd.execute(null, null);
-		assertTrue(status.getMessage(), status.isOK());
+		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
 		
 		cmd = new WSDL2JavaCommand(model);
 		status = cmd.execute(null, null);
-		assertTrue(status.getMessage(), status.isOK());
+		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
 		
 		cmd = new ImplementationClassCreationCommand(model);
 		status = cmd.execute(null, null);
-		assertTrue(status.getMessage(), status.isOK());
+		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
 		
 		cmd = new MergeWebXMLCommand(model);
 		status = cmd.execute(null, null);
