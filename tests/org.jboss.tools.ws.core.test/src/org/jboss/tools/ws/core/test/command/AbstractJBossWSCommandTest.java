@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
- ******************************************************************************/ 
+ ******************************************************************************/
 package org.jboss.tools.ws.core.test.command;
 
 import java.io.File;
@@ -32,6 +32,8 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.IStreamListener;
 import org.eclipse.debug.core.model.IStreamMonitor;
+import org.eclipse.jdt.launching.IVMInstall;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
@@ -53,28 +55,32 @@ import org.eclipse.wst.server.core.ServerCore;
 import org.eclipse.wst.server.core.ServerEvent;
 import org.eclipse.wst.server.core.ServerUtil;
 import org.eclipse.wst.server.core.IServer.IOperationListener;
+import org.eclipse.wst.server.core.internal.RuntimeWorkingCopy;
 import org.eclipse.wst.server.core.internal.ServerWorkingCopy;
+import org.jboss.ide.eclipse.as.core.server.IJBossServerRuntime;
 import org.jboss.ide.eclipse.as.core.server.internal.DeployableServer;
 import org.jboss.ide.eclipse.as.core.server.internal.JBossServerBehavior;
 import org.jboss.tools.common.test.util.TestProjectProvider;
-import org.jboss.tools.test.util.JUnitUtils;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
 public abstract class AbstractJBossWSCommandTest extends TestCase {
+	public static final IVMInstall VM_INSTALL = JavaRuntime
+			.getDefaultVMInstall();
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
 	protected static final IWorkbench wb = PlatformUI.getWorkbench();
-	
+
 	protected static final int DEFAULT_STARTUP_TIME = 150000;
 	protected static final int DEFAULT_SHUTDOWN_TIME = 90000;
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "/home/fugang/jboss-all/jboss-soa-p.4.3.0/jboss-as";
-	public static final String JBOSSWS_42_HOME="jbosstools.test.jboss.home.4.2";
+	protected static final String JBOSSWS_HOME_DEFAULT = "D:/softinstall/jboss-4.2.3GA/jboss-4.2.3.GA";
+	public static final String JBOSSWS_42_HOME = "jbosstools.test.jboss.home.4.2";
 	public static final String JBOSS_RUNTIME_42 = "org.jboss.ide.eclipse.as.runtime.42";
-	public static final String JBOSS_AS_42_HOME = System.getProperty(JBOSSWS_42_HOME, JBOSSWS_HOME_DEFAULT);
+	public static final String JBOSS_AS_42_HOME = System.getProperty(
+			JBOSSWS_42_HOME, JBOSSWS_HOME_DEFAULT);
 	public static final String JBOSS_SERVER_42 = "org.jboss.ide.eclipse.as.42";
-	
+
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
 
 	protected static final IProjectFacetVersion dynamicWebVersion;
@@ -84,88 +90,84 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 
 	static String wsdlFileName = "hello_world.wsdl";
 	static String BUNDLE = "org.jboss.tools.ws.core.test";
-	
+
 	IFacetedProject fproject;
-	TestProjectProvider provider;
 	protected IRuntime currentRuntime;
 	protected IServer currentServer;
-	
+	protected ServerStateListener stateListener;
+
 	static {
-		javaVersion = ProjectFacetsManager.getProjectFacet("jst.java").getVersion("5.0");
-		dynamicWebVersion = ProjectFacetsManager.getProjectFacet("jst.web").getVersion("2.5");
+		javaVersion = ProjectFacetsManager.getProjectFacet("jst.java")
+				.getVersion("5.0");
+		dynamicWebVersion = ProjectFacetsManager.getProjectFacet("jst.web")
+				.getVersion("2.5");
 		jbosswsFacet = ProjectFacetsManager.getProjectFacet("jbossws.core");
 		jbosswsFacetVersion = jbosswsFacet.getVersion("2.0");
-		
-		
+
 	}
 
 	public AbstractJBossWSCommandTest() {
 	}
-	
+
 	protected void setUp() throws Exception {
 		super.setUp();
-		
-		//create jbossws web project
-		
-		createServer(JBOSS_RUNTIME_42, JBOSS_SERVER_42, JBOSS_AS_42_HOME, "default");
-		
-		try { 
-			JobUtils.waitForIdle(); 
-		} catch (Exception e) { 
-			JUnitUtils.fail(e.getMessage(), e); 
-		}
-		
+
+		// create jbossws web project
+
+		createServer(JBOSS_RUNTIME_42, JBOSS_SERVER_42, JBOSS_AS_42_HOME,
+				"default");
+		// first thing's first. Let's add a server state listener
+		stateListener = new ServerStateListener();
+		currentServer.addServerListener(stateListener);
+
 		JobUtils.delay(3000);
 	}
-	
+
 	public IProject createProject(String prjName) throws CoreException {
-		provider = new TestProjectProvider(BUNDLE,"/projects/"+prjName , prjName, true);
+		TestProjectProvider provider = new TestProjectProvider(BUNDLE, "/projects/" + prjName,
+				prjName, true);
 		IProject prj = provider.getProject();
-		JobUtils.waitForIdle();
 		return prj;
 	}
-	
-	
 
 	protected void tearDown() throws Exception {
 		// Wait until all jobs is finished to avoid delete project problems
-		
+
 		undeployWebProject();
 
-	    boolean oldAutoBuilding = ResourcesUtils.setBuildAutomatically(false); 
-	    Exception last = null;
-	    
-	    try {
-		    JobUtils.waitForIdle(); 
-			
+		boolean oldAutoBuilding = ResourcesUtils.setBuildAutomatically(false);
+		Exception last = null;
+
+		try {
+			JobUtils.delay(500);
 			for (IResource r : this.resourcesToCleanup) {
 				try {
 					System.out.println("Deleting " + r);
 					r.delete(true, null);
-					JobUtils.waitForIdle();
-				} catch(Exception e) {
+					JobUtils.delay(500);
+				} catch (Exception e) {
 					System.out.println("Error deleting " + r);
 					e.printStackTrace();
 					last = e;
 				}
 			}
-	    } finally {
-	    	ResourcesUtils.setBuildAutomatically(oldAutoBuilding);
-	    }
-	    
-		if(last!=null) throw last;
-		
+		} finally {
+			ResourcesUtils.setBuildAutomatically(oldAutoBuilding);
+		}
+
+		if (last != null)
+			throw last;
+
 		resourcesToCleanup.clear();
-		
-		//cleanProjectFromServer() ;
+		// cleanProjectFromServer() ;
 		shutdown();
+		currentServer.removeServerListener(stateListener);
 		currentRuntime.delete();
 		currentServer.delete();
-		
+
 		super.tearDown();
 	}
 
-	
 	protected void createServer(String runtimeID, String serverID,
 			String location, String configuration) throws CoreException {
 		// if file doesnt exist, abort immediately.
@@ -178,10 +180,12 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		serverWC.setRuntime(currentRuntime);
 		serverWC.setName(serverID);
 		serverWC.setServerConfiguration(null);
-		IPath path = new Path(location).append("server").append("default").append("deploy");
-		((ServerWorkingCopy)serverWC).setAttribute(DeployableServer.DEPLOY_DIRECTORY, path.toOSString() );
+		IPath path = new Path(location).append("server").append("default")
+				.append("deploy");
+		((ServerWorkingCopy) serverWC).setAttribute(
+				DeployableServer.DEPLOY_DIRECTORY, path.toOSString());
 		currentServer = serverWC.save(true, new NullProgressMonitor());
-		
+
 	}
 
 	private IRuntime createRuntime(String runtimeId, String homeDir,
@@ -194,11 +198,18 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 				new NullProgressMonitor());
 		runtimeWC.setName(runtimeId);
 		runtimeWC.setLocation(new Path(homeDir));
+		((RuntimeWorkingCopy) runtimeWC).setAttribute(
+				IJBossServerRuntime.PROPERTY_VM_ID, VM_INSTALL.getId());
+		((RuntimeWorkingCopy) runtimeWC).setAttribute(
+				IJBossServerRuntime.PROPERTY_VM_TYPE_ID, VM_INSTALL
+						.getVMInstallType().getId());
+		((RuntimeWorkingCopy) runtimeWC).setAttribute(
+				IJBossServerRuntime.PROPERTY_CONFIGURATION_NAME, config);
 		IRuntime savedRuntime = runtimeWC.save(true, new NullProgressMonitor());
 		return savedRuntime;
 	}
-	
-	protected ServiceModel createServiceModel(){
+
+	protected ServiceModel createServiceModel() {
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(fproject.getProject().getName());
 		IFile wsdlFile = fproject.getProject().getFile(wsdlFileName);
@@ -206,159 +217,133 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		model.addServiceName("SOAPService");
 		model.addPortTypes("Greeter");
 		model.setCustomPackage("org.apache.hello_world_soap_http");
-		
+
 		return model;
-		
+
 	}
-	
-	protected void publishWebProject() throws CoreException{
-		IModule[] modules = ServerUtil.getModules(currentServer.getServerType().getRuntimeType().getModuleTypes());
+
+	protected void publishWebProject() throws CoreException {
+		IModule[] modules = ServerUtil.getModules(currentServer.getServerType()
+				.getRuntimeType().getModuleTypes());
 		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
 		serverWC.modifyModules(modules, null, null);
 		serverWC.save(true, null).publish(0, null);
 		currentServer.publish(IServer.PUBLISH_FULL, null);
-		
+
 	}
-	
-	protected void undeployWebProject() throws CoreException{
-		IModule[] modules = ServerUtil.getModules(currentServer.getServerType().getRuntimeType().getModuleTypes());
+
+	protected void undeployWebProject() throws CoreException {
+		IModule[] modules = ServerUtil.getModules(currentServer.getServerType()
+				.getRuntimeType().getModuleTypes());
 		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
-		serverWC.modifyModules( null,modules, null);
+		serverWC.modifyModules(null, modules, null);
 		serverWC.save(true, null).publish(0, null);
 		currentServer.publish(IServer.PUBLISH_FULL, null);
-		
+
 	}
-	
-	protected void cleanProjectFromServer() throws CoreException{
-		IModule[] modules = ServerUtil.getModules(currentServer.getServerType().getRuntimeType().getModuleTypes());
+
+	protected void cleanProjectFromServer() throws CoreException {
+		IModule[] modules = ServerUtil.getModules(currentServer.getServerType()
+				.getRuntimeType().getModuleTypes());
 		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
 		serverWC.modifyModules(null, modules, null);
 		currentServer.publish(0, null);
 		currentServer.stop(true);
-		
+
 	}
-	
-	protected boolean isServerSupplied(){
+
+	protected boolean isServerSupplied() {
 		return false;
 	}
-	
-	
-	protected IFacetedProject createJBossWSProject(String baseProjectName, boolean isServerSupplied) throws CoreException {
+
+	protected IFacetedProject createJBossWSProject(String baseProjectName,
+			boolean isServerSupplied) throws CoreException {
 		IProject project = createProject(baseProjectName);
 		final IFacetedProject fproj = ProjectFacetsManager.create(project);
-	
-		//installDependentFacets(fproj);
-		fproj.installProjectFacet(jbosswsFacetVersion, createJBossWSDataModel(isServerSupplied), null);
-		
+
+		// installDependentFacets(fproj);
+		fproj.installProjectFacet(jbosswsFacetVersion,
+				createJBossWSDataModel(isServerSupplied), null);
+
 		assertNotNull(project);
 
-		this.addResourceToCleanup(project);	
-		
-		
+		this.addResourceToCleanup(project);
+
 		return fproj;
 	}
-	
 
-	abstract IDataModel createJBossWSDataModel( boolean isServerSupplied);
+	abstract IDataModel createJBossWSDataModel(boolean isServerSupplied);
 
-	
-	
 	protected final void addResourceToCleanup(final IResource resource) {
 		this.resourcesToCleanup.add(resource);
 	}
 
-
-
-	
 	protected File getJBossWSHomeFolder() {
-		
-		String jbosshome = System.getProperty(JBOSSWS_42_HOME, JBOSSWS_HOME_DEFAULT);
+
+		String jbosshome = System.getProperty(JBOSSWS_42_HOME,
+				JBOSSWS_HOME_DEFAULT);
 		File runtimelocation = new File(jbosshome);
-		assertTrue("Please set JBoss EAP Home in system property:" + JBOSSWS_42_HOME, runtimelocation.exists());
-		
-		String cmdFileLocation = jbosshome + File.separator + "bin" + File.separator + "wsconsume.sh";
-		assertTrue(jbosshome + " is not a valid jboss EAP home", new File(cmdFileLocation).exists());
+		assertTrue("Please set JBoss EAP Home in system property:"
+				+ JBOSSWS_42_HOME, runtimelocation.exists());
+
+		String cmdFileLocation = jbosshome + File.separator + "bin"
+				+ File.separator + "wsconsume.sh";
+		assertTrue(jbosshome + " is not a valid jboss EAP home", new File(
+				cmdFileLocation).exists());
 		return runtimelocation;
 	}
 
-
-
-	 
-	protected class ServerStateListener implements IServerListener {
-		private ArrayList stateChanges;
-		public ServerStateListener() {
-			this.stateChanges = new ArrayList();
-		}
-		public ArrayList getStateChanges() {
-			return stateChanges;
-		}
-		public void serverChanged(ServerEvent event) {
-			if((event.getKind() & ServerEvent.SERVER_CHANGE) != 0)  {
-				if((event.getKind() & ServerEvent.STATE_CHANGE) != 0) {
-					if( event.getState() != IServer.STATE_STOPPED)
-						stateChanges.add(new Integer(event.getState()));
-				}
-			}
-		}
-	}
-	
-	protected class ErrorStreamListener implements IStreamListener {
-		protected boolean errorFound = false;
-		String entireLog = "";
-		public void streamAppended(String text, IStreamMonitor monitor) {
-			entireLog += text;
-		} 
-		
-		// will need to be fixed or decided how to figure out errors
-		public boolean hasError() {
-			return errorFound;
-		}
+	protected void startup() {
+		startup(DEFAULT_STARTUP_TIME);
 	}
 
-	protected void startup() { startup(DEFAULT_STARTUP_TIME); }
 	protected void startup(int maxWait) {
 		long finishTime = new Date().getTime() + maxWait;
-		
+
 		// operation listener, which is only alerted when the startup is *done*
 		final StatusWrapper opWrapper = new StatusWrapper();
 		final IOperationListener listener = new IOperationListener() {
 			public void done(IStatus result) {
 				opWrapper.setStatus(result);
-			} };
-			
-			
+			}
+		};
+
 		// a stream listener to listen for errors
 		ErrorStreamListener streamListener = new ErrorStreamListener();
-		
+
 		// the thread to actually start the server
-		Thread startThread = new Thread() { 
+		Thread startThread = new Thread() {
 			public void run() {
 				currentServer.start(ILaunchManager.RUN_MODE, listener);
 			}
 		};
-		
+
 		startThread.start();
-		
+
 		boolean addedStream = false;
-		while( finishTime > new Date().getTime() && opWrapper.getStatus() == null) {
+		while (finishTime > new Date().getTime()
+				&& opWrapper.getStatus() == null) {
 			// we're waiting for startup to finish
-			if( !addedStream ) {
+			if (!addedStream) {
 				IStreamMonitor mon = getStreamMonitor();
-				if( mon != null ) {
+				if (mon != null) {
 					mon.addListener(streamListener);
 					addedStream = true;
 				}
 			}
 			try {
 				Display.getDefault().readAndDispatch();
-			} catch( SWTException swte ) {}
+			} catch (SWTException swte) {
+			}
 		}
-		
+
 		try {
-			assertTrue("Startup has taken longer than what is expected for a default startup", finishTime >= new Date().getTime());
-			assertNotNull("Startup never finished", opWrapper.getStatus());
-			assertFalse("Startup had System.error output", streamListener.hasError());
-		} catch( AssertionFailedError afe ) {
+			assertTrue(
+					"Startup has taken longer than what is expected for a default startup",
+					finishTime >= new Date().getTime());
+			assertFalse("Startup had System.error output", streamListener
+					.hasError());
+		} catch (AssertionFailedError afe) {
 			// cleanup
 			currentServer.stop(true);
 			// rethrow
@@ -367,66 +352,115 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		getStreamMonitor().removeListener(streamListener);
 	}
 
-	protected void shutdown() { shutdown(DEFAULT_SHUTDOWN_TIME); }
+	protected void shutdown() {
+		shutdown(DEFAULT_SHUTDOWN_TIME);
+	}
+
 	protected void shutdown(int maxWait) {
 		long finishTime = new Date().getTime() + maxWait;
-		
+
 		// operation listener, which is only alerted when the startup is *done*
 		final StatusWrapper opWrapper = new StatusWrapper();
 		final IOperationListener listener = new IOperationListener() {
 			public void done(IStatus result) {
 				opWrapper.setStatus(result);
-			} };
-			
-			
+			}
+		};
+
 		// a stream listener to listen for errors
 		ErrorStreamListener streamListener = new ErrorStreamListener();
-		if( getStreamMonitor() != null ) 
+		if (getStreamMonitor() != null)
 			getStreamMonitor().addListener(streamListener);
-		
+
 		// the thread to actually start the server
-		Thread stopThread = new Thread() { 
+		Thread stopThread = new Thread() {
 			public void run() {
 				currentServer.stop(false, listener);
 			}
 		};
-		
+
 		stopThread.start();
-		
-		while( finishTime > new Date().getTime() && opWrapper.getStatus() == null) {
+
+		while (finishTime > new Date().getTime()
+				&& opWrapper.getStatus() == null) {
 			// we're waiting for startup to finish
 			try {
 				Display.getDefault().readAndDispatch();
-			} catch( SWTException swte ) {}
+			} catch (SWTException swte) {
+			}
 		}
-		
+
 		try {
-			assertTrue("Startup has taken longer than what is expected for a default startup", finishTime >= new Date().getTime());
-			assertNotNull("Startup never finished", opWrapper.getStatus());
-			assertFalse("Startup had System.error output", streamListener.hasError());
-		} catch( AssertionFailedError afe ) {
+			assertTrue(
+					"Startup has taken longer than what is expected for a default startup",
+					finishTime >= new Date().getTime());
+			assertFalse("Startup had System.error output", streamListener
+					.hasError());
+		} catch (AssertionFailedError afe) {
 			// cleanup
 			currentServer.stop(true);
 			// rethrow
 			throw afe;
 		}
 	}
-		
+
 	protected IStreamMonitor getStreamMonitor() {
-		JBossServerBehavior behavior = 
-			(JBossServerBehavior)currentServer.loadAdapter(JBossServerBehavior.class, null);
-		if( behavior != null ) {
-			if( behavior.getProcess() != null ) {
-				return behavior.getProcess().getStreamsProxy().getOutputStreamMonitor();
+		JBossServerBehavior behavior = (JBossServerBehavior) currentServer
+				.loadAdapter(JBossServerBehavior.class, null);
+		if (behavior != null) {
+			if (behavior.getProcess() != null) {
+				return behavior.getProcess().getStreamsProxy()
+						.getOutputStreamMonitor();
 			}
 		}
 		return null;
 	}
-	
+
+	protected class ServerStateListener implements IServerListener {
+		private ArrayList stateChanges;
+
+		public ServerStateListener() {
+			this.stateChanges = new ArrayList();
+		}
+
+		public ArrayList getStateChanges() {
+			return stateChanges;
+		}
+
+		public void serverChanged(ServerEvent event) {
+			if ((event.getKind() & ServerEvent.SERVER_CHANGE) != 0) {
+				if ((event.getKind() & ServerEvent.STATE_CHANGE) != 0) {
+					if (event.getState() != IServer.STATE_STOPPED)
+						stateChanges.add(new Integer(event.getState()));
+				}
+			}
+		}
+	}
+
+	protected class ErrorStreamListener implements IStreamListener {
+		protected boolean errorFound = false;
+		String entireLog = "";
+
+		public void streamAppended(String text, IStreamMonitor monitor) {
+			entireLog += text;
+		}
+
+		// will need to be fixed or decided how to figure out errors
+		public boolean hasError() {
+			return errorFound;
+		}
+	}
+
 	public class StatusWrapper {
 		protected IStatus status;
-		public IStatus getStatus() { return this.status; }
-		public void setStatus(IStatus s) { this.status = s; }
+
+		public IStatus getStatus() {
+			return this.status;
+		}
+
+		public void setStatus(IStatus s) {
+			this.status = s;
+		}
 	}
 
 }

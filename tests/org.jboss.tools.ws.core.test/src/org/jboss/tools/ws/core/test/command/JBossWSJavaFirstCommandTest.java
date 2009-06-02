@@ -65,6 +65,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 	protected static final String JBOSSWS_HOME_DEFAULT = "D:\\softinstall\\jboss-4.2.3GA\\jboss-4.2.3.GA";
 	private static final String RuntimeName;
 	private static final boolean isDeployed;
+	private IProject clientProject;
 
 	static {
 		RuntimeName = "testjbosswsruntime";
@@ -82,7 +83,8 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		// create jbossws web project
 		fproject = createJBossWSProject("JavaFirstTestProject",
 				isServerSupplied());
-
+		clientProject = createProject("ClientTest");
+		this.addResourceToCleanup(clientProject);
 	}
 
 	protected void tearDown() throws Exception {
@@ -125,7 +127,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 
 	}
 
-	public void testWSProviderInvokeCommand() throws ExecutionException, CoreException {
+	public void testJava2WSCommand() throws ExecutionException, CoreException {
 
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(fproject.getProject().getName());
@@ -190,7 +192,6 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		conn.connect();
 		conn.getContent();
 
-		IProject pro = createProject("ClientTest");
 		model = new ServiceModel();
 		model.setWebProjectName("ClientTest");
 
@@ -198,8 +199,8 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		status = cmd.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 
-		pro.open(null);
-		pro.refreshLocal(IResource.DEPTH_INFINITE, null);
+		clientProject.open(null);
+		clientProject.refreshLocal(IResource.DEPTH_INFINITE, null);
 
 		ILaunchManager launchManager = DebugPlugin.getDefault()
 				.getLaunchManager();

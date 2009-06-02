@@ -38,3 +38,4 @@ Export-Package: org.jboss.tools.ws.core.test,
  org.jboss.tools.ws.core.test.command
 Bundle-Vendor: %Bundle-Vendor.0
 Bundle-Localization: plugin
+Import-Package: org.eclipse.jdt.launching
