@@ -11,6 +11,9 @@
 package org.jboss.tools.ws.core.test.command;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -190,7 +193,9 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 				currentServer.getServerState());
 
 		conn.connect();
-		conn.getContent();
+		assertFalse("The url connection's status is "+((HttpURLConnection)conn).getResponseMessage(),"Ok".equals(((HttpURLConnection)conn).getResponseMessage()));
+		
+		
 
 		model = new ServiceModel();
 		model.setWebProjectName("ClientTest");
@@ -231,7 +236,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 					delay(1000);
 					i++;
 				}
-				assertTrue("Sample can not run over!", isContainString(console,
+				assertTrue(((TextConsole) console).getDocument().get(), isContainString(console,
 						JBossWSCreationCoreMessages.Client_Sample_Run_Over));
 			}
 		}
