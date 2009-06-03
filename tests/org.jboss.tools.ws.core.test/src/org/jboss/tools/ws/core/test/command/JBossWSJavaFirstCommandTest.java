@@ -224,14 +224,14 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		for (IConsole console : consoles) {
 			if (console.getName().contains("ClientSample")) {
 				int i = 0;
-				while (i < 10
+				while (i < 30
 						&& !isContainString(
 								console,
 								JBossWSCreationCoreMessages.Client_Sample_Run_Over)) {
 					delay(1000);
 					i++;
 				}
-				assertTrue("Sample run over!", isContainString(console,
+				assertTrue("Sample can not run over!", isContainString(console,
 						JBossWSCreationCoreMessages.Client_Sample_Run_Over));
 			}
 		}
