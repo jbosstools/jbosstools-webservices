@@ -11,6 +11,17 @@
     
      <bookinfo>
          <title>JBoss WS User Guide</title>
+         
+         <corpauthor diffmk:change="added">
+             <inlinemediaobject diffmk:change="added">
+                 <imageobject diffmk:change="added" role="fo">
+                     <imagedata diffmk:change="added" fileref="images/jbosstools_logo.png" format="PNG"></imagedata>
+                 </imageobject>	
+                 <imageobject diffmk:change="added" role="html">
+                     <imagedata diffmk:change="added"></imagedata>
+                 </imageobject>	
+             </inlinemediaobject>           
+         </corpauthor>
          <author><firstname>Denny</firstname><surname>Xu</surname><email>dxu@redhat.com</email></author>
          <author><firstname>Grid</firstname><surname>Qian</surname><email>fqian@redhat.com</email></author>           
          <pubdate>July 2008</pubdate>
@@ -20,7 +31,7 @@
 	          <holder>JBoss, a division of Red Hat</holder>
 	     </copyright>
          <releaseinfo><diffmk:wrapper diffmk:change="changed">
-            Version: 1.0.1.GA
+           Version: 1.1.0.M1
          </diffmk:wrapper></releaseinfo>
 <abstract>
    <title></title>
@@ -38,7 +49,7 @@
    <title>JBossWS Runtime Overview</title>
 
     <para>JBossWS is a web service framework developed as a part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5).</para>
-    <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">JBossWS integrates with most current JBoss Application Server releases as well as earlier ones, that did implement the J2EE 1.4 specifications. Even though JAX-RPC, the web service specification for J2EE 1.4, is still supported JBossWS does put a clear focus on JAX-WS.</diffmk:wrapper></para>
+    <para>JBossWS integrates with most current JBoss Application Server releases as well as earlier ones, that did implement the J2EE 1.4 specifications. Even though JAX-RPC, the web service specification for J2EE 1.4, is still supported JBossWS does put a clear focus on JAX-WS.</para>
 </chapter>
     
 <chapter id="create_ws_topdown" xml:base="file:///home/ochikvina/WORK/for_compare/trunk/ws/docs/reference/en/modules/topdown.xml">
@@ -52,8 +63,8 @@
    </chapterinfo>
 
    <title>Creating a Web Service using JBossWS runtime</title>
-   <para><diffmk:wrapper diffmk:change="changed">In this chapter we provide you with the necessary steps to create a Web Service using
-      JBossWS runtime. First you need to create a Dynamic Web project:</diffmk:wrapper></para>
+   <para>In this chapter we provide you with the necessary steps to create a Web Service using
+      JBossWS runtime. First you need to create a Dynamic Web project:</para>
 
    <section id="createproject">
       <title>Creating a Dynamic Web project</title>
@@ -101,13 +112,13 @@
             </figure>
          </listitem>
       </itemizedlist>
-      <para>Click on the <property moreinfo="none">Finish</property><diffmk:wrapper diffmk:change="changed"> button. Next you will need to add JBoss Web Service facet to the project:</diffmk:wrapper></para>
+      <para>Click on the <property moreinfo="none">Finish</property> button. Next you will need to add JBoss Web Service facet to the project:</para>
    </section>
 
    <section id="addfacet">
       <title>Configure JBoss Web Service facet settings</title>
-      <para><diffmk:wrapper diffmk:change="added">If you have already created a new Dynamic Web project, the next step is to add JBoss Web
-         Service facet to the project. Right-click on the project, select its </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Properties</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added"> and then find </diffmk:wrapper><emphasis diffmk:change="added"><diffmk:wrapper diffmk:change="added">Project Facets</diffmk:wrapper></emphasis><diffmk:wrapper diffmk:change="added"> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBoss Web Services and open additional configuration for it, having clicked on the </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Further configuration required...</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added"> link. In the opened window</diffmk:wrapper></para>
+      <para>If you have already created a new Dynamic Web project, the next step is to add JBoss Web
+         Service facet to the project. Right-click on the project, select its <emphasis><property moreinfo="none">Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBoss Web Services and open additional configuration for it, having clicked on the <emphasis><property moreinfo="none">Further configuration required...</property></emphasis> link. In the opened window</para>
       <figure float="0" id="figure_addfacet">
          <title>Configure JBoss Web Service Facet</title>
          <mediaobject>
@@ -136,7 +147,7 @@
             </imageobject>
          </mediaobject>
       </figure>
-      <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link><diffmk:wrapper diffmk:change="changed">.</diffmk:wrapper></para>
+      <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>.</para>
 
    </section>
 
@@ -147,7 +158,7 @@
          WSDL document using JBossWS runtime.</para>
       <para>At first, please make sure that you have already created a dynamic Web project with
          JBoss Web Service facet installed. </para>
-      <para>See how to make it <link linkend="createproject">here</link><diffmk:wrapper diffmk:change="changed"> and </diffmk:wrapper><link linkend="addfacet">here</link>.</para>
+      <para>See how to make it <link linkend="createproject">here</link> and <link linkend="addfacet">here</link>.</para>
 
       <para>To create a Web Service using JBossWS runtime select<emphasis>
             <property moreinfo="none">File &gt; New &gt; Other &gt; Web Services &gt; Web Service</property>
@@ -161,10 +172,10 @@
             </imageobject>
          </mediaobject>
       </figure>
-      <para>First, please select <property moreinfo="none">Top down Java bean Web Service</property><diffmk:wrapper diffmk:change="changed"> from the Web
+      <para>First, please select <property moreinfo="none">Top down Java bean Web Service</property> from the Web
          Service type list, and select a WSDL document from workspace, click on the Server name
          link on the page will bring you to another dialog. Here you can specify the server to a
-         JBoss Server and Web Service runtime to JBossWS runtime:</diffmk:wrapper></para>
+         JBoss Server and Web Service runtime to JBossWS runtime:</para>
       <figure float="0" id="figure_create_ws_topdown_setserver">
          <title>Select Server and Web Service runtime</title>
          <mediaobject>
@@ -232,7 +243,7 @@
             </imageobject>
          </mediaobject>
       </figure>
-<para diffmk:change="added"><diffmk:wrapper diffmk:change="added">In the next chapter you will find out how to create a Web service from a Java bean.</diffmk:wrapper></para>
+<para>In the next chapter you will find out how to create a Web service from a Java bean.</para>
    </section>
 
    <section id="bottomupws" role="updated">
@@ -253,7 +264,7 @@
             <para>In the Project Explorer view, select the bean that you created or imported into
                the source folder of your Web project.</para>
             <figure float="0">
-               <title><diffmk:wrapper diffmk:change="changed">Select the Bean Created</diffmk:wrapper></title>
+               <title>Select the Bean Created</title>
                <mediaobject>
                   <imageobject>
                      <imagedata fileref="images/topdown/jbossws_bottomup.png" scale="80"></imagedata>
@@ -392,7 +403,7 @@
          <listitem>
             <para>If you selected to generate a WSDL file, you will get the file in your project's wsdl folder.</para>
             <figure float="0">
-               <title><diffmk:wrapper diffmk:change="changed">The Generated HelloWorldService.wsdl File in the wsdl Folder</diffmk:wrapper></title>
+               <title>The Generated HelloWorldService.wsdl File in the wsdl Folder</title>
                <mediaobject>
                   <imageobject>
                      <imagedata fileref="images/topdown/jbossws_bottomup_6.png" scale="80"></imagedata>
@@ -414,7 +425,7 @@
             </figure>
          </listitem>
       </itemizedlist>
-  <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">In the next chapter you will be able to create a Web Service Client from a WSDL document using JBoss WS.</diffmk:wrapper></para>
+  <para>In the next chapter you will be able to create a Web Service Client from a WSDL document using JBoss WS.</para>
    
    </section>
 
@@ -423,17 +434,17 @@
     
 <chapter id="client" revisionflag="added" xml:base="file:///home/ochikvina/WORK/for_compare/trunk/ws/docs/reference/en/modules/client.xml">
   <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
-  <para><diffmk:wrapper diffmk:change="changed">To create a Web Service Client from a WSDL Document using JBoss WS you need to fulfil the following steps:</diffmk:wrapper></para>
+  <para>To create a Web Service Client from a WSDL Document using JBoss WS you need to fulfil the following steps:</para>
   <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
-  <para><link linkend="createproject"><diffmk:wrapper diffmk:change="changed">Create a Dynamic Web project</diffmk:wrapper></link>.</para>
+  <para><link linkend="createproject">Create a Dynamic Web project</link>.</para>
   <para><link linkend="addfacet">Add JBossWS Facet to Web project</link>.</para>
-  <para><diffmk:wrapper diffmk:change="changed">Then you can create a Web Service Client from a WSDL document: </diffmk:wrapper></para>
+  <para>Then you can create a Web Service Client from a WSDL document: </para>
      <itemizedlist>
         <listitem>
            <para>Switch to the Java EE perspective <emphasis><property moreinfo="none">Window &gt; Open Perspective &gt; Java EE</property></emphasis>.</para>
         </listitem>
         <listitem>
-           <para>Click <emphasis><property moreinfo="none">File &gt; New &gt; Other</property></emphasis><diffmk:wrapper diffmk:change="changed">. Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click on the </diffmk:wrapper><property moreinfo="none">Next</property> button.</para> 
+           <para>Click <emphasis><property moreinfo="none">File &gt; New &gt; Other</property></emphasis>. Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click on the <property moreinfo="none">Next</property> button.</para> 
              <figure float="0">
                 <title>New Web Service Client</title>
                 <mediaobject>
@@ -444,7 +455,7 @@
              </figure>
         </listitem>
         <listitem>
-           <para><diffmk:wrapper diffmk:change="changed">The first and the second Web Service Client wizard pages are the same as for </diffmk:wrapper><link linkend="topdownwebservice">Web Service from a WSDL document</link>.</para> 
+           <para>The first and the second Web Service Client wizard pages are the same as for <link linkend="topdownwebservice">Web Service from a WSDL document</link>.</para> 
              <figure float="0">
                 <title>Set Web Service Common values</title>
                 <mediaobject>
@@ -454,20 +465,20 @@
                 </mediaobject>
              </figure>
              <figure float="0">
-                <title><diffmk:wrapper diffmk:change="changed">Set Web Service values related to WSDL file</diffmk:wrapper></title>
+                <title>Set Web Service values related to WSDL file</title>
                 <mediaobject>
                    <imageobject>
                       <imagedata fileref="images/client/jbossws_client_2.png"></imagedata>
                    </imageobject>
                 </mediaobject>
              </figure>
-           <para><diffmk:wrapper diffmk:change="changed">The only difference is:</diffmk:wrapper></para>
+           <para>The only difference is:</para>
               <itemizedlist>
                  <listitem>
-                    <para><property moreinfo="none">Client Type:</property><diffmk:wrapper diffmk:change="changed"> Support  of Java Proxy only.</diffmk:wrapper></para>
+                    <para><property moreinfo="none">Client Type:</property> Support  of Java Proxy only.</para>
                  </listitem>
                </itemizedlist>
-           <para><diffmk:wrapper diffmk:change="changed">Click on the </diffmk:wrapper><property moreinfo="none">Finish</property> button.</para>
+           <para>Click on the <property moreinfo="none">Finish</property> button.</para>
         </listitem>     
      </itemizedlist>
      <para>After the Web Service Client has been created, the following may occur depending on the options you selected:</para>
@@ -494,7 +505,7 @@
 <chapter id="preference" revisionflag="added" xml:base="file:///home/ochikvina/WORK/for_compare/trunk/ws/docs/reference/en/modules/preference.xml">
     <title>JBoss WS and development environment</title>
     
-    <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">In this chapter you will learn how to change JBossWS preferences and how to set default server and runtime.</diffmk:wrapper></para>
+    <para>In this chapter you will learn how to change JBossWS preferences and how to set default server and runtime.</para>
     <section id="jbosswspreference">
        
         
@@ -524,9 +535,9 @@
                 <property moreinfo="none">Add</property>
             </emphasis> or <emphasis>
                 <property moreinfo="none">Edit</property>
-            </emphasis><diffmk:wrapper diffmk:change="changed"> button will open the form where you can configure a new JBossWS runtime and
+            </emphasis> button will open the form where you can configure a new JBossWS runtime and
             change the path to JBossWS runtime home folder, modify the name and version of the
-            existing JBossWS runtime settings. Press </diffmk:wrapper><property moreinfo="none">Finish</property> to apply the
+            existing JBossWS runtime settings. Press <property moreinfo="none">Finish</property> to apply the
             changes.</para>
 
         <figure float="0">
@@ -552,7 +563,7 @@
             </mediaobject>
         </figure>
         <para>Click on <emphasis><property moreinfo="none">Apply</property></emphasis> and then on <emphasis><property moreinfo="none">Ok</property></emphasis>.</para>
-        <para><diffmk:wrapper diffmk:change="changed">To change JavaDoc Location choose </diffmk:wrapper><emphasis><property moreinfo="none">Javadoc Location</property></emphasis> and specify URL to the documentation generated by Javadoc. The Javadoc location will contain a file called <emphasis><property moreinfo="none">package-list</property></emphasis>:</para>
+        <para>To change JavaDoc Location choose <emphasis><property moreinfo="none">Javadoc Location</property></emphasis> and specify URL to the documentation generated by Javadoc. The Javadoc location will contain a file called <emphasis><property moreinfo="none">package-list</property></emphasis>:</para>
         
         <figure float="0">
             <title>Classpath Container: Javadoc Location</title>
@@ -575,7 +586,7 @@
         <para>Open <emphasis>
                 <property moreinfo="none">Window &gt; Preferences &gt; Web Services &gt; Server and Runtime</property></emphasis>. On this page, you can specify a default server and runtime.</para>
         <para>For ease of use, the better way is to set runtime to JBoss WS.</para>
-        <para>After server and runtime are specified, click on the <property moreinfo="none"><diffmk:wrapper diffmk:change="changed">Apply</diffmk:wrapper></property> button
+        <para>After server and runtime are specified, click on the <property moreinfo="none">Apply</property> button
             to save the values.</para>
         <figure float="0">
             <title></title>
@@ -591,7 +602,7 @@
             JBossWS Runtime and adjust JBossWS and development environment as well.</para>
 
         <para>If the information on JBossWS tools in this guide isn't enough for you, ask
-            questions on our <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
+            questions on our <ulink url="http://www.jboss.com/index.html?module=bb&apos;op=viewforum&apos;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
     </section>
 </chapter>
 
