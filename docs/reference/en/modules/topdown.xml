@@ -33,7 +33,7 @@
          </listitem>
          <listitem>
             <para>Target runtime: any server depending on your installation. If it is not listed,
-               click New and browse to the location where it is installed to. You may set <emphasis>
+               click <property>New</property> button and browse to the location where it is installed to. You may set <emphasis>
                   <property>Target Runtime</property>
                </emphasis> to <emphasis>
                   <property>None</property></emphasis>, in this case, you should add <link linkend="addfacet">JBoss Web Service
@@ -48,6 +48,10 @@
             </figure>
          </listitem>
          <listitem>
+            <para>Configuration: You may add <link linkend="addfacet">JBoss Web Service
+                  facet to the project</link> by clicking <property>Modify...</property> button. The opened page is like <property>Figure 2.4</property>.</para>
+         </listitem>
+         <listitem>
             <para>Configure Web Module values:</para>
             <figure>
                <title>Web Module Settings Configuration</title>
@@ -59,13 +63,25 @@
             </figure>
          </listitem>
       </itemizedlist>
-      <para>Click on the <property>Finish</property> button. Next you will need to add JBoss Web Service facet to the project:</para>
+      <para>If you added the JBoss Web Service facet to the project, now the <property>Finish</property> button is disable. You must click <property>Next</property> button to set more information about the JBoss Web Service facet. The page is like <property>Figure 2.5</property>. Then click on the <property>Finish</property> button.</para>
+      <para>If you didn't add the JBoss Web Service facet to the project, click on the <property>Finish</property> button. Next you will need to add JBoss Web Service facet to the project.</para>
    </section>
 
    <section id="addfacet">
       <title>Configure JBoss Web Service facet settings</title>
-      <para>If you have already created a new Dynamic Web project, the next step is to add JBoss Web
-         Service facet to the project. Right-click on the project, select its <emphasis><property>Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBoss Web Services and open additional configuration for it, having clicked on the <emphasis><property>Further configuration required...</property></emphasis> link. In the opened window</para>
+      <para>If you have already created a new Dynamic Web project and not set the JBoss Web Service facet to the project, the next step is to add JBoss Web
+         Service facet to the project. Right-click on the project, select its <emphasis><property>Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. 
+         Tick on the check box for JBoss Web Services. You will see what like this: </para>
+      <figure id="figure_addfacet_0">
+         <title>Choose JBoss Web Service Facet</title>
+         <mediaobject>
+            <imageobject>
+               <imagedata fileref="images/topdown/jbossws_facet_0.png"/>
+            </imageobject>
+         </mediaobject>
+      </figure> 
+      <para>At the bottom-left of the right-side of the project properties dialog, there is a error link: <emphasis><property>Further configuration required...</property></emphasis> . You must click the link to set more information about JBoss Web Service facet.</para>
+      <para>Click on the <emphasis><property>Further configuration required...</property></emphasis> link. In the opened window</para>   
       <figure id="figure_addfacet">
          <title>Configure JBoss Web Service Facet</title>
          <mediaobject>
@@ -95,7 +111,7 @@
          </mediaobject>
       </figure>
       <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>.</para>
-
+      <para>After setting the information about JBoss Web Service facet, for saving the result, you should click the <property>Apply</property> or <property>OK</property> button at the bottom-right of the right-side of the project properties dialog.</para>
    </section>
 
 
