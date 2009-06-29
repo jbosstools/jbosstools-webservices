@@ -84,8 +84,13 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		// create jbossws web project
 		fproject = createJBossWSProject("JavaFirstTestProject",
 				isServerSupplied());
-		clientProject = createProject("ClientTest");
-		this.addResourceToCleanup(clientProject);
+
+		if (!ResourcesPlugin.getWorkspace().getRoot().getProject("ClientTest")
+				.exists()) {
+			createProject("ClientTest");
+			// this.addResourceToCleanup(clientProject);
+		}
+
 	}
 
 	protected void tearDown() throws Exception {
@@ -135,18 +140,17 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		model.addServiceClasses("org.example.www.helloworld.HelloWorld");
 		model.setGenWSDL(true);
 		IProject project = fproject.getProject();
-		
+
 		fproject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-		
+
 		Java2WSCommand command = new Java2WSCommand(model);
 		IStatus status = command.execute(null, null);
 
 		assertFalse(status.getMessage(), Status.ERROR == status.getSeverity());
 		assertTrue(project.getFile(
 				"src/org/example/www/helloworld/jaxws/SayHello.java").exists());
-		assertTrue(project.getFile("wsdl/HelloWorldService.wsdl")
-				.exists());
+		assertTrue(project.getFile("wsdl/HelloWorldService.wsdl").exists());
 	}
 
 	public void testDeployResult() throws ExecutionException, CoreException,
@@ -164,10 +168,10 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 				WebServiceScenario.BOTTOMUP);
 		IStatus status = cmd.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
-		
+
 		fproject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-		
+
 		cmd = new Java2WSCommand(model);
 		status = cmd.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
@@ -191,9 +195,9 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 				currentServer.getServerState());
 
 		conn.connect();
-		assertFalse("The url connection's status is "+((HttpURLConnection)conn).getResponseMessage(),"Ok".equals(((HttpURLConnection)conn).getResponseMessage()));
-		
-		
+		assertFalse("The url connection's status is "
+				+ ((HttpURLConnection) conn).getResponseMessage(), "Ok"
+				.equals(((HttpURLConnection) conn).getResponseMessage()));
 
 		model = new ServiceModel();
 		model.setWebProjectName("ClientTest");
@@ -202,6 +206,8 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 		status = cmd.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 
+		clientProject = ResourcesPlugin.getWorkspace().getRoot().getProject(
+				"ClientTest");
 		clientProject.open(null);
 		clientProject.refreshLocal(IResource.DEPTH_INFINITE, null);
 
@@ -234,8 +240,11 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 					delay(1000);
 					i++;
 				}
-				assertTrue(((TextConsole) console).getDocument().get(), isContainString(console,
-						JBossWSCreationCoreMessages.Client_Sample_Run_Over));
+				assertTrue(
+						((TextConsole) console).getDocument().get(),
+						isContainString(
+								console,
+								JBossWSCreationCoreMessages.Client_Sample_Run_Over));
 			}
 		}
 	}
