@@ -7,8 +7,8 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
 public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 
-	private static String WSCONSUEM_FILE_NAME_LINUX = "wsconsume.sh"; 
-	private static String WSCONSUEM_FILE_NAME_WIN = "wsconsume.bat";
+	private static String WSCONSUEM_FILE_NAME_LINUX = "wsconsume.sh";  //$NON-NLS-1$
+	private static String WSCONSUEM_FILE_NAME_WIN = "wsconsume.bat"; //$NON-NLS-1$
 	
 	public WSDL2JavaCommand(ServiceModel model){
 		super(model);
@@ -28,8 +28,8 @@ public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 	@Override
 	protected void addCommandlineArgs(List<String> command) {
 		
-		if(model.getCustomPackage() != null && !"".equals(model.getCustomPackage())){
-			command.add("-p");
+		if(model.getCustomPackage() != null && !"".equals(model.getCustomPackage())){ //$NON-NLS-1$
+			command.add("-p"); //$NON-NLS-1$
 			command.add(model.getCustomPackage());
 		}
 		
@@ -37,21 +37,21 @@ public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 		for(String bindingFileLocation: bindingFiles){
 			File bindingFile = new File(bindingFileLocation);
 			if(bindingFile.exists()){
-				command.add("-b");
+				command.add("-b"); //$NON-NLS-1$
 				command.add(bindingFileLocation);
 			}
 		}
 		
-		if(model.getCatalog() != null && !"".equals(model.getCatalog().trim())){
+		if(model.getCatalog() != null && !"".equals(model.getCatalog().trim())){ //$NON-NLS-1$
 			File catalog = new File(model.getCatalog());
 			if(catalog.exists()){
-				command.add("-c");
+				command.add("-c"); //$NON-NLS-1$
 				command.add(model.getCatalog());
 			}
 		}
 		
 		if(model.getTarget() != null){
-			command.add("-t");
+			command.add("-t"); //$NON-NLS-1$
 			command.add(model.getTarget());
 		}
 	}

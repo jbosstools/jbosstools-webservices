@@ -30,8 +30,8 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
  */
 public class Java2WSCommand extends AbstractGenerateCodeCommand {
 
-	private static String WSPROVIDER_FILE_NAME_LINUX = "wsprovide.sh";
-	private static String WSPROVIDER_FILE_NAME_WIN = "wsprovide.bat";
+	private static String WSPROVIDER_FILE_NAME_LINUX = "wsprovide.sh"; //$NON-NLS-1$
+	private static String WSPROVIDER_FILE_NAME_WIN = "wsprovide.bat"; //$NON-NLS-1$
 
 	public Java2WSCommand(ServiceModel model) {
 		super(model);
@@ -58,13 +58,13 @@ public class Java2WSCommand extends AbstractGenerateCodeCommand {
 				.getProject(projectName);
 		
 		if (model.isGenWSDL()) {
-			command.add("-w");
+			command.add("-w"); //$NON-NLS-1$
 		}
-		command.add("-r");
-		command.add(projectRoot + Path.SEPARATOR + "wsdl");
+		command.add("-r"); //$NON-NLS-1$
+		command.add(projectRoot + Path.SEPARATOR + "wsdl"); //$NON-NLS-1$
 		command.add(model.getServiceClasses().get(0));
 
-		command.add("-c");
+		command.add("-c"); //$NON-NLS-1$
 		command.add(getClasspath(iProject));
 	}
 
@@ -74,34 +74,34 @@ public class Java2WSCommand extends AbstractGenerateCodeCommand {
 
 		if (isLongCommandLines(cpStr)) {
 			File tempJar = null;
-			tempJar = File.createTempFile("temp", ".jar");
+			tempJar = File.createTempFile("temp", ".jar"); //$NON-NLS-1$ //$NON-NLS-2$
 			Manifest mf = new Manifest();
 
 			// replace space with "%20"
-			cpStr = cpStr.replace(" ", "%20");
+			cpStr = cpStr.replace(" ", "%20"); //$NON-NLS-1$ //$NON-NLS-2$
 			// replace \ with /
-			cpStr = cpStr.replace("\\", "/");
+			cpStr = cpStr.replace("\\", "/"); //$NON-NLS-1$ //$NON-NLS-2$
 			// get classpath array
-			String[] cpArray = cpStr.split(";");
+			String[] cpArray = cpStr.split(";"); //$NON-NLS-1$
 			StringBuffer cpBF = new StringBuffer();
 			for (int i = 0; i < cpArray.length; i++) {
 				// if the classpath entry is a directory, it should be added a /
 				// after it
-				if (!cpArray[i].endsWith(".jar") && !cpArray[i].endsWith("/")) {
-					cpArray[i] = cpArray[i] + "/";
+				if (!cpArray[i].endsWith(".jar") && !cpArray[i].endsWith("/")) { //$NON-NLS-1$ //$NON-NLS-2$
+					cpArray[i] = cpArray[i] + "/"; //$NON-NLS-1$
 				}
 				// if the system is windows, the classpath entry should be added
 				// a / before it
-				if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0)
-					cpArray[i] = "/" + cpArray[i];
+				if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) //$NON-NLS-1$ //$NON-NLS-2$
+					cpArray[i] = "/" + cpArray[i]; //$NON-NLS-1$
 				// there should be a space between classpath entries
-				cpBF.append(cpArray[i]).append(" ");
+				cpBF.append(cpArray[i]).append(" "); //$NON-NLS-1$
 			}
 			cpStr = cpBF.toString();
 			cpStr.trim();
 
 			mf.getMainAttributes().put(Attributes.Name.CLASS_PATH, cpStr);
-			mf.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.2");
+			mf.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.2"); //$NON-NLS-1$
 
 			try {
 				FileUtil.jar(new File[0], tempJar.getAbsolutePath(), mf);
@@ -112,8 +112,8 @@ public class Java2WSCommand extends AbstractGenerateCodeCommand {
 			cpStr = tempJar.getAbsolutePath();
 		} else {
 			// if the system is not windows, the split should be :
-			if (System.getProperty("os.name").toLowerCase().indexOf("win") < 0)
-				cpStr = cpStr.replace(";", ":");
+			if (System.getProperty("os.name").toLowerCase().indexOf("win") < 0) //$NON-NLS-1$ //$NON-NLS-2$
+				cpStr = cpStr.replace(";", ":"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		return cpStr;
 	}

@@ -9,7 +9,7 @@ import org.osgi.framework.BundleContext;
 public class JBossWSCreationCore extends BaseUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.jboss.tools.ws.creation.core";
+	public static final String PLUGIN_ID = "org.jboss.tools.ws.creation.core"; //$NON-NLS-1$
 
 	// The shared instance
 	private static JBossWSCreationCore plugin;

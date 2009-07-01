@@ -78,7 +78,7 @@ public class UIUtils {
 
 		if (infopop != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(button,
-					infoPopid_ + "." + infopop);
+					infoPopid_ + "." + infopop); //$NON-NLS-1$
 
 		return button;
 	}
@@ -102,7 +102,7 @@ public class UIUtils {
 
 		if (infopop != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(combo,
-					infoPopid_ + "." + infopop);
+					infoPopid_ + "." + infopop); //$NON-NLS-1$
 
 		return combo;
 	}
@@ -126,7 +126,7 @@ public class UIUtils {
 
 		if (infopop != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(text,
-					infoPopid_ + "." + infopop);
+					infoPopid_ + "." + infopop); //$NON-NLS-1$
 
 		return text;
 	}
@@ -184,7 +184,7 @@ public class UIUtils {
 
 		if (infopop != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(newGroup,
-					infoPopid_ + "." + infopop);
+					infoPopid_ + "." + infopop); //$NON-NLS-1$
 
 		return newGroup;
 	}
@@ -192,7 +192,7 @@ public class UIUtils {
 	public Tree createTree(Composite parent, String tooltip, String infopop,
 			int style) {
 
-		tooltip = tooltip == null ? "" : tooltip;
+		tooltip = tooltip == null ? "" : tooltip; //$NON-NLS-1$
 
 		Tree tree = new Tree(parent, style);
 
@@ -201,7 +201,7 @@ public class UIUtils {
 
 		if (infopop != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(tree,
-					infoPopid_ + "." + infopop);
+					infoPopid_ + "." + infopop); //$NON-NLS-1$
 
 		return tree;
 
@@ -210,7 +210,7 @@ public class UIUtils {
 	public Table createTable(Composite parent, String tooltip, String infopop,
 			int style) {
 
-		tooltip = tooltip == null ? "" : tooltip;
+		tooltip = tooltip == null ? "" : tooltip; //$NON-NLS-1$
 
 		Table table = new Table(parent, style);
 
@@ -219,7 +219,7 @@ public class UIUtils {
 
 		if (infopop != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(table,
-					infoPopid_ + "." + infopop);
+					infoPopid_ + "." + infopop); //$NON-NLS-1$
 
 		return table;
 
@@ -247,7 +247,7 @@ public class UIUtils {
 	public void createInfoPop(Control ctrl, String infopop) {
 		if (infopop != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(ctrl,
-					infoPopid_ + "." + infopop);
+					infoPopid_ + "." + infopop); //$NON-NLS-1$
 	}
 
 	/**
@@ -275,8 +275,8 @@ public class UIUtils {
 	
 	public static void  writePropertyToFile(File file,String key, String value) throws IOException {
 		Writer out = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(file), "8859_1"));
-	       out.write(key+"="+value+"\n");
+						new FileOutputStream(file), "8859_1")); //$NON-NLS-1$
+	       out.write(key+"="+value+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	       out.close();
 	}
 	
@@ -440,7 +440,7 @@ public class UIUtils {
 	public static String addNodesToURL(String currentPath, String[] newNode) {
 		String returnPath=currentPath;
 		for (int i = 0; i < newNode.length; i++) {
-			returnPath = returnPath + "/" + newNode[i];
+			returnPath = returnPath + "/" + newNode[i]; //$NON-NLS-1$
 		}
 		return returnPath;
 	}

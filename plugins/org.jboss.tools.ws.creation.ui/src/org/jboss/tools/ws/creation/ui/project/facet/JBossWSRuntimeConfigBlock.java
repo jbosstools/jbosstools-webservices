@@ -1,5 +1,6 @@
 package org.jboss.tools.ws.creation.ui.project.facet;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventObject;
@@ -147,7 +148,7 @@ public class JBossWSRuntimeConfigBlock {
 		if(isServerSupplied){
 			btnServerSupplied.setSelection(true);
 			enableUserSupplied(false);
-		}else if(runtimeName != null && !runtimeName.equals("")){
+		}else if(runtimeName != null && !runtimeName.equals("")){ //$NON-NLS-1$
 			btnUserSupplied.setSelection(true);
 			if(isDeploy){
 				btnDeploy.setSelection(true);
@@ -159,14 +160,14 @@ public class JBossWSRuntimeConfigBlock {
 	}
 	
 	protected void saveJBosswsRuntimeToModel(JBossWSRuntime jbws) {
-		String duplicateMsg = "";
+		String duplicateMsg = ""; //$NON-NLS-1$
 		try {
 			duplicateMsg = getDuplicateJars(jbws.getName());
 		} catch (JavaModelException e1) {
 			CreationUIPlugin.getDefault().getLog().log(
 					StatusUtils.errorStatus(e1));
 		}
-		if ("".equals(duplicateMsg)) {
+		if ("".equals(duplicateMsg)) { //$NON-NLS-1$
 			model.setStringProperty(
 					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
 					jbws.getHomeDir());
@@ -292,14 +293,16 @@ public class JBossWSRuntimeConfigBlock {
 				&& !btnServerSupplied.getSelection()) {
 			setErrorMessage(JBossWSCreationCoreMessages.Error_WS_Chose_runtime);
 		}else if(btnUserSupplied.getSelection()){
-			String duplicateMsg = "";
+			String duplicateMsg = ""; //$NON-NLS-1$
 			try {
 				duplicateMsg = getDuplicateJars(cmbRuntimes.getText());
 			} catch (JavaModelException e1) {
 				CreationUIPlugin.getDefault().getLog().log(StatusUtils.errorStatus(e1));
 			}
-			if(!duplicateMsg.equals("")){
-				setErrorMessage("Duplicated jar on classpath:" + duplicateMsg);
+			if(!duplicateMsg.equals("")){ //$NON-NLS-1$
+				setErrorMessage(MessageFormat
+						.format(JBossWSCreationCoreMessages.JBossWSRuntimeConfigBlock_Duplicated_Jar, 
+								duplicateMsg));
 			}else{
 				setErrorMessage(null);
 			}
@@ -318,7 +321,7 @@ public class JBossWSRuntimeConfigBlock {
 	}
 	
 	public boolean isPageComplete() {
-		if(errMsg != null && !"".equals(errMsg)){
+		if(errMsg != null && !"".equals(errMsg)){ //$NON-NLS-1$
 			return false;
 		}
 		if (btnServerSupplied.getSelection()
@@ -337,12 +340,12 @@ public class JBossWSRuntimeConfigBlock {
 	protected String getDuplicateJars(String jbwsName) throws JavaModelException{
 		String prjName = model.getStringProperty(IFacetDataModelProperties.FACET_PROJECT_NAME);
 		
-		if(prjName == null || "".equals(prjName)){
-			return "";
+		if(prjName == null || "".equals(prjName)){ //$NON-NLS-1$
+			return ""; //$NON-NLS-1$
 		}
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(prjName);
 		if(!project.exists()){
-			return "";
+			return ""; //$NON-NLS-1$
 		}
 		
 		List<String> allExistingJars = new ArrayList<String>();
@@ -359,7 +362,7 @@ public class JBossWSRuntimeConfigBlock {
 		IClasspathEntry[] entries = javaProject.getRawClasspath();
 		for(IClasspathEntry entry: entries){
 			if(entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER){
-				if("JBossWS_Runtime".equals(entry.getPath().segment(0))){
+				if("JBossWS_Runtime".equals(entry.getPath().segment(0))){ //$NON-NLS-1$
 						continue;
 				}
 				IClasspathContainer container = JavaCore.getClasspathContainer(entry.getPath(), javaProject);
@@ -377,7 +380,7 @@ public class JBossWSRuntimeConfigBlock {
 			}
 		}
 		
-		 return "";
+		 return ""; //$NON-NLS-1$
 		
 	}
 }

@@ -47,7 +47,7 @@ public class ClasspathParser {
 			if (!classpathVector.contains(classpathEntries[i])) {
 				classpathVector.add(classpathEntries[i]);
 				classpath.append(classpathEntries[i]);
-				classpath.append(";");
+				classpath.append(";"); //$NON-NLS-1$
 			}
 		}
 		return classpath.toString();
@@ -178,7 +178,7 @@ public class ClasspathParser {
 		if (dir.exists() && dir.isDirectory()) {
 			String[] filenames = dir.list();
 			for (int i = 0; i < filenames.length; i++) {
-				if (filenames[i].endsWith(".jar"))
+				if (filenames[i].endsWith(".jar")) //$NON-NLS-1$
 					jarsVector.add(pathToString(iPath) + filenames[i]);
 			}
 		}
@@ -196,13 +196,13 @@ public class ClasspathParser {
 			if (component != null) {
 
 				IVirtualFolder webInfLib = component.getRootFolder().getFolder(
-						new Path("/WEB-INF/lib"));
+						new Path("/WEB-INF/lib")); //$NON-NLS-1$
 				if (webInfLib != null) {
 					IVirtualResource[] resources = webInfLib.members();
 					IResource aResource = null;
 					for (int i = 0; i < resources.length; i++) {
 						aResource = resources[i].getUnderlyingResource();
-						if ("jar".equalsIgnoreCase(aResource.getFileExtension()))
+						if ("jar".equalsIgnoreCase(aResource.getFileExtension())) //$NON-NLS-1$
 							anArrayList.add(aResource.getLocation()
 									.toOSString());
 					}

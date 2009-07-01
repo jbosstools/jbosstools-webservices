@@ -60,16 +60,16 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 public class ImplementationClassCreationCommand extends
 		AbstractDataModelOperation {
 
-	private static final String RESOURCE_FOLDER = "src";
+	private static final String RESOURCE_FOLDER = "src"; //$NON-NLS-1$
 
-	private static final String PREFIX_JAXWS_ANNOTATION_CLASS = "javax.jws";
-	private static final String DEFAULT_CU_SUFFIX = ".java";
+	private static final String PREFIX_JAXWS_ANNOTATION_CLASS = "javax.jws"; //$NON-NLS-1$
+	private static final String DEFAULT_CU_SUFFIX = ".java"; //$NON-NLS-1$
 
-	private static final String ANNOTATION_WEB_SERVICE_FULLNAME = "javax.jws.WebService";
-	private static final String ANNOTATION_TYPE_NAME_WEBSERVICE = "WebService";;
-	private static final String ANNOTATION_PROPERTY_NAME = "name";
-	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName";
-	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface";
+	private static final String ANNOTATION_WEB_SERVICE_FULLNAME = "javax.jws.WebService"; //$NON-NLS-1$
+	private static final String ANNOTATION_TYPE_NAME_WEBSERVICE = "WebService";; //$NON-NLS-1$
+	private static final String ANNOTATION_PROPERTY_NAME = "name"; //$NON-NLS-1$
+	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName"; //$NON-NLS-1$
+	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface"; //$NON-NLS-1$
 	
 
 	private ServiceModel model;
@@ -96,7 +96,7 @@ public class ImplementationClassCreationCommand extends
 			List<String> portTypes = model.getPortTypes();
 			for (String portTypeName : portTypes) {
 				generateImplClass(portTypeName);
-				String implClsName = getImplPackageName() + "."
+				String implClsName = getImplPackageName() + "." //$NON-NLS-1$
 						+ getImplClassName(portTypeName);
 				model.addServiceClasses(implClsName);
 			}
@@ -225,7 +225,7 @@ public class ImplementationClassCreationCommand extends
 		String firstLetter = portTypeName.substring(0, 1);
 		String implClsName = firstLetter.toUpperCase()
 				+ portTypeName.substring(1);
-		implClsName = implClsName + "Impl";
+		implClsName = implClsName + "Impl"; //$NON-NLS-1$
 		return implClsName;
 	}
 
@@ -243,7 +243,7 @@ public class ImplementationClassCreationCommand extends
 	}
 
 	private String getPortTypeInterfaceFullName(String portTypeName) {
-		return model.getCustomPackage() + "." + portTypeName;
+		return model.getCustomPackage() + "." + portTypeName; //$NON-NLS-1$
 	}
 
 	private void addImportsToImplementationClass(CompilationUnit implCU,
@@ -354,17 +354,17 @@ public class ImplementationClassCreationCommand extends
 				// do nothing
 			}else {
 				NumberLiteral nl = ast.newNumberLiteral();
-				nl.setToken("0");
+				nl.setToken("0"); //$NON-NLS-1$
 				rs.setExpression(nl);
 			}
 
 		} else if (returnType.isSimpleType()) {
 			String typeName = ((SimpleType) returnType).getName()
 					.getFullyQualifiedName();
-			if ("String".equals(typeName)) {
+			if ("String".equals(typeName)) { //$NON-NLS-1$
 
 				StringLiteral sl = ast.newStringLiteral();
-				sl.setLiteralValue("");
+				sl.setLiteralValue(""); //$NON-NLS-1$
 				rs.setExpression(sl);
 			} else{
 				rs.setExpression(ast.newNullLiteral());
@@ -456,7 +456,7 @@ public class ImplementationClassCreationCommand extends
 		IProject project = JBossWSCreationUtils.getProjectByName(model
 				.getWebProjectName());
 		IFolder srcFolder = project.getFolder(RESOURCE_FOLDER);
-		String pkgFolderName = model.getCustomPackage().replace(".",
+		String pkgFolderName = model.getCustomPackage().replace(".", //$NON-NLS-1$
 				File.separator);
 		return srcFolder.getFolder(pkgFolderName);
 

@@ -53,7 +53,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		// custom package name
 		Label lblCustomPakage = new Label(configCom, SWT.NONE);
 		lblCustomPakage
-				.setText(JBossWSCreationCoreMessages.Label_Custom_Package_Name); //$NON-NLS-1$
+				.setText(JBossWSCreationCoreMessages.Label_Custom_Package_Name); 
 		final Text txtCustomPkgName = new Text(configCom, SWT.BORDER);
 		txtCustomPkgName.setText(model.getCustomPackage());
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -68,10 +68,10 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 
 		// target
 		new Label(configCom, SWT.NONE)
-				.setText(JBossWSCreationCoreMessages.Label_JaxWS_Target); //$NON-NLS-1$
+				.setText(JBossWSCreationCoreMessages.Label_JaxWS_Target); 
 		final Combo cbSpec = new Combo(configCom, SWT.BORDER | SWT.READ_ONLY);
-		cbSpec.add(JBossWSCreationCoreMessages.Value_Target_0, 0); //$NON-NLS-1$
-		cbSpec.add(JBossWSCreationCoreMessages.Value_Target_1, 1); //$NON-NLS-1$
+		cbSpec.add(JBossWSCreationCoreMessages.Value_Target_0, 0); 
+		cbSpec.add(JBossWSCreationCoreMessages.Value_Target_1, 1); 
 		if (JBossWSCreationCoreMessages.Value_Target_0
 				.equals(model.getTarget())) {
 			cbSpec.select(0);
@@ -90,12 +90,12 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 
 		// catalog file
 		new Label(configCom, SWT.NONE)
-				.setText(JBossWSCreationCoreMessages.Label_Catalog_File); //$NON-NLS-1$
+				.setText(JBossWSCreationCoreMessages.Label_Catalog_File); 
 		final Text txtCatlog = new Text(configCom, SWT.BORDER);
 		txtCatlog.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Button btnCatlog = new Button(configCom, SWT.NONE);
 		btnCatlog
-				.setText(JBossWSCreationCoreMessages.Label_Button_Text_Seletion); //$NON-NLS-1$
+				.setText(JBossWSCreationCoreMessages.Label_Button_Text_Seletion); 
 		btnCatlog.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				String fileLocation = new FileDialog(Display.getCurrent()
@@ -107,7 +107,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 
 		// binding files
 		new Label(configCom, SWT.NONE)
-				.setText(JBossWSCreationCoreMessages.Label_Binding_File); //$NON-NLS-1$
+				.setText(JBossWSCreationCoreMessages.Label_Binding_File); 
 
 		final List bindingList = new List(configCom, SWT.BORDER
 				| SWT.SCROLL_LINE | SWT.V_SCROLL | SWT.H_SCROLL);
@@ -128,7 +128,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 
 		Button btnSelect = new Button(configCom, SWT.NONE);
 		btnSelect
-				.setText(JBossWSCreationCoreMessages.Label_Button_Text_Seletion); //$NON-NLS-1$
+				.setText(JBossWSCreationCoreMessages.Label_Button_Text_Seletion); 
 		btnSelect.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 

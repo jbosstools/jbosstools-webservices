@@ -52,18 +52,18 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		try {
 			String runtimeLocation = JBossWSCreationUtils
 					.getJBossWSRuntimeLocation(project);
-			String commandLocation = runtimeLocation + Path.SEPARATOR + "bin";
+			String commandLocation = runtimeLocation + Path.SEPARATOR + "bin"; //$NON-NLS-1$
 			IPath path = new Path(commandLocation);
 
 			List<String> command = new ArrayList<String>();
 
-			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
-				command.add("cmd.exe");
-				command.add("/c");
+			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) { //$NON-NLS-1$ //$NON-NLS-2$
+				command.add("cmd.exe"); //$NON-NLS-1$
+				command.add("/c"); //$NON-NLS-1$
 				command.add(cmdFileName_win);
 				path = path.append(cmdFileName_win);
 			} else {
-				command.add("sh");
+				command.add("sh"); //$NON-NLS-1$
 				command.add(cmdFileName_linux);
 				path = path.append(cmdFileName_linux);
 			}
@@ -93,7 +93,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				return StatusUtils.errorStatus(errorResult.toString());
 			} else {
 				String resultInput = inputResult.toString();
-				if (resultInput != null && resultInput.indexOf("[ERROR]") >= 0) {
+				if (resultInput != null && resultInput.indexOf("[ERROR]") >= 0) { //$NON-NLS-1$
 					JBossWSCreationCore.getDefault().logError(resultInput);
 					IStatus errorStatus = StatusUtils
 							.warningStatus(resultInput);
@@ -128,12 +128,12 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				model.getWebProjectName()).toOSString();
 		IJavaProject javaProject = JavaCore.create(project);
 
-		command.add("-k");
+		command.add("-k"); //$NON-NLS-1$
 
-		command.add("-s");
+		command.add("-s"); //$NON-NLS-1$
 		command.add(JBossWSCreationUtils.getJavaProjectSrcLocation(project));
 
-		command.add("-o");
+		command.add("-o"); //$NON-NLS-1$
 		StringBuffer opDir = new StringBuffer();
 		opDir.append(projectRoot).append(Path.SEPARATOR).append(
 				javaProject.getOutputLocation().removeFirstSegments(1)
@@ -157,7 +157,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					String str;
 					str = reader.readLine();
 					while (str != null) {
-						result.append(str).append("\t\r");
+						result.append(str).append("\t\r"); //$NON-NLS-1$
 						str = reader.readLine();
 
 					}

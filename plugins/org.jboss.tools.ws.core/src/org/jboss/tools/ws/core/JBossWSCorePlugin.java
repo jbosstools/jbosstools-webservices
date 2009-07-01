@@ -21,7 +21,7 @@ import org.osgi.framework.BundleContext;
 public class JBossWSCorePlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.jboss.tools.ws.core";
+	public static final String PLUGIN_ID = "org.jboss.tools.ws.core"; //$NON-NLS-1$
 
 	// The shared instance
 	private static JBossWSCorePlugin plugin;

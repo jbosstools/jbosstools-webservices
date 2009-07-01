@@ -58,15 +58,15 @@ import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
 public class JBossWSCreationUtils {
 
-	static final String javaKeyWords[] = { "abstract", "assert", "boolean",
-			"break", "byte", "case", "catch", "char", "class", "const",
-			"continue", "default", "do", "double", "else", "extends", "false",
-			"final", "finally", "float", "for", "goto", "if", "implements",
-			"import", "instanceof", "int", "interface", "long", "native",
-			"new", "null", "package", "private", "protected", "public",
-			"return", "short", "static", "strictfp", "super", "switch",
-			"synchronized", "this", "throw", "throws", "transient", "true",
-			"try", "void", "volatile", "while" };
+	static final String javaKeyWords[] = { "abstract", "assert", "boolean", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			"break", "byte", "case", "catch", "char", "class", "const", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
+			"continue", "default", "do", "double", "else", "extends", "false", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
+			"final", "finally", "float", "for", "goto", "if", "implements", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
+			"import", "instanceof", "int", "interface", "long", "native", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+			"new", "null", "package", "private", "protected", "public", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+			"return", "short", "static", "strictfp", "super", "switch", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+			"synchronized", "this", "throw", "throws", "transient", "true", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+			"try", "void", "volatile", "while" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
 	public static boolean isJavaKeyword(String keyword) {
 		if (hasUpperCase(keyword)) {
@@ -138,7 +138,7 @@ public class JBossWSCreationUtils {
 	}
 
 	private static String replaceEscapecharactors(String vulnarableString) {
-		if (vulnarableString.indexOf("/") != -1) {
+		if (vulnarableString.indexOf("/") != -1) { //$NON-NLS-1$
 			vulnarableString = vulnarableString.replace('/', File.separator
 					.charAt(0));
 		}
@@ -158,7 +158,7 @@ public class JBossWSCreationUtils {
 		// Windows check (because from inside wtp in return I received a hard
 		// coded path)
 		if (File.separatorChar == '\\') {
-			return "\\";
+			return "\\"; //$NON-NLS-1$
 		} else {
 			return File.separator;
 		}
@@ -168,7 +168,7 @@ public class JBossWSCreationUtils {
 		// Windows check (because from inside wtp in return I received a hard
 		// coded path)
 		if (File.separatorChar == '\\') {
-			return "\\" + File.separator;
+			return "\\" + File.separator; //$NON-NLS-1$
 		} else {
 			return File.separator;
 		}
@@ -177,9 +177,9 @@ public class JBossWSCreationUtils {
 	public static String classNameFromQualifiedName(String qualifiedCalssName) {
 		// This was done due to not splitting with . Strange
 		qualifiedCalssName = qualifiedCalssName.replace('.', ':');
-		String[] parts = qualifiedCalssName.split(":");
+		String[] parts = qualifiedCalssName.split(":"); //$NON-NLS-1$
 		if (parts.length == 0) {
-			return "";
+			return ""; //$NON-NLS-1$
 		}
 		return parts[parts.length - 1];
 	}
@@ -283,7 +283,7 @@ public class JBossWSCreationUtils {
 	public static boolean validateJBossWSLocation() {
 		String location = JBossWSCorePlugin.getDefault().getPreferenceStore()
 				.getString(JBossWSCoreMessages.WS_Location);
-		if (location == null || location.equals("")) {
+		if (location == null || location.equals("")) { //$NON-NLS-1$
 			return false;
 		}
 		return true;
@@ -298,7 +298,7 @@ public class JBossWSCreationUtils {
 				.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
 
 		if (jbwsRuntimeName != null
-				&& !"".equals(jbwsRuntimeName)
+				&& !"".equals(jbwsRuntimeName) //$NON-NLS-1$
 				&& !IJBossWSFacetDataModelProperties.DEFAULT_VALUE_IS_SERVER_SUPPLIED
 						.equals(isServerSupplied)) {
 			JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
@@ -324,12 +324,12 @@ public class JBossWSCreationUtils {
 			IRuntime serverRuntime = getRuntime(prjFacetRuntime);
 			String runtimeTypeName = serverRuntime.getRuntimeType().getName();
 			if (runtimeTypeName == null) {
-				runtimeTypeName = "";
+				runtimeTypeName = ""; //$NON-NLS-1$
 			}
-			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0) {
+			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0) { //$NON-NLS-1$
 				String runtimeLocation = serverRuntime.getLocation()
 						.toOSString();
-				if (runtimeLocation.endsWith("bin")) {
+				if (runtimeLocation.endsWith("bin")) { //$NON-NLS-1$
 					return serverRuntime.getLocation().removeLastSegments(1)
 							.toOSString();
 				} else {
@@ -353,7 +353,7 @@ public class JBossWSCreationUtils {
 
 		}
 
-		return "";
+		return ""; //$NON-NLS-1$
 
 	}
 
@@ -362,7 +362,7 @@ public class JBossWSCreationUtils {
 		if (runtime == null)
 			throw new IllegalArgumentException();
 
-		String id = runtime.getProperty("id");
+		String id = runtime.getProperty("id"); //$NON-NLS-1$
 		if (id == null)
 			return null;
 
@@ -379,7 +379,7 @@ public class JBossWSCreationUtils {
 
 	public static String getJavaProjectSrcLocation(IProject project) throws JavaModelException {
 		IResource[] rs = getJavaSourceRoots(project);
-		String src = "";
+		String src = ""; //$NON-NLS-1$
 		if (rs == null || rs.length == 0)
 			return src;
 		for (int i = 0; i < rs.length; i++) {

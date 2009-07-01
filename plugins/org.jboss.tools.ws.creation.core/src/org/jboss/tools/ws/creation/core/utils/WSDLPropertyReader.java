@@ -71,7 +71,7 @@ public class WSDLPropertyReader {
     private static String getPackageNameFromNamespce(String namespace) {
 
         String hostname = null;
-        String path = "";
+        String path = ""; //$NON-NLS-1$
 
         try {
             java.net.URL url = new java.net.URL(namespace);
@@ -79,15 +79,15 @@ public class WSDLPropertyReader {
             hostname = url.getHost();
             path = url.getPath();
         } catch (MalformedURLException e) {
-            if (namespace.indexOf(":") > -1) {
-                hostname = namespace.substring(namespace.indexOf(":") + 1);
+            if (namespace.indexOf(":") > -1) { //$NON-NLS-1$
+                hostname = namespace.substring(namespace.indexOf(":") + 1); //$NON-NLS-1$
 
-                while (hostname.startsWith("/")) {
+                while (hostname.startsWith("/")) { //$NON-NLS-1$
                     hostname = hostname.substring(1);
                 }
 
-                if (hostname.indexOf("/") > -1) {
-                    hostname = hostname.substring(0, hostname.indexOf("/"));
+                if (hostname.indexOf("/") > -1) { //$NON-NLS-1$
+                    hostname = hostname.substring(0, hostname.indexOf("/")); //$NON-NLS-1$
                 }
             } else {
                 hostname = namespace.replace('/','.');
@@ -109,7 +109,7 @@ public class WSDLPropertyReader {
         }
 
    
-        StringTokenizer st = new StringTokenizer(hostname, ".:");
+        StringTokenizer st = new StringTokenizer(hostname, ".:"); //$NON-NLS-1$
         String[] nodes = new String[st.countTokens()];
 
         for (int i = 0; i < nodes.length; ++i) {
@@ -122,7 +122,7 @@ public class WSDLPropertyReader {
             appendToPackage(sb, nodes[i], (i == nodes.length - 1));
         }
 
-        StringTokenizer st2 = new StringTokenizer(path, "/");
+        StringTokenizer st2 = new StringTokenizer(path, "/"); //$NON-NLS-1$
 
         while (st2.hasMoreTokens()) {
             appendToPackage(sb, st2.nextToken(), false);
@@ -135,7 +135,7 @@ public class WSDLPropertyReader {
 			boolean firstNode) {
 
 		if (JBossWSCreationUtils.isJavaKeyword(nodeName)) {
-			nodeName = "_" + nodeName;
+			nodeName = "_" + nodeName; //$NON-NLS-1$
 		}
 
 		if (!firstNode) {

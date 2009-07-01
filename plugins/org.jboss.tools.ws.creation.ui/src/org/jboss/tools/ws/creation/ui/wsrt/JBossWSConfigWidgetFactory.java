@@ -10,6 +10,7 @@ import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
 import org.jboss.tools.ws.creation.core.commands.InitialClientCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.ui.Messages;
 import org.jboss.tools.ws.creation.ui.widgets.CodeGenConfigWidget;
 
 public class JBossWSConfigWidgetFactory implements
@@ -46,7 +47,7 @@ public class JBossWSConfigWidgetFactory implements
 		dataRegistry.addMapping(InitialCommand.class, "WebServiceDataModel", //$NON-NLS-1$
 				JBossWSConfigWidgetFactory.class);
 		dataRegistry.addMapping(InitialClientCommand.class,
-				"WebServiceDataModel", JBossWSConfigWidgetFactory.class);
+				"WebServiceDataModel", JBossWSConfigWidgetFactory.class); //$NON-NLS-1$
 	}
 
 	public void setWebServiceDataModel(ServiceModel model) {
@@ -60,8 +61,8 @@ public class JBossWSConfigWidgetFactory implements
 
 		servicesXMLSelectWidget = new CodeGenConfigWidget(model);
 		servicesXMLSelectWidgetContrib = createWidgetContributor(
-				"JBoss Web Service Code Generation Configuration",
-				"Please input the appropriate option for the code generation",
+				Messages.JBossWSConfigWidgetFactory_Title,
+				Messages.JBossWSConfigWidgetFactory_Description,
 				servicesXMLSelectWidget);
 	}
 

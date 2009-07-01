@@ -47,10 +47,10 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 
 	public static final String LINE_SEPARATOR = System
-			.getProperty("line.separator");
-	private static final String PACAKAGE = ".*";
-	private static final String PACAKAGESPLIT = "\\.";
-	private static final String SRC = "src";
+			.getProperty("line.separator"); //$NON-NLS-1$
+	private static final String PACAKAGE = ".*"; //$NON-NLS-1$
+	private static final String PACAKAGESPLIT = "\\."; //$NON-NLS-1$
+	private static final String SRC = "src"; //$NON-NLS-1$
 
 	private ServiceModel model;
 
@@ -108,16 +108,16 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		StringBuffer sb = new StringBuffer();
 		sb.append("public static void main(String[] args) {");
 		sb.append(LINE_SEPARATOR);
-		sb.append("        System.out.println(\"***********************\");");
+		sb.append("        System.out.println(\"***********************\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 		createWebServiceClient(clientUnits, serviceUnits, sb);
-		sb.append("        System.out.println(\"***********************\");");
+		sb.append("        System.out.println(\"***********************\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
-		sb.append("        System.out.println(\"").append(
+		sb.append("        System.out.println(\"").append( //$NON-NLS-1$
 				JBossWSCreationCoreMessages.Client_Sample_Run_Over).append(
-				"\");");
+				"\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
-		sb.append("}");
+		sb.append("}"); //$NON-NLS-1$
 		try {
 			clientClsType.createMethod(sb.toString(), null, true, null);
 			clientCls.save(null, true);
@@ -143,13 +143,13 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	private void createWebService(List<ICompilationUnit> serviceUnits,
 			MethodDeclaration method, StringBuffer sb, int i) {
 		sb
-				.append("        System.out.println(\""
+				.append("        System.out.println(\"" //$NON-NLS-1$
 						+ "Create Web Service...\");");
 		sb.append(LINE_SEPARATOR);
 		sb.append("        " + method.getReturnType2().toString());
 		sb.append(" port").append(i).append(" = ");
 		sb.append("service").append(i).append(".");
-		sb.append(method.getName()).append("();");
+		sb.append(method.getName()).append("();"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 
 		for (ICompilationUnit unit : serviceUnits) {
@@ -177,7 +177,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 */
 	private void callWebServiceOperation(TypeDeclaration typeDec,
 			StringBuffer sb, int i) {
-		sb.append("        System.out.println(\""
+		sb.append("        System.out.println(\"" //$NON-NLS-1$
 				+ "Call Web Service Operation...\");");
 		sb.append(LINE_SEPARATOR);
 
@@ -185,7 +185,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 
 		// call web serivce Operation
 		for (MethodDeclaration method : methodDec) {
-			if (method.getReturnType2().toString().equals("void")) {
+			if (method.getReturnType2().toString().equals("void")) { //$NON-NLS-1$
 				sb.append("        System.out.println(\"Server said: ");
 				sb.append("port").append(i).append(".");
 				sb.append(method.getName()).append("() is a void method!\");");
@@ -193,15 +193,15 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			} else {
 				sb.append("        System.out.println(\"Server said: \" + ");
 				sb.append("port").append(i).append(".");
-				sb.append(method.getName()).append("(");
+				sb.append(method.getName()).append("("); //$NON-NLS-1$
 
 				for (int j = 0; j < method.parameters().size(); j++) {
 					sb.append("args[").append(j).append("]");
 					if (j != method.parameters().size() - 1) {
-						sb.append(",");
+						sb.append(","); //$NON-NLS-1$
 					}
 				}
-				sb.append("));");
+				sb.append("));"); //$NON-NLS-1$
 				sb.append(LINE_SEPARATOR);
 			}
 		}
@@ -218,7 +218,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	private void createWebServiceClient(List<ICompilationUnit> clientUnits,
 			List<ICompilationUnit> serviceUnits, StringBuffer sb) {
 		int i = 1;
-		sb.append("        System.out.println(\""
+		sb.append("        System.out.println(\"" //$NON-NLS-1$
 				+ "Create Web Service Client...\");");
 		sb.append(LINE_SEPARATOR);
 		for (ICompilationUnit unit : clientUnits) {
@@ -231,10 +231,10 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			List types = result.types();
 			TypeDeclaration typeDec = (TypeDeclaration) types.get(0);
 
-			sb.append("        " + typeDec.getName());
+			sb.append("        " + typeDec.getName()); //$NON-NLS-1$
 			sb.append(" service").append(i).append(" = new ");
 			sb.append(typeDec.getName());
-			sb.append("();");
+			sb.append("();"); //$NON-NLS-1$
 			sb.append(LINE_SEPARATOR);
 
 			MethodDeclaration methodDec[] = typeDec.getMethods();
@@ -315,28 +315,28 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			IPackageFragmentRoot root = javaProject
 					.findPackageFragmentRoot(srcPath);
 			if (packageName == null) {
-				packageName = "";
+				packageName = ""; //$NON-NLS-1$
 			}
 			IPackageFragment pkg = root.createPackageFragment(packageName,
 					false, null);
 			ICompilationUnit wrapperCls = pkg.createCompilationUnit(className
-					+ ".java", "", true, null);
-			if (!packageName.equals("")) {
+					+ ".java", "", true, null);  //$NON-NLS-1$//$NON-NLS-2$
+			if (!packageName.equals("")) { //$NON-NLS-1$
 				wrapperCls.createPackageDeclaration(packageName, null);
 			}
 
-			String clsContent = "";
+			String clsContent = ""; //$NON-NLS-1$
 			if (isInterface) {
-				clsContent = "public interface " + className + " {"
+				clsContent = "public interface " + className + " {" //$NON-NLS-1$ //$NON-NLS-2$
 						+ LINE_SEPARATOR;
-				clsContent += "}" + LINE_SEPARATOR;
+				clsContent += "}" + LINE_SEPARATOR; //$NON-NLS-1$
 			} else {
-				clsContent = "public class " + className;
+				clsContent = "public class " + className; //$NON-NLS-1$
 				if (interfaceName != null) {
-					clsContent += " implements " + interfaceName;
+					clsContent += " implements " + interfaceName; //$NON-NLS-1$
 				}
-				clsContent += " {" + LINE_SEPARATOR;
-				clsContent += "}" + LINE_SEPARATOR;
+				clsContent += " {" + LINE_SEPARATOR; //$NON-NLS-1$
+				clsContent += "}" + LINE_SEPARATOR; //$NON-NLS-1$
 			}
 			wrapperCls.createType(clsContent, null, true, null);
 

@@ -71,8 +71,8 @@ public class RemoveClientJarsCommand extends AbstractDataModelOperation{
 			for(IClasspathEntry entry:entries){
 					IClasspathContainer container = JavaCore.getClasspathContainer(entry.getPath(), project);
 					if(container instanceof JBossWSRuntimeClasspathContainer){
-						((JBossWSRuntimeClasspathContainer)container).removeEntry("jaxws-rt.jar");
-						((JBossWSRuntimeClasspathContainer)container).removeEntry("jaxws-tools.jar");
+						((JBossWSRuntimeClasspathContainer)container).removeEntry("jaxws-rt.jar"); //$NON-NLS-1$
+						((JBossWSRuntimeClasspathContainer)container).removeEntry("jaxws-tools.jar"); //$NON-NLS-1$
 					}
 			}
 		} catch (JavaModelException e) {
