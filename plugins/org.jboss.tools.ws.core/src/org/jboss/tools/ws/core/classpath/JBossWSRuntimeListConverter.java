@@ -18,17 +18,17 @@ public class JBossWSRuntimeListConverter {
 		/*
 		 * Constants definitions 
 		 */
-		private static final String REGEXP_ESCAPE = "\\";
-		private static final String COMMA = ",";
-		private static final String LIBRARY_SEPARATOR = ";";
-		private static final String EMPTY_STRING = "";
-		private static final String FIELD_SEPARATOR = "|";
-		private static final String DEFAULT = "default";
-		private static final String HOME_DIR = "homeDir";
-		private static final String VERSION = "version";
-		private static final String NAME = "name";
-		private static final String USER_CONFIG_CLASSPATH = "userConfig";
-		private static final String LIBRARY = "libraries";
+		private static final String REGEXP_ESCAPE = "\\"; //$NON-NLS-1$
+		private static final String COMMA = ","; //$NON-NLS-1$
+		private static final String LIBRARY_SEPARATOR = ";"; //$NON-NLS-1$
+		private static final String EMPTY_STRING = ""; //$NON-NLS-1$
+		private static final String FIELD_SEPARATOR = "|"; //$NON-NLS-1$
+		private static final String DEFAULT = "default"; //$NON-NLS-1$
+		private static final String HOME_DIR = "homeDir"; //$NON-NLS-1$
+		private static final String VERSION = "version"; //$NON-NLS-1$
+		private static final String NAME = "name"; //$NON-NLS-1$
+		private static final String USER_CONFIG_CLASSPATH = "userConfig"; //$NON-NLS-1$
+		private static final String LIBRARY = "libraries"; //$NON-NLS-1$
 
 		/**
 		 * Load String to JBossWSRuntime map from String
@@ -92,9 +92,9 @@ public class JBossWSRuntimeListConverter {
 		}
 		
 		private String convertListToString(List<String> libraries){
-			String strLib = "";
+			String strLib = ""; //$NON-NLS-1$
 			for(String library: libraries){
-				if("".equals(strLib)){
+				if("".equals(strLib)){ //$NON-NLS-1$
 					strLib = library;
 				}else{
 					strLib = strLib + LIBRARY_SEPARATOR + library;

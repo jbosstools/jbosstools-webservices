@@ -62,7 +62,7 @@ public class JBossWSCoreUtils {
 
 	// Fix for the windows build not working
 	private static String replaceEscapecharactors(String vulnarableString) {
-		if (vulnarableString.indexOf("/") != -1) {
+		if (vulnarableString.indexOf("/") != -1) { //$NON-NLS-1$
 			vulnarableString = vulnarableString.replace('/', File.separator
 					.charAt(0));
 		}
@@ -82,7 +82,7 @@ public class JBossWSCoreUtils {
 		// Windows check (because from inside wtp in return I received a hard
 		// coded path)
 		if (File.separatorChar == '\\') {
-			return "\\";
+			return "\\"; //$NON-NLS-1$
 		} else {
 			return File.separator;
 		}
@@ -92,7 +92,7 @@ public class JBossWSCoreUtils {
 		// Windows check (because from inside wtp in return I received a hard
 		// coded path)
 		if (File.separatorChar == '\\') {
-			return "\\" + File.separator;
+			return "\\" + File.separator; //$NON-NLS-1$
 		} else {
 			return File.separator;
 		}
@@ -170,7 +170,7 @@ public class JBossWSCoreUtils {
 				return (IFolder) child;
 			} else {
 				throw new CoreException(new Status(IStatus.ERROR,
-						"ResourceUtils", 0, NLS.bind("ERROR",// EnvironmentMessages.MSG_ERROR_RESOURCE_NOT_FOLDER,
+						"ResourceUtils", 0, NLS.bind(JBossWSCoreMessages.JBossWSCoreUtils_ErrorResourceNotFolder, //$NON-NLS-1$ // EnvironmentMessages.MSG_ERROR_RESOURCE_NOT_FOLDER
 								new Object[] { parent.getFullPath().append(
 										folderName).toString() }), null));
 			}
@@ -200,7 +200,7 @@ public class JBossWSCoreUtils {
 
 			} else {
 				throw new CoreException(new Status(IStatus.ERROR,
-						"ResourceUtils", 0, NLS.bind("ERROR",
+						"ResourceUtils", 0, NLS.bind(JBossWSCoreMessages.JBossWSCoreUtils_ErrorResourceNotFile, //$NON-NLS-1$ // EnvironmentMessages.MSG_ERROR_RESOURCE_NOT_FILE
 								new Object[] { parent.getFullPath().append(
 										fileName) }), null));
 			}

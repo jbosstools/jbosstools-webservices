@@ -19,15 +19,15 @@ public interface IJBossWSFacetDataModelProperties extends IActionConfigFactory {
 
 	// Seam Preferences names constants
 
-	String JBOSS_WS_FACET_ID = "jbossws.core";
-	String JBOSS_WS_DEPLOY = "jboss.ws.deploy";	
-	String QUALIFIEDNAME_IDENTIFIER = "jboss.tools.jbossws";	
-	String JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED = "jboss.ws.is.server.supplied";
-	String JBOSS_WS_RUNTIME_ID = "jboss.ws.runtime_id";
+	String JBOSS_WS_FACET_ID = "jbossws.core"; //$NON-NLS-1$
+	String JBOSS_WS_DEPLOY = "jboss.ws.deploy";	 //$NON-NLS-1$
+	String QUALIFIEDNAME_IDENTIFIER = "jboss.tools.jbossws";	 //$NON-NLS-1$
+	String JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED = "jboss.ws.is.server.supplied"; //$NON-NLS-1$
+	String JBOSS_WS_RUNTIME_ID = "jboss.ws.runtime_id"; //$NON-NLS-1$
 	
-	String PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME = "is.server.supplied.runtime";
-	String JBOSS_WS_RUNTIME_HOME = "jboss.ws.runtime.home";
-	String DEFAULT_VALUE_IS_SERVER_SUPPLIED = "true";
+	String PERSISTENT_PROPERTY_IS_SERVER_SUPPLIED_RUNTIME = "is.server.supplied.runtime"; //$NON-NLS-1$
+	String JBOSS_WS_RUNTIME_HOME = "jboss.ws.runtime.home"; //$NON-NLS-1$
+	String DEFAULT_VALUE_IS_SERVER_SUPPLIED = "true"; //$NON-NLS-1$
 	
 	
 	static QualifiedName PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME = new QualifiedName(QUALIFIEDNAME_IDENTIFIER,

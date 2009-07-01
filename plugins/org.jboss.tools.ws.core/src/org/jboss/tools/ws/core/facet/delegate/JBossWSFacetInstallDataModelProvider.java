@@ -50,7 +50,7 @@ public class JBossWSFacetInstallDataModelProvider extends
 		if(propertyName.equals(JBOSS_WS_DEPLOY)){
 			return false;
 		}else if(propertyName.equals(JBOSS_WS_RUNTIME_ID)){
-			return "";
+			return ""; //$NON-NLS-1$
 		}else if(propertyName.equals(FACET_ID)){
 			return IJBossWSFacetDataModelProperties.JBOSS_WS_FACET_ID;
 		}
@@ -67,8 +67,8 @@ public class JBossWSFacetInstallDataModelProvider extends
 		boolean serverSupplied = getBooleanProperty(JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED);
 		String runtimeName = getStringProperty(JBOSS_WS_RUNTIME_ID);
 		if (!serverSupplied 
-				&& (runtimeName == null || runtimeName.equals(""))) {
-			return StatusUtils.errorStatus("");
+				&& (runtimeName == null || runtimeName.equals(""))) { //$NON-NLS-1$
+			return StatusUtils.errorStatus(""); //$NON-NLS-1$
 		}
 		return super.validate(name);
 	}

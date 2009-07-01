@@ -34,7 +34,7 @@ import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
  */
 public class JBossWSRuntimeClassPathInitializer extends
 AbstractClasspathContainerInitializer {
-	public final static String JBOSS_WS_RUNTIME_CLASSPATH_CONTAINER_ID = "org.jboss.ws.runtime.classpath";
+	public final static String JBOSS_WS_RUNTIME_CLASSPATH_CONTAINER_ID = "org.jboss.ws.runtime.classpath"; //$NON-NLS-1$
 	public JBossWSRuntimeClassPathInitializer() {
 	}
 

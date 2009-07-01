@@ -164,7 +164,7 @@ public class JBossWSRuntimeManager {
 		List<File> jars = new ArrayList<File>();
 		if(folder.isDirectory()){
 			for(File file: folder.listFiles()){
-				if(file.isFile() && (file.getName().endsWith(".jar") || file.getName().endsWith(".zip"))){
+				if(file.isFile() && (file.getName().endsWith(".jar") || file.getName().endsWith(".zip"))){ //$NON-NLS-1$ //$NON-NLS-2$
 					jars.add(file);
 				}else if (folder.isDirectory()){
 					jars.addAll(getJarsOfFolder(file));
@@ -296,7 +296,7 @@ public class JBossWSRuntimeManager {
 
 	private void onRuntimeNameChanged(String oldName, String newName) {
 		IProjectFacet facet = ProjectFacetsManager
-				.getProjectFacet("jbossws.core");
+				.getProjectFacet("jbossws.core"); //$NON-NLS-1$
 		Set<IFacetedProject> facetedProjects = null;
 		try {
 			facetedProjects = ProjectFacetsManager.getFacetedProjects(facet);
@@ -324,7 +324,7 @@ public class JBossWSRuntimeManager {
 
 	public static boolean isRuntimeUsed(String name) {
 		IProjectFacet facet = ProjectFacetsManager
-				.getProjectFacet("jbossws.core");
+				.getProjectFacet("jbossws.core"); //$NON-NLS-1$
 		Set<IFacetedProject> facetedProjects = null;
 		try {
 			facetedProjects = ProjectFacetsManager.getFacetedProjects(facet);

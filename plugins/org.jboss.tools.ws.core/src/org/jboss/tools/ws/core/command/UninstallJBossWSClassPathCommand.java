@@ -69,7 +69,7 @@ public class UninstallJBossWSClassPathCommand {
 
 	public IStatus removeClassPath(IProject project, String segment) {
 		IStatus status = Status.OK_STATUS;
-		if(segment == null || "".equals(segment)){
+		if(segment == null || "".equals(segment)){ //$NON-NLS-1$
 			return status;
 		}
 		

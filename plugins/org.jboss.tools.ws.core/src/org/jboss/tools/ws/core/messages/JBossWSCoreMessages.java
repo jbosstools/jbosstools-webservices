@@ -16,7 +16,7 @@ import org.eclipse.osgi.util.NLS;
 /**
  * @author Grid Qian
  */
-public class JBossWSCoreMessages {
+public class JBossWSCoreMessages extends NLS {
 
 	private static final String BUNDLE_NAME = "org.jboss.tools.ws.core.messages.JBossWSCore"; //$NON-NLS-1$
 
@@ -32,6 +32,8 @@ public class JBossWSCoreMessages {
 	public static String WS_Location;
 	public static String JBossWS_Runtime_Lib;
 	public static String JBossWS_Runtime;
+	public static String JBossWSCoreUtils_ErrorResourceNotFile;
+	public static String JBossWSCoreUtils_ErrorResourceNotFolder;
 	public static String Error_Add_Facet_JBossWS;
 	public static String Error_Remove_Facet_JBossWS;
 

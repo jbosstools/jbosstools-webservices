@@ -19,43 +19,43 @@ public class StatusUtils
 {
   public static IStatus errorStatus( String errorMessage )
   {
-    return new Status( IStatus.ERROR, "id", 0, errorMessage, null );
+    return new Status( IStatus.ERROR, "id", 0, errorMessage, null ); //$NON-NLS-1$
   }
   
   public static IStatus errorStatus( Throwable exc )
   {
     String message = exc.getMessage();
     
-    return new Status( IStatus.ERROR, "id", 0, message == null ? "" : message, exc );
+    return new Status( IStatus.ERROR, "id", 0, message == null ? "" : message, exc ); //$NON-NLS-1$ //$NON-NLS-2$
   }
   
   public static IStatus errorStatus( String message, Throwable exc )
   {
-    return new Status( IStatus.ERROR, "id", 0, message, exc );
+    return new Status( IStatus.ERROR, "id", 0, message, exc ); //$NON-NLS-1$
   }
   
   public static MultiStatus multiStatus( String message, IStatus[] children, Throwable exc )
   {
-    return new MultiStatus( "id", 0, children, message, exc );  
+    return new MultiStatus( "id", 0, children, message, exc );   //$NON-NLS-1$
   }
   
   public static MultiStatus multiStatus( String message, IStatus[] children )
   {
-    return new MultiStatus( "id", 0, children, message, null );  
+    return new MultiStatus( "id", 0, children, message, null );   //$NON-NLS-1$
   }
   
   public static IStatus warningStatus( String warningMessage )
   {
-    return new Status( IStatus.WARNING, "id", 0, warningMessage, null );
+    return new Status( IStatus.WARNING, "id", 0, warningMessage, null ); //$NON-NLS-1$
   }
   
   public static IStatus warningStatus( String warningMessage, Throwable exc )
   {
-    return new Status( IStatus.WARNING, "id", 0, warningMessage, exc );
+    return new Status( IStatus.WARNING, "id", 0, warningMessage, exc ); //$NON-NLS-1$
   }
   
   public static IStatus infoStatus( String infoMessage )
   {
-    return new Status( IStatus.INFO, "id", 0, infoMessage, null );
+    return new Status( IStatus.INFO, "id", 0, infoMessage, null ); //$NON-NLS-1$
   }
 }
