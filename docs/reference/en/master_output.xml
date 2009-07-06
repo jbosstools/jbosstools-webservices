@@ -12,13 +12,13 @@
      <bookinfo>
          <title>JBoss WS User Guide</title>
          
-         <corpauthor diffmk:change="added">
-             <inlinemediaobject diffmk:change="added">
-                 <imageobject diffmk:change="added" role="fo">
-                     <imagedata diffmk:change="added" fileref="images/jbosstools_logo.png" format="PNG"></imagedata>
+         <corpauthor>
+             <inlinemediaobject>
+                 <imageobject role="fo">
+                     <imagedata fileref="images/jbosstools_logo.png" format="PNG"></imagedata>
                  </imageobject>	
-                 <imageobject diffmk:change="added" role="html">
-                     <imagedata diffmk:change="added"></imagedata>
+                 <imageobject role="html">
+                     <imagedata></imagedata>
                  </imageobject>	
              </inlinemediaobject>           
          </corpauthor>
@@ -28,10 +28,10 @@
 	     <copyright>
 	          <year>2008</year>
 	          <year>2009</year>
-	          <holder>JBoss, a division of Red Hat</holder>
+	          <holder><diffmk:wrapper diffmk:change="changed">JBoss by Red Hat</diffmk:wrapper></holder>
 	     </copyright>
          <releaseinfo><diffmk:wrapper diffmk:change="changed">
-           Version: 1.1.0.M1
+           Version: 1.1.0.M2
          </diffmk:wrapper></releaseinfo>
 <abstract>
    <title></title>
@@ -50,6 +50,70 @@
 
     <para>JBossWS is a web service framework developed as a part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5).</para>
     <para>JBossWS integrates with most current JBoss Application Server releases as well as earlier ones, that did implement the J2EE 1.4 specifications. Even though JAX-RPC, the web service specification for J2EE 1.4, is still supported JBossWS does put a clear focus on JAX-WS.</para>
+
+<section diffmk:change="added">
+    <title diffmk:change="added"><diffmk:wrapper diffmk:change="added">Key Features of JBossWS</diffmk:wrapper></title>
+    <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">For a start, we propose you to look through the table of main features of JBossWS Runtime:</diffmk:wrapper></para>
+
+    <table diffmk:change="added">
+        
+        <title diffmk:change="added"><diffmk:wrapper diffmk:change="added">Key Functionality for JBossWS</diffmk:wrapper></title>
+        <tgroup cols="2" diffmk:change="added">
+            
+            <colspec align="left" colnum="1" colwidth="2*" diffmk:change="added"></colspec>
+            <colspec colnum="2" colwidth="4*" diffmk:change="added"></colspec>
+           
+            
+            <thead diffmk:change="added">
+                <row diffmk:change="added">
+                    <entry diffmk:change="added"><diffmk:wrapper diffmk:change="added">Feature</diffmk:wrapper></entry>
+                    <entry diffmk:change="added"><diffmk:wrapper diffmk:change="added">Benefit</diffmk:wrapper></entry>
+                  
+                </row>
+            </thead>
+            
+            <tbody diffmk:change="added">
+                
+                <row diffmk:change="added">
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">JAX-RPC and JAX-WS support</diffmk:wrapper></para></entry>
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">JBossWS implements both the JAX-WS and JAX-RPC specifications.</diffmk:wrapper></para></entry>
+                   
+                </row>
+                
+                <row diffmk:change="added">
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">EJB 2.1, EJB3 and JSE endpoints</diffmk:wrapper></para></entry>
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">JBossWS supports EJB 2.1, EJB3 and JSE as Web Service Endpoints.</diffmk:wrapper></para></entry>
+                    
+                </row>
+                
+                <row diffmk:change="added">
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">WS-Security 1.0 for XML Encryption/Signature of the SOAP message</diffmk:wrapper></para></entry>
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">WS-Security standardizes authorization, encryption, and digital signature processing of web services.</diffmk:wrapper></para></entry>
+                    
+                </row>
+                
+                <row diffmk:change="added">
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">JBoss AS</diffmk:wrapper></para></entry>
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">JBoss Application Server 5 (JavaEE 5 compliant) web service stack.</diffmk:wrapper></para></entry>
+                    
+                </row>
+                
+                <row diffmk:change="added">
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">Support for MTOM/XOP and SwA-Ref</diffmk:wrapper></para></entry>
+                    <entry diffmk:change="added"><para diffmk:change="added"><diffmk:wrapper diffmk:change="added">Message Transmission Optimization Mechanism (MTOM) and XML-binary Optimized Packaging (XOP) more efficiently serialize XML Infosets that have certain types of content.</diffmk:wrapper></para></entry>
+                    
+                </row>
+                
+            </tbody>
+            
+        </tgroup>
+    </table>
+    
+    
+</section>
+    
+    
+
 </chapter>
     
 <chapter id="create_ws_topdown" xml:base="file:///home/ochikvina/WORK/for_compare/trunk/ws/docs/reference/en/modules/topdown.xml">
@@ -85,8 +149,8 @@
             <para>Project Name: enter a project name</para>
          </listitem>
          <listitem>
-            <para>Target runtime: any server depending on your installation. If it is not listed,
-               click New and browse to the location where it is installed to. You may set <emphasis>
+            <para><diffmk:wrapper diffmk:change="added">Target runtime: any server depending on your installation. If it is not listed,
+               click </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">New</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button and browse to the location where it is installed to. You may set </diffmk:wrapper><emphasis>
                   <property moreinfo="none">Target Runtime</property>
                </emphasis> to <emphasis>
                   <property moreinfo="none">None</property></emphasis>, in this case, you should add <link linkend="addfacet">JBoss Web Service
@@ -101,7 +165,11 @@
             </figure>
          </listitem>
          <listitem>
-            <para>Configure Web Module values:</para>
+            <para><diffmk:wrapper diffmk:change="added">Configuration: You may add </diffmk:wrapper><link diffmk:change="added" linkend="addfacet"><diffmk:wrapper diffmk:change="added">JBoss Web Service
+                  facet to the project</diffmk:wrapper></link><diffmk:wrapper diffmk:change="added"> by clicking </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Modify...</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button. The opened page is like </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Figure 2.4</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added">.</diffmk:wrapper></para>
+         </listitem>
+         <listitem diffmk:change="added">
+            <para diffmk:change="added">Configure Web Module values:</para>
             <figure float="0">
                <title>Web Module Settings Configuration</title>
                <mediaobject>
@@ -112,13 +180,25 @@
             </figure>
          </listitem>
       </itemizedlist>
-      <para>Click on the <property moreinfo="none">Finish</property> button. Next you will need to add JBoss Web Service facet to the project:</para>
+      <para><diffmk:wrapper diffmk:change="added">If you added the JBoss Web Service facet to the project, now the </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Finish</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button is disable. You must click </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Next</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button to set more information about the JBoss Web Service facet. The page is like </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Figure 2.5</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added">. Then click on the </diffmk:wrapper><property moreinfo="none">Finish</property><diffmk:wrapper diffmk:change="added"> button.</diffmk:wrapper></para>
+      <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">If you didn't add the JBoss Web Service facet to the project, click on the </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Finish</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button. Next you will need to add JBoss Web Service facet to the project.</diffmk:wrapper></para>
    </section>
 
    <section id="addfacet">
       <title>Configure JBoss Web Service facet settings</title>
-      <para>If you have already created a new Dynamic Web project, the next step is to add JBoss Web
-         Service facet to the project. Right-click on the project, select its <emphasis><property moreinfo="none">Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis> in the tree-view on the left-side of the project properties dialog. Tick on the check box for JBoss Web Services and open additional configuration for it, having clicked on the <emphasis><property moreinfo="none">Further configuration required...</property></emphasis> link. In the opened window</para>
+      <para><diffmk:wrapper diffmk:change="changed">If you have already created a new Dynamic Web project and not set the JBoss Web Service facet to the project, the next step is to add JBoss Web
+         Service facet to the project. Right-click on the project, select its </diffmk:wrapper><emphasis><property moreinfo="none">Properties</property></emphasis> and then find <emphasis>Project Facets</emphasis><diffmk:wrapper diffmk:change="added"> in the tree-view on the left-side of the project properties dialog. 
+         Tick on the check box for JBoss Web Services. You will see what like this: </diffmk:wrapper></para>
+      <figure diffmk:change="added" float="0" id="figure_addfacet_0">
+         <title diffmk:change="added"><diffmk:wrapper diffmk:change="added">Choose JBoss Web Service Facet</diffmk:wrapper></title>
+         <mediaobject diffmk:change="added">
+            <imageobject diffmk:change="added">
+               <imagedata diffmk:change="added" fileref="images/topdown/jbossws_facet_0.png"></imagedata>
+            </imageobject>
+         </mediaobject>
+      </figure> 
+      <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">At the bottom-left of the right-side of the project properties dialog, there is a error link: </diffmk:wrapper><emphasis diffmk:change="added"><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Further configuration required...</diffmk:wrapper></property></emphasis><diffmk:wrapper diffmk:change="added"> . You must click the link to set more information about JBoss Web Service facet.</diffmk:wrapper></para>
+      <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">Click on the </diffmk:wrapper><emphasis><property moreinfo="none">Further configuration required...</property></emphasis> link. In the opened window</para>   
       <figure float="0" id="figure_addfacet">
          <title>Configure JBoss Web Service Facet</title>
          <mediaobject>
@@ -148,7 +228,7 @@
          </mediaobject>
       </figure>
       <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>.</para>
-
+      <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">After setting the information about JBoss Web Service facet, for saving the result, you should click the </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Apply</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> or </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">OK</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button at the bottom-right of the right-side of the project properties dialog.</diffmk:wrapper></para>
    </section>
 
 
@@ -602,7 +682,7 @@
             JBossWS Runtime and adjust JBossWS and development environment as well.</para>
 
         <para>If the information on JBossWS tools in this guide isn't enough for you, ask
-            questions on our <ulink url="http://www.jboss.com/index.html?module=bb&apos;op=viewforum&apos;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
+            questions on our <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
     </section>
 </chapter>
 
