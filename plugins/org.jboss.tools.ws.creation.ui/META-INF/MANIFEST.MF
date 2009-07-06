@@ -28,3 +28,4 @@ Require-Bundle: org.eclipse.ui,
  org.jboss.tools.ws.ui
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.creation.ui.wsrt
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

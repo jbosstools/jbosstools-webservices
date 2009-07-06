@@ -31,3 +31,4 @@ Export-Package: org.jboss.tools.ws.core,
  org.jboss.tools.ws.core.facet.delegate,
  org.jboss.tools.ws.core.messages,
  org.jboss.tools.ws.core.utils
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

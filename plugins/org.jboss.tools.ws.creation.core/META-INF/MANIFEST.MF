@@ -42,3 +42,4 @@ Export-Package: org.jboss.tools.ws.creation.core,
 Bundle-ClassPath: lib/wsdl4j.jar,
  .
 Bundle-Localization: plugin
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
