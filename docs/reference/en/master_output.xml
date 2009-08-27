@@ -12,13 +12,13 @@
      <bookinfo>
          <title>JBoss WS User Guide</title>
          
-         <corpauthor>
-             <inlinemediaobject>
-                 <imageobject role="fo">
-                     <imagedata fileref="images/jbosstools_logo.png" format="PNG"></imagedata>
+         <corpauthor diffmk:change="added">
+             <inlinemediaobject diffmk:change="added">
+                 <imageobject diffmk:change="added" role="fo">
+                     <imagedata diffmk:change="added" fileref="images/jbosstools_logo.png" format="PNG"></imagedata>
                  </imageobject>	
-                 <imageobject role="html">
-                     <imagedata></imagedata>
+                 <imageobject diffmk:change="added" role="html">
+                     <imagedata diffmk:change="added"></imagedata>
                  </imageobject>	
              </inlinemediaobject>           
          </corpauthor>
@@ -180,8 +180,8 @@
             </figure>
          </listitem>
       </itemizedlist>
-      <para><diffmk:wrapper diffmk:change="added">If you added the JBoss Web Service facet to the project, now the </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Finish</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button is disable. You must click </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Next</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button to set more information about the JBoss Web Service facet. The page is like </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Figure 2.5</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added">. Then click on the </diffmk:wrapper><property moreinfo="none">Finish</property><diffmk:wrapper diffmk:change="added"> button.</diffmk:wrapper></para>
-      <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">If you didn't add the JBoss Web Service facet to the project, click on the </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Finish</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button. Next you will need to add JBoss Web Service facet to the project.</diffmk:wrapper></para>
+      <para><diffmk:wrapper diffmk:change="added">If you added the JBoss Web Service facet to the project, now the </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Finish</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button is disable. You must click </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Next</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button to set more information about the JBoss Web Service facet. The page is like </diffmk:wrapper><property moreinfo="none"><diffmk:wrapper diffmk:change="added">Figure 2.5</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added">. Then click on the </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">Finish</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> button.</diffmk:wrapper></para>
+      <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">If you didn't add the JBoss Web Service facet to the project, click on the </diffmk:wrapper><property diffmk:change="added" moreinfo="none">Finish</property><diffmk:wrapper diffmk:change="changed"> button. Next you will need to add JBoss Web Service facet to the project.</diffmk:wrapper></para>
    </section>
 
    <section id="addfacet">
