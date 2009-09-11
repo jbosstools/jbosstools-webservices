@@ -65,6 +65,21 @@
     
     
 </section>
+<section>
+        <title>Other relevant resources on the topic</title>
+
+        <para>You can find some extra information on:</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <ulink url="http://www.jboss.org/community/wiki/JBossWS-FAQ#Tools">JBossWS Tools Wiki FAQ.</ulink>
+                </para>
+            </listitem>
+        </itemizedlist>
+
+        
+    </section>
+
     
     
 
