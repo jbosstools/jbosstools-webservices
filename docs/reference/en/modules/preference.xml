@@ -12,7 +12,7 @@
             development process.</para>
 
         <para>JBossWS preferences can be set on the JBossWS preference page. Click on
-                    <emphasis><property>Window > Preferences > JBoss Tools > Web > JBossWS
+                    <emphasis><property>Window &gt; Preferences &gt; JBoss Tools &gt; Web &gt; JBossWS
                     Preferences</property>.</emphasis></para>
 
         <para>On this page you can manage the JBossWS Runtime. Use the appropriate buttons to
@@ -81,12 +81,12 @@
     <section id="serverruntime">
         <title>Default Server and Runtime</title>
         <para>Open <emphasis>
-                <property>Window > Preferences > Web Services > Server and Runtime</property></emphasis>. On this page, you can specify a default server and runtime.</para>
+                <property>Window &gt; Preferences &gt; Web Services &gt; Server and Runtime</property></emphasis>. On this page, you can specify a default server and runtime.</para>
         <para>For ease of use, the better way is to set runtime to JBoss WS.</para>
         <para>After server and runtime are specified, click on the <property>Apply</property> button
             to save the values.</para>
         <figure>
-            <title/>
+            <title>Specifing a default server and runtime</title>
             <mediaobject>
                 <imageobject>
                     <imagedata fileref="images/preference/jbossws_server_runtime.png"/>
@@ -98,9 +98,7 @@
             <property>JBossWS</property>. It describes how to easily create a Web Service and a Web Service Client using
             JBossWS Runtime and adjust JBossWS and development environment as well.</para>
 
-        <para>If the information on JBossWS tools in this guide isn&apos;t enough for you, ask
-            questions on our <ulink
-                url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201"
-                >forum</ulink>. Your comments and suggestions are also welcome.</para>
+        <para>If the information on JBossWS tools in this guide isn't enough for you, ask
+            questions on our <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
     </section>
 </chapter>
