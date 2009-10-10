@@ -41,7 +41,6 @@
         class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
 
         <required-facet-version facet="jst.web" version="2.3" allow-newer="true" />
-        <required-facet-version facet="jbossws.core" version="2.0" allow-newer="true" />
 
       </clientRuntime>
     </extension>

@@ -31,6 +31,7 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Value_Target_0;
 	public static String Value_Target_1;
 	public static String Label_Button_Text_Remove;
+	public static String Progress_Message_Generating;
 
 	public static String Error_Message_Invalid_Binding_File;
 
