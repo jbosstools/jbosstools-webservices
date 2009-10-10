@@ -145,10 +145,9 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				return StatusUtils.errorStatus(e);
 			}
 
-			refreshProject(model.getWebProjectName(), monitor);
-
 			return status;
 		} finally {
+			refreshProject(model.getWebProjectName(), monitor);
 			monitor.done();
 		}
 
@@ -161,9 +160,13 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		String javaHome = System.getenv(JAVA_HOME);
 		if(javaHome == null || !(new File(javaHome).exists())){
 			IJavaProject javaProject = JavaCore.create(project);
-			if(javaProject == null) return null;
+			if(javaProject == null || !javaProject.exists()) return null;
 			
 			try {
+				if(!javaProject.isOpen()){
+					javaProject.open(null);
+				}
+				
 				IVMInstall vm = JavaRuntime.getVMInstall(javaProject);
 				String javaLocation = vm.getInstallLocation().toString();
 				env = new String[]{JAVA_HOME + "=" + javaLocation};  //$NON-NLS-1$
