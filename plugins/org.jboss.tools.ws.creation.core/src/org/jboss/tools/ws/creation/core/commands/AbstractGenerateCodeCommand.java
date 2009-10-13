@@ -111,8 +111,13 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					JBossWSCreationCore.getDefault().logError(
 							inputResult.toString());
 
+//					there is no way to know if the failure of invoking is because of failure of
+//					compiling or because of failure of generating java code, so try to analyze the
+//					output string of the command, if the string contains "javac -d", means the java
+//					java code generating is complete.
+					
 					if (resultInput != null
-							&& resultInput.indexOf("compiling code...") >= 0) {//$NON-NLS-1$
+							&& resultInput.indexOf("javac -d") >= 0) {//$NON-NLS-1$
 						return StatusUtils
 								.warningStatus(errorResult.toString());
 					}
@@ -153,8 +158,8 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 
 	}
 
-	//SET JAVA_HOME environment variable to the location of java runtime of the project
-	//so jbossws jax-ws command line tools will only use the java runtime to launch java command 
+	//SET JAVA_HOME environment variable to the location of java runtime of the project if the user
+	// doesn't set the env variable
 	private String[] getEnvironmentVariables(IProject project){
 		String[] env = null;
 		String javaHome = System.getenv(JAVA_HOME);
