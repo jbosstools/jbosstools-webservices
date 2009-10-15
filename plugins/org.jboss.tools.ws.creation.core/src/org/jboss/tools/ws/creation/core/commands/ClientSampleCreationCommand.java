@@ -31,6 +31,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
@@ -53,6 +54,9 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	private static final String SRC = "src"; //$NON-NLS-1$
 
 	private ServiceModel model;
+	private int serviceNum = 1;
+	private int portNum = 1;
+	private int argsNum = 0;
 
 	public ClientSampleCreationCommand(ServiceModel model) {
 		this.model = model;
@@ -106,7 +110,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		IType clientClsType = clientCls.findPrimaryType();
 
 		StringBuffer sb = new StringBuffer();
-		sb.append("public static void main(String[] args) {");
+		sb.append("public static void main(String[] args) {"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 		sb.append("        System.out.println(\"***********************\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
@@ -137,18 +141,16 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * @param serviceUnits
 	 * @param method
 	 * @param sb
-	 * @param i
 	 */
 	@SuppressWarnings("unchecked")
 	private void createWebService(List<ICompilationUnit> serviceUnits,
-			MethodDeclaration method, StringBuffer sb, int i) {
-		sb
-				.append("        System.out.println(\"" //$NON-NLS-1$
-						+ "Create Web Service...\");");
+			MethodDeclaration method, StringBuffer sb) {
+		sb.append("        System.out.println(\"" //$NON-NLS-1$
+				+ "Create Web Service...\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
-		sb.append("        " + method.getReturnType2().toString());
-		sb.append(" port").append(i).append(" = ");
-		sb.append("service").append(i).append(".");
+		sb.append("        " + method.getReturnType2().toString()); //$NON-NLS-1$
+		sb.append(" port").append(portNum).append(" = "); //$NON-NLS-1$ //$NON-NLS-2$
+		sb.append("service").append(serviceNum).append("."); //$NON-NLS-1$ //$NON-NLS-2$
 		sb.append(method.getName()).append("();"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 
@@ -163,7 +165,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			TypeDeclaration typeDec1 = (TypeDeclaration) types.get(0);
 			if (typeDec1.getName().toString().equals(
 					method.getReturnType2().toString())) {
-				callWebServiceOperation(typeDec1, sb, i);
+				callWebServiceOperation(typeDec1, sb);
 			}
 		}
 	}
@@ -173,12 +175,11 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * 
 	 * @param typeDec
 	 * @param sb
-	 * @param i
 	 */
 	private void callWebServiceOperation(TypeDeclaration typeDec,
-			StringBuffer sb, int i) {
+			StringBuffer sb) {
 		sb.append("        System.out.println(\"" //$NON-NLS-1$
-				+ "Call Web Service Operation...\");");
+				+ "Call Web Service Operation...\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 
 		MethodDeclaration methodDec[] = typeDec.getMethods();
@@ -186,25 +187,61 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		// call web serivce Operation
 		for (MethodDeclaration method : methodDec) {
 			if (method.getReturnType2().toString().equals("void")) { //$NON-NLS-1$
-				sb.append("        System.out.println(\"Server said: ");
-				sb.append("port").append(i).append(".");
-				sb.append(method.getName()).append("() is a void method!\");");
+				sb.append("        System.out.println(\"Server said: "); //$NON-NLS-1$
+				sb.append("port").append(portNum).append("."); //$NON-NLS-1$//$NON-NLS-2$
+				sb.append(method.getName()).append("() is a void method!\");"); //$NON-NLS-1$
 				sb.append(LINE_SEPARATOR);
 			} else {
-				sb.append("        System.out.println(\"Server said: \" + ");
-				sb.append("port").append(i).append(".");
+				sb.append("        System.out.println(\"Server said: \" + "); //$NON-NLS-1$
+				sb.append("port").append(portNum).append("."); //$NON-NLS-1$ //$NON-NLS-2$
 				sb.append(method.getName()).append("("); //$NON-NLS-1$
-
+                
+				boolean noNull = true;
 				for (int j = 0; j < method.parameters().size(); j++) {
-					sb.append("args[").append(j).append("]");
-					if (j != method.parameters().size() - 1) {
-						sb.append(","); //$NON-NLS-1$
-					}
+					noNull = createWebServiceOperationParameters(method.parameters(),sb, j) && noNull;
 				}
 				sb.append("));"); //$NON-NLS-1$
 				sb.append(LINE_SEPARATOR);
+				if(!noNull){
+					sb.append("        //Please input the parameters instead of 'null' for the upper method!"); //$NON-NLS-1$
+					sb.append(LINE_SEPARATOR);
+					sb.append(LINE_SEPARATOR);
+				}
 			}
 		}
+	}
+
+	/**
+	 * create a code block used to create the parameters of a web service
+	 * operation
+	 * 
+	 * @param list
+	 * @param sb
+	 * @param j
+	 */
+	@SuppressWarnings("unchecked")
+	private boolean createWebServiceOperationParameters(List list,
+			StringBuffer sb, int j) {
+		SingleVariableDeclaration para = (SingleVariableDeclaration)list.get(j);
+
+		if ("String".equals(para.getType().toString())) { //$NON-NLS-1$
+			sb.append("args[").append(argsNum).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (j != list.size() - 1) {
+				sb.append(","); //$NON-NLS-1$
+			}
+			argsNum += 1;
+			return true;
+		}
+		
+		if(list.get(j) instanceof Object){
+			sb.append("null"); //$NON-NLS-1$
+			if (j != list.size() - 1) {
+				sb.append(","); //$NON-NLS-1$
+			}			
+			return false;
+		}
+		return true;
+
 	}
 
 	/**
@@ -217,9 +254,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	@SuppressWarnings("unchecked")
 	private void createWebServiceClient(List<ICompilationUnit> clientUnits,
 			List<ICompilationUnit> serviceUnits, StringBuffer sb) {
-		int i = 1;
 		sb.append("        System.out.println(\"" //$NON-NLS-1$
-				+ "Create Web Service Client...\");");
+				+ "Create Web Service Client...\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 		for (ICompilationUnit unit : clientUnits) {
 			// parse the unit
@@ -232,7 +268,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			TypeDeclaration typeDec = (TypeDeclaration) types.get(0);
 
 			sb.append("        " + typeDec.getName()); //$NON-NLS-1$
-			sb.append(" service").append(i).append(" = new ");
+			sb.append(" service").append(serviceNum).append(" = new "); //$NON-NLS-1$ //$NON-NLS-2$
 			sb.append(typeDec.getName());
 			sb.append("();"); //$NON-NLS-1$
 			sb.append(LINE_SEPARATOR);
@@ -246,11 +282,12 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 							.modifiers().get(0);
 					if (anno.getTypeName().getFullyQualifiedName().equals(
 							JBossWSCreationCoreMessages.WebEndpoint)) {
-						createWebService(serviceUnits, method, sb, i);
+						createWebService(serviceUnits, method, sb);
+						portNum += 1;
 					}
 				}
 			}
-
+			serviceNum += 1;
 		}
 	}
 
@@ -320,7 +357,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			IPackageFragment pkg = root.createPackageFragment(packageName,
 					false, null);
 			ICompilationUnit wrapperCls = pkg.createCompilationUnit(className
-					+ ".java", "", true, null);  //$NON-NLS-1$//$NON-NLS-2$
+					+ ".java", "", true, null); //$NON-NLS-1$//$NON-NLS-2$
 			if (!packageName.equals("")) { //$NON-NLS-1$
 				wrapperCls.createPackageDeclaration(packageName, null);
 			}
