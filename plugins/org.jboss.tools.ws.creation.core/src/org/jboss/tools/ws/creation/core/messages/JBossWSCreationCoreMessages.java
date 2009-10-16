@@ -30,6 +30,7 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Label_JaxWS_Target;
 
 	public static String Label_Update_Webxml;
+	public static String Label_EnableSOAP12_Binding_Extension;
 	public static String Value_Target_0;
 	public static String Value_Target_1;
 	public static String Label_Button_Text_Remove;

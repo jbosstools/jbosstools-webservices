@@ -166,7 +166,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 		gd = new GridData();
 		gd.horizontalSpan = 3;
 		btnExtension.setLayoutData(gd);
-		btnExtension.setText("Enable SOAP 1.2 binding extension (This option is only available for JBossWS 3.0 or later)");
+		btnExtension.setText(JBossWSCreationCoreMessages.Label_EnableSOAP12_Binding_Extension);
 		btnExtension.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				model.setEnableSOAP12(btnExtension
