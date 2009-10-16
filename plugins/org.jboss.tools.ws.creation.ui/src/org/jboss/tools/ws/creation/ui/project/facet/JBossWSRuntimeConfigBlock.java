@@ -29,9 +29,14 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetDataModelProperties;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelEvent;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
+import org.eclipse.wst.common.project.facet.core.IFacetedProjectWorkingCopy;
+import org.eclipse.wst.common.project.facet.core.runtime.IRuntime;
+import org.eclipse.wst.server.core.IRuntimeType;
+import org.eclipse.wst.server.core.ServerCore;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
+import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.ui.CreationUIPlugin;
@@ -47,12 +52,17 @@ public class JBossWSRuntimeConfigBlock {
 	
 	private String errMsg;
 	private IMessageNotifier notifier;
+	private String jbossWSVersion;
 
 	private IDataModel model;
 	
+	private final static String JBOSS_IDE_AS_RUNTIME_ID = "org.jboss.ide.eclipse.as.runtime"; //$NON-NLS-1$
+	private final static String JBOSS_IDE_EAP_RUNTIME_ID = "org.jboss.ide.eclipse.as.runtime.eap"; //$NON-NLS-1$
+	
 	public JBossWSRuntimeConfigBlock(Object config){
 		this.model = (IDataModel) config;
-
+		jbossWSVersion = (String)model.getProperty(JBossWSFacetInstallDataModelProvider.FACET_VERSION_STR);
+//		validateTargetRuntime();
 	}
 
 	
@@ -141,6 +151,35 @@ public class JBossWSRuntimeConfigBlock {
 
 	}
 	
+	private void validateTargetRuntime(){
+		IFacetedProjectWorkingCopy fpWorkingCopy = (IFacetedProjectWorkingCopy)model.getProperty(JBossWSFacetInstallDataModelProvider.FACETED_PROJECT_WORKING_COPY);
+		IRuntime runtime = fpWorkingCopy.getPrimaryRuntime();
+		if(runtime == null){
+			setErrorMessage(JBossWSCreationCoreMessages.JBossWSRuntimeInstallPage_NoTargetRuntime);
+			return;
+		}
+		
+		org.eclipse.wst.server.core.IRuntime serverRuntime = ServerCore.findRuntime(runtime.getProperty("id")); //$NON-NLS-1$
+		IRuntimeType rt = serverRuntime.getRuntimeType();
+		String runtimeTypeId = rt.getId();
+		String version = rt.getVersion();
+		if(runtimeTypeId.indexOf(JBOSS_IDE_AS_RUNTIME_ID) < 0 && runtimeTypeId.indexOf(JBOSS_IDE_EAP_RUNTIME_ID) < 0){
+			setErrorMessage(JBossWSCreationCoreMessages.JBossWSRuntimeInstallPage_NoValidJBossWSRuntime);
+			return;
+		}
+		
+		if("3.0".compareTo(jbossWSVersion) <= 0){ //$NON-NLS-1$
+			if("5.0".compareTo(version) > 0){ //$NON-NLS-1$
+				setErrorMessage(JBossWSCreationCoreMessages.JBossWSRuntimeInstallPage_NoValidJBossWSRuntime);
+				return;
+			}
+		}
+		
+		setErrorMessage(null);
+		
+		
+	}
+	
 	private void setInitialValues(){
 		boolean isServerSupplied = model.getBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED);
 		String runtimeName = model.getStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID);
@@ -194,7 +233,8 @@ public class JBossWSRuntimeConfigBlock {
 				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, null);
 		model.setStringProperty(
 				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,	null);		
-		enableUserSupplied(false);		
+		enableUserSupplied(false);
+		
 		changePageStatus();
 
 	}
@@ -228,19 +268,22 @@ public class JBossWSRuntimeConfigBlock {
 	protected void initializeRuntimesCombo(Combo cmRuntime, String runtimeName) {
 		JBossWSRuntime selectedJbws = null;
 		JBossWSRuntime defaultJbws = null;
-		int selectIndex = 0;
+//		int selectIndex = 0;
 		int defaultIndex = 0;
 		cmRuntime.removeAll();
 		JBossWSRuntime[] runtimes = JBossWSRuntimeManager.getInstance()
 				.getRuntimes();
 		for (int i = 0; i < runtimes.length; i++) {
 			JBossWSRuntime jr = runtimes[i];
+			if(jbossWSVersion.compareTo(jr.getVersion()) > 0){
+				continue;
+			}
 			cmRuntime.add(jr.getName());
 			cmRuntime.setData(jr.getName(), jr);
 			
 			if(jr.getName().equals(runtimeName)){
 				selectedJbws = jr;
-				selectIndex = i;
+//				selectIndex = i;
 			}
 			// get default jbossws runtime
 			if (jr.isDefault()) {
@@ -250,7 +293,7 @@ public class JBossWSRuntimeConfigBlock {
 		}
 		
 		if(selectedJbws != null){
-		cmRuntime.select(selectIndex);
+		cmRuntime.setText(runtimeName);
 		saveJBosswsRuntimeToModel(selectedJbws);
 		}else if(defaultJbws != null){
 			cmRuntime.select(defaultIndex);
@@ -306,7 +349,11 @@ public class JBossWSRuntimeConfigBlock {
 			}else{
 				setErrorMessage(null);
 			}
-		}else{
+		}
+		else if(btnServerSupplied.getSelection()){
+			validateTargetRuntime();
+		}
+		else{
 			setErrorMessage(null);
 		}
 			

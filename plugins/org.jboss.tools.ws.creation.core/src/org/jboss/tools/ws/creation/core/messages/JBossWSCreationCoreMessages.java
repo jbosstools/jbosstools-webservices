@@ -16,6 +16,8 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String JBossWSFacetInstallPage_Title;
 
 	public static String JBossWSRuntimeConfigBlock_Duplicated_Jar;
+	public static String JBossWSRuntimeInstallPage_NoTargetRuntime;
+	public static String JBossWSRuntimeInstallPage_NoValidJBossWSRuntime;
 
 	public static String Label_Custom_Package_Name;
 	public static String Label_Catalog_File;

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 
@@ -53,6 +54,10 @@ public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 		if(model.getTarget() != null){
 			command.add("-t"); //$NON-NLS-1$
 			command.add(model.getTarget());
+		}
+		
+		if(model.enableSOAP12() && JBossWSCreationUtils.supportSOAP12(model.getWebProjectName())){
+			command.add("-e"); //$NON-NLS-1$
 		}
 	}
 

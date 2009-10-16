@@ -1,5 +1,7 @@
 package org.jboss.tools.ws.creation.ui.widgets;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -19,8 +21,10 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetDataContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataEvents;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
+import org.jboss.tools.ws.core.utils.JBossWSCoreUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 
@@ -37,6 +41,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 	private Button btnRemove;
 	private Button btnUpdateWebxml;
 	private Button btnGenDefaultImpl;
+	private Button btnExtension;
 
 	public CodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
@@ -156,6 +161,19 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 				}
 			}
 		});
+		
+		btnExtension = new Button(configCom, SWT.CHECK);
+		gd = new GridData();
+		gd.horizontalSpan = 3;
+		btnExtension.setLayoutData(gd);
+		btnExtension.setText("Enable SOAP 1.2 binding extension (This option is only available for JBossWS 3.0 or later)");
+		btnExtension.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				model.setEnableSOAP12(btnExtension
+						.getSelection());
+			}
+		});
+		
 		if (model.getWsScenario() != WebServiceScenario.CLIENT) {
 			btnGenDefaultImpl = new Button(configCom, SWT.CHECK);
 			gd = new GridData();
@@ -191,7 +209,15 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 				}
 			});
 		}
+		
+		//enable enable soap12 checkbox if the target jbossws runtime is less than 3.0
+		updateExtensionButtonStatus();
+		
 		return this;
+	}
+	
+	private void updateExtensionButtonStatus(){
+		btnExtension.setEnabled(JBossWSCreationUtils.supportSOAP12(model.getWebProjectName()));
 	}
 
 	private void loadBindingFiles(List bindingList) {

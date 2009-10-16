@@ -38,7 +38,8 @@ Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.creation.core,
  org.jboss.tools.ws.creation.core.commands,
  org.jboss.tools.ws.creation.core.data,
- org.jboss.tools.ws.creation.core.messages
+ org.jboss.tools.ws.creation.core.messages,
+ org.jboss.tools.ws.creation.core.utils
 Bundle-ClassPath: lib/wsdl4j.jar,
  .
 Bundle-Localization: plugin

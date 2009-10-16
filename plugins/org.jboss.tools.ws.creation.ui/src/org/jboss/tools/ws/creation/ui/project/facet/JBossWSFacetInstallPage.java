@@ -10,12 +10,15 @@
  ******************************************************************************/
 package org.jboss.tools.ws.creation.ui.project.facet;
 
+import java.text.MessageFormat;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelEvent;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModelListener;
 import org.eclipse.wst.common.project.facet.ui.AbstractFacetWizardPage;
 import org.eclipse.wst.common.project.facet.ui.IFacetWizardPage;
+import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
 /**
@@ -31,14 +34,14 @@ public class JBossWSFacetInstallPage extends AbstractFacetWizardPage implements
 	private JBossWSRuntimeConfigBlock block;
 
 	public JBossWSFacetInstallPage() {
-		super(JBossWSCreationCoreMessages.JBossWSFacetInstallPage_Title);
-		setTitle(JBossWSCreationCoreMessages.JBossWSFacetInstallPage_Title);
-		setDescription(JBossWSCreationCoreMessages.JBossWSFacetInstallPage_Description);
+		super("jbosswsfacet"); //$NON-NLS-1$
 	}
 
 	public void setConfig(Object config) {
 		this.model = (IDataModel) config;
-
+		String JbossWSVersion = (String)model.getProperty(JBossWSFacetInstallDataModelProvider.FACET_VERSION_STR);
+		setTitle(MessageFormat.format(JBossWSCreationCoreMessages.JBossWSFacetInstallPage_Title, JbossWSVersion)); 
+		setDescription(MessageFormat.format(JBossWSCreationCoreMessages.JBossWSFacetInstallPage_Description, JbossWSVersion));
 	}
 
 	public void createControl(Composite parent) {

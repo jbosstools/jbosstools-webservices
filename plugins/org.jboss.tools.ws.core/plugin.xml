@@ -1,40 +1,49 @@
 <plugin>
    <extension
          point="org.eclipse.wst.common.project.facet.core.facets">
-      <category id="jbossws.category">
-    	<label>%JBOSSWS_CATOGERY_LABEL</label>
-    	<description>%JBOSSWS_CATOGERY_DISCRIPTION</description>
-  	  </category>
 
 		  <project-facet id="jbossws.core">
 			<label>%JBOSSWS_FACET_CORE_LABEL</label>
 			<description>%JBOSSWS_FACET_CORE_DISCRIPTION</description>
-			<member category="jbossws.category "/>
 		  </project-facet>
 
 		<project-facet-version facet="jbossws.core" version="2.0">
 		    <constraint>
       			<requires facet="jst.web" version="2.2,2.3,2.4,2.5"/>
     		</constraint>
-    		<action
-            facet="jbossws.core"
-            id="jbossws.core.install"
-            type="INSTALL">
-      			<delegate class="org.jboss.tools.ws.core.facet.delegate.JBossWSInstallRuntimeDelegate"/>
-         <config-factory
-               class="org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider">
-         </config-factory>
-    		</action>
-      <action
-            facet="jbossws.core"
-            id="jbossws.core.uninstall"
-            type="UNINSTALL">
-         <delegate
-               class="org.jboss.tools.ws.core.facet.delegate.JBossWSUnInstallRuntimeDelegate">
-         </delegate>
-      </action>
       
   		</project-facet-version>
+  <project-facet-version
+        facet="jbossws.core"
+        version="3.0">
+     <constraint>
+        <requires
+              facet="jst.web"
+              version="2.2,2.3,2.4,2.5">
+        </requires>
+     </constraint>
+  </project-facet-version>
+  <action
+        facet="jbossws.core"
+        id="jbossws.core.install"
+        type="INSTALL"
+        version="2.0,3.0">
+     <delegate
+           class="org.jboss.tools.ws.core.facet.delegate.JBossWSInstallRuntimeDelegate">
+     </delegate>
+     <config-factory
+           class="org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider">
+     </config-factory>
+  </action>
+  <action
+        facet="jbossws.core"
+        id="jbossws.core.uninstall"
+        type="UNINSTALL"
+        version="2.0,3.0">
+     <delegate
+           class="org.jboss.tools.ws.core.facet.delegate.JBossWSUnInstallRuntimeDelegate">
+     </delegate>
+  </action>
    </extension>
    <extension
          point="org.eclipse.wst.common.project.facet.core.runtimes">

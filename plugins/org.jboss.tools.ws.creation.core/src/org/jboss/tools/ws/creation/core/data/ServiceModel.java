@@ -18,6 +18,7 @@ private String  webProjectName;
 	private boolean isGenWSDL;
 	private String target;
 	private int wsScenario;
+	private boolean extension;
 
 	public int getWsScenario() {
 		return wsScenario;
@@ -155,5 +156,13 @@ private String  webProjectName;
 	
 	public void setUpdateWebxml(boolean updateWebxml){
 		this.UpdateWebxml = updateWebxml;
+	}
+	
+	public boolean enableSOAP12(){
+		return extension;
+	}
+	
+	public void setEnableSOAP12(boolean enable){
+		this.extension = enable;
 	}
 }

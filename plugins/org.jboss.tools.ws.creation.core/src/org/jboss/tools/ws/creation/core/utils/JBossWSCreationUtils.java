@@ -45,13 +45,17 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.ws.internal.common.J2EEUtils;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
+import org.eclipse.wst.common.project.facet.core.IProjectFacet;
+import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.eclipse.wst.server.core.IRuntime;
+import org.eclipse.wst.server.core.IRuntimeType;
 import org.eclipse.wst.server.core.ServerCore;
 import org.jboss.tools.ws.core.JBossWSCorePlugin;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
+import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
@@ -339,7 +343,7 @@ public class JBossWSCreationUtils {
 		}
 
 		// if no target runtime has been specified, get runtime location from
-		// default jbossws runtime
+		// default jbossws runtime configured at Web Service preference page
 		if (prjFacetRuntime == null) {
 			JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
 					.getDefaultRuntime();
@@ -355,6 +359,49 @@ public class JBossWSCreationUtils {
 
 		return ""; //$NON-NLS-1$
 
+	}
+	
+	public static boolean supportSOAP12(String projectName){
+		try {
+			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+			if(project == null){
+				return false;
+			}
+			
+			IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
+			IProjectFacet jbossWSFacet = ProjectFacetsManager.getProjectFacet(JBossWSFacetInstallDataModelProvider.JBOSS_WS_FACET_ID);
+			IProjectFacetVersion fpVersion = facetedPrj.getProjectFacetVersion(jbossWSFacet);
+			if(fpVersion != null && fpVersion.getVersionString().compareTo("3.0") >= 0){ //$NON-NLS-1$
+				return true;
+			}
+			
+//			if the project doesn't get JBossWS facet installed, check its primary target runtime
+//			if the jboss runtime version is 5.0 or higher, return true
+			org.eclipse.wst.common.project.facet.core.runtime.IRuntime targetRuntime = facetedPrj.getPrimaryRuntime();
+			if(targetRuntime != null){
+				IRuntime runtime = getRuntime(targetRuntime);
+				IRuntimeType rt = runtime.getRuntimeType();
+				if(rt.getName().toUpperCase().indexOf("JBOSS") >= 0){ //$NON-NLS-1$
+					String runtimeVersion = rt.getVersion();
+					if(runtimeVersion != null && runtimeVersion.compareTo("5.0") >= 0){ //$NON-NLS-1$
+						return true;
+					}
+				}
+				
+			}
+		} catch (CoreException e) {
+//			ignore
+//			e.printStackTrace();
+		}
+		
+		//check the version of default jbossws runtime configured at the Web Service preference page
+		JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
+		.getDefaultRuntime();
+		if(jbws != null && "3.0".compareTo(jbws.getVersion()) <= 0){ //$NON-NLS-1$
+			return true;
+		}
+		
+		return false;
 	}
 
 	public static IRuntime getRuntime(
