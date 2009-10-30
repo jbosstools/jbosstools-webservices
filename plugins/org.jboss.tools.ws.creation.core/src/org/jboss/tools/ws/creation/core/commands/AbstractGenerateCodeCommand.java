@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
@@ -48,6 +49,9 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
+		if(monitor==null) {
+			monitor=new NullProgressMonitor();
+		}
 		try {
 			monitor.beginTask("", 100); //$NON-NLS-1$
 			monitor
