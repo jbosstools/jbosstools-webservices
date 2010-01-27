@@ -30,7 +30,6 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
-import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * @author Grid Qian
@@ -60,8 +59,8 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 			if (location.equals("")) { //$NON-NLS-1$
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
-			} else if (!new Path(location).append(JBossWSUIMessages.Bin)
-					.append(JBossWSUIMessages.Command).toFile().exists()) {
+			} else if (!new Path(location).append(JBossWSCreationCoreMessages.Bin)
+					.append(JBossWSCreationCoreMessages.Command).toFile().exists()) {
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 			}

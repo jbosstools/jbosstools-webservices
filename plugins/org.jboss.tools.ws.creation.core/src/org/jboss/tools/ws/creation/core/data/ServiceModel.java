@@ -19,6 +19,7 @@ private String  webProjectName;
 	private String target;
 	private int wsScenario;
 	private boolean extension;
+	private String serviceName;
 
 	public int getWsScenario() {
 		return wsScenario;
@@ -164,5 +165,13 @@ private String  webProjectName;
 	
 	public void setEnableSOAP12(boolean enable){
 		this.extension = enable;
+	}
+
+	public void setServiceName(String serviceName) {
+		this.serviceName = serviceName;
+	}
+
+	public String getServiceName() {
+		return serviceName;
 	}
 }

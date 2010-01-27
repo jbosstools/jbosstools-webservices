@@ -10,10 +10,17 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.resources,
  org.jboss.tools.ws.core,
  org.eclipse.ui.ide,
- org.eclipse.wst.common.project.facet.core
+ org.eclipse.wst.common.project.facet.core,
+ org.eclipse.jdt.core,
+ org.eclipse.jst.j2ee,
+ org.eclipse.jem.util,
+ org.jboss.tools.ws.creation.core,
+ org.eclipse.wst.common.frameworks
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,
  org.jboss.tools.ws.ui.preferences
 Bundle-Vendor: %PLUGIN_PROVIDER
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Import-Package: org.jboss.tools.ws.creation.core.commands,
+ org.jboss.tools.ws.creation.core.data

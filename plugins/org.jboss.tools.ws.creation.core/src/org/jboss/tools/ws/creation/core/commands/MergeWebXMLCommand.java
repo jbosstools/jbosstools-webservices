@@ -48,10 +48,10 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		if(!model.isUpdateWebxml()){
+		if (!model.isUpdateWebxml()) {
 			return Status.OK_STATUS;
 		}
-		
+
 		IEnvironment environment = getEnvironment();
 		IStatus status = null;
 		ServletDescriptor[] servletDescriptors = new ServletDescriptor[model
@@ -105,7 +105,8 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			org.eclipse.jst.j2ee.webapplication.WebApp webapp) {
 		List theServlets = webapp.getServlets();
 		for (int i = 0; i < theServlets.size(); i++) {
-			org.eclipse.jst.j2ee.webapplication.Servlet aServlet = (org.eclipse.jst.j2ee.webapplication.Servlet) theServlets.get(i);
+			org.eclipse.jst.j2ee.webapplication.Servlet aServlet = (org.eclipse.jst.j2ee.webapplication.Servlet) theServlets
+					.get(i);
 			if (aServlet.getServletName().equals(servletDescriptor._name)) {
 				return;
 			}
@@ -134,9 +135,12 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 	}
 
 	private ServletDescriptor getServletDescriptor(String clsName) {
-
-		String servletName = JBossWSCreationUtils.classNameFromQualifiedName(clsName);
-		if(servletName.endsWith("Impl") && servletName.length() > 4){ //$NON-NLS-1$
+		String servletName = model.getServiceName();
+		if (servletName == null) {
+			servletName = JBossWSCreationUtils
+					.classNameFromQualifiedName(clsName);
+		}
+		if (servletName.endsWith("Impl") && servletName.length() > 4) { //$NON-NLS-1$
 			servletName = servletName.substring(0, servletName.length() - 4);
 		}
 		ServletDescriptor sd = new ServletDescriptor();

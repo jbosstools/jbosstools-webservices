@@ -76,6 +76,16 @@ public final class JBossWSUIMessages extends NLS {
 	public static String JBossWSLibraryListFieldEditor_ActionRemove;
 
 	public static String JBossWSLibraryListFieldEditor_LIBRARY_JARS;
+	
+	public static String JBossWS_GenerateWizard_Title;
+	public static String JBossWS_GenerateWizard_GenerateWebXmlPage_Title;
+	public static String JBossWS_GenerateWizard_GenerateWebXmlPage_Description;
+	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_Title;
+	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_Description;
+	public static String JBossWS_GenerateWizard_GenerateWebXmlPage_ServiceName_Label;
+	public static String JBossWS_GenerateWizard_WizardPage_CheckButton_Label;
+	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_Package_Label;
+	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_ClassName_Label;
 
 
 	static {
