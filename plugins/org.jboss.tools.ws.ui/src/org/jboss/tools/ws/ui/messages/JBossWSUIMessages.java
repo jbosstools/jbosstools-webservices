@@ -86,6 +86,7 @@ public final class JBossWSUIMessages extends NLS {
 	public static String JBossWS_GenerateWizard_WizardPage_CheckButton_Label;
 	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_Package_Label;
 	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_ClassName_Label;
+	public static String JBossWS_GenerateWizard_NotDynamicWebProject_Error;
 
 
 	static {
