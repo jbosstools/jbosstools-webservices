@@ -3,7 +3,7 @@ package org.jboss.tools.ws.ui.wizards;
 import java.io.File;
 
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -17,7 +17,7 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 
 public class JBossWSGenerateAction implements IWorkbenchWindowActionDelegate {
-	private IJavaProject project;
+	private IProject project;
 	private static String WEB = "web.xml"; //$NON-NLS-1$
 	private static File webFile;
 
@@ -36,7 +36,7 @@ public class JBossWSGenerateAction implements IWorkbenchWindowActionDelegate {
 		int result = dialog.open();
 		if (result == WizardDialog.OK) {
 			ServiceModel model = new ServiceModel();
-			model.setWebProjectName(project.getElementName());
+			model.setWebProjectName(project.getName());
 			model.addServiceClasses(new StringBuffer().append(
 					wizard.getPackageName())
 					.append(".").append(wizard.getClassName()).toString()); //$NON-NLS-1$
@@ -57,12 +57,11 @@ public class JBossWSGenerateAction implements IWorkbenchWindowActionDelegate {
 
 	public void selectionChanged(IAction action, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
-			project = (IJavaProject) ((IStructuredSelection) selection)
+			project = (IProject) ((IStructuredSelection) selection)
 					.getFirstElement();
-			if (JavaEEProjectUtilities
-					.isDynamicWebProject(project.getProject())) {
-				webFile = findFileByPath(project.getProject().getLocation()
-						.toOSString());
+			if (project != null
+					&& JavaEEProjectUtilities.isDynamicWebProject(project)) {
+				webFile = findFileByPath(project.getLocation().toOSString());
 				if (webFile != null) {
 					action.setEnabled(true);
 					return;

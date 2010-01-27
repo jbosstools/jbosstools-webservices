@@ -5,7 +5,6 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -33,7 +32,6 @@ public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		IStatus status = Status.OK_STATUS;
 		IJavaProject project = null;
 		try {
 			project = JBossWSCreationUtils.getJavaProjectByName(model
@@ -68,13 +66,13 @@ public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 			}
 
 			StringBuffer clsContent = new StringBuffer(); 
-			clsContent.append("@WebService()").append(LINE_SEPARATOR);
-			clsContent.append("public class ").append(className).append(" {" + LINE_SEPARATOR);
-			clsContent.append("}").append(LINE_SEPARATOR);
+			clsContent.append("@WebService()").append(LINE_SEPARATOR); //$NON-NLS-1$
+			clsContent.append("public class ").append(className).append(" {" + LINE_SEPARATOR); //$NON-NLS-1$ //$NON-NLS-2$
+			clsContent.append("}").append(LINE_SEPARATOR); //$NON-NLS-1$
 			wrapperCls.createType(clsContent.toString(), null, true, null);
 			
-			wrapperCls.createImport("javax.jws.WebMethod", null,null);
-			wrapperCls.createImport("javax.jws.WebService", null,null);
+			wrapperCls.createImport("javax.jws.WebMethod", null,null); //$NON-NLS-1$
+			wrapperCls.createImport("javax.jws.WebService", null,null); //$NON-NLS-1$
 			
 			IType serviceClsType = wrapperCls.findPrimaryType();
 			clsContent = new StringBuffer();
