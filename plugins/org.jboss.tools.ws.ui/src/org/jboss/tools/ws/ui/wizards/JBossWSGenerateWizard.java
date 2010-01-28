@@ -7,15 +7,17 @@
  * 
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
- ******************************************************************************/ 
+ ******************************************************************************/
 package org.jboss.tools.ws.ui.wizards;
 
 import java.io.File;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
@@ -25,6 +27,7 @@ import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.ServiceSampleCreationCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
+import org.jboss.tools.ws.ui.utils.UIUtils;
 
 public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 
@@ -40,11 +43,13 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 	private String className = CLASSDEFAULT;
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
-	
+
 	private IStructuredSelection selection;
 	private IProject project;
 	private static String WEB = "web.xml"; //$NON-NLS-1$
-	private File webFile;
+	private static String JAVA = ".java"; //$NON-NLS-1$
+	private static String WEBINF = "WEB-INF"; //$NON-NLS-1$
+	private IFile webFile;
 	private boolean hasInited = false;
 
 	public JBossWSGenerateWizard() {
@@ -66,20 +71,90 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 		if (canFinish()) {
 			ServiceModel model = new ServiceModel();
 			model.setWebProjectName(project.getName());
-			model.addServiceClasses(new StringBuffer().append(
-					getPackageName())
+			model.addServiceClasses(new StringBuffer().append(getPackageName())
 					.append(".").append(getClassName()).toString()); //$NON-NLS-1$
 			model.setServiceName(getServiceName());
 			model.setUpdateWebxml(true);
 			model.setCustomPackage(getPackageName());
+
+			File file = findFileByPath(getClassName() + JAVA, project
+					.getLocation().toOSString());
+			if (file != null) {
+				MessageDialog
+						.openError(
+								this.getShell(),
+								JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
+								JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+				return false;
+			}
+
+			IStatus status = null;
 			try {
-				new MergeWebXMLCommand(model).execute(null, null);
+				MergeWebXMLCommand mergeCommand = new MergeWebXMLCommand(model);
+				status = mergeCommand.execute(null, null);
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+			if (status != null && status.getSeverity() == Status.ERROR) {
+				MessageDialog
+						.openError(
+								this.getShell(),
+								JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
+								status.getMessage());
+				return false;
+			}
+			try {
 				new ServiceSampleCreationCommand(model).execute(null, null);
 			} catch (ExecutionException e) {
 				e.printStackTrace();
 			}
 		}
 		return true;
+	}
+
+	public void init(IWorkbench workbench, IStructuredSelection selection) {
+		this.selection = selection;
+		if (this.selection.getFirstElement() instanceof IProject) {
+			project = (IProject) this.selection.getFirstElement();
+		}
+		if (project != null
+				&& JavaEEProjectUtilities.isDynamicWebProject(project)) {
+			webFile = project.getParent().getFolder(
+					UIUtils.getWebContentRootPath(project).append(WEBINF))
+					.getFile(WEB);
+		}
+		hasInited = true;
+	}
+
+	@Override
+	public boolean canFinish() {
+		if (hasInited && (webFile == null || !webFile.exists())) {
+			if (firstPage != null && !firstPage.getControl().isDisposed()) {
+				firstPage
+						.setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
+			}
+			return false;
+		}
+		return super.canFinish();
+	}
+
+	private File findFileByPath(String name, String path) {
+		File ret = null;
+		File folder = new File(path);
+		if (folder.isDirectory()) {
+			File[] files = folder.listFiles();
+			for (File file : files) {
+				ret = findFileByPath(name, file.getAbsolutePath());
+				if (ret != null) {
+					break;
+				}
+			}
+		} else {
+			if (name.equals(folder.getName())) {
+				ret = folder;
+			}
+		}
+		return ret;
 	}
 
 	public String getServiceName() {
@@ -121,54 +196,4 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 	public void setUseDefaultClassName(boolean useDefaultClassName) {
 		this.useDefaultClassName = useDefaultClassName;
 	}
-
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		this.selection = selection;
-
-		if (this.selection.getFirstElement() instanceof JavaProject) {
-			project = ((JavaProject)this.selection.getFirstElement()).getProject();
-		}
-		else if (this.selection.getFirstElement() instanceof IProject) {
-			project = (IProject) this.selection.getFirstElement();
-		}
-		if (project != null
-				&& JavaEEProjectUtilities.isDynamicWebProject(project)) {
-			webFile = findFileByPath(project.getLocation().toOSString());
-			if (webFile != null) {
-				// TODO: if this is valid, we can finish
-			}
-		}
-		hasInited = true;
-	}
-
-	@Override
-	public boolean canFinish() {
-		if (hasInited && webFile == null ) {
-			if (firstPage != null && !firstPage.getControl().isDisposed()) {
-				firstPage.setErrorMessage(JBossWSUIMessages.JBossWS_GenerateWizard_NotDynamicWebProject_Error);
-			}
-			return false;
-		}
-		return super.canFinish();
-	}
-
-	private File findFileByPath(String path) {
-		File ret = null;
-		File folder = new File(path);
-		if (folder.isDirectory()) {
-			File[] files = folder.listFiles();
-			for (File file : files) {
-				ret = findFileByPath(file.getAbsolutePath());
-				if (ret != null) {
-					break;
-				}
-			}
-		} else {
-			if (WEB.equals(folder.getName())) {
-				ret = folder;
-			}
-		}
-		return ret;
-	}
-
 }

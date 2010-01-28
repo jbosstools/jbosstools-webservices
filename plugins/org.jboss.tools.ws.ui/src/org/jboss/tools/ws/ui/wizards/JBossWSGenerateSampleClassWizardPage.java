@@ -7,7 +7,7 @@
  * 
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
- ******************************************************************************/ 
+ ******************************************************************************/
 package org.jboss.tools.ws.ui.wizards;
 
 import org.eclipse.jface.wizard.WizardPage;
@@ -41,40 +41,42 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 	public void createControl(Composite parent) {
 		Composite composite = createDialogArea(parent);
 		this.wizard = (JBossWSGenerateWizard) this.getWizard();
-		new Label(composite, SWT.NONE).setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateSampleClassPage_Package_Label);
+		new Label(composite, SWT.NONE)
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateSampleClassPage_Package_Label);
 		packageName = new Text(composite, SWT.BORDER);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		packageName.setLayoutData(gd);
 		packageName.setText(wizard.getPackageName());
 		packageName.setEnabled(!wizard.isUseDefaultClassName());
-		packageName.addModifyListener(new ModifyListener(){
+		packageName.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (!"".equals(packageName.getText())&&!"".equals(className.getText())){ //$NON-NLS-1$ //$NON-NLS-2$
+				if (!"".equals(packageName.getText()) && !"".equals(className.getText())) { //$NON-NLS-1$ //$NON-NLS-2$
 					setPageComplete(true);
-				}else {
+				} else {
 					setPageComplete(false);
 				}
 			}
-			
+
 		});
-		
-		new Label(composite, SWT.NONE).setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateSampleClassPage_ClassName_Label);
+
+		new Label(composite, SWT.NONE)
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateSampleClassPage_ClassName_Label);
 		className = new Text(composite, SWT.BORDER);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		className.setLayoutData(gd);
 		className.setText(wizard.getClassName());
 		className.setEnabled(!wizard.isUseDefaultClassName());
-		className.addModifyListener(new ModifyListener(){
+		className.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (!"".equals(packageName.getText())&&!"".equals(className.getText())){ //$NON-NLS-1$ //$NON-NLS-2$
+				if (!"".equals(packageName.getText()) && !"".equals(className.getText())) { //$NON-NLS-1$ //$NON-NLS-2$
 					setPageComplete(true);
-				}else {
+				} else {
 					setPageComplete(false);
 				}
 			}
-			
+
 		});
 
 		checkDefault = new Button(composite, SWT.CHECK);
@@ -82,7 +84,8 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		gd.horizontalSpan = 2;
 		checkDefault.setLayoutData(gd);
 		checkDefault.setSelection(wizard.isUseDefaultClassName());
-		checkDefault.setText(JBossWSUIMessages.JBossWS_GenerateWizard_WizardPage_CheckButton_Label);
+		checkDefault
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_WizardPage_CheckButton_Label);
 		checkDefault.addSelectionListener(new SelectionListener() {
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -107,11 +110,11 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 	}
 
 	public boolean isPageComplete() {
-        if(!"".equals(packageName.getText())&&!"".equals(className.getText())){  //$NON-NLS-1$//$NON-NLS-2$
-    		wizard.setPackageName(packageName.getText());
-    		wizard.setClassName(className.getText());
-    		return true;
-        }
+		if (!"".equals(packageName.getText()) && !"".equals(className.getText())) { //$NON-NLS-1$//$NON-NLS-2$
+			wizard.setPackageName(packageName.getText());
+			wizard.setClassName(className.getText());
+			return true;
+		}
 
 		return false;
 	}

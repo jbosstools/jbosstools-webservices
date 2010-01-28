@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jst.j2ee,
  org.eclipse.jem.util,
  org.jboss.tools.ws.creation.core,
- org.eclipse.wst.common.frameworks
+ org.eclipse.wst.common.frameworks,
+ org.eclipse.wst.common.emfworkbench.integration
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,

@@ -28,8 +28,8 @@ import org.eclipse.jst.javaee.web.Servlet;
 import org.eclipse.jst.javaee.web.ServletMapping;
 import org.eclipse.jst.javaee.web.WebApp;
 import org.eclipse.jst.javaee.web.WebFactory;
-import org.eclipse.wst.common.environment.IEnvironment;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -40,6 +40,7 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 public class MergeWebXMLCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
+	IStatus status;
 
 	public MergeWebXMLCommand(ServiceModel model) {
 		this.model = model;
@@ -48,12 +49,11 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
+		status = Status.OK_STATUS;
 		if (!model.isUpdateWebxml()) {
-			return Status.OK_STATUS;
+			return status;
 		}
 
-		IEnvironment environment = getEnvironment();
-		IStatus status = null;
 		ServletDescriptor[] servletDescriptors = new ServletDescriptor[model
 				.getServiceClasses().size()];
 		List<String> serviceClasses = model.getServiceClasses();
@@ -61,16 +61,11 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			servletDescriptors[i] = getServletDescriptor(serviceClasses.get(i));
 		}
 
-		status = mergeWebXML(servletDescriptors);
-		if (status.getSeverity() == Status.ERROR) {
-			environment.getStatusHandler().reportError(status);
-			return status;
-		}
-		return Status.OK_STATUS;
+		mergeWebXML(servletDescriptors);
+		return status;
 	}
 
-	private IStatus mergeWebXML(final ServletDescriptor[] servletDescriptors) {
-		IStatus status = Status.OK_STATUS;
+	private void mergeWebXML(final ServletDescriptor[] servletDescriptors) {
 		final IModelProvider provider = ModelProviderManager
 				.getModelProvider(JBossWSCreationUtils.getProjectByName(model
 						.getWebProjectName()));
@@ -96,7 +91,6 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			}
 
 		}, null);
-		return status;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,6 +102,18 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			org.eclipse.jst.j2ee.webapplication.Servlet aServlet = (org.eclipse.jst.j2ee.webapplication.Servlet) theServlets
 					.get(i);
 			if (aServlet.getServletName().equals(servletDescriptor._name)) {
+				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+				return;
+			}
+		}
+		List theServletMapplings = webapp.getServletMappings();
+		for (int i = 0; i < theServletMapplings.size(); i++) {
+			org.eclipse.jst.j2ee.webapplication.ServletMapping aServletMapping = (org.eclipse.jst.j2ee.webapplication.ServletMapping) theServletMapplings
+					.get(i);
+			if (aServletMapping.getName().equals(servletDescriptor._name)
+					|| aServletMapping.getUrlPattern().equals(
+							servletDescriptor._mappings)) {
+				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 				return;
 			}
 		}
@@ -131,7 +137,6 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			servletMapping.setUrlPattern(servletDescriptor._mappings);
 			webapp.getServletMappings().add(servletMapping);
 		}
-
 	}
 
 	private ServletDescriptor getServletDescriptor(String clsName) {
@@ -155,12 +160,36 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 	public void addjeeServlet(IProject webProject,
 			ServletDescriptor servletDescriptor, WebApp webapp) {
 		List theServlets = webapp.getServlets();
+
 		for (int i = 0; i < theServlets.size(); i++) {
 			Servlet aServlet = (Servlet) theServlets.get(i);
 			if (aServlet.getServletName().equals(servletDescriptor._name)) {
+				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 				return;
 			}
 		}
+
+		List theServletMapplings = webapp.getServletMappings();
+		for (int i = 0; i < theServletMapplings.size(); i++) {
+			ServletMapping aServletMapping = (ServletMapping) theServletMapplings
+					.get(i);
+			if (aServletMapping.getServletName()
+					.equals(servletDescriptor._name)) {
+				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+				return;
+			}
+			List list = aServletMapping.getUrlPatterns();
+			if (list != null) {
+				for (int j = 0; j < list.size(); j++) {
+					UrlPatternType url = (UrlPatternType) list.get(j);
+					if (url.getValue().equals(servletDescriptor._mappings)) {
+						status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+						return;
+					}
+				}
+			}
+		}
+
 		WebFactory factory = WebFactory.eINSTANCE;
 		Servlet servlet = factory.createServlet();
 		servlet.setServletName(servletDescriptor._name);

@@ -23,6 +23,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -37,6 +39,9 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 
 /**
  * @author Grid Qian
@@ -498,5 +503,21 @@ public class UIUtils {
 			matchingFilePath.delete();
 		}
     }
+    
+	
+	public static IPath getWebContentRootPath(IProject project) {
+		if (project == null)
+			return null;
+
+		if (!ModuleCoreNature.isFlexibleProject(project))
+			return null;
+
+		IPath path = null;
+		IVirtualComponent component = ComponentCore.createComponent(project);
+		if (component != null && component.exists()) {
+			path = component.getRootFolder().getWorkspaceRelativePath();
+		}
+		return path;
+	}
 	
 }

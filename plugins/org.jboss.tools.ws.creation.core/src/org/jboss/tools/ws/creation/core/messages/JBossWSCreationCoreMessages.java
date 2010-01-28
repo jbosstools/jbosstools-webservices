@@ -64,6 +64,7 @@ public class JBossWSCreationCoreMessages extends NLS {
     
     public static String Command;
     public static String Bin;
+    public static String Error_JBossWS_GenerateWizard_WSName_Same;
 
 	private JBossWSCreationCoreMessages() {
 	}
