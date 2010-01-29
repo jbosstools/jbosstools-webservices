@@ -23,5 +23,6 @@ Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.preferences
 Bundle-Vendor: %PLUGIN_PROVIDER
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Import-Package: org.jboss.tools.ws.creation.core.commands,
+Import-Package: org.eclipse.jst.javaee.web,
+ org.jboss.tools.ws.creation.core.commands,
  org.jboss.tools.ws.creation.core.data

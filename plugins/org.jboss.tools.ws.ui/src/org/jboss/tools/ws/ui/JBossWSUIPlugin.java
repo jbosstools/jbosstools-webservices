@@ -11,8 +11,12 @@
 
 package org.jboss.tools.ws.ui;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -62,5 +66,29 @@ public class JBossWSUIPlugin extends AbstractUIPlugin {
 	public static ImageDescriptor getImageDescriptor(String path) {
 		path = "icons/" + path; //$NON-NLS-1$
 		return AbstractUIPlugin.imageDescriptorFromPlugin("org.jboss.tools.ws.ui", path); //$NON-NLS-1$
+	}
+
+	public static boolean isDebugEnabled() {
+		return plugin.isDebugging();
+	}
+	
+	public static void log(String msg) {
+		if(isDebugEnabled()) plugin.getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, null));		
+	}
+	
+	public static void log(IStatus status) {
+		if(isDebugEnabled() || !status.isOK()) plugin.getLog().log(status);
+	}
+	
+	public static void log(String message, Throwable exception) {
+		plugin.getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.OK, message, exception));		
+	}
+	
+	public static void log(Throwable ex) {
+		plugin.getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.OK, JBossWSUIMessages.JBossWS_UI_PLUGIN_NO_MESSAGES, ex)); 
+	}
+
+	public static Shell getShell() {
+		return plugin.getWorkbench().getActiveWorkbenchWindow().getShell();
 	}
 }

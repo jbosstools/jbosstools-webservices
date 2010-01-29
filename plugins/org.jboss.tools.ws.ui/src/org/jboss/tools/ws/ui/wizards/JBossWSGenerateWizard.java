@@ -15,7 +15,9 @@ import java.io.File;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -26,6 +28,7 @@ import org.eclipse.ui.IWorkbench;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.ServiceSampleCreationCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jboss.tools.ws.ui.utils.UIUtils;
 
@@ -46,6 +49,7 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 
 	private IStructuredSelection selection;
 	private IProject project;
+
 	private static String WEB = "web.xml"; //$NON-NLS-1$
 	private static String JAVA = ".java"; //$NON-NLS-1$
 	private static String WEBINF = "WEB-INF"; //$NON-NLS-1$
@@ -93,7 +97,7 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 				MergeWebXMLCommand mergeCommand = new MergeWebXMLCommand(model);
 				status = mergeCommand.execute(null, null);
 			} catch (ExecutionException e) {
-				e.printStackTrace();
+				JBossWSUIPlugin.log(e);
 			}
 			if (status != null && status.getSeverity() == Status.ERROR) {
 				MessageDialog
@@ -105,8 +109,21 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 			}
 			try {
 				new ServiceSampleCreationCommand(model).execute(null, null);
+				getProject().refreshLocal(IProject.DEPTH_INFINITE, new NullProgressMonitor());
 			} catch (ExecutionException e) {
-				e.printStackTrace();
+				JBossWSUIPlugin.log(e);
+				MessageDialog
+					.openError(
+						this.getShell(),
+						JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
+						e.getMessage());
+			} catch (CoreException e) {
+				JBossWSUIPlugin.log(e);
+				MessageDialog
+					.openError(
+						this.getShell(),
+						JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
+						e.getMessage());
 			}
 		}
 		return true;
@@ -196,4 +213,21 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 	public void setUseDefaultClassName(boolean useDefaultClassName) {
 		this.useDefaultClassName = useDefaultClassName;
 	}
+
+	public IProject getProject() {
+		return project;
+	}
+	
+	public ServiceModel getServiceModel() {
+		ServiceModel model = new ServiceModel();
+		model.setWebProjectName(project.getName());
+		model.addServiceClasses(new StringBuffer().append(getPackageName())
+				.append(".").append(getClassName()).toString()); //$NON-NLS-1$
+		model.setServiceName(getServiceName());
+		model.setUpdateWebxml(true);
+		model.setCustomPackage(getPackageName());
+		model.setCustomClassName(getClassName());
+		return model;
+	}
+	
 }

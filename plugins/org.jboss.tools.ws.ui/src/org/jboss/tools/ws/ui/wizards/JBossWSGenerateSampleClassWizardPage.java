@@ -10,6 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.ui.wizards;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -22,6 +24,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
@@ -51,11 +54,8 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		packageName.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (!"".equals(packageName.getText()) && !"".equals(className.getText())) { //$NON-NLS-1$ //$NON-NLS-2$
-					setPageComplete(true);
-				} else {
-					setPageComplete(false);
-				}
+				wizard.setClassName(packageName.getText());
+				setPageComplete(isPageComplete());
 			}
 
 		});
@@ -65,16 +65,13 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		className = new Text(composite, SWT.BORDER);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		className.setLayoutData(gd);
-		className.setText(wizard.getClassName());
+		className.setText(updateDefaultName());
 		className.setEnabled(!wizard.isUseDefaultClassName());
 		className.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (!"".equals(packageName.getText()) && !"".equals(className.getText())) { //$NON-NLS-1$ //$NON-NLS-2$
-					setPageComplete(true);
-				} else {
-					setPageComplete(false);
-				}
+				wizard.setClassName(className.getText());
+				setPageComplete(isPageComplete());
 			}
 
 		});
@@ -110,13 +107,7 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 	}
 
 	public boolean isPageComplete() {
-		if (!"".equals(packageName.getText()) && !"".equals(className.getText())) { //$NON-NLS-1$//$NON-NLS-2$
-			wizard.setPackageName(packageName.getText());
-			wizard.setClassName(className.getText());
-			return true;
-		}
-
-		return false;
+		return validate();
 	}
 
 	private Composite createDialogArea(Composite parent) {
@@ -131,5 +122,37 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		composite.setLayout(layout);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		return composite;
+	}
+
+	private String updateDefaultName () {
+		ServiceModel model = wizard.getServiceModel();
+		JBossWSGenerateWizardValidator.setServiceModel(model);
+		String currentName = wizard.getClassName();
+		String testName = currentName;
+		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(testName, wizard.getProject());
+		int i = 1;
+		while (status != null) {
+			testName = currentName + i;
+			wizard.setClassName(testName);
+			model = wizard.getServiceModel();
+			JBossWSGenerateWizardValidator.setServiceModel(model);
+			status = JBossWSGenerateWizardValidator.isWSClassValid(testName, wizard.getProject());
+			i++;
+		}
+		return testName;
+	}
+	
+	private boolean validate() {
+		ServiceModel model = wizard.getServiceModel();
+		JBossWSGenerateWizardValidator.setServiceModel(model);
+		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(model.getCustomClassName(), wizard.getProject());
+		if (status != null) {
+			setMessage(status.getMessage(), DialogPage.ERROR);
+			return false;
+		}
+		else {
+			setMessage(null);
+			return true;
+		}
 	}
 }

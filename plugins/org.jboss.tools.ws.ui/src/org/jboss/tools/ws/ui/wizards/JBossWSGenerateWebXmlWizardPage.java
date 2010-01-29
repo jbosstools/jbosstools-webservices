@@ -10,6 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.ui.wizards;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -23,9 +25,11 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
+
 	private JBossWSGenerateWizard wizard;
 	private Text name;
 	private Button checkDefault;
@@ -46,16 +50,13 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 		name = new Text(composite, SWT.BORDER);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		name.setLayoutData(gd);
-		name.setText(wizard.getServiceName());
+		name.setText(updateDefaultName());
 		name.setEnabled(!wizard.isUseDefaultServiceName());
 		name.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (!"".equals(name.getText())) { //$NON-NLS-1$
-					setPageComplete(true);
-				} else {
-					setPageComplete(false);
-				}
+				wizard.setServiceName(name.getText());
+				setPageComplete(isPageComplete());
 			}
 
 		});
@@ -84,9 +85,8 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 			}
 
 		});
-
+		
 		setControl(composite);
-
 	}
 
 	public IWizardPage getNextPage() {
@@ -106,5 +106,42 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 		composite.setLayout(layout);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		return composite;
+	}
+
+	@Override
+	public boolean isPageComplete() {
+		return validate();
+	}
+	
+	private String updateDefaultName () {
+		ServiceModel model = wizard.getServiceModel();
+		JBossWSGenerateWizardValidator.setServiceModel(model);
+		String currentName = wizard.getServiceName();
+		String testName = currentName;
+		IStatus status = JBossWSGenerateWizardValidator.isWSNameValid();
+		int i = 1;
+		while (status != null) {
+			testName = currentName + i;
+			wizard.setServiceName(testName);
+			model = wizard.getServiceModel();
+			JBossWSGenerateWizardValidator.setServiceModel(model);
+			status = JBossWSGenerateWizardValidator.isWSNameValid();
+			i++;
+		}
+		return testName;
+	}
+	
+	private boolean validate() {
+		ServiceModel model = wizard.getServiceModel();
+		JBossWSGenerateWizardValidator.setServiceModel(model);
+		IStatus status = JBossWSGenerateWizardValidator.isWSNameValid();
+		if (status != null) {
+			setMessage(status.getMessage(), DialogPage.ERROR);
+			return false;
+		}
+		else {
+			setMessage(null);
+			return true;
+		}
 	}
 }

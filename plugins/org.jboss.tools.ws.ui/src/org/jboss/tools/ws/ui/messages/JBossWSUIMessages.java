@@ -89,7 +89,11 @@ public final class JBossWSUIMessages extends NLS {
 	public static String Error_JBossWS_GenerateWizard_NotDynamicWebProject;
 	public static String Error_JBossWS_GenerateWizard_ClassName_Same;
 	public static String JBossWS_GenerateWizard_MessageDialog_Title;
-
+	public static String Error_JBossWS_GenerateWizard_ServiceName_Empty;
+	public static String Error_JBossWS_GenerateWizard_ClassName_Empty;
+	public static String Error_JBossWS_GenerateWizard_PackageName_Empty;
+	
+	public static String JBossWS_UI_PLUGIN_NO_MESSAGES;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);

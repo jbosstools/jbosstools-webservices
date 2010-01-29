@@ -20,6 +20,7 @@ private String  webProjectName;
 	private int wsScenario;
 	private boolean extension;
 	private String serviceName;
+	private String customClassName;
 
 	public int getWsScenario() {
 		return wsScenario;
@@ -173,5 +174,13 @@ private String  webProjectName;
 
 	public String getServiceName() {
 		return serviceName;
+	}
+
+	public void setCustomClassName(String className) {
+		this.customClassName = className;
+	}
+
+	public String getCustomClassName() {
+		return customClassName;
 	}
 }
