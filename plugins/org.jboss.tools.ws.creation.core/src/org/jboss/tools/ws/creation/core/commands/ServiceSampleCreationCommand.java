@@ -5,6 +5,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -21,7 +22,6 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
-	private static final String SRC = "src"; //$NON-NLS-1$
 	public static final String LINE_SEPARATOR = System
 			.getProperty("line.separator"); //$NON-NLS-1$
 
@@ -51,7 +51,11 @@ public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 	private ICompilationUnit createJavaClass(String packageName,
 			String className, IJavaProject project) {
 		try {
-			IPath srcPath = project.getProject().getFolder(SRC).getFullPath();
+			IPath srcPath = new Path(JBossWSCreationUtils
+					.getJavaProjectSrcLocation(project.getProject()));
+			srcPath = project.getPath().append(
+					srcPath.makeRelativeTo(project.getProject()
+							.getLocation()));
 			IPackageFragmentRoot root = project
 					.findPackageFragmentRoot(srcPath);
 			if (packageName == null) {

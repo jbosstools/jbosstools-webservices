@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
@@ -51,7 +52,6 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			.getProperty("line.separator"); //$NON-NLS-1$
 	private static final String PACAKAGE = ".*"; //$NON-NLS-1$
 	private static final String PACAKAGESPLIT = "\\."; //$NON-NLS-1$
-	private static final String SRC = "src"; //$NON-NLS-1$
 
 	private ServiceModel model;
 	private int serviceNum = 1;
@@ -195,15 +195,18 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 				sb.append("        System.out.println(\"Server said: \" + "); //$NON-NLS-1$
 				sb.append("port").append(portNum).append("."); //$NON-NLS-1$ //$NON-NLS-2$
 				sb.append(method.getName()).append("("); //$NON-NLS-1$
-                
+
 				boolean noNull = true;
 				for (int j = 0; j < method.parameters().size(); j++) {
-					noNull = createWebServiceOperationParameters(method.parameters(),sb, j) && noNull;
+					noNull = createWebServiceOperationParameters(method
+							.parameters(), sb, j)
+							&& noNull;
 				}
 				sb.append("));"); //$NON-NLS-1$
 				sb.append(LINE_SEPARATOR);
-				if(!noNull){
-					sb.append("        //Please input the parameters instead of 'null' for the upper method!"); //$NON-NLS-1$
+				if (!noNull) {
+					sb
+							.append("        //Please input the parameters instead of 'null' for the upper method!"); //$NON-NLS-1$
 					sb.append(LINE_SEPARATOR);
 					sb.append(LINE_SEPARATOR);
 				}
@@ -222,7 +225,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	@SuppressWarnings("unchecked")
 	private boolean createWebServiceOperationParameters(List list,
 			StringBuffer sb, int j) {
-		SingleVariableDeclaration para = (SingleVariableDeclaration)list.get(j);
+		SingleVariableDeclaration para = (SingleVariableDeclaration) list
+				.get(j);
 
 		if ("String".equals(para.getType().toString())) { //$NON-NLS-1$
 			sb.append("args[").append(argsNum).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -232,12 +236,12 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			argsNum += 1;
 			return true;
 		}
-		
-		if(list.get(j) instanceof Object){
+
+		if (list.get(j) instanceof Object) {
 			sb.append("null"); //$NON-NLS-1$
 			if (j != list.size() - 1) {
 				sb.append(","); //$NON-NLS-1$
-			}			
+			}
 			return false;
 		}
 		return true;
@@ -320,11 +324,17 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * 
 	 * @param project
 	 * @return
+	 * @throws JavaModelException
 	 */
-	private IPath addPackagetoPath(IJavaProject project) {
+	private IPath addPackagetoPath(IJavaProject project)
+			throws JavaModelException {
 		String packagename = model.getCustomPackage();
 		String[] names = packagename.split(PACAKAGESPLIT);
-		IPath path = project.getPath().append(SRC);
+		IPath path = new Path(JBossWSCreationUtils
+				.getJavaProjectSrcLocation(project.getProject()));
+		path = project.getPath().append(
+				path.makeRelativeTo(project.getProject().getLocation()));
+
 		if (names != null && names.length > 0) {
 			for (String name : names) {
 				path = path.append(name);
@@ -347,8 +357,11 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			String className, boolean isInterface, String interfaceName,
 			IJavaProject javaProject) {
 		try {
-			IPath srcPath = javaProject.getProject().getFolder(SRC)
-					.getFullPath();
+			IPath srcPath = new Path(JBossWSCreationUtils
+					.getJavaProjectSrcLocation(javaProject.getProject()));
+			srcPath = javaProject.getPath().append(
+					srcPath.makeRelativeTo(javaProject.getProject()
+							.getLocation()));
 			IPackageFragmentRoot root = javaProject
 					.findPackageFragmentRoot(srcPath);
 			if (packageName == null) {

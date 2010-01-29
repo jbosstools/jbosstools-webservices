@@ -43,7 +43,9 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jst.ws.internal.common.J2EEUtils;
+import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -71,6 +73,7 @@ public class JBossWSCreationUtils {
 			"return", "short", "static", "strictfp", "super", "switch", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 			"synchronized", "this", "throw", "throws", "transient", "true", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 			"try", "void", "volatile", "while" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	static final String WEBINF = "WEB-INF"; //$NON-NLS-1$
 
 	public static boolean isJavaKeyword(String keyword) {
 		if (hasUpperCase(keyword)) {
@@ -111,11 +114,10 @@ public class JBossWSCreationUtils {
 
 	public static String pathToWebProjectContainer(String project) {
 		IPath projectRoot = getProjectRoot(project);
-		IPath currentDynamicWebProjectDir = J2EEUtils
-				.getWebContentPath(getProjectByName(project));
-		IPath currentDynamicWebProjectDirWithoutProjectRoot = J2EEUtils
-				.getWebContentPath(getProjectByName(project))
-				.removeFirstSegments(1).makeAbsolute();
+		IPath currentDynamicWebProjectDir = getWebContentRootPath(getProjectByName(project));
+		IPath currentDynamicWebProjectDirWithoutProjectRoot = getWebContentRootPath(
+				getProjectByName(project)).removeFirstSegments(1)
+				.makeAbsolute();
 		if (projectRoot.toOSString().contains(getWorkspace().toOSString())) {
 			return getWorkspace().append(currentDynamicWebProjectDir)
 					.toOSString();
@@ -128,10 +130,10 @@ public class JBossWSCreationUtils {
 
 	public static String pathToWebProjectContainerWEBINF(String project) {
 		IPath projectRoot = getProjectRoot(project);
-		IPath webContainerWEBINFDir = J2EEUtils
-				.getWebInfPath(getProjectByName(project));
-		IPath webContainerWEBINFDirWithoutProjectRoot = J2EEUtils
-				.getWebInfPath(getProjectByName(project))
+		IPath webContainerWEBINFDir = getWebContentRootPath(
+				getProjectByName(project)).append(WEBINF); 
+		IPath webContainerWEBINFDirWithoutProjectRoot = getWebContentRootPath(
+				getProjectByName(project)).append(WEBINF)
 				.removeFirstSegments(1).makeAbsolute();
 		if (projectRoot.toOSString().contains(getWorkspace().toOSString())) {
 			return getWorkspace().append(webContainerWEBINFDir).toOSString();
@@ -360,47 +362,55 @@ public class JBossWSCreationUtils {
 		return ""; //$NON-NLS-1$
 
 	}
-	
-	public static boolean supportSOAP12(String projectName){
+
+	public static boolean supportSOAP12(String projectName) {
 		try {
-			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-			if(project == null){
+			IProject project = ResourcesPlugin.getWorkspace().getRoot()
+					.getProject(projectName);
+			if (project == null) {
 				return false;
 			}
-			
+
 			IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
-			IProjectFacet jbossWSFacet = ProjectFacetsManager.getProjectFacet(JBossWSFacetInstallDataModelProvider.JBOSS_WS_FACET_ID);
-			IProjectFacetVersion fpVersion = facetedPrj.getProjectFacetVersion(jbossWSFacet);
-			if(fpVersion != null && fpVersion.getVersionString().compareTo("3.0") >= 0){ //$NON-NLS-1$
+			IProjectFacet jbossWSFacet = ProjectFacetsManager
+					.getProjectFacet(JBossWSFacetInstallDataModelProvider.JBOSS_WS_FACET_ID);
+			IProjectFacetVersion fpVersion = facetedPrj
+					.getProjectFacetVersion(jbossWSFacet);
+			if (fpVersion != null
+					&& fpVersion.getVersionString().compareTo("3.0") >= 0) { //$NON-NLS-1$
 				return true;
 			}
-			
-//			if the project doesn't get JBossWS facet installed, check its primary target runtime
-//			if the jboss runtime version is 5.0 or higher, return true
-			org.eclipse.wst.common.project.facet.core.runtime.IRuntime targetRuntime = facetedPrj.getPrimaryRuntime();
-			if(targetRuntime != null){
+
+			// if the project doesn't get JBossWS facet installed, check its
+			// primary target runtime
+			// if the jboss runtime version is 5.0 or higher, return true
+			org.eclipse.wst.common.project.facet.core.runtime.IRuntime targetRuntime = facetedPrj
+					.getPrimaryRuntime();
+			if (targetRuntime != null) {
 				IRuntime runtime = getRuntime(targetRuntime);
 				IRuntimeType rt = runtime.getRuntimeType();
-				if(rt.getName().toUpperCase().indexOf("JBOSS") >= 0){ //$NON-NLS-1$
+				if (rt.getName().toUpperCase().indexOf("JBOSS") >= 0) { //$NON-NLS-1$
 					String runtimeVersion = rt.getVersion();
-					if(runtimeVersion != null && runtimeVersion.compareTo("5.0") >= 0){ //$NON-NLS-1$
+					if (runtimeVersion != null
+							&& runtimeVersion.compareTo("5.0") >= 0) { //$NON-NLS-1$
 						return true;
 					}
 				}
-				
+
 			}
 		} catch (CoreException e) {
-//			ignore
-//			e.printStackTrace();
+			// ignore
+			// e.printStackTrace();
 		}
-		
-		//check the version of default jbossws runtime configured at the Web Service preference page
+
+		// check the version of default jbossws runtime configured at the Web
+		// Service preference page
 		JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
-		.getDefaultRuntime();
-		if(jbws != null && "3.0".compareTo(jbws.getVersion()) <= 0){ //$NON-NLS-1$
+				.getDefaultRuntime();
+		if (jbws != null && "3.0".compareTo(jbws.getVersion()) <= 0) { //$NON-NLS-1$
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -424,7 +434,8 @@ public class JBossWSCreationUtils {
 		return null;
 	}
 
-	public static String getJavaProjectSrcLocation(IProject project) throws JavaModelException {
+	public static String getJavaProjectSrcLocation(IProject project)
+			throws JavaModelException {
 		IResource[] rs = getJavaSourceRoots(project);
 		String src = ""; //$NON-NLS-1$
 		if (rs == null || rs.length == 0)
@@ -438,7 +449,8 @@ public class JBossWSCreationUtils {
 		return src;
 	}
 
-	public static IResource[] getJavaSourceRoots(IProject project) throws JavaModelException {
+	public static IResource[] getJavaSourceRoots(IProject project)
+			throws JavaModelException {
 		IJavaProject javaProject = JavaCore.create(project);
 		if (javaProject == null)
 			return null;
@@ -454,6 +466,21 @@ public class JBossWSCreationUtils {
 			}
 		}
 		return resources.toArray(new IResource[resources.size()]);
+	}
+
+	public static IPath getWebContentRootPath(IProject project) {
+		if (project == null)
+			return null;
+
+		if (!ModuleCoreNature.isFlexibleProject(project))
+			return null;
+
+		IPath path = null;
+		IVirtualComponent component = ComponentCore.createComponent(project);
+		if (component != null && component.exists()) {
+			path = component.getRootFolder().getWorkspaceRelativePath();
+		}
+		return path;
 	}
 
 }
