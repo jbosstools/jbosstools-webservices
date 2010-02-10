@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
@@ -43,25 +43,27 @@ public class ValidateWSImplCommand extends AbstractDataModelOperation {
 
 		String implClass = model.getServiceClasses().get(0);
 		String project = model.getWebProjectName();
-		ICompilationUnit unit = null;
 		try {
-			if (JBossWSCreationUtils.getJavaProjectByName(project).findType(
-					implClass) != null) {
-				unit = JBossWSCreationUtils.getJavaProjectByName(project)
-						.findType(implClass).getCompilationUnit();
+			IType type = JBossWSCreationUtils.getJavaProjectByName(project)
+					.findType(implClass);
+			if (type != null) {
+				if(!type.getPackageFragment().exists()|| type.getPackageFragment().isDefaultPackage()){
+					return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_No_Package);					
+				}
+				if (!type.getAnnotation(
+						JBossWSCreationCoreMessages.Webservice_Annotation)
+						.exists()
+						&& !type
+								.getAnnotation(
+										JBossWSCreationCoreMessages.Webservice_Annotation_Prefix)
+								.exists()) {
+					return StatusUtils
+							.errorStatus(JBossWSCreationCoreMessages.Error_No_Annotation);
+				}
 			} else {
 				return StatusUtils.errorStatus(NLS.bind(
 						JBossWSCreationCoreMessages.Error_No_Class,
 						new String[] { implClass, project }));
-			}
-			if (!unit.getSource().contains(
-					JBossWSCreationCoreMessages.Webservice_Annotation)
-					&& !unit
-							.getSource()
-							.contains(
-									JBossWSCreationCoreMessages.Webservice_Annotation_Prefix)) {
-				return StatusUtils
-						.errorStatus(JBossWSCreationCoreMessages.Error_No_Annotation);
 			}
 		} catch (JavaModelException e) {
 			JBossWSCreationCore.getDefault().logError(e);

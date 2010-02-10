@@ -48,6 +48,7 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Error_No_Annotation;
 	public static String WebserviceClient_Annotation;
 	public static String Error_No_Class;
+	public static String Error_No_Package;
 	public static String Error_WS_Location;
 	public static String Error_WS_No_Runtime_Specifed;
 	public static String Error_WS_Chose_runtime;
