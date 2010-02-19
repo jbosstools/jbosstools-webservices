@@ -95,6 +95,14 @@ public final class JBossWSUIMessages extends NLS {
 	
 	public static String JBossWS_UI_PLUGIN_NO_MESSAGES;
 
+	public static String JBossWSGenerateWebXmlWizardPage_Project_Group;
+
+	public static String JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip;
+
+	public static String JBossWSGenerateWebXmlWizardPage_Web_Service_Group;
+
+	public static String JBossWSGenerateWizard_NoProjectSelected;
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);
 	}

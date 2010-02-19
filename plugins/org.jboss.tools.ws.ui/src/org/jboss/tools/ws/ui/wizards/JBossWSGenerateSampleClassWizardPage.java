@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.ui.wizards;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -128,6 +129,22 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		ServiceModel model = wizard.getServiceModel();
 		JBossWSGenerateWizardValidator.setServiceModel(model);
 		String currentName = wizard.getClassName();
+		if (wizard.getProject() == null) {
+			return currentName;
+		}
+		else {
+			boolean isDynamicWebProject = false;
+			try {
+				if (wizard.getProject().getNature("org.eclipse.wst.common.project.facet.core.nature") != null) { //$NON-NLS-1$
+					isDynamicWebProject = true;
+				}
+			} catch (CoreException e) {
+				// ignore
+			}
+			if (!isDynamicWebProject) {
+				return currentName;
+			}
+		}
 		String testName = currentName;
 		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(testName, wizard.getProject());
 		int i = 1;
@@ -142,7 +159,7 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		return testName;
 	}
 	
-	private boolean validate() {
+	protected boolean validate() {
 		ServiceModel model = wizard.getServiceModel();
 		JBossWSGenerateWizardValidator.setServiceModel(model);
 		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(model.getCustomClassName(), wizard.getProject());
@@ -154,5 +171,9 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 			setMessage(null);
 			return true;
 		}
+	}
+	
+	protected void refresh() {
+		className.setText(updateDefaultName());
 	}
 }
