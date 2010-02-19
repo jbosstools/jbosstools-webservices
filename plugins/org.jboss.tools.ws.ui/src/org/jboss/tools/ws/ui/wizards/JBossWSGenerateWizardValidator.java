@@ -45,6 +45,20 @@ public class JBossWSGenerateWizardValidator {
 	}
 
 	public static IStatus isWSNameValid() {
+		if (model.getWebProjectName() == null) {
+			return StatusUtils.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
+		}
+		else {
+			try {
+				ModelProviderManager
+					.getModelProvider(JBossWSCreationUtils.getProjectByName(model
+							.getWebProjectName()));
+			} catch (IllegalArgumentException iae) {
+				// ignore
+				model.setWebProjectName(null);
+				return StatusUtils.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
+			}
+		}
 		final IModelProvider provider = ModelProviderManager
 			.getModelProvider(JBossWSCreationUtils.getProjectByName(model
 				.getWebProjectName()));
@@ -92,6 +106,9 @@ public class JBossWSGenerateWizardValidator {
 		else if (model.getCustomClassName().trim().length() == 0 ) {
 			// empty class name
 			return StatusUtils.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+		}
+		else if (project == null) {
+			return StatusUtils.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
 		}
 		else {
 			File file = findFileByPath(className + JAVA, project

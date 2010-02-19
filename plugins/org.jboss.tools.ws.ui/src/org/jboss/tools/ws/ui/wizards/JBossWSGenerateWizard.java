@@ -15,6 +15,7 @@ import java.io.File;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -145,9 +146,18 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 
 	@Override
 	public boolean canFinish() {
+		if (getProject() == null) {
+			if (firstPage != null && !firstPage.getControl().isDisposed()) {
+				if (firstPage.hasChanged())
+					firstPage
+						.setErrorMessage(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
+			}
+			return false;
+		}
 		if (hasInited && (webFile == null || !webFile.exists())) {
 			if (firstPage != null && !firstPage.getControl().isDisposed()) {
-				firstPage
+				if (firstPage.hasChanged())
+					firstPage
 						.setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
 			}
 			return false;
@@ -220,9 +230,13 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 	
 	public ServiceModel getServiceModel() {
 		ServiceModel model = new ServiceModel();
-		model.setWebProjectName(project.getName());
-		model.addServiceClasses(new StringBuffer().append(getPackageName())
+		if (project != null) {
+			model.setWebProjectName(project.getName());
+		}
+		if (getPackageName() != null) {
+			model.addServiceClasses(new StringBuffer().append(getPackageName())
 				.append(".").append(getClassName()).toString()); //$NON-NLS-1$
+		}
 		model.setServiceName(getServiceName());
 		model.setUpdateWebxml(true);
 		model.setCustomPackage(getPackageName());
@@ -230,4 +244,27 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 		return model;
 	}
 	
+	public JBossWSGenerateWebXmlWizardPage getFirstPage() {
+		return this.firstPage;
+	}
+	
+	public JBossWSGenerateSampleClassWizardPage getSecondPage() {
+		return this.secondPage;
+	}
+	
+	public void setProject (String projectName) {
+		if (projectName != null && projectName.trim().length() > 0) {
+			IProject test =
+				ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+			if (test != null) {
+				this.project = test;
+				if (project != null
+						&& JavaEEProjectUtilities.isDynamicWebProject(project)) {
+					webFile = project.getParent().getFolder(
+							UIUtils.getWebContentRootPath(project).append(WEBINF))
+							.getFile(WEB);
+				}
+			}
+		}
+	}
 }
