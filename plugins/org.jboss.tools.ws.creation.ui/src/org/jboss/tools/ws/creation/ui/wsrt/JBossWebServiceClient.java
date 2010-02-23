@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2008 Red Hat, Inc. 
+ * Copyright (c) 2008, 2010 Red Hat, Inc. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -33,9 +33,9 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 /**
  * @author Grid Qian
  */
+@SuppressWarnings({ "restriction", "unused" })
 public class JBossWebServiceClient extends AbstractWebServiceClient {
 
-	@SuppressWarnings("restriction")
 	public JBossWebServiceClient(WebServiceClientInfo info) {
 		super(info);
 	}
@@ -52,7 +52,7 @@ public class JBossWebServiceClient extends AbstractWebServiceClient {
 
 	public ICommandFactory develop(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
-		Vector<AbstractDataModelOperation> commands = new Vector();
+		Vector<AbstractDataModelOperation> commands = new Vector<AbstractDataModelOperation>();
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(project);
 		commands.add(new InitialClientCommand(model, this, WebServiceScenario.CLIENT));
@@ -71,7 +71,6 @@ public class JBossWebServiceClient extends AbstractWebServiceClient {
 	@Override
 	public ICommandFactory install(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
