@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2010 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Red Hat, Inc. - initial API and implementation 
+ ******************************************************************************/ 
 package org.jboss.tools.ws.creation.ui.wsrt;
 
 import java.util.Vector;
@@ -5,11 +15,13 @@ import java.util.Vector;
 import org.eclipse.wst.command.internal.env.core.ICommandFactory;
 import org.eclipse.wst.command.internal.env.core.SimpleCommandFactory;
 import org.eclipse.wst.common.environment.IEnvironment;
+import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.AbstractWebService;
 import org.eclipse.wst.ws.internal.wsrt.IContext;
 import org.eclipse.wst.ws.internal.wsrt.ISelection;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
+import org.jboss.tools.ws.creation.core.commands.AddApplicationXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.BindingFilesValidationCommand;
 import org.jboss.tools.ws.creation.core.commands.ImplementationClassCreationCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
@@ -19,6 +31,10 @@ import org.jboss.tools.ws.creation.core.commands.ValidateWSImplCommand;
 import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
+/**
+ * @author Grid Qian
+ */
+@SuppressWarnings("restriction")
 public class JBossWebService extends AbstractWebService {
 
 	public JBossWebService(WebServiceInfo info){
@@ -28,18 +44,18 @@ public class JBossWebService extends AbstractWebService {
 	@Override
 	public ICommandFactory assemble(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
-		// TODO Auto-generated method stub
-		return null;
+		Vector<AbstractDataModelOperation> commands = new Vector<AbstractDataModelOperation>();
+		commands.add(new AddApplicationXMLCommand(earProject));
+		return new SimpleCommandFactory(commands);
 	}
 
 	@Override
 	public ICommandFactory deploy(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@SuppressWarnings({ "restriction", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	@Override
 	public ICommandFactory develop(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
@@ -68,14 +84,12 @@ public class JBossWebService extends AbstractWebService {
 	@Override
 	public ICommandFactory install(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public ICommandFactory run(IEnvironment env, IContext ctx, ISelection sel,
 			String project, String earProject) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
