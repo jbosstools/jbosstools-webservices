@@ -70,7 +70,6 @@ public class ImplementationClassCreationCommand extends
 	private static final String ANNOTATION_PROPERTY_NAME = "name"; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName"; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface"; //$NON-NLS-1$
-	
 
 	private ServiceModel model;
 	private IWorkspaceRoot fWorkspaceRoot;
@@ -84,18 +83,19 @@ public class ImplementationClassCreationCommand extends
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		
-		// if the user does not check the generate implementation class button, do nothing
-		if(!model.isGenImplementation()){
+
+		// if the user does not check the generate implementation class button,
+		// do nothing
+		if (!model.isGenImplementation()) {
 			return Status.OK_STATUS;
 		}
-		
+
 		IStatus status = Status.OK_STATUS;
-		
+
 		try {
 			List<String> portTypes = model.getPortTypes();
 			for (String portTypeName : portTypes) {
-				generateImplClass(portTypeName);
+				generateImplClass(formatPortTypeName(portTypeName));
 				String implClsName = getImplPackageName() + "." //$NON-NLS-1$
 						+ getImplClassName(portTypeName);
 				model.addServiceClasses(implClsName);
@@ -115,6 +115,16 @@ public class ImplementationClassCreationCommand extends
 			JBossWSCreationCore.getDefault().logError(e);
 		}
 		return status;
+	}
+
+	private String formatPortTypeName(String portTypeName) {
+		if (portTypeName == null || "".equals(portTypeName)) {//$NON-NLS-1$
+			return portTypeName;
+		}
+		StringBuffer buf = new StringBuffer();
+		String tem = buf.append(Character.toUpperCase(portTypeName.charAt(0)))
+				.append(portTypeName.substring(1)).toString();
+		return tem;
 	}
 
 	protected void generateImplClass(String portTypeName/* , IFile implJavaFile */)
@@ -171,7 +181,7 @@ public class ImplementationClassCreationCommand extends
 				ast.newSimpleType(ast.newName(portTypeName)));
 
 		// add Logger variable declaration
-		//createLoggerField(ast, type, portTypeName);
+		// createLoggerField(ast, type, portTypeName);
 
 		// add method implementation
 		TypeDeclaration inTD = (TypeDeclaration) portTypeCU.types().get(0);
@@ -186,7 +196,6 @@ public class ImplementationClassCreationCommand extends
 		}
 
 		implCu.types().add(type);
-		
 
 		// try to save the Java file
 		TextEdit edits = implCu.rewrite(document, icu.getJavaProject()
@@ -260,7 +269,7 @@ public class ImplementationClassCreationCommand extends
 			implCU.imports().add(newId);
 		}
 
-		// import port type interface 
+		// import port type interface
 		ImportDeclaration importDec = implAST.newImportDeclaration();
 		QualifiedName portTypeImport = implAST.newQualifiedName(implAST
 				.newName(portTypeCU.getPackage().getName()
@@ -268,9 +277,9 @@ public class ImplementationClassCreationCommand extends
 				.newSimpleName(portTypeName));
 		importDec.setName(portTypeImport);
 		implCU.imports().add(importDec);
-		//importDec = implAST.newImportDeclaration();
-		//importDec.setName(implAST.newName(LOGGER_CLASS_FULLNAME));
-		//implCU.imports().add(importDec);
+		// importDec = implAST.newImportDeclaration();
+		// importDec.setName(implAST.newName(LOGGER_CLASS_FULLNAME));
+		// implCU.imports().add(importDec);
 
 		// import jaxws WebService
 		importDec = implAST.newImportDeclaration();
@@ -310,7 +319,6 @@ public class ImplementationClassCreationCommand extends
 		return member;
 	}
 
-	
 	protected MethodDeclaration createMethodForImplClass(AST ast,
 			MethodDeclaration inMethod) {
 
@@ -325,7 +333,7 @@ public class ImplementationClassCreationCommand extends
 		md.setReturnType2(sType);
 
 		List parameters = inMethod.parameters();
-		
+
 		for (Object obj : parameters) {
 			SingleVariableDeclaration implSvd = ast
 					.newSingleVariableDeclaration();
@@ -339,8 +347,9 @@ public class ImplementationClassCreationCommand extends
 		// create method body
 		Block block = ast.newBlock();
 		// add log info statement
-		//block.statements().add(createLoggerInvokeStatement(ast, md.getName().getFullyQualifiedName()));
-		
+		// block.statements().add(createLoggerInvokeStatement(ast,
+		// md.getName().getFullyQualifiedName()));
+
 		Type returnType = inMethod.getReturnType2();
 		ReturnStatement rs = ast.newReturnStatement();
 
@@ -349,10 +358,10 @@ public class ImplementationClassCreationCommand extends
 					PrimitiveType.BOOLEAN)) {
 				BooleanLiteral bl = ast.newBooleanLiteral(false);
 				rs.setExpression(bl);
-			}else if(((PrimitiveType) returnType).getPrimitiveTypeCode().equals(
-					PrimitiveType.VOID)) {
+			} else if (((PrimitiveType) returnType).getPrimitiveTypeCode()
+					.equals(PrimitiveType.VOID)) {
 				// do nothing
-			}else {
+			} else {
 				NumberLiteral nl = ast.newNumberLiteral();
 				nl.setToken("0"); //$NON-NLS-1$
 				rs.setExpression(nl);
@@ -366,11 +375,10 @@ public class ImplementationClassCreationCommand extends
 				StringLiteral sl = ast.newStringLiteral();
 				sl.setLiteralValue(""); //$NON-NLS-1$
 				rs.setExpression(sl);
-			} else{
+			} else {
 				rs.setExpression(ast.newNullLiteral());
 			}
-				
-			
+
 		} else {
 			rs.setExpression(ast.newNullLiteral());
 		}
@@ -382,7 +390,6 @@ public class ImplementationClassCreationCommand extends
 		return md;
 	}
 
-	
 	private Type copyTypeFromOtherASTNode(AST ast, Type type) {
 		if (type instanceof PrimitiveType) {
 			return ast.newPrimitiveType(((PrimitiveType) type)
@@ -398,11 +405,12 @@ public class ImplementationClassCreationCommand extends
 					.getComponentType()));
 		} else if (type instanceof ParameterizedType) {
 			ParameterizedType ptype = (ParameterizedType) type;
-			ParameterizedType newParaType = ast.newParameterizedType(copyTypeFromOtherASTNode(ast, ptype
-					.getType()));
-			for(Object arg : ptype.typeArguments()){
-				if(arg instanceof Type){
-					Type newArg = copyTypeFromOtherASTNode(ast, (Type)arg);
+			ParameterizedType newParaType = ast
+					.newParameterizedType(copyTypeFromOtherASTNode(ast, ptype
+							.getType()));
+			for (Object arg : ptype.typeArguments()) {
+				if (arg instanceof Type) {
+					Type newArg = copyTypeFromOtherASTNode(ast, (Type) arg);
 					newParaType.typeArguments().add(newArg);
 				}
 			}
@@ -432,10 +440,13 @@ public class ImplementationClassCreationCommand extends
 		return importList;
 	}
 
-	private CompilationUnit getCompilationUnitForInterface(String portTypeName) throws CoreException {
+	private CompilationUnit getCompilationUnitForInterface(String portTypeName)
+			throws CoreException {
 		IFile inFile = getServiceInterfaceFile(portTypeName);
-		if(!inFile.exists()){
-			throw new CoreException(StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code));
+		if (!inFile.exists()) {
+			throw new CoreException(
+					StatusUtils
+							.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code));
 		}
 		ICompilationUnit icu = JBossWSCreationUtils.getJavaUnitFromFile(inFile);
 		ASTParser astp = ASTParser.newParser(AST.JLS3);
