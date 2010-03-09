@@ -14,7 +14,7 @@
 		<profile>
 			<id>release</id>
 			<properties>
-				<master>master_output.xml</master>
+			<!--	<master>master_output.xml</master> -->
 				<xsl-single>classpath:/xslt/org/jboss/tools/xhtml-single-release.xsl</xsl-single>
 				<xsl-chunked>classpath:/xslt/org/jboss/tools/xhtml-release.xsl</xsl-chunked>
 				<xsl-pdf>classpath:/xslt/org/jboss/tools/pdf.xsl</xsl-pdf>
@@ -23,7 +23,7 @@
 		<profile>
 			<id>releaseTest</id>
 			<properties>
-				<master>master_output.xml</master>
+			<!--	<master>master_output.xml</master> -->
 				<xsl-single>classpath:/xslt/org/jboss/tools/xhtml-single-release-nomarker.xsl</xsl-single>
 				<xsl-chunked>classpath:/xslt/org/jboss/tools/xhtml-release-nomarker.xsl</xsl-chunked>
 				<xsl-pdf>classpath:/xslt/org/jboss/tools/pdf.xsl</xsl-pdf>
@@ -32,7 +32,7 @@
            <profile>
                <id>releaseJBDS</id>
                <properties>
-                   <master>master_output.xml</master>
+                  <!-- <master>master_output.xml</master> -->
                    <xsl-single>classpath:/xslt/com/jboss/tools/xhtml-single-release.xsl</xsl-single>
                    <xsl-chunked>classpath:/xslt/com/jboss/tools/xhtml-release.xsl</xsl-chunked>
                    <xsl-pdf>classpath:/xslt/com/jboss/tools/pdf.xsl</xsl-pdf>
@@ -42,7 +42,7 @@
 		<profile>
 			<id>diffmk</id>
 			<properties>
-				<master>master_output.xml</master>
+		<!--		<master>master_output.xml</master> -->
 				<xsl-single>classpath:/xslt/org/jboss/tools/xhtml-single-diff.xsl</xsl-single>
 				<xsl-chunked>classpath:/xslt/org/jboss/tools/xhtml-diff.xsl</xsl-chunked>
 				<xsl-pdf>classpath:/xslt/org/jboss/tools/pdf-diff.xsl</xsl-pdf>
@@ -93,18 +93,18 @@
                      </dependency> 
                 </dependencies>
                 
-                <configuration>
-                    <sourceDocumentName>${master}</sourceDocumentName>
-                    <sourceDirectory>${pom.basedir}/en</sourceDirectory>
+               <configuration>
+                    <sourceDocumentName>master.xml</sourceDocumentName>
+                    <sourceDirectory>${pom.basedir}/en-US</sourceDirectory>
                     <imageResource>
-                        <directory>${pom.basedir}/en</directory>
+                        <directory>${pom.basedir}/en-US</directory>
                         <includes>
                             <include>images/**/*</include>
                         </includes>
                     </imageResource>
                     <cssResource>
                         <directory>${pom.basedir}/${cssdir}</directory>
-                     </cssResource>
+                    </cssResource>
                     
                    <formats>
                         <format>
@@ -163,7 +163,7 @@
 	<xsl-chunked>classpath:/xslt/org/jboss/tools/xhtml.xsl</xsl-chunked>
 	<xsl-pdf>classpath:/xslt/org/jboss/tools/pdf.xsl</xsl-pdf>
         <cssdir>../../../documentation/jbosstools-jdocbook-style/src/main/org/css/</cssdir>
-	<master>master.xml</master>
+	<master>JBoss_Web_Services_User_Guide</master>
         <translation>en-US</translation>
     </properties> 
 
