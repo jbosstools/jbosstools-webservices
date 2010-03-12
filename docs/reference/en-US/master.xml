@@ -2,17 +2,17 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3CR3//EN"
 "http://www.docbook.org/xml/4.3/docbookx.dtd"
 
-[<!ENTITY  overview SYSTEM "modules/overview.xml">
-<!ENTITY topdown SYSTEM "modules/topdown.xml">
-<!ENTITY preference SYSTEM "modules/preference.xml">
-<!ENTITY webproject SYSTEM "modules/webproject.xml">
-<!ENTITY client SYSTEM "modules/client.xml">
+[<!ENTITY  overview SYSTEM "overview.xml">
+<!ENTITY topdown SYSTEM "topdown.xml">
+<!ENTITY preference SYSTEM "preference.xml">
+<!ENTITY webproject SYSTEM "webproject.xml">
+<!ENTITY client SYSTEM "client.xml">
 ]>
 
 <book>
     
      <bookinfo>
-         <title>JBoss WS User Guide</title>
+         <title>JBoss Web Services User Guide</title>
          
          <corpauthor>
              <inlinemediaobject>
