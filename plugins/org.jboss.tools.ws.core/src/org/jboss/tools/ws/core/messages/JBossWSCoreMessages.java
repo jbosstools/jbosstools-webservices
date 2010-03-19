@@ -28,12 +28,13 @@ public class JBossWSCoreMessages extends NLS {
 	public static String Progress_UnInstall_JBossWS_Runtime;
 	public static String Dir_Lib;
 	public static String Dir_Client;
-	public static String Error_Copy;
 	public static String WS_Location;
 	public static String JBossWS_Runtime_Lib;
 	public static String JBossWS_Runtime;
-	public static String JBossWSCoreUtils_ErrorResourceNotFile;
-	public static String JBossWSCoreUtils_ErrorResourceNotFolder;
+	
+	public static String Error_JBossWSCoreUtils_ResourceNotFile;
+	public static String Error_JBossWSCoreUtils_ResourceNotFolder;
+	public static String Error_Copy;
 	public static String Error_Add_Facet_JBossWS;
 	public static String Error_Remove_Facet_JBossWS;
 

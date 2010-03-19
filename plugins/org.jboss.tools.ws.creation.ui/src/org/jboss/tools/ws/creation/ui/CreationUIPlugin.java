@@ -9,7 +9,7 @@ import org.osgi.framework.BundleContext;
 public class CreationUIPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.jboss.tools.jbossws.creation.ui"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "org.jboss.tools.ws.creation.ui"; //$NON-NLS-1$
 
 	// The shared instance
 	private static CreationUIPlugin plugin;

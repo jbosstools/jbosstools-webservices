@@ -20,7 +20,7 @@ import org.eclipse.wst.command.internal.env.ui.widgets.WidgetContributorFactory;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
-import org.jboss.tools.ws.creation.ui.Messages;
+import org.jboss.tools.ws.creation.ui.messages.JBossWSCreationUIMessages;
 import org.jboss.tools.ws.creation.ui.widgets.ProviderInvokeCodeGenConfigWidget;
 
 /**
@@ -69,8 +69,8 @@ public class JBossWSProviderInvokeConfigWidgetFactory implements
 		ProviderInvokeCodeGenConfigWidget java2WSDLWidget = new ProviderInvokeCodeGenConfigWidget(
 				model);
 		servicesXMLSelectWidgetContrib = createWidgetContributor(
-				Messages.JBossWSProviderInvokeConfigWidgetFactory_Title,
-				Messages.JBossWSProviderInvokeConfigWidgetFactory_Description,
+				JBossWSCreationUIMessages.JBossWSProviderInvokeConfigWidgetFactory_Title,
+				JBossWSCreationUIMessages.JBossWSProviderInvokeConfigWidgetFactory_Description,
 				java2WSDLWidget);
 	}
 

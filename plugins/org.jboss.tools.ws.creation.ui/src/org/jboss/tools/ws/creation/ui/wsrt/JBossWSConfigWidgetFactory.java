@@ -10,7 +10,7 @@ import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
 import org.jboss.tools.ws.creation.core.commands.InitialClientCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
-import org.jboss.tools.ws.creation.ui.Messages;
+import org.jboss.tools.ws.creation.ui.messages.JBossWSCreationUIMessages;
 import org.jboss.tools.ws.creation.ui.widgets.CodeGenConfigWidget;
 
 public class JBossWSConfigWidgetFactory implements
@@ -61,8 +61,8 @@ public class JBossWSConfigWidgetFactory implements
 
 		servicesXMLSelectWidget = new CodeGenConfigWidget(model);
 		servicesXMLSelectWidgetContrib = createWidgetContributor(
-				Messages.JBossWSConfigWidgetFactory_Title,
-				Messages.JBossWSConfigWidgetFactory_Description,
+				JBossWSCreationUIMessages.JBossWSConfigWidgetFactory_Title,
+				JBossWSCreationUIMessages.JBossWSConfigWidgetFactory_Description,
 				servicesXMLSelectWidget);
 	}
 

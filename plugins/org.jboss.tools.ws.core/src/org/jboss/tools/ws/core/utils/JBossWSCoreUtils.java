@@ -170,7 +170,7 @@ public class JBossWSCoreUtils {
 				return (IFolder) child;
 			} else {
 				throw new CoreException(new Status(IStatus.ERROR,
-						"ResourceUtils", 0, NLS.bind(JBossWSCoreMessages.JBossWSCoreUtils_ErrorResourceNotFolder, //$NON-NLS-1$ // EnvironmentMessages.MSG_ERROR_RESOURCE_NOT_FOLDER
+						"ResourceUtils", 0, NLS.bind(JBossWSCoreMessages.Error_JBossWSCoreUtils_ResourceNotFolder, //$NON-NLS-1$ 
 								new Object[] { parent.getFullPath().append(
 										folderName).toString() }), null));
 			}
@@ -200,7 +200,7 @@ public class JBossWSCoreUtils {
 
 			} else {
 				throw new CoreException(new Status(IStatus.ERROR,
-						"ResourceUtils", 0, NLS.bind(JBossWSCoreMessages.JBossWSCoreUtils_ErrorResourceNotFile, //$NON-NLS-1$ // EnvironmentMessages.MSG_ERROR_RESOURCE_NOT_FILE
+						"ResourceUtils", 0, NLS.bind(JBossWSCoreMessages.Error_JBossWSCoreUtils_ResourceNotFile, //$NON-NLS-1$ 
 								new Object[] { parent.getFullPath().append(
 										fileName) }), null));
 			}
