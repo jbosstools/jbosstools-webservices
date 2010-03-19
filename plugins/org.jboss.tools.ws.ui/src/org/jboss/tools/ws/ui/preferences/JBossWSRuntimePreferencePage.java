@@ -45,8 +45,6 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 	/**
 	 * Create contents of JBossWS preferences page. JBossWSRuntime list editor
 	 * is created
-	 * 
-	 * @return Control
 	 */
 	@Override
 	protected Control createContents(Composite parent) {
@@ -60,10 +58,6 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 
 	/**
 	 * Inherited from IWorkbenchPreferencePage
-	 * 
-	 * @param workbench
-	 *            {@link IWorkbench}
-	 * 
 	 */
 	public void init(IWorkbench workbench) {
 	}
@@ -83,15 +77,17 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 		jbossWSRuntimes.getRemoved().clear();
 		JBossWSRuntime defaultRuntime = jbossWSRuntimes
 				.getDefaultJBossWSRuntime();
+		
 		// reset default runtime
 		for (JBossWSRuntime jbossWSRuntime : JBossWSRuntimeManager
 				.getInstance().getRuntimes()) {
 			jbossWSRuntime.setDefault(false);
 		}
-		// set deafult runtime
+		// set default runtime
 		if (defaultRuntime != null) {
 			defaultRuntime.setDefault(true);
 		}
+		
 		jbossWSRuntimes.setDefaultJBossWSRuntime(null);
 		Map<JBossWSRuntime, JBossWSRuntime> changed = jbossWSRuntimes
 				.getChangedJBossWSRuntimes();
@@ -126,8 +122,6 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 
 	/**
 	 * See {@link PreferencePage} for details
-	 * 
-	 * @return Boolean
 	 */
 	@Override
 	public boolean performOk() {

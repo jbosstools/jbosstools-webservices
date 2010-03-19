@@ -9,7 +9,8 @@ Require-Bundle: org.eclipse.ui,
  org.junit,
  org.jboss.tools.tests,
  org.jboss.tools.ws.ui,
- org.jboss.tools.ws.core
+ org.jboss.tools.ws.core,
+ org.jboss.tools.common.ui
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor.0
 Bundle-Localization: plugin

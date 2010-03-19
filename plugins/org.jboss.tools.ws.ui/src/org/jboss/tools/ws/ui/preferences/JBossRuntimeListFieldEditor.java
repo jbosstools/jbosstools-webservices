@@ -58,6 +58,10 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.jboss.tools.common.ui.widget.editor.BaseFieldEditor;
+import org.jboss.tools.common.ui.widget.editor.ButtonFieldEditor;
+import org.jboss.tools.common.ui.widget.editor.IFieldEditor;
+import org.jboss.tools.common.ui.widget.editor.IFieldEditorFactory;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jboss.tools.ws.ui.utils.UIUtils;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
@@ -220,7 +224,7 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 					return ((List<JBossWSRuntime>) inputElement).toArray();
 				} else {
 					throw new IllegalArgumentException(
-							JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List);
+							JBossWSUIMessages.Error_JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List);
 				}
 			}
 
@@ -340,7 +344,6 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 		List<JBossWSRuntime> runtimes = (List<JBossWSRuntime>) getValue();
 		boolean checked = false;
 		for (JBossWSRuntime jbossWSRuntime : runtimes) {
-
 			if (checkedElement == jbossWSRuntime) {
 				checked = true;
 				tableView.setChecked(checkedElement, true);
@@ -417,13 +420,13 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 
 		List<JBossWSRuntime> value = null;
 
-		IFieldEditor name = createTextEditor(SRT_NAME,
+		IFieldEditor name = IFieldEditorFactory.INSTANCE.createTextEditor(SRT_NAME,
 				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name2, ""); //$NON-NLS-1$ 
 
-		IFieldEditor version = createComboEditor(SRT_VERSION,
-				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version,getESBFacetVersions(), ""); //$NON-NLS-1$ 
+		IFieldEditor version = IFieldEditorFactory.INSTANCE.createComboEditor(SRT_VERSION,
+				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version,getWSFacetVersions(), ""); //$NON-NLS-1$ 
 
-		IFieldEditor homeDir = createBrowseFolderEditor(
+		IFieldEditor homeDir = IFieldEditorFactory.INSTANCE.createBrowseFolderEditor(
 				SRT_HOMEDIR,
 				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Home_Folder,
 				""); //$NON-NLS-1$ 
@@ -547,7 +550,7 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 			}
 
 			if (!runtimeExist(homeDir.getValueAsString())) {
-				setErrorMessage(JBossWSUIMessages.Label_JBossWS_Runtime_Load_Error);
+				setErrorMessage(JBossWSUIMessages.Error_JBossWS_Label_Runtime_Load);
 				setPageComplete(false);
 				return;
 			}
@@ -570,10 +573,10 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 		/*
 		 * get facet version.
 		 */
-		private List<String> getESBFacetVersions(){
+		private List<String> getWSFacetVersions(){
 			List<String> versions = new ArrayList<String>();
-			IProjectFacet esbfacet = ProjectFacetsManager.getProjectFacet("jbossws.core"); //$NON-NLS-1$
-			for(IProjectFacetVersion version: esbfacet.getVersions()){
+			IProjectFacet wsFacet = ProjectFacetsManager.getProjectFacet("jbossws.core"); //$NON-NLS-1$
+			for(IProjectFacetVersion version: wsFacet.getVersions()){
 				versions.add(version.getVersionString());
 			}
 			
@@ -594,41 +597,6 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 			newRt.setLibraries(rt.getLibraries());
 			newRt.setUserConfigClasspath(rt.isUserConfigClasspath());
 			return newRt;
-		}
-
-		public IFieldEditor createTextEditor(String name, String label,
-				String defaultValue) {
-			CompositeEditor editor = new CompositeEditor(name, label,
-					defaultValue);
-			editor.addFieldEditors(new IFieldEditor[] {
-					new LabelFieldEditor(name, label),
-					new TextFieldEditor(name, label, defaultValue) });
-			return editor;
-		}
-
-		public IFieldEditor createBrowseFolderEditor(String name, String label,
-				String defaultValue) {
-			CompositeEditor editor = new CompositeEditor(name, label,
-					defaultValue);
-			editor
-					.addFieldEditors(new IFieldEditor[] {
-							new LabelFieldEditor(name, label),
-							new TextFieldEditor(name, label, defaultValue),
-							new ButtonFieldEditor(
-									name,
-									createSelectFolderAction(JBossWSUIMessages.JBossWS_SWT_Field_Editor_Factory_Browse),
-									defaultValue) });
-			return editor;
-		}
-		
-		public IFieldEditor createComboEditor(String name, String label,
-				List<String> values, String defaultValue) {
-			CompositeEditor editor = new CompositeEditor(name, label,
-					defaultValue);
-			editor.addFieldEditors(new IFieldEditor[] {
-					new LabelFieldEditor(name, label),
-					new ComboFieldEditor(name, label, values, defaultValue, false) });
-			return editor;
 		}
 
 		public ButtonFieldEditor.ButtonPressedAction createSelectFolderAction(

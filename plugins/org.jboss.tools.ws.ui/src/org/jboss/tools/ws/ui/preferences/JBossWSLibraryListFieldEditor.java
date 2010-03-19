@@ -48,6 +48,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
+import org.jboss.tools.common.ui.widget.editor.BaseFieldEditor;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
@@ -137,7 +138,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		gd.horizontalAlignment = GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;
 
-		jarGroup.setVisible(false);
+		jarGroup.setVisible(tempJbws.isUserConfigClasspath());
 		jarGroup.setLayoutData(gd);
 		jarGroup.setLayout(new FormLayout());
 
@@ -206,7 +207,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 							.toArray();
 				} else {
 					throw new IllegalArgumentException(
-							JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List);
+							JBossWSUIMessages.Error_JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List);
 				}
 			}
 
