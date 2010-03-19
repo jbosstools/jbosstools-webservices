@@ -136,9 +136,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 								.warningStatus(
 										JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
 										new CoreException(errorStatus));
-					} else {
-						JBossWSCreationCore.getDefault().logInfo(resultInput);
-					}
+					} 
 				}
 
 			} catch (InterruptedException e) {
