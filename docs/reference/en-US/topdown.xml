@@ -63,7 +63,7 @@
             </figure>
          </listitem>
       </itemizedlist>
-      <para>If you added the JBoss Web Service facet to the project, now the <property>Finish</property> button is disable. You must click <property>Next</property> button to set more information about the JBoss Web Service facet. The page is like <property>Figure 2.5</property>. Then click on the <property>Finish</property> button.</para>
+      <para>If you added the JBoss Web Service facet to the project, now the <property>Finish</property> button is unavailable. You must click <property>Next</property> button to set more information about the JBoss Web Service facet. The page is like <property>Figure 2.5</property>. Then click on the <property>Finish</property> button.</para>
       <para>If you didn't add the JBoss Web Service facet to the project, click on the <property>Finish</property> button. Next you will need to add JBoss Web Service facet to the project.</para>
    </section>
 
@@ -332,7 +332,7 @@
             <itemizedlist>
                <listitem>
                   <para>Generate WSDL file: select it, you will get a generated WSDL file in your
-                     project. But this wsdl's services' address location values are not a real
+                     project. But this wsdl's service address location values are not a real
                      address. </para>
                </listitem>
                <listitem>
@@ -378,7 +378,7 @@
          <listitem>
             <para>If you selected to update the default web.xml, you will test the web service in
                the browser. Open the Explorer, input the url for the web service according to
-               web.xml plus <property>?wsdl.</property>, you will get the WSDL file from Explorer. </para>
+               web.xml plus <property>?wsdl</property>, you will get the WSDL file from Explorer. </para>
             <figure>
                <title>The Updated web.xml file</title>
                <mediaobject>
