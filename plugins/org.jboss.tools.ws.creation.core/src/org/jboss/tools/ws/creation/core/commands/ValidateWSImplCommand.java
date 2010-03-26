@@ -21,7 +21,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -66,7 +66,7 @@ public class ValidateWSImplCommand extends AbstractDataModelOperation {
 						new String[] { implClass, project }));
 			}
 		} catch (JavaModelException e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 			return StatusUtils.errorStatus(NLS.bind(
 					JBossWSCreationCoreMessages.Error_No_Class, new String[] {
 							implClass, project }));

@@ -1,3 +1,14 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Red Hat, Inc. - initial API and implementation 
+ ******************************************************************************/ 
+
 package org.jboss.tools.ws.creation.ui.wsrt;
 
 import org.eclipse.wst.command.internal.env.core.data.DataMappingRegistry;
@@ -7,20 +18,22 @@ import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetContributorFactory;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataContributor;
-import org.jboss.tools.ws.creation.core.commands.InitialClientCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.ui.messages.JBossWSCreationUIMessages;
-import org.jboss.tools.ws.creation.ui.widgets.CodeGenConfigWidget;
+import org.jboss.tools.ws.creation.ui.widgets.Java2WSDLCodeGenConfigWidget;
 
-public class JBossWSConfigWidgetFactory implements
+/**
+ * @author Grid Qian
+ */
+@SuppressWarnings("restriction")
+public class JBossWSJava2WSDLConfigWidgetFactory implements
 		INamedWidgetContributorFactory {
 
 	private SimpleWidgetContributor servicesXMLSelectWidgetContrib;
 	private ServiceModel model;
-	private CodeGenConfigWidget servicesXMLSelectWidget;
 
-	public JBossWSConfigWidgetFactory() {
+	public JBossWSJava2WSDLConfigWidgetFactory() {
 	}
 
 	public INamedWidgetContributor getFirstNamedWidget() {
@@ -44,26 +57,22 @@ public class JBossWSConfigWidgetFactory implements
 		// the ExampleDefaultingCommand class and then call the
 		// setWebServiceDataModel
 		// method in this class.
-		dataRegistry.addMapping(InitialCommand.class, "WebServiceDataModel", //$NON-NLS-1$
-				JBossWSConfigWidgetFactory.class);
-		dataRegistry.addMapping(InitialClientCommand.class,
-				"WebServiceDataModel", JBossWSConfigWidgetFactory.class); //$NON-NLS-1$
+		dataRegistry.addMapping(InitialCommand.class, JBossWSCreationUIMessages.JBossWS_WebServiceDataModel,
+				JBossWSJava2WSDLConfigWidgetFactory.class);
 	}
 
 	public void setWebServiceDataModel(ServiceModel model) {
 		this.model = model;
-		if (servicesXMLSelectWidget != null) {
-			servicesXMLSelectWidget.setModel(model);
-		}
 	}
 
 	private void init() {
-
-		servicesXMLSelectWidget = new CodeGenConfigWidget(model);
+		// Pages of JBossWS Java2WSDL
+		Java2WSDLCodeGenConfigWidget java2WSDLWidget = new Java2WSDLCodeGenConfigWidget(
+				model);
 		servicesXMLSelectWidgetContrib = createWidgetContributor(
-				JBossWSCreationUIMessages.JBossWSConfigWidgetFactory_Title,
-				JBossWSCreationUIMessages.JBossWSConfigWidgetFactory_Description,
-				servicesXMLSelectWidget);
+				JBossWSCreationUIMessages.JBossWSJava2WSDLConfigWidgetFactory_Title,
+				JBossWSCreationUIMessages.JBossWSJava2WSDLConfigWidgetFactory_Description,
+				java2WSDLWidget);
 	}
 
 	private SimpleWidgetContributor createWidgetContributor(String title,

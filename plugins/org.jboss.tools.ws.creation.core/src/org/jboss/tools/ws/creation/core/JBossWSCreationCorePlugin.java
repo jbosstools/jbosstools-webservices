@@ -6,18 +6,18 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class JBossWSCreationCore extends BaseUIPlugin {
+public class JBossWSCreationCorePlugin extends BaseUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "org.jboss.tools.ws.creation.core"; //$NON-NLS-1$
 
 	// The shared instance
-	private static JBossWSCreationCore plugin;
+	private static JBossWSCreationCorePlugin plugin;
 	
 	/**
 	 * The constructor
 	 */
-	public JBossWSCreationCore() {
+	public JBossWSCreationCorePlugin() {
 	}
 
 	/*
@@ -43,7 +43,7 @@ public class JBossWSCreationCore extends BaseUIPlugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static JBossWSCreationCore getDefault() {
+	public static JBossWSCreationCorePlugin getDefault() {
 		return plugin;
 	}
 

@@ -49,6 +49,7 @@ import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
 
+@SuppressWarnings("restriction")
 public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
 	protected static final IWorkbench wb = PlatformUI.getWorkbench();

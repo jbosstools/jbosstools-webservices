@@ -4,7 +4,7 @@
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
-* This is free software; you can redistribute it and/or modify it
+ * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
  * the License, or (at your option) any later version.
@@ -37,10 +37,6 @@ import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
-
-
-
-
 public class WSDLPropertyReader {
 
 	private Definition definition = null;
@@ -54,84 +50,80 @@ public class WSDLPropertyReader {
 		definition = reader.readWSDL(filepath);
 	}
 
-
 	/**
 	 * get the default package derived by the targetNamespace
 	 */
-	public String packageFromTargetNamespace(){
-		
-		String packageName = definition.getTargetNamespace(); 
+	public String packageFromTargetNamespace() {
+
+		String packageName = definition.getTargetNamespace();
 		String returnPkg = getPackageNameFromNamespce(packageName);
-		
+
 		return returnPkg;
-		
-		
+
 	}
 
-    private static String getPackageNameFromNamespce(String namespace) {
+	private static String getPackageNameFromNamespce(String namespace) {
 
-        String hostname = null;
-        String path = ""; //$NON-NLS-1$
+		String hostname = null;
+		String path = ""; //$NON-NLS-1$
 
-        try {
-            java.net.URL url = new java.net.URL(namespace);
+		try {
+			java.net.URL url = new java.net.URL(namespace);
 
-            hostname = url.getHost();
-            path = url.getPath();
-        } catch (MalformedURLException e) {
-            if (namespace.indexOf(":") > -1) { //$NON-NLS-1$
-                hostname = namespace.substring(namespace.indexOf(":") + 1); //$NON-NLS-1$
+			hostname = url.getHost();
+			path = url.getPath();
+		} catch (MalformedURLException e) {
+			if (namespace.indexOf(":") > -1) { //$NON-NLS-1$
+				hostname = namespace.substring(namespace.indexOf(":") + 1); //$NON-NLS-1$
 
-                while (hostname.startsWith("/")) { //$NON-NLS-1$
-                    hostname = hostname.substring(1);
-                }
+				while (hostname.startsWith("/")) { //$NON-NLS-1$
+					hostname = hostname.substring(1);
+				}
 
-                if (hostname.indexOf("/") > -1) { //$NON-NLS-1$
-                    hostname = hostname.substring(0, hostname.indexOf("/")); //$NON-NLS-1$
-                }
-            } else {
-                hostname = namespace.replace('/','.');
-            }
-        }
+				if (hostname.indexOf("/") > -1) { //$NON-NLS-1$
+					hostname = hostname.substring(0, hostname.indexOf("/")); //$NON-NLS-1$
+				}
+			} else {
+				hostname = namespace.replace('/', '.');
+			}
+		}
 
-        if (hostname == null || hostname.length() == 0) {
-            return null;
-        }
+		if (hostname == null || hostname.length() == 0) {
+			return null;
+		}
 
-        hostname = hostname.replace('-', '_');
-        path = path.replace('-', '_');
+		hostname = hostname.replace('-', '_');
+		path = path.replace('-', '_');
 
-        path = path.replace(':', '_');
+		path = path.replace(':', '_');
 
-     
-        if ((path.length() > 0) && (path.charAt(path.length() - 1) == '/')) {
-            path = path.substring(0, path.length() - 1);
-        }
+		if ((path.length() > 0) && (path.charAt(path.length() - 1) == '/')) {
+			path = path.substring(0, path.length() - 1);
+		}
 
-   
-        StringTokenizer st = new StringTokenizer(hostname, ".:"); //$NON-NLS-1$
-        String[] nodes = new String[st.countTokens()];
+		StringTokenizer st = new StringTokenizer(hostname, ".:"); //$NON-NLS-1$
+		String[] nodes = new String[st.countTokens()];
 
-        for (int i = 0; i < nodes.length; ++i) {
-            nodes[i] = st.nextToken();
-        }
+		for (int i = 0; i < nodes.length; ++i) {
+			nodes[i] = st.nextToken();
+		}
 
-        StringBuffer sb = new StringBuffer(namespace.length());
+		StringBuffer sb = new StringBuffer(namespace.length());
 
-        for (int i = nodes.length - 1; i >= 0; --i) {
-            appendToPackage(sb, nodes[i], (i == nodes.length - 1));
-        }
+		for (int i = nodes.length - 1; i >= 0; --i) {
+			appendToPackage(sb, nodes[i], (i == nodes.length - 1));
+		}
 
-        StringTokenizer st2 = new StringTokenizer(path, "/"); //$NON-NLS-1$
+		StringTokenizer st2 = new StringTokenizer(path, "/"); //$NON-NLS-1$
 
-        while (st2.hasMoreTokens()) {
-            appendToPackage(sb, st2.nextToken(), false);
-        }
-        
-        return sb.toString().toLowerCase();
-    }
+		while (st2.hasMoreTokens()) {
+			appendToPackage(sb, st2.nextToken(), false);
+		}
 
-    private static void appendToPackage(StringBuffer sb, String nodeName,
+		return sb.toString().toLowerCase();
+	}
+
+	private static void appendToPackage(StringBuffer sb, String nodeName,
 			boolean firstNode) {
 
 		if (JBossWSCreationUtils.isJavaKeyword(nodeName)) {
@@ -160,15 +152,15 @@ public class WSDLPropertyReader {
 
 		sb.append(nodeName);
 	}
-    
-    
+
 	/**
 	 * Returns a list of service names the names are local parts
 	 * 
 	 * @return
 	 */
-	public List<String> getServiceList() { 
-		
+	@SuppressWarnings("unchecked")
+	public List<String> getServiceList() {
+
 		List<String> returnList = new ArrayList<String>();
 
 		Service service;
@@ -177,28 +169,29 @@ public class WSDLPropertyReader {
 		if (serviceMap != null && !serviceMap.isEmpty()) {
 			Iterator<Service> serviceIterator = serviceMap.values().iterator();
 			while (serviceIterator.hasNext()) {
-
 				service = (Service) serviceIterator.next();
 				returnList.add(service.getQName().getLocalPart());
 			}
 		}
 		return returnList;
 	}
-	
+
 	/**
 	 * Returns a list of service names the names are local parts
 	 * 
 	 * @return
 	 */
-	public List<String> getPortTypeList() { 
-		
+	@SuppressWarnings("unchecked")
+	public List<String> getPortTypeList() {
+
 		List<String> returnList = new ArrayList<String>();
 
 		PortType portType;
 		Map portTypeMap = definition.getPortTypes();
 
 		if (portTypeMap != null && !portTypeMap.isEmpty()) {
-			Iterator<Service> portTypeIterator = portTypeMap.values().iterator();
+			Iterator<Service> portTypeIterator = portTypeMap.values()
+					.iterator();
 			while (portTypeIterator.hasNext()) {
 
 				portType = (PortType) portTypeIterator.next();
@@ -213,6 +206,7 @@ public class WSDLPropertyReader {
 	 * 
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public List<String> getPortNameList(QName serviceName) {
 
 		List<String> returnList = new ArrayList<String>();
@@ -231,8 +225,5 @@ public class WSDLPropertyReader {
 		}
 		return returnList;
 	}
-	
-    
 
 }
-

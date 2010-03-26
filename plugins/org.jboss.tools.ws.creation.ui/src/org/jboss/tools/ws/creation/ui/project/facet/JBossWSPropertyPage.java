@@ -8,8 +8,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetDataModelProperties;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
-import org.eclipse.wst.common.project.facet.core.IProjectFacet;
-import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.jboss.tools.ws.core.command.JBossWSClassPathCommand;
 import org.jboss.tools.ws.core.command.UninstallJBossWSClassPathCommand;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;

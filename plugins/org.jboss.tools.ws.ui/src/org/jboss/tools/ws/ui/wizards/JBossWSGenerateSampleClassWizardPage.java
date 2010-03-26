@@ -125,17 +125,17 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		return composite;
 	}
 
-	private String updateDefaultName () {
+	private String updateDefaultName() {
 		ServiceModel model = wizard.getServiceModel();
 		JBossWSGenerateWizardValidator.setServiceModel(model);
 		String currentName = wizard.getClassName();
 		if (wizard.getProject() == null) {
 			return currentName;
-		}
-		else {
+		} else {
 			boolean isDynamicWebProject = false;
 			try {
-				if (wizard.getProject().getNature("org.eclipse.wst.common.project.facet.core.nature") != null) { //$NON-NLS-1$
+				if (wizard.getProject().getNature(
+						"org.eclipse.wst.common.project.facet.core.nature") != null) { //$NON-NLS-1$
 					isDynamicWebProject = true;
 				}
 			} catch (CoreException e) {
@@ -146,33 +146,35 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 			}
 		}
 		String testName = currentName;
-		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(testName, wizard.getProject());
+		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(
+				testName, wizard.getProject());
 		int i = 1;
 		while (status != null) {
 			testName = currentName + i;
 			wizard.setClassName(testName);
 			model = wizard.getServiceModel();
 			JBossWSGenerateWizardValidator.setServiceModel(model);
-			status = JBossWSGenerateWizardValidator.isWSClassValid(testName, wizard.getProject());
+			status = JBossWSGenerateWizardValidator.isWSClassValid(testName,
+					wizard.getProject());
 			i++;
 		}
 		return testName;
 	}
-	
+
 	protected boolean validate() {
 		ServiceModel model = wizard.getServiceModel();
 		JBossWSGenerateWizardValidator.setServiceModel(model);
-		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(model.getCustomClassName(), wizard.getProject());
+		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(model
+				.getCustomClassName(), wizard.getProject());
 		if (status != null) {
 			setMessage(status.getMessage(), DialogPage.ERROR);
 			return false;
-		}
-		else {
+		} else {
 			setMessage(null);
 			return true;
 		}
 	}
-	
+
 	protected void refresh() {
 		className.setText(updateDefaultName());
 	}

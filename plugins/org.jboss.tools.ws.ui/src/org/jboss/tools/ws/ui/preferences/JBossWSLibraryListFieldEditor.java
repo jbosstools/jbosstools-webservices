@@ -133,7 +133,8 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		createCheckButton(root);
 
 		jarGroup = new Group(root, SWT.NONE);
-		jarGroup.setText(JBossWSUIMessages.JBossWSLibraryListFieldEditor_LIBRARY_JARS);
+		jarGroup
+				.setText(JBossWSUIMessages.JBossWSLibraryListFieldEditor_LIBRARY_JARS);
 		gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalAlignment = GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;

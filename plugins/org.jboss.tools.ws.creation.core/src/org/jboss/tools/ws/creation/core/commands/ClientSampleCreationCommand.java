@@ -36,7 +36,7 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -71,7 +71,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			project = JBossWSCreationUtils.getJavaProjectByName(model
 					.getWebProjectName());
 		} catch (JavaModelException e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 			return StatusUtils
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
@@ -101,7 +101,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 					null);
 			clientCls.save(null, true);
 		} catch (Exception e1) {
-			JBossWSCreationCore.getDefault().logError(e1);
+			JBossWSCreationCorePlugin.getDefault().logError(e1);
 			return StatusUtils
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
@@ -126,7 +126,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			clientClsType.createMethod(sb.toString(), null, true, null);
 			clientCls.save(null, true);
 		} catch (JavaModelException e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 			return StatusUtils
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
@@ -314,7 +314,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 				}
 			}
 		} catch (JavaModelException e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 		}
 		return units;
 	}
@@ -393,7 +393,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			wrapperCls.save(null, true);
 			return wrapperCls;
 		} catch (Exception e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 			return null;
 		}
 	}

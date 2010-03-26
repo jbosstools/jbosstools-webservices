@@ -1,7 +1,5 @@
 package org.jboss.tools.ws.creation.ui.widgets;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -21,12 +19,12 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetDataContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataEvents;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.jboss.tools.ws.core.utils.JBossWSCoreUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
-public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
+@SuppressWarnings("restriction")
+public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 
 	private ServiceModel model;
 
@@ -43,7 +41,7 @@ public class CodeGenConfigWidget extends SimpleWidgetDataContributor {
 	private Button btnGenDefaultImpl;
 	private Button btnExtension;
 
-	public CodeGenConfigWidget(ServiceModel model) {
+	public WSDL2JavaCodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
 	}
 

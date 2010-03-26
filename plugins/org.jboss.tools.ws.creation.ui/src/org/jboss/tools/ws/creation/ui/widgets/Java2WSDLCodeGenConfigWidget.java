@@ -27,13 +27,14 @@ import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 /**
  * @author Grid Qian
  */
-public class ProviderInvokeCodeGenConfigWidget extends
+@SuppressWarnings("restriction")
+public class Java2WSDLCodeGenConfigWidget extends
 		SimpleWidgetDataContributor {
 
 	private ServiceModel model;
 	private Button btnUpdateWebxml;
 
-	public ProviderInvokeCodeGenConfigWidget(ServiceModel model) {
+	public Java2WSDLCodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
 		model.setGenWSDL(false);
 	}

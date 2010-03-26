@@ -20,12 +20,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
+import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -34,6 +33,7 @@ import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 /**
  * @author Grid Qian
  */
+@SuppressWarnings("restriction")
 public class InitialClientCommand extends AbstractDataModelOperation {
 	private ServiceModel model;
 	private IWebServiceClient wsClient;
@@ -81,7 +81,7 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 				model.setServiceList(reader.getServiceList());
 				model.setPortTypeList(reader.getPortTypeList());
 			} catch (WSDLException e) {
-				JBossWSCreationCore.getDefault().logError(e);
+				JBossWSCreationCorePlugin.getDefault().logError(e);
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
 			}
 		}

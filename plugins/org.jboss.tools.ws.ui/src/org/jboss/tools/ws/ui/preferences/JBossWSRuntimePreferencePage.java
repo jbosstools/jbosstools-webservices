@@ -39,7 +39,7 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 
 	private static final int COLUMNS = 3;
 
-	JBossRuntimeListFieldEditor jbossWSRuntimes = new JBossRuntimeListFieldEditor(
+	JBossWSRuntimeListFieldEditor jbossWSRuntimes = new JBossWSRuntimeListFieldEditor(
 			"rtlist", JBossWSUIMessages.JBossWS_Preference_Page_Runtimes, new ArrayList<JBossWSRuntime>(Arrays.asList(JBossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
 
 	/**
@@ -77,7 +77,7 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 		jbossWSRuntimes.getRemoved().clear();
 		JBossWSRuntime defaultRuntime = jbossWSRuntimes
 				.getDefaultJBossWSRuntime();
-		
+
 		// reset default runtime
 		for (JBossWSRuntime jbossWSRuntime : JBossWSRuntimeManager
 				.getInstance().getRuntimes()) {
@@ -87,7 +87,7 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 		if (defaultRuntime != null) {
 			defaultRuntime.setDefault(true);
 		}
-		
+
 		jbossWSRuntimes.setDefaultJBossWSRuntime(null);
 		Map<JBossWSRuntime, JBossWSRuntime> changed = jbossWSRuntimes
 				.getChangedJBossWSRuntimes();
@@ -129,7 +129,7 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 		return super.performOk();
 	}
 
-	public JBossRuntimeListFieldEditor getJBossWSRuntimes() {
+	public JBossWSRuntimeListFieldEditor getJBossWSRuntimes() {
 		return jbossWSRuntimes;
 	}
 }

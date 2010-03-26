@@ -63,14 +63,14 @@ import org.jboss.tools.common.ui.widget.editor.ButtonFieldEditor;
 import org.jboss.tools.common.ui.widget.editor.IFieldEditor;
 import org.jboss.tools.common.ui.widget.editor.IFieldEditorFactory;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
-import org.jboss.tools.ws.ui.utils.UIUtils;
+import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 
 /**
  * @author Grid Qian
  */
-public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
+public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 
 	// ------------------------------------------------------------------------
 	// Layout parameters
@@ -115,7 +115,7 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 	 * @param defaultValue
 	 *            Object
 	 */
-	public JBossRuntimeListFieldEditor(String name, String label,
+	public JBossWSRuntimeListFieldEditor(String name, String label,
 			Object defaultValue) {
 		super(name, label, defaultValue);
 	}
@@ -420,16 +420,20 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 
 		List<JBossWSRuntime> value = null;
 
-		IFieldEditor name = IFieldEditorFactory.INSTANCE.createTextEditor(SRT_NAME,
+		IFieldEditor name = IFieldEditorFactory.INSTANCE.createTextEditor(
+				SRT_NAME,
 				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name2, ""); //$NON-NLS-1$ 
 
-		IFieldEditor version = IFieldEditorFactory.INSTANCE.createComboEditor(SRT_VERSION,
-				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version,getWSFacetVersions(), ""); //$NON-NLS-1$ 
+		IFieldEditor version = IFieldEditorFactory.INSTANCE.createComboEditor(
+				SRT_VERSION,
+				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version,
+				getWSFacetVersions(), ""); //$NON-NLS-1$ 
 
-		IFieldEditor homeDir = IFieldEditorFactory.INSTANCE.createBrowseFolderEditor(
-				SRT_HOMEDIR,
-				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Home_Folder,
-				""); //$NON-NLS-1$ 
+		IFieldEditor homeDir = IFieldEditorFactory.INSTANCE
+				.createBrowseFolderEditor(
+						SRT_HOMEDIR,
+						JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Home_Folder,
+						""); //$NON-NLS-1$ 
 
 		JBossWSRuntime current = null;
 
@@ -438,7 +442,6 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 		public JBossWSRuntimeWizardPage(List<JBossWSRuntime> editedList) {
 			super(
 					JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_New_Runtime);
-
 			setMessage(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Create_A_Runtime);
 			setTitle(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime);
 			value = editedList;
@@ -512,9 +515,10 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 					continue;
 				}
 				if (rt.getName().equals(name.getValueAsString())) {
-					setErrorMessage(
-							NLS.bind(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime_Already_Exists,
-							name.getValueAsString()));
+					setErrorMessage(NLS
+							.bind(
+									JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime_Already_Exists,
+									name.getValueAsString()));
 					setPageComplete(false);
 					return;
 				}
@@ -569,17 +573,18 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 
 			return true;
 		}
-		
+
 		/*
 		 * get facet version.
 		 */
-		private List<String> getWSFacetVersions(){
+		private List<String> getWSFacetVersions() {
 			List<String> versions = new ArrayList<String>();
-			IProjectFacet wsFacet = ProjectFacetsManager.getProjectFacet("jbossws.core"); //$NON-NLS-1$
-			for(IProjectFacetVersion version: wsFacet.getVersions()){
+			IProjectFacet wsFacet = ProjectFacetsManager
+					.getProjectFacet("jbossws.core"); //$NON-NLS-1$
+			for (IProjectFacetVersion version : wsFacet.getVersions()) {
 				versions.add(version.getVersionString());
 			}
-			
+
 			return versions;
 		}
 
@@ -625,13 +630,13 @@ public class JBossRuntimeListFieldEditor extends BaseFieldEditor {
 				return false;
 			String[] newNode = { JBossWSUIMessages.Bin,
 					JBossWSUIMessages.Command };
-			String jbosswsBinPath = UIUtils.addNodesToPath(jbosswsHomeDir
-					.getAbsolutePath(), newNode);
+			String jbosswsBinPath = JBossWSUIUtils.addNodesToPath(
+					jbosswsHomeDir.getAbsolutePath(), newNode);
 			if (new File(jbosswsBinPath).isFile()
-					&& new File(UIUtils.addAnotherNodeToPath(jbosswsHomeDir
-							.getAbsolutePath(), JBossWSUIMessages.Client))
-							.isDirectory()
-					&& new File(UIUtils
+					&& new File(JBossWSUIUtils.addAnotherNodeToPath(
+							jbosswsHomeDir.getAbsolutePath(),
+							JBossWSUIMessages.Client)).isDirectory()
+					&& new File(JBossWSUIUtils
 							.addNodesToPath(jbosswsHomeDir.getAbsolutePath(),
 									new String[] { JBossWSUIMessages.Lib,
 											JBossWSUIMessages.Endorsed }))

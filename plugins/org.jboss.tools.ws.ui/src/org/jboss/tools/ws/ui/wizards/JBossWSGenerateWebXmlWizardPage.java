@@ -53,21 +53,23 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 	public void createControl(Composite parent) {
 		Composite composite = createDialogArea(parent);
 		this.wizard = (JBossWSGenerateWizard) this.getWizard();
-		
-		Group group = new Group (composite, SWT.NONE);
-		group.setText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Project_Group);
+
+		Group group = new Group(composite, SWT.NONE);
+		group
+				.setText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Project_Group);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		group.setLayout(new GridLayout(2, false));
 		group.setLayoutData(gd);
-		
+
 		projects = new Combo(group, SWT.BORDER | SWT.DROP_DOWN);
-		projects.setToolTipText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip);
+		projects
+				.setToolTipText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		projects.setLayoutData(gd);
 		refreshProjectList(wizard.getServiceModel().getWebProjectName());
-		
+
 		projects.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				wizard.setProject(projects.getText());
@@ -76,14 +78,15 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 				bHasChanged = true;
 				setPageComplete(isPageComplete());
 			}
-			
+
 			public void widgetDefaultSelected(SelectionEvent e) {
 				widgetSelected(e);
 			}
 		});
-		
-		Group group2 = new Group (composite, SWT.NONE);
-		group2.setText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Web_Service_Group);
+
+		Group group2 = new Group(composite, SWT.NONE);
+		group2
+				.setText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Web_Service_Group);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		group2.setLayout(new GridLayout(2, false));
@@ -130,11 +133,11 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 			}
 
 		});
-		
+
 		setControl(composite);
 	}
 
-	private void refreshProjectList ( String projectName ) {
+	private void refreshProjectList(String projectName) {
 		String[] projectNames = getProjects();
 		boolean foundInitialProject = false;
 		projects.removeAll();
@@ -144,10 +147,10 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 				foundInitialProject = true;
 			}
 		}
-		if (foundInitialProject) 
+		if (foundInitialProject)
 			projects.setText(projectName);
 	}
-	
+
 	public IWizardPage getNextPage() {
 		wizard.setServiceName(name.getText());
 		return super.getNextPage();
@@ -171,14 +174,16 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 	public boolean isPageComplete() {
 		return validate();
 	}
-	
-	private String updateDefaultName () {
+
+	private String updateDefaultName() {
 		ServiceModel model = wizard.getServiceModel();
 		JBossWSGenerateWizardValidator.setServiceModel(model);
 		String currentName = wizard.getServiceName();
 		IStatus status = JBossWSGenerateWizardValidator.isWSNameValid();
 		try {
-			if (status.getSeverity() == IStatus.ERROR && !JavaEEProjectUtilities.isDynamicWebProject(wizard.getProject())) {
+			if (status.getSeverity() == IStatus.ERROR
+					&& !JavaEEProjectUtilities.isDynamicWebProject(wizard
+							.getProject())) {
 				return currentName;
 			}
 		} catch (NullPointerException npe) {
@@ -196,7 +201,7 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 		}
 		return testName;
 	}
-	
+
 	private boolean validate() {
 		ServiceModel model = wizard.getServiceModel();
 		JBossWSGenerateWizardValidator.setServiceModel(model);
@@ -207,25 +212,26 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 		if (status != null) {
 			setErrorMessage(status.getMessage());
 			return false;
-		}
-		else {
+		} else {
 			setErrorMessage(null);
 			return true;
 		}
 	}
-	
+
 	private String[] getProjects() {
-		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
+				.getProjects();
 		ArrayList<String> dynamicProjects = new ArrayList<String>();
 		for (int i = 0; i < projects.length; i++) {
-			boolean isDynamicWebProject = JavaEEProjectUtilities.isDynamicWebProject(projects[i]);
+			boolean isDynamicWebProject = JavaEEProjectUtilities
+					.isDynamicWebProject(projects[i]);
 			if (isDynamicWebProject) {
 				dynamicProjects.add(projects[i].getName());
 			}
 		}
 		return dynamicProjects.toArray(new String[dynamicProjects.size()]);
 	}
-	
+
 	protected boolean hasChanged() {
 		return bHasChanged;
 	}

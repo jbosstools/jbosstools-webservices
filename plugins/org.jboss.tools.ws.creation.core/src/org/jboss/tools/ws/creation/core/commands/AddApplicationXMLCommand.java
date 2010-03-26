@@ -28,6 +28,7 @@ import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 /**
  * @author Grid Qian
@@ -70,29 +71,11 @@ public class AddApplicationXMLCommand extends AbstractDataModelOperation {
 		// we are looking for this recursively because though application.xml
 		// is always in META-INF, it's not always in "earcontent" since the
 		// earcontent folder name can be custom
-		File file = findFileByPath(APPLICATION_XML, pro.getLocation().toOSString());
+		File file = JBossWSCreationUtils.findFileByPath(APPLICATION_XML, pro.getLocation().toOSString());
         if(file == null){
         	return false;
         }
 		return true;
 	}
-
-	private static File findFileByPath(String name, String path) {
-		File ret = null;
-		File folder = new File(path);
-		if (folder.isDirectory()) {
-			File[] files = folder.listFiles();
-			for (File file : files) {
-				ret = findFileByPath(name, file.getAbsolutePath());
-				if (ret != null) {
-					break;
-				}
-			}
-		} else {
-			if (name.equals(folder.getName())) {
-				ret = folder;
-			}
-		}
-		return ret;
-	}
+	
 }

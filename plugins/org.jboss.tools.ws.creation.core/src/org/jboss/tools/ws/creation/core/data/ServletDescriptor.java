@@ -8,7 +8,7 @@
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.ui.wizards;
+package org.jboss.tools.ws.creation.core.data;
 
 public class ServletDescriptor {
 	private String _name;

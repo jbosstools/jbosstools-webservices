@@ -52,7 +52,7 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -106,13 +106,13 @@ public class ImplementationClassCreationCommand extends
 					.errorStatus(
 							JBossWSCreationCoreMessages.Error_Message_Failed_to_Generate_Implementation,
 							e);
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 		} catch (BadLocationException e) {
 			status = StatusUtils
 					.errorStatus(
 							JBossWSCreationCoreMessages.Error_Message_Failed_to_Generate_Implementation,
 							e);
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 		}
 		return status;
 	}
@@ -127,11 +127,11 @@ public class ImplementationClassCreationCommand extends
 		return tem;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void generateImplClass(String portTypeName/* , IFile implJavaFile */)
 			throws CoreException, BadLocationException {
 
 		CompilationUnit portTypeCU = getCompilationUnitForInterface(portTypeName);
-		List<ImportDeclaration> imports = getImportsWithoutJaxwsAnnotation(portTypeCU);
 
 		IPackageFragment pack = getImplPakcage();
 
@@ -255,6 +255,7 @@ public class ImplementationClassCreationCommand extends
 		return model.getCustomPackage() + "." + portTypeName; //$NON-NLS-1$
 	}
 
+	@SuppressWarnings("unchecked")
 	private void addImportsToImplementationClass(CompilationUnit implCU,
 			CompilationUnit portTypeCU, String portTypeName) {
 		List<ImportDeclaration> imports = getImportsWithoutJaxwsAnnotation(portTypeCU);
@@ -291,6 +292,7 @@ public class ImplementationClassCreationCommand extends
 	/*
 	 * create web service annotation
 	 */
+	@SuppressWarnings("unchecked")
 	protected NormalAnnotation createAnnotation(AST ast, String name,
 			String serviceName, String endpoint) {
 		NormalAnnotation ann = ast.newNormalAnnotation();
@@ -319,6 +321,7 @@ public class ImplementationClassCreationCommand extends
 		return member;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected MethodDeclaration createMethodForImplClass(AST ast,
 			MethodDeclaration inMethod) {
 
@@ -390,6 +393,7 @@ public class ImplementationClassCreationCommand extends
 		return md;
 	}
 
+	@SuppressWarnings("unchecked")
 	private Type copyTypeFromOtherASTNode(AST ast, Type type) {
 		if (type instanceof PrimitiveType) {
 			return ast.newPrimitiveType(((PrimitiveType) type)
@@ -425,6 +429,7 @@ public class ImplementationClassCreationCommand extends
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected List<ImportDeclaration> getImportsWithoutJaxwsAnnotation(
 			CompilationUnit cu) {
 		List<ImportDeclaration> importList = new ArrayList<ImportDeclaration>();

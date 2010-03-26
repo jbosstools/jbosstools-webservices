@@ -14,7 +14,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -37,7 +37,7 @@ public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 			project = JBossWSCreationUtils.getJavaProjectByName(model
 					.getWebProjectName());
 		} catch (JavaModelException e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 			return StatusUtils
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
@@ -93,7 +93,7 @@ public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 			wrapperCls.save(null, true);
 			return wrapperCls;
 		} catch (Exception e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 			return null;
 		}
 	}

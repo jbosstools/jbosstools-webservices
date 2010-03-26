@@ -37,10 +37,11 @@ import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
+import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
-import org.jboss.tools.ws.creation.ui.CreationUIPlugin;
-import org.jboss.tools.ws.ui.preferences.JBossRuntimeListFieldEditor;
+import org.jboss.tools.ws.creation.ui.JBossWSCreationUIPlugin;
+import org.jboss.tools.ws.ui.preferences.JBossWSRuntimeListFieldEditor;
 
 public class JBossWSRuntimeConfigBlock {
 
@@ -203,7 +204,7 @@ public class JBossWSRuntimeConfigBlock {
 		try {
 			duplicateMsg = getDuplicateJars(jbws.getName());
 		} catch (JavaModelException e1) {
-			CreationUIPlugin.getDefault().getLog().log(
+			JBossWSCreationUIPlugin.getDefault().getLog().log(
 					StatusUtils.errorStatus(e1));
 		}
 		if ("".equals(duplicateMsg)) { //$NON-NLS-1$
@@ -308,7 +309,7 @@ public class JBossWSRuntimeConfigBlock {
 		List<JBossWSRuntime> exists = new ArrayList<JBossWSRuntime>(Arrays.asList(JBossWSRuntimeManager.getInstance().getRuntimes()));
 		List<JBossWSRuntime> added = new ArrayList<JBossWSRuntime>();
 		
-		JBossRuntimeListFieldEditor.JBossWSRuntimeNewWizard newRtwizard = new JBossRuntimeListFieldEditor.JBossWSRuntimeNewWizard(
+		JBossWSRuntimeListFieldEditor.JBossWSRuntimeNewWizard newRtwizard = new JBossWSRuntimeListFieldEditor.JBossWSRuntimeNewWizard(
 				exists, added) {
 			public boolean performFinish() {
 				JBossWSRuntime rt = getRuntime();
@@ -340,7 +341,7 @@ public class JBossWSRuntimeConfigBlock {
 			try {
 				duplicateMsg = getDuplicateJars(cmbRuntimes.getText());
 			} catch (JavaModelException e1) {
-				CreationUIPlugin.getDefault().getLog().log(StatusUtils.errorStatus(e1));
+				JBossWSCreationUIPlugin.getDefault().getLog().log(StatusUtils.errorStatus(e1));
 			}
 			if(!duplicateMsg.equals("")){ //$NON-NLS-1$
 				setErrorMessage(MessageFormat
@@ -409,7 +410,7 @@ public class JBossWSRuntimeConfigBlock {
 		IClasspathEntry[] entries = javaProject.getRawClasspath();
 		for(IClasspathEntry entry: entries){
 			if(entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER){
-				if("JBossWS_Runtime".equals(entry.getPath().segment(0))){ //$NON-NLS-1$
+				if(JBossWSCoreMessages.JBossWS_Runtime_Lib.equals(entry.getPath().segment(0))){
 						continue;
 				}
 				IClasspathContainer container = JavaCore.getClasspathContainer(entry.getPath(), javaProject);

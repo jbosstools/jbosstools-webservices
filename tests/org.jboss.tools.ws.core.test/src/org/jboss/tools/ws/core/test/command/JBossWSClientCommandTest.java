@@ -24,8 +24,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
-import org.eclipse.wst.server.core.internal.Server;
-import org.eclipse.wst.server.core.internal.ServerWorkingCopy;
 import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceClientInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
@@ -34,7 +32,7 @@ import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeClassPathInitializer.JBossWSRuntimeClasspathContainer;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.commands.ClientSampleCreationCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialClientCommand;
 import org.jboss.tools.ws.creation.core.commands.RemoveClientJarsCommand;
@@ -45,9 +43,9 @@ import org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceClient;
 /**
  * @author Grid Qian
  */
+@SuppressWarnings("restriction")
 public class JBossWSClientCommandTest extends AbstractJBossWSCommandTest {
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "/home/grid/Software/jboss-4.2.2.GA";
 	private static final String RuntimeName;
 	private static final boolean isDeployed;
 
@@ -159,7 +157,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSCommandTest {
 				}
 			}
 		} catch (JavaModelException e) {
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 		}
 
 	}

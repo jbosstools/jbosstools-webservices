@@ -53,12 +53,10 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.IRuntimeType;
 import org.eclipse.wst.server.core.ServerCore;
-import org.jboss.tools.ws.core.JBossWSCorePlugin;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
-import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
@@ -95,10 +93,6 @@ public class JBossWSCreationUtils {
 		return false;
 	}
 
-	public static IPath getWorkspace() {
-		return ResourcesPlugin.getWorkspace().getRoot().getLocation();
-	}
-
 	public static IProject getProjectByName(String project) {
 		String projectString = replaceEscapecharactors(project);
 		return ResourcesPlugin.getWorkspace().getRoot().getProject(
@@ -110,37 +104,6 @@ public class JBossWSCreationUtils {
 		return ResourcesPlugin.getWorkspace().getRoot().getProject(
 				getProjectNameFromFramewokNameString(projectString))
 				.getLocation();
-	}
-
-	public static String pathToWebProjectContainer(String project) {
-		IPath projectRoot = getProjectRoot(project);
-		IPath currentDynamicWebProjectDir = getWebContentRootPath(getProjectByName(project));
-		IPath currentDynamicWebProjectDirWithoutProjectRoot = getWebContentRootPath(
-				getProjectByName(project)).removeFirstSegments(1)
-				.makeAbsolute();
-		if (projectRoot.toOSString().contains(getWorkspace().toOSString())) {
-			return getWorkspace().append(currentDynamicWebProjectDir)
-					.toOSString();
-		} else {
-			return projectRoot.append(
-					currentDynamicWebProjectDirWithoutProjectRoot).toOSString();
-		}
-
-	}
-
-	public static String pathToWebProjectContainerWEBINF(String project) {
-		IPath projectRoot = getProjectRoot(project);
-		IPath webContainerWEBINFDir = getWebContentRootPath(
-				getProjectByName(project)).append(WEBINF); 
-		IPath webContainerWEBINFDirWithoutProjectRoot = getWebContentRootPath(
-				getProjectByName(project)).append(WEBINF)
-				.removeFirstSegments(1).makeAbsolute();
-		if (projectRoot.toOSString().contains(getWorkspace().toOSString())) {
-			return getWorkspace().append(webContainerWEBINFDir).toOSString();
-		} else {
-			return projectRoot.append(webContainerWEBINFDirWithoutProjectRoot)
-					.toOSString();
-		}
 	}
 
 	private static String replaceEscapecharactors(String vulnarableString) {
@@ -284,15 +247,6 @@ public class JBossWSCreationUtils {
 		} catch (Exception e) {
 			return null;
 		}
-	}
-
-	public static boolean validateJBossWSLocation() {
-		String location = JBossWSCorePlugin.getDefault().getPreferenceStore()
-				.getString(JBossWSCoreMessages.WS_Location);
-		if (location == null || location.equals("")) { //$NON-NLS-1$
-			return false;
-		}
-		return true;
 	}
 
 	public static String getJBossWSRuntimeLocation(IProject project)
@@ -482,5 +436,24 @@ public class JBossWSCreationUtils {
 		}
 		return path;
 	}
+	
+	public static File findFileByPath(String name, String path) {
+		File ret = null;
+		File folder = new File(path);
+		if (folder.isDirectory()) {
+			File[] files = folder.listFiles();
+			for (File file : files) {
+				ret = findFileByPath(name, file.getAbsolutePath());
+				if (ret != null) {
+					break;
+				}
+			}
+		} else {
+			if (name.equals(folder.getName())) {
+				ret = folder;
+			}
+		}
+		return ret;
+	}	
 
 }

@@ -17,11 +17,10 @@ import org.eclipse.wst.command.internal.env.core.ICommandFactory;
 import org.eclipse.wst.command.internal.env.core.SimpleCommandFactory;
 import org.eclipse.wst.common.environment.IEnvironment;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
+import org.eclipse.wst.ws.internal.wsrt.AbstractWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.IContext;
 import org.eclipse.wst.ws.internal.wsrt.ISelection;
-import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceClientInfo;
-import org.eclipse.wst.ws.internal.wsrt.AbstractWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.creation.core.commands.BindingFilesValidationCommand;
 import org.jboss.tools.ws.creation.core.commands.ClientSampleCreationCommand;
@@ -33,7 +32,7 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 /**
  * @author Grid Qian
  */
-@SuppressWarnings({ "restriction", "unused" })
+@SuppressWarnings({ "restriction"})
 public class JBossWebServiceClient extends AbstractWebServiceClient {
 
 	public JBossWebServiceClient(WebServiceClientInfo info) {

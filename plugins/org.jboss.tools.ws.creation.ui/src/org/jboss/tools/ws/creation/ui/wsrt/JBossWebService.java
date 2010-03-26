@@ -55,12 +55,11 @@ public class JBossWebService extends AbstractWebService {
 		return null;
 	}
 
-	@SuppressWarnings({ "unchecked" })
 	@Override
 	public ICommandFactory develop(IEnvironment env, IContext ctx,
 			ISelection sel, String project, String earProject) {
 		
-		Vector commands = new Vector();
+		Vector<AbstractDataModelOperation> commands = new Vector<AbstractDataModelOperation>();
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(project);
 		if (ctx.getScenario().getValue() == WebServiceScenario.TOPDOWN)	{ 

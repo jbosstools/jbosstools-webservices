@@ -6,6 +6,7 @@ import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceClientInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 
+@SuppressWarnings("restriction")
 public class JBossWebServiceRuntime extends AbstractWebServiceRuntime{
 
 	@Override

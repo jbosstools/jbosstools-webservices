@@ -65,6 +65,7 @@ import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
+@SuppressWarnings("restriction")
 public abstract class AbstractJBossWSCommandTest extends TestCase {
 	public static final IVMInstall VM_INSTALL = JavaRuntime
 			.getDefaultVMInstall();
@@ -417,13 +418,13 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	}
 
 	protected class ServerStateListener implements IServerListener {
-		private ArrayList stateChanges;
+		private ArrayList<Integer> stateChanges;
 
 		public ServerStateListener() {
-			this.stateChanges = new ArrayList();
+			this.stateChanges = new ArrayList<Integer>();
 		}
 
-		public ArrayList getStateChanges() {
+		public ArrayList<Integer> getStateChanges() {
 			return stateChanges;
 		}
 

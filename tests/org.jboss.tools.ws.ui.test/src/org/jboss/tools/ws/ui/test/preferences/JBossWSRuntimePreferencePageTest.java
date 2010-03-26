@@ -24,7 +24,7 @@ import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeListConverter;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
-import org.jboss.tools.ws.ui.preferences.JBossRuntimeListFieldEditor;
+import org.jboss.tools.ws.ui.preferences.JBossWSRuntimeListFieldEditor;
 import org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage;
 
 import junit.framework.TestCase;
@@ -69,7 +69,7 @@ public class JBossWSRuntimePreferencePageTest extends TestCase {
 			Object object = openPreferencepage(prefDialog);
 			String runtime = getRuntimeList();
 			selectedPage = (JBossWSRuntimePreferencePage) object;
-			JBossRuntimeListFieldEditor jbossWSRuntimes = selectedPage
+			JBossWSRuntimeListFieldEditor jbossWSRuntimes = selectedPage
 					.getJBossWSRuntimes();
 			if (runtime.equals("")) {
 				assertTrue(
@@ -104,7 +104,7 @@ public class JBossWSRuntimePreferencePageTest extends TestCase {
 			Object object = openPreferencepage(prefDialog);
 			String runtime = getRuntimeList();
 			selectedPage = (JBossWSRuntimePreferencePage) object;
-			JBossRuntimeListFieldEditor jbossWSRuntimes = selectedPage
+			JBossWSRuntimeListFieldEditor jbossWSRuntimes = selectedPage
 					.getJBossWSRuntimes();
 			assertTrue("The preference store for jboss ws runtime is wrong",
 					!runtime.equals(""));

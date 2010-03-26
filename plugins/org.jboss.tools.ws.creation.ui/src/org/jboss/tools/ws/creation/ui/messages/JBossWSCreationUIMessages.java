@@ -7,10 +7,13 @@ public class JBossWSCreationUIMessages extends NLS {
 
 	private JBossWSCreationUIMessages() {
 	}
-	public static String JBossWSConfigWidgetFactory_Description;
-	public static String JBossWSConfigWidgetFactory_Title;
-	public static String JBossWSProviderInvokeConfigWidgetFactory_Description;
-	public static String JBossWSProviderInvokeConfigWidgetFactory_Title;
+	
+	public static String JBossWS_WebServiceDataModel;
+	
+	public static String JBossWSWSDL2JavaConfigWidgetFactory_Description;
+	public static String JBossWSWSDL2JavaConfigWidgetFactory_Title;
+	public static String JBossWSJava2WSDLConfigWidgetFactory_Description;
+	public static String JBossWSJava2WSDLConfigWidgetFactory_Title;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSCreationUIMessages.class);

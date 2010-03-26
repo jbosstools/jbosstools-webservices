@@ -31,6 +31,7 @@ import org.eclipse.jst.javaee.web.WebFactory;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.data.ServletDescriptor;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
@@ -101,7 +102,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		for (int i = 0; i < theServlets.size(); i++) {
 			org.eclipse.jst.j2ee.webapplication.Servlet aServlet = (org.eclipse.jst.j2ee.webapplication.Servlet) theServlets
 					.get(i);
-			if (aServlet.getServletName().equals(servletDescriptor._name)) {
+			if (aServlet.getServletName().equals(servletDescriptor.getName())) {
 				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 				return;
 			}
@@ -110,9 +111,9 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		for (int i = 0; i < theServletMapplings.size(); i++) {
 			org.eclipse.jst.j2ee.webapplication.ServletMapping aServletMapping = (org.eclipse.jst.j2ee.webapplication.ServletMapping) theServletMapplings
 					.get(i);
-			if (aServletMapping.getName().equals(servletDescriptor._name)
+			if (aServletMapping.getName().equals(servletDescriptor.getName())
 					|| aServletMapping.getUrlPattern().equals(
-							servletDescriptor._mappings)) {
+							servletDescriptor.getMappings())) {
 				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 				return;
 			}
@@ -123,18 +124,18 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		org.eclipse.jst.j2ee.webapplication.ServletType servletType = factory
 				.createServletType();
 		servlet.setWebType(servletType);
-		servlet.setServletName(servletDescriptor._name);
-		servletType.setClassName(servletDescriptor._className);
-		if (servletDescriptor._displayName != null) {
-			servlet.setDisplayName(servletDescriptor._displayName);
+		servlet.setServletName(servletDescriptor.getName());
+		servletType.setClassName(servletDescriptor.getClassName());
+		if (servletDescriptor.getDisplayName() != null) {
+			servlet.setDisplayName(servletDescriptor.getDisplayName());
 		}
 		webapp.getServlets().add(servlet);
 
-		if (servletDescriptor._mappings != null) {
+		if (servletDescriptor.getMappings() != null) {
 			org.eclipse.jst.j2ee.webapplication.ServletMapping servletMapping = factory
 					.createServletMapping();
 			servletMapping.setServlet(servlet);
-			servletMapping.setUrlPattern(servletDescriptor._mappings);
+			servletMapping.setUrlPattern(servletDescriptor.getMappings());
 			webapp.getServletMappings().add(servletMapping);
 		}
 	}
@@ -149,10 +150,10 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			servletName = servletName.substring(0, servletName.length() - 4);
 		}
 		ServletDescriptor sd = new ServletDescriptor();
-		sd._name = servletName;
-		sd._displayName = sd._name;
-		sd._className = clsName;
-		sd._mappings = JBossWSCreationCoreMessages.Separator_Java + sd._name;
+		sd.setName(servletName);
+		sd.setDisplayName(sd.getName());
+		sd.setClassName(clsName);
+		sd.setMappings(JBossWSCreationCoreMessages.Separator_Java + sd.getName());
 		return sd;
 	}
 
@@ -163,7 +164,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 
 		for (int i = 0; i < theServlets.size(); i++) {
 			Servlet aServlet = (Servlet) theServlets.get(i);
-			if (aServlet.getServletName().equals(servletDescriptor._name)) {
+			if (aServlet.getServletName().equals(servletDescriptor.getName())) {
 				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 				return;
 			}
@@ -174,7 +175,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			ServletMapping aServletMapping = (ServletMapping) theServletMapplings
 					.get(i);
 			if (aServletMapping.getServletName()
-					.equals(servletDescriptor._name)) {
+					.equals(servletDescriptor.getName())) {
 				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 				return;
 			}
@@ -182,7 +183,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			if (list != null) {
 				for (int j = 0; j < list.size(); j++) {
 					UrlPatternType url = (UrlPatternType) list.get(j);
-					if (url.getValue().equals(servletDescriptor._mappings)) {
+					if (url.getValue().equals(servletDescriptor.getMappings())) {
 						status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 						return;
 					}
@@ -192,31 +193,23 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 
 		WebFactory factory = WebFactory.eINSTANCE;
 		Servlet servlet = factory.createServlet();
-		servlet.setServletName(servletDescriptor._name);
-		servlet.setServletClass(servletDescriptor._className);
-		if (servletDescriptor._displayName != null) {
+		servlet.setServletName(servletDescriptor.getName());
+		servlet.setServletClass(servletDescriptor.getClassName());
+		if (servletDescriptor.getDisplayName() != null) {
 			DisplayName displayNameObj = JavaeeFactory.eINSTANCE
 					.createDisplayName();
-			displayNameObj.setValue(servletDescriptor._displayName);
+			displayNameObj.setValue(servletDescriptor.getDisplayName());
 			servlet.getDisplayNames().add(displayNameObj);
 		}
 		webapp.getServlets().add(servlet);
 
-		if (servletDescriptor._mappings != null) {
+		if (servletDescriptor.getMappings() != null) {
 			ServletMapping servletMapping = factory.createServletMapping();
 			servletMapping.setServletName(servlet.getServletName());
 			UrlPatternType url = JavaeeFactory.eINSTANCE.createUrlPatternType();
-			url.setValue(servletDescriptor._mappings);
+			url.setValue(servletDescriptor.getMappings());
 			servletMapping.getUrlPatterns().add(url);
 			webapp.getServletMappings().add(servletMapping);
 		}
 	}
-
-	public class ServletDescriptor {
-		String _name;
-		String _className;
-		String _displayName;
-		String _mappings;
-	}
-
 }

@@ -27,7 +27,7 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCore;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -109,9 +109,9 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 
 				if (exitValue != 0) {
 
-					JBossWSCreationCore.getDefault().logError(
+					JBossWSCreationCorePlugin.getDefault().logError(
 							errorResult.toString());
-					JBossWSCreationCore.getDefault().logError(
+					JBossWSCreationCorePlugin.getDefault().logError(
 							inputResult.toString());
 
 //					there is no way to know if the failure of invoking is because of failure of
@@ -128,7 +128,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				} else {
 					if (resultInput != null
 							&& resultInput.indexOf("[ERROR]") >= 0) { //$NON-NLS-1$
-						JBossWSCreationCore.getDefault()
+						JBossWSCreationCorePlugin.getDefault()
 								.logWarning(resultInput);
 						IStatus errorStatus = StatusUtils
 								.warningStatus(resultInput);
@@ -140,14 +140,14 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				}
 
 			} catch (InterruptedException e) {
-				JBossWSCreationCore.getDefault().logError(e);
+				JBossWSCreationCorePlugin.getDefault().logError(e);
 				return StatusUtils.errorStatus(e);
 			} catch (CoreException e) {
-				JBossWSCreationCore.getDefault().logError(e);
+				JBossWSCreationCorePlugin.getDefault().logError(e);
 				// unable to get runtime location
 				return e.getStatus();
 			} catch (Exception e) {
-				JBossWSCreationCore.getDefault().logError(e);
+				JBossWSCreationCorePlugin.getDefault().logError(e);
 				return StatusUtils.errorStatus(e);
 			}
 
@@ -240,7 +240,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					monitor);
 		} catch (CoreException e) {
 			e.printStackTrace();
-			JBossWSCreationCore.getDefault().logError(e);
+			JBossWSCreationCorePlugin.getDefault().logError(e);
 		}
 	}
 

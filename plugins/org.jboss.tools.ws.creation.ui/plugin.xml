@@ -4,7 +4,7 @@
      <extension
        point="org.eclipse.wst.command.env.ui.widgetRegistry">
     <widgetFactory
-          class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSConfigWidgetFactory"
+          class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSWSDL2JavaConfigWidgetFactory"
           id="JBossWSWSDL2JavaConfig"
           insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.BindingFilesValidationCommand">
     </widgetFactory>
@@ -40,14 +40,14 @@
         runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
         class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
 
-        <required-facet-version facet="jst.web" version="2.3" allow-newer="true" />
+        <required-facet-version facet="jst.java" version="1.4" allow-newer="true" />
 
       </clientRuntime>
     </extension>
     <extension
           point="org.eclipse.wst.command.env.ui.widgetRegistry">
        <widgetFactory
-             class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSProviderInvokeConfigWidgetFactory"
+             class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSJava2WSDLConfigWidgetFactory"
              id="JBossWSProviderInvokeConfig"
              insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.Java2WSCommand">
        </widgetFactory>

@@ -29,9 +29,9 @@ import org.eclipse.ui.IWorkbench;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.ServiceSampleCreationCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
-import org.jboss.tools.ws.ui.utils.UIUtils;
 
 public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 
@@ -82,7 +82,7 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 			model.setUpdateWebxml(true);
 			model.setCustomPackage(getPackageName());
 
-			File file = findFileByPath(getClassName() + JAVA, project
+			File file = JBossWSCreationUtils.findFileByPath(getClassName() + JAVA, project
 					.getLocation().toOSString());
 			if (file != null) {
 				MessageDialog
@@ -138,7 +138,7 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 		if (project != null
 				&& JavaEEProjectUtilities.isDynamicWebProject(project)) {
 			webFile = project.getParent().getFolder(
-					UIUtils.getWebContentRootPath(project).append(WEBINF))
+					JBossWSCreationUtils.getWebContentRootPath(project).append(WEBINF))
 					.getFile(WEB);
 		}
 		hasInited = true;
@@ -163,25 +163,6 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 			return false;
 		}
 		return super.canFinish();
-	}
-
-	private File findFileByPath(String name, String path) {
-		File ret = null;
-		File folder = new File(path);
-		if (folder.isDirectory()) {
-			File[] files = folder.listFiles();
-			for (File file : files) {
-				ret = findFileByPath(name, file.getAbsolutePath());
-				if (ret != null) {
-					break;
-				}
-			}
-		} else {
-			if (name.equals(folder.getName())) {
-				ret = folder;
-			}
-		}
-		return ret;
 	}
 
 	public String getServiceName() {
@@ -261,7 +242,7 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 				if (project != null
 						&& JavaEEProjectUtilities.isDynamicWebProject(project)) {
 					webFile = project.getParent().getFolder(
-							UIUtils.getWebContentRootPath(project).append(WEBINF))
+							JBossWSCreationUtils.getWebContentRootPath(project).append(WEBINF))
 							.getFile(WEB);
 				}
 			}

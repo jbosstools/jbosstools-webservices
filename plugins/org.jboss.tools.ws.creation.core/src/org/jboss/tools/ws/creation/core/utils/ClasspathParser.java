@@ -25,6 +25,7 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 
+@SuppressWarnings("restriction")
 public class ClasspathParser {
 
 	private static ClasspathParser instance;
@@ -53,7 +54,6 @@ public class ClasspathParser {
 		return classpath.toString();
 	}
 
-	@SuppressWarnings("restriction")
 	private String[] getClasspath(IProject project, boolean isDependent) {
 		String[] cClasspath = new String[0];
 		ArrayList<String> projectClasspath = new ArrayList<String>();
@@ -143,7 +143,6 @@ public class ClasspathParser {
 
 	// Need to get all components in the project. If there's a EAR component, get the
 	// utility Jars
-	@SuppressWarnings("restriction")
 	private String[] getUtilityJarClasspath(IProject project) {
 		String[] utilityJarString = new String[0];
 		String[] cClasspath = new String[0];

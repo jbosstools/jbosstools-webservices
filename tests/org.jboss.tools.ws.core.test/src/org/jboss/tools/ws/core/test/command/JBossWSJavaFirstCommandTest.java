@@ -59,11 +59,11 @@ import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
 /**
  * @author Grid Qian
  */
+@SuppressWarnings("restriction")
 public class JBossWSJavaFirstCommandTest extends AbstractJBossWSCommandTest {
 	protected static final IWorkspace ws = ResourcesPlugin.getWorkspace();
 	protected static final IWorkbench wb = PlatformUI.getWorkbench();
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "D:\\softinstall\\jboss-4.2.3GA\\jboss-4.2.3.GA";
 	private static final String RuntimeName;
 	private static final boolean isDeployed;
 	private IProject clientProject;
