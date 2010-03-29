@@ -68,8 +68,8 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWSGenerateWebXmlWizardPage_Project_Group;
 	public static String JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip;
 	public static String JBossWSGenerateWebXmlWizardPage_Web_Service_Group;
-	public static String JBossWSGenerateWizard_NoProjectSelected;
 	
+	public static String Error_JBossWSGenerateWizard_NoProjectSelected;
 	public static String Error_JBossWS_Label_Runtime_Load;
 	public static String Error_JBossWS_Basic_Editor_Composite;
 	public static String Error_JBossWS_Basic_Editor_Support;

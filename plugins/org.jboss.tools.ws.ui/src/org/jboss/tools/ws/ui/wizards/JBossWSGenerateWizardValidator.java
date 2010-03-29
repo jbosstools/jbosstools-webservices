@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jst.j2ee.model.IModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
+import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
 import org.eclipse.jst.javaee.core.UrlPatternType;
 import org.eclipse.jst.javaee.web.Servlet;
 import org.eclipse.jst.javaee.web.ServletMapping;
@@ -46,22 +47,24 @@ public class JBossWSGenerateWizardValidator {
 	}
 
 	public static IStatus isWSNameValid() {
+		IModelProvider provider = null;
 		if (model.getWebProjectName() == null) {
 			return StatusUtils
-					.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
+					.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
 		} else {
 			try {
-				ModelProviderManager.getModelProvider(JBossWSCreationUtils
-						.getProjectByName(model.getWebProjectName()));
-			} catch (IllegalArgumentException iae) {
+				IProject project = JBossWSCreationUtils.getProjectByName(model
+						.getWebProjectName());
+				if (!JavaEEProjectUtilities.isDynamicWebProject(project)) {
+					throw new Exception();
+				}
+				provider = ModelProviderManager.getModelProvider(project);
+			} catch (Exception exc) {
 				model.setWebProjectName(null);
 				return StatusUtils
-						.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
+						.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
 			}
 		}
-		final IModelProvider provider = ModelProviderManager
-				.getModelProvider(JBossWSCreationUtils.getProjectByName(model
-						.getWebProjectName()));
 		Object object = provider.getModelObject();
 		if (object instanceof WebApp) {
 			WebApp webApp = (WebApp) object;
@@ -115,7 +118,7 @@ public class JBossWSGenerateWizardValidator {
 					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
 		} else if (project == null) {
 			return StatusUtils
-					.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
+					.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
 		} else {
 			File file = JBossWSCreationUtils.findFileByPath(className + JAVA,
 					project.getLocation().toOSString());
