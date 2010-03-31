@@ -17,11 +17,13 @@ Require-Bundle: org.eclipse.ui,
  org.jboss.tools.ws.creation.core,
  org.eclipse.wst.common.frameworks,
  org.eclipse.wst.common.emfworkbench.integration,
- org.jboss.tools.common.ui
+ org.jboss.tools.common.ui,
+ org.eclipse.core.filesystem
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,
- org.jboss.tools.ws.ui.preferences
+ org.jboss.tools.ws.ui.preferences,
+ org.jboss.tools.ws.ui.utils
 Bundle-Vendor: %PLUGIN_PROVIDER
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: org.eclipse.jst.javaee.web,

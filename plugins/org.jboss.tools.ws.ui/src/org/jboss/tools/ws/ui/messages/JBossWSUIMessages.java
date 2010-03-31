@@ -69,7 +69,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip;
 	public static String JBossWSGenerateWebXmlWizardPage_Web_Service_Group;
 	
-	public static String Error_JBossWSGenerateWizard_NoProjectSelected;
+	public static String Error_JBossWS_GenerateWizard_NoProjectSelected;
 	public static String Error_JBossWS_Label_Runtime_Load;
 	public static String Error_JBossWS_Basic_Editor_Composite;
 	public static String Error_JBossWS_Basic_Editor_Support;
@@ -79,8 +79,13 @@ public class JBossWSUIMessages extends NLS {
 	public static String Error_JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List;
 	public static String Error_JBossWS_GenerateWizard_NotDynamicWebProject;
 	public static String Error_JBossWS_GenerateWizard_ClassName_Same;
+	public static String Error_JBossWS_GenerateWizard_PackageName_Cannot_Be_Empty;
+	public static String Error_JBossWS_GenerateWizard_ClassName_Cannot_Be_Empty;
 	public static String Error_JBossWS_GenerateWizard_ServiceName_Empty;
-	
+	public static String Error_JBossWS_GenerateWizard_IsOutputFolder;
+	public static String Error_JBossWS_GenerateWizard_PackageExists;
+	public static String Error_JBossWS_GenerateWizard_PackageNotShown;
+	public static String Error_JBossWS_GenerateWizard_PackageExistsDifferentCase;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);

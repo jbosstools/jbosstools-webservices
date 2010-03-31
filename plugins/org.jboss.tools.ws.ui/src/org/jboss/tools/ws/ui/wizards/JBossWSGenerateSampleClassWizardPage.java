@@ -55,7 +55,7 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		packageName.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				wizard.setClassName(packageName.getText());
+				wizard.setPackageName(packageName.getText());
 				setPageComplete(isPageComplete());
 			}
 
@@ -149,7 +149,7 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(
 				testName, wizard.getProject());
 		int i = 1;
-		while (status != null) {
+		while (status != null && status.getSeverity() == IStatus.ERROR) {
 			testName = currentName + i;
 			wizard.setClassName(testName);
 			model = wizard.getServiceModel();
@@ -167,12 +167,16 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(model
 				.getCustomClassName(), wizard.getProject());
 		if (status != null) {
-			setMessage(status.getMessage(), DialogPage.ERROR);
-			return false;
-		} else {
-			setMessage(null);
-			return true;
+			if (status.getSeverity() == IStatus.ERROR) {
+				setMessage(status.getMessage(), DialogPage.ERROR);
+				return false;
+			} else if (status.getSeverity() == IStatus.WARNING) {
+				setMessage(status.getMessage(), DialogPage.WARNING);
+				return true;
+			}
 		}
+		setMessage(null);
+		return true;
 	}
 
 	protected void refresh() {

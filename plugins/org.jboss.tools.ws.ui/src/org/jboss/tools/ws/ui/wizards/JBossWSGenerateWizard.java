@@ -150,7 +150,7 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 			if (firstPage != null && !firstPage.getControl().isDisposed()) {
 				if (firstPage.hasChanged())
 					firstPage
-						.setErrorMessage(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
+						.setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
 			}
 			return false;
 		}

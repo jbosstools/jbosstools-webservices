@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.j2ee.model.IModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
@@ -28,6 +29,7 @@ import org.jboss.tools.ws.creation.core.data.ServletDescriptor;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
+import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
 
 public class JBossWSGenerateWizardValidator {
 
@@ -50,7 +52,7 @@ public class JBossWSGenerateWizardValidator {
 		IModelProvider provider = null;
 		if (model.getWebProjectName() == null) {
 			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
+					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
 		} else {
 			try {
 				IProject project = JBossWSCreationUtils.getProjectByName(model
@@ -62,7 +64,7 @@ public class JBossWSGenerateWizardValidator {
 			} catch (Exception exc) {
 				model.setWebProjectName(null);
 				return StatusUtils
-						.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
+						.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
 			}
 		}
 		Object object = provider.getModelObject();
@@ -111,15 +113,20 @@ public class JBossWSGenerateWizardValidator {
 		if (model.getCustomPackage().trim().length() == 0) {
 			// empty package name
 			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_PackageName_Cannot_Be_Empty);
 		} else if (model.getCustomClassName().trim().length() == 0) {
 			// empty class name
 			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
-		} else if (project == null) {
-			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
+					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Cannot_Be_Empty);
+		} else if (project == null
+				|| !JavaEEProjectUtilities.isDynamicWebProject(project)) {
+			return null;
 		} else {
+			IStatus status = JBossWSUIUtils.validatePackageName(model
+					.getCustomPackage(), JavaCore.create(project));
+			if (status != null && status.getSeverity() == IStatus.ERROR) {
+				return status;
+			}
 			File file = JBossWSCreationUtils.findFileByPath(className + JAVA,
 					project.getLocation().toOSString());
 			if (file != null) {
@@ -127,8 +134,8 @@ public class JBossWSGenerateWizardValidator {
 				return StatusUtils
 						.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
 			}
+			return status;
 		}
-		return null;
 	}
 
 	private static ServletDescriptor getServletDescriptor(String clsName) {
