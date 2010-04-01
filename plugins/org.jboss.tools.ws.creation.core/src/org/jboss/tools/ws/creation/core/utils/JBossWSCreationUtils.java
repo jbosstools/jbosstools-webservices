@@ -398,6 +398,7 @@ public class JBossWSCreationUtils {
 			IPath p = rs[i].getLocation();
 			if (p != null) {
 				src = p.toOSString();
+				return src;
 			}
 		}
 		return src;

@@ -60,8 +60,6 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 public class ImplementationClassCreationCommand extends
 		AbstractDataModelOperation {
 
-	private static final String RESOURCE_FOLDER = "src"; //$NON-NLS-1$
-
 	private static final String PREFIX_JAXWS_ANNOTATION_CLASS = "javax.jws"; //$NON-NLS-1$
 	private static final String DEFAULT_CU_SUFFIX = ".java"; //$NON-NLS-1$
 
@@ -73,6 +71,7 @@ public class ImplementationClassCreationCommand extends
 
 	private ServiceModel model;
 	private IWorkspaceRoot fWorkspaceRoot;
+	private IProject project;
 
 	public ImplementationClassCreationCommand(ServiceModel model) {
 		this.model = model;
@@ -91,7 +90,7 @@ public class ImplementationClassCreationCommand extends
 		}
 
 		IStatus status = Status.OK_STATUS;
-
+		project = JBossWSCreationUtils.getProjectByName(model.getWebProjectName());
 		try {
 			List<String> portTypes = model.getPortTypes();
 			for (String portTypeName : portTypes) {
@@ -214,13 +213,11 @@ public class ImplementationClassCreationCommand extends
 		return model.getCustomPackage() /* + ".impl" */;
 	}
 
-	private IPackageFragmentRoot getPackageFragmentRoot() {
-		String str = model.getWebProjectName() + File.separator
-				+ RESOURCE_FOLDER;
+	private IPackageFragmentRoot getPackageFragmentRoot() throws JavaModelException {
+		String str = model.getWebProjectName() + File.separator+ getSourceFolderPath(project);
 		IPath path = new Path(str);
 		IResource res = fWorkspaceRoot.findMember(path);
-		IProject prj = res.getProject();
-		IJavaProject javaPrj = JavaCore.create(prj);
+		IJavaProject javaPrj = JavaCore.create(project);
 		return javaPrj.getPackageFragmentRoot(res);
 
 	}
@@ -462,20 +459,24 @@ public class ImplementationClassCreationCommand extends
 		return cu;
 	}
 
-	private IFile getServiceInterfaceFile(String portTypeName) {
+	private IFile getServiceInterfaceFile(String portTypeName)
+			throws JavaModelException {
 		IFolder pkgFolder = getPackageFolder();
 		IFile inFile = pkgFolder.getFile(portTypeName + DEFAULT_CU_SUFFIX);
 		return inFile;
 	}
 
-	private IFolder getPackageFolder() {
-		IProject project = JBossWSCreationUtils.getProjectByName(model
-				.getWebProjectName());
-		IFolder srcFolder = project.getFolder(RESOURCE_FOLDER);
+	private IFolder getPackageFolder() throws JavaModelException {
+		IFolder srcFolder = project.getFolder(getSourceFolderPath(project));
 		String pkgFolderName = model.getCustomPackage().replace(".", //$NON-NLS-1$
 				File.separator);
 		return srcFolder.getFolder(pkgFolderName);
 
+	}
+	
+	private IPath getSourceFolderPath(IProject project) throws JavaModelException{
+		IPath path = new Path(JBossWSCreationUtils.getJavaProjectSrcLocation(project.getProject()));
+		return path.makeRelativeTo(project.getProject().getLocation());
 	}
 
 }
