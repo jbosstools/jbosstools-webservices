@@ -62,7 +62,6 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 		lblCustomPakage
 				.setText(JBossWSCreationCoreMessages.Label_Custom_Package_Name);
 		final Text txtCustomPkgName = new Text(configCom, SWT.BORDER);
-		txtCustomPkgName.setText(model.getCustomPackage());
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		txtCustomPkgName.setLayoutData(gd);
@@ -75,6 +74,7 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 				statusListener.handleEvent(null);
 			}
 		});
+		txtCustomPkgName.setText(model.getCustomPackage());
 
 		// target
 		new Label(configCom, SWT.NONE)
