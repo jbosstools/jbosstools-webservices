@@ -12,9 +12,11 @@ package org.jboss.tools.ws.ui.wizards;
 
 import java.util.ArrayList;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
@@ -32,6 +34,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
@@ -208,6 +211,27 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 		if (!projects.isDisposed() && projects.getText().length() > 0) {
 			model.setWebProjectName(projects.getText());
 		}
+
+		if (((JBossWSGenerateWizard) this.getWizard()).getProject() == null) {
+			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
+			return false;
+		}
+
+		IFile web = ((JBossWSGenerateWizard) this.getWizard()).getWebFile();
+		if (web == null || !web.exists()) {
+			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
+			return false;
+		}
+
+		try {
+			if (""	.equals(JBossWSCreationUtils.getJavaProjectSrcLocation(((JBossWSGenerateWizard) this.getWizard()).getProject()))) { //$NON-NLS-1$
+				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoSrcInProject);
+				return false;
+			}
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+
 		IStatus status = JBossWSGenerateWizardValidator.isWSNameValid();
 		if (status != null) {
 			setErrorMessage(status.getMessage());

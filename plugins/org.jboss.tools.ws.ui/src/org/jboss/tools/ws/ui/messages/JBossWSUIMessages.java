@@ -86,6 +86,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String Error_JBossWS_GenerateWizard_PackageExists;
 	public static String Error_JBossWS_GenerateWizard_PackageNotShown;
 	public static String Error_JBossWS_GenerateWizard_PackageExistsDifferentCase;
+	public static String Error_JBossWS_GenerateWizard_NoSrcInProject;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);

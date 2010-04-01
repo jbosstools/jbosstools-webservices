@@ -55,7 +55,6 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 	private static String JAVA = ".java"; //$NON-NLS-1$
 	private static String WEBINF = "WEB-INF"; //$NON-NLS-1$
 	private IFile webFile;
-	private boolean hasInited = false;
 
 	public JBossWSGenerateWizard() {
 		super();
@@ -141,27 +140,10 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 					JBossWSCreationUtils.getWebContentRootPath(project).append(WEBINF))
 					.getFile(WEB);
 		}
-		hasInited = true;
 	}
 
 	@Override
 	public boolean canFinish() {
-		if (getProject() == null) {
-			if (firstPage != null && !firstPage.getControl().isDisposed()) {
-				if (firstPage.hasChanged())
-					firstPage
-						.setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
-			}
-			return false;
-		}
-		if (hasInited && (webFile == null || !webFile.exists())) {
-			if (firstPage != null && !firstPage.getControl().isDisposed()) {
-				if (firstPage.hasChanged())
-					firstPage
-						.setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
-			}
-			return false;
-		}
 		return super.canFinish();
 	}
 
@@ -247,5 +229,10 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 				}
 			}
 		}
+	}
+	
+
+	public IFile getWebFile() {
+		return webFile;
 	}
 }
