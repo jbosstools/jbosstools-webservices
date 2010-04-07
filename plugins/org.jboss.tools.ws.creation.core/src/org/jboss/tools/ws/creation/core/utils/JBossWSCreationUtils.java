@@ -482,5 +482,22 @@ public class JBossWSCreationUtils {
 		}
 		return path;
 	}
-
+	public static File findFileByPath(String name, String path) {
+		File ret = null;
+		File folder = new File(path);
+		if (folder.isDirectory()) {
+			File[] files = folder.listFiles();
+			for (File file : files) {
+				ret = findFileByPath(name, file.getAbsolutePath());
+				if (ret != null) {
+					break;
+				}
+			}
+		} else {
+			if (name.equals(folder.getName())) {
+				ret = folder;
+			}
+		}
+		return ret;
+	}
 }

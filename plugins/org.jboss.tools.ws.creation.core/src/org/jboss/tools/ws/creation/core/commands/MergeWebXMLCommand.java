@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.creation.core.commands;
 
+import java.io.File;
 import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -18,6 +19,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jst.j2ee.model.IModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
@@ -28,7 +30,14 @@ import org.eclipse.jst.javaee.web.Servlet;
 import org.eclipse.jst.javaee.web.ServletMapping;
 import org.eclipse.jst.javaee.web.WebApp;
 import org.eclipse.jst.javaee.web.WebFactory;
+import org.eclipse.jst.jee.project.facet.ICreateDeploymentFilesDataModelProperties;
+import org.eclipse.jst.jee.project.facet.WebCreateDeploymentFilesDataModelProvider;
+import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
+import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
+import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
+import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
@@ -41,6 +50,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
 	IStatus status;
+	private static String WEB_XML = "web.xml"; //$NON-NLS-1$
 
 	public MergeWebXMLCommand(ServiceModel model) {
 		this.model = model;
@@ -60,7 +70,19 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		for (int i = 0; i < serviceClasses.size(); i++) {
 			servletDescriptors[i] = getServletDescriptor(serviceClasses.get(i));
 		}
-
+		IProject pro = JBossWSCreationUtils.getProjectByName(model.getWebProjectName());
+        if (!hasWebXML(pro)) {
+			IVirtualComponent vc = ComponentCore.createComponent(pro);
+			IDataModel model = DataModelFactory.createDataModel(new WebCreateDeploymentFilesDataModelProvider());
+			model.setProperty(ICreateDeploymentFilesDataModelProperties.GENERATE_DD, vc);
+			model.setProperty(ICreateDeploymentFilesDataModelProperties.TARGET_PROJECT, pro);
+			IDataModelOperation op = model.getDefaultOperation();
+			try {
+				op.execute(new NullProgressMonitor(), null);
+			} catch (ExecutionException e1) {
+				// Ignore
+			}	
+        }
 		mergeWebXML(servletDescriptors);
 		return status;
 	}
@@ -211,7 +233,18 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 			webapp.getServletMappings().add(servletMapping);
 		}
 	}
-
+	
+	private boolean hasWebXML(IProject pro) {
+		// we are looking for this recursively because though application.xml
+		// is always in META-INF, it's not always in "earcontent" since the
+		// earcontent folder name can be custom
+		File file = JBossWSCreationUtils.findFileByPath(WEB_XML, pro.getLocation().toOSString());
+        if(file == null){
+        	return false;
+        }
+		return true;
+	}
+	
 	public class ServletDescriptor {
 		String _name;
 		String _className;
