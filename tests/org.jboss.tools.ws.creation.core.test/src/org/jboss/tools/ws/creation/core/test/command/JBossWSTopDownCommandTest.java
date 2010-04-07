@@ -8,7 +8,7 @@
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/ 
-package org.jboss.tools.ws.core.test.command;
+package org.jboss.tools.ws.creation.core.test.command;
 
 import java.io.IOException;
 import java.net.URL;
@@ -60,13 +60,10 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 	private static final boolean isDeployed;
 
 	static String wsdlFileName = "hello_world.wsdl";
-	static String BUNDLE = "org.jboss.tools.ws.core.test";
 		
 	static {
 		RuntimeName = "testjbosswsruntime";
-		isDeployed = false;
-		
-		
+		isDeployed = false;	
 	}
 
 	public JBossWSTopDownCommandTest() {
@@ -90,10 +87,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 		super.tearDown();
 		resourcesToCleanup.clear();
 		JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
-		JBossWSRuntimeManager.getInstance().removeRuntime(runtime);
-	
-		
-		
+		JBossWSRuntimeManager.getInstance().removeRuntime(runtime);	
 	}
 
 	

@@ -8,7 +8,7 @@
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.ws.core.test.command;
+package org.jboss.tools.ws.creation.core.test.command;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

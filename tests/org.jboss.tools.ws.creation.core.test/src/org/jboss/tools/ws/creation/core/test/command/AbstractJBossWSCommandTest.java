@@ -8,7 +8,7 @@
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.ws.core.test.command;
+package org.jboss.tools.ws.creation.core.test.command;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -90,7 +90,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	private static final IProjectFacet jbosswsFacet;
 
 	static String wsdlFileName = "hello_world.wsdl";
-	static String BUNDLE = "org.jboss.tools.ws.core.test";
+	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
 
 	IFacetedProject fproject;
 	protected IRuntime currentRuntime;

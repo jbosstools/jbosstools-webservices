@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name.0
-Bundle-SymbolicName: org.jboss.tools.ws.core.test
+Bundle-SymbolicName: org.jboss.tools.ws.creation.core.test
 Bundle-Version: 1.0.0
-Bundle-Activator: org.jboss.tools.ws.core.test.Activator
+Bundle-Activator: org.jboss.tools.ws.creation.core.test.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.junit,
@@ -32,10 +32,11 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text,
  org.jboss.ide.eclipse.as.classpath.core
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: ws-core-test.jar
-Export-Package: org.jboss.tools.ws.core.test,
- org.jboss.tools.ws.core.test.classpath
+Bundle-ClassPath: ws-creation-core-test.jar
+Export-Package: org.jboss.tools.ws.creation.core.test,
+ org.jboss.tools.ws.creation.core.test.command
 Bundle-Vendor: %Bundle-Vendor.0
 Bundle-Localization: plugin
 Import-Package: org.eclipse.jdt.launching
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
+
