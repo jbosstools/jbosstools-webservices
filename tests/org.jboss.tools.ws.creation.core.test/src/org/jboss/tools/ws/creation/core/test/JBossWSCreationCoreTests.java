@@ -17,6 +17,7 @@ import junit.framework.TestSuite;
 
 import org.jboss.tools.ws.creation.core.test.command.JBossWSClientCommandTest;
 import org.jboss.tools.ws.creation.core.test.command.JBossWSJavaFirstCommandTest;
+import org.jboss.tools.ws.creation.core.test.command.JBossWSMergeWebXMLCommandTest;
 import org.jboss.tools.ws.creation.core.test.command.JBossWSTopDownCommandTest;
 
 public class JBossWSCreationCoreTests extends TestCase {
@@ -27,6 +28,7 @@ public class JBossWSCreationCoreTests extends TestCase {
 		suite.addTestSuite(JBossWSTopDownCommandTest.class);
 		suite.addTestSuite(JBossWSJavaFirstCommandTest.class);
 		suite.addTestSuite(JBossWSClientCommandTest.class);
+		suite.addTestSuite(JBossWSMergeWebXMLCommandTest.class);
 		return suite;
 	}
 }
