@@ -55,7 +55,7 @@ public class JBossWSGenerateSampleClassWizardPage extends WizardPage {
 		packageName.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				wizard.setClassName(packageName.getText());
+				wizard.setPackageName(packageName.getText());
 				setPageComplete(isPageComplete());
 			}
 

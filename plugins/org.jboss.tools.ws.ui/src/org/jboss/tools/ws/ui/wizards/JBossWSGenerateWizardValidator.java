@@ -21,6 +21,7 @@ import org.eclipse.jst.javaee.core.UrlPatternType;
 import org.eclipse.jst.javaee.web.Servlet;
 import org.eclipse.jst.javaee.web.ServletMapping;
 import org.eclipse.jst.javaee.web.WebApp;
+import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
@@ -28,54 +29,58 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 public class JBossWSGenerateWizardValidator {
-	
+
 	private static ServiceModel model;
 	private static ServletDescriptor[] descriptors;
-	
+
 	private static String JAVA = ".java"; //$NON-NLS-1$
 
-	public static void setServiceModel ( ServiceModel inModel ) {
+	public static void setServiceModel(ServiceModel inModel) {
 		model = inModel;
 
 		descriptors = new ServletDescriptor[model.getServiceClasses().size()];
-   		List<String> serviceClasses = model.getServiceClasses();
-   		for (int i = 0; i < serviceClasses.size(); i++) {
-   			descriptors[i] = getServletDescriptor(serviceClasses.get(i));
-   		}
+		List<String> serviceClasses = model.getServiceClasses();
+		for (int i = 0; i < serviceClasses.size(); i++) {
+			descriptors[i] = getServletDescriptor(serviceClasses.get(i));
+		}
 	}
 
 	public static IStatus isWSNameValid() {
+		IModelProvider provider = null;
 		if (model.getWebProjectName() == null) {
-			return StatusUtils.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
-		}
-		else {
+			return StatusUtils
+					.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
+		} else {
 			try {
-				ModelProviderManager
-					.getModelProvider(JBossWSCreationUtils.getProjectByName(model
-							.getWebProjectName()));
-			} catch (IllegalArgumentException iae) {
-				// ignore
+				IProject project = JBossWSCreationUtils.getProjectByName(model
+						.getWebProjectName());
+				if (!JavaEEProjectUtilities.isDynamicWebProject(project)) {
+					throw new Exception();
+				}
+				provider = ModelProviderManager.getModelProvider(project);
+			} catch (Exception exc) {
 				model.setWebProjectName(null);
-				return StatusUtils.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
+				return StatusUtils
+						.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
 			}
+
 		}
-		final IModelProvider provider = ModelProviderManager
-			.getModelProvider(JBossWSCreationUtils.getProjectByName(model
-				.getWebProjectName()));
 		Object object = provider.getModelObject();
 		if (object instanceof WebApp) {
 			WebApp webApp = (WebApp) object;
 			if (model != null) {
 				for (int i = 0; i < descriptors.length; i++) {
-					if (descriptors[i].getName().trim().length() == 0 ) {
-						return StatusUtils.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ServiceName_Empty);
+					if (descriptors[i].getName().trim().length() == 0) {
+						return StatusUtils
+								.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ServiceName_Empty);
 					}
 					List<?> theServlets = webApp.getServlets();
 					for (int j = 0; j < theServlets.size(); j++) {
-						Servlet aServlet = (Servlet) theServlets
-								.get(j);
-						if (aServlet.getServletName().equals(descriptors[i].getName())) {
-							return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+						Servlet aServlet = (Servlet) theServlets.get(j);
+						if (aServlet.getServletName().equals(
+								descriptors[i].getName())) {
+							return StatusUtils
+									.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 						}
 					}
 					List<?> theServletMappings = webApp.getServletMappings();
@@ -84,10 +89,14 @@ public class JBossWSGenerateWizardValidator {
 								.get(j);
 						List<?> urlPatterns = aServletMapping.getUrlPatterns();
 						for (int k = 0; k < urlPatterns.size(); k++) {
-							UrlPatternType upt = (UrlPatternType) urlPatterns.get(k);
-							if (aServletMapping.getServletName().equals(descriptors[i].getName()) ||
-									upt.getValue().equals(descriptors[i].getMappings())) {
-								return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+							UrlPatternType upt = (UrlPatternType) urlPatterns
+									.get(k);
+							if (aServletMapping.getServletName().equals(
+									descriptors[i].getName())
+									|| upt.getValue().equals(
+											descriptors[i].getMappings())) {
+								return StatusUtils
+										.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 							}
 						}
 					}
@@ -97,25 +106,26 @@ public class JBossWSGenerateWizardValidator {
 		}
 		return null;
 	}
-	
+
 	public static IStatus isWSClassValid(String className, IProject project) {
 		if (model.getCustomPackage().trim().length() == 0) {
 			// empty package name
-			return StatusUtils.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
-		}
-		else if (model.getCustomClassName().trim().length() == 0 ) {
+			return StatusUtils
+					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+		} else if (model.getCustomClassName().trim().length() == 0) {
 			// empty class name
-			return StatusUtils.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
-		}
-		else if (project == null) {
-			return StatusUtils.errorStatus(JBossWSUIMessages.JBossWSGenerateWizard_NoProjectSelected);
-		}
-		else {
-			File file = findFileByPath(className + JAVA, project
-					.getLocation().toOSString());
+			return StatusUtils
+					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+		} else if (project == null) {
+			return StatusUtils
+					.errorStatus(JBossWSUIMessages.Error_JBossWSGenerateWizard_NoProjectSelected);
+		} else {
+			File file = findFileByPath(className + JAVA, project.getLocation()
+					.toOSString());
 			if (file != null) {
 				// class already exists
-				return StatusUtils.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+				return StatusUtils
+						.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
 			}
 		}
 		return null;
@@ -134,7 +144,8 @@ public class JBossWSGenerateWizardValidator {
 		sd.setName(servletName);
 		sd.setDisplayName(sd.getName());
 		sd.setClassName(clsName);
-		sd.setMappings(JBossWSCreationCoreMessages.Separator_Java + sd.getDisplayName());
+		sd.setMappings(JBossWSCreationCoreMessages.Separator_Java
+				+ sd.getDisplayName());
 		return sd;
 	}
 
