@@ -302,15 +302,20 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * @param annotation
 	 * @return
 	 */
-	private List<ICompilationUnit> findJavaUnitsByAnnotation(
+	public List<ICompilationUnit> findJavaUnitsByAnnotation(
 			IJavaProject project, String annotation) {
 		List<ICompilationUnit> units = new LinkedList<ICompilationUnit>();
 		try {
-			ICompilationUnit[] javaFiles = project.findPackageFragment(
-					addPackagetoPath(project)).getCompilationUnits();
-			for (ICompilationUnit unit : javaFiles) {
-				if (unit.getSource().contains(annotation)) {
-					units.add(unit);
+			ICompilationUnit[] javaFiles = null;
+			if (project.findPackageFragment(addPackagetoPath(project)) != null) {
+				javaFiles = project.findPackageFragment(
+						addPackagetoPath(project)).getCompilationUnits();
+			}
+			if (javaFiles != null) {
+				for (ICompilationUnit unit : javaFiles) {
+					if (unit.getSource().contains(annotation)) {
+						units.add(unit);
+					}
 				}
 			}
 		} catch (JavaModelException e) {

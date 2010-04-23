@@ -43,14 +43,14 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		this.model = model;
 		cmdFileName_linux = getCommandLineFileName_linux();
 		cmdFileName_win = getCommandLineFileName_win();
-	
+
 	}
 
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		if(monitor==null) {
-			monitor=new NullProgressMonitor();
+		if (monitor == null) {
+			monitor = new NullProgressMonitor();
 		}
 		try {
 			monitor.beginTask("", 100); //$NON-NLS-1$
@@ -114,11 +114,14 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					JBossWSCreationCore.getDefault().logError(
 							inputResult.toString());
 
-//					there is no way to know if the failure of invoking is because of failure of
-//					compiling or because of failure of generating java code, so try to analyze the
-//					output string of the command, if the string contains "javac -d", means the java
-//					java code generating is complete.
-					
+					// there is no way to know if the failure of invoking is
+					// because of failure of
+					// compiling or because of failure of generating java code,
+					// so try to analyze the
+					// output string of the command, if the string contains
+					// "javac -d", means the java
+					// java code generating is complete.
+
 					if (resultInput != null
 							&& resultInput.indexOf("javac -d") >= 0) {//$NON-NLS-1$
 						return StatusUtils
@@ -126,18 +129,27 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					}
 					return StatusUtils.errorStatus(errorResult.toString());
 				} else {
-					if (resultInput != null
-							&& resultInput.indexOf("[ERROR]") >= 0) { //$NON-NLS-1$
-						JBossWSCreationCore.getDefault()
-								.logWarning(resultInput);
-						IStatus errorStatus = StatusUtils
-								.warningStatus(resultInput);
-						status = StatusUtils
-								.warningStatus(
-										JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
-										new CoreException(errorStatus));
-					} else {
-						JBossWSCreationCore.getDefault().logInfo(resultInput);
+					if (resultInput != null) {
+						if (resultInput.indexOf("[ERROR]") >= 0) { //$NON-NLS-1$
+							JBossWSCreationCore.getDefault().logWarning(
+									resultInput);
+							IStatus errorStatus = StatusUtils
+									.warningStatus(resultInput);
+							status = StatusUtils
+									.warningStatus(
+											JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
+											new CoreException(errorStatus));
+						}
+						if (resultInput.indexOf("error") >= 0) { //$NON-NLS-1$
+							JBossWSCreationCore.getDefault().logError(
+									resultInput);
+							IStatus errorStatus = StatusUtils
+									.errorStatus(resultInput);
+							status = StatusUtils
+									.errorStatus(
+											JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
+											new CoreException(errorStatus));
+						}
 					}
 				}
 
@@ -161,33 +173,36 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 
 	}
 
-	//SET JAVA_HOME environment variable to the location of java runtime of the project if the user
+	// SET JAVA_HOME environment variable to the location of java runtime of the
+	// project if the user
 	// doesn't set the env variable
-	private String[] getEnvironmentVariables(IProject project){
+	private String[] getEnvironmentVariables(IProject project) {
 		String[] env = null;
 		String javaHome = System.getenv(JAVA_HOME);
-		if(javaHome == null || !(new File(javaHome).exists())){
+		if (javaHome == null || !(new File(javaHome).exists())) {
 			IJavaProject javaProject = JavaCore.create(project);
-			if(javaProject == null || !javaProject.exists()) return null;
-			
+			if (javaProject == null || !javaProject.exists())
+				return null;
+
 			try {
-				if(!javaProject.isOpen()){
+				if (!javaProject.isOpen()) {
 					javaProject.open(null);
 				}
-				
+
 				IVMInstall vm = JavaRuntime.getVMInstall(javaProject);
 				String javaLocation = vm.getInstallLocation().toString();
-				env = new String[]{JAVA_HOME + "=" + javaLocation};  //$NON-NLS-1$
-				
+				env = new String[] { JAVA_HOME + "=" + javaLocation }; //$NON-NLS-1$
+
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}
 		}
-		
+
 		return env;
 	}
-	
-	private void addCommonArgs(List<String> command, IProject project) throws Exception {
+
+	private void addCommonArgs(List<String> command, IProject project)
+			throws Exception {
 		String projectRoot = JBossWSCreationUtils.getProjectRoot(
 				model.getWebProjectName()).toOSString();
 		IJavaProject javaProject = JavaCore.create(project);
