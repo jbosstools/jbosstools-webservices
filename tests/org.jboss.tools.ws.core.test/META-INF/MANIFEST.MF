@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name.0
 Bundle-SymbolicName: org.jboss.tools.ws.core.test
-Bundle-Version: 1.0.0
+Bundle-Version: 1.1.0.qualifier
 Bundle-Activator: org.jboss.tools.ws.core.test.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -13,7 +13,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.common.project.facet.core,
  org.eclipse.wst.common.frameworks,
  org.eclipse.ui.ide,
- org.jboss.tools.common.test,
  org.jboss.tools.ws.creation.core,
  org.eclipse.wst.command.env.ui,
  org.eclipse.wst.ws,

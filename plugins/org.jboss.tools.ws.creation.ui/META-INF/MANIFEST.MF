@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %PLUGIN_NAME
 Bundle-Localization: plugin
 Bundle-SymbolicName: org.jboss.tools.ws.creation.ui;singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 1.1.0.qualifier
 Bundle-Activator: org.jboss.tools.ws.creation.ui.JBossWSCreationUIPlugin
 Bundle-Vendor: %PLUGIN_PROVIDER
 Require-Bundle: org.eclipse.ui,
