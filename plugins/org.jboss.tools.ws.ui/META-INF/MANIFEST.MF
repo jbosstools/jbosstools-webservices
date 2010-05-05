@@ -18,7 +18,11 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.common.frameworks,
  org.eclipse.wst.common.emfworkbench.integration,
  org.jboss.tools.common.ui,
- org.eclipse.core.filesystem
+ org.eclipse.core.filesystem,
+ com.ibm.icu,
+ org.apache.axis,
+ javax.xml.soap,
+ javax.xml.rpc
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,

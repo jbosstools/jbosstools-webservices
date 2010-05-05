@@ -88,6 +88,20 @@ public class JBossWSUIMessages extends NLS {
 	public static String Error_JBossWS_GenerateWizard_PackageExistsDifferentCase;
 	public static String Error_JBossWS_GenerateWizard_NoSrcInProject;
 	
+	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Title;
+	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Message;
+	public static String JAXRSWSTestView_Action_URL_Label;
+	public static String JAXRSWSTestView_HTTP_Method_Label;
+	public static String JAXRSWSTestView_Invoke_Label;
+	public static String JAXRSWSTestView_Request_Body_Label;
+	public static String JAXRSWSTestView_Request_Header_Label;
+	public static String JAXRSWSTestView_Request_Parameters_Label;
+	public static String JAXRSWSTestView_Results_Body_Label;
+	public static String JAXRSWSTestView_Results_Header_Label;
+	public static String JAXRSWSTestView_Service_URL_Label;
+	public static String JAXRSWSTestView_Set_Sample_Data_Label;
+	public static String JAXRSWSTestView_Web_Service_Type_Label;
+	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);
 	}
