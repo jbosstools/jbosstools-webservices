@@ -35,11 +35,16 @@ import org.apache.axis.message.SOAPEnvelope;
  */
 public class WSTestUtils {
 	
+	private static Map<?, ?> requestHeaders = null;
 	private static Map<?, ?> resultHeaders = null;
 	private static String EMPTY_STRING = ""; //$NON-NLS-1$
 
 	public static Map<?, ?> getResultHeaders() {
 		return WSTestUtils.resultHeaders;
+	}
+	
+	public static Map<?, ?> getRequestHeaders() {
+		return WSTestUtils.requestHeaders;
 	}
 	
 	/*
@@ -92,6 +97,10 @@ public class WSTestUtils {
         // build the complete URL
         URL url = null;
         if (query != null) {
+        	// add the ? if there are parameters
+            if (!address.endsWith("?") && methodType.equalsIgnoreCase("GET") ) {  //$NON-NLS-1$//$NON-NLS-2$
+            	address = address + "?"; //$NON-NLS-1$
+            }
         	// add parms to the url if we have some
         	url = new URL(address + query);
         } else {
@@ -116,7 +125,7 @@ public class WSTestUtils {
         // set whether this is a GET or POST
         httpurlc.setRequestMethod(methodType);
         
-        // if we are sending/receiving XML, make sure the connection knows
+        // if we have headers to add
         if (headers != null && !headers.isEmpty()) {
         	Iterator<?> iter = headers.entrySet().iterator();
         	while (iter.hasNext()) {
@@ -126,12 +135,15 @@ public class WSTestUtils {
         	}
         }
         
+        requestHeaders = httpurlc.getRequestProperties();
+        
         // CONNECT!
         httpurlc.connect();
 
         // If we are doing a POST and we have some request body to pass along, do it
         if (requestBody != null && ( methodType.equalsIgnoreCase("POST")  //$NON-NLS-1$
         		|| methodType.equalsIgnoreCase("PUT"))) { //$NON-NLS-1$
+        	requestBody = stripNLsFromXML(requestBody);
         	OutputStreamWriter out = new OutputStreamWriter(httpurlc.getOutputStream());
         	out.write(requestBody);
         	out.close();
@@ -149,7 +161,7 @@ public class WSTestUtils {
         br.close();
         response = sb.toString();
         
-        WSTestUtils.resultHeaders = httpurlc.getHeaderFields();
+        resultHeaders = httpurlc.getHeaderFields();
         
         // disconnect explicitly (may not be necessary)
         httpurlc.disconnect();
@@ -171,7 +183,7 @@ public class WSTestUtils {
 		String soapIn = body;	
 
     	/* Use AXIS to call the WS */
-		String document = soapIn;
+		String document = stripNLsFromXML(soapIn);
 		Service service = new Service();
 		Call call= (Call) service.createCall();
 		call.setTargetEndpointAddress( new java.net.URL(endpoint) );
@@ -180,7 +192,31 @@ public class WSTestUtils {
 		    call.setProperty(Call.SOAPACTION_USE_PROPERTY,Boolean.TRUE);
 		    call.setProperty(Call.SOAPACTION_URI_PROPERTY,action);
 		}
-		SOAPEnvelope envelope = call.invoke( new Message(document) );
-		return envelope.getBody().toString().replaceAll("><",">\n<");//$NON-NLS-1$ //$NON-NLS-2$
+		Message message = new Message(document);
+		SOAPEnvelope envelope = call.invoke( message );
+		System.out.println(envelope.getHeaders().toString());
+		
+		String cleanedUp = stripNLsFromXML(envelope.getBody().toString());
+		return cleanedUp;
+	}
+	
+	public static String addNLsToXML( String incoming ) {
+		String outgoing = null;
+		if (incoming != null) {
+			outgoing = incoming.replaceAll("><",">\n<");//$NON-NLS-1$ //$NON-NLS-2$
+		}
+		return outgoing;
+	}
+	
+	public static String stripNLsFromXML ( String incoming ) {
+		String outgoing = null;
+		if (incoming != null) {
+			outgoing = incoming.replaceAll(">\n<","><");//$NON-NLS-1$ //$NON-NLS-2$
+			if (outgoing.contains("\n"))//$NON-NLS-1$ 
+				outgoing.replaceAll("\n"," ");//$NON-NLS-1$ //$NON-NLS-2$
+			if (outgoing.contains("\r"))//$NON-NLS-1$ 
+				outgoing.replaceAll("\r"," ");//$NON-NLS-1$ //$NON-NLS-2$
+		}
+		return outgoing;
 	}
 }

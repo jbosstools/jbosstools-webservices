@@ -51,12 +51,11 @@ public class DelimitedStringList extends Composite {
 	private Button mEditButton;
 	private List mPropsList;
 	private Text mAddText;
-	private Text mHiddenText;
 	private boolean isReadOnly = false;
 
 	// current delimiter
 	private String mDelimiter = DELIMITER;
-
+	
 	// Warning
 	private String mWarning = null;
 
@@ -212,33 +211,11 @@ public class DelimitedStringList extends Composite {
 
 				public void widgetSelected(SelectionEvent e) {
 					DelimitedStringList.this.mPropsList.removeAll();
-					DelimitedStringList.this.mHiddenText.setText(DelimitedStringList.this.getSelection().trim());
 					updatePropertyButtons();
 				}
 			});
 		}
-		{
-			this.mHiddenText = new Text(this, SWT.BORDER);
-			final GridData gridData = new GridData();
-			gridData.horizontalSpan = 2;
-			this.mHiddenText.setLayoutData(gridData);
-			this.mHiddenText.setVisible(false);
-		}
 		updatePropertyButtons();
-	}
-
-	/**
-	 * Add a listener to receive notifications when the property list is
-	 * modified.
-	 * 
-	 * @param listener
-	 */
-	public void addModifyListener(ModifyListener listener) {
-		this.mHiddenText.addModifyListener(listener);
-	}
-
-	public void removeModifyListener(ModifyListener listener) {
-		this.mHiddenText.removeModifyListener(listener);
 	}
 
 	public void dispose() {
@@ -258,8 +235,6 @@ public class DelimitedStringList extends Composite {
 			if (!isReadOnly){
 				this.mClearAllButton.setEnabled(true);
 			}
-			String selected = getSelection();
-			this.mHiddenText.setText(selected.trim());
 			this.mAddText.setSelection(0, this.mAddText.getText().length());
 			this.mAddText.setFocus();
 		}
@@ -293,9 +268,6 @@ public class DelimitedStringList extends Composite {
 		if (this.mPropsList.getSelectionCount() == 1) {
 			int index = this.mPropsList.getSelectionIndex();
 			this.mPropsList.remove(index);
-			String selected = getSelection();
-			this.mHiddenText.setText(selected.trim());
-
 			try {
 				if (this.mPropsList.getItem(index) != null) {
 					this.mPropsList.select(index);
@@ -339,8 +311,6 @@ public class DelimitedStringList extends Composite {
 					}
 				}
 
-				String selected = getSelection();
-				this.mHiddenText.setText(selected.trim());
 				this.mPropsList.setSelection(destination);
 			}
 		}
@@ -380,8 +350,6 @@ public class DelimitedStringList extends Composite {
 					counter++;
 				}
 
-				String selected = getSelection();
-				this.mHiddenText.setText(selected.trim());
 				this.mPropsList.setSelection(destination);
 
 			}

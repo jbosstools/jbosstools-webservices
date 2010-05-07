@@ -91,8 +91,10 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Title;
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Message;
 	public static String JAXRSWSTestView_Action_URL_Label;
+	public static String JAXRSWSTestView_Configure_Monitor_Button;
 	public static String JAXRSWSTestView_HTTP_Method_Label;
 	public static String JAXRSWSTestView_Invoke_Label;
+	public static String JAXRSWSTestView_Open_Monitor_Button;
 	public static String JAXRSWSTestView_Request_Body_Label;
 	public static String JAXRSWSTestView_Request_Header_Label;
 	public static String JAXRSWSTestView_Request_Parameters_Label;
