@@ -18,6 +18,12 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.IJobChangeListener;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -42,9 +48,17 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wst.internet.monitor.core.internal.provisional.IMonitor;
 import org.eclipse.wst.internet.monitor.core.internal.provisional.MonitorCore;
+import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
+import org.jboss.tools.ws.ui.utils.JAXRSTester;
+import org.jboss.tools.ws.ui.utils.JAXWSTester;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
 
+/**
+ * View for testing web services (JAX-WS & JAX-RS)
+ * @author bfitzpat
+ *
+ */
 @SuppressWarnings("restriction")
 public class JAXRSWSTestView extends ViewPart {
 
@@ -56,6 +70,7 @@ public class JAXRSWSTestView extends ViewPart {
 	private static final String JAX_WS = "JAX-WS"; //$NON-NLS-1$
 	private static final String JAX_RS = "JAX-RS"; //$NON-NLS-1$
 	private static final String EMPTY_STRING = ""; //$NON-NLS-1$
+	private static final String RESULT_HEADER_DELIMITER = "%";//$NON-NLS-1$
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -84,7 +99,7 @@ public class JAXRSWSTestView extends ViewPart {
 	private DelimitedStringList parmsList;
 	private Button openTCPIPMonitorButton;
 	private Button addTCPIPMonitorButton;
-	
+
 	/**
 	 * The constructor.
 	 */
@@ -99,17 +114,17 @@ public class JAXRSWSTestView extends ViewPart {
 
 		Composite innerComposite = new Composite (parent, SWT.NONE);
 		innerComposite.setLayout(new FillLayout());
-		
+
 		SashForm sashForm = new SashForm(innerComposite, SWT.BORDER);
 		sashForm.setOrientation(SWT.HORIZONTAL);
-		
-	    Composite topHalf = new Composite (sashForm, SWT.NONE);
+
+		Composite topHalf = new Composite (sashForm, SWT.NONE);
 		topHalf.setLayout(new GridLayout(2, false));
-		
+
 		Label typeLabel = new Label(topHalf, SWT.NONE);
 		typeLabel.setText(JBossWSUIMessages.JAXRSWSTestView_Web_Service_Type_Label);
 		typeLabel.setLayoutData(new GridData());
-		
+
 		wsTypeCombo = new Combo(topHalf, SWT.DROP_DOWN | SWT.READ_ONLY);
 		wsTypeCombo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		wsTypeCombo.add(JAX_WS);
@@ -124,11 +139,11 @@ public class JAXRSWSTestView extends ViewPart {
 				setControlsForSelectedURL();
 			}
 		});
-		
+
 		Label methodLabel = new Label(topHalf, SWT.NONE);
 		methodLabel.setText(JBossWSUIMessages.JAXRSWSTestView_HTTP_Method_Label);
 		methodLabel.setLayoutData(new GridData());
-		
+
 		methodCombo = new Combo(topHalf, SWT.DROP_DOWN | SWT.READ_ONLY);
 		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		methodCombo.add(GET);
@@ -144,11 +159,11 @@ public class JAXRSWSTestView extends ViewPart {
 				setControlsForMethodType(methodCombo.getText());
 			}
 		});
-		
+
 		Label urlLabel = new Label(topHalf, SWT.NONE);
 		urlLabel.setText(JBossWSUIMessages.JAXRSWSTestView_Service_URL_Label);
 		urlLabel.setLayoutData(new GridData());
-		
+
 		urlCombo = new Combo(topHalf, SWT.BORDER | SWT.DROP_DOWN);
 		urlCombo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		urlCombo.addSelectionListener(new SelectionListener() {
@@ -166,15 +181,15 @@ public class JAXRSWSTestView extends ViewPart {
 			public void keyReleased(KeyEvent e) {
 				setControlsForSelectedURL();
 				if (e.keyCode == SWT.CR) {
-					handleTest();
+					handleTest(wsTypeCombo.getText());
 				}
 			}
 		});
-		
+
 		Label actionLabel = new Label(topHalf, SWT.NONE);
 		actionLabel.setText(JBossWSUIMessages.JAXRSWSTestView_Action_URL_Label);
 		actionLabel.setLayoutData(new GridData());
-		
+
 		actionText = new Text(topHalf, SWT.BORDER);
 		actionText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 
@@ -191,18 +206,18 @@ public class JAXRSWSTestView extends ViewPart {
 		GridData parmsListGD = new GridData(SWT.FILL, SWT.FILL, true, true);
 		parmsListGD.horizontalSpan = 2;
 		parmsList.setLayoutData(parmsListGD);
-		
+
 		headerTab = new TabItem(tabGroup, SWT.NONE, 2);
 		bodyText = new Text(tabGroup, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 		GridData btGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		bodyText.setLayoutData(btGridData);
 		bodyTab.setControl(bodyText);
-		
+
 		headerTab.setText(JBossWSUIMessages.JAXRSWSTestView_Request_Header_Label);
 		GridData hgGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		hgGridData.horizontalSpan = 2;
 		tabGroup.setLayoutData(hgGridData);
-		
+
 		dlsList = new DelimitedStringList(tabGroup, SWT.None);
 		headerTab.setControl(dlsList);
 		GridData dlsListGD = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -214,22 +229,22 @@ public class JAXRSWSTestView extends ViewPart {
 		buttonBarGD.horizontalSpan = 2;
 		buttonBar.setLayoutData(buttonBarGD);
 		buttonBar.setLayout(new RowLayout());
-		
+
 		testButton = new Button (buttonBar, SWT.PUSH);
 		testButton.setText(JBossWSUIMessages.JAXRSWSTestView_Invoke_Label);
-		
+
 		testButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
-				handleTest();
+				handleTest(wsTypeCombo.getText());
 			}
 			public void widgetDefaultSelected(SelectionEvent e) {
 				widgetSelected(e);
 			}
 		});
-		
+
 		addTCPIPMonitorButton = new Button(buttonBar, SWT.PUSH);
 		addTCPIPMonitorButton.setText(JBossWSUIMessages.JAXRSWSTestView_Configure_Monitor_Button);
-		
+
 		addTCPIPMonitorButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				configureMonitor();
@@ -241,7 +256,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 		openTCPIPMonitorButton = new Button(buttonBar, SWT.PUSH);
 		openTCPIPMonitorButton.setText(JBossWSUIMessages.JAXRSWSTestView_Open_Monitor_Button);
-		
+
 		openTCPIPMonitorButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				openMonitor();
@@ -253,8 +268,8 @@ public class JAXRSWSTestView extends ViewPart {
 
 		Button sampleButton = new Button(buttonBar, SWT.PUSH);
 		sampleButton.setText(JBossWSUIMessages.JAXRSWSTestView_Set_Sample_Data_Label);
-		sampleButton.setVisible(false);
-		
+		sampleButton.setVisible(true);
+
 		sampleButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				setupSample();
@@ -277,7 +292,7 @@ public class JAXRSWSTestView extends ViewPart {
 		resultsText = new Text(resultTabGroup, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP | SWT.READ_ONLY );
 		resultsText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		resultTab.setControl(resultsText);
-		
+
 		resultHeadersTab = new TabItem(resultTabGroup, SWT.NONE, 1);
 		resultHeadersTab.setText(JBossWSUIMessages.JAXRSWSTestView_Results_Header_Label);
 		resultHeadersList = new List(resultTabGroup, SWT.V_SCROLL);
@@ -291,7 +306,7 @@ public class JAXRSWSTestView extends ViewPart {
 		setControlsForMethodType(methodCombo.getText());
 		setControlsForSelectedURL();
 	}
-	
+
 	private void setControlsForSelectedURL() {
 		if (urlCombo.getText().trim().length() > 0) {
 			testButton.setEnabled(true);
@@ -301,19 +316,19 @@ public class JAXRSWSTestView extends ViewPart {
 			addTCPIPMonitorButton.setEnabled(false);
 		}
 	}
-	
+
 	/*
 	 * Open the TCP/IP Monitor View 
 	 */
 	private void openMonitor() {
 		try {
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().
-				getActivePage().showView(TCPIP_VIEW_ID);
+			getActivePage().showView(TCPIP_VIEW_ID);
 		} catch (PartInitException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private IMonitor findMonitor(String urlToCheck) {
 		IMonitor monitor = null;
 
@@ -328,7 +343,7 @@ public class JAXRSWSTestView extends ViewPart {
 		}
 		return monitor;
 	}
-	
+
 	/*
 	 * Configure a TCP/IP Monitor entry so we can monitor it 
 	 */
@@ -337,7 +352,7 @@ public class JAXRSWSTestView extends ViewPart {
 			String oldUrl = urlCombo.getText();
 			IMonitor monitor = findMonitor(oldUrl);
 			if (monitor == null) {
-				
+
 				URL tempURL = null;
 				try {
 					tempURL = new URL(oldUrl);
@@ -354,7 +369,7 @@ public class JAXRSWSTestView extends ViewPart {
 					return;
 				monitor = dialog.getMonitor();
 			}
-			
+
 			if (monitor != null) {
 				monitor = findMonitor(oldUrl);
 				if (monitor != null) {
@@ -367,7 +382,7 @@ public class JAXRSWSTestView extends ViewPart {
 							e.printStackTrace();
 						}
 					}
-					
+
 					int port = monitor.getLocalPort();
 					int remotePort = monitor.getRemotePort();
 					String host = monitor.getRemoteHost();
@@ -397,7 +412,7 @@ public class JAXRSWSTestView extends ViewPart {
 			bodyText.setEnabled(true);
 		}
 	}
-	
+
 	/*
 	 * Enable/disable controls based on the WS technology type
 	 * @param wsType
@@ -414,13 +429,13 @@ public class JAXRSWSTestView extends ViewPart {
 			methodCombo.setText(POST);
 
 			String emptySOAP = "<?xml version=\"1.0\" standalone=\"yes\" ?>" + //$NON-NLS-1$
-				"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " + //$NON-NLS-1$
-				"xmlns:ns=\"INSERT_URL_HERE\">" + //$NON-NLS-1$
-				"<soap:Body>" + //$NON-NLS-1$
-				"</soap:Body>" + //$NON-NLS-1$
-				"</soap:Envelope>";	 //$NON-NLS-1$
+			"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " + //$NON-NLS-1$
+			"xmlns:ns=\"INSERT_URL_HERE\">" + //$NON-NLS-1$
+			"<soap:Body>" + //$NON-NLS-1$
+			"</soap:Body>" + //$NON-NLS-1$
+			"</soap:Envelope>";	 //$NON-NLS-1$
 			emptySOAP = WSTestUtils.addNLsToXML(emptySOAP);
-	
+
 			if (bodyText.getText().trim().length() == 0) {
 				bodyText.setText(emptySOAP);
 			}
@@ -436,7 +451,7 @@ public class JAXRSWSTestView extends ViewPart {
 			methodCombo.setText(GET);
 		}
 	}
-	
+
 	/*
 	 * Sets up the controls to call a public sample RESTful WS that does
 	 * a postal code lookup or a JAX-WS service that does a 
@@ -455,16 +470,16 @@ public class JAXRSWSTestView extends ViewPart {
 		}
 		else if (wsTypeCombo.getText().equalsIgnoreCase(JAX_WS)) {
 			String soapIn = "<?xml version=\"1.0\" standalone=\"yes\" ?>" + //$NON-NLS-1$
-				"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " + //$NON-NLS-1$
-				"xmlns:ns=\"http://xmlme.com/WebServices\">" + //$NON-NLS-1$
-				"<soap:Body>" + //$NON-NLS-1$
-				"<ns:GetSpeech>" + //$NON-NLS-1$
-				"<ns:Request>slings and arrows</ns:Request>"+ //$NON-NLS-1$
-				"</ns:GetSpeech>"+ //$NON-NLS-1$
-				"</soap:Body>" + //$NON-NLS-1$
-				"</soap:Envelope>";	 //$NON-NLS-1$
+			"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " + //$NON-NLS-1$
+			"xmlns:ns=\"http://xmlme.com/WebServices\">" + //$NON-NLS-1$
+			"<soap:Body>" + //$NON-NLS-1$
+			"<ns:GetSpeech>" + //$NON-NLS-1$
+			"<ns:Request>slings and arrows</ns:Request>"+ //$NON-NLS-1$
+			"</ns:GetSpeech>"+ //$NON-NLS-1$
+			"</soap:Body>" + //$NON-NLS-1$
+			"</soap:Envelope>";	 //$NON-NLS-1$
 			soapIn = WSTestUtils.addNLsToXML(soapIn);
-	
+
 			urlCombo.setText("http://www.xmlme.com/WSShakespeare.asmx"); //$NON-NLS-1$
 			actionText.setText("http://xmlme.com/WebServices/GetSpeech"); //$NON-NLS-1$
 			bodyText.setText(soapIn);
@@ -480,7 +495,8 @@ public class JAXRSWSTestView extends ViewPart {
 	/*
 	 * Actually perform the test based on which type of activity it is 
 	 */
-	private void handleTest() {
+	private void handleTest(final String wsTech) {
+
 		if (urlCombo.getItemCount() > 0) {
 			java.util.List<String> aList = Arrays.asList(urlCombo.getItems());
 			if (!aList.contains(urlCombo.getText())) {
@@ -490,26 +506,82 @@ public class JAXRSWSTestView extends ViewPart {
 			urlCombo.add(urlCombo.getText());
 		}
 		
-		if (wsTypeCombo.getText().equalsIgnoreCase(JAX_RS)) {
-			handleRSTest();
-		}
-		else if (wsTypeCombo.getText().equalsIgnoreCase(JAX_WS)) {
-			handleWSTest();
-		}
+		final String url = urlCombo.getText();
+		final String action = actionText.getText();
+		final String body = bodyText.getText();
+		final String method = methodCombo.getText();
+		final String headers = dlsList.getSelection();
+		final String parms = parmsList.getSelection();
+
+		Job aJob = new Job(JBossWSUIMessages.JAXRSWSTestView_Invoking_WS_Status) {
+			protected IStatus run(IProgressMonitor monitor) {
+				IStatus status = Status.OK_STATUS;
+				// execute the task ...
+				if (wsTech.equalsIgnoreCase(JAX_RS)) {
+					status = handleRSTest(monitor, url, method, body, parms, headers);
+				}
+				else if (wsTech.equalsIgnoreCase(JAX_WS)) {
+					status = handleWSTest(monitor, url, action, body);
+				}
+				monitor.done();
+				return status;  
+			}
+		};
+		// true to indicate that this job was initiated by a UI end user
+		aJob.setUser(true);		
+		aJob.schedule();
+		aJob.addJobChangeListener(new IJobChangeListener() {
+			
+			public void sleeping(IJobChangeEvent event) {};
+			public void scheduled(IJobChangeEvent event) {};
+			public void running(IJobChangeEvent event) {};
+			public void done(IJobChangeEvent event) {
+				if (event.getResult() instanceof WSTestStatus) {
+					final WSTestStatus status = (WSTestStatus) event.getResult();
+					PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+						public void run() {
+							resultsText.setText(status.getResultsText());
+							resultHeadersList.removeAll();
+							String[] headers =
+								DelimitedStringList.parseString(status.getHeadersList(), RESULT_HEADER_DELIMITER);
+							if (headers != null && headers.length > 0) {
+								for (int i = 0; i < headers.length; i++) { 
+									resultHeadersList.add(headers[i]);
+								}
+							}
+						}
+					});
+				}
+			}
+		
+			public void awake(IJobChangeEvent event) {};
+			public void aboutToRun(IJobChangeEvent event) {};
+		});
+
 	}
-	
+
 	/*
 	 * Actually call the WS and displays the result 
 	 */
-	private void handleWSTest() {
+	private IStatus handleWSTest(final IProgressMonitor monitor, String url, String action, String body) {
 		try {
-			String result = WSTestUtils.invokeWS(urlCombo.getText(), actionText.getText(), bodyText.getText());
+			
+			monitor.worked(10);
+			JAXWSTester tester = new JAXWSTester();
+			tester.doTest(url, action, body);
+			monitor.worked(70);
+			String result = tester.getResultBody();
 			String cleanedUp = WSTestUtils.addNLsToXML(result);
-			resultsText.setText(cleanedUp);
+			
+			WSTestStatus status = new WSTestStatus(IStatus.OK, 
+					JBossWSUIPlugin.PLUGIN_ID, 
+					JBossWSUIMessages.JAXRSWSTestView_JAXWS_Success_Status);
+			status.setResultsText(cleanedUp);
+			monitor.worked(10);
 
-			resultHeadersList.removeAll();
-			if (WSTestUtils.getResultHeaders() != null) {
-				Iterator<?> iter = WSTestUtils.getResultHeaders().entrySet().iterator();
+			String listText = EMPTY_STRING;
+			if (tester.getResultHeaders() != null) {
+				Iterator<?> iter = tester.getResultHeaders().entrySet().iterator();
 				while (iter.hasNext()) {
 					String text = EMPTY_STRING;
 					Entry<?, ?> entry = (Entry<?, ?>) iter.next();
@@ -517,38 +589,42 @@ public class JAXRSWSTestView extends ViewPart {
 						text = entry.getValue().toString();
 					else
 						text = text + entry.toString();
-					resultHeadersList.add(text);
+					listText = listText + text;
+					if (iter.hasNext()) {
+						listText = listText + RESULT_HEADER_DELIMITER;
+					}
 				}
 			}
+			status.setHeadersList(listText);
+			monitor.worked(10);
+			return status;
 		} catch (Exception e) {
-			resultsText.setText(e.toString());
+			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
+					JBossWSUIPlugin.PLUGIN_ID, 
+					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
+			status.setResultsText(e.toString());
 			e.printStackTrace();
+			return status;
 		}
 	}
 
 	/*
 	 * Actually call the RESTful WS to test it
 	 */
-	private void handleRSTest() {
-		
-		// Get the service URL
-		String address = urlCombo.getText();
-		
-		// Is this a GET or POST activity?
-		String method = methodCombo.getText();
-		
-		// If it's a GET, what's the Request body text?
-		String body = EMPTY_STRING;
-		if (method.equalsIgnoreCase(GET))
-			body = bodyText.getText();
-		
+	private IStatus handleRSTest(final IProgressMonitor monitor, String address, String method, String body, String parms, String headersStr) {
+
+		if (!method.equalsIgnoreCase(GET))
+			body = EMPTY_STRING;
+
 		// if no actual text in the request body, set to null
 		if (body.trim().length() == 0) body = null;
-		
+
+		monitor.worked(10);
+
 		// Process parameters for web service call
 		HashMap<String, String> parameters = new HashMap<String, String>();
-		if (!parmsList.isDisposed() && parmsList.getSelection() != null && parmsList.getSelection().length() > 0) {
-			String[] parsedList = DelimitedStringList.parseString(parmsList.getSelection() , ","); //$NON-NLS-1$
+		if (parms != null && parms.length() > 0) {
+			String[] parsedList = DelimitedStringList.parseString(parms , ","); //$NON-NLS-1$
 			if (parsedList != null && parsedList.length > 0) {
 				for (int i = 0; i < parsedList.length; i++) {
 					String nameValuePair = parsedList[i];
@@ -559,11 +635,12 @@ public class JAXRSWSTestView extends ViewPart {
 				}
 			}
 		}
-		
+
+		monitor.worked(10);
 		// Process headers for web service call
 		HashMap<String, String> headers = new HashMap<String, String>();
-		if (!dlsList.isDisposed() && dlsList.getSelection() != null && dlsList.getSelection().length() > 0) {
-			String[] parsedList = DelimitedStringList.parseString(dlsList.getSelection() , ","); //$NON-NLS-1$
+		if (headersStr != null && headersStr.length() > 0) {
+			String[] parsedList = DelimitedStringList.parseString(headersStr , ","); //$NON-NLS-1$
 			if (parsedList != null && parsedList.length > 0) {
 				for (int i = 0; i < parsedList.length; i++) {
 					String nameValuePair = parsedList[i];
@@ -574,40 +651,57 @@ public class JAXRSWSTestView extends ViewPart {
 				}
 			}
 		}
-		
+
 		// now actually call it
 		try {
-			// clear the results text
-			resultsText.setText(EMPTY_STRING);
+			
+			JAXRSTester tester = new JAXRSTester();
 			
 			// call the service
-			String result =
-				WSTestUtils.callRestfulWebService(address, parameters, headers, method, body);
+			tester.doTest(address, parameters, headers, method, body);
 			
+			String result = tester.getResultBody();
+
 			// put the results in the result text field
 			String cleanedUp = WSTestUtils.addNLsToXML(result);
-			resultsText.setText(cleanedUp);
 
-			resultHeadersList.removeAll();
-			Iterator<?> iter = WSTestUtils.getResultHeaders().entrySet().iterator();
-			while (iter.hasNext()) {
-				String text = EMPTY_STRING;
-				Entry<?, ?> entry = (Entry<?, ?>) iter.next();
-				if (entry.getKey() == null) 
-					text = entry.getValue().toString();
-				else
-					text = text + entry.toString();
-				resultHeadersList.add(text);
+			WSTestStatus status = new WSTestStatus(IStatus.OK, 
+					JBossWSUIPlugin.PLUGIN_ID, 
+					JBossWSUIMessages.JAXRSWSTestView_JAXRS_Success_Status);
+			status.setResultsText(cleanedUp);
+
+			String listText = EMPTY_STRING;
+			if (tester.getResultHeaders() != null) {
+				Iterator<?> iter = tester.getResultHeaders().entrySet().iterator();
+				while (iter.hasNext()) {
+					String text = EMPTY_STRING;
+					Entry<?, ?> entry = (Entry<?, ?>) iter.next();
+					if (entry.getKey() == null) 
+						text = entry.getValue().toString();
+					else
+						text = text + entry.toString();
+					listText = listText + text;
+					if (iter.hasNext()) {
+						listText = listText + RESULT_HEADER_DELIMITER;
+					}
+				}
 			}
 
-		} catch (Exception e) {
+			System.out.println(listText);
+			status.setHeadersList(listText);
+			monitor.worked(10);
+			return status;
 			
-			// if we hit an error, put it in the results text
-			resultsText.setText(e.toString());
+		} catch (Exception e) {
+			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
+					JBossWSUIPlugin.PLUGIN_ID, 
+					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
+			status.setResultsText(e.toString());
 			e.printStackTrace();
+			return status;
 		}
 	}
-	
+
 	/**
 	 * Passing the focus request to the control.
 	 */
@@ -615,4 +709,5 @@ public class JAXRSWSTestView extends ViewPart {
 		// set initial focus to the URL text combo
 		urlCombo.setFocus();
 	}
+	
 }

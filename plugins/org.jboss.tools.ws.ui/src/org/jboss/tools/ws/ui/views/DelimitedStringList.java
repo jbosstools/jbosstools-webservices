@@ -446,21 +446,27 @@ public class DelimitedStringList extends Composite {
 	 * @return
 	 */
 	private String[] parseString(String str_list) {
-		StringTokenizer tk = new StringTokenizer(str_list, this.mDelimiter);
-		String[] pieces = new String[tk.countTokens()];
-		int index = 0;
-		while (tk.hasMoreTokens())
-			pieces[index++] = tk.nextToken();
-		return pieces;
+		if (str_list != null) {
+			StringTokenizer tk = new StringTokenizer(str_list, this.mDelimiter);
+			String[] pieces = new String[tk.countTokens()];
+			int index = 0;
+			while (tk.hasMoreTokens())
+				pieces[index++] = tk.nextToken();
+			return pieces;
+		} 
+		return new String[0];
 	}
 
 	public static String[] parseString(String str_list, String delimiter) {
-		StringTokenizer tk = new StringTokenizer(str_list, delimiter);
-		String[] pieces = new String[tk.countTokens()];
-		int index = 0;
-		while (tk.hasMoreTokens())
-			pieces[index++] = tk.nextToken();
-		return pieces;
+		if (str_list != null) {
+			StringTokenizer tk = new StringTokenizer(str_list, delimiter);
+			String[] pieces = new String[tk.countTokens()];
+			int index = 0;
+			while (tk.hasMoreTokens())
+				pieces[index++] = tk.nextToken();
+			return pieces;
+		}
+		return new String[0];
 	}
 
 	/**
