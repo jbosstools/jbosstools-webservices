@@ -613,7 +613,7 @@ public class JAXRSWSTestView extends ViewPart {
 	 */
 	private IStatus handleRSTest(final IProgressMonitor monitor, String address, String method, String body, String parms, String headersStr) {
 
-		if (!method.equalsIgnoreCase(GET))
+		if (method.equalsIgnoreCase(GET))
 			body = EMPTY_STRING;
 
 		// if no actual text in the request body, set to null
