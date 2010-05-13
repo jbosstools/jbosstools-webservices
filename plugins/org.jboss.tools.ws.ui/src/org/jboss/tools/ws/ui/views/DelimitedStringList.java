@@ -136,7 +136,7 @@ public class DelimitedStringList extends Composite {
 			mSpacerComposite.setLayout(new GridLayout());
 		}
 		{
-			this.mPropsList = new List(this, SWT.BORDER);
+			this.mPropsList = new List(this, SWT.BORDER | SWT.V_SCROLL);
 			final GridData gridData = new GridData(
 					GridData.HORIZONTAL_ALIGN_FILL
 							| GridData.VERTICAL_ALIGN_FILL);
