@@ -652,10 +652,10 @@ public class JAXRSWSTestView extends ViewPart {
 			}
 		}
 
+		JAXRSTester tester = new JAXRSTester();
+
 		// now actually call it
 		try {
-			
-			JAXRSTester tester = new JAXRSTester();
 			
 			// call the service
 			tester.doTest(address, parameters, headers, method, body);
@@ -693,12 +693,43 @@ public class JAXRSWSTestView extends ViewPart {
 			return status;
 			
 		} catch (Exception e) {
-			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
+			String result = tester.getResultBody();
+
+			// put the results in the result text field
+			String cleanedUp = WSTestUtils.addNLsToXML(result);
+
+			WSTestStatus status = new WSTestStatus(IStatus.OK, 
 					JBossWSUIPlugin.PLUGIN_ID, 
-					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
-			status.setResultsText(e.toString());
-			e.printStackTrace();
+					JBossWSUIMessages.JAXRSWSTestView_JAXRS_Success_Status);
+			status.setResultsText(cleanedUp);
+
+			String listText = EMPTY_STRING;
+			if (tester.getResultHeaders() != null) {
+				Iterator<?> iter = tester.getResultHeaders().entrySet().iterator();
+				while (iter.hasNext()) {
+					String text = EMPTY_STRING;
+					Entry<?, ?> entry = (Entry<?, ?>) iter.next();
+					if (entry.getKey() == null) 
+						text = entry.getValue().toString();
+					else
+						text = text + entry.toString();
+					listText = listText + text;
+					if (iter.hasNext()) {
+						listText = listText + RESULT_HEADER_DELIMITER;
+					}
+				}
+			}
+
+			System.out.println(listText);
+			status.setHeadersList(listText);
+			monitor.worked(10);
 			return status;
+//			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
+//					JBossWSUIPlugin.PLUGIN_ID, 
+//					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
+//			status.setResultsText(e.toString());
+//			e.printStackTrace();
+//			return status;
 		}
 	}
 

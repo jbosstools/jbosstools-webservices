@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.ui.utils;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -208,16 +209,34 @@ public class JAXRSTester {
         }
 
         // retrieve result and put string results into the response
-        InputStream is = (InputStream) httpurlc.getInputStream();
-        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));//$NON-NLS-1$
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = br.readLine()) != null) {
-            sb.append(line);
-            sb.append("\n");//$NON-NLS-1$
+        InputStream is = null;
+        try {
+	        is = httpurlc.getInputStream();
+	        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));//$NON-NLS-1$
+	        StringBuilder sb = new StringBuilder();
+	        String line;
+	        while ((line = br.readLine()) != null) {
+	            sb.append(line);
+	            sb.append("\n");//$NON-NLS-1$
+	        }
+	        br.close();
+	        resultBody = sb.toString();
+        } catch (IOException ie) {
+        	try {
+		        is = httpurlc.getErrorStream();
+		        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));//$NON-NLS-1$
+		        StringBuilder sb = new StringBuilder();
+		        String line;
+		        while ((line = br.readLine()) != null) {
+		            sb.append(line);
+		            sb.append("\n");//$NON-NLS-1$
+		        }
+		        br.close();
+		        resultBody = sb.toString();
+        	} catch (IOException ie2) {
+        		resultBody = ie2.getLocalizedMessage();
+        	}
         }
-        br.close();
-        resultBody = sb.toString();
         
         resultHeaders = httpurlc.getHeaderFields();
         
