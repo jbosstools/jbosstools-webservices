@@ -268,7 +268,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 		Button sampleButton = new Button(buttonBar, SWT.PUSH);
 		sampleButton.setText(JBossWSUIMessages.JAXRSWSTestView_Set_Sample_Data_Label);
-		sampleButton.setVisible(true);
+		sampleButton.setVisible(false);
 
 		sampleButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {

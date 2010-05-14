@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Text;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
@@ -52,6 +53,7 @@ public class DelimitedStringList extends Composite {
 	private List mPropsList;
 	private Text mAddText;
 	private boolean isReadOnly = false;
+	private Label mWarningLabel;
 
 	// current delimiter
 	private String mDelimiter = DELIMITER;
@@ -85,7 +87,7 @@ public class DelimitedStringList extends Composite {
 	public DelimitedStringList(Composite parent, int style) {
 		this(parent, style, false);
 	}
-	
+
 	/**
 	 * Constructor
 	 * 
@@ -107,6 +109,13 @@ public class DelimitedStringList extends Composite {
 		gridLayout.marginHeight = 0;
 		gridLayout.numColumns = 2;
 		setLayout(gridLayout);
+		{
+			this.mWarningLabel = new Label(this, SWT.NONE);
+			GridData wlGridData = new GridData(GridData.FILL_HORIZONTAL);
+			wlGridData.horizontalSpan = 2;
+			this.mWarningLabel.setLayoutData(wlGridData);
+			this.mWarningLabel.setForeground(this.mWarningLabel.getDisplay().getSystemColor(SWT.COLOR_RED));
+		}
 		{
 			this.mAddText = new Text(this, SWT.BORDER | additionalStyles);
 			this.mAddText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -406,13 +415,23 @@ public class DelimitedStringList extends Composite {
 			value = this.mAddText.getText();
 			boolean flag = value != null && value.trim().length() > 0;
 			boolean valid = validateText(value);
+			if (!valid) {
+				this.mWarningLabel.setText(this.mWarning);
+			} else {
+				this.mWarningLabel.setText(""); //$NON-NLS-1$
+			}
 			this.mAddButton.setEnabled(flag && valid);
+			
 		} 
 	}
 
 	private boolean validateText(String text) {
 		if (text != null && text.trim().length() > 0 && text.indexOf(",") > -1) { //$NON-NLS-1$
-			this.mWarning = "There are no commas delimiting the name and value for this key/value pair."; //$NON-NLS-1$
+			this.mWarning = JBossWSUIMessages.DelimitedStringList_NO_COMMAS_WARNING;
+			return false;
+		}
+		else if (text != null && text.trim().length() > 0 && text.indexOf("=") == -1) { //$NON-NLS-1$
+			this.mWarning = JBossWSUIMessages.DelimitedStringList_NO_EQUALS_DELIMITER_WARNING;
 			return false;
 		}
 		this.mWarning = null;

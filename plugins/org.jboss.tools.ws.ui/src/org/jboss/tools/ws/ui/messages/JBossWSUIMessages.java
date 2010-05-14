@@ -27,6 +27,8 @@ public class JBossWSUIMessages extends NLS {
 	public static String Bin;
 	public static String Command;
 	public static String Client;
+	public static String DelimitedStringList_NO_COMMAS_WARNING;
+	public static String DelimitedStringList_NO_EQUALS_DELIMITER_WARNING;
 	public static String Lib;
 	public static String Endorsed;
 	
