@@ -157,8 +157,21 @@ public class JAXRSTester {
         URL url = null;
         if (query != null) {
         	// add the ? if there are parameters
-            if (!address.endsWith("?") && methodType.equalsIgnoreCase("GET") ) {  //$NON-NLS-1$//$NON-NLS-2$
-            	address = address + "?"; //$NON-NLS-1$
+            if (!address.endsWith("?")) {//$NON-NLS-1$
+
+            	// if we're a "GET" - add the ? by default
+            	if (methodType.equalsIgnoreCase("GET")) {  //$NON-NLS-1$
+                	address = address + "?"; //$NON-NLS-1$
+
+               	// if we're a PUT or POST, check if we have parms
+                // and add the ? if we do
+            	} else if (methodType.equalsIgnoreCase("POST")//$NON-NLS-1$ 
+            			|| methodType.equalsIgnoreCase("PUT") //$NON-NLS-1$
+        				|| methodType.equalsIgnoreCase("DELETE")) { //$NON-NLS-1$
+            		if (query.trim().length() > 0) {
+            			address = address + "?"; //$NON-NLS-1$
+            		}
+            	}
             }
         	// add parms to the url if we have some
         	url = new URL(address + query);

@@ -425,7 +425,7 @@ public class JAXRSWSTestView extends ViewPart {
 			parmsList.setEnabled(false);
 			dlsList.setEnabled(false);
 			parmsTab.getControl().setEnabled(false);
-			headerTab.getControl().setEnabled(false);
+			headerTab.getControl().setEnabled(true);
 			methodCombo.setText(POST);
 
 			String emptySOAP = "<?xml version=\"1.0\" standalone=\"yes\" ?>" + //$NON-NLS-1$

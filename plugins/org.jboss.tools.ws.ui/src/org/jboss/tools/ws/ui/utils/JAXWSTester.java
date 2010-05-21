@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.xml.soap.MimeHeader;
 import javax.xml.soap.MimeHeaders;
 
+import org.apache.axis.AxisFault;
 import org.apache.axis.Message;
 import org.apache.axis.MessageContext;
 import org.apache.axis.client.Call;
@@ -89,26 +90,61 @@ public class JAXWSTester {
 		    call.setProperty(Call.SOAPACTION_URI_PROPERTY,action);
 		}
 		Message message = new Message(document);
-		SOAPEnvelope envelope = call.invoke( message );
 		
-		// Get back the response message
+		SOAPEnvelope envelope = null;
+		
 		this.resultBody = EMPTY_STRING;
-		if (envelope != null && envelope.getBody() != null) {		
-			this.resultBody = envelope.getBody().toString();
-		}
-		
-		// Get back the response HTTP headers and pass back as a Map
-		if (call != null && call.getMessageContext() != null) {
-			MessageContext mc = call.getMessageContext();
-			if (mc.getMessage() != null && mc.getMessage().getMimeHeaders() != null) {
-				MimeHeaders mh = mc.getMessage().getMimeHeaders();
-				Iterator<?> iter = mh.getAllHeaders();
-				resultHeaders = new HashMap<String, String>();
-				while (iter.hasNext()) {
-					MimeHeader next = (MimeHeader)iter.next();
-					resultHeaders.put(next.getName(), next.getValue());
+
+		try {
+			envelope = call.invoke( message );
+
+			// Get back the response message
+			if (envelope != null && envelope.getBody() != null) {		
+				this.resultBody = envelope.getBody().toString();
+			}
+			
+			// Get back the response HTTP headers and pass back as a Map
+			if (call != null && call.getMessageContext() != null) {
+				MessageContext mc = call.getMessageContext();
+				if (mc.getMessage() != null && mc.getMessage().getMimeHeaders() != null) {
+					MimeHeaders mh = mc.getMessage().getMimeHeaders();
+					Iterator<?> iter = mh.getAllHeaders();
+					resultHeaders = new HashMap<String, String>();
+					while (iter.hasNext()) {
+						MimeHeader next = (MimeHeader)iter.next();
+						resultHeaders.put(next.getName(), next.getValue());
+					}
 				}
 			}
+		} catch (AxisFault fault){
+
+			// Get back the response message
+			if (fault.getFaultString() != null) {		
+				this.resultBody = fault.getFaultString();
+			}
+
+			// Get back the response HTTP headers and pass back as a Map
+			if (fault.getHeaders() != null && !fault.getHeaders().isEmpty()) {
+				Iterator<?> iter = fault.getHeaders().iterator();
+				resultHeaders = new HashMap<String, String>();
+				while (iter.hasNext()) {
+					Object next = iter.next();
+					resultHeaders.put(next.toString(), ""); //$NON-NLS-1$
+				}
+			} else 	if (call != null && call.getMessageContext() != null) {
+				MessageContext mc = call.getMessageContext();
+				if (mc.getMessage() != null && mc.getMessage().getMimeHeaders() != null) {
+					MimeHeaders mh = mc.getMessage().getMimeHeaders();
+					Iterator<?> iter = mh.getAllHeaders();
+					resultHeaders = new HashMap<String, String>();
+					while (iter.hasNext()) {
+						MimeHeader next = (MimeHeader)iter.next();
+						resultHeaders.put(next.getName(), next.getValue());
+					}
+				}
+			}
+
 		}
+		
 	}
 }
