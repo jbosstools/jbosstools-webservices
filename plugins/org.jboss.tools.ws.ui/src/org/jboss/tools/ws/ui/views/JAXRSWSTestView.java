@@ -17,6 +17,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -27,6 +31,8 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -40,9 +46,14 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
@@ -52,7 +63,11 @@ import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jboss.tools.ws.ui.utils.JAXRSTester;
 import org.jboss.tools.ws.ui.utils.JAXWSTester;
+import org.jboss.tools.ws.ui.utils.ResultsXMLStorage;
+import org.jboss.tools.ws.ui.utils.ResultsXMLStorageInput;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * View for testing web services (JAX-WS & JAX-RS)
@@ -62,6 +77,7 @@ import org.jboss.tools.ws.ui.utils.WSTestUtils;
 @SuppressWarnings("restriction")
 public class JAXRSWSTestView extends ViewPart {
 
+	private static final String XML_EDITOR_ID = "org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart"; //$NON-NLS-1$
 	private static final String TCPIP_VIEW_ID = "org.eclipse.wst.internet.monitor.view";//$NON-NLS-1$
 	private static final String DELETE = "DELETE";//$NON-NLS-1$
 	private static final String PUT = "PUT";//$NON-NLS-1$
@@ -99,6 +115,11 @@ public class JAXRSWSTestView extends ViewPart {
 	private DelimitedStringList parmsList;
 	private Button openTCPIPMonitorButton;
 	private Button addTCPIPMonitorButton;
+
+	private SOAPEnvelope envelope;
+	private MenuItem openInXMLEditorAction;
+	private MenuItem openResponseTagInXMLEditor;
+	private Menu resultsTextMenu;
 
 	/**
 	 * The constructor.
@@ -268,7 +289,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 		Button sampleButton = new Button(buttonBar, SWT.PUSH);
 		sampleButton.setText(JBossWSUIMessages.JAXRSWSTestView_Set_Sample_Data_Label);
-		sampleButton.setVisible(false);
+		sampleButton.setVisible(true);
 
 		sampleButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -291,7 +312,98 @@ public class JAXRSWSTestView extends ViewPart {
 		resultTab.setText(JBossWSUIMessages.JAXRSWSTestView_Results_Body_Label);
 		resultsText = new Text(resultTabGroup, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP | SWT.READ_ONLY );
 		resultsText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+		resultsTextMenu = new Menu(resultsText.getShell(), SWT.POP_UP);
+		
+		MenuItem copyMenuAction = new MenuItem(resultsTextMenu, SWT.PUSH);
+		copyMenuAction.setText(JBossWSUIMessages.JAXRSWSTestView_CopyResultsMenu);
+		copyMenuAction.setAccelerator(SWT.CTRL + 'C');
+		copyMenuAction.addSelectionListener(new SelectionListener(){
+
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				resultsText.selectAll();
+				resultsText.copy();
+			}
+
+			public void widgetSelected(SelectionEvent arg0) {
+				widgetDefaultSelected(arg0);
+			}
+		});
+		new MenuItem(resultsTextMenu, SWT.SEPARATOR);
+		
+		openInXMLEditorAction = new MenuItem(resultsTextMenu, SWT.PUSH);
+		openInXMLEditorAction.setText(JBossWSUIMessages.JAXRSWSTestView_Open_Result_in_XML_Editor);
+		openInXMLEditorAction.setAccelerator(SWT.CTRL + 'O');
+		openInXMLEditorAction.addSelectionListener(new SelectionListener() {
+
+			public void widgetSelected(SelectionEvent arg0) {
+				String string = resultsText.getText();
+				openXMLEditor(string);
+			}
+
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				widgetSelected(arg0);
+			}
+		});
+
+		openResponseTagInXMLEditor = new MenuItem(resultsTextMenu, SWT.PUSH);
+		openResponseTagInXMLEditor.setText(JBossWSUIMessages.JAXRSWSTestView_Open_Response_Tag_Contents_in_XML_Editor);
+		openResponseTagInXMLEditor.setAccelerator(SWT.CTRL + 'R');
+		openResponseTagInXMLEditor.addSelectionListener(new SelectionListener() {
+
+			public void widgetSelected(SelectionEvent arg0) {
+				String string = null;
+				if (envelope != null){
+					try {
+						NodeList list = envelope.getBody().getChildNodes();
+						for (int i = 0; i< list.getLength(); i++){
+							Node node = list.item(i);
+							if (node.getNodeName().contains("Response")){ //$NON-NLS-1$
+								NodeList list2 = node.getChildNodes();
+								for (int j = 0; j<list2.getLength(); j++){
+									Node node2 = list2.item(j);
+									if (node2.getNodeName().contains("Result")){ //$NON-NLS-1$
+										Node node3 = node2.getChildNodes().item(0);
+										if (node3.getNodeType() == Node.TEXT_NODE) {
+											string = node3.getNodeValue();
+											break;
+										}
+									}
+								}
+								if (string != null) break;
+							}
+						}
+						if (string != null){
+							openXMLEditor(string);
+						}
+					} catch (SOAPException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				widgetSelected(arg0);
+			}
+		});
+		
+		resultsText.setMenu(resultsTextMenu);		
+
 		resultTab.setControl(resultsText);
+		
+		resultsText.addFocusListener(new FocusListener() {
+			
+			public void focusLost(FocusEvent arg0) {
+			}
+			
+			public void focusGained(FocusEvent arg0) {
+				if (resultsText.getText().trim().length() > 0){
+					resultsTextMenu.setVisible(true);
+				} else {
+					resultsTextMenu.setVisible(false);
+				}
+			}
+		});
 
 		resultHeadersTab = new TabItem(resultTabGroup, SWT.NONE, 1);
 		resultHeadersTab.setText(JBossWSUIMessages.JAXRSWSTestView_Results_Header_Label);
@@ -305,6 +417,21 @@ public class JAXRSWSTestView extends ViewPart {
 		setControlsForWSType(wsTypeCombo.getText());
 		setControlsForMethodType(methodCombo.getText());
 		setControlsForSelectedURL();
+	}
+	
+	private void openXMLEditor (String text){
+		IWorkbenchWindow window = getSite().getWorkbenchWindow();
+		IStorage storage = new ResultsXMLStorage(text);
+		IStorageEditorInput input = new ResultsXMLStorageInput(storage);
+		IWorkbenchPage page = window.getActivePage();
+		if (page != null) {
+			try {
+//				page.openEditor(input, "org.eclipse.ui.DefaultTextEditor");
+				page.openEditor(input, XML_EDITOR_ID);
+			} catch (PartInitException e) {
+				e.printStackTrace();
+			}			
+		}
 	}
 
 	private void setControlsForSelectedURL() {
@@ -439,6 +566,10 @@ public class JAXRSWSTestView extends ViewPart {
 			if (bodyText.getText().trim().length() == 0) {
 				bodyText.setText(emptySOAP);
 			}
+			
+			if (openResponseTagInXMLEditor != null && 
+					!openResponseTagInXMLEditor.isDisposed())
+				openResponseTagInXMLEditor.setEnabled(true);
 		}
 		else if (wsType.equalsIgnoreCase(JAX_RS)) {
 			actionText.setEnabled(false);
@@ -449,6 +580,9 @@ public class JAXRSWSTestView extends ViewPart {
 			parmsTab.getControl().setEnabled(true);
 			headerTab.getControl().setEnabled(true);
 			methodCombo.setText(GET);
+			if (openResponseTagInXMLEditor != null && 
+					!openResponseTagInXMLEditor.isDisposed())
+				openResponseTagInXMLEditor.setEnabled(false);
 		}
 	}
 
@@ -505,7 +639,7 @@ public class JAXRSWSTestView extends ViewPart {
 		} else {
 			urlCombo.add(urlCombo.getText());
 		}
-		
+
 		final String url = urlCombo.getText();
 		final String action = actionText.getText();
 		final String body = bodyText.getText();
@@ -531,7 +665,7 @@ public class JAXRSWSTestView extends ViewPart {
 		aJob.setUser(true);		
 		aJob.schedule();
 		aJob.addJobChangeListener(new IJobChangeListener() {
-			
+
 			public void sleeping(IJobChangeEvent event) {};
 			public void scheduled(IJobChangeEvent event) {};
 			public void running(IJobChangeEvent event) {};
@@ -553,7 +687,7 @@ public class JAXRSWSTestView extends ViewPart {
 					});
 				}
 			}
-		
+
 			public void awake(IJobChangeEvent event) {};
 			public void aboutToRun(IJobChangeEvent event) {};
 		});
@@ -565,14 +699,16 @@ public class JAXRSWSTestView extends ViewPart {
 	 */
 	private IStatus handleWSTest(final IProgressMonitor monitor, String url, String action, String body) {
 		try {
-			
+
+			envelope = null;
 			monitor.worked(10);
 			JAXWSTester tester = new JAXWSTester();
 			tester.doTest(url, action, body);
 			monitor.worked(70);
 			String result = tester.getResultBody();
+			envelope = tester.getResultSOAP();
 			String cleanedUp = WSTestUtils.addNLsToXML(result);
-			
+
 			WSTestStatus status = new WSTestStatus(IStatus.OK, 
 					JBossWSUIPlugin.PLUGIN_ID, 
 					JBossWSUIMessages.JAXRSWSTestView_JAXWS_Success_Status);
@@ -656,10 +792,10 @@ public class JAXRSWSTestView extends ViewPart {
 
 		// now actually call it
 		try {
-			
+
 			// call the service
 			tester.doTest(address, parameters, headers, method, body);
-			
+
 			String result = tester.getResultBody();
 
 			// put the results in the result text field
@@ -691,7 +827,7 @@ public class JAXRSWSTestView extends ViewPart {
 			status.setHeadersList(listText);
 			monitor.worked(10);
 			return status;
-			
+
 		} catch (Exception e) {
 			String result = tester.getResultBody();
 
@@ -724,12 +860,12 @@ public class JAXRSWSTestView extends ViewPart {
 			status.setHeadersList(listText);
 			monitor.worked(10);
 			return status;
-//			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
-//					JBossWSUIPlugin.PLUGIN_ID, 
-//					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
-//			status.setResultsText(e.toString());
-//			e.printStackTrace();
-//			return status;
+			//			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
+			//					JBossWSUIPlugin.PLUGIN_ID, 
+			//					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
+			//			status.setResultsText(e.toString());
+			//			e.printStackTrace();
+			//			return status;
 		}
 	}
 
@@ -740,5 +876,5 @@ public class JAXRSWSTestView extends ViewPart {
 		// set initial focus to the URL text combo
 		urlCombo.setFocus();
 	}
-	
+
 }

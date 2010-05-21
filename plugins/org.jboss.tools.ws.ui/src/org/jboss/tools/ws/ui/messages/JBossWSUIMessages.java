@@ -94,6 +94,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Message;
 	public static String JAXRSWSTestView_Action_URL_Label;
 	public static String JAXRSWSTestView_Configure_Monitor_Button;
+	public static String JAXRSWSTestView_CopyResultsMenu;
 	public static String JAXRSWSTestView_Exception_Status;
 	public static String JAXRSWSTestView_HTTP_Method_Label;
 	public static String JAXRSWSTestView_Invoke_Label;
@@ -101,6 +102,8 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_JAXRS_Success_Status;
 	public static String JAXRSWSTestView_JAXWS_Success_Status;
 	public static String JAXRSWSTestView_Open_Monitor_Button;
+	public static String JAXRSWSTestView_Open_Response_Tag_Contents_in_XML_Editor;
+	public static String JAXRSWSTestView_Open_Result_in_XML_Editor;
 	public static String JAXRSWSTestView_Request_Body_Label;
 	public static String JAXRSWSTestView_Request_Header_Label;
 	public static String JAXRSWSTestView_Request_Parameters_Label;
@@ -109,6 +112,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_Service_URL_Label;
 	public static String JAXRSWSTestView_Set_Sample_Data_Label;
 	public static String JAXRSWSTestView_Web_Service_Type_Label;
+	public static String ResultsXMLStorageInput_WS_Invocation_Results_Prefix;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);

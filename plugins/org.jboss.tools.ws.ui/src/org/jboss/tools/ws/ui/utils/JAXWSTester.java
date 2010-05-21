@@ -34,6 +34,8 @@ public class JAXWSTester {
 	// the response message to pass back
 	private String resultBody;
 	
+	private SOAPEnvelope resultSOAP;
+	
 	// the result HTTP headers to pass back
 	private HashMap<String, String> resultHeaders;
 	
@@ -61,6 +63,10 @@ public class JAXWSTester {
 	 */
 	public Map<String, String> getResultHeaders() {
 		return this.resultHeaders;
+	}
+	
+	public SOAPEnvelope getResultSOAP(){
+		return this.resultSOAP;
 	}
 	
 	/**
@@ -91,16 +97,16 @@ public class JAXWSTester {
 		}
 		Message message = new Message(document);
 		
-		SOAPEnvelope envelope = null;
+		resultSOAP = null;
 		
 		this.resultBody = EMPTY_STRING;
 
 		try {
-			envelope = call.invoke( message );
+			resultSOAP = call.invoke( message );
 
 			// Get back the response message
-			if (envelope != null && envelope.getBody() != null) {		
-				this.resultBody = envelope.getBody().toString();
+			if (resultSOAP != null && resultSOAP.getBody() != null) {		
+				this.resultBody = resultSOAP.getBody().toString();
 			}
 			
 			// Get back the response HTTP headers and pass back as a Map
@@ -122,7 +128,7 @@ public class JAXWSTester {
 			if (fault.getFaultString() != null) {		
 				this.resultBody = fault.getFaultString();
 			}
-
+			
 			// Get back the response HTTP headers and pass back as a Map
 			if (fault.getHeaders() != null && !fault.getHeaders().isEmpty()) {
 				Iterator<?> iter = fault.getHeaders().iterator();

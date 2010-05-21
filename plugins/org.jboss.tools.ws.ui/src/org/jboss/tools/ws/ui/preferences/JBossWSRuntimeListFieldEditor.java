@@ -1073,7 +1073,6 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 			setDefaultRuntime();
 		}
 
-		@SuppressWarnings("unchecked")
 		private void removeRuntime(JBossWSRuntime r) {
 			boolean used = JBossWSRuntimeManager.isRuntimeUsed(r.getName());
 			String title = JBossWSUIMessages.JBossWS_Runtime_Delete_Confirm_Title;
@@ -1092,7 +1091,7 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 				if (added.contains(r)) {
 					added.remove(r);
 				}
-				((List) getValue()).remove(r);
+				((List<?>) getValue()).remove(r);
 			}
 			if (checkedElement == r) {
 				checkedElement = null;
