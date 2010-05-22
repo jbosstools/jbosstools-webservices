@@ -77,6 +77,7 @@ import org.w3c.dom.NodeList;
 @SuppressWarnings("restriction")
 public class JAXRSWSTestView extends ViewPart {
 
+	private static final String DEFAULT_TEXT_EDITOR_ID = "org.eclipse.ui.DefaultTextEditor"; //$NON-NLS-1$
 	private static final String XML_EDITOR_ID = "org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart"; //$NON-NLS-1$
 	private static final String TCPIP_VIEW_ID = "org.eclipse.wst.internet.monitor.view";//$NON-NLS-1$
 	private static final String DELETE = "DELETE";//$NON-NLS-1$
@@ -120,6 +121,7 @@ public class JAXRSWSTestView extends ViewPart {
 	private MenuItem openInXMLEditorAction;
 	private MenuItem openResponseTagInXMLEditor;
 	private Menu resultsTextMenu;
+	private MenuItem copyMenuAction;
 
 	/**
 	 * The constructor.
@@ -289,7 +291,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 		Button sampleButton = new Button(buttonBar, SWT.PUSH);
 		sampleButton.setText(JBossWSUIMessages.JAXRSWSTestView_Set_Sample_Data_Label);
-		sampleButton.setVisible(true);
+		sampleButton.setVisible(false);
 
 		sampleButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -315,7 +317,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 		resultsTextMenu = new Menu(resultsText.getShell(), SWT.POP_UP);
 		
-		MenuItem copyMenuAction = new MenuItem(resultsTextMenu, SWT.PUSH);
+		copyMenuAction = new MenuItem(resultsTextMenu, SWT.PUSH);
 		copyMenuAction.setText(JBossWSUIMessages.JAXRSWSTestView_CopyResultsMenu);
 		copyMenuAction.setAccelerator(SWT.CTRL + 'C');
 		copyMenuAction.addSelectionListener(new SelectionListener(){
@@ -417,6 +419,20 @@ public class JAXRSWSTestView extends ViewPart {
 		setControlsForWSType(wsTypeCombo.getText());
 		setControlsForMethodType(methodCombo.getText());
 		setControlsForSelectedURL();
+		setMenusForCurrentState();
+	}
+	
+	private void setMenusForCurrentState() {
+		if (resultsText!= null && !resultsText.isDisposed()){
+			boolean enabled = resultsText.getText().trim().length() > 0; 
+			copyMenuAction.setEnabled(enabled);
+			openInXMLEditorAction.setEnabled(enabled);
+			if (wsTypeCombo.getText().equalsIgnoreCase(JAX_WS)) {
+				openResponseTagInXMLEditor.setEnabled(enabled);
+			} else if (wsTypeCombo.getText().equalsIgnoreCase(JAX_RS) ){
+				openResponseTagInXMLEditor.setEnabled(false);
+			}
+		}
 	}
 	
 	private void openXMLEditor (String text){
@@ -426,8 +442,11 @@ public class JAXRSWSTestView extends ViewPart {
 		IWorkbenchPage page = window.getActivePage();
 		if (page != null) {
 			try {
-//				page.openEditor(input, "org.eclipse.ui.DefaultTextEditor");
-				page.openEditor(input, XML_EDITOR_ID);
+				if (window.getWorkbench().getEditorRegistry().findEditor(XML_EDITOR_ID) != null) {
+					page.openEditor(input, XML_EDITOR_ID);
+				} else {
+					page.openEditor(input, DEFAULT_TEXT_EDITOR_ID);
+				}
 			} catch (PartInitException e) {
 				e.printStackTrace();
 			}			
@@ -566,10 +585,6 @@ public class JAXRSWSTestView extends ViewPart {
 			if (bodyText.getText().trim().length() == 0) {
 				bodyText.setText(emptySOAP);
 			}
-			
-			if (openResponseTagInXMLEditor != null && 
-					!openResponseTagInXMLEditor.isDisposed())
-				openResponseTagInXMLEditor.setEnabled(true);
 		}
 		else if (wsType.equalsIgnoreCase(JAX_RS)) {
 			actionText.setEnabled(false);
@@ -580,10 +595,8 @@ public class JAXRSWSTestView extends ViewPart {
 			parmsTab.getControl().setEnabled(true);
 			headerTab.getControl().setEnabled(true);
 			methodCombo.setText(GET);
-			if (openResponseTagInXMLEditor != null && 
-					!openResponseTagInXMLEditor.isDisposed())
-				openResponseTagInXMLEditor.setEnabled(false);
 		}
+		setMenusForCurrentState();
 	}
 
 	/*
@@ -692,6 +705,7 @@ public class JAXRSWSTestView extends ViewPart {
 			public void aboutToRun(IJobChangeEvent event) {};
 		});
 
+		setMenusForCurrentState();
 	}
 
 	/*
