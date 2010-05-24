@@ -22,7 +22,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.classpath.JBossWSRuntimeClasspathContainer;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeClassPathInitializer.JBossWSRuntimeClasspathContainer;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
