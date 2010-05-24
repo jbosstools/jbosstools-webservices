@@ -323,7 +323,8 @@ public class JAXRSWSTestView extends ViewPart {
 		copyMenuAction.addSelectionListener(new SelectionListener(){
 
 			public void widgetDefaultSelected(SelectionEvent arg0) {
-				resultsText.selectAll();
+				if (resultsText.getSelectionCount() == 0)
+					resultsText.selectAll();
 				resultsText.copy();
 			}
 
@@ -399,11 +400,12 @@ public class JAXRSWSTestView extends ViewPart {
 			}
 			
 			public void focusGained(FocusEvent arg0) {
-				if (resultsText.getText().trim().length() > 0){
-					resultsTextMenu.setVisible(true);
-				} else {
-					resultsTextMenu.setVisible(false);
-				}
+				setMenusForCurrentState();
+//				if (resultsText.getText().trim().length() > 0){
+//					resultsTextMenu.setVisible(true);
+//				} else {
+//					resultsTextMenu.setVisible(false);
+//				}
 			}
 		});
 
