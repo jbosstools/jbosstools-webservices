@@ -1,81 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-     <extension
+    <extension
        point="org.eclipse.wst.command.env.ui.widgetRegistry">
-    <widgetFactory
+       <widgetFactory
           class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSWSDL2JavaConfigWidgetFactory"
           id="JBossWSWSDL2JavaConfig"
           insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.BindingFilesValidationCommand">
-    </widgetFactory>
- </extension>
+       </widgetFactory>
+    </extension>
     
     <extension point="org.eclipse.jst.ws.consumption.ui.runtimes">
-      <runtime
-        id="org.jboss.tools.ws.creation.jbossWebServiceRT"
-        label="JBossWS"
-        serverRequired="false"/>
+       <runtime
+         id="org.jboss.tools.ws.creation.jbossWebServiceRT"
+         label="JBossWS"
+         serverRequired="false"/>
     </extension>
 
 
     <extension point="org.eclipse.jst.ws.consumption.ui.serviceRuntimes">
-      <serviceRuntime
-        id="org.jboss.tools.ws.creation.java" 
-        serviceImplementationTypeId="org.eclipse.jst.ws.wsImpl.java"
-        runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
-        bottomUp="true"
-        topDown="true"
-        class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
+       <serviceRuntime
+         id="org.jboss.tools.ws.creation.java" 
+         serviceImplementationTypeId="org.eclipse.jst.ws.wsImpl.java"
+         runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
+         bottomUp="true"
+         topDown="true"
+         class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
 
         <required-facet-version facet="jst.web" version="2.4" allow-newer="true"/>
         <!--required-facet-version facet="jbossws.ext" version="1.0" allow-newer="true" / -->
-
       </serviceRuntime>
     </extension>   
         
     <extension point="org.eclipse.jst.ws.consumption.ui.clientRuntimes">
-      <clientRuntime
-        id="org.jboss.tools.ws..consumption.web"
-        clientImplementationTypeId="org.eclipse.jst.ws.client.type.java"
-        runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
-        class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
-
+       <clientRuntime
+         id="org.jboss.tools.ws..consumption.web"
+         clientImplementationTypeId="org.eclipse.jst.ws.client.type.java"
+         runtimeId="org.jboss.tools.ws.creation.jbossWebServiceRT"
+         class="org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceRuntime">
         <required-facet-version facet="jst.java" version="1.4" allow-newer="true" />
-
       </clientRuntime>
     </extension>
     <extension
-          point="org.eclipse.wst.command.env.ui.widgetRegistry">
+       point="org.eclipse.wst.command.env.ui.widgetRegistry">
        <widgetFactory
              class="org.jboss.tools.ws.creation.ui.wsrt.JBossWSJava2WSDLConfigWidgetFactory"
              id="JBossWSProviderInvokeConfig"
              insertBeforeCommandId="org.jboss.tools.ws.creation.core.commands.Java2WSCommand">
        </widgetFactory>
     </extension>
-  <extension
-         point="org.eclipse.wst.common.project.facet.ui.wizardPages">
-      <wizard-pages
-            action="jbossws.core.install">
-         <page
-               class="org.jboss.tools.ws.creation.ui.project.facet.JBossWSFacetInstallPage">
-         </page>
-      </wizard-pages>
-   </extension>
-  <extension
-        point="org.eclipse.ui.propertyPages">
-     <page
-           class="org.jboss.tools.ws.creation.ui.project.facet.JBossWSPropertyPage"
-           id="org.jboss.tools.ws.creation.ui.page"
-           name="JBossWS Runtime">
-        <enabledWhen>
-<adapt
-type="org.eclipse.core.resources.IProject">
-<test
-property="org.eclipse.wst.common.project.facet.core.projectFacet"
-value="jbossws.core"/>
-</adapt>
-</enabledWhen>
-     </page>
-  </extension>
-
 </plugin>

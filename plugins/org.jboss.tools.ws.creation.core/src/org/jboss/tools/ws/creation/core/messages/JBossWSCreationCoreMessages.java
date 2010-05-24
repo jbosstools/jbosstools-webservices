@@ -18,14 +18,6 @@ public class JBossWSCreationCoreMessages extends NLS {
     public static String Command;
     public static String Bin;
     
-	public static String JBossWSFacetInstallPage_Deploy;
-	public static String JBossWSFacetInstallPage_Description;
-	public static String JBossWSFacetInstallPage_New;
-	public static String JBossWSFacetInstallPage_ServerSuppliedJBossWS;
-	public static String JBossWSFacetInstallPage_Title;
-	public static String JBossWSRuntimeConfigBlock_Duplicated_Jar;
-	public static String JBossWSRuntimeInstallPage_NoTargetRuntime;
-	public static String JBossWSRuntimeInstallPage_NoValidJBossWSRuntime;
 	public static String Label_Custom_Package_Name;
 	public static String Label_Catalog_File;
 	public static String Label_Button_Text_Seletion;  
@@ -47,8 +39,6 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Error_No_Class;
 	public static String Error_No_Package;
 	public static String Error_WS_Location;
-	public static String Error_WS_No_Runtime_Specifed;
-	public static String Error_WS_Chose_runtime;
 	public static String Error_Create_Client_Sample;
     public static String Error_Message_No_Runtime_Specified;
     public static String Error_JBossWS_GenerateWizard_WSName_Same;

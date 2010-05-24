@@ -71,6 +71,14 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip;
 	public static String JBossWSGenerateWebXmlWizardPage_Web_Service_Group;
 	
+	public static String JBossWSFacetInstallPage_ServerSuppliedJBossWS;
+	public static String JBossWSFacetInstallPage_New;
+	public static String JBossWSFacetInstallPage_Deploy;
+	public static String JBossWSRuntimeInstallPage_NoTargetRuntime;
+	public static String JBossWSRuntimeInstallPage_NoValidJBossWSRuntime;
+	public static String JBossWSFacetInstallPage_Title;
+	public static String JBossWSFacetInstallPage_Description;
+	
 	public static String Error_JBossWS_GenerateWizard_NoProjectSelected;
 	public static String Error_JBossWS_Label_Runtime_Load;
 	public static String Error_JBossWS_Basic_Editor_Composite;
@@ -89,6 +97,10 @@ public class JBossWSUIMessages extends NLS {
 	public static String Error_JBossWS_GenerateWizard_PackageNotShown;
 	public static String Error_JBossWS_GenerateWizard_PackageExistsDifferentCase;
 	public static String Error_JBossWS_GenerateWizard_NoSrcInProject;
+
+	public static String Error_WS_No_Runtime_Specifed;
+	public static String Error_WS_Chose_runtime;
+	public static String Error_JBossWSRuntimeConfigBlock_Duplicated_Jar;
 	
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Title;
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Message;
@@ -113,7 +125,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_Set_Sample_Data_Label;
 	public static String JAXRSWSTestView_Web_Service_Type_Label;
 	public static String ResultsXMLStorageInput_WS_Invocation_Results_Prefix;
-	
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);
 	}

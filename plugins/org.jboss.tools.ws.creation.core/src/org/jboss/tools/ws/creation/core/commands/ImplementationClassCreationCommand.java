@@ -444,6 +444,7 @@ public class ImplementationClassCreationCommand extends
 
 	private CompilationUnit getCompilationUnitForInterface(String portTypeName)
 			throws CoreException {
+		System.out.println(portTypeName);
 		IFile inFile = getServiceInterfaceFile(portTypeName);
 		if (!inFile.exists()) {
 			throw new CoreException(

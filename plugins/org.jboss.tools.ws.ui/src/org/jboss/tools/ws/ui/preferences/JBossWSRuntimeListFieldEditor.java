@@ -466,6 +466,7 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 			name.addPropertyChangeListener(this);
 			version.doFillIntoGrid(root);
 			version.addPropertyChangeListener(this);
+			version.setValue(getWSFacetVersions().get(1));
 			homeDir.doFillIntoGrid(root);
 			homeDir.addPropertyChangeListener(this);
 

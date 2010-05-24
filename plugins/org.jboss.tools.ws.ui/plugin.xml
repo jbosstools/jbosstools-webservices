@@ -38,6 +38,34 @@
          </description>
       </wizard>
    </extension>
+   <extension point="org.eclipse.wst.common.project.facet.ui.images">  
+       <image facet="jbossws.core" path="icons/obj16/new_webserv_wiz.gif"/>  
+   </extension>
+    <extension
+         point="org.eclipse.wst.common.project.facet.ui.wizardPages">
+       <wizard-pages
+            action="jbossws.core.install">
+          <page
+               class="org.jboss.tools.ws.ui.project.facet.JBossWSFacetInstallPage">
+         </page>
+       </wizard-pages>
+    </extension>
+    <extension
+        point="org.eclipse.ui.propertyPages">
+       <page
+           class="org.jboss.tools.ws.ui.project.facet.JBossWSPropertyPage"
+           id="org.jboss.tools.ws.ui.page"
+           name="JBossWS Runtime">
+         <enabledWhen>
+            <adapt
+               type="org.eclipse.core.resources.IProject">
+               <test
+                  property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                  value="jbossws.core"/>
+            </adapt>
+         </enabledWhen>
+       </page>
+     </extension>
    <extension
          point="org.eclipse.ui.views">
       <category

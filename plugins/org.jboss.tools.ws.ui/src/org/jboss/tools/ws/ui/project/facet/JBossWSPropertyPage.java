@@ -1,4 +1,4 @@
-package org.jboss.tools.ws.creation.ui.project.facet;
+package org.jboss.tools.ws.ui.project.facet;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;

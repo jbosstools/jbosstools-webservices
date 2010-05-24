@@ -16,6 +16,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.jboss.tools.ws.core.test.classpath.JBossWSRuntimeManagerTest;
+import org.jboss.tools.ws.core.test.project.facet.JBossWSProjectFacetTest;
 
 public class JBossWSCoreAllTests extends TestCase {
 	public static final String PLUGIN_ID = "org.jboss.tools.ws.creation.core.test";
@@ -23,6 +24,7 @@ public class JBossWSCoreAllTests extends TestCase {
 	{
 		TestSuite suite = new TestSuite(JBossWSCoreAllTests.class.getName());
 		suite.addTestSuite(JBossWSRuntimeManagerTest.class);
+		suite.addTestSuite(JBossWSProjectFacetTest.class);
 		return suite;
 	}
 }
