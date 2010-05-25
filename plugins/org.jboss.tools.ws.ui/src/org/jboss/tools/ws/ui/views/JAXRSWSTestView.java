@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -122,6 +123,8 @@ public class JAXRSWSTestView extends ViewPart {
 	private MenuItem openResponseTagInXMLEditor;
 	private Menu resultsTextMenu;
 	private MenuItem copyMenuAction;
+	
+	private boolean showSampleButton = true;
 
 	/**
 	 * The constructor.
@@ -291,7 +294,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 		Button sampleButton = new Button(buttonBar, SWT.PUSH);
 		sampleButton.setText(JBossWSUIMessages.JAXRSWSTestView_Set_Sample_Data_Label);
-		sampleButton.setVisible(false);
+		sampleButton.setVisible(showSampleButton);
 
 		sampleButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -401,11 +404,6 @@ public class JAXRSWSTestView extends ViewPart {
 			
 			public void focusGained(FocusEvent arg0) {
 				setMenusForCurrentState();
-//				if (resultsText.getText().trim().length() > 0){
-//					resultsTextMenu.setVisible(true);
-//				} else {
-//					resultsTextMenu.setVisible(false);
-//				}
 			}
 		});
 
@@ -524,23 +522,26 @@ public class JAXRSWSTestView extends ViewPart {
 					if (!monitor.isRunning()) {
 						try {
 							monitor.start();
+							int port = monitor.getLocalPort();
+							int remotePort = monitor.getRemotePort();
+							String host = monitor.getRemoteHost();
+							String newUrl = null;
+							if (oldUrl.contains(host + ":" + remotePort)) { //$NON-NLS-1$
+								newUrl = oldUrl.replace(host + ":" + remotePort, "localhost:" + port); //$NON-NLS-1$ //$NON-NLS-2$
+							} else {
+								newUrl = oldUrl.replace(host, "localhost:" + port); //$NON-NLS-1$
+							}
+							urlCombo.setText(newUrl);
 						} catch (CoreException e) {
-							// if we hit an error, put it in the results text
-							resultsText.setText(e.toString());
-							e.printStackTrace();
+							// if we hit an error, open a dialog
+							ErrorDialog dialog = new ErrorDialog(this.getSite().getShell(), 
+									JBossWSUIMessages.JAXRSWSTestView_Error_Title_Starting_Monitor,
+									JBossWSUIMessages.JAXRSWSTestView_Error_Msg_Starting_Monitor,
+									new Status(IStatus.ERROR, JBossWSUIPlugin.PLUGIN_ID, 
+									e.getLocalizedMessage(), e), IStatus.ERROR);
+							dialog.open();
 						}
 					}
-
-					int port = monitor.getLocalPort();
-					int remotePort = monitor.getRemotePort();
-					String host = monitor.getRemoteHost();
-					String newUrl = null;
-					if (oldUrl.contains(host + ":" + remotePort)) { //$NON-NLS-1$
-						newUrl = oldUrl.replace(host + ":" + remotePort, "localhost:" + port); //$NON-NLS-1$ //$NON-NLS-2$
-					} else {
-						newUrl = oldUrl.replace(host, "localhost:" + port); //$NON-NLS-1$
-					}
-					urlCombo.setText(newUrl);
 				}
 			}
 		}		

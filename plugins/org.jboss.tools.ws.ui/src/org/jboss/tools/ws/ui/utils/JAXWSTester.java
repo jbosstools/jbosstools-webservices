@@ -16,6 +16,7 @@ import java.util.Map;
 
 import javax.xml.soap.MimeHeader;
 import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPMessage;
 
 import org.apache.axis.AxisFault;
 import org.apache.axis.Message;
@@ -23,6 +24,7 @@ import org.apache.axis.MessageContext;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.axis.message.SOAPEnvelope;
+import org.apache.axis.transport.http.HTTPConstants;
 
 /**
  * Tester class for JAX-WS services
@@ -112,13 +114,23 @@ public class JAXWSTester {
 			// Get back the response HTTP headers and pass back as a Map
 			if (call != null && call.getMessageContext() != null) {
 				MessageContext mc = call.getMessageContext();
-				if (mc.getMessage() != null && mc.getMessage().getMimeHeaders() != null) {
-					MimeHeaders mh = mc.getMessage().getMimeHeaders();
-					Iterator<?> iter = mh.getAllHeaders();
+				if (mc != null){
+					String statusCode = mc.getProperty(HTTPConstants.MC_HTTP_STATUS_CODE).toString();
+					String statusMessage = mc.getProperty(HTTPConstants.MC_HTTP_STATUS_MESSAGE).toString();
+					String protocol = mc.getTransportName();
 					resultHeaders = new HashMap<String, String>();
-					while (iter.hasNext()) {
-						MimeHeader next = (MimeHeader)iter.next();
-						resultHeaders.put(next.getName(), next.getValue());
+					resultHeaders.put(null, protocol + " " + statusCode + " " + statusMessage);  //$NON-NLS-1$//$NON-NLS-2$
+//					System.out.println(protocol + " " + statusCode + " " + statusMessage);
+					SOAPMessage sm = mc.getResponseMessage();
+					if (sm != null){
+						MimeHeaders mh = sm.getMimeHeaders();
+						if (mh != null){
+							Iterator<?> iter = mh.getAllHeaders();
+							while (iter.hasNext()) {
+								MimeHeader next = (MimeHeader)iter.next();
+								resultHeaders.put(next.getName(), next.getValue());
+							}
+						}
 					}
 				}
 			}
