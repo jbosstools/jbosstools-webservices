@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import javax.wsdl.Definition;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 
@@ -66,6 +67,7 @@ import org.jboss.tools.ws.ui.utils.JAXRSTester;
 import org.jboss.tools.ws.ui.utils.JAXWSTester;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorage;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorageInput;
+import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -97,6 +99,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 	/* UI controls */
 	private Button testButton = null;
+	private Button wsdlButton = null;
 	private Text actionText;
 	private Text resultsText;
 	private Combo urlCombo;
@@ -124,7 +127,7 @@ public class JAXRSWSTestView extends ViewPart {
 	private Menu resultsTextMenu;
 	private MenuItem copyMenuAction;
 	
-	private boolean showSampleButton = true;
+	private boolean showSampleButton = false;
 
 	/**
 	 * The constructor.
@@ -268,6 +271,44 @@ public class JAXRSWSTestView extends ViewPart {
 			}
 		});
 
+		wsdlButton = new Button (buttonBar, SWT.PUSH);
+		wsdlButton.setText(JBossWSUIMessages.JAXRSWSTestView_Button_Get_From_WSDL);
+
+		wsdlButton.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				WSDLBrowseDialog wbDialog =  new WSDLBrowseDialog(getSite().getShell());
+				int rtnCode = wbDialog.open();
+				if (rtnCode == Window.OK){
+					Definition wsdlDef = wbDialog.getWSDLDefinition();
+					String output = TesterWSDLUtils.getSampleSOAPInputMessage(wsdlDef, 
+							wbDialog.getServiceTextValue(), 
+							wbDialog.getPortTextValue(), 
+							wbDialog.getBindingValue(), 
+							wbDialog.getOperationTextValue());
+					String endpointURL = TesterWSDLUtils.getEndpointURL(wsdlDef, 
+							wbDialog.getServiceTextValue(), 
+							wbDialog.getPortTextValue(), 
+							wbDialog.getBindingValue(), 
+							wbDialog.getOperationTextValue());
+					String actionURL = TesterWSDLUtils.getActionURL(wsdlDef, 
+							wbDialog.getServiceTextValue(), 
+							wbDialog.getPortTextValue(), 
+							wbDialog.getBindingValue(), 
+							wbDialog.getOperationTextValue());
+					String soapIn = generateSampleSOAP(output);
+					bodyText.setText(soapIn);
+					urlCombo.setText(endpointURL);
+					actionText.setText(actionURL);
+					setControlsForWSType(wsTypeCombo.getText());
+					setControlsForMethodType(methodCombo.getText());
+					setControlsForSelectedURL();
+				}
+			}
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+		});
+
 		addTCPIPMonitorButton = new Button(buttonBar, SWT.PUSH);
 		addTCPIPMonitorButton.setText(JBossWSUIMessages.JAXRSWSTestView_Configure_Monitor_Button);
 
@@ -383,7 +424,7 @@ public class JAXRSWSTestView extends ViewPart {
 							openXMLEditor(string);
 						}
 					} catch (SOAPException e) {
-						e.printStackTrace();
+						JBossWSUIPlugin.log(e);
 					}
 				}
 			}
@@ -422,6 +463,21 @@ public class JAXRSWSTestView extends ViewPart {
 		setMenusForCurrentState();
 	}
 	
+	private String generateSampleSOAP ( String innerText ) {
+		String soapIn = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n" + //$NON-NLS-1$
+			"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " + //$NON-NLS-1$
+			"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +  //$NON-NLS-1$
+			"xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +  //$NON-NLS-1$
+			">\n" + //$NON-NLS-1$
+			"<soap:Body>\n";//$NON-NLS-1$
+		if (innerText != null)
+			soapIn = soapIn + innerText;
+		soapIn = soapIn +
+			"</soap:Body>\n" + //$NON-NLS-1$
+			"</soap:Envelope>";	 //$NON-NLS-1$
+		return soapIn;
+	}
+	
 	private void setMenusForCurrentState() {
 		if (resultsText!= null && !resultsText.isDisposed()){
 			boolean enabled = resultsText.getText().trim().length() > 0; 
@@ -448,7 +504,7 @@ public class JAXRSWSTestView extends ViewPart {
 					page.openEditor(input, DEFAULT_TEXT_EDITOR_ID);
 				}
 			} catch (PartInitException e) {
-				e.printStackTrace();
+				JBossWSUIPlugin.log(e);
 			}			
 		}
 	}
@@ -471,7 +527,7 @@ public class JAXRSWSTestView extends ViewPart {
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().
 			getActivePage().showView(TCPIP_VIEW_ID);
 		} catch (PartInitException e) {
-			e.printStackTrace();
+			JBossWSUIPlugin.log(e);
 		}
 	}
 
@@ -588,6 +644,7 @@ public class JAXRSWSTestView extends ViewPart {
 			if (bodyText.getText().trim().length() == 0) {
 				bodyText.setText(emptySOAP);
 			}
+			wsdlButton.setEnabled(true);
 		}
 		else if (wsType.equalsIgnoreCase(JAX_RS)) {
 			actionText.setEnabled(false);
@@ -598,6 +655,7 @@ public class JAXRSWSTestView extends ViewPart {
 			parmsTab.getControl().setEnabled(true);
 			headerTab.getControl().setEnabled(true);
 			methodCombo.setText(GET);
+			wsdlButton.setEnabled(false);
 		}
 		setMenusForCurrentState();
 	}
@@ -679,7 +737,6 @@ public class JAXRSWSTestView extends ViewPart {
 		};
 		// true to indicate that this job was initiated by a UI end user
 		aJob.setUser(true);		
-		aJob.schedule();
 		aJob.addJobChangeListener(new IJobChangeListener() {
 
 			public void sleeping(IJobChangeEvent event) {};
@@ -707,6 +764,7 @@ public class JAXRSWSTestView extends ViewPart {
 			public void awake(IJobChangeEvent event) {};
 			public void aboutToRun(IJobChangeEvent event) {};
 		});
+		aJob.schedule();
 
 		setMenusForCurrentState();
 	}
@@ -756,7 +814,7 @@ public class JAXRSWSTestView extends ViewPart {
 					JBossWSUIPlugin.PLUGIN_ID, 
 					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
 			status.setResultsText(e.toString());
-			e.printStackTrace();
+			JBossWSUIPlugin.log(e);
 			return status;
 		}
 	}
@@ -840,7 +898,6 @@ public class JAXRSWSTestView extends ViewPart {
 				}
 			}
 
-			System.out.println(listText);
 			status.setHeadersList(listText);
 			monitor.worked(10);
 			return status;
@@ -873,16 +930,9 @@ public class JAXRSWSTestView extends ViewPart {
 				}
 			}
 
-			System.out.println(listText);
 			status.setHeadersList(listText);
 			monitor.worked(10);
 			return status;
-			//			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
-			//					JBossWSUIPlugin.PLUGIN_ID, 
-			//					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
-			//			status.setResultsText(e.toString());
-			//			e.printStackTrace();
-			//			return status;
 		}
 	}
 

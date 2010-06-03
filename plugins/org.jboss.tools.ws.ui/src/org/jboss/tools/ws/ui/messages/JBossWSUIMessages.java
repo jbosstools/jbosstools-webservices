@@ -105,6 +105,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Title;
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Message;
 	public static String JAXRSWSTestView_Action_URL_Label;
+	public static String JAXRSWSTestView_Button_Get_From_WSDL;
 	public static String JAXRSWSTestView_Configure_Monitor_Button;
 	public static String JAXRSWSTestView_CopyResultsMenu;
 	public static String JAXRSWSTestView_Error_Msg_Starting_Monitor;
@@ -127,6 +128,25 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_Set_Sample_Data_Label;
 	public static String JAXRSWSTestView_Web_Service_Type_Label;
 	public static String ResultsXMLStorageInput_WS_Invocation_Results_Prefix;
+
+	public static String WSDLBrowseDialog_Dialog_Title;
+	public static String WSDLBrowseDialog_FS_Browse;
+	public static String WSDLBrowseDialog_Group_Title;
+	public static String WSDLBrowseDialog_Message;
+	public static String WSDLBrowseDialog_Operation_Field;
+	public static String WSDLBrowseDialog_Port_Field;
+	public static String WSDLBrowseDialog_Service_Field;
+	public static String WSDLBrowseDialog_Status_Invalid_URL;
+	public static String WSDLBrowseDialog_Status_WSDL_Unavailable;
+	public static String WSDLBrowseDialog_Title;
+	public static String WSDLBrowseDialog_URL_Browse;
+	public static String WSDLBrowseDialog_WS_Browse;
+	public static String WSDLBrowseDialog_WS_Browse_Msg;
+	public static String WSDLBrowseDialog_WS_Browse_Select_WSDL_Msg;
+	public static String WSDLBrowseDialog_WS_Browse_Select_WSDL_Title;
+	public static String WSDLBrowseDialog_WSDL_URI_Field;
+	public static String WSDLBrowseDialog_WSDL_URL_Dialog_Title;
+	public static String WSDLBrowseDialog_WSDL_URL_Prompt;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);
