@@ -18,7 +18,7 @@ private String  webProjectName;
 	private boolean isGenWSDL;
 	private String target;
 	private int wsScenario;
-	private boolean extension;
+	private boolean extension = true;
 	private String serviceName;
 	private String customClassName;
 

@@ -215,7 +215,7 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 			});
 		}
 
-		// enable enable soap12 checkbox if the target jbossws runtime is less
+		// select soap12 checkbox if the target jbossws runtime is more
 		// than 3.0
 		updateExtensionButtonStatus();
 
@@ -223,8 +223,9 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 	}
 
 	private void updateExtensionButtonStatus() {
-		btnExtension.setEnabled(JBossWSCreationUtils.supportSOAP12(model
-				.getWebProjectName()));
+		boolean a = JBossWSCreationUtils.supportSOAP12(model.getWebProjectName());
+		btnExtension.setEnabled(a);
+		btnExtension.setSelection(a);
 	}
 
 	private void loadBindingFiles(List bindingList) {
