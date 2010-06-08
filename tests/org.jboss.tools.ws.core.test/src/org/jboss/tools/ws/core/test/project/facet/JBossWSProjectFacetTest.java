@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jst.common.project.facet.core.JavaFacet;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -29,7 +30,7 @@ public class JBossWSProjectFacetTest extends TestCase {
 	}
 
 	public void testWSFacet() throws CoreException{
-		wsProj.installProjectFacet(ProjectFacetsManager.getProjectFacet("jst.java").getVersion("5.0"), null, null);
+		wsProj.installProjectFacet(JavaFacet.JAVA_50, null, null);
 		wsProj.installProjectFacet(ProjectFacetsManager.getProjectFacet("jst.web").getVersion("2.5"), null, null);
 		wsProj.installProjectFacet(wsVersion, null, null);
 		assertTrue(wsProj.hasProjectFacet(wsFacet));
