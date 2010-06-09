@@ -66,4 +66,8 @@
         </listitem>
      </itemizedlist>
      <para>JBoss WS use a Java class to test Web Service. A client sample class will be generated, you may run this client as a java application to call a web service.</para>
+   <note>
+      <title>Note:</title>
+      <para>To run <property>client sample</property> as a Java application you need a <property>JBoss Runtime</property> in build path.  </para>
+   </note>
 </chapter>

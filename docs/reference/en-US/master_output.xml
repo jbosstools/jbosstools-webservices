@@ -2,15 +2,15 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3CR3//EN"
 "http://www.docbook.org/xml/4.3/docbookx.dtd"
 
-[<!ENTITY  overview SYSTEM "modules/overview.xml">
-<!ENTITY topdown SYSTEM "modules/topdown.xml">
-<!ENTITY preference SYSTEM "modules/preference.xml">
-<!ENTITY webproject SYSTEM "modules/webproject.xml">
-<!ENTITY client SYSTEM "modules/client.xml">
+[<!ENTITY  overview SYSTEM "overview.xml">
+<!ENTITY topdown SYSTEM "topdown.xml">
+<!ENTITY preference SYSTEM "preference.xml">
+<!ENTITY webproject SYSTEM "webproject.xml">
+<!ENTITY client SYSTEM "client.xml">
 ]><book xmlns:diffmk="http://diffmk.sf.net/ns/diff">
     
      <bookinfo>
-         <title>JBoss WS User Guide</title>
+         <title>JBoss Web Services User Guide</title>
          
          <corpauthor>
              <inlinemediaobject>
@@ -32,7 +32,7 @@
 	          <holder>JBoss by Red Hat</holder>
 	     </copyright>
          <releaseinfo><diffmk:wrapper diffmk:change="changed">
-           Version: 1.1.0.GA
+           Version: 1.1.1.GA
          </diffmk:wrapper></releaseinfo>
 <abstract>
    <title></title>
@@ -46,7 +46,7 @@
     
     <toc></toc> 
     
-<chapter id="overview" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en/modules/overview.xml">
+<chapter id="overview" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en-US/overview.xml">
    <title>JBossWS Runtime Overview</title>
 
     <para>JBossWS is a web service framework developed as a part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5).</para>
@@ -132,7 +132,7 @@
 
 </chapter>
     
-<chapter id="create_ws_topdown" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en/modules/topdown.xml">
+<chapter id="create_ws_topdown" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en-US/topdown.xml">
    <?dbhtml filename="topdown.html"?>
    <chapterinfo>
       <keywordset>
@@ -196,7 +196,7 @@
             </figure>
          </listitem>
       </itemizedlist>
-      <para>If you added the JBoss Web Service facet to the project, now the <property moreinfo="none">Finish</property> button is disable. You must click <property moreinfo="none">Next</property> button to set more information about the JBoss Web Service facet. The page is like <property moreinfo="none">Figure 2.5</property>. Then click on the <property moreinfo="none">Finish</property> button.</para>
+      <para>If you added the JBoss Web Service facet to the project, now the <property moreinfo="none">Finish</property><diffmk:wrapper diffmk:change="changed"> button is unavailable. You must click </diffmk:wrapper><property moreinfo="none">Next</property> button to set more information about the JBoss Web Service facet. The page is like <property moreinfo="none">Figure 2.5</property>. Then click on the <property moreinfo="none">Finish</property> button.</para>
       <para>If you didn't add the JBoss Web Service facet to the project, click on the <property moreinfo="none">Finish</property> button. Next you will need to add JBoss Web Service facet to the project.</para>
    </section>
 
@@ -463,9 +463,9 @@
             </figure>
             <itemizedlist>
                <listitem>
-                  <para>Generate WSDL file: select it, you will get a generated WSDL file in your
-                     project. But this wsdl's services' address location values are not a real
-                     address. </para>
+                  <para><diffmk:wrapper diffmk:change="changed">Generate WSDL file: select it, you will get a generated WSDL file in your
+                     project. But this wsdl's service address location values are not a real
+                     address. </diffmk:wrapper></para>
                </listitem>
                <listitem>
                   <para>After the Web service has been created, the following option can become
@@ -510,7 +510,7 @@
          <listitem>
             <para>If you selected to update the default web.xml, you will test the web service in
                the browser. Open the Explorer, input the url for the web service according to
-               web.xml plus <property moreinfo="none">?wsdl.</property>, you will get the WSDL file from Explorer. </para>
+               web.xml plus <property moreinfo="none"><diffmk:wrapper diffmk:change="changed">?wsdl</diffmk:wrapper></property>, you will get the WSDL file from Explorer. </para>
             <figure float="0">
                <title>The Updated web.xml file</title>
                <mediaobject>
@@ -528,7 +528,7 @@
 </chapter>
 
     
-<chapter id="client" revisionflag="added" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en/modules/client.xml">
+<chapter id="client" revisionflag="added" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en-US/client.xml">
   <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
   <para>To create a Web Service Client from a WSDL Document using JBoss WS you need to fulfil the following steps:</para>
   <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
@@ -595,10 +595,14 @@
         </listitem>
      </itemizedlist>
      <para>JBoss WS use a Java class to test Web Service. A client sample class will be generated, you may run this client as a java application to call a web service.</para>
+   <note diffmk:change="added">
+      <title diffmk:change="added"><diffmk:wrapper diffmk:change="added">Note:</diffmk:wrapper></title>
+      <para diffmk:change="added"><diffmk:wrapper diffmk:change="added">To run </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">client sample</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> as a Java application you need a </diffmk:wrapper><property diffmk:change="added" moreinfo="none"><diffmk:wrapper diffmk:change="added">JBoss Runtime</diffmk:wrapper></property><diffmk:wrapper diffmk:change="added"> in build path.  </diffmk:wrapper></para>
+   </note>
 </chapter>
 
     
-<chapter id="preference" revisionflag="added" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en/modules/preference.xml">
+<chapter id="preference" revisionflag="added" xml:base="file:///home/vchukhutsina/repos/ochik_jboss/ws/docs/reference/en-US/preference.xml">
     <title>JBoss WS and development environment</title>
     
     <para>In this chapter you will learn how to change JBossWS preferences and how to set default server and runtime.</para>
@@ -697,8 +701,8 @@
             <property moreinfo="none">JBossWS</property>. It describes how to easily create a Web Service and a Web Service Client using
             JBossWS Runtime and adjust JBossWS and development environment as well.</para>
 
-        <para>If the information on JBossWS tools in this guide isn't enough for you, ask
-           questions on our <ulink  url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
+       <para>If the information on JBossWS tools in this guide isn't enough for you, ask
+          questions on our <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">forum</ulink>. Your comments and suggestions are also welcome.</para>
     </section>
 </chapter>
 
