@@ -36,14 +36,14 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt,
  org.eclipse.jdt.launching,
  org.eclipse.debug.core,
- org.eclipse.jst.jee.web
+ org.eclipse.jst.jee.web,
+ javax.wsdl;visibility:=reexport
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.creation.core,
  org.jboss.tools.ws.creation.core.commands,
  org.jboss.tools.ws.creation.core.data,
  org.jboss.tools.ws.creation.core.messages,
  org.jboss.tools.ws.creation.core.utils
-Bundle-ClassPath: lib/wsdl4j.jar,
- .
+Bundle-ClassPath: .
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
