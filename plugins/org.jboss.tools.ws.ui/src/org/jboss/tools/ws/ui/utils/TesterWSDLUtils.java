@@ -343,7 +343,7 @@ public class TesterWSDLUtils {
 								if (temp.getAttribute(NAME_ATTR) != null) 
 									rootName = temp.getAttribute(NAME_ATTR).getValue();
 								
-								if (rootName.equalsIgnoreCase(messageName)) {
+								if (rootName != null && rootName.equalsIgnoreCase(messageName)) {
 									StringBuffer buf = new StringBuffer();
 									buf.append('<' + rootName);
 									buf.append(" xmlns = \"" + wsdlDefinition.getTargetNamespace() + "\""); //$NON-NLS-1$ //$NON-NLS-2$

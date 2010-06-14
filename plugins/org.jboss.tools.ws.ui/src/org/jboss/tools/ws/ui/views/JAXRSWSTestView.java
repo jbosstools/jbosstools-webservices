@@ -414,6 +414,9 @@ public class JAXRSWSTestView extends ViewPart {
 										if (node3.getNodeType() == Node.TEXT_NODE) {
 											string = node3.getNodeValue();
 											break;
+										} else if (node3.getNodeType() == Node.ELEMENT_NODE) {
+											string = node2.toString();
+											break;
 										}
 									}
 								}

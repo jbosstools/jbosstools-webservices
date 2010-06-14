@@ -90,10 +90,18 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 	private List opList;
 	private Group group;
 	private Label portLabel;
+	private boolean showServicePortOperaton = true;
 
 	public WSDLBrowseDialog(Shell parentShell) {
 		super(parentShell);
 		setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE );
+	}
+	
+	public void setShowServicePortOperation (boolean flag ){
+		this.showServicePortOperaton = flag;
+	}
+	public boolean getShowServicePortOperation() {
+		return this.showServicePortOperaton;
 	}
 	
 	public String getWSDLText(){
@@ -161,9 +169,11 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 			public void modifyText(ModifyEvent arg0) {
 				IStatus status = validate();
 				if (status != Status.OK_STATUS) {
-					setGroupEnabled(false);
+					if (showServicePortOperaton)
+						setGroupEnabled(false);
 				} else {
-					setGroupEnabled(true);
+					if (showServicePortOperaton)
+						setGroupEnabled(true);
 				}
 			}
 		});
@@ -217,7 +227,8 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 								locationCombo.setText(testURL.toExternalForm());
 								wsdlDefinition =
 									TesterWSDLUtils.readWSDLURL(testURL);
-								updateServiceCombo();
+								if (showServicePortOperaton)
+									updateServiceCombo();
 							} catch (MalformedURLException e) {
 								e.printStackTrace();
 							} catch (WSDLException e) {
@@ -258,7 +269,8 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 						locationCombo.setText(testURL.toExternalForm());
 						wsdlDefinition =
 							TesterWSDLUtils.readWSDLURL(testURL);
-						updateServiceCombo();
+						if (showServicePortOperaton)
+							updateServiceCombo();
 					} catch (MalformedURLException e) {
 						JBossWSUIPlugin.log(e);
 					} catch (WSDLException e) {
@@ -297,7 +309,8 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 						locationCombo.setText(testURL.toExternalForm());
 						wsdlDefinition =
 							TesterWSDLUtils.readWSDLURL(testURL);
-						updateServiceCombo();
+						if (showServicePortOperaton)
+							updateServiceCombo();
 					} catch (MalformedURLException e) {
 						JBossWSUIPlugin.log(e);
 					} catch (WSDLException e) {
@@ -307,59 +320,63 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 			}
 		});
 		
-		group = new Group(mainComposite, SWT.NONE);
-		group.setText(JBossWSUIMessages.WSDLBrowseDialog_Group_Title);
-		gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-		gridData.horizontalSpan = 2;
-		group.setLayoutData(gridData);
-		group.setLayout(new GridLayout(2, false));
+		if (this.showServicePortOperaton) {
+			group = new Group(mainComposite, SWT.NONE);
+			group.setText(JBossWSUIMessages.WSDLBrowseDialog_Group_Title);
+			gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+			gridData.horizontalSpan = 2;
+			group.setLayoutData(gridData);
+			group.setLayout(new GridLayout(2, false));
+			
+			serviceLabel = new Label(group, SWT.NONE);
+			serviceLabel.setText(JBossWSUIMessages.WSDLBrowseDialog_Service_Field);
+	
+			gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+			serviceCombo = new Combo(group, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
+			serviceCombo.setLayoutData(gridData);
+			serviceCombo.addSelectionListener(new SelectionListener(){
+				public void widgetDefaultSelected(SelectionEvent arg0) {
+					updatePortCombo();
+				}
+				public void widgetSelected(SelectionEvent arg0) {
+					widgetDefaultSelected(arg0);
+				}
+			});
+			
+			portLabel = new Label(group, SWT.NONE);
+			portLabel.setText(JBossWSUIMessages.WSDLBrowseDialog_Port_Field);
+	
+			gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+			portCombo = new Combo(group, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			portCombo.setLayoutData(gridData);
+			portCombo.addSelectionListener(new SelectionListener(){
+				public void widgetDefaultSelected(SelectionEvent arg0) {
+					updateOperationList();
+				}
+				public void widgetSelected(SelectionEvent arg0) {
+					widgetDefaultSelected(arg0);
+				}
+			});
+	
+			operationLabel = new Label(group, SWT.NONE);
+			operationLabel.setText(JBossWSUIMessages.WSDLBrowseDialog_Operation_Field);
+	
+			gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+			gridData.verticalSpan = 3;
+			gridData.heightHint = 50;
+			opList = new List(group, SWT.BORDER | SWT.V_SCROLL );
+			opList.setLayoutData(gridData);
+			opList.addSelectionListener(new SelectionListener(){
+				public void widgetDefaultSelected(SelectionEvent arg0) {
+					WSDLBrowseDialog.this.operationTextValue = opList.getSelection()[0];
+				}
+				public void widgetSelected(SelectionEvent arg0) {
+					widgetDefaultSelected(arg0);
+				}
+			});
+		}
 		
-		serviceLabel = new Label(group, SWT.NONE);
-		serviceLabel.setText(JBossWSUIMessages.WSDLBrowseDialog_Service_Field);
-
-		gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-		serviceCombo = new Combo(group, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
-		serviceCombo.setLayoutData(gridData);
-		serviceCombo.addSelectionListener(new SelectionListener(){
-			public void widgetDefaultSelected(SelectionEvent arg0) {
-				updatePortCombo();
-			}
-			public void widgetSelected(SelectionEvent arg0) {
-				widgetDefaultSelected(arg0);
-			}
-		});
-		
-		portLabel = new Label(group, SWT.NONE);
-		portLabel.setText(JBossWSUIMessages.WSDLBrowseDialog_Port_Field);
-
-		gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-		portCombo = new Combo(group, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-		portCombo.setLayoutData(gridData);
-		portCombo.addSelectionListener(new SelectionListener(){
-			public void widgetDefaultSelected(SelectionEvent arg0) {
-				updateOperationList();
-			}
-			public void widgetSelected(SelectionEvent arg0) {
-				widgetDefaultSelected(arg0);
-			}
-		});
-
-		operationLabel = new Label(group, SWT.NONE);
-		operationLabel.setText(JBossWSUIMessages.WSDLBrowseDialog_Operation_Field);
-
-		gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-		gridData.verticalSpan = 3;
-		gridData.heightHint = 50;
-		opList = new List(group, SWT.BORDER | SWT.V_SCROLL );
-		opList.setLayoutData(gridData);
-		opList.addSelectionListener(new SelectionListener(){
-			public void widgetDefaultSelected(SelectionEvent arg0) {
-				WSDLBrowseDialog.this.operationTextValue = opList.getSelection()[0];
-			}
-			public void widgetSelected(SelectionEvent arg0) {
-				widgetDefaultSelected(arg0);
-			}
-		});
+		mainComposite.pack();
 
 		return mainComposite;
 	}
@@ -473,7 +490,8 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 			URL testURL = new URL(urlText);
 			wsdlDefinition =
 				TesterWSDLUtils.readWSDLURL(testURL);
-			updateServiceCombo();
+			if (showServicePortOperaton)
+				updateServiceCombo();
 		} catch (MalformedURLException e) {
 			return StatusUtils.errorStatus(JBossWSUIMessages.WSDLBrowseDialog_Status_Invalid_URL, e);
 		} catch (WSDLException e) {
@@ -486,17 +504,21 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 	protected Control createContents(Composite parent) {
 		Control control = super.createContents(parent);
 
-		setGroupEnabled(false);
+		if (showServicePortOperaton)
+			setGroupEnabled(false);
 
 		if (WSDLBrowseDialog.wsdlTextValue != null) {
 			this.locationCombo.setText(wsdlTextValue);
 			IStatus status = validate();
 			if (status != Status.OK_STATUS) {
-				setGroupEnabled(false);
+				if (showServicePortOperaton)
+					setGroupEnabled(false);
 			} else {
-				setGroupEnabled(true);
+				if (showServicePortOperaton)
+					setGroupEnabled(true);
 			}
 		}
+		control.pack(true);
 		return control;
 	}
 	
