@@ -32,7 +32,6 @@ Require-Bundle: org.eclipse.ui,
  org.jboss.ide.eclipse.as.classpath.core,
  org.eclipse.jst.common.project.facet.core;bundle-version="1.4.1"
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: ws-core-test.jar
 Export-Package: org.jboss.tools.ws.core.test,
  org.jboss.tools.ws.core.test.classpath
 Bundle-Vendor: %Bundle-Vendor.0
