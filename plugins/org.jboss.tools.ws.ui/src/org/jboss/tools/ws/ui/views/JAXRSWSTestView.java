@@ -585,8 +585,11 @@ public class JAXRSWSTestView extends ViewPart {
 							int remotePort = monitor.getRemotePort();
 							String host = monitor.getRemoteHost();
 							String newUrl = null;
-							if (oldUrl.contains(host + ":" + remotePort)) { //$NON-NLS-1$
-								newUrl = oldUrl.replace(host + ":" + remotePort, "localhost:" + port); //$NON-NLS-1$ //$NON-NLS-2$
+							if (oldUrl.contains(host + ':' + remotePort)) {
+								newUrl = oldUrl.replace(host + ':' + remotePort, "localhost:" + port); //$NON-NLS-1$
+							} else if (oldUrl.contains(host + ':' + port)) {
+								// do nothing - host/port combo is already correct
+								newUrl = oldUrl;
 							} else {
 								newUrl = oldUrl.replace(host, "localhost:" + port); //$NON-NLS-1$
 							}
