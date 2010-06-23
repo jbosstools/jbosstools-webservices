@@ -152,6 +152,9 @@ public class JAXRSTester {
         
         // get the parms string
         String query = buildWebQuery(parameters);
+        
+        // Clear the address of any leading/trailing spaces
+        address = address.trim();
 
         // build the complete URL
         URL url = null;

@@ -227,6 +227,11 @@ public class DelimitedStringList extends Composite {
 		updatePropertyButtons();
 	}
 
+	public void removeAll() {
+		this.mPropsList.removeAll();
+		updatePropertyButtons();
+	}
+	
 	public void dispose() {
 		super.dispose();
 	}

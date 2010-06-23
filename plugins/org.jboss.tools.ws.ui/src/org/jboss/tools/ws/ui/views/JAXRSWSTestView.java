@@ -634,6 +634,7 @@ public class JAXRSWSTestView extends ViewPart {
 			bodyText.setEnabled(true);
 			methodCombo.setEnabled(false);
 			parmsList.setEnabled(false);
+			parmsList.removeAll();
 			dlsList.setEnabled(false);
 			parmsTab.getControl().setEnabled(false);
 			headerTab.getControl().setEnabled(true);
@@ -662,6 +663,10 @@ public class JAXRSWSTestView extends ViewPart {
 			headerTab.getControl().setEnabled(true);
 			methodCombo.setText(GET);
 			wsdlButton.setEnabled(false);
+
+			if (bodyText.getText().trim().length() > 0) {
+				bodyText.setText(""); //$NON-NLS-1$
+			}
 		}
 		setMenusForCurrentState();
 	}
