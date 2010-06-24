@@ -66,6 +66,7 @@ public class Java2WSCommand extends AbstractGenerateCodeCommand {
 
 		command.add("-c"); //$NON-NLS-1$
 		command.add(getClasspath(iProject));
+		command.add("-t"); //$NON-NLS-1$
 	}
 
 	private String getClasspath(IProject iProject) throws IOException {

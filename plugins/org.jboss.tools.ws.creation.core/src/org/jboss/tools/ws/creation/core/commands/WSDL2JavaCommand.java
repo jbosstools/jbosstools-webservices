@@ -58,6 +58,7 @@ public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 		if(model.enableSOAP12()){
 			command.add("-e"); //$NON-NLS-1$
 		}
+		command.add("-v"); //$NON-NLS-1$
 	}
 
 }
