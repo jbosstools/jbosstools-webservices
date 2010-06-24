@@ -134,6 +134,7 @@ public class TesterWSDLUtils {
 						Port port = (Port) ports.get( portKey );
 						Binding wsdlBinding = port.getBinding();
 						PortType portType = wsdlBinding.getPortType();
+						String ns = portType.getQName().getNamespaceURI();
 						List<?> operations = portType.getOperations();
 						for (Iterator<?> it3 = operations.iterator(); it3.hasNext();){
 							Operation operation = (Operation) it3.next();
@@ -148,7 +149,7 @@ public class TesterWSDLUtils {
 									} else {
 										schemaName = part.getName();
 									}
-									String out = createMessageForSchemaElement(wsdlDefinition, schemaName);
+									String out = createMessageForSchemaElement(wsdlDefinition, schemaName, ns);
 									return out;
 								}
 							}
@@ -316,7 +317,7 @@ public class TesterWSDLUtils {
 		return null;
 	}
 	
-	private static String createMessageForSchemaElementFromTypes ( Definition wsdlDefinition, Types types, String messageName ) {
+	private static String createMessageForSchemaElementFromTypes ( Definition wsdlDefinition, Types types, String messageName, String namespace ) {
 		if (types != null &&types.getExtensibilityElements().size() > 0) {
 			Schema schema = (Schema) types.getExtensibilityElements().get(0);
 			DOMBuilder domBuilder = new DOMBuilder();
@@ -346,7 +347,7 @@ public class TesterWSDLUtils {
 								if (rootName != null && rootName.equalsIgnoreCase(messageName)) {
 									StringBuffer buf = new StringBuffer();
 									buf.append('<' + rootName);
-									buf.append(" xmlns = \"" + wsdlDefinition.getTargetNamespace() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+									buf.append(" xmlns = \"" + namespace + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 									buf.append(">\n"); //$NON-NLS-1$
 									if (!temp.getChildren().isEmpty()){
 										org.jdom.Element temp2 = (org.jdom.Element)temp.getChildren().get(0);
@@ -377,7 +378,7 @@ public class TesterWSDLUtils {
 						if (rootName.equalsIgnoreCase(messageName)) {
 							StringBuffer buf = new StringBuffer();
 							buf.append('<' + rootName);
-							buf.append(" xmlns = \"" + wsdlDefinition.getTargetNamespace() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+							buf.append(" xmlns = \"" + namespace + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 							buf.append(">\n"); //$NON-NLS-1$
 							if (!temp.getChildren().isEmpty()){
 								org.jdom.Element temp2 = (org.jdom.Element)temp.getChildren().get(0);
@@ -509,7 +510,7 @@ public class TesterWSDLUtils {
 		return buf.toString();
 	}
 
-	public static String createMessageForSchemaElement ( Definition wsdlDefinition, String messageName ) {
+	public static String createMessageForSchemaElement ( Definition wsdlDefinition, String messageName, String namespace ) {
 		Types types = wsdlDefinition.getTypes();
 		if (types == null) {
 			Map<?, ?> imports = wsdlDefinition.getImports();
@@ -522,18 +523,18 @@ public class TesterWSDLUtils {
 					Import importInstance = (Import) iter.next();
 					if (importInstance.getDefinition().getTypes() != null) {
 						types = importInstance.getDefinition().getTypes();
-						String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, types, messageName);
+						String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, types, messageName, namespace);
 						if (attempt != null)
 							return attempt;
 					} else if (importInstance.getDefinition().getImports() != null) {
-						String attempt = createMessageForSchemaElement(importInstance.getDefinition(), messageName);
+						String attempt = createMessageForSchemaElement(importInstance.getDefinition(), messageName, namespace);
 						if (attempt != null)
 							return attempt;
 					}
 				}
 			}
 		} else {
-			String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, types, messageName);
+			String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, types, messageName, namespace);
 			if (attempt != null)
 				return attempt;
 		}
