@@ -170,8 +170,7 @@ public class ImplementationClassCreationCommand extends
 		type.setInterface(false);
 		// add WebService annotation
 		String endpoint = getPortTypeInterfaceFullName(portTypeName);
-		NormalAnnotation ann = createAnnotation(ast,
-				getImplClassName(portTypeName), portTypeName, endpoint);
+		NormalAnnotation ann = createAnnotation(ast, portTypeName, endpoint);
 		type.modifiers().add(ann);
 		type.modifiers().add(
 				ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
@@ -290,15 +289,12 @@ public class ImplementationClassCreationCommand extends
 	 * create web service annotation
 	 */
 	@SuppressWarnings("unchecked")
-	protected NormalAnnotation createAnnotation(AST ast, String name,
+	protected NormalAnnotation createAnnotation(AST ast,
 			String serviceName, String endpoint) {
 		NormalAnnotation ann = ast.newNormalAnnotation();
 		ann.setTypeName(ast.newSimpleName(ANNOTATION_TYPE_NAME_WEBSERVICE));
 
-		MemberValuePair member = createMemberValuePair(ast,
-				ANNOTATION_PROPERTY_NAME, name);
-		ann.values().add(member);
-		member = createMemberValuePair(ast, ANNOTATION_PROPERTY_SERVICE_NAME,
+		MemberValuePair member = createMemberValuePair(ast, ANNOTATION_PROPERTY_SERVICE_NAME,
 				serviceName);
 		ann.values().add(member);
 		member = createMemberValuePair(ast,
