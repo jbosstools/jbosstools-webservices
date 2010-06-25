@@ -220,7 +220,8 @@ public class JAXRSTester {
         		|| methodType.equalsIgnoreCase("PUT"))) { //$NON-NLS-1$
         	requestBody = WSTestUtils.stripNLsFromXML(requestBody);
         	OutputStreamWriter out = new OutputStreamWriter(httpurlc.getOutputStream());
-        	out.write(requestBody);
+        	String stripped = stripCRLF(requestBody);
+        	out.write(stripped);
         	out.close();
         }
 
@@ -259,4 +260,24 @@ public class JAXRSTester {
         // disconnect explicitly (may not be necessary)
         httpurlc.disconnect();
     }	
+    
+    public static String stripCRLF ( String input ) {
+    	if (input != null) {
+	    	StringBuffer output = new StringBuffer();
+	    	
+	    	char cr = '\r';
+	    	char lf = '\n';
+	    	
+	    	for (int i = 0; i < input.length(); i++) {
+	    		char ch = input.charAt(i);
+	    		if (ch == cr || ch == lf) {
+	    			// do nothing
+	    		} else {
+	    			output.append(ch);
+	    		}
+	    	}
+	    	return output.toString();
+    	}
+    	return null;
+    }
 }

@@ -33,10 +33,15 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
@@ -46,6 +51,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Menu;
@@ -126,6 +132,8 @@ public class JAXRSWSTestView extends ViewPart {
 	private MenuItem openResponseTagInXMLEditor;
 	private Menu resultsTextMenu;
 	private MenuItem copyMenuAction;
+	private Menu resultsHeaderMenu;
+	private MenuItem copyResultHeaderMenuAction;
 	
 	private boolean showSampleButton = false;
 
@@ -459,6 +467,40 @@ public class JAXRSWSTestView extends ViewPart {
 		rdlsListGD.horizontalSpan = 2;
 		resultHeadersList.setLayoutData(dlsListGD);
 
+		resultsHeaderMenu = new Menu(resultHeadersList.getShell(), SWT.POP_UP);
+		
+		copyResultHeaderMenuAction = new MenuItem(resultsHeaderMenu, SWT.PUSH);
+		copyResultHeaderMenuAction.setText(JBossWSUIMessages.JAXRSWSTestView_CopyResultMenu_Text);
+		copyResultHeaderMenuAction.setAccelerator(SWT.CTRL + 'C');
+		copyResultHeaderMenuAction.addSelectionListener(new SelectionListener(){
+
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				if (resultHeadersList.getSelectionCount() == 0)
+					resultHeadersList.selectAll();
+				Display display = Display.getDefault();
+				final Clipboard cb = new Clipboard(display);
+				TextTransfer textTransfer = TextTransfer.getInstance();
+		        cb.setContents(resultHeadersList.getSelection() ,
+		            new Transfer[] { textTransfer });
+			}
+
+			public void widgetSelected(SelectionEvent arg0) {
+				widgetDefaultSelected(arg0);
+			}
+		});
+		
+		resultHeadersList.setMenu(resultsHeaderMenu);
+		
+		resultHeadersList.addMouseListener(new MouseListener() {
+			public void mouseDoubleClick(MouseEvent arg0) {
+			}
+			public void mouseDown(MouseEvent arg0) {
+				setMenusForCurrentState();
+			}
+			public void mouseUp(MouseEvent arg0) {
+			}
+		});
+
 		wsTypeCombo.setText(JAX_WS);
 		setControlsForWSType(wsTypeCombo.getText());
 		setControlsForMethodType(methodCombo.getText());
@@ -491,6 +533,10 @@ public class JAXRSWSTestView extends ViewPart {
 			} else if (wsTypeCombo.getText().equalsIgnoreCase(JAX_RS) ){
 				openResponseTagInXMLEditor.setEnabled(false);
 			}
+		}
+		if (resultHeadersList != null && !resultHeadersList.isDisposed()) {
+			boolean enabled = resultHeadersList.getItemCount() > 0;
+			copyResultHeaderMenuAction.setEnabled(enabled);
 		}
 	}
 	

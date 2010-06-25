@@ -107,6 +107,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_Action_URL_Label;
 	public static String JAXRSWSTestView_Button_Get_From_WSDL;
 	public static String JAXRSWSTestView_Configure_Monitor_Button;
+	public static String JAXRSWSTestView_CopyResultMenu_Text;
 	public static String JAXRSWSTestView_CopyResultsMenu;
 	public static String JAXRSWSTestView_Error_Msg_Starting_Monitor;
 	public static String JAXRSWSTestView_Error_Title_Starting_Monitor;
