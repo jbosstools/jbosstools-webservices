@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.creation.core.test.command;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -75,11 +76,10 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 	protected static final int DEFAULT_STARTUP_TIME = 150000;
 	protected static final int DEFAULT_SHUTDOWN_TIME = 90000;
 
-	protected static final String JBOSSWS_HOME_DEFAULT = "D:/softinstall/jboss-4.2.3GA/jboss-4.2.3.GA";
 	public static final String JBOSSWS_42_HOME = "jbosstools.test.jboss.home.4.2";
 	public static final String JBOSS_RUNTIME_42 = "org.jboss.ide.eclipse.as.runtime.42";
 	public static final String JBOSS_AS_42_HOME = System.getProperty(
-			JBOSSWS_42_HOME, JBOSSWS_HOME_DEFAULT);
+			JBOSSWS_42_HOME);
 	public static final String JBOSS_SERVER_42 = "org.jboss.ide.eclipse.as.42";
 
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
@@ -115,7 +115,7 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 
 		// create jbossws web project
 
-		createServer(JBOSS_RUNTIME_42, JBOSS_SERVER_42, JBOSS_AS_42_HOME,
+		createServer(JBOSS_RUNTIME_42, JBOSS_SERVER_42, getJBossWSHomeFolder().getAbsolutePath(),
 				"default");
 		// first thing's first. Let's add a server state listener
 		stateListener = new ServerStateListener();
@@ -281,11 +281,14 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 
 	protected File getJBossWSHomeFolder() {
 
-		String jbosshome = System.getProperty(JBOSSWS_42_HOME,
-				JBOSSWS_HOME_DEFAULT);
+		String jbosshome = System.getProperty(JBOSSWS_42_HOME);
+		if (jbosshome==null) {
+			String message = "{0} system property is not defined. Use -D{0}=/path/to/the/server in command line or in VM Arguments group of Aclipse Application Launch Configuration Arguments tab";
+			throw new IllegalArgumentException(MessageFormat.format(message, JBOSSWS_42_HOME));
+		}
+		String wrongLocationMessage = "{0} system property points to none existing folder"; 
 		File runtimelocation = new File(jbosshome);
-		assertTrue("Please set JBoss EAP Home in system property:"
-				+ JBOSSWS_42_HOME, runtimelocation.exists());
+		assertTrue(MessageFormat.format(wrongLocationMessage,JBOSSWS_42_HOME), runtimelocation.exists());
 
 		String cmdFileLocation = jbosshome + File.separator + "bin"
 				+ File.separator + "wsconsume.sh";

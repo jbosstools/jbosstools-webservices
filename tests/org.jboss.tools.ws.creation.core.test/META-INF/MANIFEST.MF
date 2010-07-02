@@ -30,9 +30,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.core,
  org.eclipse.ui.console,
  org.eclipse.jface.text,
- org.jboss.ide.eclipse.as.classpath.core
+ org.jboss.ide.eclipse.as.classpath.core,
+ org.jboss.ide.eclipse.as.ui;bundle-version="2.1.0",
+ org.jboss.ide.eclipse.as.wtp.core;bundle-version="2.1.0"
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: ws-creation-core-test.jar
 Export-Package: org.jboss.tools.ws.creation.core.test,
  org.jboss.tools.ws.creation.core.test.command
 Bundle-Vendor: %Bundle-Vendor.0

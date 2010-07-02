@@ -21,11 +21,11 @@ import org.jboss.tools.ws.creation.core.test.command.JBossWSJavaFirstCommandTest
 import org.jboss.tools.ws.creation.core.test.command.JBossWSMergeWebXMLCommandTest;
 import org.jboss.tools.ws.creation.core.test.command.JBossWSTopDownCommandTest;
 
-public class JBossWSCreationCoreTests extends TestCase {
+public class JBossWSCreationCoreTestSuite extends TestCase {
 	public static final String PLUGIN_ID = "org.jboss.tools.ws.creation.core.test";
 	public static Test suite ()
 	{
-		TestSuite suite = new TestSuite(JBossWSCreationCoreTests.class.getName());
+		TestSuite suite = new TestSuite(JBossWSCreationCoreTestSuite.class.getName());
 		suite.addTestSuite(JBossWSTopDownCommandTest.class);
 		suite.addTestSuite(JBossWSJavaFirstCommandTest.class);
 		suite.addTestSuite(JBossWSClientCommandTest.class);
