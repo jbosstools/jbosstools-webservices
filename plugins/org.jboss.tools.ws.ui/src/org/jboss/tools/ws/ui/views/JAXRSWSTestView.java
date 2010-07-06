@@ -18,9 +18,11 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import javax.wsdl.Definition;
+import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 
+import org.apache.axis.utils.XMLUtils;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -70,11 +72,12 @@ import org.eclipse.wst.internet.monitor.core.internal.provisional.MonitorCore;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jboss.tools.ws.ui.utils.JAXRSTester;
-import org.jboss.tools.ws.ui.utils.JAXWSTester;
+import org.jboss.tools.ws.ui.utils.JAXWSTester2;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorage;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorageInput;
 import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -128,6 +131,7 @@ public class JAXRSWSTestView extends ViewPart {
 	private Button addTCPIPMonitorButton;
 
 	private SOAPEnvelope envelope;
+	private SOAPBody soapbody;
 	private MenuItem openInXMLEditorAction;
 	private MenuItem openResponseTagInXMLEditor;
 	private Menu resultsTextMenu;
@@ -136,6 +140,7 @@ public class JAXRSWSTestView extends ViewPart {
 	private MenuItem copyResultHeaderMenuAction;
 	
 	private boolean showSampleButton = false;
+	private String[] serviceNSMessage = null;
 
 	/**
 	 * The constructor.
@@ -287,6 +292,7 @@ public class JAXRSWSTestView extends ViewPart {
 				WSDLBrowseDialog wbDialog =  new WSDLBrowseDialog(getSite().getShell());
 				int rtnCode = wbDialog.open();
 				if (rtnCode == Window.OK){
+					serviceNSMessage = null;
 					Definition wsdlDef = wbDialog.getWSDLDefinition();
 					String output = TesterWSDLUtils.getSampleSOAPInputMessage(wsdlDef, 
 							wbDialog.getServiceTextValue(), 
@@ -299,6 +305,11 @@ public class JAXRSWSTestView extends ViewPart {
 							wbDialog.getBindingValue(), 
 							wbDialog.getOperationTextValue());
 					String actionURL = TesterWSDLUtils.getActionURL(wsdlDef, 
+							wbDialog.getServiceTextValue(), 
+							wbDialog.getPortTextValue(), 
+							wbDialog.getBindingValue(), 
+							wbDialog.getOperationTextValue());
+					serviceNSMessage = TesterWSDLUtils.getNSServiceNameAndMessageNameArray(wsdlDef, 
 							wbDialog.getServiceTextValue(), 
 							wbDialog.getPortTextValue(), 
 							wbDialog.getBindingValue(), 
@@ -408,35 +419,41 @@ public class JAXRSWSTestView extends ViewPart {
 
 			public void widgetSelected(SelectionEvent arg0) {
 				String string = null;
-				if (envelope != null){
-					try {
-						NodeList list = envelope.getBody().getChildNodes();
-						for (int i = 0; i< list.getLength(); i++){
-							Node node = list.item(i);
-							if (node.getNodeName().contains("Response")){ //$NON-NLS-1$
-								NodeList list2 = node.getChildNodes();
-								for (int j = 0; j<list2.getLength(); j++){
-									Node node2 = list2.item(j);
-									if (node2.getNodeName().contains("Result")){ //$NON-NLS-1$
-										Node node3 = node2.getChildNodes().item(0);
-										if (node3.getNodeType() == Node.TEXT_NODE) {
-											string = node3.getNodeValue();
-											break;
-										} else if (node3.getNodeType() == Node.ELEMENT_NODE) {
-											string = node2.toString();
-											break;
-										}
+				try {
+					SOAPBody body = null;
+					if (envelope != null){
+						body = envelope.getBody();
+					} else if (soapbody != null) {
+						body = soapbody;
+					}
+
+					NodeList list = body.getChildNodes();
+					for (int i = 0; i< list.getLength(); i++){
+						Node node = list.item(i);
+						if (node.getNodeName().contains("Response")){ //$NON-NLS-1$
+							NodeList list2 = node.getChildNodes();
+							for (int j = 0; j<list2.getLength(); j++){
+								Node node2 = list2.item(j);
+								if (node2.getNodeName().contains("Result")){ //$NON-NLS-1$
+									Node node3 = node2.getChildNodes().item(0);
+									if (node3.getNodeType() == Node.TEXT_NODE) {
+										string = node3.getNodeValue();
+										break;
+									} else if (node3.getNodeType() == Node.ELEMENT_NODE) {
+										Element element = (Element) node3;
+										string = XMLUtils.ElementToString(element);
+										break;
 									}
 								}
-								if (string != null) break;
 							}
+							if (string != null) break;
 						}
-						if (string != null){
-							openXMLEditor(string);
-						}
-					} catch (SOAPException e) {
-						JBossWSUIPlugin.log(e);
 					}
+					if (string != null){
+						openXMLEditor(string);
+					}
+				} catch (SOAPException e) {
+					JBossWSUIPlugin.log(e);
 				}
 			}
 
@@ -833,12 +850,16 @@ public class JAXRSWSTestView extends ViewPart {
 		try {
 
 			envelope = null;
+			soapbody = null;
 			monitor.worked(10);
-			JAXWSTester tester = new JAXWSTester();
-			tester.doTest(url, action, body);
+//			JAXWSTester tester = new JAXWSTester();
+//			tester.doTest(url, action, body);
+			JAXWSTester2 tester = new JAXWSTester2();
+			tester.doTest(url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
 			monitor.worked(70);
 			String result = tester.getResultBody();
 			envelope = tester.getResultSOAP();
+			soapbody = tester.getResultSOAPBody();
 			String cleanedUp = WSTestUtils.addNLsToXML(result);
 
 			WSTestStatus status = new WSTestStatus(IStatus.OK, 

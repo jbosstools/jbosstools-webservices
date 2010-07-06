@@ -29,7 +29,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.internet.monitor.core,
  org.eclipse.wst.internet.monitor.ui,
  javax.wsdl;bundle-version="1.6.2",
- org.jdom
+ org.jdom,
+ javax.xml.ws
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,

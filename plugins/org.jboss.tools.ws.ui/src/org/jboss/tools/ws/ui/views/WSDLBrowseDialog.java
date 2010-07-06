@@ -223,7 +223,7 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 							IFile resource = (IFile) objects[0];
 							File tempFile = new File(resource.getRawLocationURI());
 							try {
-								URL testURL = tempFile.toURL();
+								URL testURL = tempFile.toURI().toURL();
 								locationCombo.setText(testURL.toExternalForm());
 								wsdlDefinition =
 									TesterWSDLUtils.readWSDLURL(testURL);
@@ -265,7 +265,7 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 				if (fileText != null){
 					File tempFile = new File(fileText);
 					try {
-						URL testURL = tempFile.toURL();
+						URL testURL = tempFile.toURI().toURL();
 						locationCombo.setText(testURL.toExternalForm());
 						wsdlDefinition =
 							TesterWSDLUtils.readWSDLURL(testURL);

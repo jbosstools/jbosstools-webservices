@@ -27,6 +27,12 @@ public class JBossWSUIMessages extends NLS {
 	public static String Bin;
 	public static String Command;
 	public static String Client;
+	public static String DelimitedStringList_Msg_No_Btn;
+	public static String DelimitedStringList_Msg_Text_ParseByAmpersand;
+	public static String DelimitedStringList_Msg_Text_ParseByComma;
+	public static String DelimitedStringList_Msg_Title_ParseByAmpersand;
+	public static String DelimitedStringList_Msg_Title_ParseByComma;
+	public static String DelimitedStringList_Msg_Yes_Btn;
 	public static String DelimitedStringList_NO_COMMAS_WARNING;
 	public static String DelimitedStringList_NO_EQUALS_DELIMITER_WARNING;
 	public static String Lib;

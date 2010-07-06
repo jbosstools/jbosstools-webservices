@@ -16,6 +16,7 @@ import javax.swing.event.ChangeListener;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -245,11 +246,42 @@ public class DelimitedStringList extends Composite {
 	 */
 	private void addStringToList() {
 		if (this.mAddText.getText().length() > 0) {
-			this.mPropsList.add(this.mAddText.getText().trim());
+			String text = this.mAddText.getText().trim();
+			if (text.indexOf('&') > -1) {
+				MessageDialog dialog = new MessageDialog(
+						null, JBossWSUIMessages.DelimitedStringList_Msg_Title_ParseByAmpersand, null, 
+						JBossWSUIMessages.DelimitedStringList_Msg_Text_ParseByAmpersand,
+						MessageDialog.QUESTION,
+						new String[] {JBossWSUIMessages.DelimitedStringList_Msg_Yes_Btn, JBossWSUIMessages.DelimitedStringList_Msg_No_Btn},
+						0); // yes is the default
+				int result = dialog.open();
+				if (result == 0) {
+					String[] parsed = parseString(text, "&"); //$NON-NLS-1$
+					for (int i = 0; i < parsed.length; i++) {
+						this.mPropsList.add(parsed[i]);
+					}
+				}
+			} else if (text.indexOf(',') > -1) {
+					MessageDialog dialog = new MessageDialog(
+							null, JBossWSUIMessages.DelimitedStringList_Msg_Title_ParseByComma, null, 
+							JBossWSUIMessages.DelimitedStringList_Msg_Text_ParseByComma,
+							MessageDialog.QUESTION,
+							new String[] {JBossWSUIMessages.DelimitedStringList_Msg_Yes_Btn, JBossWSUIMessages.DelimitedStringList_Msg_No_Btn},
+							0); // yes is the default
+					int result = dialog.open();
+					if (result == 0) {
+						String[] parsed = parseString(text, ","); //$NON-NLS-1$
+						for (int i = 0; i < parsed.length; i++) {
+							this.mPropsList.add(parsed[i]);
+						}
+					}
+			} else {
+				this.mPropsList.add(text);
+			}
 			if (!isReadOnly){
 				this.mClearAllButton.setEnabled(true);
 			}
-			this.mAddText.setSelection(0, this.mAddText.getText().length());
+			this.mAddText.setSelection(0, text.length());
 			this.mAddText.setFocus();
 		}
 	}
@@ -431,11 +463,11 @@ public class DelimitedStringList extends Composite {
 	}
 
 	private boolean validateText(String text) {
-		if (text != null && text.trim().length() > 0 && text.indexOf(",") > -1) { //$NON-NLS-1$
-			this.mWarning = JBossWSUIMessages.DelimitedStringList_NO_COMMAS_WARNING;
-			return false;
-		}
-		else if (text != null && text.trim().length() > 0 && text.indexOf("=") == -1) { //$NON-NLS-1$
+//		if (text != null && text.trim().length() > 0 && text.indexOf(",") > -1) { //$NON-NLS-1$
+//			this.mWarning = JBossWSUIMessages.DelimitedStringList_NO_COMMAS_WARNING;
+//			return false;
+//		}
+		/*else*/ if (text != null && text.trim().length() > 0 && text.indexOf("=") == -1) { //$NON-NLS-1$
 			this.mWarning = JBossWSUIMessages.DelimitedStringList_NO_EQUALS_DELIMITER_WARNING;
 			return false;
 		}
