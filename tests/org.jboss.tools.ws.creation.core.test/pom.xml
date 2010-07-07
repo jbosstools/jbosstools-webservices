@@ -13,7 +13,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 	<packaging>eclipse-test-plugin</packaging>
 
 	<properties>
-	<systemProperties>-Djbosstools.test.jboss.home.4.2=${requirement.build.root}/jboss-soa-p.4.3.0/jboss-as</systemProperties>
+	<systemProperties>-Djbosstools.test.jboss.home.4.2=${requirement.build.root}/jboss-4.2.3.GA</systemProperties>
 		<emma.filter>org.jboss.tools.ws.creation.core*</emma.filter>
 		<emma.instrument.bundles>org.jboss.tools.ws.creation.core</emma.instrument.bundles>
 	</properties>
