@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
@@ -21,11 +22,14 @@ import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Dispatch;
+import javax.xml.ws.Response;
 import javax.xml.ws.Service;
 import javax.xml.ws.Service.Mode;
 import javax.xml.ws.handler.MessageContext;
 
 import org.apache.axis.message.SOAPEnvelope;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * Test a JAX-WS web service using the JAX-WS API
@@ -79,7 +83,7 @@ public class JAXWSTester2 {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public void doTest( String endpointurl, String actionurl, String ns, 
+	public void doTest( IProgressMonitor monitor, String endpointurl, String actionurl, String ns, 
 			String serviceName, String messageName, String body ) throws Exception {
 		
 		this.resultBody = EMPTY_STRING;
@@ -96,18 +100,55 @@ public class JAXWSTester2 {
 		SOAPMessage m = mf.createMessage( null, new ByteArrayInputStream(body.getBytes()));
 		m.saveChanges();
 		
-		SOAPMessage o = d.invoke(m);
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		o.writeTo(baos);
-		this.resultBody = baos.toString();
-		this.resultSOAPBody = o.getSOAPBody();
-		
-		if (d.getResponseContext() != null) {
-			Object responseHeaders = d.getResponseContext().get(MessageContext.HTTP_RESPONSE_HEADERS);
-			if ( responseHeaders != null && responseHeaders instanceof Map) {
-				this.resultHeaders = (Map<String, String>) responseHeaders;
+		Response<SOAPMessage> response = d.invokeAsync(m);
+		while (!response.isDone()){
+		//go off and do some work
+			if (monitor != null) {
+				if (monitor.isCanceled()) {
+					response.cancel(true);
+				}
 			}
 		}
+
+		try {
+			if (!response.isCancelled()) {
+		        //get the actual result
+				SOAPMessage o = (javax.xml.soap.SOAPMessage)response.get();
+
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				o.writeTo(baos);
+				this.resultBody = baos.toString();
+				this.resultSOAPBody = o.getSOAPBody();
+				
+				if (d.getResponseContext() != null) {
+					Object responseHeaders = d.getResponseContext().get(MessageContext.HTTP_RESPONSE_HEADERS);
+					if ( responseHeaders != null && responseHeaders instanceof Map) {
+						this.resultHeaders = (Map<String, String>) responseHeaders;
+					}
+				}
+			} else {
+				throw new InterruptedException(JBossWSUIMessages.JAXRSWSTestView_Message_Service_Invocation_Cancelled);
+			}
+		} catch (ExecutionException ex){
+		        //get the actual cause
+		        Throwable cause = ex.getCause();
+		        throw new Exception(cause);
+		} catch (InterruptedException ie){
+		        //note interruptions
+				throw ie;
+		}
+//		SOAPMessage o = d.invoke(m);
+//		
+//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//		o.writeTo(baos);
+//		this.resultBody = baos.toString();
+//		this.resultSOAPBody = o.getSOAPBody();
+//		
+//		if (d.getResponseContext() != null) {
+//			Object responseHeaders = d.getResponseContext().get(MessageContext.HTTP_RESPONSE_HEADERS);
+//			if ( responseHeaders != null && responseHeaders instanceof Map) {
+//				this.resultHeaders = (Map<String, String>) responseHeaders;
+//			}
+//		}
 	}
 }

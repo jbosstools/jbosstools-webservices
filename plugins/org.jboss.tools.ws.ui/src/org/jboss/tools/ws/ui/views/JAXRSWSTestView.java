@@ -816,12 +816,15 @@ public class JAXRSWSTestView extends ViewPart {
 			public void sleeping(IJobChangeEvent event) {};
 			public void scheduled(IJobChangeEvent event) {};
 			public void running(IJobChangeEvent event) {};
-			public void done(IJobChangeEvent event) {
+			public void done(final IJobChangeEvent event) {
 				if (event.getResult() instanceof WSTestStatus) {
 					final WSTestStatus status = (WSTestStatus) event.getResult();
 					PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
 						public void run() {
-							resultsText.setText(status.getResultsText());
+							if (status.getResultsText() != null)
+								resultsText.setText(status.getResultsText());
+							else if (status.getMessage() != null) 
+								resultsText.setText(status.getMessage());
 							resultHeadersList.removeAll();
 							String[] headers =
 								DelimitedStringList.parseString(status.getHeadersList(), RESULT_HEADER_DELIMITER);
@@ -855,7 +858,21 @@ public class JAXRSWSTestView extends ViewPart {
 //			JAXWSTester tester = new JAXWSTester();
 //			tester.doTest(url, action, body);
 			JAXWSTester2 tester = new JAXWSTester2();
-			tester.doTest(url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
+			while (!monitor.isCanceled()) {
+				try {
+					// call the service
+					tester.doTest(monitor, url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
+				} catch (InterruptedException ie) {
+					monitor.setCanceled(true);
+				}
+			}
+			if (monitor.isCanceled()) {
+				WSTestStatus status = new WSTestStatus(IStatus.WARNING, 
+						JBossWSUIPlugin.PLUGIN_ID, 
+						JBossWSUIMessages.JAXRSWSTestView_Message_Service_Invocation_Cancelled);
+				return status;
+			}
+//			tester.doTest(url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
 			monitor.worked(70);
 			String result = tester.getResultBody();
 			envelope = tester.getResultSOAP();

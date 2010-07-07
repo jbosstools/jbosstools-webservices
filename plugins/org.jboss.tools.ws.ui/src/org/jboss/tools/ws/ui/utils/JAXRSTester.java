@@ -212,8 +212,18 @@ public class JAXRSTester {
         
         requestHeaders = httpurlc.getRequestProperties();
         
+        // Check if task has been interrupted
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+
         // CONNECT!
         httpurlc.connect();
+
+        // Check if task has been interrupted
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
 
         // If we are doing a POST and we have some request body to pass along, do it
         if (requestBody != null && ( methodType.equalsIgnoreCase("POST")  //$NON-NLS-1$
@@ -225,10 +235,19 @@ public class JAXRSTester {
         	out.close();
         }
 
+        // Check if task has been interrupted
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+
         // retrieve result and put string results into the response
         InputStream is = null;
         try {
 	        is = httpurlc.getInputStream();
+	        // Check if task has been interrupted
+	        if (Thread.interrupted()) {
+	            throw new InterruptedException();
+	        }
 	        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));//$NON-NLS-1$
 	        StringBuilder sb = new StringBuilder();
 	        String line;
@@ -238,6 +257,10 @@ public class JAXRSTester {
 	        }
 	        br.close();
 	        resultBody = sb.toString();
+	        // Check if task has been interrupted
+	        if (Thread.interrupted()) {
+	            throw new InterruptedException();
+	        }
         } catch (IOException ie) {
         	try {
 		        is = httpurlc.getErrorStream();
