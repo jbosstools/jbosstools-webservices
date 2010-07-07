@@ -102,7 +102,7 @@ public class JAXWSTester2 {
 		
 		Response<SOAPMessage> response = d.invokeAsync(m);
 		while (!response.isDone()){
-		//go off and do some work
+			//go off and do some work
 			if (monitor != null) {
 				if (monitor.isCanceled()) {
 					response.cancel(true);

@@ -124,6 +124,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_JAXRS_Success_Status;
 	public static String JAXRSWSTestView_JAXWS_Success_Status;
 	public static String JAXRSWSTestView_Message_Service_Invocation_Cancelled;
+	public static String JAXRSWSTestView_Message_Unsuccessful_Test;
 	public static String JAXRSWSTestView_Open_Monitor_Button;
 	public static String JAXRSWSTestView_Open_Response_Tag_Contents_in_XML_Editor;
 	public static String JAXRSWSTestView_Open_Result_in_XML_Editor;

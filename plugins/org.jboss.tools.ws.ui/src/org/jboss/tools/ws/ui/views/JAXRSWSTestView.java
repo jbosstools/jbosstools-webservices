@@ -222,7 +222,7 @@ public class JAXRSWSTestView extends ViewPart {
 
 			public void keyReleased(KeyEvent e) {
 				setControlsForSelectedURL();
-				if (e.keyCode == SWT.CR) {
+				if (e.keyCode == SWT.CR && e.stateMask == SWT.CTRL) {
 					handleTest(wsTypeCombo.getText());
 				}
 			}
@@ -577,8 +577,17 @@ public class JAXRSWSTestView extends ViewPart {
 
 	private void setControlsForSelectedURL() {
 		if (urlCombo.getText().trim().length() > 0) {
-			testButton.setEnabled(true);
-			addTCPIPMonitorButton.setEnabled(true);
+			String urlText = urlCombo.getText();
+			try {
+				new URL(urlText);
+				testButton.setEnabled(true);
+				addTCPIPMonitorButton.setEnabled(true);
+			} catch (MalformedURLException mue) {
+				testButton.setEnabled(false);
+				addTCPIPMonitorButton.setEnabled(false);
+
+				return;
+			}
 		} else {
 			testButton.setEnabled(false);
 			addTCPIPMonitorButton.setEnabled(false);
@@ -779,6 +788,14 @@ public class JAXRSWSTestView extends ViewPart {
 	 */
 	private void handleTest(final String wsTech) {
 
+		String urlText = urlCombo.getText();
+		try {
+			new URL(urlText);
+		} catch (MalformedURLException mue) {
+			// do nothing, but return since we don't have a working URL
+			return;
+		}
+		
 		if (urlCombo.getItemCount() > 0) {
 			java.util.List<String> aList = Arrays.asList(urlCombo.getItems());
 			if (!aList.contains(urlCombo.getText())) {
@@ -858,18 +875,30 @@ public class JAXRSWSTestView extends ViewPart {
 //			JAXWSTester tester = new JAXWSTester();
 //			tester.doTest(url, action, body);
 			JAXWSTester2 tester = new JAXWSTester2();
+			boolean itRan = false;
 			while (!monitor.isCanceled()) {
 				try {
-					// call the service
-					tester.doTest(monitor, url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
+					if (!itRan && serviceNSMessage != null && serviceNSMessage.length == 3) { 
+						itRan = true;
+						// 	call the service
+						tester.doTest(monitor, url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
+					} else {
+						break;
+					}
 				} catch (InterruptedException ie) {
 					monitor.setCanceled(true);
 				}
 			}
 			if (monitor.isCanceled()) {
-				WSTestStatus status = new WSTestStatus(IStatus.WARNING, 
+				WSTestStatus status = new WSTestStatus(IStatus.OK, 
 						JBossWSUIPlugin.PLUGIN_ID, 
 						JBossWSUIMessages.JAXRSWSTestView_Message_Service_Invocation_Cancelled);
+				return status;
+			}
+			if (!itRan) {
+				WSTestStatus status = new WSTestStatus(IStatus.OK, 
+						JBossWSUIPlugin.PLUGIN_ID, 
+						JBossWSUIMessages.JAXRSWSTestView_Message_Unsuccessful_Test);
 				return status;
 			}
 //			tester.doTest(url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
@@ -905,7 +934,7 @@ public class JAXRSWSTestView extends ViewPart {
 			monitor.worked(10);
 			return status;
 		} catch (Exception e) {
-			WSTestStatus status = new WSTestStatus(IStatus.ERROR, 
+			WSTestStatus status = new WSTestStatus(IStatus.OK, 
 					JBossWSUIPlugin.PLUGIN_ID, 
 					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
 			status.setResultsText(e.toString());
