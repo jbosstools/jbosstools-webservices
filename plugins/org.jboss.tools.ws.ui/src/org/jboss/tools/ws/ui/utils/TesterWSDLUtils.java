@@ -46,6 +46,7 @@ import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 //import org.jdom.Attribute;
+import org.jdom.Namespace;
 import org.jdom.input.DOMBuilder;
 
 import com.ibm.wsdl.Constants;
@@ -373,7 +374,7 @@ public class TesterWSDLUtils {
 			Schema schema = (Schema) types.getExtensibilityElements().get(0);
 			DOMBuilder domBuilder = new DOMBuilder();
 			org.jdom.Element jdomSchemaElement = domBuilder.build(schema.getElement());
-
+			
 			List<?> list = jdomSchemaElement.getChildren();
 			if (list.size() > 0) {
 				org.jdom.Element checkForImport = (org.jdom.Element) list.get(0);
@@ -427,6 +428,20 @@ public class TesterWSDLUtils {
 							rootName = temp.getAttribute(NAME_ATTR).getValue();
 						
 						if (rootName.equalsIgnoreCase(messageName)) {
+							if (temp.getParentElement().getAdditionalNamespaces() != null && temp.getParentElement().getAdditionalNamespaces().size() > 0) {
+								@SuppressWarnings("unchecked")
+								List<Namespace> addlNamespaces = temp.getParentElement().getAdditionalNamespaces();
+								for (int j = 0; j < addlNamespaces.size(); j++) {
+									Namespace addlNS = addlNamespaces.get(j);
+									if (addlNS.getPrefix().equalsIgnoreCase("tns")) { //$NON-NLS-1$
+										if (!addlNS.getURI().equalsIgnoreCase(namespace)) {
+											namespace = addlNS.getURI();
+											break;
+										}
+									}
+								}
+							}
+							
 							StringBuffer buf = new StringBuffer();
 							buf.append('<');
 							if (partName != null) {
@@ -618,7 +633,7 @@ public class TesterWSDLUtils {
 
 	public static String createMessageForSchemaElement ( Definition wsdlDefinition, String partName, String messageName, String namespace ) {
 		Types types = wsdlDefinition.getTypes();
-		if (types == null) {
+		if (types == null || wsdlDefinition.getImports().size() > 0) {
 			Map<?, ?> imports = wsdlDefinition.getImports();
 			Set<?> importKeys = imports.keySet();
 			for( Iterator<?> it2 = importKeys.iterator(); it2.hasNext(); ) {
@@ -627,9 +642,10 @@ public class TesterWSDLUtils {
 				Iterator<?> iter = importVector.iterator();
 				while (iter.hasNext()) {
 					Import importInstance = (Import) iter.next();
+//					namespace = importInstance.getNamespaceURI();
 					if (importInstance.getDefinition().getTypes() != null) {
-						types = importInstance.getDefinition().getTypes();
-						String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, types, partName, messageName, namespace);
+						Types temptypes = importInstance.getDefinition().getTypes();
+						String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, temptypes, partName, messageName, namespace);
 						if (attempt != null)
 							return attempt;
 					} else if (importInstance.getDefinition().getImports() != null) {
@@ -639,6 +655,10 @@ public class TesterWSDLUtils {
 					}
 				}
 			}
+			// if we got this far, it wasn't found in the imports
+			String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, types, partName, messageName, namespace);
+			if (attempt != null)
+				return attempt;
 		} else {
 			String attempt = createMessageForSchemaElementFromTypes(wsdlDefinition, types, partName, messageName, namespace);
 			if (attempt != null)
