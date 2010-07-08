@@ -1,0 +1,53 @@
+<definitions name='HelloWorldService' targetNamespace='http://webservices.samples.jboss.org/'
+	xmlns='http://schemas.xmlsoap.org/wsdl/' xmlns:soap='http://schemas.xmlsoap.org/wsdl/soap/'
+	xmlns:tns='http://webservices.samples.jboss.org/' xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+	<types>
+		<xs:schema targetNamespace='http://webservices.samples.jboss.org/'
+			version='1.0' xmlns:tns='http://webservices.samples.jboss.org/'
+			xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+			<xs:element name='sayHello'>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs='0' name='arg0' type='xs:string' />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name='sayHelloResponse' type='tns:sayHelloResponse' />
+			<xs:complexType name='sayHelloResponse'>
+				<xs:sequence>
+					<xs:element minOccurs='0' name='return' type='xs:string' />
+				</xs:sequence>
+			</xs:complexType>
+		</xs:schema>
+	</types>
+	<message name='HelloWorld_sayHello'>
+		<part element='tns:sayHello' name='sayHello'></part>
+	</message>
+	<message name='HelloWorld_sayHelloResponse'>
+		<part element='tns:sayHelloResponse' name='sayHelloResponse'></part>
+	</message>
+	<portType name='HelloWorld'>
+		<operation name='sayHello' parameterOrder='sayHello'>
+			<input message='tns:HelloWorld_sayHello'></input>
+			<output message='tns:HelloWorld_sayHelloResponse'></output>
+		</operation>
+	</portType>
+	<binding name='HelloWorldBinding' type='tns:HelloWorld'>
+		<soap:binding style='document'
+			transport='http://schemas.xmlsoap.org/soap/http' />
+		<operation name='sayHello'>
+			<soap:operation soapAction='' />
+			<input>
+				<soap:body use='literal' />
+			</input>
+			<output>
+				<soap:body use='literal' />
+			</output>
+		</operation>
+	</binding>
+	<service name='HelloWorldService'>
+		<port binding='tns:HelloWorldBinding' name='HelloWorldPort'>
+			<soap:address location='http://localhost:8080/ws/HelloWorld' />
+		</port>
+	</service>
+</definitions>
