@@ -120,8 +120,9 @@ public class JAXWSTester2 {
 				this.resultBody = baos.toString();
 				this.resultSOAPBody = o.getSOAPBody();
 				
-				if (d.getResponseContext() != null) {
-					Object responseHeaders = d.getResponseContext().get(MessageContext.HTTP_RESPONSE_HEADERS);
+				if (response.getContext() != null) {
+					Object responseHeaders =
+						response.getContext().get(MessageContext.HTTP_RESPONSE_HEADERS);
 					if ( responseHeaders != null && responseHeaders instanceof Map) {
 						this.resultHeaders = (Map<String, String>) responseHeaders;
 					}

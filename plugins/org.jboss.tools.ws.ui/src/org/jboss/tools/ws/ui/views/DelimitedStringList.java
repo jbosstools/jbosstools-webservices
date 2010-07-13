@@ -55,6 +55,7 @@ public class DelimitedStringList extends Composite {
 	private Text mAddText;
 	private boolean isReadOnly = false;
 	private Label mWarningLabel;
+	private boolean showUpDown = true;
 
 	// current delimiter
 	private String mDelimiter = DELIMITER;
@@ -86,7 +87,7 @@ public class DelimitedStringList extends Composite {
 	 * @param style
 	 */
 	public DelimitedStringList(Composite parent, int style) {
-		this(parent, style, false);
+		this(parent, style, false, true);
 	}
 
 	/**
@@ -95,9 +96,10 @@ public class DelimitedStringList extends Composite {
 	 * @param parent
 	 * @param style
 	 */
-	public DelimitedStringList(Composite parent, int style, boolean isReadOnly) {
+	public DelimitedStringList(Composite parent, int style, boolean isReadOnly, boolean showUpDown) {
 		super(parent, style);
 		this.isReadOnly = isReadOnly;
+		this.showUpDown = showUpDown;
 		this.changeListeners = new ListenerList();
 		
 		int additionalStyles = SWT.NONE;
@@ -116,6 +118,7 @@ public class DelimitedStringList extends Composite {
 			wlGridData.horizontalSpan = 2;
 			this.mWarningLabel.setLayoutData(wlGridData);
 			this.mWarningLabel.setForeground(this.mWarningLabel.getDisplay().getSystemColor(SWT.COLOR_RED));
+			this.mWarningLabel.setBackground(parent.getBackground());
 		}
 		{
 			this.mAddText = new Text(this, SWT.BORDER | additionalStyles);
@@ -144,13 +147,17 @@ public class DelimitedStringList extends Composite {
 			gridData.horizontalSpan = 2;
 			mSpacerComposite.setLayoutData(gridData);
 			mSpacerComposite.setLayout(new GridLayout());
+			mSpacerComposite.setBackground(parent.getBackground());
 		}
 		{
 			this.mPropsList = new List(this, SWT.BORDER | SWT.V_SCROLL);
 			final GridData gridData = new GridData(
 					GridData.HORIZONTAL_ALIGN_FILL
 							| GridData.VERTICAL_ALIGN_FILL);
-			gridData.verticalSpan = 5;
+			if (getShowUpDown())
+				gridData.verticalSpan = 5;
+			else
+				gridData.verticalSpan = 3;
 			this.mPropsList.setLayoutData(gridData);
 			this.mPropsList.addSelectionListener(new SelectionAdapter() {
 
@@ -159,7 +166,7 @@ public class DelimitedStringList extends Composite {
 				}
 			});
 		}
-		{
+		if (getShowUpDown()) {
 			this.mUpButton = new Button(this, SWT.NONE);
 			this.mUpButton.setLayoutData(new GridData(
 					GridData.HORIZONTAL_ALIGN_FILL));
@@ -171,8 +178,7 @@ public class DelimitedStringList extends Composite {
 					moveUpInList();
 				}
 			});
-		}
-		{
+
 			this.mDownButton = new Button(this, SWT.NONE);
 			this.mDownButton.setLayoutData(new GridData(
 					GridData.HORIZONTAL_ALIGN_FILL));
@@ -424,8 +430,10 @@ public class DelimitedStringList extends Composite {
 	 */
 	public void updatePropertyButtons() {
 		if (!isReadOnly){
-			this.mDownButton.setEnabled(false);
-			this.mUpButton.setEnabled(false);
+			if (this.mUpButton != null) {
+				this.mUpButton.setEnabled(false);
+				this.mDownButton.setEnabled(false);
+			}
 			this.mRemoveButton.setEnabled(false);
 			this.mEditButton.setEnabled(false);
 			this.mClearAllButton.setEnabled(false);
@@ -440,11 +448,13 @@ public class DelimitedStringList extends Composite {
 					this.mRemoveButton.setEnabled(true);
 					this.mEditButton.setEnabled(true);
 	
-					if (selection - 1 >= 0)
-						this.mUpButton.setEnabled(true);
-	
-					if (selection + 1 < this.mPropsList.getItemCount())
-						this.mDownButton.setEnabled(true);
+					if (this.mUpButton != null) {
+						if (selection - 1 >= 0)
+							this.mUpButton.setEnabled(true);
+		
+						if (selection + 1 < this.mPropsList.getItemCount())
+							this.mDownButton.setEnabled(true);
+					}
 				}
 			}
 	
@@ -585,13 +595,23 @@ public class DelimitedStringList extends Composite {
 		mAddButton.setEnabled(enabled);
 		mAddText.setEnabled(enabled);
 		mClearAllButton.setEnabled(enabled);
-		mDownButton.setEnabled(enabled);
+		if (this.mUpButton != null) {
+			mUpButton.setEnabled(enabled);
+			mDownButton.setEnabled(enabled);
+		}
 		mEditButton.setEnabled(enabled);
 		mPropsList.setEnabled(enabled);
 		mRemoveButton.setEnabled(enabled);
-		mUpButton.setEnabled(enabled);
 		if (enabled)
 			updatePropertyButtons();
 	}
 
+	
+	public void setShowUpDown ( boolean flag ) {
+		this.showUpDown = flag;
+	}
+	
+	public boolean getShowUpDown() {
+		return this.showUpDown;
+	}
 }

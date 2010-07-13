@@ -136,6 +136,20 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_Service_URL_Label;
 	public static String JAXRSWSTestView_Set_Sample_Data_Label;
 	public static String JAXRSWSTestView_Web_Service_Type_Label;
+	public static String JAXRSWSTestView2_BodyText_Section;
+	public static String JAXRSWSTestView2_GetFromWSDL_Tooltip;
+	public static String JAXRSWSTestView2_Go_Tooltip;
+	public static String JAXRSWSTestView2_Headers_Section;
+	public static String JAXRSWSTestView2_OpenInEditor_Action;
+	public static String JAXRSWSTestView2_Parameters_Section;
+	public static String JAXRSWSTestView2_RequestDetails_Section;
+	public static String JAXRSWSTestView2_ResponseBody_Section;
+	public static String JAXRSWSTestView2_ResponseDetails_Section;
+	public static String JAXRSWSTestView2_ResponseHeaders_Section;
+	public static String JAXRSWSTestView2_SaveResponseText_Error;
+	public static String JAXRSWSTestView2_SaveResponseText_tooltip;
+	public static String JAXRSWSTestView2_ShowInBrowser_Tooltip;
+	public static String JAXRSWSTestView2_ShowRaw_Tooltip;
 	public static String ResultsXMLStorageInput_WS_Invocation_Results_Prefix;
 
 	public static String WSDLBrowseDialog_Dialog_Title;
@@ -156,6 +170,9 @@ public class JBossWSUIMessages extends NLS {
 	public static String WSDLBrowseDialog_WSDL_URI_Field;
 	public static String WSDLBrowseDialog_WSDL_URL_Dialog_Title;
 	public static String WSDLBrowseDialog_WSDL_URL_Prompt;
+
+	public static String WSTestUtils_SaveResponseText_Error_Msg;
+	public static String WSTestUtils_SaveResponseText_Title;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JBossWSUIMessages.class);

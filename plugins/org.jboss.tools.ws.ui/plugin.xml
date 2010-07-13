@@ -74,7 +74,7 @@
       </category>
       <view
             category="org.jboss.tools.ws.ui.tester"
-            class="org.jboss.tools.ws.ui.views.JAXRSWSTestView"
+            class="org.jboss.tools.ws.ui.views.JAXRSWSTestView2"
             icon="icons/obj16/ws_tester.gif"
             id="org.jboss.tools.ws.ui.tester.views.TestWSView"
             name="%test.view.name">
