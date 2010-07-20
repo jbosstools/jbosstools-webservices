@@ -15,8 +15,10 @@ import java.util.ArrayList;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
@@ -27,7 +29,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
@@ -37,20 +38,21 @@ import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
-public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
+public class JBossWSGenerateWizardPage extends WizardPage {
 
 	private JBossWSGenerateWizard wizard;
 	private Text name;
 	private Combo projects;
-	private Button checkDefault;
 	private boolean bHasChanged = false;
+	private Text packageName;
+	private Text className;
 
-	protected JBossWSGenerateWebXmlWizardPage(String pageName) {
+	protected JBossWSGenerateWizardPage(String pageName) {
 		super(pageName);
 		this
-				.setTitle(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWebXmlPage_Title);
+				.setTitle(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Title);
 		this
-				.setDescription(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWebXmlPage_Description);
+				.setDescription(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Description);
 	}
 
 	public void createControl(Composite parent) {
@@ -59,7 +61,7 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 
 		Group group = new Group(composite, SWT.NONE);
 		group
-				.setText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Project_Group);
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Project_Group);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		group.setLayout(new GridLayout(2, false));
@@ -67,7 +69,7 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 
 		projects = new Combo(group, SWT.BORDER | SWT.DROP_DOWN);
 		projects
-				.setToolTipText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip);
+				.setToolTipText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Project_Group_Tooltip);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		projects.setLayoutData(gd);
@@ -77,11 +79,10 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 			public void widgetSelected(SelectionEvent e) {
 				wizard.setProject(projects.getText());
 				name.setText(updateDefaultName());
-				wizard.getSecondPage().refresh();
+				className.setText(updateDefaultClassName());
 				bHasChanged = true;
 				setPageComplete(isPageComplete());
 			}
-
 			public void widgetDefaultSelected(SelectionEvent e) {
 				widgetSelected(e);
 			}
@@ -89,19 +90,18 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 
 		Group group2 = new Group(composite, SWT.NONE);
 		group2
-				.setText(JBossWSUIMessages.JBossWSGenerateWebXmlWizardPage_Web_Service_Group);
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Web_Service_Group);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		group2.setLayout(new GridLayout(2, false));
 		group2.setLayoutData(gd);
 
 		new Label(group2, SWT.NONE)
-				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWebXmlPage_ServiceName_Label);
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_ServiceName_Label);
 		name = new Text(group2, SWT.BORDER);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		name.setLayoutData(gd);
 		name.setText(updateDefaultName());
-		name.setEnabled(!wizard.isUseDefaultServiceName());
 		name.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
@@ -112,29 +112,41 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 
 		});
 
-		checkDefault = new Button(group2, SWT.CHECK);
+		Group group3 = new Group(composite, SWT.NONE);
+		group3.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Class_Group);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
-		checkDefault.setLayoutData(gd);
-		checkDefault.setSelection(wizard.isUseDefaultServiceName());
-		checkDefault
-				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_WizardPage_CheckButton_Label);
-		checkDefault.addSelectionListener(new SelectionListener() {
-
-			public void widgetDefaultSelected(SelectionEvent e) {
+		group3.setLayout(new GridLayout(2, false));
+		group3.setLayoutData(gd);
+		
+		new Label(group3, SWT.NONE)
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Package_Label);
+		packageName = new Text(group3, SWT.BORDER);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		packageName.setLayoutData(gd);
+		packageName.setText(wizard.getPackageName());
+		packageName.addModifyListener(new ModifyListener() {
+		
+			public void modifyText(ModifyEvent e) {
+				wizard.setPackageName(packageName.getText());
+				setPageComplete(isPageComplete());
 			}
-
-			public void widgetSelected(SelectionEvent e) {
-				if (checkDefault.getSelection()) {
-					checkDefault.setSelection(true);
-					name.setText(wizard.NAMEDEFAULT);
-				} else {
-					checkDefault.setSelection(false);
-				}
-				name.setEnabled(!checkDefault.getSelection());
-				wizard.setUseDefaultServiceName(!checkDefault.getSelection());
+		
+		});
+		
+		new Label(group3, SWT.NONE)
+				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_ClassName_Label);
+		className = new Text(group3, SWT.BORDER);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		className.setLayoutData(gd);
+		className.setText(updateDefaultClassName());
+		className.addModifyListener(new ModifyListener() {
+		
+			public void modifyText(ModifyEvent e) {
+				wizard.setClassName(className.getText());
+				setPageComplete(isPageComplete());
 			}
-
+		
 		});
 
 		setControl(composite);
@@ -155,7 +167,6 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 	}
 
 	public IWizardPage getNextPage() {
-		wizard.setServiceName(name.getText());
 		return super.getNextPage();
 	}
 
@@ -204,6 +215,43 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 		}
 		return testName;
 	}
+	
+	private String updateDefaultClassName() {
+		ServiceModel model = wizard.getServiceModel();
+		JBossWSGenerateWizardValidator.setServiceModel(model);
+		String currentName = wizard.getClassName();
+		if (wizard.getProject() == null) {
+			return currentName;
+		} else {
+			boolean isDynamicWebProject = false;
+			try {
+				if (wizard.getProject().getNature(
+						"org.eclipse.wst.common.project.facet.core.nature") != null) { //$NON-NLS-1$
+					isDynamicWebProject = true;
+				}
+			} catch (CoreException e) {
+				// ignore
+			}
+			if (!isDynamicWebProject) {
+				return currentName;
+			}
+		}
+		String testName = currentName;
+		IStatus status = JBossWSGenerateWizardValidator.isWSClassValid(
+				testName, wizard.getProject());
+		int i = 1;
+		while (status != null && status.getSeverity() == IStatus.ERROR) {
+			testName = currentName + i;
+			wizard.setClassName(testName);
+			model = wizard.getServiceModel();
+			JBossWSGenerateWizardValidator.setServiceModel(model);
+			status = JBossWSGenerateWizardValidator.isWSClassValid(testName,
+					wizard.getProject());
+			i++;
+		}
+		return testName;
+	}
+
 
 	private boolean validate() {
 		ServiceModel model = wizard.getServiceModel();
@@ -236,10 +284,23 @@ public class JBossWSGenerateWebXmlWizardPage extends WizardPage {
 		if (status != null) {
 			setErrorMessage(status.getMessage());
 			return false;
-		} else {
-			setErrorMessage(null);
-			return true;
-		}
+		} 
+		
+		IStatus classNameStatus = JBossWSGenerateWizardValidator.isWSClassValid(model
+				.getCustomClassName(), wizard.getProject());
+		if (classNameStatus != null) {
+			if (classNameStatus.getSeverity() == IStatus.ERROR) {
+				setMessage(classNameStatus.getMessage(), DialogPage.ERROR);
+				return false;
+			} else if (classNameStatus.getSeverity() == IStatus.WARNING) {
+				setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
+				return true;
+			}
+		} 
+		
+		setMessage(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Description);
+		setErrorMessage(null);
+		return true;
 	}
 
 	private String[] getProjects() {

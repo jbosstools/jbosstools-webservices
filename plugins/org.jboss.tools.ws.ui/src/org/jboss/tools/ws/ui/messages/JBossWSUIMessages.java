@@ -63,19 +63,17 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWSLibraryListFieldEditor_ActionRemove;
 	public static String JBossWSLibraryListFieldEditor_LIBRARY_JARS;
 	public static String JBossWS_GenerateWizard_Title;
-	public static String JBossWS_GenerateWizard_GenerateWebXmlPage_Title;
-	public static String JBossWS_GenerateWizard_GenerateWebXmlPage_Description;
-	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_Title;
-	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_Description;
-	public static String JBossWS_GenerateWizard_GenerateWebXmlPage_ServiceName_Label;
-	public static String JBossWS_GenerateWizard_WizardPage_CheckButton_Label;
-	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_Package_Label;
-	public static String JBossWS_GenerateWizard_GenerateSampleClassPage_ClassName_Label;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_Title;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_Description;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_ServiceName_Label;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_Package_Label;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_ClassName_Label;
 	public static String JBossWS_GenerateWizard_MessageDialog_Title;
 	public static String JBossWS_UI_PLUGIN_NO_MESSAGES;
-	public static String JBossWSGenerateWebXmlWizardPage_Project_Group;
-	public static String JBossWSGenerateWebXmlWizardPage_Project_Group_Tooltip;
-	public static String JBossWSGenerateWebXmlWizardPage_Web_Service_Group;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_Project_Group;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_Project_Group_Tooltip;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_Web_Service_Group;
+	public static String JBossWS_GenerateWizard_GenerateWizardPage_Class_Group;
 	
 	public static String JBossWSFacetInstallPage_ServerSuppliedJBossWS;
 	public static String JBossWSFacetInstallPage_New;

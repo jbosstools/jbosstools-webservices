@@ -31,7 +31,8 @@ Require-Bundle: org.eclipse.ui,
  javax.wsdl;bundle-version="1.6.2",
  org.jdom,
  javax.xml.ws,
- org.eclipse.ui.forms
+ org.eclipse.ui.forms,
+ org.eclipse.emf.common
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,

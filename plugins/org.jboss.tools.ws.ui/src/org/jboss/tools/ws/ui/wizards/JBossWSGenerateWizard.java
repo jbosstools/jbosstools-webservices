@@ -35,9 +35,6 @@ import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 
-	private JBossWSGenerateWebXmlWizardPage firstPage;
-	private JBossWSGenerateSampleClassWizardPage secondPage;
-
 	String NAMEDEFAULT = "HelloWorld"; //$NON-NLS-1$
 	String PACKAGEDEFAULT = "org.jboss.samples.webservices"; //$NON-NLS-1$
 	String CLASSDEFAULT = "HelloWorld"; //$NON-NLS-1$
@@ -64,10 +61,9 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 
 	public void addPages() {
 		super.addPages();
-		firstPage = new JBossWSGenerateWebXmlWizardPage("first"); //$NON-NLS-1$
-		secondPage = new JBossWSGenerateSampleClassWizardPage("second"); //$NON-NLS-1$
-		addPage(firstPage);
-		addPage(secondPage);
+		JBossWSGenerateWizardPage onePage =
+			new JBossWSGenerateWizardPage("onePage"); //$NON-NLS-1$
+		addPage(onePage);
 	}
 
 	@Override
@@ -205,14 +201,6 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 		model.setCustomPackage(getPackageName());
 		model.setCustomClassName(getClassName());
 		return model;
-	}
-	
-	public JBossWSGenerateWebXmlWizardPage getFirstPage() {
-		return this.firstPage;
-	}
-	
-	public JBossWSGenerateSampleClassWizardPage getSecondPage() {
-		return this.secondPage;
 	}
 	
 	public void setProject (String projectName) {

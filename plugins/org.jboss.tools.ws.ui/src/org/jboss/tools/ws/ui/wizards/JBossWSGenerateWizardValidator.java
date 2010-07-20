@@ -105,6 +105,39 @@ public class JBossWSGenerateWizardValidator {
 				}
 			}
 			return null;
+		} else if (object instanceof org.eclipse.jst.j2ee.webapplication.WebApp) {
+			org.eclipse.jst.j2ee.webapplication.WebApp webApp = (org.eclipse.jst.j2ee.webapplication.WebApp) object;
+			if (model != null) {
+				for (int i = 0; i < descriptors.length; i++) {
+					if (descriptors[i].getName().trim().length() == 0) {
+						return StatusUtils
+								.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ServiceName_Empty);
+					}
+					List<?> theServlets = webApp.getServlets();
+					for (int j = 0; j < theServlets.size(); j++) {
+						org.eclipse.jst.j2ee.webapplication.Servlet aServlet = (org.eclipse.jst.j2ee.webapplication.Servlet) theServlets
+								.get(j);
+						if (aServlet.getServletName().equals(
+								descriptors[i].getName())) {
+							return StatusUtils
+									.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+						}
+					}
+					List<?> theServletMappings = webApp.getServletMappings();
+					for (int j = 0; j < theServletMappings.size(); j++) {
+						org.eclipse.jst.j2ee.webapplication.ServletMapping aServletMapping = (org.eclipse.jst.j2ee.webapplication.ServletMapping) theServletMappings
+								.get(j);
+						String url = aServletMapping.getUrlPattern();
+						if (aServletMapping.getServlet().getServletName().equals(
+								descriptors[i].getName())
+								|| url.equals(descriptors[i].getMappings())) {
+							return StatusUtils
+									.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+						}
+					}
+				}
+			}
+			return null;
 		}
 		return null;
 	}
@@ -122,8 +155,8 @@ public class JBossWSGenerateWizardValidator {
 				|| !JavaEEProjectUtilities.isDynamicWebProject(project)) {
 			return null;
 		} else {
-			IStatus status = JBossWSUIUtils.validatePackageName(model
-					.getCustomPackage(), JavaCore.create(project));
+			IStatus status = JBossWSUIUtils.validatePackageName(
+					model.getCustomPackage(), JavaCore.create(project));
 			if (status != null && status.getSeverity() == IStatus.ERROR) {
 				return status;
 			}
