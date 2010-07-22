@@ -133,7 +133,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		for (int i = 0; i < theServletMapplings.size(); i++) {
 			org.eclipse.jst.j2ee.webapplication.ServletMapping aServletMapping = (org.eclipse.jst.j2ee.webapplication.ServletMapping) theServletMapplings
 					.get(i);
-			if (aServletMapping.getName().equals(servletDescriptor.getName())
+			if (aServletMapping.getServlet().getServletName().equals(servletDescriptor.getName())
 					|| aServletMapping.getUrlPattern().equals(
 							servletDescriptor.getMappings())) {
 				status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
