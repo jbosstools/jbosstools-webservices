@@ -21,6 +21,8 @@ private String  webProjectName;
 	private boolean extension = true;
 	private String serviceName;
 	private String customClassName;
+	private String applicationClassName;
+	private String applicationName;
 
 	public int getWsScenario() {
 		return wsScenario;
@@ -182,5 +184,21 @@ private String  webProjectName;
 
 	public String getCustomClassName() {
 		return customClassName;
+	}
+
+	public String getApplicationClassName() {
+		return applicationClassName;
+	}
+
+	public void setApplicationClassName(String applicationClassName) {
+		this.applicationClassName = applicationClassName;
+	}
+
+	public String getApplicationName() {
+		return applicationName;
+	}
+
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
 	}
 }

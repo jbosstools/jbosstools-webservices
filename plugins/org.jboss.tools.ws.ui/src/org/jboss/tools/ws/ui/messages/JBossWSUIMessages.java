@@ -38,6 +38,10 @@ public class JBossWSUIMessages extends NLS {
 	public static String Lib;
 	public static String Endorsed;
 	
+	public static String JBossRSGenerateWizard_RS_Wizard_Window_Title;
+	public static String JBossRSGenerateWizardPage_Label_Application_Class_Name;
+	public static String JBossRSGenerateWizardPage_Page_title;
+	public static String JBossRSGenerateWizardValidator_ERROR_Can_Only_Add_Sample_Once;
 	public static String JBossRuntimeListFieldEditor_ActionAdd;
 	public static String JBossRuntimeListFieldEditor_ActionEdit;
 	public static String JBossRuntimeListFieldEditor_ActionRemove;

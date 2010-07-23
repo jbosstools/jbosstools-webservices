@@ -5,6 +5,8 @@ import org.eclipse.osgi.util.NLS;
 public class JBossWSCreationCoreMessages extends NLS {
 	private static final String BUNDLE_NAME = "org.jboss.tools.ws.creation.core.messages.JBossWSCreationCore"; //$NON-NLS-1$
 
+	public static String AddRestEasyJarsCommand_RestEasy_JARS_Not_Found;
+
 	public static String Value_Target_0;
 	public static String Value_Target_1;
 	public static String Separator_Java;
@@ -42,6 +44,12 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Error_Create_Client_Sample;
     public static String Error_Message_No_Runtime_Specified;
     public static String Error_JBossWS_GenerateWizard_WSName_Same;
+
+	public static String RSMergeWebXMLCommand_REST_App_Exists;
+
+	public static String RSMergeWebXMLCommand_REST_Servlet_Exists;
+
+	public static String RSMergeWebXMLCommand_REST_Servlet_Mapping_Exists;
     
     
 	private JBossWSCreationCoreMessages() {

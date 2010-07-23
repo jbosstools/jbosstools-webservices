@@ -37,6 +37,34 @@
             %JBOSSWS_WIZARD_DESC
          </description>
       </wizard>
+      <wizard
+            category="org.jboss.ide.eclipse.ui.wizards"
+            class="org.jboss.tools.ws.ui.wizards.JBossRSGenerateWizard"
+            hasPages="true"
+            icon="icons/obj16/new_webserv_wiz.gif"
+            id="org.jboss.tools.ws.ui.wizard.rsgenerate"
+            name="Create a Sample RESTful Web Service">
+         <selection
+               class="org.eclipse.core.resources.IProject">
+         </selection>
+         <description>
+            Create a Sample RESTful Web Service
+         </description>
+      </wizard>
+      <wizard
+            category="org.eclipse.jst.ws.ui.new"
+            class="org.jboss.tools.ws.ui.wizards.JBossRSGenerateWizard"
+            hasPages="true"
+            icon="icons/obj16/new_webserv_wiz.gif"
+            id="org.jboss.tools.ws.ui.wizard.rsgenerate2"
+            name="Create a Sample RESTful Web Service">
+         <selection
+               class="org.eclipse.core.resources.IProject">
+         </selection>
+         <description>
+            Create a Sample RESTful Web Service
+         </description>
+      </wizard>
    </extension>
    <extension point="org.eclipse.wst.common.project.facet.ui.images">  
        <image facet="jbossws.core" path="icons/obj16/new_webserv_wiz.gif"/>  

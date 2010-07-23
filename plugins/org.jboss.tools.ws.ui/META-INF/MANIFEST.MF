@@ -32,7 +32,8 @@ Require-Bundle: org.eclipse.ui,
  org.jdom,
  javax.xml.ws,
  org.eclipse.ui.forms,
- org.eclipse.emf.common
+ org.eclipse.emf.common,
+ org.eclipse.jdt.ui
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,
