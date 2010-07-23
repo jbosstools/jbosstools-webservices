@@ -99,11 +99,17 @@ public class TesterWSDLUtilsTest {
 
 	@Test
 	public void testJBIDE6694() {
-		String s1 = getSampleMessage("/jbide6694.wsdl", "Converter", "ConverterPort", "ConverterBinding", "convert");
+		String s1 = getSampleMessage("/jbide6694/ConverterPortType.wsdl", "ConverterPortType", "ConverterPortTypeImplPort", "ConverterPortTypeBinding", "convert");
 		Assert.assertTrue(s1.contains("<ChangeUnit xmlns = \"http://test.jboss.org/ns\">"));
 		Assert.assertTrue(s1.contains("<value>?</value>"));
 		Assert.assertTrue(s1.contains("<fromUnit>?</fromUnit>"));
 		Assert.assertTrue(s1.contains("<toUnit>?</toUnit>"));
+
+		String s2 = getSampleMessage("/jbide6694/jbide6694.wsdl", "Converter", "ConverterPort", "ConverterBinding", "convert");
+		Assert.assertTrue(s2.contains("<ChangeUnit xmlns = \"http://test.jboss.org/ns\">"));
+		Assert.assertTrue(s2.contains("<value>?</value>"));
+		Assert.assertTrue(s2.contains("<fromUnit>?</fromUnit>"));
+		Assert.assertTrue(s2.contains("<toUnit>?</toUnit>"));
 	}
 
 	private String getSampleMessage(String res, String service, String port, String binding, String operation) {

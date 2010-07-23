@@ -1,0 +1,52 @@
+<definitions name="ConverterPortType" targetNamespace="http://test.jboss.org/ns" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://test.jboss.org/ns" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://ns.test.jboss.org/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <types>
+  <xs:schema elementFormDefault="qualified" targetNamespace="http://test.jboss.org/ns" version="1.0" xmlns:tns="http://test.jboss.org/ns" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+   <xs:element name="ChangeUnit">
+    <xs:complexType>
+     <xs:sequence>
+      <xs:element name="value" type="xs:double"/>
+      <xs:element name="fromUnit" type="tns:Units"/>
+      <xs:element name="toUnit" type="tns:Units"/>
+     </xs:sequence>
+    </xs:complexType>
+   </xs:element>
+   <xs:element name="ChangeUnitResponse">
+    <xs:complexType>
+     <xs:sequence>
+      <xs:element name="ChangeUnitResult" type="xs:double"/>
+     </xs:sequence>
+    </xs:complexType>
+   </xs:element>
+   <xs:simpleType name="Units">
+    <xs:restriction base="xs:string">
+     <xs:enumeration value="kilometer"/>
+     <xs:enumeration value="meter"/>
+    </xs:restriction>
+   </xs:simpleType>
+  </xs:schema>
+ </types>
+ <message name="ConverterPortType_convertResponse">
+  <part element="ns1:ChangeUnitResponse" name="parameters"/>
+ </message>
+ <message name="ConverterPortType_convert">
+  <part element="ns1:ChangeUnit" name="parameters"/>
+ </message>
+ <portType name="ConverterPortType">
+  <operation name="convert" parameterOrder="parameters">
+   <input message="ns1:ConverterPortType_convert"/>
+   <output message="ns1:ConverterPortType_convertResponse"/>
+  </operation>
+ </portType>
+ <binding name="ConverterPortTypeBinding" type="ns1:ConverterPortType">
+  <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  <operation name="convert">
+   <soap:operation soapAction=""/>
+   <input>
+    <soap:body use="literal"/>
+   </input>
+   <output>
+    <soap:body use="literal"/>
+   </output>
+  </operation>
+ </binding>
+</definitions>

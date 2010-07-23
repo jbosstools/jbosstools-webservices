@@ -1,0 +1,8 @@
+<definitions name="ConverterPortType" targetNamespace="http://ns.test.jboss.org/" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://test.jboss.org/ns" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://ns.test.jboss.org/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <import location="ConverterPortTypeO.wsdl" namespace="http://test.jboss.org/ns"/>
+ <service name="ConverterPortType">
+  <port binding="ns1:ConverterPortTypeBinding" name="ConverterPortTypeImplPort">
+   <soap:address location="http://localhost:8080/ws/ConverterPortType"/>
+  </port>
+ </service>
+</definitions>
