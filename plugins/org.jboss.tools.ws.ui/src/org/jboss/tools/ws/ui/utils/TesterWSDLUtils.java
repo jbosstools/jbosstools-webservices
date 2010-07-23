@@ -63,8 +63,26 @@ public class TesterWSDLUtils {
 	private static final String ENUMERATION_NAME = "enumeration"; //$NON-NLS-1$
 	private static final String RESTRICTION_NAME = "restriction"; //$NON-NLS-1$
 	private static final String SIMPLE_TYPE_NAME = "simpleType"; //$NON-NLS-1$
+	private static final String DOUBLE_TYPE_NAME = "double"; //$NON-NLS-1$
 	private static final String INT_TYPE_NAME = "int"; //$NON-NLS-1$
 	private static final String STRING_TYPE_NAME = "string"; //$NON-NLS-1$
+	private static final String BOOLEAN_TYPE_NAME = "boolean"; //$NON-NLS-1$
+	private static final String DECIMAL_TYPE_NAME = "decimal"; //$NON-NLS-1$
+	private static final String PRECISION_DECIMAL_TYPE_NAME = "precisionDecimal"; //$NON-NLS-1$
+	private static final String FLOAT_TYPE_NAME = "float"; //$NON-NLS-1$
+	private static final String DURATION_TYPE_NAME = "duration"; //$NON-NLS-1$
+	private static final String DATETIME_TYPE_NAME = "dateTime"; //$NON-NLS-1$
+	private static final String DATE_TYPE_NAME = "date"; //$NON-NLS-1$
+	private static final String TIME_TYPE_NAME = "time"; //$NON-NLS-1$
+	private static final String GYEARMONTH_TYPE_NAME = "gYearMonth"; //$NON-NLS-1$
+	private static final String GYEAR_TYPE_NAME = "gYear"; //$NON-NLS-1$
+	private static final String GMONTHDAY_TYPE_NAME = "gMonthDay"; //$NON-NLS-1$
+	private static final String GDAY_TYPE_NAME = "gDay"; //$NON-NLS-1$
+	private static final String GMONTH_TYPE_NAME = "gMonth"; //$NON-NLS-1$
+	private static final String HEXBINARY_TYPE_NAME = "hexBinary"; //$NON-NLS-1$
+	private static final String BASE64BINARY_TYPE_NAME = "base64Binary"; //$NON-NLS-1$
+	private static final String ANYURI_TYPE_NAME = "anyURI"; //$NON-NLS-1$
+	private static final String NOTATION_TYPE_NAME = "NOTATION"; //$NON-NLS-1$
 	private static final String MIN_OCCURS_ATTR = "minOccurs"; //$NON-NLS-1$
 	private static final String TYPE_ATTR = "type"; //$NON-NLS-1$
 	private static final String NAME_ATTR = "name"; //$NON-NLS-1$
@@ -543,14 +561,42 @@ public class TesterWSDLUtils {
 		}
 		return buf.toString();
 	}
+	
+	private static boolean isTypeBaseXSDOrSimple ( String type ) {
+		// typically the type starts with a namespace prefix, so
+		// we want to compare the end of the string with the actual
+		// type name
+		if (type.endsWith(STRING_TYPE_NAME) || 
+				type.endsWith(BOOLEAN_TYPE_NAME) || 
+				type.endsWith(DECIMAL_TYPE_NAME) ||
+				type.endsWith(INT_TYPE_NAME) || 
+				type.endsWith(DOUBLE_TYPE_NAME) || 
+				type.endsWith(FLOAT_TYPE_NAME) ||
+				type.endsWith(DURATION_TYPE_NAME) || 
+				type.endsWith(DATE_TYPE_NAME) || 
+				type.endsWith(TIME_TYPE_NAME) ||
+				type.endsWith(DATETIME_TYPE_NAME) ||
+				type.endsWith(ANYURI_TYPE_NAME) ||
+				type.endsWith(BASE64BINARY_TYPE_NAME) ||
+				type.endsWith(GDAY_TYPE_NAME) ||
+				type.endsWith(GMONTH_TYPE_NAME) ||
+				type.endsWith(GMONTHDAY_TYPE_NAME) ||
+				type.endsWith(GYEAR_TYPE_NAME) ||
+				type.endsWith(GYEARMONTH_TYPE_NAME) ||
+				type.endsWith(HEXBINARY_TYPE_NAME) ||
+				type.endsWith(NOTATION_TYPE_NAME) ||
+				type.endsWith(PRECISION_DECIMAL_TYPE_NAME)
+				) {
+			return true;
+		} else if (type.contains(SIMPLE_TYPE_NAME)) {
+			return true;
+		}
+		return false;
+	}
 		
 	private static String processType (Definition wsdlDefinition, org.jdom.Element childEl, String type, boolean isOptional) {
         StringBuffer buf = new StringBuffer();
-		if (type.contains(STRING_TYPE_NAME)) {
-			buf.append("?"); //$NON-NLS-1$
-		} else if (type.contains(INT_TYPE_NAME)) {
-			buf.append("?"); //$NON-NLS-1$
-		} else if (type.contains(SIMPLE_TYPE_NAME)) {
+		if (isTypeBaseXSDOrSimple(type)) {
 			buf.append("?"); //$NON-NLS-1$
 		} else if (type.contains(RESTRICTION_NAME)) {
 			for (int j = 0; j < childEl.getChildren().size(); j++) {
