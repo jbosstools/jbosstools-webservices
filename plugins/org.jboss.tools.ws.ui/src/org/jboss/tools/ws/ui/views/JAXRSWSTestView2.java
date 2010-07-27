@@ -10,18 +10,36 @@
  ******************************************************************************/
 package org.jboss.tools.ws.ui.views;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.wsdl.Binding;
+import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
+import javax.wsdl.Port;
+import javax.wsdl.PortType;
+import javax.wsdl.Service;
+import javax.wsdl.WSDLException;
+import javax.wsdl.extensions.ExtensibilityElement;
+import javax.wsdl.extensions.soap.SOAPOperation;
+import javax.wsdl.extensions.soap12.SOAP12Operation;
+import javax.xml.namespace.QName;
+import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 
+import org.apache.axis.soap.MessageFactoryImpl;
 import org.apache.axis.utils.XMLUtils;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -47,6 +65,8 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -140,7 +160,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private MenuItem copyResultHeaderMenuAction;
 
 	private String[] serviceNSMessage = null;
-	private String actionText = null;
+//	private String actionText = null;
 
 	private FormToolkit toolkit;
 	private ScrolledForm form;
@@ -159,6 +179,9 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private ScrolledPageBook pageBook;
 	private ShowRawAction rawAction;
 	private ShowInBrowserAction browserAction;
+	
+	private TestHistory history = new TestHistory();
+	private TestHistoryEntry currentHistoryEntry = null;
 
 	/**
 	 * The constructor.
@@ -298,6 +321,211 @@ public class JAXRSWSTestView2 extends ViewPart {
 			return JAX_WS;
 		return JAX_RS;
 	}
+	
+	private boolean getWSDLSpecifics( String opName ) {
+		
+		if (opName != null) {
+			String opNameInBody = getOpNameFromRequestBody();
+			if (opNameInBody != null) {
+				boolean isRequestSOAP12 = 
+					TesterWSDLUtils.isRequestBodySOAP12(getCurrentHistoryEntry().getBody());
+				String urlText = urlCombo.getText();
+				if (urlText != null) {
+					try {
+						URL tempURL = new URL(urlText);
+						Definition 	wsdlDef =
+							TesterWSDLUtils.readWSDLURL(tempURL);
+						Map<?, ?> bindings = wsdlDef.getAllBindings();
+						Iterator<?> iter = bindings.entrySet().iterator();
+						while (iter.hasNext()) {
+							Entry<?, ?> mapEntry = (Entry<?, ?>) iter.next();
+							Binding binding = (Binding) mapEntry.getValue();
+							Iterator<?> iter2 = binding.getBindingOperations().iterator();
+							while (iter2.hasNext()) {
+								BindingOperation bindOp = (BindingOperation) iter2.next();
+								if (bindOp.getName().contentEquals(opNameInBody)) {
+									Iterator<?> iter3 = bindOp.getExtensibilityElements().iterator();
+									while (iter3.hasNext()) {
+										ExtensibilityElement extEl = (ExtensibilityElement) iter3.next();
+										if (extEl.getElementType().getLocalPart().contentEquals("operation")) { //$NON-NLS-1$
+											String actionURL = null;
+											String[] nsArray = null;
+											if (!isRequestSOAP12 && extEl instanceof SOAPOperation) {
+												SOAPOperation soapOp = (SOAPOperation) extEl;
+												actionURL = soapOp.getSoapActionURI();
+											} else if (isRequestSOAP12 && extEl instanceof SOAP12Operation) {
+												SOAP12Operation soapOp = (SOAP12Operation) extEl;
+												actionURL = soapOp.getSoapActionURI();
+											}
+											if (actionURL != null) {
+												PortType portType = binding.getPortType();
+												String ns = portType.getQName().getNamespaceURI();
+												
+												QName bindingQName = binding.getQName();
+												Map<?,?> services = wsdlDef.getAllServices();
+												Iterator<?> iter4 = services.entrySet().iterator();
+												while (iter4.hasNext()) {
+													Entry<?, ?> serviceEntry = (Entry<?, ?>) iter4.next();
+													Service service = (Service) serviceEntry.getValue();
+													Iterator<?> iter5 = service.getPorts().entrySet().iterator();
+													while (iter5.hasNext()) {
+														Entry<?, ?> portEntry = (Entry<?, ?>) iter5.next();
+														Port port = (Port) portEntry.getValue();
+														if (port.getBinding().getQName().equals(bindingQName)) {
+															String serviceName = service.getQName().getLocalPart();
+															String portName = port.getName();
+															nsArray =  new String[] {ns, serviceName, portName};
+															if (actionURL != null && nsArray != null) {
+																getCurrentHistoryEntry().setAction(actionURL);
+																getCurrentHistoryEntry().setServiceNSMessage(nsArray);
+															    return true;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					} catch (WSDLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
+		WSDLBrowseDialog wbDialog =  new WSDLBrowseDialog(getSite().getShell());
+		if (urlCombo.getText().length() > 0) {
+			wbDialog.setURLText(urlCombo.getText());
+		}
+		if (opName != null) {
+			wbDialog.setInitialOperationTextValue(opName);
+		}
+		int rtnCode = wbDialog.open();
+		if (rtnCode == Window.OK){
+			
+			getCurrentHistoryEntry().setServiceNSMessage(null);
+			getCurrentHistoryEntry().setAction(null);
+			getCurrentHistoryEntry().setWsdlDef(null);
+			getCurrentHistoryEntry().setServiceName(null);
+			getCurrentHistoryEntry().setPortName(null);
+			getCurrentHistoryEntry().setBindingName(null);
+			getCurrentHistoryEntry().setOperationName(null);
+
+			serviceNSMessage = null;
+//			actionText = null;
+			
+			Definition wsdlDef = wbDialog.getWSDLDefinition();
+			getCurrentHistoryEntry().setWsdlDef(wsdlDef);
+			getCurrentHistoryEntry().setServiceName(wbDialog.getServiceTextValue());
+			getCurrentHistoryEntry().setPortName(wbDialog.getPortTextValue());
+			getCurrentHistoryEntry().setBindingName(wbDialog.getBindingValue());
+			getCurrentHistoryEntry().setOperationName(wbDialog.getOperationTextValue());
+			getCurrentHistoryEntry().setUrl(wbDialog.getWSDLText());
+			urlCombo.setText(wbDialog.getWSDLText());
+			
+			String output = TesterWSDLUtils.getSampleSOAPInputMessage(wsdlDef, 
+					wbDialog.getServiceTextValue(), 
+					wbDialog.getPortTextValue(), 
+					wbDialog.getBindingValue(), 
+					wbDialog.getOperationTextValue());
+
+			String endpointURL = TesterWSDLUtils.getEndpointURL(wsdlDef, 
+					wbDialog.getServiceTextValue(), 
+					wbDialog.getPortTextValue(), 
+					wbDialog.getBindingValue(), 
+					wbDialog.getOperationTextValue());
+			getCurrentHistoryEntry().setUrl(endpointURL);
+			
+			String actionURL = TesterWSDLUtils.getActionURL(wsdlDef, 
+					wbDialog.getServiceTextValue(), 
+					wbDialog.getPortTextValue(), 
+					wbDialog.getBindingValue(), 
+					wbDialog.getOperationTextValue());
+			getCurrentHistoryEntry().setAction(actionURL);
+			
+			serviceNSMessage = TesterWSDLUtils.getNSServiceNameAndMessageNameArray(wsdlDef, 
+					wbDialog.getServiceTextValue(), 
+					wbDialog.getPortTextValue(), 
+					wbDialog.getBindingValue(), 
+					wbDialog.getOperationTextValue());
+			getCurrentHistoryEntry().setServiceNSMessage(serviceNSMessage);
+			
+			boolean isSOAP12 = TesterWSDLUtils.isSOAP12(wsdlDef, 
+					wbDialog.getServiceTextValue(), 
+					wbDialog.getPortTextValue());
+			getCurrentHistoryEntry().setSOAP12(isSOAP12);
+
+			String soapIn = generateSampleSOAP(output, isSOAP12);
+			if (opName != null) {
+				if (bodyText.getText().length() > 0) {
+					
+					String opNameInBody = getOpNameFromRequestBody();
+					if (opNameInBody == null) {
+						bodyText.setText(soapIn);
+						getCurrentHistoryEntry().setBody(soapIn);
+						getCurrentHistoryEntry().setAction(actionURL);
+					} else if (opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())) {
+						// ignore
+					} else {
+						if (MessageDialog.openQuestion(getSite().getShell(),
+								JBossWSUIMessages.JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date, 
+								JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
+								
+									bodyText.setText(soapIn);
+									getCurrentHistoryEntry().setBody(soapIn);
+									getCurrentHistoryEntry().setAction(actionURL);
+									
+							}
+					}
+				}
+//				if (MessageDialog.openQuestion(getSite().getShell(),
+//					JBossWSUIMessages.JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date, 
+//					JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
+//					
+//						bodyText.setText(soapIn);
+//						getCurrentHistoryEntry().setBody(soapIn);
+//						getCurrentHistoryEntry().setAction(actionURL);
+//						
+//				}
+			} else if (bodyText.getText().length() > 0) {
+				
+				String opNameInBody = getOpNameFromRequestBody();
+				boolean isRequestSOAP12 = TesterWSDLUtils.isRequestBodySOAP12(getCurrentHistoryEntry().getBody());
+				
+				if (opNameInBody == null || isSOAP12 != isRequestSOAP12 ) {
+					bodyText.setText(soapIn);
+					getCurrentHistoryEntry().setBody(soapIn);
+					getCurrentHistoryEntry().setAction(actionURL);
+				} else if (opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())) {
+					// ignore
+				} else {
+					if (MessageDialog.openQuestion(getSite().getShell(),
+							JBossWSUIMessages.JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date, 
+							JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
+							
+								bodyText.setText(soapIn);
+								getCurrentHistoryEntry().setBody(soapIn);
+								getCurrentHistoryEntry().setAction(actionURL);
+								
+						}
+				}
+			}
+			
+//			urlCombo.setText(endpointURL);
+//			actionText = actionURL;
+			
+			setControlsForWSType(getCurrentTestType());
+			setControlsForMethodType(methodCombo.getText());
+			setControlsForSelectedURL();
+			return true;
+		}
+		return false;
+	}
 
 	private void createURLAndToolbar( ) {
 		urlCombo = new Combo(form.getBody(), SWT.BORDER | SWT.DROP_DOWN);
@@ -311,6 +539,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 
 			public void keyReleased(KeyEvent e) {
 				setControlsForSelectedURL();
+				getCurrentHistoryEntry().setUrl(urlCombo.getText());
+				getCurrentHistoryEntry().setAction(null);
 				if (e.keyCode == SWT.CR && e.stateMask == SWT.CTRL) {
 					handleTest(getCurrentTestType());
 				}
@@ -321,6 +551,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 				widgetSelected(e);
 			}
 			public void widgetSelected(SelectionEvent e) {
+				getCurrentHistoryEntry().setUrl(urlCombo.getText());
+				getCurrentHistoryEntry().setAction(null);
 				setControlsForSelectedURL();
 			}
 		});
@@ -347,6 +579,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 				widgetSelected(e);
 			}
 			public void widgetSelected(SelectionEvent e) {
+				getCurrentHistoryEntry().setMethod(methodCombo.getText());
 				setControlsForWSType(getCurrentTestType());
 				setControlsForMethodType(methodCombo.getText());
 				setControlsForSelectedURL();
@@ -363,40 +596,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 		openWSDLToolItem.setToolTipText(JBossWSUIMessages.JAXRSWSTestView2_GetFromWSDL_Tooltip);
 		openWSDLToolItem.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
-				WSDLBrowseDialog wbDialog =  new WSDLBrowseDialog(getSite().getShell());
-				int rtnCode = wbDialog.open();
-				if (rtnCode == Window.OK){
-					serviceNSMessage = null;
-					actionText = null;
-					Definition wsdlDef = wbDialog.getWSDLDefinition();
-					String output = TesterWSDLUtils.getSampleSOAPInputMessage(wsdlDef, 
-							wbDialog.getServiceTextValue(), 
-							wbDialog.getPortTextValue(), 
-							wbDialog.getBindingValue(), 
-							wbDialog.getOperationTextValue());
-					String endpointURL = TesterWSDLUtils.getEndpointURL(wsdlDef, 
-							wbDialog.getServiceTextValue(), 
-							wbDialog.getPortTextValue(), 
-							wbDialog.getBindingValue(), 
-							wbDialog.getOperationTextValue());
-					String actionURL = TesterWSDLUtils.getActionURL(wsdlDef, 
-							wbDialog.getServiceTextValue(), 
-							wbDialog.getPortTextValue(), 
-							wbDialog.getBindingValue(), 
-							wbDialog.getOperationTextValue());
-					serviceNSMessage = TesterWSDLUtils.getNSServiceNameAndMessageNameArray(wsdlDef, 
-							wbDialog.getServiceTextValue(), 
-							wbDialog.getPortTextValue(), 
-							wbDialog.getBindingValue(), 
-							wbDialog.getOperationTextValue());
-					String soapIn = generateSampleSOAP(output);
-					bodyText.setText(soapIn);
-					urlCombo.setText(endpointURL);
-					actionText = actionURL;
-					setControlsForWSType(getCurrentTestType());
-					setControlsForMethodType(methodCombo.getText());
-					setControlsForSelectedURL();
-				}
+				getWSDLSpecifics(null);
 			}
 			public void widgetDefaultSelected(SelectionEvent e) {
 				widgetSelected(e);
@@ -437,6 +637,12 @@ public class JAXRSWSTestView2 extends ViewPart {
 				ExpandableComposite.CLIENT_INDENT);
 		ec.setText(JBossWSUIMessages.JAXRSWSTestView2_Headers_Section);
 		dlsList = new DelimitedStringList(ec, SWT.None, false, false);
+		dlsList.addChangeListener(new ChangeListener(){
+			public void stateChanged(ChangeEvent e) {
+				getCurrentHistoryEntry().setHeaders(dlsList.getSelection());
+				getCurrentHistoryEntry().setAction(null);
+			}
+		});
 		ec.setClient(dlsList);
 		toolkit.adapt(dlsList);
 		GridData gd2 = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -449,6 +655,12 @@ public class JAXRSWSTestView2 extends ViewPart {
 		ec3.setText(JBossWSUIMessages.JAXRSWSTestView2_Parameters_Section);
 		parmsList = new DelimitedStringList(ec3, SWT.None, false, false);
 		parmsList.setShowUpDown(false);
+		parmsList.addChangeListener(new ChangeListener(){
+			public void stateChanged(ChangeEvent e) {
+				getCurrentHistoryEntry().setParms(parmsList.getSelection());
+				getCurrentHistoryEntry().setAction(null);
+			}
+		});
 		ec3.setClient(parmsList);
 		toolkit.adapt(parmsList);
 		GridData gd4 = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -461,6 +673,23 @@ public class JAXRSWSTestView2 extends ViewPart {
 				ExpandableComposite.EXPANDED);
 		ec5.setText(JBossWSUIMessages.JAXRSWSTestView2_BodyText_Section);
 		bodyText = toolkit.createText(ec5, EMPTY_STRING, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		bodyText.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				getCurrentHistoryEntry().setBody(bodyText.getText());
+//				getCurrentHistoryEntry().setAction(null);
+			}
+		});
+		bodyText.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent e) {
+			}
+
+			public void keyReleased(KeyEvent e) {
+				getCurrentHistoryEntry().setBody(bodyText.getText());
+				if (e.keyCode == SWT.CR && e.stateMask == SWT.CTRL) {
+					handleTest(getCurrentTestType());
+				}
+			}
+		});
 		ec5.setClient(bodyText);
 		GridData gd9 = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gd9.minimumHeight = 200;
@@ -469,6 +698,13 @@ public class JAXRSWSTestView2 extends ViewPart {
 
 		section.addExpansionListener(new FormExpansionAdapter());
 		section.setClient(sectionClient);  	    
+	}
+	
+	private TestHistoryEntry getCurrentHistoryEntry() {
+		if (this.currentHistoryEntry == null) {
+			this.currentHistoryEntry = new TestHistoryEntry();
+		}
+		return this.currentHistoryEntry;
 	}
 
 	private void createResponseSide ( SashForm sashForm ) {
@@ -731,18 +967,24 @@ public class JAXRSWSTestView2 extends ViewPart {
 		super.dispose();
 	}
 
-	private String generateSampleSOAP ( String innerText ) {
+	private String generateSampleSOAP ( String innerText, boolean isSOAP12 ) {
+		String prefix = TesterWSDLUtils.SOAP_PREFIX;
+		String soapURI = TesterWSDLUtils.SOAP_NS_URI;
+		if (isSOAP12) {
+			prefix = TesterWSDLUtils.SOAP12_PREFIX;
+			soapURI = TesterWSDLUtils.SOAP12_ENVELOPE_NS_URI;
+		}
 		String soapIn = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n" + //$NON-NLS-1$
-		"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " + //$NON-NLS-1$
+		"<" + prefix + ":Envelope xmlns:" + prefix + "=\"" + soapURI + "\" " + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +  //$NON-NLS-1$
 		"xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +  //$NON-NLS-1$
 		">\n" + //$NON-NLS-1$
-		"<soap:Body>\n";//$NON-NLS-1$
+		"<" + prefix + ":Body>\n";//$NON-NLS-1$ //$NON-NLS-2$
 		if (innerText != null)
 			soapIn = soapIn + innerText;
 		soapIn = soapIn +
-		"</soap:Body>\n" + //$NON-NLS-1$
-		"</soap:Envelope>";	 //$NON-NLS-1$
+		"</" + prefix + ":Body>\n" + //$NON-NLS-1$ //$NON-NLS-2$
+		"</" + prefix + ":Envelope>";	 //$NON-NLS-1$ //$NON-NLS-2$
 		return soapIn;
 	}
 
@@ -827,7 +1069,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			dlsList.setEnabled(false);
 
 			String emptySOAP = 
-				generateSampleSOAP(null);
+				generateSampleSOAP(null, false);
 			emptySOAP = WSTestUtils.addNLsToXML(emptySOAP);
 
 			if (bodyText.getText().trim().length() == 0) {
@@ -848,6 +1090,26 @@ public class JAXRSWSTestView2 extends ViewPart {
 		setMenusForCurrentState();
 	}
 
+	private String getOpNameFromRequestBody () {
+		MessageFactory factory = new MessageFactoryImpl();
+		String lookForOpName = null;
+		try {
+			SOAPMessage message =
+				factory.createMessage(null, new ByteArrayInputStream(getCurrentHistoryEntry().getBody().getBytes()));
+			SOAPBody body = message.getSOAPBody();
+			Iterator<?> elements = body.getChildElements();
+			if (elements.hasNext()) {
+				Element element = (Element) elements.next();
+				lookForOpName = element.getNodeName();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (SOAPException e) {
+			e.printStackTrace();
+		}
+		return lookForOpName;
+	}
+	
 	/*
 	 * Actually perform the test based on which type of activity it is 
 	 */
@@ -861,6 +1123,19 @@ public class JAXRSWSTestView2 extends ViewPart {
 			return;
 		}
 
+		String lookForOpName = null;
+		
+		if (wsTech.contentEquals(JAX_WS)) {
+			lookForOpName = getOpNameFromRequestBody();
+
+			if (getCurrentHistoryEntry().getAction() == null ) {
+				boolean result = getWSDLSpecifics(lookForOpName);
+				if (!result)
+					return;
+			}
+
+		}
+
 		if (urlCombo.getItemCount() > 0) {
 			java.util.List<String> aList = Arrays.asList(urlCombo.getItems());
 			if (!aList.contains(urlCombo.getText())) {
@@ -869,13 +1144,22 @@ public class JAXRSWSTestView2 extends ViewPart {
 		} else {
 			urlCombo.add(urlCombo.getText());
 		}
+		
+		getCurrentHistoryEntry().setWsTech(wsTech);
+		
+		final String url = getCurrentHistoryEntry().getUrl();
+		final String action = getCurrentHistoryEntry().getAction();
+		final String body = getCurrentHistoryEntry().getBody();
+		final String method = getCurrentHistoryEntry().getMethod();
+		final String headers = getCurrentHistoryEntry().getHeaders();
+		final String parms = getCurrentHistoryEntry().getParms();
 
-		final String url = urlCombo.getText();
-		final String action = actionText;
-		final String body = bodyText.getText();
-		final String method = methodCombo.getText();
-		final String headers = dlsList.getSelection();
-		final String parms = parmsList.getSelection();
+//		final String url = urlCombo.getText();
+//		final String action = actionText;
+//		final String body = bodyText.getText();
+//		final String method = methodCombo.getText();
+//		final String headers = dlsList.getSelection();
+//		final String parms = parmsList.getSelection();
 
 		Job aJob = new Job(JBossWSUIMessages.JAXRSWSTestView_Invoking_WS_Status) {
 			protected IStatus run(IProgressMonitor monitor) {
@@ -904,11 +1188,13 @@ public class JAXRSWSTestView2 extends ViewPart {
 					PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
 						public void run() {
 							if (status.getResultsText() != null) {
+								getCurrentHistoryEntry().setResultText(status.getResultsText());
 								JAXRSWSTestView2.this.resultsText.setText(status.getResultsText());
 								JAXRSWSTestView2.this.resultsBrowser.setText(status.getResultsText());
 								JAXRSWSTestView2.this.form.reflow(true);
 							}
 							else if (status.getMessage() != null) { 
+								getCurrentHistoryEntry().setResultText(status.getMessage());
 								JAXRSWSTestView2.this.resultsText.setText(status.getMessage());
 								JAXRSWSTestView2.this.resultsBrowser.setText(status.getMessage());
 								JAXRSWSTestView2.this.form.reflow(true);
@@ -921,6 +1207,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 									resultHeadersList.add(headers[i]);
 								}
 							}
+							getCurrentHistoryEntry().setResultHeadersList(headers);
+							history.getEntries().add(getCurrentHistoryEntry());
 						}
 					});
 				}
@@ -945,6 +1233,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			monitor.worked(10);
 			JAXWSTester2 tester = new JAXWSTester2();
 			boolean itRan = false;
+			serviceNSMessage = getCurrentHistoryEntry().getServiceNSMessage();
 			while (!monitor.isCanceled()) {
 				try {
 					if (!itRan && serviceNSMessage != null && serviceNSMessage.length == 3) { 

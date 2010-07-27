@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.ui.views;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,11 +32,16 @@ import javax.wsdl.extensions.soap12.SOAP12Binding;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -49,6 +55,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -80,6 +87,7 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 	private String serviceTextValue = null;
 	private String portTextValue = null;
 	private String operationTextValue = null;
+	private String initialOperationTextValue = null;
 	private String bindingValue = null;
 	
 	private Definition wsdlDefinition = null;
@@ -123,9 +131,17 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 	public String getOperationTextValue() {
 		return operationTextValue;
 	}
+	
+	public void setInitialOperationTextValue( String value ) {
+		initialOperationTextValue = value;
+	}
 
 	public Definition getWSDLDefinition(){
 		return this.wsdlDefinition;
+	}
+	
+	public void setURLText(String urlText) {
+		wsdlTextValue = urlText;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -167,11 +183,14 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 		locationCombo.setLayoutData(gridData);
 		locationCombo.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent arg0) {
-				IStatus status = validate();
+				setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
+				IStatus status = validate(false);
 				if (status != Status.OK_STATUS) {
+					setMessage(status.getMessage(), IMessageProvider.WARNING);
 					if (showServicePortOperaton)
 						setGroupEnabled(false);
 				} else {
+					setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
 					if (showServicePortOperaton)
 						setGroupEnabled(true);
 				}
@@ -305,16 +324,21 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 				if (rtnCode == Window.OK) {
 					locationCombo.setText(inDialog.getValue());
 					try {
-						URL testURL = new URL(inDialog.getValue());
+						final URL testURL = new URL(inDialog.getValue());
 						locationCombo.setText(testURL.toExternalForm());
-						wsdlDefinition =
-							TesterWSDLUtils.readWSDLURL(testURL);
-						if (showServicePortOperaton)
-							updateServiceCombo();
+						IStatus status = parseWSDLFromURL(testURL, true);
+						if (status != null && !status.isOK()) {
+							setMessage(status.getMessage());
+						} else {
+							setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
+							if (showServicePortOperaton)
+								updateServiceCombo();
+						}
 					} catch (MalformedURLException e) {
 						JBossWSUIPlugin.log(e);
-					} catch (WSDLException e) {
-						JBossWSUIPlugin.log(e);
+						ErrorDialog.openError(getShell(), JBossWSUIMessages.WSDLBrowseDialog_Error_Retrieving_WSDL,
+								JBossWSUIMessages.WSDLBrowseDialog_Error_Msg_Invalid_URL, 
+								StatusUtils.errorStatus(e));
 					}
 				}
 			}
@@ -377,8 +401,70 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 		}
 		
 		mainComposite.pack();
-
+		
 		return mainComposite;
+	}
+	
+	class ReadWSDLProgress implements IRunnableWithProgress {
+		
+		private URL testURL = null;
+		private IStatus result = null;
+		
+		public void setTestURL ( URL url ) {
+			this.testURL = url;
+		}
+		
+		public IStatus getResult() {
+			return this.result;
+		}
+		
+		public void run(IProgressMonitor monitor) {
+			monitor
+					.beginTask(JBossWSUIMessages.WSDLBrowseDialog_Status_ParsingWSDLFromURL,
+							100);
+			try {
+				wsdlDefinition =
+					TesterWSDLUtils.readWSDLURL(testURL);
+			} catch (WSDLException e) {
+				result = StatusUtils.errorStatus(
+						JBossWSUIMessages.WSDLBrowseDialog_Error_Msg_Parse_Error, e);
+			}
+			monitor.done();
+		}
+	}
+	
+	private IStatus parseWSDLFromURL ( final URL testURL, boolean showProgress) {
+		
+		if (showProgress) {
+			ProgressMonitorDialog dialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
+			try {
+				ReadWSDLProgress readWSDLProgress = new ReadWSDLProgress();
+				readWSDLProgress.setTestURL(testURL);
+				dialog.run(true, true, readWSDLProgress);
+				return readWSDLProgress.getResult();
+			} catch (InvocationTargetException e) {
+				return StatusUtils.errorStatus(
+						JBossWSUIMessages.WSDLBrowseDialog_Error_Msg_Parse_Error, e);
+			} catch (InterruptedException e) {
+				return StatusUtils.errorStatus(
+						JBossWSUIMessages.WSDLBrowseDialog_Error_Msg_Parse_Error, e);
+			} catch (NullPointerException e) {
+				return StatusUtils.errorStatus(
+						JBossWSUIMessages.WSDLBrowseDialog_Error_Msg_Parse_Error, e);
+			}
+		} else {
+			try {
+				wsdlDefinition =
+					TesterWSDLUtils.readWSDLURL(testURL);
+			} catch (WSDLException e) {
+				return StatusUtils.errorStatus(
+						JBossWSUIMessages.WSDLBrowseDialog_Error_Msg_Parse_Error, e);
+			} catch (NullPointerException e) {
+				return StatusUtils.errorStatus(
+						JBossWSUIMessages.WSDLBrowseDialog_Error_Msg_Parse_Error, e);
+			}
+		}
+		return Status.OK_STATUS;
 	}
 
 	private void updateOperationList(){
@@ -402,7 +488,19 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 				opList.setData(operation.getName(), operation);
 			}
 			if (opList.getItemCount() > 0) {
-				opList.select(0);
+				boolean foundIt = false;
+				if (initialOperationTextValue != null) {
+					String[] thelist = opList.getItems();
+					for (int i = 0; i < thelist.length; i++) {
+						if (thelist[i].contentEquals(initialOperationTextValue)) {
+							opList.select(i);
+							foundIt = true;
+							break;
+						}
+					}
+				}
+				if (!foundIt)
+					opList.select(0);
 				this.operationTextValue = opList.getSelection()[0];
 			}
 		}
@@ -444,17 +542,19 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 		portCombo.removeAll();
 		opList.removeAll();
 		
-		Iterator<?> iter = wsdlDefinition.getServices().values().iterator();
-		while (iter.hasNext()) {
-			Service service = (Service) iter.next();
-			serviceCombo.add(service.getQName().getLocalPart());
-			serviceCombo.setData(service.getQName().getLocalPart(), service);
+		if (wsdlDefinition != null && wsdlDefinition.getServices() != null && !wsdlDefinition.getServices().isEmpty()) {
+			Iterator<?> iter = wsdlDefinition.getServices().values().iterator();
+			while (iter.hasNext()) {
+				Service service = (Service) iter.next();
+				serviceCombo.add(service.getQName().getLocalPart());
+				serviceCombo.setData(service.getQName().getLocalPart(), service);
+			}
+			if (serviceCombo.getItemCount() > 0) {
+				serviceCombo.select(0);
+				serviceTextValue = serviceCombo.getText();
+			}
+			updatePortCombo();
 		}
-		if (serviceCombo.getItemCount() > 0) {
-			serviceCombo.select(0);
-			serviceTextValue = serviceCombo.getText();
-		}
-		updatePortCombo();
 	}
 	
 	@Override
@@ -484,18 +584,23 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 		}
 	}
 	
-	private IStatus validate(){
+	private IStatus validate(boolean showProgress){
 		String urlText = locationCombo.getText();
 		try {
-			URL testURL = new URL(urlText);
-			wsdlDefinition =
-				TesterWSDLUtils.readWSDLURL(testURL);
+			final URL testURL = new URL(urlText);
+			IStatus status = parseWSDLFromURL(testURL, false);
+			if (status != null && !status.isOK()) {
+				return status;
+			}
+//			parseWSDLFromURL(testURL);
+//			wsdlDefinition =
+//				TesterWSDLUtils.readWSDLURL(testURL);
 			if (showServicePortOperaton)
 				updateServiceCombo();
 		} catch (MalformedURLException e) {
 			return StatusUtils.errorStatus(JBossWSUIMessages.WSDLBrowseDialog_Status_Invalid_URL, e);
-		} catch (WSDLException e) {
-			return StatusUtils.errorStatus(JBossWSUIMessages.WSDLBrowseDialog_Status_WSDL_Unavailable, e);
+//		} catch (WSDLException e) {
+//			return StatusUtils.errorStatus(JBossWSUIMessages.WSDLBrowseDialog_Status_WSDL_Unavailable, e);
 		}
 		return Status.OK_STATUS;
 	}
@@ -509,7 +614,7 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 
 		if (WSDLBrowseDialog.wsdlTextValue != null) {
 			this.locationCombo.setText(wsdlTextValue);
-			IStatus status = validate();
+			IStatus status = validate(false);
 			if (status != Status.OK_STATUS) {
 				if (showServicePortOperaton)
 					setGroupEnabled(false);

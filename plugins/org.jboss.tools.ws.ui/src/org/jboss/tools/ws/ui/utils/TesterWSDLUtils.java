@@ -35,6 +35,7 @@ import javax.wsdl.PortType;
 import javax.wsdl.Service;
 import javax.wsdl.Types;
 import javax.wsdl.WSDLException;
+import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.schema.Schema;
 import javax.wsdl.extensions.schema.SchemaImport;
 import javax.wsdl.extensions.soap.SOAPAddress;
@@ -91,6 +92,12 @@ public class TesterWSDLUtils {
 		"javax.wsdl.factory.DefinitionFactory"; //$NON-NLS-1$
 	private final static String PRIVATE_DEF_FACTORY_CLASS =
 		"org.apache.wsif.wsdl.WSIFWSDLFactoryImpl"; //$NON-NLS-1$
+	
+	public final static String SOAP_NS_URI = "http://schemas.xmlsoap.org/soap/envelope/"; //$NON-NLS-1$
+	public final static String SOAP12_ENVELOPE_NS_URI = "http://www.w3.org/2003/05/soap-envelope"; //$NON-NLS-1$
+	public final static String SOAP12_NS_URI = "http://schemas.xmlsoap.org/wsdl/soap12/"; //$NON-NLS-1$
+	public final static String SOAP12_PREFIX = "soap12"; //$NON-NLS-1$
+	public final static String SOAP_PREFIX = "soap"; //$NON-NLS-1$
 
 	public static Definition readWSDLURL(URL contextURL, String wsdlLoc) throws WSDLException {
 		Properties props = System.getProperties();
@@ -115,7 +122,7 @@ public class TesterWSDLUtils {
 		return def;
 	}
 
-	public static Definition readWSDLURL(URL contextURL) throws WSDLException {
+	public static Definition readWSDLURL(URL contextURL) throws WSDLException, NullPointerException {
 		Properties props = System.getProperties();
 		String oldPropValue = props.getProperty(DEF_FACTORY_PROPERTY_NAME);
 
@@ -138,6 +145,35 @@ public class TesterWSDLUtils {
 		return def;
 	}
 
+	public static boolean isSOAP12 (Definition wsdlDefinition, String serviceName, String portName) {
+		Map<?, ?> services = wsdlDefinition.getServices();
+		Set<?> serviceKeys = services.keySet();
+		for( Iterator<?> it = serviceKeys.iterator(); it.hasNext(); ) {
+			QName serviceKey = (QName) it.next();
+			if (serviceName != null && serviceKey.getLocalPart().contentEquals(serviceName)) {
+				Service service = (Service) services.get( serviceKey );
+				Map<?, ?> ports = service.getPorts();
+				Set<?> portKeys = ports.keySet();
+				for( Iterator<?> it2 = portKeys.iterator(); it2.hasNext(); ) {
+					String portKey = (String) it2.next();
+					if (portName != null && portKey.contentEquals(portName)) {
+						Port port = (Port) ports.get( portKey );
+						List<?> extElements = port.getExtensibilityElements();
+						for (Iterator<?> it3 = extElements.iterator(); it3.hasNext(); ) {
+							ExtensibilityElement element = (ExtensibilityElement) it3.next();
+							String nsURI = element.getElementType().getNamespaceURI();
+							if (nsURI.contentEquals(SOAP12_NS_URI)) {
+								return true;
+							}
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
 	public static String getSampleSOAPInputMessage ( Definition wsdlDefinition, String serviceName, String portName, String bindingName, String opName ) {
 		Map<?, ?> services = wsdlDefinition.getServices();
 		Set<?> serviceKeys = services.keySet();
@@ -733,5 +769,13 @@ public class TesterWSDLUtils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static boolean isRequestBodySOAP12 ( String body ) {
+		boolean isSOAP12 = false;
+		if (body.indexOf('<' + SOAP12_PREFIX + ":Envelope") > -1) { //$NON-NLS-1$
+			isSOAP12 = true;
+		}
+		return isSOAP12;
 	}
 }

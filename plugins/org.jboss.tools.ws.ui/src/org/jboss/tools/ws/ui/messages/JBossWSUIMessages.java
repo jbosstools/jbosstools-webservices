@@ -152,9 +152,14 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView2_SaveResponseText_tooltip;
 	public static String JAXRSWSTestView2_ShowInBrowser_Tooltip;
 	public static String JAXRSWSTestView2_ShowRaw_Tooltip;
+	public static String JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date;
+	public static String JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date;
 	public static String ResultsXMLStorageInput_WS_Invocation_Results_Prefix;
 
 	public static String WSDLBrowseDialog_Dialog_Title;
+	public static String WSDLBrowseDialog_Error_Msg_Invalid_URL;
+	public static String WSDLBrowseDialog_Error_Msg_Parse_Error;
+	public static String WSDLBrowseDialog_Error_Retrieving_WSDL;
 	public static String WSDLBrowseDialog_FS_Browse;
 	public static String WSDLBrowseDialog_Group_Title;
 	public static String WSDLBrowseDialog_Message;
@@ -162,6 +167,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String WSDLBrowseDialog_Port_Field;
 	public static String WSDLBrowseDialog_Service_Field;
 	public static String WSDLBrowseDialog_Status_Invalid_URL;
+	public static String WSDLBrowseDialog_Status_ParsingWSDLFromURL;
 	public static String WSDLBrowseDialog_Status_WSDL_Unavailable;
 	public static String WSDLBrowseDialog_Title;
 	public static String WSDLBrowseDialog_URL_Browse;

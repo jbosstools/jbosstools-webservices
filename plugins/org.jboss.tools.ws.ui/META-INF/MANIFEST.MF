@@ -33,7 +33,8 @@ Require-Bundle: org.eclipse.ui,
  javax.xml.ws,
  org.eclipse.ui.forms,
  org.eclipse.emf.common,
- org.eclipse.jdt.ui
+ org.eclipse.jdt.ui,
+ org.eclipse.osgi
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.messages,
@@ -42,7 +43,7 @@ Export-Package: org.jboss.tools.ws.ui,
  org.jboss.tools.ws.ui.views,
  org.jboss.tools.ws.ui.wizards
 Bundle-Vendor: %PLUGIN_PROVIDER
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.xml.ws,
  org.eclipse.jst.javaee.web,
  org.jboss.tools.ws.creation.core.commands,

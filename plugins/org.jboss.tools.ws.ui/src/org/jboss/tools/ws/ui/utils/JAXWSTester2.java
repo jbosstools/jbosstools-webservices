@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Dispatch;
@@ -91,15 +92,23 @@ public class JAXWSTester2 {
 		URL serviceURL = new URL (endpointurl); //"http://www.ecubicle.net/gsearch_rss.asmx"
 		QName serviceQName = new QName (ns, serviceName); // "http://www.ecubicle.net/webservices", "gsearch_rss"
 		Service s = Service.create(serviceURL, serviceQName);
+
+		boolean isSOAP12 = TesterWSDLUtils.isRequestBodySOAP12(body);
 		
 		QName messageQName = new QName(ns, messageName); //"http://www.ecubicle.net/webservices", "gsearch_rssSoap"
 		Dispatch<SOAPMessage> d = s.createDispatch(messageQName, SOAPMessage.class, Mode.MESSAGE);
-		d.getRequestContext().put(BindingProvider.SOAPACTION_URI_PROPERTY, actionurl); //"http://www.ecubicle.net/webservices/GetSearchResults");
 		
 		MessageFactory mf = MessageFactory.newInstance();
+		if (isSOAP12) {
+			mf = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
+		} else {
+			d.getRequestContext().put(BindingProvider.SOAPACTION_USE_PROPERTY, true);
+			d.getRequestContext().put(BindingProvider.SOAPACTION_URI_PROPERTY, actionurl); //"http://www.ecubicle.net/webservices/GetSearchResults");
+		}
+		
 		SOAPMessage m = mf.createMessage( null, new ByteArrayInputStream(body.getBytes()));
 		m.saveChanges();
-		
+
 		Response<SOAPMessage> response = d.invokeAsync(m);
 		while (!response.isDone()){
 			//go off and do some work
@@ -138,18 +147,5 @@ public class JAXWSTester2 {
 		        //note interruptions
 				throw ie;
 		}
-//		SOAPMessage o = d.invoke(m);
-//		
-//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//		o.writeTo(baos);
-//		this.resultBody = baos.toString();
-//		this.resultSOAPBody = o.getSOAPBody();
-//		
-//		if (d.getResponseContext() != null) {
-//			Object responseHeaders = d.getResponseContext().get(MessageContext.HTTP_RESPONSE_HEADERS);
-//			if ( responseHeaders != null && responseHeaders instanceof Map) {
-//				this.resultHeaders = (Map<String, String>) responseHeaders;
-//			}
-//		}
 	}
 }
