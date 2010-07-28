@@ -84,6 +84,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSCommandTest {
 		IFile wsdlFile = fproject.getProject().getFile(wsdlFileName);
 		ServiceModel model = new ServiceModel();
 		model.setWebProjectName(fproject.getProject().getName());
+		model.setCustomPackage("org.apache.hello_world_soap_http");
 		// model.setWsdlURI(wsdlFile.getLocation().toOSString());
 
 		WebServiceClientInfo info = new WebServiceClientInfo();
@@ -101,7 +102,6 @@ public class JBossWSClientCommandTest extends AbstractJBossWSCommandTest {
 		assertTrue(model.getPortTypes().contains("Greeter"));
 		assertEquals("org.apache.hello_world_soap_http", model
 				.getCustomPackage());
-
 	}
 
 	public void testClientCodeGenerationCommand() throws ExecutionException {
