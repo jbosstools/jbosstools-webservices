@@ -37,16 +37,22 @@ public class InitialCommand extends AbstractDataModelOperation {
 			throws ExecutionException {
 
 		try {
-			String location = JBossWSCreationUtils.getJBossWSRuntimeLocation(JBossWSCreationUtils.getProjectByName(model.getWebProjectName()));
+			String location = JBossWSCreationUtils
+					.getJBossWSRuntimeLocation(JBossWSCreationUtils
+							.getProjectByName(model.getWebProjectName()));
 			if (location.equals("")) { //$NON-NLS-1$
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
-			} else if(!new Path(location).append(JBossWSCreationCoreMessages.Bin).append(JBossWSCreationCoreMessages.Command).toFile().exists()){
+			} else if (!new Path(location)
+					.append(JBossWSCreationCoreMessages.Bin)
+					.append(JBossWSCreationCoreMessages.Command).toFile()
+					.exists()) {
 				return StatusUtils
-				.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
+						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 			}
 		} catch (CoreException e1) {
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
+			return StatusUtils
+					.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 		}
 		model.setTarget(JBossWSCreationCoreMessages.Value_Target_0);
 		if (scenario == WebServiceScenario.TOPDOWN) {
@@ -54,10 +60,9 @@ public class InitialCommand extends AbstractDataModelOperation {
 				model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
 				WSDLPropertyReader reader = new WSDLPropertyReader();
 				reader.readWSDL(ws.getWebServiceInfo().getWsdlURL());
-				model.setCustomPackage(reader.packageFromTargetNamespace());
+				model.setCustomPackage(""); //$NON-NLS-1$
 				model.setServiceList(reader.getServiceList());
 				model.setPortTypeList(reader.getPortTypeList());
-
 			} catch (WSDLException e) {
 				JBossWSCreationCorePlugin.getDefault().logError(e);
 				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);

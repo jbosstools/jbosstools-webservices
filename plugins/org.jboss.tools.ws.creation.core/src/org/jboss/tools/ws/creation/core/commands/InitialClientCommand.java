@@ -77,7 +77,7 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 				reader
 						.readWSDL(wsClient.getWebServiceClientInfo()
 								.getWsdlURL());
-				model.setCustomPackage(reader.packageFromTargetNamespace());
+				model.setCustomPackage(""); //$NON-NLS-1$
 				model.setServiceList(reader.getServiceList());
 				model.setPortTypeList(reader.getPortTypeList());
 			} catch (WSDLException e) {

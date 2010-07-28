@@ -58,7 +58,7 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 		configCom.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		// custom package name
-		Label lblCustomPakage = new Label(configCom, SWT.NONE);
+		final Label lblCustomPakage = new Label(configCom, SWT.NONE);
 		lblCustomPakage
 				.setText(JBossWSCreationCoreMessages.Label_Custom_Package_Name);
 		final Text txtCustomPkgName = new Text(configCom, SWT.BORDER);
@@ -66,16 +66,16 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 		gd.horizontalSpan = 2;
 		txtCustomPkgName.setLayoutData(gd);
 		txtCustomPkgName.addModifyListener(new ModifyListener() {
-
 			public void modifyText(ModifyEvent e) {
-				if (validatePackage(txtCustomPkgName.getText())) {
+				if ("".equals(txtCustomPkgName.getText()) //$NON-NLS-1$
+						|| validatePackage(txtCustomPkgName.getText())) {
 					model.setCustomPackage(txtCustomPkgName.getText());
 				}
 				statusListener.handleEvent(null);
 			}
 		});
 		txtCustomPkgName.setText(model.getCustomPackage());
-
+		
 		// target
 		new Label(configCom, SWT.NONE)
 				.setText(JBossWSCreationCoreMessages.Label_JaxWS_Target);
@@ -191,8 +191,7 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 				public void widgetSelected(SelectionEvent e) {
 					model.setGenerateImplementatoin(btnGenDefaultImpl
 							.getSelection());
-					btnUpdateWebxml
-							.setEnabled(btnGenDefaultImpl.getSelection());
+					btnUpdateWebxml.setEnabled(btnGenDefaultImpl.getSelection());
 					if (!btnGenDefaultImpl.getSelection()) {
 						model.setUpdateWebxml(false);
 					} else {
@@ -223,7 +222,8 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 	}
 
 	private void updateExtensionButtonStatus() {
-		boolean a = JBossWSCreationUtils.supportSOAP12(model.getWebProjectName());
+		boolean a = JBossWSCreationUtils.supportSOAP12(model
+				.getWebProjectName());
 		btnExtension.setEnabled(a);
 		btnExtension.setSelection(a);
 	}
@@ -243,7 +243,7 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 			e1.printStackTrace();
 		}
 		if (status != null && status.getSeverity() == IStatus.ERROR) {
-				return false;
+			return false;
 		}
 		return true;
 	}
