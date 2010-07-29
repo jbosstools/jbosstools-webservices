@@ -176,6 +176,7 @@ public class DelimitedStringList extends Composite {
 
 				public void widgetSelected(SelectionEvent e) {
 					moveUpInList();
+					fireChangedEvent(e.getSource());
 				}
 			});
 
@@ -188,6 +189,7 @@ public class DelimitedStringList extends Composite {
 
 				public void widgetSelected(SelectionEvent e) {
 					moveDownInList();
+					fireChangedEvent(e.getSource());
 				}
 			});
 		}
@@ -201,6 +203,7 @@ public class DelimitedStringList extends Composite {
 
 				public void widgetSelected(SelectionEvent e) {
 					editInList();
+					fireChangedEvent(e.getSource());
 				}
 			});
 		}
@@ -214,6 +217,7 @@ public class DelimitedStringList extends Composite {
 
 				public void widgetSelected(SelectionEvent e) {
 					removeFromList();
+					fireChangedEvent(e.getSource());
 				}
 			});
 		}
@@ -228,6 +232,7 @@ public class DelimitedStringList extends Composite {
 				public void widgetSelected(SelectionEvent e) {
 					DelimitedStringList.this.mPropsList.removeAll();
 					updatePropertyButtons();
+					fireChangedEvent(e.getSource());
 				}
 			});
 		}
