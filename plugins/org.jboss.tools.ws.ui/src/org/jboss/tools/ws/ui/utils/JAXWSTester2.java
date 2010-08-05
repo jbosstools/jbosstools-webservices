@@ -76,6 +76,10 @@ public class JAXWSTester2 {
 		return this.resultSOAP;
 	}
 	
+	public void doTest( IProgressMonitor monitor, String endpointurl, String actionurl, String ns, 
+			String serviceName, String messageName, String body ) throws Exception {
+		doTest(monitor, endpointurl, actionurl, ns, serviceName, messageName, body, null, null);
+	}
 	/**
 	 * Invoke the JAX-WS service
 	 * @param endpointurl
@@ -85,7 +89,7 @@ public class JAXWSTester2 {
 	 */
 	@SuppressWarnings("unchecked")
 	public void doTest( IProgressMonitor monitor, String endpointurl, String actionurl, String ns, 
-			String serviceName, String messageName, String body ) throws Exception {
+			String serviceName, String messageName, String body, String uid, String pwd ) throws Exception {
 		
 		this.resultBody = EMPTY_STRING;
 
@@ -105,7 +109,13 @@ public class JAXWSTester2 {
 			d.getRequestContext().put(BindingProvider.SOAPACTION_USE_PROPERTY, true);
 			d.getRequestContext().put(BindingProvider.SOAPACTION_URI_PROPERTY, actionurl); //"http://www.ecubicle.net/webservices/GetSearchResults");
 		}
-		
+
+		if (uid != null && pwd != null) {
+			Map<String, Object> requestContext = d.getRequestContext();
+			requestContext.put(BindingProvider.USERNAME_PROPERTY, uid); 
+			requestContext.put(BindingProvider.PASSWORD_PROPERTY, pwd);
+		}
+
 		SOAPMessage m = mf.createMessage( null, new ByteArrayInputStream(body.getBytes()));
 		m.saveChanges();
 

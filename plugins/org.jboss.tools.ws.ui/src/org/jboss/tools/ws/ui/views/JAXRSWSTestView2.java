@@ -533,6 +533,14 @@ public class JAXRSWSTestView2 extends ViewPart {
 		urlCombo.setLayoutData(gdURL);
 		toolkit.adapt(urlCombo);
 
+		urlCombo.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				setControlsForSelectedURL();
+				getCurrentHistoryEntry().setUrl(urlCombo.getText());
+				getCurrentHistoryEntry().setAction(null);
+			}
+		});
 		urlCombo.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
 			}
@@ -1153,23 +1161,30 @@ public class JAXRSWSTestView2 extends ViewPart {
 		final String method = getCurrentHistoryEntry().getMethod();
 		final String headers = getCurrentHistoryEntry().getHeaders();
 		final String parms = getCurrentHistoryEntry().getParms();
-
-//		final String url = urlCombo.getText();
-//		final String action = actionText;
-//		final String body = bodyText.getText();
-//		final String method = methodCombo.getText();
-//		final String headers = dlsList.getSelection();
-//		final String parms = parmsList.getSelection();
+		
+		String tempUID = null;
+		String tempPwd = null;
+		// temp workaround to handle JAX-RS authenticated services
+		if (wsTech.contentEquals(JAX_RS) && url.startsWith("https")) { //$NON-NLS-1$
+			UidPwdDialog authDialog = new UidPwdDialog(getSite().getShell());
+			int rtnCode = authDialog.open();
+			if (rtnCode == Window.OK) {
+				tempUID = authDialog.getUID();
+				tempPwd = authDialog.getPwd();
+			}
+		}
+		final String uid = tempUID;
+		final String pwd = tempPwd;
 
 		Job aJob = new Job(JBossWSUIMessages.JAXRSWSTestView_Invoking_WS_Status) {
 			protected IStatus run(IProgressMonitor monitor) {
 				IStatus status = Status.OK_STATUS;
 				// execute the task ...
 				if (wsTech.equalsIgnoreCase(JAX_RS)) {
-					status = handleRSTest(monitor, url, method, body, parms, headers);
+					status = handleRSTest(monitor, url, method, body, parms, headers, uid, pwd);
 				}
 				else if (wsTech.equalsIgnoreCase(JAX_WS)) {
-					status = handleWSTest(monitor, url, action, body);
+					status = handleWSTest(monitor, url, action, body, uid, pwd);
 				}
 				monitor.done();
 				return status;  
@@ -1225,7 +1240,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	/*
 	 * Actually call the WS and displays the result 
 	 */
-	private IStatus handleWSTest(final IProgressMonitor monitor, String url, String action, String body) {
+	private IStatus handleWSTest(final IProgressMonitor monitor, String url, String action, String body, String uid, String pwd) {
 		try {
 
 			envelope = null;
@@ -1239,7 +1254,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 					if (!itRan && serviceNSMessage != null && serviceNSMessage.length == 3) { 
 						itRan = true;
 						// 	call the service
-						tester.doTest(monitor, url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body);
+						tester.doTest(monitor, url, action, serviceNSMessage[0], serviceNSMessage[1], serviceNSMessage[2], body, uid, pwd);
 					} else {
 						break;
 					}
@@ -1303,7 +1318,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	/*
 	 * Actually call the RESTful WS to test it
 	 */
-	private IStatus handleRSTest(final IProgressMonitor monitor, String address, String method, String body, String parms, String headersStr) {
+	private IStatus handleRSTest(final IProgressMonitor monitor, String address, String method, String body, String parms, String headersStr, String uid, String pwd) {
 
 		if (method.equalsIgnoreCase(GET))
 			body = EMPTY_STRING;
@@ -1350,7 +1365,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 		try {
 
 			// call the service
-			tester.doTest(address, parameters, headers, method, body);
+			tester.doTest(address, parameters, headers, method, body, null, -1, uid, pwd);
 
 			String result = tester.getResultBody();
 

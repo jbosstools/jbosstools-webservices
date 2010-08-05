@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.codec.binary.Base64;
+
 /**
  * Tester class for JAX-RS services
  * @author bfitzpat
@@ -96,7 +98,7 @@ public class JAXRSTester {
      * @throws Exception
      */
     public void doTest (String address, Map<String, String> parameters, Map<String, String> headers) throws Exception {
-        doTest(address, parameters, headers, "GET", null, null, 0); //$NON-NLS-1$
+        doTest(address, parameters, headers, "GET", null, null, 0, null, null); //$NON-NLS-1$
     }
 
     /**
@@ -109,7 +111,7 @@ public class JAXRSTester {
      * @throws Exception
      */
     public void doTest (String address, Map<String, String> parameters, Map<String, String> headers, String methodType, String requestBody) throws Exception {
-    	doTest (address, parameters, headers, methodType, requestBody, null, 0);
+    	doTest (address, parameters, headers, methodType, requestBody, null, 0, null, null);
     }
 
     /**
@@ -124,7 +126,7 @@ public class JAXRSTester {
      * @throws Exception
      */
     public void doTest(String address, Map<String, String> parameters, Map<String, String> headers, String methodType, String requestBody, String proxy, String port) throws Exception {
-        doTest(address, parameters, headers, methodType, requestBody, proxy, Integer.parseInt(port));
+        doTest(address, parameters, headers, methodType, requestBody, proxy, Integer.parseInt(port), null, null);
     }
 
     /**
@@ -138,7 +140,7 @@ public class JAXRSTester {
      * @param port
      * @throws Exception
      */
-    public void doTest(String address, Map<String, String> parameters, Map<String, String> headers, String methodType, String requestBody, String proxy, int port) throws Exception {
+    public void doTest(String address, Map<String, String> parameters, Map<String, String> headers, String methodType, String requestBody, String proxy, int port, String uid, String pwd) throws Exception {
 
     	// handle the proxy
         Proxy proxyObject = null;
@@ -208,6 +210,14 @@ public class JAXRSTester {
         		if (entry.getKey() != null && entry.getKey() instanceof String)
         			httpurlc.addRequestProperty((String) entry.getKey(), (String) entry.getValue());
         	}
+        }
+        
+        // if we have basic authentication to add, add it!
+        if (uid != null && pwd != null) {
+	        String authStr = uid + ':' + pwd;
+			byte[] authEncByte = Base64.encodeBase64(authStr.getBytes());
+			String authStringEnc = new String(authEncByte);
+			httpurlc.addRequestProperty("Authorization", "Basic " + authStringEnc);  //$NON-NLS-1$//$NON-NLS-2$
         }
         
         requestHeaders = httpurlc.getRequestProperties();
