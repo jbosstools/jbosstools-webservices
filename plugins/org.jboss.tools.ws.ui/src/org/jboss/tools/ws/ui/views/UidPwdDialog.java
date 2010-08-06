@@ -61,7 +61,6 @@ public class UidPwdDialog extends TitleAreaDialog {
 			uidText.setText(uid);
 		}
 		uidText.addModifyListener(new ModifyListener() {
-			@Override
 			public void modifyText(ModifyEvent e) {
 				uid = uidText.getText();
 			}
@@ -77,7 +76,6 @@ public class UidPwdDialog extends TitleAreaDialog {
 			pwdText.setText(pwd);
 		}
 		pwdText.addModifyListener(new ModifyListener() {
-			@Override
 			public void modifyText(ModifyEvent e) {
 				pwd = pwdText.getText();
 			}
