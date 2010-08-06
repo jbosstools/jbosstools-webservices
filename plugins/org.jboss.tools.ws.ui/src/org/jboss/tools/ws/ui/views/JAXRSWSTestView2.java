@@ -534,7 +534,6 @@ public class JAXRSWSTestView2 extends ViewPart {
 		toolkit.adapt(urlCombo);
 
 		urlCombo.addModifyListener(new ModifyListener() {
-			@Override
 			public void modifyText(ModifyEvent e) {
 				setControlsForSelectedURL();
 				getCurrentHistoryEntry().setUrl(urlCombo.getText());
