@@ -16,6 +16,7 @@ import java.net.URI;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -27,6 +28,7 @@ import org.eclipse.jdt.core.JavaConventions;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
@@ -50,20 +52,29 @@ public class JBossWSUIUtils {
 	public static IStatus validatePackageName(String name, IJavaElement context) {
 		IStatus status = null;
 		if (context == null || !context.exists()) {
-			status = JavaConventions.validatePackageName(name,JavaCore.VERSION_1_3, JavaCore.VERSION_1_3);
+			status = JavaConventions.validatePackageName(name,
+					JavaCore.VERSION_1_3, JavaCore.VERSION_1_3);
 			if (status != null && !status.isOK()) {
 				return status;
 			}
 		}
 		String[] sourceComplianceLevels = getSourceComplianceLevels(context);
-		status = JavaConventions.validatePackageName(name,sourceComplianceLevels[0], sourceComplianceLevels[1]);
+		status = JavaConventions.validatePackageName(name,
+				sourceComplianceLevels[0], sourceComplianceLevels[1]);
 		if (status != null && status.getSeverity() == IStatus.ERROR) {
 			return status;
 		}
 
 		IPackageFragmentRoot[] roots = null;
 		try {
-			roots = context.getJavaProject().getPackageFragmentRoots();
+			IResource[] srcFolders = JBossWSCreationUtils
+					.getJavaSourceRoots(context.getJavaProject().getProject());
+			roots = new IPackageFragmentRoot[srcFolders.length];
+			int i = 0;
+			for (IResource src : srcFolders) {
+				roots[i] = context.getJavaProject().getPackageFragmentRoot(src);
+				i++;
+			}
 		} catch (JavaModelException e) {
 			JBossWSUIPlugin.log(e);
 		}
@@ -97,7 +108,7 @@ public class JBossWSUIUtils {
 						}
 						return status;
 					} else {
-						if(pack.getResource() == null){
+						if (pack.getResource() == null) {
 							continue;
 						}
 						URI location = pack.getResource().getLocationURI();
