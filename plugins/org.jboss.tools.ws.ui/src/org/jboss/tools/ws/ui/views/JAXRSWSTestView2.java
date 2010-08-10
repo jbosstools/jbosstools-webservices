@@ -75,6 +75,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.CoolBar;
@@ -182,6 +183,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	
 	private TestHistory history = new TestHistory();
 	private TestHistoryEntry currentHistoryEntry = null;
+	private Button useBasicAuthCB;
 
 	/**
 	 * The constructor.
@@ -702,6 +704,11 @@ public class JAXRSWSTestView2 extends ViewPart {
 		gd9.minimumHeight = 200;
 		ec5.setLayoutData(gd9);
 		ec5.addExpansionListener(new FormExpansionAdapter());
+		
+		useBasicAuthCB = toolkit.createButton(sectionClient, 
+				JBossWSUIMessages.JAXRSWSTestView2_Checkbox_Basic_Authentication, SWT.CHECK);
+		GridData gd10 = new GridData(SWT.FILL, SWT.NONE, true, false);
+		useBasicAuthCB.setLayoutData(gd10);
 
 		section.addExpansionListener(new FormExpansionAdapter());
 		section.setClient(sectionClient);  	    
@@ -1163,8 +1170,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 		
 		String tempUID = null;
 		String tempPwd = null;
-		// temp workaround to handle JAX-RS authenticated services
-		if (wsTech.contentEquals(JAX_RS) && url.startsWith("https")) { //$NON-NLS-1$
+		// If basic authorization checkbox is checked, use the uid/pwd
+		if (useBasicAuthCB.getSelection()) {
 			UidPwdDialog authDialog = new UidPwdDialog(getSite().getShell());
 			int rtnCode = authDialog.open();
 			if (rtnCode == Window.OK) {

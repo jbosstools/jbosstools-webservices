@@ -139,6 +139,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView_Set_Sample_Data_Label;
 	public static String JAXRSWSTestView_Web_Service_Type_Label;
 	public static String JAXRSWSTestView2_BodyText_Section;
+	public static String JAXRSWSTestView2_Checkbox_Basic_Authentication;
 	public static String JAXRSWSTestView2_GetFromWSDL_Tooltip;
 	public static String JAXRSWSTestView2_Go_Tooltip;
 	public static String JAXRSWSTestView2_Headers_Section;

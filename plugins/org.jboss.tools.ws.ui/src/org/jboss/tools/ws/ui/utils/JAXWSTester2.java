@@ -111,13 +111,22 @@ public class JAXWSTester2 {
 		}
 
 		if (uid != null && pwd != null) {
-			Map<String, Object> requestContext = d.getRequestContext();
-			requestContext.put(BindingProvider.USERNAME_PROPERTY, uid); 
-			requestContext.put(BindingProvider.PASSWORD_PROPERTY, pwd);
+			d.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, uid); 
+			d.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, pwd);
 		}
 
 		SOAPMessage m = mf.createMessage( null, new ByteArrayInputStream(body.getBytes()));
 		m.saveChanges();
+
+		// this is a different method of passing along security details
+//		if (uid != null && pwd != null) {
+//	        String authStr = uid + ':' + pwd;
+//			byte[] authEncByte = Base64.encodeBase64(authStr.getBytes());
+//			String authStringEnc = new String(authEncByte);
+//
+//			MimeHeaders hd = m.getMimeHeaders();
+//			hd.addHeader("Authorization", "Basic " + authStringEnc);  //$NON-NLS-1$//$NON-NLS-2$
+//		}
 
 		Response<SOAPMessage> response = d.invokeAsync(m);
 		while (!response.isDone()){
