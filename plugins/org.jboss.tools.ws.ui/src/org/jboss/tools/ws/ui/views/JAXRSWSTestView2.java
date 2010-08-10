@@ -1177,6 +1177,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 			if (rtnCode == Window.OK) {
 				tempUID = authDialog.getUID();
 				tempPwd = authDialog.getPwd();
+			} else {
+				return;
 			}
 		}
 		final String uid = tempUID;
