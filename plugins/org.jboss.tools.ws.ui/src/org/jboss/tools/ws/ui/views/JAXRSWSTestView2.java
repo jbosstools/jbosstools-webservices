@@ -1324,10 +1324,30 @@ public class JAXRSWSTestView2 extends ViewPart {
 			monitor.worked(10);
 			return status;
 		} catch (Exception e) {
+
+			// try and drill down to find the root cause
+			Throwable innerE = e.getCause();
+			
+			// if we can't find it, just go with th exception
+			if (innerE == null) {
+				WSTestStatus status = new WSTestStatus(IStatus.OK, 
+						JBossWSUIPlugin.PLUGIN_ID, 
+						JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
+				status.setResultsText(e.toString());
+				JBossWSUIPlugin.log(e);
+				return status;
+			}
+			
+			// continue to drill down until we find the innermost one
+			while (innerE.getCause() != null) {
+				innerE = innerE.getCause();
+			}
+			
+			// Now report that
 			WSTestStatus status = new WSTestStatus(IStatus.OK, 
 					JBossWSUIPlugin.PLUGIN_ID, 
-					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
-			status.setResultsText(e.toString());
+					JBossWSUIMessages.JAXRSWSTestView_Exception_Status + innerE.getLocalizedMessage());
+			status.setResultsText(innerE.toString());
 			JBossWSUIPlugin.log(e);
 			return status;
 		}
