@@ -143,6 +143,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView2_GetFromWSDL_Tooltip;
 	public static String JAXRSWSTestView2_Go_Tooltip;
 	public static String JAXRSWSTestView2_Headers_Section;
+	public static String JAXRSWSTestView2_Msg_No_Results_Check_Headers;
 	public static String JAXRSWSTestView2_OpenInEditor_Action;
 	public static String JAXRSWSTestView2_Parameters_Section;
 	public static String JAXRSWSTestView2_RequestDetails_Section;

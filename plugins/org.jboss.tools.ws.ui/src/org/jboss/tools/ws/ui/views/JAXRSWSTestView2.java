@@ -130,6 +130,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private static final String PUT = "PUT";//$NON-NLS-1$
 	private static final String POST = "POST";//$NON-NLS-1$
 	private static final String GET = "GET";//$NON-NLS-1$
+	private static final String OPTIONS = "OPTIONS";//$NON-NLS-1$
 	private static final String JAX_WS = "JAX-WS"; //$NON-NLS-1$
 	private static final String JAX_RS = "JAX-RS"; //$NON-NLS-1$
 	private static final String EMPTY_STRING = ""; //$NON-NLS-1$
@@ -577,7 +578,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 		CoolItem wsMethodCoolItem = new CoolItem(coolBar, SWT.PUSH | SWT.FLAT);
 		methodCombo = new Combo(coolBar, SWT.BORDER | SWT.READ_ONLY);
 		methodCombo.setBackground(form.getBody().getBackground());
-		String[] methods = {JAX_WS, GET, POST, PUT, DELETE};
+		String[] methods = {JAX_WS, GET, POST, PUT, DELETE, OPTIONS};
 		methodCombo.setItems(methods);
 		methodCombo.pack();
 		Point size = methodCombo.computeSize (SWT.DEFAULT, SWT.DEFAULT);
@@ -640,6 +641,12 @@ public class JAXRSWSTestView2 extends ViewPart {
 		Composite sectionClient = toolkit.createComposite(section);
 		sectionClient.setLayout(new GridLayout());
 		sectionClient.setLayoutData(new GridData());
+
+		useBasicAuthCB = toolkit.createButton(sectionClient, 
+				JBossWSUIMessages.JAXRSWSTestView2_Checkbox_Basic_Authentication, SWT.CHECK);
+		GridData gd10 = new GridData(SWT.FILL, SWT.NONE, true, false);
+		gd10.horizontalIndent = 3;
+		useBasicAuthCB.setLayoutData(gd10);
 
 		ExpandableComposite ec = toolkit.createExpandableComposite(sectionClient, 
 				ExpandableComposite.TREE_NODE| ExpandableComposite.TITLE_BAR |
@@ -705,11 +712,6 @@ public class JAXRSWSTestView2 extends ViewPart {
 		ec5.setLayoutData(gd9);
 		ec5.addExpansionListener(new FormExpansionAdapter());
 		
-		useBasicAuthCB = toolkit.createButton(sectionClient, 
-				JBossWSUIMessages.JAXRSWSTestView2_Checkbox_Basic_Authentication, SWT.CHECK);
-		GridData gd10 = new GridData(SWT.FILL, SWT.NONE, true, false);
-		useBasicAuthCB.setLayoutData(gd10);
-
 		section.addExpansionListener(new FormExpansionAdapter());
 		section.setClient(sectionClient);  	    
 	}
@@ -1064,7 +1066,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 	 */
 	private void setControlsForMethodType ( String methodType ) {
 		if (getCurrentTestType().equalsIgnoreCase(JAX_RS) &&
-				methodType.equalsIgnoreCase(GET)) {
+				(methodType.equalsIgnoreCase(GET) ||
+				 methodType.equalsIgnoreCase(OPTIONS))) {
 			bodyText.setEnabled(false);
 		} else {
 			bodyText.setEnabled(true);
@@ -1231,6 +1234,13 @@ public class JAXRSWSTestView2 extends ViewPart {
 								}
 							}
 							getCurrentHistoryEntry().setResultHeadersList(headers);
+							if (JAXRSWSTestView2.this.resultsText.getText().trim().length() == 0) {
+								if (headers != null && headers.length > 0) {
+									JAXRSWSTestView2.this.resultsText.setText(
+											JBossWSUIMessages.JAXRSWSTestView2_Msg_No_Results_Check_Headers);
+									JAXRSWSTestView2.this.form.reflow(true);
+								}
+							}
 							history.getEntries().add(getCurrentHistoryEntry());
 						}
 					});
