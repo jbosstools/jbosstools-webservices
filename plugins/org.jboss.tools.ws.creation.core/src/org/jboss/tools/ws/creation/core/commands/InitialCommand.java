@@ -1,7 +1,5 @@
 package org.jboss.tools.ws.creation.core.commands;
 
-import javax.wsdl.WSDLException;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -13,11 +11,9 @@ import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
-import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
 @SuppressWarnings("restriction")
 public class InitialCommand extends AbstractDataModelOperation {
@@ -56,17 +52,8 @@ public class InitialCommand extends AbstractDataModelOperation {
 		}
 		model.setTarget(JBossWSCreationCoreMessages.Value_Target_0);
 		if (scenario == WebServiceScenario.TOPDOWN) {
-			try {
-				model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
-				WSDLPropertyReader reader = new WSDLPropertyReader();
-				reader.readWSDL(ws.getWebServiceInfo().getWsdlURL());
-				model.setCustomPackage(""); //$NON-NLS-1$
-				model.setServiceList(reader.getServiceList());
-				model.setPortTypeList(reader.getPortTypeList());
-			} catch (WSDLException e) {
-				JBossWSCreationCorePlugin.getDefault().logError(e);
-				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
-			}
+			model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
+			model.setCustomPackage(""); //$NON-NLS-1$
 		} else {
 			model.addServiceClasses(ws.getWebServiceInfo().getImplURL());
 		}

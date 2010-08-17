@@ -51,7 +51,6 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	public static final String LINE_SEPARATOR = System
 			.getProperty("line.separator"); //$NON-NLS-1$
 	private static final String PACAKAGE = ".*"; //$NON-NLS-1$
-	private static final String PACAKAGESPLIT = "\\."; //$NON-NLS-1$
 
 	private ServiceModel model;
 	private int serviceNum = 1;
@@ -77,16 +76,45 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		}
 
 		// find web service client classes
-		List<ICompilationUnit> clientUnits = findJavaUnitsByAnnotation(project,
-				JBossWSCreationCoreMessages.WebserviceClient_Annotation);
+		List<ICompilationUnit> clientUnits = JBossWSCreationUtils
+				.findJavaUnitsByAnnotation(
+						project,
+						JBossWSCreationCoreMessages.WebserviceClient_Annotation,
+						model.getCustomPackage());
 
 		// find web service classes
-		List<ICompilationUnit> serviceUnits = findJavaUnitsByAnnotation(
-				project,
-				JBossWSCreationCoreMessages.Webservice_Annotation_Check);
+		List<ICompilationUnit> serviceUnits = JBossWSCreationUtils
+				.findJavaUnitsByAnnotation(
+						project,
+						JBossWSCreationCoreMessages.Webservice_Annotation_Check,
+						model.getCustomPackage());
 
+		if (clientUnits.size() == 0) {
+			return status;
+		}
+
+			List<String> packageList = new LinkedList<String>();
+			for (ICompilationUnit unit : clientUnits) {
+				if (!packageList.contains(unit.getParent().getElementName())) {
+					packageList.add(unit.getParent().getElementName());
+				}
+			}
+			for (int j = 0; j < packageList.size(); j++) {
+				status = createImplClass(packageList.get(j), project,
+						clientUnits, serviceUnits);
+				if (!status.isOK()) {
+					break;
+				}
+			}
+
+		return status;
+	}
+
+	private IStatus createImplClass(String packageName, IJavaProject project,
+			List<ICompilationUnit> clientUnits,
+			List<ICompilationUnit> serviceUnits) {
 		// create a client sample class
-		ICompilationUnit clientCls = createJavaClass(model.getCustomPackage()
+		ICompilationUnit clientCls = createJavaClass(packageName
 				+ JBossWSCreationCoreMessages.Client_Sample_Package_Name,
 				JBossWSCreationCoreMessages.Client_Sample_Class_Name, false,
 				null, project);
@@ -97,8 +125,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 
 		// add imports to client sample class
 		try {
-			clientCls.createImport(model.getCustomPackage() + PACAKAGE, null,
-					null);
+			clientCls.createImport(packageName + PACAKAGE, null, null);
 			clientCls.save(null, true);
 		} catch (Exception e1) {
 			JBossWSCreationCorePlugin.getDefault().logError(e1);
@@ -114,12 +141,12 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		sb.append(LINE_SEPARATOR);
 		sb.append("        System.out.println(\"***********************\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
-		createWebServiceClient(clientUnits, serviceUnits, sb);
+		createWebServiceClient(clientUnits, serviceUnits, sb,packageName);
 		sb.append("        System.out.println(\"***********************\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 		sb.append("        System.out.println(\"").append( //$NON-NLS-1$
-				JBossWSCreationCoreMessages.Client_Sample_Run_Over).append(
-				"\");"); //$NON-NLS-1$
+				JBossWSCreationCoreMessages.Client_Sample_Run_Over)
+				.append("\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 		sb.append("}"); //$NON-NLS-1$
 		try {
@@ -130,8 +157,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			return StatusUtils
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
-
-		return status;
+		return Status.OK_STATUS;
 	}
 
 	/**
@@ -142,7 +168,6 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * @param method
 	 * @param sb
 	 */
-	@SuppressWarnings("unchecked")
 	private void createWebService(List<ICompilationUnit> serviceUnits,
 			MethodDeclaration method, StringBuffer sb) {
 		sb.append("        System.out.println(\"" //$NON-NLS-1$
@@ -161,10 +186,11 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			parser.setResolveBindings(false);
 			parser.setFocalPosition(0);
 			CompilationUnit result = (CompilationUnit) parser.createAST(null);
+			@SuppressWarnings("rawtypes")
 			List types = result.types();
 			TypeDeclaration typeDec1 = (TypeDeclaration) types.get(0);
-			if (typeDec1.getName().toString().equals(
-					method.getReturnType2().toString())) {
+			if (typeDec1.getName().toString()
+					.equals(method.getReturnType2().toString())) {
 				callWebServiceOperation(typeDec1, sb);
 			}
 		}
@@ -198,15 +224,14 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 
 				boolean noNull = true;
 				for (int j = 0; j < method.parameters().size(); j++) {
-					noNull = createWebServiceOperationParameters(method
-							.parameters(), sb, j)
+					noNull = createWebServiceOperationParameters(
+							method.parameters(), sb, j)
 							&& noNull;
 				}
 				sb.append("));"); //$NON-NLS-1$
 				sb.append(LINE_SEPARATOR);
 				if (!noNull) {
-					sb
-							.append("        //Please input the parameters instead of 'null' for the upper method!"); //$NON-NLS-1$
+					sb.append("        //Please input the parameters instead of 'null' for the upper method!"); //$NON-NLS-1$
 					sb.append(LINE_SEPARATOR);
 					sb.append(LINE_SEPARATOR);
 				}
@@ -222,9 +247,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * @param sb
 	 * @param j
 	 */
-	@SuppressWarnings("unchecked")
-	private boolean createWebServiceOperationParameters(List list,
-			StringBuffer sb, int j) {
+	private boolean createWebServiceOperationParameters(
+			@SuppressWarnings("rawtypes") List list, StringBuffer sb, int j) {
 		SingleVariableDeclaration para = (SingleVariableDeclaration) list
 				.get(j);
 
@@ -255,22 +279,23 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * @param serviceUnits
 	 * @param sb
 	 */
-	@SuppressWarnings("unchecked")
-	private void createWebServiceClient(List<ICompilationUnit> clientUnits,
-			List<ICompilationUnit> serviceUnits, StringBuffer sb) {
+	private void createWebServiceClient(List<ICompilationUnit> clientUnits,List<ICompilationUnit> serviceUnits, StringBuffer sb,String packageName) {
 		sb.append("        System.out.println(\"" //$NON-NLS-1$
 				+ "Create Web Service Client...\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 		for (ICompilationUnit unit : clientUnits) {
 			// parse the unit
+			if(!packageName.equals(unit.getParent().getElementName())){
+				continue;
+			}
 			ASTParser parser = ASTParser.newParser(AST.JLS3);
 			parser.setSource(unit);
 			parser.setResolveBindings(false);
 			parser.setFocalPosition(0);
 			CompilationUnit result = (CompilationUnit) parser.createAST(null);
+			@SuppressWarnings("rawtypes")
 			List types = result.types();
 			TypeDeclaration typeDec = (TypeDeclaration) types.get(0);
-
 			sb.append("        " + typeDec.getName()); //$NON-NLS-1$
 			sb.append(" service").append(serviceNum).append(" = new "); //$NON-NLS-1$ //$NON-NLS-2$
 			sb.append(typeDec.getName());
@@ -284,8 +309,8 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 				if (method.modifiers().get(0) instanceof NormalAnnotation) {
 					NormalAnnotation anno = (NormalAnnotation) method
 							.modifiers().get(0);
-					if (anno.getTypeName().getFullyQualifiedName().equals(
-							JBossWSCreationCoreMessages.WebEndpoint)) {
+					if (anno.getTypeName().getFullyQualifiedName()
+							.equals(JBossWSCreationCoreMessages.WebEndpoint)) {
 						createWebService(serviceUnits, method, sb);
 						portNum += 1;
 					}
@@ -293,59 +318,6 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			}
 			serviceNum += 1;
 		}
-	}
-
-	/**
-	 * find compilationunit by annotation
-	 * 
-	 * @param project
-	 * @param annotation
-	 * @return
-	 */
-	public List<ICompilationUnit> findJavaUnitsByAnnotation(
-			IJavaProject project, String annotation) {
-		List<ICompilationUnit> units = new LinkedList<ICompilationUnit>();
-		try {
-			ICompilationUnit[] javaFiles = null;
-			if (project.findPackageFragment(addPackagetoPath(project)) != null) {
-				javaFiles = project.findPackageFragment(
-						addPackagetoPath(project)).getCompilationUnits();
-			}
-			if (javaFiles != null) {
-				for (ICompilationUnit unit : javaFiles) {
-					if (unit.getSource().contains(annotation)) {
-						units.add(unit);
-					}
-				}
-			}
-		} catch (JavaModelException e) {
-			JBossWSCreationCorePlugin.getDefault().logError(e);
-		}
-		return units;
-	}
-
-	/**
-	 * new a path by adding a java package
-	 * 
-	 * @param project
-	 * @return
-	 * @throws JavaModelException
-	 */
-	private IPath addPackagetoPath(IJavaProject project)
-			throws JavaModelException {
-		String packagename = model.getCustomPackage();
-		String[] names = packagename.split(PACAKAGESPLIT);
-		IPath path = new Path(JBossWSCreationUtils
-				.getJavaProjectSrcLocation(project.getProject()));
-		path = project.getPath().append(
-				path.makeRelativeTo(project.getProject().getLocation()));
-
-		if (names != null && names.length > 0) {
-			for (String name : names) {
-				path = path.append(name);
-			}
-		}
-		return path;
 	}
 
 	/**
@@ -362,8 +334,9 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			String className, boolean isInterface, String interfaceName,
 			IJavaProject javaProject) {
 		try {
-			IPath srcPath = new Path(JBossWSCreationUtils
-					.getJavaProjectSrcLocation(javaProject.getProject()));
+			IPath srcPath = new Path(
+					JBossWSCreationUtils.getJavaProjectSrcLocation(javaProject
+							.getProject()));
 			srcPath = javaProject.getPath().append(
 					srcPath.makeRelativeTo(javaProject.getProject()
 							.getLocation()));

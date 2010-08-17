@@ -25,6 +25,7 @@ import java.io.File;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,6 +35,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -58,6 +60,7 @@ import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
 public class JBossWSCreationUtils {
@@ -77,8 +80,8 @@ public class JBossWSCreationUtils {
 		if (hasUpperCase(keyword)) {
 			return false;
 		}
-		return (Arrays.binarySearch(javaKeyWords, keyword, Collator
-				.getInstance(Locale.ENGLISH)) >= 0);
+		return (Arrays.binarySearch(javaKeyWords, keyword,
+				Collator.getInstance(Locale.ENGLISH)) >= 0);
 	}
 
 	private static boolean hasUpperCase(String nodeName) {
@@ -95,21 +98,25 @@ public class JBossWSCreationUtils {
 
 	public static IProject getProjectByName(String project) {
 		String projectString = replaceEscapecharactors(project);
-		return ResourcesPlugin.getWorkspace().getRoot().getProject(
-				getProjectNameFromFramewokNameString(projectString));
+		return ResourcesPlugin
+				.getWorkspace()
+				.getRoot()
+				.getProject(getProjectNameFromFramewokNameString(projectString));
 	}
 
 	public static IPath getProjectRoot(String project) {
 		String projectString = replaceEscapecharactors(project);
-		return ResourcesPlugin.getWorkspace().getRoot().getProject(
-				getProjectNameFromFramewokNameString(projectString))
+		return ResourcesPlugin
+				.getWorkspace()
+				.getRoot()
+				.getProject(getProjectNameFromFramewokNameString(projectString))
 				.getLocation();
 	}
 
 	private static String replaceEscapecharactors(String vulnarableString) {
 		if (vulnarableString.indexOf("/") != -1) { //$NON-NLS-1$
-			vulnarableString = vulnarableString.replace('/', File.separator
-					.charAt(0));
+			vulnarableString = vulnarableString.replace('/',
+					File.separator.charAt(0));
 		}
 		return vulnarableString;
 	}
@@ -437,7 +444,7 @@ public class JBossWSCreationUtils {
 		}
 		return path;
 	}
-	
+
 	public static File findFileByPath(String name, String path) {
 		File ret = null;
 		File folder = new File(path);
@@ -455,6 +462,91 @@ public class JBossWSCreationUtils {
 			}
 		}
 		return ret;
-	}	
+	}
+
+	/**
+	 * find compilationunit by annotation
+	 * 
+	 * @param project
+	 * @param annotation
+	 * @return
+	 */
+	public static List<ICompilationUnit> findJavaUnitsByAnnotation(
+			IJavaProject project, String annotation, String packageName) {
+		List<ICompilationUnit> units = new LinkedList<ICompilationUnit>();
+		try {
+			IPath path = addPackagetoPath(project, packageName);
+			if (path == null) {
+				IResource[] resources = JBossWSCreationUtils
+						.getJavaSourceRoots(project.getProject());
+				if (resources != null && resources.length > 0) {
+					IJavaElement[] elements = project.getPackageFragmentRoot(
+							resources[0]).getChildren();
+					for (IJavaElement element : elements) {
+						if (IJavaElement.PACKAGE_FRAGMENT == element
+								.getElementType()) {
+							findInPackageFragment(units, element.getPath(),
+									project, annotation);
+						}
+					}
+				}
+			} else {
+				findInPackageFragment(units, path, project, annotation);
+			}
+		} catch (JavaModelException e) {
+			JBossWSCreationCorePlugin.getDefault().logError(e);
+		}
+		return units;
+	}
+
+	private static void findInPackageFragment(List<ICompilationUnit> units,
+			IPath path, IJavaProject project, String annotation) {
+		ICompilationUnit[] javaFiles = null;
+		try {
+			if (project.findPackageFragment(path) != null) {
+				javaFiles = project.findPackageFragment(path)
+						.getCompilationUnits();
+			}
+			if (javaFiles != null) {
+				for (ICompilationUnit unit : javaFiles) {
+					if (unit.getSource().contains(annotation)) {
+						units.add(unit);
+
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+			JBossWSCreationCorePlugin.getDefault().logError(e);
+
+		}
+	}
+
+	/**
+	 * new a path by adding a java package
+	 * 
+	 * @param project
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static IPath addPackagetoPath(IJavaProject project,
+			String packageName) throws JavaModelException {
+		String PACAKAGESPLIT = "\\."; //$NON-NLS-1$
+		if ("".equals(packageName)) { //$NON-NLS-1$
+			return null;
+		}
+		IPath path = new Path(
+				JBossWSCreationUtils.getJavaProjectSrcLocation(project
+						.getProject()));
+		String[] names = packageName.split(PACAKAGESPLIT);
+		path = project.getPath().append(
+				path.makeRelativeTo(project.getProject().getLocation()));
+
+		if (names != null && names.length > 0) {
+			for (String name : names) {
+				path = path.append(name);
+			}
+		}
+		return path;
+	}
 
 }

@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -65,13 +63,13 @@ public class ImplementationClassCreationCommand extends
 
 	private static final String ANNOTATION_WEB_SERVICE_FULLNAME = "javax.jws.WebService"; //$NON-NLS-1$
 	private static final String ANNOTATION_TYPE_NAME_WEBSERVICE = "WebService";; //$NON-NLS-1$
-	private static final String ANNOTATION_PROPERTY_NAME = "name"; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName"; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface"; //$NON-NLS-1$
 
 	private ServiceModel model;
 	private IWorkspaceRoot fWorkspaceRoot;
 	private IProject project;
+	private String packageName;
 
 	public ImplementationClassCreationCommand(ServiceModel model) {
 		this.model = model;
@@ -90,13 +88,32 @@ public class ImplementationClassCreationCommand extends
 		}
 
 		IStatus status = Status.OK_STATUS;
-		project = JBossWSCreationUtils.getProjectByName(model.getWebProjectName());
+		project = JBossWSCreationUtils.getProjectByName(model
+				.getWebProjectName());
 		try {
-			List<String> portTypes = model.getPortTypes();
-			for (String portTypeName : portTypes) {
-				generateImplClass(formatPortTypeName(portTypeName));
-				String implClsName = getImplPackageName() + "." //$NON-NLS-1$
-						+ getImplClassName(portTypeName);
+
+			IJavaProject javaPrj = JavaCore.create(project);
+			List<ICompilationUnit> serviceUnits = JBossWSCreationUtils
+					.findJavaUnitsByAnnotation(
+							javaPrj,
+							JBossWSCreationCoreMessages.Webservice_Annotation_Check,
+							model.getCustomPackage());
+			
+			packageName = model.getCustomPackage();
+			boolean noPackageName = false;
+			if("".equals(packageName)){ //$NON-NLS-1$
+				noPackageName = true;
+			}
+			for (ICompilationUnit service : serviceUnits) {
+				if (!service.findPrimaryType().isInterface()) {
+					continue;
+				}
+				if(noPackageName){
+					packageName = service.getParent().getElementName();
+				}
+				generateImplClass(service);
+				String implClsName = getImplPackageName()
+						+ "." + getImplClassName(getClassName(service.getElementName())); //$NON-NLS-1$
 				model.addServiceClasses(implClsName);
 			}
 
@@ -116,25 +133,18 @@ public class ImplementationClassCreationCommand extends
 		return status;
 	}
 
-	private String formatPortTypeName(String portTypeName) {
-		if (portTypeName == null || "".equals(portTypeName)) {//$NON-NLS-1$
-			return portTypeName;
-		}
-		StringBuffer buf = new StringBuffer();
-		String tem = buf.append(Character.toUpperCase(portTypeName.charAt(0)))
-				.append(portTypeName.substring(1)).toString();
-		return tem;
-	}
-
 	@SuppressWarnings("unchecked")
-	protected void generateImplClass(String portTypeName/* , IFile implJavaFile */)
+	protected void generateImplClass(ICompilationUnit service)
 			throws CoreException, BadLocationException {
-
-		CompilationUnit portTypeCU = getCompilationUnitForInterface(portTypeName);
-
+		ASTParser astp = ASTParser.newParser(AST.JLS3);
+		astp.setSource(service);
+		CompilationUnit cu = (CompilationUnit) astp.createAST(null);
 		IPackageFragment pack = getImplPakcage();
 
-		String implFileName = getJavaFileName(portTypeName);
+		String className = getClassName(service.getElementName());
+
+		String implFileName = getJavaFileName(className);
+
 		ICompilationUnit icu = pack.createCompilationUnit(implFileName,
 				"", true, null); //$NON-NLS-1$
 		// create a working copy with a new owner
@@ -163,26 +173,26 @@ public class ImplementationClassCreationCommand extends
 		implCu.setPackage(implPackage);
 
 		// add imports for implementation class
-		addImportsToImplementationClass(implCu, portTypeCU, portTypeName);
+		addImportsToImplementationClass(implCu, cu, className);
 
 		// add class declaration
 		TypeDeclaration type = ast.newTypeDeclaration();
 		type.setInterface(false);
 		// add WebService annotation
-		String endpoint = getPortTypeInterfaceFullName(portTypeName);
-		NormalAnnotation ann = createAnnotation(ast, portTypeName, endpoint);
+		String endpoint = getServiceInterfaceFullName(className);
+		NormalAnnotation ann = createAnnotation(ast, className, endpoint);
 		type.modifiers().add(ann);
 		type.modifiers().add(
 				ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
-		type.setName(ast.newSimpleName(getImplClassName(portTypeName)));
+		type.setName(ast.newSimpleName(getImplClassName(className)));
 		type.superInterfaceTypes().add(
-				ast.newSimpleType(ast.newName(portTypeName)));
+				ast.newSimpleType(ast.newName(className)));
 
 		// add Logger variable declaration
 		// createLoggerField(ast, type, portTypeName);
 
 		// add method implementation
-		TypeDeclaration inTD = (TypeDeclaration) portTypeCU.types().get(0);
+		TypeDeclaration inTD = (TypeDeclaration) cu.types().get(0);
 		// firstly, get all methods that declared in Interface class and then
 		// add corresponding methods to
 		// the impl class
@@ -209,11 +219,13 @@ public class ImplementationClassCreationCommand extends
 	}
 
 	private String getImplPackageName() {
-		return model.getCustomPackage() /* + ".impl" */;
+		return packageName;
 	}
 
-	private IPackageFragmentRoot getPackageFragmentRoot() throws JavaModelException {
-		String str = model.getWebProjectName() + File.separator+ getSourceFolderPath(project);
+	private IPackageFragmentRoot getPackageFragmentRoot()
+			throws JavaModelException {
+		String str = model.getWebProjectName() + File.separator
+				+ getSourceFolderPath(project);
 		IPath path = new Path(str);
 		IResource res = fWorkspaceRoot.findMember(path);
 		IJavaProject javaPrj = JavaCore.create(project);
@@ -221,17 +233,18 @@ public class ImplementationClassCreationCommand extends
 
 	}
 
-	private String getJavaFileName(String portTypeName) {
+	private String getJavaFileName(String className) {
 
-		return getImplClassName(portTypeName) + DEFAULT_CU_SUFFIX;
+		return getImplClassName(className) + DEFAULT_CU_SUFFIX;
 	}
 
-	private String getImplClassName(String portTypeName) {
-		String firstLetter = portTypeName.substring(0, 1);
-		String implClsName = firstLetter.toUpperCase()
-				+ portTypeName.substring(1);
-		implClsName = implClsName + "Impl"; //$NON-NLS-1$
-		return implClsName;
+	private String getImplClassName(String className) {
+		return className + "Impl"; //$NON-NLS-1$
+	}
+
+	private String getClassName(String className) {
+		String clsName = className.substring(0, className.length() - 5);
+		return clsName;
 	}
 
 	private IPackageFragment getImplPakcage() throws JavaModelException {
@@ -247,31 +260,29 @@ public class ImplementationClassCreationCommand extends
 		return pack;
 	}
 
-	private String getPortTypeInterfaceFullName(String portTypeName) {
-		return model.getCustomPackage() + "." + portTypeName; //$NON-NLS-1$
+	private String getServiceInterfaceFullName(String className) {
+		return packageName + "." + className; //$NON-NLS-1$
 	}
 
 	@SuppressWarnings("unchecked")
 	private void addImportsToImplementationClass(CompilationUnit implCU,
-			CompilationUnit portTypeCU, String portTypeName) {
-		List<ImportDeclaration> imports = getImportsWithoutJaxwsAnnotation(portTypeCU);
+			CompilationUnit serviceCU, String serviceName) {
+		List<ImportDeclaration> imports = getImportsWithoutJaxwsAnnotation(serviceCU);
 		AST implAST = implCU.getAST();
 
 		// add imports for implementation class
 		for (ImportDeclaration id : imports) {
 			ImportDeclaration newId = implAST.newImportDeclaration();
-			newId
-					.setName(implAST.newName(id.getName()
-							.getFullyQualifiedName()));
+			newId.setName(implAST.newName(id.getName().getFullyQualifiedName()));
 			implCU.imports().add(newId);
 		}
 
 		// import port type interface
 		ImportDeclaration importDec = implAST.newImportDeclaration();
-		QualifiedName portTypeImport = implAST.newQualifiedName(implAST
-				.newName(portTypeCU.getPackage().getName()
-						.getFullyQualifiedName()), implAST
-				.newSimpleName(portTypeName));
+		QualifiedName portTypeImport = implAST.newQualifiedName(
+				implAST.newName(serviceCU.getPackage().getName()
+						.getFullyQualifiedName()),
+				implAST.newSimpleName(serviceName));
 		importDec.setName(portTypeImport);
 		implCU.imports().add(importDec);
 		// importDec = implAST.newImportDeclaration();
@@ -289,13 +300,13 @@ public class ImplementationClassCreationCommand extends
 	 * create web service annotation
 	 */
 	@SuppressWarnings("unchecked")
-	protected NormalAnnotation createAnnotation(AST ast,
-			String serviceName, String endpoint) {
+	protected NormalAnnotation createAnnotation(AST ast, String serviceName,
+			String endpoint) {
 		NormalAnnotation ann = ast.newNormalAnnotation();
 		ann.setTypeName(ast.newSimpleName(ANNOTATION_TYPE_NAME_WEBSERVICE));
 
-		MemberValuePair member = createMemberValuePair(ast, ANNOTATION_PROPERTY_SERVICE_NAME,
-				serviceName);
+		MemberValuePair member = createMemberValuePair(ast,
+				ANNOTATION_PROPERTY_SERVICE_NAME, serviceName);
 		ann.values().add(member);
 		member = createMemberValuePair(ast,
 				ANNOTATION_PROPERTY_ENDPOINT_INTERFACE, endpoint);
@@ -320,6 +331,7 @@ public class ImplementationClassCreationCommand extends
 
 		MethodDeclaration md = ast.newMethodDeclaration();
 		md.setConstructor(false);
+		@SuppressWarnings("rawtypes")
 		List modifiers = md.modifiers();
 		modifiers.add(ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
 		md.setName(ast
@@ -328,6 +340,7 @@ public class ImplementationClassCreationCommand extends
 		Type sType = copyTypeFromOtherASTNode(ast, inMethod.getReturnType2());
 		md.setReturnType2(sType);
 
+		@SuppressWarnings("rawtypes")
 		List parameters = inMethod.parameters();
 
 		for (Object obj : parameters) {
@@ -398,13 +411,13 @@ public class ImplementationClassCreationCommand extends
 					.getFullyQualifiedName()));
 		} else if (type instanceof ArrayType) {
 			ArrayType atype = (ArrayType) type;
-			return ast.newArrayType(copyTypeFromOtherASTNode(ast, atype
-					.getComponentType()));
+			return ast.newArrayType(copyTypeFromOtherASTNode(ast,
+					atype.getComponentType()));
 		} else if (type instanceof ParameterizedType) {
 			ParameterizedType ptype = (ParameterizedType) type;
 			ParameterizedType newParaType = ast
-					.newParameterizedType(copyTypeFromOtherASTNode(ast, ptype
-							.getType()));
+					.newParameterizedType(copyTypeFromOtherASTNode(ast,
+							ptype.getType()));
 			for (Object arg : ptype.typeArguments()) {
 				if (arg instanceof Type) {
 					Type newArg = copyTypeFromOtherASTNode(ast, (Type) arg);
@@ -422,10 +435,10 @@ public class ImplementationClassCreationCommand extends
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected List<ImportDeclaration> getImportsWithoutJaxwsAnnotation(
 			CompilationUnit cu) {
 		List<ImportDeclaration> importList = new ArrayList<ImportDeclaration>();
+		@SuppressWarnings("rawtypes")
 		List imports = cu.imports();
 		for (Object obj : imports) {
 			ImportDeclaration id = (ImportDeclaration) obj;
@@ -438,41 +451,11 @@ public class ImplementationClassCreationCommand extends
 		return importList;
 	}
 
-	private CompilationUnit getCompilationUnitForInterface(String portTypeName)
-			throws CoreException {
-		System.out.println(portTypeName);
-		IFile inFile = getServiceInterfaceFile(portTypeName);
-		if (!inFile.exists()) {
-			throw new CoreException(
-					StatusUtils
-							.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code));
-		}
-		ICompilationUnit icu = JBossWSCreationUtils.getJavaUnitFromFile(inFile);
-		ASTParser astp = ASTParser.newParser(AST.JLS3);
-		astp.setSource(icu);
-
-		CompilationUnit cu = (CompilationUnit) astp.createAST(null);
-
-		return cu;
-	}
-
-	private IFile getServiceInterfaceFile(String portTypeName)
+	private IPath getSourceFolderPath(IProject project)
 			throws JavaModelException {
-		IFolder pkgFolder = getPackageFolder();
-		IFile inFile = pkgFolder.getFile(portTypeName + DEFAULT_CU_SUFFIX);
-		return inFile;
-	}
-
-	private IFolder getPackageFolder() throws JavaModelException {
-		IFolder srcFolder = project.getFolder(getSourceFolderPath(project));
-		String pkgFolderName = model.getCustomPackage().replace(".", //$NON-NLS-1$
-				File.separator);
-		return srcFolder.getFolder(pkgFolderName);
-
-	}
-	
-	private IPath getSourceFolderPath(IProject project) throws JavaModelException{
-		IPath path = new Path(JBossWSCreationUtils.getJavaProjectSrcLocation(project.getProject()));
+		IPath path = new Path(
+				JBossWSCreationUtils.getJavaProjectSrcLocation(project
+						.getProject()));
 		return path.makeRelativeTo(project.getProject().getLocation());
 	}
 

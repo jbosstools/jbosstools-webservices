@@ -9,8 +9,6 @@ private String  webProjectName;
 	
 	private boolean serverStatus;
 	private String  wsdlURI;
-	private List<String> portTypes;
-	private List<String> serviceNames;
 	private String customPackage;
 	private List<String> bindingFiles;
 	private String catalog;
@@ -56,38 +54,6 @@ private String  webProjectName;
 	}
 	public void setCustomPackage(String packageText) {
 		this.customPackage = packageText;
-	}
-	
-	public List<String> getPortTypes() {
-		if(portTypes == null){
-			portTypes = new ArrayList<String>();
-		}
-		return portTypes;
-	}
-	public void addPortTypes(String portType) {		
-		this.portTypes = getPortTypes();
-		if(!this.portTypes.contains(portType)){
-			this.portTypes.add(portType);
-		}
-	}
-	public void setPortTypeList(List<String> portTypeList) {		
-		this.portTypes = portTypeList;
-	}
-	
-	public List<String> getServiceNames() {
-		if(serviceNames == null){
-			serviceNames = new ArrayList<String>();
-		}
-		return serviceNames;
-	}
-	public void addServiceName(String serviceName) {
-		this.serviceNames = getServiceClasses();
-		if(!serviceName.contains(serviceName)){
-			this.serviceNames.add(serviceName);
-		}
-	}
-	public void setServiceList(List<String> serviceList) {
-		this.serviceNames = serviceList;
 	}
 	
 	public String getWsdlURI() {

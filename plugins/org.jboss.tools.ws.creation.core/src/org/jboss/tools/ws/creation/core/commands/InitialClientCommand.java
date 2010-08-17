@@ -11,8 +11,6 @@
 
 package org.jboss.tools.ws.creation.core.commands;
 
-import javax.wsdl.WSDLException;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -24,11 +22,9 @@ import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebServiceClient;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
-import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
 /**
  * @author Grid Qian
@@ -59,8 +55,10 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 			if (location.equals("")) { //$NON-NLS-1$
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
-			} else if (!new Path(location).append(JBossWSCreationCoreMessages.Bin)
-					.append(JBossWSCreationCoreMessages.Command).toFile().exists()) {
+			} else if (!new Path(location)
+					.append(JBossWSCreationCoreMessages.Bin)
+					.append(JBossWSCreationCoreMessages.Command).toFile()
+					.exists()) {
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 			}
@@ -70,20 +68,9 @@ public class InitialClientCommand extends AbstractDataModelOperation {
 		}
 		model.setTarget(JBossWSCreationCoreMessages.Value_Target_0);
 		if (scenario == WebServiceScenario.CLIENT) {
-			try {
-				model.setWsdlURI(wsClient.getWebServiceClientInfo()
-						.getWsdlURL());
-				WSDLPropertyReader reader = new WSDLPropertyReader();
-				reader
-						.readWSDL(wsClient.getWebServiceClientInfo()
-								.getWsdlURL());
-				model.setCustomPackage(""); //$NON-NLS-1$
-				model.setServiceList(reader.getServiceList());
-				model.setPortTypeList(reader.getPortTypeList());
-			} catch (WSDLException e) {
-				JBossWSCreationCorePlugin.getDefault().logError(e);
-				return StatusUtils.errorStatus(e.getLocalizedMessage(), e);
-			}
+			model.setWsdlURI(wsClient.getWebServiceClientInfo().getWsdlURL());
+			model.setCustomPackage(""); //$NON-NLS-1$
+
 		}
 
 		return Status.OK_STATUS;
