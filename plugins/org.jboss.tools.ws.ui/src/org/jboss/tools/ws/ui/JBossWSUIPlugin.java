@@ -13,6 +13,8 @@ package org.jboss.tools.ws.ui;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.osgi.framework.BundleContext;
@@ -68,5 +70,27 @@ public class JBossWSUIPlugin extends AbstractUIPlugin {
 	
 	public static void log(Throwable ex) {
 		plugin.getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.OK, JBossWSUIMessages.JBossWS_UI_PLUGIN_NO_MESSAGES, ex)); 
+	}
+	
+	private IWorkbenchPage internalGetActivePage() {
+		IWorkbenchWindow window= getWorkbench().getActiveWorkbenchWindow();
+		if (window == null)
+			return null;
+		return window.getActivePage();
+	}
+	
+	private IWorkbenchWindow internalGetActiveWorkbenchWindow() {
+		IWorkbenchWindow window= getWorkbench().getActiveWorkbenchWindow();
+		if (window == null)
+			return null;
+		return window;
+	}
+
+	public static IWorkbenchPage getActivePage() {
+		return getDefault().internalGetActivePage();
+	}
+	
+	public static IWorkbenchWindow getActiveWorkbenchWindow() {
+		return getDefault().internalGetActiveWorkbenchWindow();
 	}
 }

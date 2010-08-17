@@ -15,6 +15,7 @@ import java.io.File;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -24,8 +25,14 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 import org.jboss.tools.ws.creation.core.commands.AddRestEasyJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.RSMergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RSServiceSampleCreationCommand;
@@ -39,6 +46,9 @@ import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
  *
  */
 public class JBossRSGenerateWizard extends Wizard implements INewWizard {
+
+	private static final String JDT_EDITOR = 
+		"org.eclipse.jdt.ui.CompilationUnitEditor"; //$NON-NLS-1$
 
 	String NAMEDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
 	String PACKAGEDEFAULT = "org.jboss.samples.rs.webservices"; //$NON-NLS-1$
@@ -115,8 +125,13 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 			}
 			try {
 				new AddRestEasyJarsCommand(model).execute(null, null);
-				new RSServiceSampleCreationCommand(model).execute(null, null);
+				RSServiceSampleCreationCommand createCommand =
+					new RSServiceSampleCreationCommand(model);
+				createCommand.execute(null, null);
 				getProject().refreshLocal(IProject.DEPTH_INFINITE, new NullProgressMonitor());
+				if (createCommand.getResource() != null && createCommand.getResource() instanceof IFile) {
+					openResource((IFile) createCommand.getResource());
+				}
 			} catch (ExecutionException e) {
 				JBossWSUIPlugin.log(e);
 				MessageDialog
@@ -242,4 +257,32 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 	public IFile getWebFile() {
 		return webFile;
 	}
+	
+	protected void openResource(final IFile resource) {
+		if (resource.getType() != IResource.FILE) {
+			return;
+		}
+
+		IWorkbenchWindow window = JBossWSUIPlugin.getActiveWorkbenchWindow();
+		if (window == null) {
+			return;
+		}
+
+		final IWorkbenchPage activePage = window.getActivePage();
+		if (activePage != null) {
+			final Display display = getShell().getDisplay();
+			display.asyncExec(new Runnable() {
+				public void run() {
+					try {
+						IDE.openEditor(activePage, resource, JDT_EDITOR, true);
+					} catch (PartInitException e) {
+						JBossWSUIPlugin.log(e);
+					}
+				}
+			});
+			BasicNewResourceWizard.selectAndReveal(resource, activePage
+					.getWorkbenchWindow());
+		}
+	}
+
 }

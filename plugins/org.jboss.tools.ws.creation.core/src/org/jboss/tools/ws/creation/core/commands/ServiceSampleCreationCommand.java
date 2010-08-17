@@ -1,6 +1,7 @@
 package org.jboss.tools.ws.creation.core.commands;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,11 +23,17 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
+	private IResource resource;
+	
 	public static final String LINE_SEPARATOR = System
 			.getProperty("line.separator"); //$NON-NLS-1$
 
 	public ServiceSampleCreationCommand(ServiceModel model) {
 		this.model = model;
+	}
+	
+	public IResource getResource() {
+		return this.resource;
 	}
 
 	@Override
@@ -42,9 +49,13 @@ public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
-		createJavaClass(model.getCustomPackage(), JBossWSCreationUtils
+		ICompilationUnit createdClass =
+			createJavaClass(model.getCustomPackage(), JBossWSCreationUtils
 				.classNameFromQualifiedName(model.getServiceClasses().get(0)),
 				project);
+		if (createdClass != null) {
+			this.resource = createdClass.getResource();
+		}
 		return null;
 	}
 

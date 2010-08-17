@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.creation.core.commands;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -36,11 +37,17 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 public class RSServiceSampleCreationCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
+	private IResource resource;
+
 	public static final String LINE_SEPARATOR = System
 			.getProperty("line.separator"); //$NON-NLS-1$
 
 	public RSServiceSampleCreationCommand(ServiceModel model) {
 		this.model = model;
+	}
+
+	public IResource getResource() {
+		return this.resource;
 	}
 
 	@Override
@@ -56,11 +63,15 @@ public class RSServiceSampleCreationCommand extends AbstractDataModelOperation {
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
 
-		createRESTAnnotatedJavaClass (model.getCustomPackage(), JBossWSCreationUtils
+		ICompilationUnit rsAnnotatedClass =
+			createRESTAnnotatedJavaClass (model.getCustomPackage(), JBossWSCreationUtils
 				.classNameFromQualifiedName(model.getServiceClasses().get(0)),
 				project);
 		createRESTApplicationClass (model.getCustomPackage(), model.getApplicationClassName(),
 				project);
+		if (rsAnnotatedClass != null) {
+			this.resource = rsAnnotatedClass.getResource();
+		}
 		
 		return null;
 	}
