@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.IStreamListener;
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
@@ -49,22 +50,23 @@ import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.IRuntimeType;
 import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
 import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.IServer.IOperationListener;
 import org.eclipse.wst.server.core.IServerListener;
 import org.eclipse.wst.server.core.IServerType;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
 import org.eclipse.wst.server.core.ServerEvent;
 import org.eclipse.wst.server.core.ServerUtil;
-import org.eclipse.wst.server.core.IServer.IOperationListener;
 import org.eclipse.wst.server.core.internal.RuntimeWorkingCopy;
 import org.eclipse.wst.server.core.internal.ServerWorkingCopy;
 import org.jboss.ide.eclipse.as.core.server.IJBossServerRuntime;
 import org.jboss.ide.eclipse.as.core.server.internal.DeployableServer;
 import org.jboss.ide.eclipse.as.core.server.internal.JBossServerBehavior;
-import org.jboss.tools.test.util.TestProjectProvider;
+import org.jboss.ide.eclipse.as.core.server.internal.JBossServerBehavior.JBossBehaviourDelegate;
+import org.jboss.ide.eclipse.as.core.server.internal.LocalJBossBehaviorDelegate;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
-import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.test.util.TestProjectProvider;
 
 @SuppressWarnings("restriction")
 public abstract class AbstractJBossWSCommandTest extends TestCase {
@@ -412,9 +414,13 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		JBossServerBehavior behavior = (JBossServerBehavior) currentServer
 				.loadAdapter(JBossServerBehavior.class, null);
 		if (behavior != null) {
-			if (behavior.getProcess() != null) {
-				return behavior.getProcess().getStreamsProxy()
-						.getOutputStreamMonitor();
+			JBossBehaviourDelegate del = behavior.getDelegate();
+			if( del instanceof LocalJBossBehaviorDelegate ) {
+				IProcess p = ((LocalJBossBehaviorDelegate)del).getProcess();
+				if (p != null) {
+					return p.getStreamsProxy()
+							.getOutputStreamMonitor();
+				}
 			}
 		}
 		return null;
