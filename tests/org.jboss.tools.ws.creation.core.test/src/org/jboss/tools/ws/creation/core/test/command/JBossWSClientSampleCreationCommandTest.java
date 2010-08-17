@@ -9,11 +9,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
-import org.jboss.tools.test.util.TestProjectProvider;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
-import org.jboss.tools.ws.creation.core.commands.ClientSampleCreationCommand;
+import org.jboss.tools.test.util.TestProjectProvider;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class JBossWSClientSampleCreationCommandTest extends TestCase{
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
@@ -33,8 +33,7 @@ public class JBossWSClientSampleCreationCommandTest extends TestCase{
 		ServiceModel model = new ServiceModel();
 		model.setCustomPackage("");
 		model.setWebProjectName("WebTest");
-		ClientSampleCreationCommand command = new ClientSampleCreationCommand(model);
-		List<ICompilationUnit> list = command.findJavaUnitsByAnnotation(JavaCore.create(prj), "@WebService");	
+		List<ICompilationUnit> list = JBossWSCreationUtils.findJavaUnitsByAnnotation(JavaCore.create(prj), "@WebService", "");	
 		assertTrue("No java files in src!",list.isEmpty());
 	}
 

@@ -67,6 +67,7 @@ import org.jboss.ide.eclipse.as.core.server.internal.LocalJBossBehaviorDelegate;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.test.util.TestProjectProvider;
+import org.jboss.tools.ws.creation.core.data.ServiceModel;
 
 @SuppressWarnings("restriction")
 public abstract class AbstractJBossWSCommandTest extends TestCase {
@@ -217,8 +218,6 @@ public abstract class AbstractJBossWSCommandTest extends TestCase {
 		model.setWebProjectName(fproject.getProject().getName());
 		IFile wsdlFile = fproject.getProject().getFile(wsdlFileName);
 		model.setWsdlURI(wsdlFile.getLocation().toOSString());
-		model.addServiceName("SOAPService");
-		model.addPortTypes("Greeter");
 		model.setCustomPackage("org.apache.hello_world_soap_http");
 
 		return model;

@@ -97,10 +97,8 @@ public class JBossWSClientCommandTest extends AbstractJBossWSCommandTest {
 		IStatus status = cmdInitial.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 
-		assertTrue(model.getServiceNames().contains("SOAPService"));
 		assertEquals(wsdlFile.getLocation().toOSString(), model.getWsdlURI());
-		assertTrue(model.getPortTypes().contains("Greeter"));
-		assertEquals("org.apache.hello_world_soap_http", model
+		assertEquals("", model
 				.getCustomPackage());
 	}
 

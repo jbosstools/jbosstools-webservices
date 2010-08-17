@@ -109,10 +109,8 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 		IStatus status = cmdInitial.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 		
-		assertTrue(model.getServiceNames().contains("SOAPService"));
 		assertEquals(wsdlFile.getLocation().toOSString(), model.getWsdlURI());
-		assertTrue(model.getPortTypes().contains("Greeter"));
-		assertEquals("org.apache.hello_world_soap_http", model.getCustomPackage());
+		assertEquals("", model.getCustomPackage());
 		
 	}
 	
@@ -246,8 +244,6 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSCommandTest {
 		model.setWebProjectName(fproject.getProject().getName());
 		IFile wsdlFile = fproject.getProject().getFile(wsdlFileName);
 		model.setWsdlURI(wsdlFile.getLocation().toOSString());
-		model.addServiceName("SOAPService");
-		model.addPortTypes("Greeter");
 		model.setCustomPackage("org.apache.hello_world_soap_http");
 		
 		return model;
