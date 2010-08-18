@@ -157,6 +157,8 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date;
 	public static String JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date;
 	public static String ResultsXMLStorageInput_WS_Invocation_Results_Prefix;
+	public static String TesterWSDLUtils_WSDL_HTTPS_Secured_Inaccessible;
+	public static String TesterWSDLUtils_WSDL_Inaccessible;
 
 	public static String UidPwdDialog_Description;
 	public static String UidPwdDialog_PWD_Label;

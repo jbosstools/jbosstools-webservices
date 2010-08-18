@@ -47,6 +47,10 @@ import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 //import org.jdom.Attribute;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.jboss.tools.ws.core.utils.StatusUtils;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jdom.Namespace;
 import org.jdom.input.DOMBuilder;
 
@@ -122,6 +126,38 @@ public class TesterWSDLUtils {
 		return def;
 	}
 
+	public static IStatus isWSDLAccessible(URL contextURL) {
+		Properties props = System.getProperties();
+		String oldPropValue = props.getProperty(DEF_FACTORY_PROPERTY_NAME);
+
+		props.setProperty(DEF_FACTORY_PROPERTY_NAME, PRIVATE_DEF_FACTORY_CLASS);
+
+		WSDLFactory factory;
+		try {
+			factory = WSDLFactory.newInstance();
+			WSDLReader wsdlReader = factory.newWSDLReader();
+			wsdlReader.setFeature(Constants.FEATURE_VERBOSE, false);
+			wsdlReader.setFeature("javax.wsdl.importDocuments", true); //$NON-NLS-1$
+			String context = null;
+			if (contextURL != null)
+				context = contextURL.toString();
+			wsdlReader.readWSDL(context);
+		} catch (WSDLException e) {
+			if (contextURL.getProtocol().equalsIgnoreCase("https")) { //$NON-NLS-1$
+				return StatusUtils.warningStatus(JBossWSUIMessages.TesterWSDLUtils_WSDL_HTTPS_Secured_Inaccessible);
+			} else {
+				return StatusUtils.errorStatus(JBossWSUIMessages.TesterWSDLUtils_WSDL_Inaccessible, e);
+			}
+		}
+		
+		if (oldPropValue != null) {
+			props.setProperty(DEF_FACTORY_PROPERTY_NAME, oldPropValue);
+		} else {
+			props.remove(DEF_FACTORY_PROPERTY_NAME);
+		}
+		return Status.OK_STATUS;
+	}
+	
 	public static Definition readWSDLURL(URL contextURL) throws WSDLException, NullPointerException {
 		Properties props = System.getProperties();
 		String oldPropValue = props.getProperty(DEF_FACTORY_PROPERTY_NAME);

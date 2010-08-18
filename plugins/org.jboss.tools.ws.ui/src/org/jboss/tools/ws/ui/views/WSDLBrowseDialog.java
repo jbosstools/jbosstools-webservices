@@ -423,6 +423,11 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 					.beginTask(JBossWSUIMessages.WSDLBrowseDialog_Status_ParsingWSDLFromURL,
 							100);
 			try {
+				IStatus testStatus =
+					TesterWSDLUtils.isWSDLAccessible(testURL);
+				if (testStatus.getSeverity() != IStatus.OK){ 
+					result = testStatus;
+				}
 				wsdlDefinition =
 					TesterWSDLUtils.readWSDLURL(testURL);
 			} catch (WSDLException e) {
@@ -454,6 +459,12 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 			}
 		} else {
 			try {
+				IStatus testStatus =
+					TesterWSDLUtils.isWSDLAccessible(testURL);
+				if (testStatus.getSeverity() != IStatus.OK) {
+					return StatusUtils.errorStatus(testStatus.getMessage(), 
+							testStatus.getException());
+				}
 				wsdlDefinition =
 					TesterWSDLUtils.readWSDLURL(testURL);
 			} catch (WSDLException e) {
