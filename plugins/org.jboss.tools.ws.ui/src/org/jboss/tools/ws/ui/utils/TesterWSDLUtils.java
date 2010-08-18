@@ -260,6 +260,14 @@ public class TesterWSDLUtils {
 										String partName = part.getName();
 										if (parts.size() == 1) partName = null;
 										String out = createMessageForSchemaElement(wsdlDefinition, partName, schemaName, ns);
+										if (out == null) {
+											StringBuffer tempBuffer = new StringBuffer();
+											tempBuffer.append('<' + part.getName());
+	//										tempBuffer.append(" xmlns = \"" + ns + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+											tempBuffer.append(">?"); //$NON-NLS-1$
+											tempBuffer.append("</" + part.getName() + ">\n");//$NON-NLS-1$//$NON-NLS-2$
+											out = tempBuffer.toString();
+										}
 										return out;
 									}
 								}
@@ -477,35 +485,37 @@ public class TesterWSDLUtils {
 						Iterator<?> vectorIter = schemaImportVector.iterator();
 						while (vectorIter.hasNext()) {
 							SchemaImport schemaImport = (SchemaImport) vectorIter.next();
-							org.jdom.Element jdomSchemaImportElement = domBuilder.build(schemaImport.getReferencedSchema().getElement());
-							List<?> innerList = jdomSchemaImportElement.getChildren();
-							
-							for (int i = 0; i < innerList.size(); i++){
-								org.jdom.Element temp = (org.jdom.Element) innerList.get(i);
-								String rootName = null;
-								if (temp.getAttribute(NAME_ATTR) != null) 
-									rootName = temp.getAttribute(NAME_ATTR).getValue();
+							if (schemaImport.getReferencedSchema() != null) {
+								org.jdom.Element jdomSchemaImportElement = domBuilder.build(schemaImport.getReferencedSchema().getElement());
+								List<?> innerList = jdomSchemaImportElement.getChildren();
 								
-								if (rootName != null && rootName.equalsIgnoreCase(messageName)) {
-									StringBuffer buf = new StringBuffer();
-									buf.append('<' + rootName);
-									buf.append(" xmlns = \"" + namespace + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-									buf.append(">\n"); //$NON-NLS-1$
-									if (!temp.getChildren().isEmpty()){
-										org.jdom.Element temp2 = (org.jdom.Element)temp.getChildren().get(0);
-										if (temp2.getName().contains(COMPLEX_TYPE_NAME)) {
-											String elementStr = processComplexType(wsdlDefinition, temp2);
-											buf.append(elementStr);
-										} else if (temp2.getName().contains(RESTRICTION_NAME)){
-											String elementStr = processType(wsdlDefinition, temp2, RESTRICTION_NAME, false);
-											buf.append(elementStr);
-										} else {
-											String elementStr = processChild(wsdlDefinition, temp2);
-											buf.append(elementStr);
+								for (int i = 0; i < innerList.size(); i++){
+									org.jdom.Element temp = (org.jdom.Element) innerList.get(i);
+									String rootName = null;
+									if (temp.getAttribute(NAME_ATTR) != null) 
+										rootName = temp.getAttribute(NAME_ATTR).getValue();
+									
+									if (rootName != null && rootName.equalsIgnoreCase(messageName)) {
+										StringBuffer buf = new StringBuffer();
+										buf.append('<' + rootName);
+										buf.append(" xmlns = \"" + namespace + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+										buf.append(">\n"); //$NON-NLS-1$
+										if (!temp.getChildren().isEmpty()){
+											org.jdom.Element temp2 = (org.jdom.Element)temp.getChildren().get(0);
+											if (temp2.getName().contains(COMPLEX_TYPE_NAME)) {
+												String elementStr = processComplexType(wsdlDefinition, temp2);
+												buf.append(elementStr);
+											} else if (temp2.getName().contains(RESTRICTION_NAME)){
+												String elementStr = processType(wsdlDefinition, temp2, RESTRICTION_NAME, false);
+												buf.append(elementStr);
+											} else {
+												String elementStr = processChild(wsdlDefinition, temp2);
+												buf.append(elementStr);
+											}
 										}
+										buf.append("</" + rootName + ">\n");//$NON-NLS-1$//$NON-NLS-2$
+										return buf.toString();
 									}
-									buf.append("</" + rootName + ">\n");//$NON-NLS-1$//$NON-NLS-2$
-									return buf.toString();
 								}
 							}
 						}

@@ -18,6 +18,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 
 import javax.wsdl.Binding;
@@ -491,10 +492,14 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 			PortType portType = wsdlBinding.getPortType();
 			@SuppressWarnings("rawtypes")
 			java.util.List operations = portType.getOperations();
+			
+			@SuppressWarnings("unchecked")
+			Operation[] operationsArray = 
+				(Operation[]) operations.toArray(new Operation[operations.size()]);
+			Arrays.sort(operationsArray, new WSDLOperationComparator());
 
-			Iterator<?> iter = operations.iterator();
-			while (iter.hasNext()) {
-				Operation operation = (Operation) iter.next();
+			for (int i = 0; i < operationsArray.length; i++) {
+				Operation operation = (Operation) operationsArray[i];//iter.next();
 				opList.add(operation.getName());
 				opList.setData(operation.getName(), operation);
 			}
@@ -517,6 +522,13 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 		}
 	}
 
+	class WSDLOperationComparator implements Comparator<Operation>{
+
+	    public int compare(Operation o1, Operation o2) {
+	        return o1.getName().compareToIgnoreCase(o2.getName());
+	    }
+	}	
+	
 	private void updatePortCombo(){
 		if (serviceCombo.getSelectionIndex() > -1) {
 			String text = serviceCombo.getItem(serviceCombo.getSelectionIndex());
