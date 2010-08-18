@@ -16,6 +16,15 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
@@ -92,7 +101,39 @@ public class JAXWSTester2 {
 			String serviceName, String messageName, String body, String uid, String pwd ) throws Exception {
 		
 		this.resultBody = EMPTY_STRING;
+		
+		// in case we're using SSL security...
+		if (endpointurl.toLowerCase().startsWith("https://")) { //$NON-NLS-1$
 
+			TrustManager t = new X509TrustManager() {
+				
+				@Override
+				public X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[0];
+				}
+				
+				@Override
+				public void checkServerTrusted(X509Certificate[] arg0, String arg1)
+						throws CertificateException {
+				}
+				
+				@Override
+				public void checkClientTrusted(X509Certificate[] arg0, String arg1) {
+				}
+			}; 
+			TrustManager[] tm = new TrustManager[] {t};
+			SSLContext ctx = SSLContext.getInstance("SSL"); //$NON-NLS-1$
+			ctx.init(null, tm, new SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
+			HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+				
+				@Override
+				public boolean verify(String hostname, SSLSession session) {
+					return true;
+				}
+			});
+		}
+		
 		URL serviceURL = new URL (endpointurl); //"http://www.ecubicle.net/gsearch_rss.asmx"
 		QName serviceQName = new QName (ns, serviceName); // "http://www.ecubicle.net/webservices", "gsearch_rss"
 		Service s = Service.create(serviceURL, serviceQName);
