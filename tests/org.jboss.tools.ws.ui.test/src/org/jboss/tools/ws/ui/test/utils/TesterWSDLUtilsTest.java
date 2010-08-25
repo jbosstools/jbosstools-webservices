@@ -112,6 +112,12 @@ public class TesterWSDLUtilsTest {
 		Assert.assertTrue(s2.contains("<toUnit>?</toUnit>"));
 	}
 
+	@Test
+	public void testJBIDE6865() {
+		String s1 = getSampleMessage("/jbide6865/wsdl1.wsdl", "DirectFlight", "DirectFlightSoap", "FlightAwareDirectFlight:DirectFlightSoap", "AirportInfo");
+		Assert.assertTrue(s1.contains("<airportCode>?</airportCode>"));
+	}
+
 	private String getSampleMessage(String res, String service, String port, String binding, String operation) {
 		Definition def = readWSDL(res);
 		return TesterWSDLUtils.getSampleSOAPInputMessage(def, service, port, binding, operation);
