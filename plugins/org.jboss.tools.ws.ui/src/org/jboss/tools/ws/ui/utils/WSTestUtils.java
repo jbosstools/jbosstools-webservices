@@ -47,7 +47,8 @@ public class WSTestUtils {
 	public static String stripNLsFromXML ( String incoming ) {
 		String outgoing = null;
 		if (incoming != null) {
-			outgoing = incoming.replaceAll(">\n<","><");//$NON-NLS-1$ //$NON-NLS-2$
+			String find = "(>)\n\\s*+(<)";//$NON-NLS-1$
+			outgoing = incoming.replaceAll(find, "><");//$NON-NLS-1$
 			if (outgoing.contains("\n"))//$NON-NLS-1$ 
 				outgoing.replaceAll("\n"," ");//$NON-NLS-1$ //$NON-NLS-2$
 			if (outgoing.contains("\r"))//$NON-NLS-1$ 
