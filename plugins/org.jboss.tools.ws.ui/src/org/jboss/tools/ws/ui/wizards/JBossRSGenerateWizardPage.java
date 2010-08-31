@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
+import org.jboss.tools.ws.creation.core.utils.RestEasyLibUtils;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 public class JBossRSGenerateWizardPage extends WizardPage {
@@ -322,6 +323,13 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		IFile web = ((JBossRSGenerateWizard) this.getWizard()).getWebFile();
 		if (web == null || !web.exists()) {
 			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
+			return false;
+		}
+		
+		IStatus reInstalledStatus =
+			RestEasyLibUtils.doesRuntimeSupportRestEasy(((JBossRSGenerateWizard) this.getWizard()).getProject());
+		if (reInstalledStatus.getSeverity() != IStatus.OK){
+			setErrorMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime);
 			return false;
 		}
 
