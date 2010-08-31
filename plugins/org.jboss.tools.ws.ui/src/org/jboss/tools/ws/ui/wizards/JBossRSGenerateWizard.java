@@ -61,6 +61,7 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 	private String appClassName = APPCLASSDEFAULT;
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
+	private boolean updateWebXML = true;
 
 	private IStructuredSelection selection;
 	private IProject project;
@@ -109,19 +110,21 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 			}
 
 			IStatus status = null;
-			try {
-				RSMergeWebXMLCommand mergeCommand = new RSMergeWebXMLCommand(model);
-				status = mergeCommand.execute(null, null);
-			} catch (ExecutionException e) {
-				JBossWSUIPlugin.log(e);
-			}
-			if (status != null && status.getSeverity() == Status.ERROR) {
-				MessageDialog
-						.openError(
-								this.getShell(),
-								JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
-								status.getMessage());
-				return false;
+			if (getUpdateWebXML()) {
+				try {
+					RSMergeWebXMLCommand mergeCommand = new RSMergeWebXMLCommand(model);
+					status = mergeCommand.execute(null, null);
+				} catch (ExecutionException e) {
+					JBossWSUIPlugin.log(e);
+				}
+				if (status != null && status.getSeverity() == Status.ERROR) {
+					MessageDialog
+							.openError(
+									this.getShell(),
+									JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
+									status.getMessage());
+					return false;
+				}
 			}
 			try {
 				new AddRestEasyJarsCommand(model).execute(null, null);
@@ -215,6 +218,14 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 
 	public void setUseDefaultClassName(boolean useDefaultClassName) {
 		this.useDefaultClassName = useDefaultClassName;
+	}
+
+	public void setUpdateWebXML(boolean updateWebXML) {
+		this.updateWebXML = updateWebXML;
+	}
+
+	public boolean getUpdateWebXML() {
+		return updateWebXML;
 	}
 
 	public IProject getProject() {

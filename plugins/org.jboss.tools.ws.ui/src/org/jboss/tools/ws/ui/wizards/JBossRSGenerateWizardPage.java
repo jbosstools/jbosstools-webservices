@@ -29,6 +29,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
@@ -48,6 +49,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 	private Text packageName;
 	private Text className;
 	private Text appClassName;
+	private Button updateWebXML;
 
 	protected JBossRSGenerateWizardPage(String pageName) {
 		super(pageName);
@@ -97,7 +99,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		gd.horizontalSpan = 2;
 		group2.setLayout(new GridLayout(2, false));
 		group2.setLayoutData(gd);
-
+		
 		new Label(group2, SWT.NONE)
 				.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_ServiceName_Label);
 		name = new Text(group2, SWT.BORDER);
@@ -112,6 +114,23 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 				setPageComplete(isPageComplete());
 			}
 
+		});
+
+		updateWebXML = new Button(group2, SWT.CHECK);
+		updateWebXML.setText(JBossWSUIMessages.JBossRSGenerateWizardPage_UpdateWebXMLCheckbox);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 2;
+		updateWebXML.setLayoutData(gd);
+		updateWebXML.setSelection(wizard.getUpdateWebXML());
+		updateWebXML.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				wizard.setUpdateWebXML(updateWebXML.getSelection());
+				name.setEnabled(wizard.getUpdateWebXML());
+				setPageComplete(isPageComplete());
+			}
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
 		});
 
 		Group group3 = new Group(composite, SWT.NONE);
@@ -344,14 +363,16 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		}
 
 		// already has a REST sample installed - can't use wizard again
-		IStatus alreadyHasREST = JBossRSGenerateWizardValidator.RESTAppExists();
-		if (alreadyHasREST != null) {
-			if (alreadyHasREST.getSeverity() == IStatus.ERROR) {
-				setMessage(alreadyHasREST.getMessage(), DialogPage.ERROR);
-				return false;
-			} else if (alreadyHasREST.getSeverity() == IStatus.WARNING) {
-				setMessage(alreadyHasREST.getMessage(), DialogPage.WARNING);
-				return true;
+		if (wizard.getUpdateWebXML()) {
+			IStatus alreadyHasREST = JBossRSGenerateWizardValidator.RESTAppExists();
+			if (alreadyHasREST != null) {
+				if (alreadyHasREST.getSeverity() == IStatus.ERROR) {
+					setMessage(alreadyHasREST.getMessage(), DialogPage.ERROR);
+					return false;
+				} else if (alreadyHasREST.getSeverity() == IStatus.WARNING) {
+					setMessage(alreadyHasREST.getMessage(), DialogPage.WARNING);
+					return true;
+				}
 			}
 		} 
 		
