@@ -327,13 +327,19 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 					try {
 						final URL testURL = new URL(inDialog.getValue());
 						locationCombo.setText(testURL.toExternalForm());
-						IStatus status = parseWSDLFromURL(testURL, true);
+						IStatus status = validate(false);
 						if (status != null && !status.isOK()) {
-							setMessage(status.getMessage());
+							setMessage(status.getMessage(), IMessageProvider.WARNING);
 						} else {
-							setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
-							if (showServicePortOperaton)
-								updateServiceCombo();
+							status =  parseWSDLFromURL(testURL, true);
+							if (status != null && !status.isOK()) {
+								setMessage(status.getMessage(), IMessageProvider.WARNING);
+							} else {
+								setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
+								if (showServicePortOperaton) {
+									updateServiceCombo();
+								}
+							}
 						}
 					} catch (MalformedURLException e) {
 						JBossWSUIPlugin.log(e);
