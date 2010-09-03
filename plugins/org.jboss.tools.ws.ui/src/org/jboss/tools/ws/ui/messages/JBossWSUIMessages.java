@@ -114,6 +114,24 @@ public class JBossWSUIMessages extends NLS {
 	
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Title;
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Message;
+	public static String JBossWSAnnotatedClassWizard_Annotated_Class_WS_Wizard_Title;
+	public static String JBossWSAnnotatedClassWizardPage_Application_Class_Browse_btn;
+	public static String JBossWSAnnotatedClassWizardPage_Application_Class_field;
+	public static String JBossWSAnnotatedClassWizardPage_JAXRS_Button;
+	public static String JBossWSAnnotatedClassWizardPage_JAXWS_Button;
+	public static String JBossWSAnnotatedClassWizardPage_package_browse_btn;
+	public static String JBossWSAnnotatedClassWizardPage_package_name_field;
+	public static String JBossWSAnnotatedClassWizardPage_PageDescription;
+	public static String JBossWSAnnotatedClassWizardPage_PageTitle;
+	public static String JBossWSAnnotatedClassWizardPage_Project_Group;
+	public static String JBossWSAnnotatedClassWizardPage_Projects_Combo_Tooltip;
+	public static String JBossWSAnnotatedClassWizardPage_Service_class_Browse_btn;
+	public static String JBossWSAnnotatedClassWizardPage_Service_class_field;
+	public static String JBossWSAnnotatedClassWizardPage_Service_implementation_group;
+	public static String JBossWSAnnotatedClassWizardPage_Service_Name_field;
+	public static String JBossWSAnnotatedClassWizardPage_Update_Web_xml_checkbox;
+	public static String JBossWSAnnotatedClassWizardPage_Web_Service_Group;
+	public static String JBossWSAnnotatedClassWizardPage_WS_Tech_Group;
 	public static String JAXRSWSTestView_Action_URL_Label;
 	public static String JAXRSWSTestView_Button_Get_From_WSDL;
 	public static String JAXRSWSTestView_Configure_Monitor_Button;
@@ -173,6 +191,8 @@ public class JBossWSUIMessages extends NLS {
 	public static String WSDLBrowseDialog_FS_Browse;
 	public static String WSDLBrowseDialog_Group_Title;
 	public static String WSDLBrowseDialog_Message;
+	public static String WSDLBrowseDialog_No_Services_Available;
+	public static String WSDLBrowseDialog_No_Services_Available_Warning;
 	public static String WSDLBrowseDialog_Operation_Field;
 	public static String WSDLBrowseDialog_Port_Field;
 	public static String WSDLBrowseDialog_Service_Field;

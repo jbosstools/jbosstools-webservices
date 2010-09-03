@@ -567,9 +567,13 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 	}
 	
 	private void updateServiceCombo () {
+		serviceCombo.setEnabled(true);
+		portCombo.setEnabled(true);
+		opList.setEnabled(true);
 		serviceCombo.removeAll();
 		portCombo.removeAll();
 		opList.removeAll();
+		getButton(IDialogConstants.OK_ID).setEnabled(true);
 		
 		if (wsdlDefinition != null && wsdlDefinition.getServices() != null && !wsdlDefinition.getServices().isEmpty()) {
 			Iterator<?> iter = wsdlDefinition.getServices().values().iterator();
@@ -583,6 +587,15 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 				serviceTextValue = serviceCombo.getText();
 			}
 			updatePortCombo();
+		} else {
+			// no services
+			serviceCombo.add(JBossWSUIMessages.WSDLBrowseDialog_No_Services_Available);
+			serviceCombo.select(0);
+			setMessage(JBossWSUIMessages.WSDLBrowseDialog_No_Services_Available_Warning, IMessageProvider.WARNING);
+			serviceCombo.setEnabled(false);
+			portCombo.setEnabled(false);
+			opList.setEnabled(false);
+			getButton(IDialogConstants.OK_ID).setEnabled(false);
 		}
 	}
 	
