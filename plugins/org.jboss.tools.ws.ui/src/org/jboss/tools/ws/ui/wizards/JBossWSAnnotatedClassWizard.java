@@ -10,8 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.ui.wizards;
 
-import java.io.File;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -33,9 +31,12 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
+import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.creation.core.commands.AddRestEasyJarsCommand;
+import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RSMergeWebXMLCommand;
-import org.jboss.tools.ws.creation.core.commands.RSServiceSampleCreationCommand;
+import org.jboss.tools.ws.creation.core.commands.RSServiceCreationCommand;
+import org.jboss.tools.ws.creation.core.commands.ServiceCreationCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
@@ -45,42 +46,45 @@ import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
  * @author Brian Fitzpatrick
  *
  */
-public class JBossRSGenerateWizard extends Wizard implements INewWizard {
+public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 
 	private static final String JDT_EDITOR = 
 		"org.eclipse.jdt.ui.CompilationUnitEditor"; //$NON-NLS-1$
 
-	String NAMEDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
-	String PACKAGEDEFAULT = "org.jboss.samples.rs.webservices"; //$NON-NLS-1$
-	String CLASSDEFAULT = "HelloWorldResource"; //$NON-NLS-1$
-	String APPCLASSDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
+	public static String WSNAMEDEFAULT = "HelloWorld"; //$NON-NLS-1$
+	public static String PACKAGEDEFAULT = "org.jboss.samples.webservices"; //$NON-NLS-1$
+	public static String WSCLASSDEFAULT = "HelloWorld"; //$NON-NLS-1$
 
-	private String serviceName = NAMEDEFAULT;
+	public static String RSNAMEDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
+	public static String RSCLASSDEFAULT = "HelloWorldResource"; //$NON-NLS-1$
+	public static String RSAPPCLASSDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
+
+	private String serviceName = WSNAMEDEFAULT;
 	private String packageName = PACKAGEDEFAULT;
-	private String className = CLASSDEFAULT;
-	private String appClassName = APPCLASSDEFAULT;
+	private String className = WSCLASSDEFAULT;
+	private String appClassName = ""; //$NON-NLS-1$
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
 	private boolean updateWebXML = true;
+	private boolean isJAXWS = true;
 
 	private IStructuredSelection selection;
 	private IProject project;
 
 	private static String WEB = "web.xml"; //$NON-NLS-1$
-	private static String JAVA = ".java"; //$NON-NLS-1$
 	private static String WEBINF = "WEB-INF"; //$NON-NLS-1$
 	private IFile webFile;
 
-	public JBossRSGenerateWizard() {
+	public JBossWSAnnotatedClassWizard() {
 		super();
-		super.setWindowTitle(JBossWSUIMessages.JBossRSGenerateWizard_RS_Wizard_Window_Title);
+		super.setWindowTitle(JBossWSUIMessages.JBossWSAnnotatedClassWizard_Annotated_Class_WS_Wizard_Title);
 		super.setHelpAvailable(false);
 	}
 
 	public void addPages() {
 		super.addPages();
-		JBossRSGenerateWizardPage onePage =
-			new JBossRSGenerateWizardPage("onePage"); //$NON-NLS-1$
+		JBossWSAnnotatedClassWizardPage onePage =
+			new JBossWSAnnotatedClassWizardPage("onePage"); //$NON-NLS-1$
 		addPage(onePage);
 	}
 
@@ -96,21 +100,16 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 			model.setCustomPackage(getPackageName());
 			model.setApplicationClassName( getAppClassName());
 
-			File file = JBossWSCreationUtils.findFileByPath(getClassName() + JAVA, project
-					.getLocation().toOSString());
-			if (file != null) {
-				MessageDialog
-						.openError(
-								this.getShell(),
-								JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
-								JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
-				return false;
+			AbstractDataModelOperation mergeCommand = null;
+			if (isJAXWS()) {
+				mergeCommand = new MergeWebXMLCommand(model);
+			} else {
+				mergeCommand = new RSMergeWebXMLCommand(model);
 			}
-
+			
 			IStatus status = null;
 			if (getUpdateWebXML()) {
 				try {
-					RSMergeWebXMLCommand mergeCommand = new RSMergeWebXMLCommand(model);
 					status = mergeCommand.execute(null, null);
 				} catch (ExecutionException e) {
 					JBossWSUIPlugin.log(e);
@@ -124,14 +123,44 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 					return false;
 				}
 			}
+			
+			AbstractDataModelOperation addJarsCommand = null;
+			AbstractDataModelOperation addClassesCommand = null;
+			if (!isJAXWS()) {
+				addJarsCommand = new AddRestEasyJarsCommand(model);
+				addClassesCommand = new RSServiceCreationCommand(model);
+			} else {
+				addClassesCommand = new ServiceCreationCommand(model);
+			}
 			try {
-				new AddRestEasyJarsCommand(model).execute(null, null);
-				RSServiceSampleCreationCommand createCommand =
-					new RSServiceSampleCreationCommand(model);
-				createCommand.execute(null, null);
+				if (addJarsCommand != null) {
+					addJarsCommand.execute(null, null);
+				}
+				if (addClassesCommand != null) {
+					addClassesCommand.execute(null, null);
+				}
 				getProject().refreshLocal(IProject.DEPTH_INFINITE, new NullProgressMonitor());
-				if (createCommand.getResource() != null && createCommand.getResource() instanceof IFile) {
-					openResource((IFile) createCommand.getResource());
+				IFile openFile1 = null;
+				IFile openFile2 = null;
+				if (addClassesCommand instanceof ServiceCreationCommand) {
+					ServiceCreationCommand cmd = (ServiceCreationCommand) addClassesCommand;
+					if (cmd.getResource() != null && cmd.getResource() instanceof IFile) {
+						openFile1 = (IFile) cmd.getResource();
+					}
+				} else if (addClassesCommand instanceof RSServiceCreationCommand) {
+					RSServiceCreationCommand cmd = (RSServiceCreationCommand) addClassesCommand;
+					if (cmd.getAnnotatedClassResource() != null && cmd.getAnnotatedClassResource() instanceof IFile) {
+						openFile1 = (IFile) cmd.getAnnotatedClassResource();
+					}
+					if (cmd.getApplicationClassResource() != null && cmd.getApplicationClassResource() instanceof IFile) {
+						openFile2 = (IFile) cmd.getApplicationClassResource();
+					}
+				}
+				if (openFile1 != null) {
+					openResource(openFile1);
+				}
+				if (openFile2 != null) {
+					openResource(openFile2);
 				}
 			} catch (ExecutionException e) {
 				JBossWSUIPlugin.log(e);
@@ -224,6 +253,14 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 
 	public boolean getUpdateWebXML() {
 		return updateWebXML;
+	}
+
+	public void setJAXWS(boolean isJAXWS) {
+		this.isJAXWS = isJAXWS;
+	}
+
+	public boolean isJAXWS() {
+		return isJAXWS;
 	}
 
 	public IProject getProject() {

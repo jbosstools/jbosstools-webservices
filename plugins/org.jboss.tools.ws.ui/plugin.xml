@@ -43,12 +43,12 @@
             hasPages="true"
             icon="icons/obj16/new_webserv_wiz.gif"
             id="org.jboss.tools.ws.ui.wizard.rsgenerate"
-            name="Create a Sample RESTful Web Service">
+            name="%restful.wizard.name">
          <selection
                class="org.eclipse.core.resources.IProject">
          </selection>
          <description>
-            Create a Sample RESTful Web Service
+            %restful.wizard.description
          </description>
       </wizard>
       <wizard
@@ -57,12 +57,40 @@
             hasPages="true"
             icon="icons/obj16/new_webserv_wiz.gif"
             id="org.jboss.tools.ws.ui.wizard.rsgenerate2"
-            name="Create a Sample RESTful Web Service">
+            name="%restful.wizard.name">
          <selection
                class="org.eclipse.core.resources.IProject">
          </selection>
          <description>
-            Create a Sample RESTful Web Service
+            %restful.wizard.description
+         </description>
+      </wizard>
+      <wizard
+            category="org.eclipse.jst.ws.ui.new"
+            class="org.jboss.tools.ws.ui.wizards.JBossWSAnnotatedClassWizard"
+            hasPages="true"
+            icon="icons/obj16/new_webserv_wiz.gif"
+            id="org.jboss.tools.ws.ui.wizard.wsclass2"
+            name="%ws_bottom_up.wizard.name">
+         <selection
+               class="org.eclipse.core.resources.IProject">
+         </selection>
+         <description>
+            %ws_bottom_up.wizard.description
+         </description>
+      </wizard>
+      <wizard
+            category="org.jboss.ide.eclipse.ui.wizards"
+            class="org.jboss.tools.ws.ui.wizards.JBossWSAnnotatedClassWizard"
+            hasPages="true"
+            icon="icons/obj16/new_webserv_wiz.gif"
+            id="org.jboss.tools.ws.ui.wizard.wsclass"
+            name="%ws_bottom_up.wizard.name">
+         <selection
+               class="org.eclipse.core.resources.IProject">
+         </selection>
+         <description>
+            %ws_bottom_up.wizard.description
          </description>
       </wizard>
    </extension>
@@ -83,7 +111,7 @@
        <page
            class="org.jboss.tools.ws.ui.project.facet.JBossWSPropertyPage"
            id="org.jboss.tools.ws.ui.page"
-           name="JBossWS Runtime">
+           name="%jbossws.page.name">
          <enabledWhen>
             <adapt
                type="org.eclipse.core.resources.IProject">
