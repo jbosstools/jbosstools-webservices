@@ -42,6 +42,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime;
 	public static String JBossRSGenerateWizardPage_Label_Application_Class_Name;
 	public static String JBossRSGenerateWizardPage_Page_title;
+	public static String JBossRSGenerateWizardPage_ServiceName_Tooltip;
 	public static String JBossRSGenerateWizardPage_UpdateWebXMLCheckbox;
 	public static String JBossRSGenerateWizardValidator_ERROR_Can_Only_Add_Sample_Once;
 	public static String JBossRuntimeListFieldEditor_ActionAdd;

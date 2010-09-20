@@ -106,6 +106,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		name.setLayoutData(gd);
 		name.setText(updateDefaultName());
+		name.setToolTipText(JBossWSUIMessages.JBossRSGenerateWizardPage_ServiceName_Tooltip);
 		name.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {

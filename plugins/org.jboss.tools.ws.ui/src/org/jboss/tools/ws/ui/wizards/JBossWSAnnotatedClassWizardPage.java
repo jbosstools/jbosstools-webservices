@@ -589,8 +589,10 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 					.getCustomClassName(), wizard.getProject());
 			if (classNameStatus != null) {
 				if (classNameStatus.getSeverity() == IStatus.ERROR) {
-					setErrorMessage(classNameStatus.getMessage());
-					return false;
+					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
+					setErrorMessage(null);
+//					setErrorMessage(classNameStatus.getMessage());
+					return true;
 				} else if (classNameStatus.getSeverity() == IStatus.WARNING) {
 					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
 					setErrorMessage(null);
@@ -660,8 +662,11 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 					.getCustomClassName(), wizard.getProject());
 			if (classNameStatus != null) {
 				if (classNameStatus.getSeverity() == IStatus.ERROR) {
-					setErrorMessage(classNameStatus.getMessage());
-					return false;
+					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
+					setErrorMessage(null);
+					return true;
+//					setErrorMessage(classNameStatus.getMessage());
+//					return false;
 				} else if (classNameStatus.getSeverity() == IStatus.WARNING) {
 					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
 					setErrorMessage(null);
