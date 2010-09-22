@@ -36,7 +36,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.osgi,
  org.eclipse.jst.ws.annotations.core,
  org.apache.commons.codec,
- javax.xml.soap;version="1.2.0"
+ javax.xml.soap
 Bundle-ActivationPolicy: lazy
 Export-Package: javax.ws.rs,
  javax.ws.rs.core,
