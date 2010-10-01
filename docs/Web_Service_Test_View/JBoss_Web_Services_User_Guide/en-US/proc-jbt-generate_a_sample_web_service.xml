@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Tools_Reference_Guide_Template.ent">
+%BOOK_ENTITIES;
+]>
+<procedure id="proc-jbt-generate_a_sample_web_service">
+     <title>Generate a sample web service</title>
+        <step>
+          <title>Access the New - Select a wizard dialog</title>
+          <orderedlist numeration ="loweralpha"> 
+          <listitem>
+            <para>
+              Right click on the project name in the <guilabel>Project Explorer</guilabel> view. 
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              Select <menuchoice><guimenu>New</guimenu><guisubmenu>Other</guisubmenu></menuchoice>.
+            </para>
+          </listitem>
+          <listitem>
+	      <para>
+            Click the <guilabel>Create a Sample Web Service</guilabel> label by expanding the <menuchoice><guimenu>Web Services</guimenu></menuchoice> folder.
+          </para>
+          </listitem>
+          </orderedlist>
+          <formalpara><title>Result:</title>
+            <para>
+              The <guilabel>New - Select a wizard</guilabel> dialog displays with the selected wizard type highlighted.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-generate_a_sample_web_service_01">
+            <title>The New - Other (Wizard selection) dialog</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_web_service_01.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>The New - Other (Wizard selection) dialog.</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+           -->    
+          <para>&HORIZ_LINE;</para>
+          </step>
+          <step>
+          <title>Access the Generate a Sample Web Service dialog</title>
+          <para>
+            Click the <guibutton>Next</guibutton> button to proceed.
+          </para>
+          <formalpara><title>Result:</title>
+            <para>
+              The <guilabel>Generate a Sample Web Service  - Project and Web Service Name</guilabel> dialog displays.
+            </para>
+          </formalpara>
+          <figure id="figure-jbt-generate_a_sample_web_service_02">
+              <title>Generate a Sample Web Service - Project and Web Service Name</title>
+              <mediaobject>
+                <imageobject>
+                  <imagedata fileref="images/image-jbt-generate_a_sample_web_service_02.png" format="PNG"/>
+                </imageobject>
+                <textobject>
+                  <para>Generate a Sample Web Service - Project and Web Service Name</para>
+                </textobject>
+              </mediaobject>
+            </figure>
+          <para>&HORIZ_LINE;</para>
+        </step>
+        <step>
+          <title>Define the service attributes</title>
+            <para>
+              Define the project, web service, package and class names according to the options displayed in <xref linkend="table-jbt-generate_a_sample_web_service_01"/> 
+            </para>
+        <table id="table-jbt-generate_a_sample_web_service_01" frame='all'>
+          <title>Project and Web Service Name</title>
+    	    <tgroup cols='5' align='left' colsep='1' rowsep='1'>
+      		  <colspec colname='c1' colwidth="2*"/>
+              <colspec colname='c2' colwidth="1*"/>
+              <colspec colname='c3' colwidth="1*"/>
+              <colspec colname='c4' colwidth="3*"/>
+              <colspec colname='c5' colwidth="4*"/>
+              <thead>
+                <row>
+                  <entry>Dialog group</entry>
+                  <entry>Field</entry>
+                  <entry>Mandatory</entry>
+                  <entry>Instruction</entry>
+                  <entry>Description</entry>
+                </row>
+              </thead> 
+           
+              <tbody>
+                <row>
+                  <entry>-Dynamic Web Project-</entry>
+                  <entry></entry>
+                  <entry>yes</entry>
+                  <entry>Enter the project name</entry>
+                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list</entry>
+                </row>
+                <row>
+                  <entry>-Web Service-</entry>
+                  <entry>Name</entry>
+                  <entry>yes</entry>
+                  <entry>Enter the name for the web service</entry>
+                  <entry>The web service name will be the url for the service as mapped in the deployment descriptor (<filename>web.xml</filename>)</entry>
+                </row>
+                <row>
+                 <entry>-Sample Web Service Class-</entry>
+                  <entry>Package</entry>
+                  <entry>yes</entry>
+                  <entry>Enter the package for the web service servlet</entry>
+                  <entry>The default package for the sample web service will be displayed</entry>
+                </row>
+                <row>
+                  <entry></entry>
+                  <entry>Class</entry>
+                  <entry>yes</entry>
+                  <entry>Enter the name of the web service servlet</entry>
+                  <entry>The default class name will correspond to the default web service name resulting in an equivalent url to servlet name mapping in the deployment descriptor (<filename>web.xml</filename>)</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>
+          <para>&HORIZ_LINE;</para>
+        </step>
+        <step><title>Generate the web service</title>
+            <para>
+              Click the <guibutton>Finish</guibutton> button to complete the web service setup.
+            </para>
+            <formalpara><title>Result:</title>
+            <para>
+              The web service classes will be generated and the web.xml file updated with the deployment details.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-generate_a_sample_web_service_03">
+            <title>HelloWorld Web Service</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_web_service_03.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>HelloWorld Web Service</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+           -->
+          <para>&HORIZ_LINE;</para> 
+          </step>
+          <step><title>Browse the HelloWorld.java class</title>
+          <para>
+            Double click the <classname>HelloWorld.java</classname> class and note the annotated class name and method. These annotations identify the web service entities to the server.  
+          </para>
+          <figure id="figure-jbt-generate_a_sample_web_service_04">
+            <title>web.xml</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_web_service_04.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>web.xml</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          </step>
+          <step><title>Browse the web.xml deployment decriptor</title>
+          <para>
+            Double click the <filename>web.xml</filename> file and note the servlet mapping as defined in <xref linkend="figure-jbt-generate_a_sample_web_service_02"/>. Note also:
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                The main servlet for the application is org.jboss.samples.webservices.HelloWorld which is given the custom name HelloWorld.  
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The main servlet is mapped to the particular url <code>/HelloWorld</code>. 
+              </para>
+            </listitem>
+          </itemizedlist>
+          <figure id="figure-jbt-generate_a_sample_web_service_05">
+            <title>web.xml</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_web_service_05.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>web.xml</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          
+          <para>
+            Upon start up, the server will write a WSDL file to the <filename>server-profile/data/wsdl/</filename> directory and the WSDL can be accessed with <uri>http://localhost:8080/WebServiceSample/HelloWorld?WSDL</uri>. Testing SOAP based web services is discussed in NEED LINK HERE WHEN DONE.
+         </para>  
+        <para>&HORIZ_LINE;</para>
+        </step>
+  </procedure>

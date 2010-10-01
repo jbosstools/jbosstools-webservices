@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Web_Services_User_Guide.ent">
+%BOOK_ENTITIES;
+]>
+<chapter id="resteasy_simple_project_example">
+  <title>RestEasy simple project example</title>
+  <para>
+    JBoss Tools has many example projects available by selecting <menuchoice><guimenu>Help</guimenu><guisubmenu>Project Examples</guisubmenu></menuchoice>. The following sections decribe setting up the example RESTEasy project.
+  </para>  
+  <xi:include href="prerequisites-resteasy_simple_project_example.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+  <xi:include href="the_example_project-resteasy_simple_project_example.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+</chapter>

@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Web_Services_User_Guide.ent">
+%BOOK_ENTITIES;
+]>
+<section id="resteasy_simple_project_example-the_example_project">
+  <title>The example project</title>
+  <para>
+  Once the required plugins have been installed, the example project can be set up as described in <xref linkend="proc-jbt-new_project_example"/>
+  </para>
+  
+  <xi:include href="proc-jbt-new_project_example.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+</section>

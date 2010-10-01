@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Tools_Reference_Guide_Template.ent">
+%BOOK_ENTITIES;
+]>
+
+<procedure id="proc-jbt-install-add_repository">
+  <title>Adding an Update Site</title>	
+  <step>
+    <title>Access the Install dialog box</title>
+    <para>
+      Select <menuchoice><guimenu>Help</guimenu><guisubmenu>Install New Software</guisubmenu></menuchoice>
+	</para>
+	<formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Install - Available Software</guilabel> dialog displays.
+      </para>
+    </formalpara>
+    <figure id="figure-jbt-install-add_repository_01">
+      <title>Install - Available Software dialog</title>
+      <mediaobject>
+        <imageobject> 
+          <imagedata fileref="images/image-jbt-install-add_repository_01.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Install - Available Software dialog</para>
+        </textobject>
+      </mediaobject>
+    </figure>    
+    <para>&HORIZ_LINE;</para>
+  </step>
+  <step>
+    <title>Access the Add Repository dialog</title>
+    <para>
+	  Click the <menuchoice><guibutton>Add</guibutton></menuchoice> button.
+    </para>
+    <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Add Repository</guilabel> dialog displays.
+      </para>
+    </formalpara>
+    <figure id="figure-jbt-install-add_repository_02">
+      <title>Add Repository</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-install-add_repository_02.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Add Repository dialog</para>
+        </textobject>
+      </mediaobject>
+    </figure>    
+    <para>&HORIZ_LINE;</para>
+  </step>
+  <step id="site_information">
+    <title>Enter the site information</title>
+	<orderedlist numeration="loweralpha">
+	  <listitem>
+	    <para>
+	      Enter a name for the update site such as <application>Maven Release</application> in the <guilabel>Name</guilabel> field.
+	    </para>
+	  </listitem>
+	  <listitem id="update_site_url">
+        <para> 
+          Enter the <acronym>url</acronym> of the update site in the <guilabel>Location</guilabel> field.
+	    </para>
+      </listitem>
+    </orderedlist>
+  </step>
+  <step>
+    <title>Add the site</title>
+      <para>
+        Once the entered details have been verified, click the <menuchoice><guibutton>OK</guibutton></menuchoice> button to begin the installation.
+      </para>
+     <para>
+       The plug-in details are retrieved by <application>JBoss Tools</application> and the available plug-ins will be displayed in the main window of the <guilabel>Install</guilabel> dialog box.
+     </para>
+   </step>
+   <step>
+     <title>Select the plug-ins</title>
+       <orderedlist numeration="loweralpha">
+         <listitem>
+           <para> 	
+             Choose the required plug-ins and any <guilabel>Optional</guilabel> plug-ins listed by clicking the relevant checkboxes. Sub-items can be selected or deselected as required.
+           </para>
+         </listitem>
+      	 <listitem>
+           <para>
+             Click the <guibutton>Next</guibutton> button.
+           </para>
+      	 </listitem>
+      </orderedlist>
+    </step>
+    <step>
+      <title>Review the plug-ins</title>
+      <orderedlist numeration="loweralpha">
+        <listitem>
+          <para> 	
+            The plug-ins to be installed will be displayed in the <guilabel>Install Details</guilabel> screen.
+          </para>
+      	</listitem>
+      	<listitem> 
+          <para>  
+            Choose the <guibutton>Next</guibutton> button to continue the installation or the <guibutton>Back</guibutton> button to revise the selection.
+          </para>
+      	</listitem>
+     </orderedlist>
+   </step>
+   <step>
+     <title>Review the licenses</title>
+      <orderedlist numeration="loweralpha">
+        <listitem>
+          <para> 	
+            Read the license information presented on the screen. Click the <guibutton>I accept</guibutton> radio button to proceed. 
+          </para>
+        </listitem>
+        <listitem>
+        <para>
+          Choose the <guibutton>Finish</guibutton> button to complete the installation or the <guibutton>Back</guibutton> button to revise the selection.  
+        </para>
+      </listitem>
+    </orderedlist>
+  </step>
+  <step><title>Restart <application>JBoss Tools</application></title>
+    <para>
+      When prompted, it is recommended to restart <application>JBoss Tools</application> by clicking the <guibutton>Yes</guibutton> button.
+    </para>
+  </step>
+</procedure>

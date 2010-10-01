@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Web_Services_User_Guide.ent">
+%BOOK_ENTITIES;
+]>
+<chapter id="web_service_test_view">
+  <title>Web Service Test View</title>
+  <para>
+    JBoss Tools provides a view to test Web Services. The Web Services Test View can be displayed by following the steps in <xref linkend="proc-jbt-web_service_test_view"/>. 
+  </para>
+  
+  <xi:include href="proc-jbt-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+  <para>
+    The following sections describe testing <acronym>JAX-WS</acronym> and <acronym>JAX-RS</acronym> web services.  
+  </para>  
+  <xi:include href="testing_a_web_service-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+  <xi:include href="testing_a_restful_web_service-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+</chapter>

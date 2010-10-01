@@ -1,0 +1,6 @@
+<!ENTITY PRODUCT "Documentation">
+<!ENTITY BOOKID "JBoss_Web_Services_User_Guide">
+<!ENTITY YEAR "2010">
+<!ENTITY HOLDER "| You need to change the HOLDER entity in the en-US/JBoss_Web_Services_User_Guide.ent file |">
+
+<!ENTITY HORIZ_LINE "&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;&boxh;">

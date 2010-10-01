@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Web_Services_User_Guide.ent">
+%BOOK_ENTITIES;
+]>
+<section id="resteasy_simple_project_example-prerequisites">
+  <title>Prerequisites</title>
+  <para>
+    To be able to build the example RESTEasy project, the Maven plugin <application>M2Eclipse</application> should be installed. The following procedure describes installing the Maven Release, Maven Extras and Subclipse plugins. Subclipse is a dependency of Maven Extras. 
+  </para>
+  <para>
+    The update site urls to add in <xref linkend="site_information"/> in the order of installation are: 
+  </para>
+  <orderedlist>
+    <listitem>
+      <para>
+        Maven release: <uri>http://m2eclipse.sonatype.org/sites/m2e/</uri>
+      </para>
+    </listitem>
+     <listitem>
+      <para>
+       Subclipse: <uri>http://subclipse.tigris.org/update_1.6.x</uri>
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+       Maven extras: <uri>http://m2eclipse.sonatype.org/sites/m2e-extras/</uri>
+      </para>
+    </listitem>
+  </orderedlist>
+  <xi:include href="proc-jbt-install-add_repository.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+</section>

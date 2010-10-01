@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Tools_Reference_Guide_Template.ent">
+%BOOK_ENTITIES;
+]>
+<procedure id="proc-jbt-new_project_example">
+      <title>JBoss Tools New Example Project</title>  
+      <step>
+          <title>Access the New Example Project Dialog</title>
+          <para>
+            Select <menuchoice><guimenu>Help</guimenu><guisubmenu>Project Examples</guisubmenu></menuchoice>
+          </para>
+          <formalpara><title>Result:</title>
+            <para>
+              The <guilabel>New Example Project</guilabel> dialog displays.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-new_project_01">
+            <title>JBoss Tools Project Creation</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-new_project_01.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>The New Project Dialog.</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          -->
+          <para>&HORIZ_LINE;</para>
+  
+      </step>
+      <step>
+          <title>Define the Example Project Type</title>
+          <orderedlist numeration ="loweralpha">
+          <listitem>
+	      <para>
+            Click the <guilabel>RESTEasy Simple Example</guilabel> label by expanding the <menuchoice><guimenu>RESTEasy</guimenu></menuchoice> node.
+          </para>
+          </listitem>
+          <listitem>
+          <para>
+            Click the <guibutton>Finish</guibutton> button to ccomplete the project set up.
+          </para>
+          </listitem>
+          </orderedlist>
+          <formalpara><title>Result:</title>
+            <para>
+              The <guilabel>simple</guilabel> project is configured and ready to build.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-new_dynamic_web_project_01">
+              <title>Dynamic Web Project Attributes</title>
+              <mediaobject>
+                <imageobject>
+                  <imagedata fileref="images/image-jbt-new_dynamic_web_project_01.png" format="PNG"/>
+                </imageobject>
+                <textobject>
+                  <para>The New Dynamic Web Project Wizard.</para>
+                </textobject>
+              </mediaobject>
+            </figure>
+           -->  
+          <para>&HORIZ_LINE;</para>
+          <note><title>Project requirements</title>
+          <para>
+            In the event that a message is displayed indicating some requirements could not be configured, click the <guibutton>Details</guibutton> button followed by the <guibutton>Fix</guibutton> button to rectify the problem. The message will be displayed as a result of missing plugins or a requirement to select or configure a suitable runtime.
+            </para> 
+        </note>
+        </step>
+        <step>
+          <title>Build the project</title>
+          <para>
+            Right click on the project name and select  <menuchoice><guimenu>Run As</guimenu><guisubmenu>Maven package</guisubmenu></menuchoice>
+          </para>
+          <formalpara><title>Result:</title>
+            <para>
+              The <filename>simple.war</filename> file is written to the <filename>target</filename> directory.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-new_project_01">
+            <title>JBoss Tools Project Creation</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-new_project_01.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>The New Project Dialog.</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          -->
+          <para>&HORIZ_LINE;</para>
+  
+       </step>
+       <step>
+          <title>Deploy the project</title>
+          <para>
+            Copy the <filename>simple.war</filename> file to the <filename>deploy</filename> directory of the required server profile such as the <filename>all</filename> profile.
+          </para>
+          <formalpara><title>Result:</title>
+            <para>
+              The <filename>simple.war</filename> file is written to the <filename>target</filename> directory.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-new_project_01">
+            <title>JBoss Tools Project Creation</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-new_project_01.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>The New Project Dialog.</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          -->
+          <para>&HORIZ_LINE;</para>
+  
+       </step>
+       <step><title>Determine the URL for the web service</title>
+          <para>
+            Double click the <filename>web.xml</filename> file and note the jax.ws.rs.Application paramater mapped to the Application Class. Note also:
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                The main servlet for the application is org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher which is given the custom name Resteasy.  
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The main servlet is mapped to the url <code>/rest-services/*</code>. 
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The url for sending GET requests can be resolved as follows:
+              </para>  
+                <orderedlist numeration="loweralpha">
+                  <listitem>
+                    <para>
+                      identify the Application Class as defined in the deployment descriptor
+                    </para>
+                  </listitem>
+                  <listitem>
+                    <para>
+                      note the object type (<classname>CustomerResource</classname>) instantiated in the Application Class (<classname>ShoppingApplication</classname>) and added to the singleton set (<code>singletons.add(new CustomerResource())</code>) 
+                    </para>
+                  </listitem>
+                  <listitem>
+                    <para>
+                      note the JAX-RS annotated path declared in the corresponding <classname>CustomerResource</classname> class; <code>@Path("/customers")</code>.  
+                    </para>
+                  </listitem>
+                </orderedlist>
+              <!--   
+              by viewing the class containing the JAX-RS annotated path <code>@Path("/MyRESTApplication")</code> as shoen in <xref linkend="figure-jbt-generate_a_sample_restful_web_service_04"/>. This class can be identified by viewing the Application Class defined in the deployment descriptor. Objects of type (<classname>HelloWorldResource</classname>) are instantiated and added to the singleton set in the Application Class constructor (<xref linkend="figure-jbt-generate_a_sample_restful_web_service_04"/>). The url for sending GET requests therefore resolves to http://localhost:8080/RestfulSample/MyRESTApplication.
+              </para> 
+              --> 
+            </listitem>
+          </itemizedlist>
+          <figure id="figure-jbt-new_project_example_01">
+            <title>web.xml</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_restful_web_service_06.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>web.xml</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          <para>
+            The url for sending GET requests is therefore <uri>http://localhost:8080/simple/rest-services/customers</uri>. Testing RESTful web services is discussed in LINK HERE WHEN DONE.
+          </para>
+        <para>&HORIZ_LINE;</para>
+        </step>
+        
+</procedure>
+

@@ -1,0 +1,268 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Tools_Reference_Guide_Template.ent">
+%BOOK_ENTITIES;
+]>
+<procedure id="proc-jbt-generate_a_sample_restful_web_service">
+     <title>Generate a sample RESTful web service</title>
+       <important><title>Target runtime must have RESTEasy installed</title>
+         <para>
+           The sample RESTful web service will not work unless it is deployed to a server with RESTEasy installed. 
+         </para>
+       </important>
+        <step>
+          <title>Access the New - Select a wizard dialog</title>
+          <orderedlist numeration ="loweralpha"> 
+          <listitem>
+            <para>
+              Right click on the project name in the <guilabel>Project Explorer</guilabel> view. 
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              Select <menuchoice><guimenu>New</guimenu><guisubmenu>Other</guisubmenu></menuchoice>.
+            </para>
+          </listitem>
+          <listitem>
+	      <para>
+            Click the <guilabel>Create a Sample RESTful Web Service</guilabel> label by expanding the <menuchoice><guimenu>Web Services</guimenu></menuchoice> folder.
+          </para>
+          </listitem>
+          </orderedlist>
+          <formalpara><title>Result:</title>
+            <para>
+              The <guilabel>New - Select a wizard</guilabel> dialog displays with the selected wizard type highlighted.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-generate_a_sample_restful_web_service_01">
+            <title>The New - Other (Wizard selection) dialog</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_restful_web_service_01.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>The New - Other (Wizard selection) dialog.</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+           -->    
+          <para>&HORIZ_LINE;</para>
+          </step>
+          <step>
+          <title>Access the Generate a Sample RESTful Web Service dialog</title>
+          <para>
+            Click the <guibutton>Next</guibutton> button to proceed.
+          </para>
+          <formalpara><title>Result:</title>
+            <para>
+              The <guilabel>Generate a Sample RESTful Web Service  - Project and Web Service Name</guilabel> dialog displays.
+            </para>
+          </formalpara>
+          <figure id="figure-jbt-generate_a_sample_restful_web_service_02">
+              <title>Generate a Sample RESTful Web Service - Project and Web Service Name</title>
+              <mediaobject>
+                <imageobject>
+                  <imagedata fileref="images/image-jbt-generate_a_sample_restful_web_service_02.png" format="PNG"/>
+                </imageobject>
+                <textobject>
+                  <para>Generate a Sample RESTful Web Service - Project and Web Service Name</para>
+                </textobject>
+              </mediaobject>
+            </figure>
+          <para>&HORIZ_LINE;</para>
+        </step>
+        <step>
+          <title>Define the service attributes</title>
+            <para>
+              Define the project, web service, package and class names according to the options displayed in <xref linkend="table-jbt-generate_a_sample_restful_web_service_01"/> 
+            </para>
+        <table id="table-jbt-generate_a_sample_restful_web_service_01" frame='all'>
+          <title>Project and Web Service Name</title>
+    	    <tgroup cols='5' align='left' colsep='1' rowsep='1'>
+      		  <colspec colname='c1' colwidth="2*"/>
+              <colspec colname='c2' colwidth="1*"/>
+              <colspec colname='c3' colwidth="1*"/>
+              <colspec colname='c4' colwidth="3*"/>
+              <colspec colname='c5' colwidth="4*"/>
+              <thead>
+                <row>
+                  <entry>Dialog group</entry>
+                  <entry>Field</entry>
+                  <entry>Mandatory</entry>
+                  <entry>Instruction</entry>
+                  <entry>Description</entry>
+                </row>
+              </thead> 
+           
+              <tbody>
+                <row>
+                  <entry>-Dynamic Web Project-</entry>
+                  <entry></entry>
+                  <entry>yes</entry>
+                  <entry>Enter the project name</entry>
+                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list</entry>
+                </row>
+                <row>
+                  <entry>-Web Service-</entry>
+                  <entry>Name</entry>
+                  <entry>yes</entry>
+                  <entry>Enter the name for the web service</entry>
+                  <entry>The web service name will be the url for the service as mapped in the deployment descriptor (<filename>web.xml</filename>)</entry>
+                </row>
+                <row>
+                  <entry></entry>
+                  <entry>Update web.xml</entry>
+                  <entry>no</entry>
+                  <entry>Check this box to add the service to the deployment descriptor</entry>
+                  <entry>This option is checked by default and may be unchecked when deploying to JBoss AS 6.0 or RESTEasy 2.0 servers. Service information is not required in the deployment descriptor for these servers</entry>
+                </row>
+                <row>
+                 <entry>-Sample Web Service Class-</entry>
+                  <entry>Package</entry>
+                  <entry>yes</entry>
+                  <entry>Enter the package for the web service class</entry>
+                  <entry>The default package for the sample web service will be displayed</entry>
+                </row>
+                <row>
+                  <entry></entry>
+                  <entry>Class</entry>
+                  <entry>yes</entry>
+                  <entry>Enter the name of the web service class containing the JAX-RS annotated path</entry>
+                  <entry>
+                    <remark>
+                      This class defines the path to the web service and is referenced in the Application Class Name. The Application Class Name is declared in the deployment descriptor providing indirect access to the annotated path.
+                    </remark>
+                    </entry>
+                </row>
+                <row>
+                  <entry></entry>
+                  <entry>Application Class Name</entry>
+                  <entry>yes</entry>
+                  <entry>Enter the name of the Application Class Name</entry>
+                  <entry>
+                    <remark>
+                     The Application Class Name constructor instantiates objects of the web service class containing the JAX-RS annotated path, GET and POST methods. It serves as a single point of access to the application for the web server.
+                    </remark>
+                  </entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>
+          <para>&HORIZ_LINE;</para>
+        </step>
+        <step><title>Generate the web service</title>
+            <para>
+              Click the <guibutton>Finish</guibutton> button to complete the web service setup.
+            </para>
+            <formalpara><title>Result:</title>
+            <para>
+              The web service classes will be generated and the web.xml file updated with the deployment details.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-generate_a_sample_restful_web_service_03">
+            <title>RESTful Web Service</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_restful_web_service_03.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>RESTful Web Service</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+           -->
+          </step>
+          <step><title>Browse the MyRESTApplication.java class</title>
+          <para>
+            Double click the <classname>MyRESTApplication.java</classname> class and note the constructor instantiating objects of type HelloWorldResource. The relevance of this will be discussed shortly.  
+          </para>
+          <figure id="figure-jbt-generate_a_sample_restful_web_service_04">
+            <title>Application Class - MyRESTApplication.java</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_restful_web_service_04.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>Application Class - MyRESTApplication.java</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          </step>
+          <step><title>Browse the HelloWorldResource.java class</title>
+          <para>
+            Double click the <filename>HelloWorldResource.java</filename> class and note the JAX-RS annotated path and the annotated GET method. 
+          </para>
+          <figure id="figure-jbt-generate_a_sample_restful_web_service_05">
+            <title>HelloWorldResource.java</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_restful_web_service_05.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>HelloWorldResource.java</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+        <para>&HORIZ_LINE;</para>
+        </step>
+          <step><title>Browse the web.xml deployment descriptor</title>
+          <para>
+            Double click the <filename>web.xml</filename> file and note the jax.ws.rs.Application paramater mapped to the Application Class. Note also:
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                The main servlet for the application is org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher which is given the custom name Resteasy.  
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The main servlet is not mapped to a particular url as indicated by <code>/*</code>. 
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The url for sending GET requests can be resolved as follows:
+              </para>  
+                <orderedlist numeration="loweralpha">
+                  <listitem>
+                    <para>
+                      identify the Application Class as defined in the deployment descriptor
+                    </para>
+                  </listitem>
+                  <listitem>
+                    <para>
+                      note the object type instantiated in the Application Class and added to the singleton set <classname>HelloWorldResource</classname> 
+                    </para>
+                  </listitem>
+                  <listitem>
+                    <para>
+                      note the JAX-RS annotated path declared in the corresponding <classname>HelloWorldResource</classname> class; <code>@Path("/MyRESTApplication")</code>.  
+                    </para>
+                  </listitem>
+                </orderedlist>
+              <!--   
+              by viewing the class containing the JAX-RS annotated path <code>@Path("/MyRESTApplication")</code> as shoen in <xref linkend="figure-jbt-generate_a_sample_restful_web_service_04"/>. This class can be identified by viewing the Application Class defined in the deployment descriptor. Objects of type (<classname>HelloWorldResource</classname>) are instantiated and added to the singleton set in the Application Class constructor (<xref linkend="figure-jbt-generate_a_sample_restful_web_service_04"/>). The url for sending GET requests therefore resolves to http://localhost:8080/RestfulSample/MyRESTApplication.
+              </para> 
+              --> 
+            </listitem>
+          </itemizedlist>
+          <figure id="figure-jbt-generate_a_sample_restful_web_service_06">
+            <title>web.xml</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-generate_a_sample_restful_web_service_06.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>web.xml</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          <para>
+            The url for sending GET requests is therefore <uri>http://localhost:8080/RestfulSample/MyRESTApplication</uri>. Testing RESTful web services is discussed in LINK HERE WHEN DONE.
+          </para>
+        <para>&HORIZ_LINE;</para>
+        </step>
+  </procedure>

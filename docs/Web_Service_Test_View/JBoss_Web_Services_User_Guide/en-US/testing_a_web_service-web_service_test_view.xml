@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Web_Services_User_Guide.ent">
+%BOOK_ENTITIES;
+]>
+<section id="web_service_test_view-testing_a_web_service">
+  <title>Testing a Web Service</title>
+  <para>
+    A JAX-WS Web Service can be tested by using the <guilabel>Web Service Tester View </guilabel> displayed in <xref linkend="figure-jbt-web_service_test_view"/> and:
+  </para>
+  <orderedlist>
+    <listitem>
+      <para>
+        selecting the <guilabel>JAX-WS</guilabel> combo box option and;
+      </para>
+    </listitem>
+    <listitem>
+      <itemizedlist>
+        <listitem>
+          <para>
+            entering the location of the WDSL file in the editable dropdown list or;
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            clicking the <guibutton>Get from WSDL file</guibutton> button and entering the <guibutton>URL</guibutton>, <guibutton>Eclipse workspace</guibutton> or <guibutton>File system</guibutton> details.
+          </para>
+        </listitem>
+      </itemizedlist>
+    </listitem>
+  </orderedlist>
+  <para>
+    Procedure <xref linkend="proc-jbt-test_JAX-WS"/> demonstrates testing the <application>WebServiceSample</application> project developed in <xref linkend="proc-jbt-generate_a_sample_web_service"/>.     
+  </para>
+  <xi:include href="proc-jbt-test_JAX-WS.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+ 
+</section>

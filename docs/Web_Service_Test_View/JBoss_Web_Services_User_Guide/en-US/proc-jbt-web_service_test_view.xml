@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Tools_Reference_Guide_Template.ent">
+%BOOK_ENTITIES;
+]>
+<procedure id="proc-jbt-web_service_test_view">
+      <title>Web Services Test View</title>  
+      <step>
+          <title>Access the Show View dialog</title>
+          <substeps>
+            <step>
+              <para>
+                Select <menuchoice><guimenu>Window</guimenu><guisubmenu>Show View</guisubmenu><guisubmenu>Other</guisubmenu></menuchoice>
+              </para>
+              <formalpara><title>Result:</title>
+                <para>
+                  The <guilabel>Show View</guilabel> dialog displays.
+                </para>
+              </formalpara>
+            </step>
+            <step>
+              <para>
+                Click on the <guilabel>Web Services Tester</guilabel> label by expanding the <guilabel>JBoss Tools Web Services</guilabel> node and click <guibutton>OK</guibutton>.
+              </para>
+            <formalpara><title>Result:</title>
+              <para>
+                The Web Services test view displays.
+              </para>
+            </formalpara> 
+            <figure id="figure-jbt-web_service_test_view">
+              <title>Web Service Test View</title>
+              <mediaobject>
+                <imageobject>
+                  <imagedata fileref="images/image-jbt-web_service_test_view_01.png" format="PNG"/>
+                </imageobject>
+                <textobject>
+                  <para>Web Service Test View</para>
+                </textobject>
+              </mediaobject>
+            </figure>
+        <para>&HORIZ_LINE;</para>
+      </step>
+    </substeps>
+    <para>
+      The main components of the Web Service Tester View are:  
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          WSDL path/button bar (<xref linkend="table-jbt-web_service_test_view_01"/>)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Request details panel (<xref linkend="table-jbt-web_service_test_view_02"/>)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Response details panel (<xref linkend="table-jbt-web_service_test_view_03"/>)
+        </para>
+      </listitem>
+    </itemizedlist>
+    <table id="table-jbt-web_service_test_view_01" frame='all'>
+      <title>WSDL path/button bar</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+        <colspec colname='c1' colwidth="1*"/>
+        <colspec colname='c2' colwidth="3*"/>
+        <thead>
+          <row>
+            <entry>Component</entry>
+            <entry>Description</entry>
+          </row>
+        </thead> 
+           
+        <tbody>
+          <row>
+            <entry>Editable dropdown list</entry>
+            <entry>Enter the location of the WSDL file or HTTP address of the service to be tested. The combo box requires the path to the WSDL be in URI format</entry>
+          </row>
+          <row>
+            <entry>Combo box</entry>
+            <entry>Select the type of service to test. The options are <guilabel>JAX-WS</guilabel> or any other option to test a <guilabel>JAX-RS</guilabel> service using HTTP request methods (PUT, GET, POST, DELETE or OPTIONS)</entry>
+          </row>
+          <row>
+            <entry>Toolbar button - Get From WSDL</entry>
+            <entry>
+              Click this button to display the <guilabel>Select WSDL</guilabel> dialog. Enter the <guibutton>URL</guibutton>, <guibutton>File system</guibutton> location or Eclipse <guibutton>Workspace</guibutton> location of the WSDL file. Given a vaild file, the dialog will allow selection of the <guilabel>Port</guilabel> and <guilabel>Operation</guilabel> to test. Once selected, the request details will be displayed in the Request details panel.
+            </entry>   
+          </row>
+           <row>
+            <entry>Toolbar button - Invoke</entry>
+            <entry>Once the WSDL file has been selected, the service can be invoked by clicking this button. Reponse details will be displayed in the Response details panel</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table id="table-jbt-web_service_test_view_02" frame='all'>
+      <title>Request details panel</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+        <colspec colname='c1' colwidth="1*"/>
+        <colspec colname='c2' colwidth="3*"/>
+        <thead>
+          <row>
+            <entry>Component</entry>
+            <entry>Description</entry>
+          </row>
+        </thead> 
+           
+        <tbody>
+          <row>
+            <entry>Prompt for Basic Authentication</entry>
+            <entry>Check this box to send a username and password with the request. Entering the user details for each subsequent request is not necessary as the details are stored in memory</entry>
+          </row>
+          <row>
+            <entry>Headers</entry>
+            <entry>Enter (<guibutton>Add</guibutton>) one or more <varname>name</varname>=<literal>value</literal> pairs. These headers will be passed with the invocation request at the HTTP level where possible.</entry>
+          </row>
+          <row>
+            <entry>Parameters</entry>
+            <entry>As for header information, enter one or more <varname>name</varname>=<literal>value</literal> pairs by clicking the <guibutton>Add</guibutton> button
+            </entry> 
+          </row>
+           <row>
+            <entry>Body</entry>
+            <entry>Enter the JAX-WS SOAP request messages or input for JAX-RS service invocations in this text box</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+     <table id="table-jbt-web_service_test_view_03" frame='all'>
+      <title>Response details panel</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+        <colspec colname='c1' colwidth="1*"/>
+        <colspec colname='c2' colwidth="3*"/>
+        <thead>
+          <row>
+            <entry>Component</entry>
+            <entry>Description</entry>
+          </row>
+        </thead> 
+           
+        <tbody>
+          <row>
+            <entry>Response headers</entry>
+            <entry>The headers returned by the service invocation will be displayed in this panel.</entry>
+          </row>
+          <row>
+            <entry>Response body</entry>
+            <entry>The JAX-WS and JAX-RS response bodies will be displayed in this box. The raw text returned form the web service invocation can be displayed by clicking the <guibutton>Show Raw</guibutton> button. The output will be embedded in a html browser by clicking the <guibutton>Show in Browser</guibutton> button. The output can alternatively be displayed in the Eclipse editor as xml or raw text (depending on the response content type) by clicking the <guibutton>Show in Editor</guibutton> button</entry>
+          </row>
+          <row>
+            <entry>Parameters</entry>
+            <entry>As for header information, enter one or more <varname>name</varname>=<literal>value</literal> pairs by clicking the <guibutton>Add</guibutton> button</entry>
+          </row>
+           <row>
+            <entry>Body</entry>
+            <entry>Enter JAX-WS SOAP request messages and input for JAX-RS service invocations in this text box</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>   
+  </step>
+</procedure>
+

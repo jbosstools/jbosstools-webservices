@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Tools_Reference_Guide_Template.ent">
+%BOOK_ENTITIES;
+]>
+<procedure id="proc-jbt-test_JAX-WS">
+  <title>Testing a JAX-WS web service</title>  
+  <step><title>Preliminary steps</title>
+    <para>
+      Prior to testing a JAX-WS web service:
+    </para>
+    <substeps>
+      <step>
+        <para>
+          The <guilabel>Web Service Test View</guilabel> should be opened as described in <xref linkend="proc-jbt-web_service_test_view"></xref>;
+        </para>
+        <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Web Service Test View</guilabel> displays.
+      </para>
+    </formalpara>
+    <figure id="proc-jbt-test_JAX-WS_01">
+      <title>Web Service Test View</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_JAX-WS_01.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Web Service Test View</para>
+        </textobject>
+      </mediaobject>
+    </figure>
+      </step>
+      <step>
+        <para>
+          A JAX-WS web service has been deployed to the <filename>deploy</filename> directory of the chosen server profile as described in <xref linkend="proc-jbt-export-war_export"/>;
+        </para> 
+      </step>
+      <step>
+        <para>
+          The server has been started with <command>run.sh -c &lt;profile&gt;</command>
+        </para>
+      </step>
+    </substeps>
+    <para>&HORIZ_LINE;</para>
+  </step>
+  <step>
+    <para>
+      Select <guilabel>JAX-WS</guilabel> from the available combo box options
+    </para>
+    <formalpara><title>Result:</title>
+      <para>
+        The SOAP message details are displayed in the <guilabel>Body Text</guilabel> textbox of the <guilabel>Request Details</guilabel> panel.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_JAX-WS_02">
+      <title>JAX-WS Body Text</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_JAX-WS_02.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>JAX-WS Body Text</para>
+        </textobject>
+      </mediaobject>
+    </figure>
+    <para>&HORIZ_LINE;</para>
+  </step>
+  <step>
+    <para>
+      Enter the location of the WSDL file in the editable dropdown list. The location for the <application>WebServiceSample</application> web service is <uri> http://localhost:8080/WebServiceSample/HelloWorldResource?WSDL</uri>
+    </para>
+    <para>&HORIZ_LINE;</para> 
+  </step>
+  <step>
+    <para>
+      Click the <guibutton>Invoke</guibutton> button
+    </para>
+	  
+    <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Select WDSL</guilabel> dialog appears. 
+      </para>
+    </formalpara>
+    <figure id="figure-jbt-test_JAX-WS_03">
+      <title>Select WSDL</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_JAX-WS_03.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Select WSDL</para>
+        </textobject>
+      </mediaobject>
+    </figure>
+    <para>&HORIZ_LINE;</para>
+  </step>
+  <step>
+    <title>Select the required service attributes</title>
+    <para>
+      Select the <guilabel>Service</guilabel>, <guibutton>Port</guibutton> and <guibutton>Operation</guibutton> from the combo boxes and click <guibutton>OK</guibutton>
+    </para>
+    <formalpara><title>Result:</title>
+      <para>
+        The &lt;soap:Body/&gt; section of the SOAP message is filled with the SayHello message details;
+      </para>
+    </formalpara>
+    <figure id="figure-jbt-test_JAX-WS_04">
+      <title>JBoss Tools Project Creation</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_JAX-WS_04.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>The New Project Dialog.</para>
+        </textobject>
+      </mediaobject>
+    </figure>
+    <para>
+      the response header details are returned;
+    </para>
+    <figure id="figure-jbt-test_JAX-WS_05">
+      <title>JBoss Tools Project Creation</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_JAX-WS_05.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>The New Project Dialog.</para>
+        </textobject>
+      </mediaobject>
+    </figure>
+    <para>
+      and the response message body is displayed in the <guilabel>Response Body</guilabel> textbox, all of which indicate a successful test
+    </para>
+     <figure id="figure-jbt-test_JAX-WS_06">
+      <title>JBoss Tools Project Creation</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_JAX-WS_06.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>The New Project Dialog.</para>
+        </textobject>
+      </mediaobject>
+    </figure>
+    <para>&HORIZ_LINE;</para> 
+  </step>
+</procedure>
+
