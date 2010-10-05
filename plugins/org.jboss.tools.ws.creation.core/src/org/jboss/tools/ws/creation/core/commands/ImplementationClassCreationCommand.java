@@ -1,8 +1,12 @@
 package org.jboss.tools.ws.creation.core.commands;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.wsdl.WSDLException;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
@@ -54,6 +58,7 @@ import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
+import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
 public class ImplementationClassCreationCommand extends
 		AbstractDataModelOperation {
@@ -65,6 +70,7 @@ public class ImplementationClassCreationCommand extends
 	private static final String ANNOTATION_TYPE_NAME_WEBSERVICE = "WebService";; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName"; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface"; //$NON-NLS-1$
+	private static final String ANNOTATION_PROPERTY_TNS = "targetNamespace"; //$NON-NLS-1$
 
 	private ServiceModel model;
 	private IWorkspaceRoot fWorkspaceRoot;
@@ -133,6 +139,42 @@ public class ImplementationClassCreationCommand extends
 		return status;
 	}
 
+	protected String getTNSFromWSDL() {
+		WSDLPropertyReader reader = new WSDLPropertyReader();
+		try {
+			URI fileURI = new URI(model.getWsdlURI());
+			File tempFile = new File(fileURI);
+			reader.readWSDL(tempFile.getAbsolutePath());
+			return reader.getTargetnamespace();
+		} catch (WSDLException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	protected String getServiceNameFromWSDL() {
+		WSDLPropertyReader reader = new WSDLPropertyReader();
+		
+		try {
+			URI fileURI = new URI(model.getWsdlURI());
+			File tempFile = new File(fileURI);
+			reader.readWSDL(tempFile.getAbsolutePath());
+			List<String> services = reader.getServiceList();
+			if (services != null && services.size() > 0) {
+				return services.get(0);
+			}
+		} catch (WSDLException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected void generateImplClass(ICompilationUnit service)
 			throws CoreException, BadLocationException {
@@ -144,6 +186,10 @@ public class ImplementationClassCreationCommand extends
 		String className = getClassName(service.getElementName());
 
 		String implFileName = getJavaFileName(className);
+		
+		String serviceName = getServiceNameFromWSDL();
+		
+		String targetNamespace = getTNSFromWSDL();
 
 		ICompilationUnit icu = pack.createCompilationUnit(implFileName,
 				"", true, null); //$NON-NLS-1$
@@ -180,7 +226,12 @@ public class ImplementationClassCreationCommand extends
 		type.setInterface(false);
 		// add WebService annotation
 		String endpoint = getServiceInterfaceFullName(className);
-		NormalAnnotation ann = createAnnotation(ast, className, endpoint);
+		NormalAnnotation ann = null;
+		if (serviceName != null) {
+			ann = createAnnotation(ast, serviceName, endpoint, targetNamespace);
+		} else {
+			ann = createAnnotation(ast, className, endpoint, targetNamespace);
+		}
 		type.modifiers().add(ann);
 		type.modifiers().add(
 				ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
@@ -301,7 +352,7 @@ public class ImplementationClassCreationCommand extends
 	 */
 	@SuppressWarnings("unchecked")
 	protected NormalAnnotation createAnnotation(AST ast, String serviceName,
-			String endpoint) {
+			String endpoint, String targetNamespace) {
 		NormalAnnotation ann = ast.newNormalAnnotation();
 		ann.setTypeName(ast.newSimpleName(ANNOTATION_TYPE_NAME_WEBSERVICE));
 
@@ -311,6 +362,11 @@ public class ImplementationClassCreationCommand extends
 		member = createMemberValuePair(ast,
 				ANNOTATION_PROPERTY_ENDPOINT_INTERFACE, endpoint);
 		ann.values().add(member);
+		if (targetNamespace != null) {
+			member = createMemberValuePair(ast,
+					ANNOTATION_PROPERTY_TNS, targetNamespace);
+			ann.values().add(member);
+		}
 		return ann;
 	}
 

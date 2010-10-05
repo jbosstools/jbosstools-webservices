@@ -226,4 +226,9 @@ public class WSDLPropertyReader {
 		return returnList;
 	}
 
+	public String getTargetnamespace() {
+		String tns = definition.getTargetNamespace();
+		return tns;
+	}
+	
 }
