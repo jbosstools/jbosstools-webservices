@@ -160,7 +160,13 @@ public class JBossWSGenerateWizardValidator {
 			if (status != null && status.getSeverity() == IStatus.ERROR) {
 				return status;
 			}
-			File file = JBossWSCreationUtils.findFileByPath(className + JAVA,
+			String classFilePath = 
+				JBossWSCreationUtils.composeSrcPackageClassPath(project, model.getCustomPackage(), className);
+			File file = null;
+			if (classFilePath != null) 
+				file = JBossWSCreationUtils.findFileByPath(classFilePath);
+			else 
+				file = JBossWSCreationUtils.findFileByPath(className + JAVA,
 					project.getLocation().toOSString());
 			if (file != null) {
 				// class already exists

@@ -75,6 +75,7 @@ public class JBossWSCreationUtils {
 			"synchronized", "this", "throw", "throws", "transient", "true", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 			"try", "void", "volatile", "while" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	static final String WEBINF = "WEB-INF"; //$NON-NLS-1$
+	private static String JAVA = ".java"; //$NON-NLS-1$
 
 	public static boolean isJavaKeyword(String keyword) {
 		if (hasUpperCase(keyword)) {
@@ -443,6 +444,30 @@ public class JBossWSCreationUtils {
 			path = component.getRootFolder().getWorkspaceRelativePath();
 		}
 		return path;
+	}
+
+	public static String composeSrcPackageClassPath ( IProject project, String packageName, String className) {
+		String classFilePath = null;
+		try {
+			String srcPath = JBossWSCreationUtils.getJavaProjectSrcLocation(project);
+			if (srcPath != null && srcPath.trim().length() > 0) {
+				String pathSeparator = "" + File.separatorChar; //$NON-NLS-1$
+				String packageToFolderPath = packageName.replace(".", pathSeparator); //$NON-NLS-1$
+				classFilePath = srcPath + pathSeparator + packageToFolderPath + pathSeparator + className + JAVA;
+				return classFilePath;
+			}
+		} catch (JavaModelException e) {
+			return null;
+		}
+		return null;
+	
+	}
+	
+	public static File findFileByPath(String path) {
+		File file = new File(path);
+		if (file.exists())
+			return file;
+		return null;
 	}
 
 	public static File findFileByPath(String name, String path) {

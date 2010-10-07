@@ -87,8 +87,14 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 			model.setUpdateWebxml(true);
 			model.setCustomPackage(getPackageName());
 
-			File file = JBossWSCreationUtils.findFileByPath(getClassName() + JAVA, project
-					.getLocation().toOSString());
+			String classFilePath = 
+				JBossWSCreationUtils.composeSrcPackageClassPath(project, model.getCustomPackage(), className);
+			File file = null;
+			if (classFilePath != null) 
+				file = JBossWSCreationUtils.findFileByPath(classFilePath);
+			else 
+				file = JBossWSCreationUtils.findFileByPath(className + JAVA,
+					project.getLocation().toOSString());
 			if (file != null) {
 				MessageDialog
 						.openError(
