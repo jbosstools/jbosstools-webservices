@@ -6,7 +6,7 @@
 <section id="sample_web_service_wizards-sample_restful_web_service-deployment">
   <title>Deployment</title>
   <para>
-   Once created, the sample web service can be deployed to the target runtime as described in <xref linkend="proc-jbt-export-war_export"/>
+   Once created, the sample web service can be deployed to the target runtime as described in <xref linkend="proc-jbt-export-war_export"/>.
   </para> 
   <xi:include href="proc-jbt-export-war_export.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
 

@@ -92,38 +92,38 @@
            
               <tbody>
                 <row>
-                  <entry>-Dynamic Web Project-</entry>
+                  <entry>Dynamic Web Project</entry>
                   <entry></entry>
                   <entry>yes</entry>
-                  <entry>Enter the project name</entry>
-                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list</entry>
+                  <entry>Enter the project name.</entry>
+                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list.</entry>
                 </row>
                 <row>
-                  <entry>-Web Service-</entry>
+                  <entry>Web Service</entry>
                   <entry>Name</entry>
                   <entry>yes</entry>
-                  <entry>Enter the name for the web service</entry>
-                  <entry>The web service name will be the url for the service as mapped in the deployment descriptor (<filename>web.xml</filename>)</entry>
+                  <entry>Enter the name for the web service.</entry>
+                  <entry>The web service name will be the url for the service as mapped in the deployment descriptor (<filename>web.xml</filename>).</entry>
                 </row>
                 <row>
-                 <entry>-Sample Web Service Class-</entry>
+                 <entry>Sample Web Service Class</entry>
                   <entry>Package</entry>
                   <entry>yes</entry>
-                  <entry>Enter the package for the web service servlet</entry>
-                  <entry>The default package for the sample web service will be displayed</entry>
+                  <entry>Enter the package for the web service servlet.</entry>
+                  <entry>The default package for the sample web service will be displayed.</entry>
                 </row>
                 <row>
                   <entry></entry>
                   <entry>Class</entry>
                   <entry>yes</entry>
-                  <entry>Enter the name of the web service servlet</entry>
-                  <entry>The default class name will correspond to the default web service name resulting in an equivalent url to servlet name mapping in the deployment descriptor (<filename>web.xml</filename>)</entry>
+                  <entry>Enter the name of the web service servlet.</entry>
+                  <entry>The default class name will correspond to the default web service name resulting in an equivalent url to servlet name mapping in the deployment descriptor (<filename>web.xml</filename>).</entry>
                 </row>
               </tbody>
             </tgroup>
           </table>
           <para>&HORIZ_LINE;</para>
-        </step>
+        </step>	
         <step><title>Generate the web service</title>
             <para>
               Click the <guibutton>Finish</guibutton> button to complete the web service setup.
@@ -166,17 +166,17 @@
           </step>
           <step><title>Browse the web.xml deployment decriptor</title>
           <para>
-            Double click the <filename>web.xml</filename> file and note the servlet mapping as defined in <xref linkend="figure-jbt-generate_a_sample_web_service_02"/>. Note also:
+            Double click the <filename>web.xml</filename> file and note the servlet mapping as defined in <xref linkend="figure-jbt-generate_a_sample_web_service_02"/>. Note also that:
           </para>
           <itemizedlist>
             <listitem>
               <para>
-                The main servlet for the application is org.jboss.samples.webservices.HelloWorld which is given the custom name HelloWorld.  
+                the main servlet for the application is org.jboss.samples.webservices.HelloWorld which is given the custom name HelloWorld; and  
               </para>
             </listitem>
             <listitem>
               <para>
-                The main servlet is mapped to the particular url <code>/HelloWorld</code>. 
+                the main servlet is mapped to the particular url <code>/HelloWorld</code> <token>[1]</token>. 
               </para>
             </listitem>
           </itemizedlist>
@@ -193,7 +193,7 @@
           </figure>
           
           <para>
-            Upon start up, the server will write a WSDL file to the <filename>server-profile/data/wsdl/</filename> directory and the WSDL can be accessed with <uri>http://localhost:8080/WebServiceSample/HelloWorld?WSDL</uri>. Testing SOAP based web services is discussed in NEED LINK HERE WHEN DONE.
+            Upon start up, the server will write a WSDL file to the <filename>server-profile/data/wsdl/</filename> directory and the WSDL can be accessed with <uri>http://localhost:8080/ProjectName/[1]?WSDL</uri> or, <uri>http://localhost:8080/WebServiceSample/HelloWorld?WSDL</uri>. Testing SOAP based web services is discussed in NEED LINK HERE WHEN DONE.
          </para>  
         <para>&HORIZ_LINE;</para>
         </step>

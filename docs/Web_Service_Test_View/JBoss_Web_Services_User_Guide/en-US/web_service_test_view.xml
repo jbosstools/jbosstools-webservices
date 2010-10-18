@@ -6,7 +6,7 @@
 <chapter id="web_service_test_view">
   <title>Web Service Test View</title>
   <para>
-    JBoss Tools provides a view to test Web Services. The Web Services Test View can be displayed by following the steps in <xref linkend="proc-jbt-web_service_test_view"/>. 
+    JBoss Tools provides a view to test web services. The <guilabel>Web Services Test View</guilabel> can be displayed by following the steps in <xref linkend="proc-jbt-web_service_test_view"/>. 
   </para>
   
   <xi:include href="proc-jbt-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />

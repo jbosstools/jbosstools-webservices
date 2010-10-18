@@ -76,21 +76,21 @@
         <tbody>
           <row>
             <entry>Editable dropdown list</entry>
-            <entry>Enter the location of the WSDL file or HTTP address of the service to be tested. The combo box requires the path to the WSDL be in URI format</entry>
+            <entry>Enter the location of the WSDL file or HTTP address of the service to be tested. The combo box requires the path to the WSDL in a URI format.</entry>
           </row>
           <row>
             <entry>Combo box</entry>
-            <entry>Select the type of service to test. The options are <guilabel>JAX-WS</guilabel> or any other option to test a <guilabel>JAX-RS</guilabel> service using HTTP request methods (PUT, GET, POST, DELETE or OPTIONS)</entry>
+            <entry>Select the type of service to test. The options are <guilabel>JAX-WS</guilabel> or any other option to test a <guilabel>JAX-RS</guilabel> service using HTTP request methods (PUT, GET, POST, DELETE or OPTIONS).</entry>
           </row>
           <row>
             <entry>Toolbar button - Get From WSDL</entry>
             <entry>
-              Click this button to display the <guilabel>Select WSDL</guilabel> dialog. Enter the <guibutton>URL</guibutton>, <guibutton>File system</guibutton> location or Eclipse <guibutton>Workspace</guibutton> location of the WSDL file. Given a vaild file, the dialog will allow selection of the <guilabel>Port</guilabel> and <guilabel>Operation</guilabel> to test. Once selected, the request details will be displayed in the Request details panel.
+              Click this button to display the <guilabel>Select WSDL</guilabel> dialog. Enter the <guibutton>URL</guibutton>, <guibutton>File system</guibutton> location or Eclipse <guibutton>Workspace</guibutton> location of the WSDL file. Given a vaild file, the dialog will allow selection of the <guilabel>Port</guilabel> and <guilabel>Operation</guilabel> to test. Once selected, the request details will be displayed in the <guilabel>Request Details</guilabel> panel.
             </entry>   
           </row>
            <row>
             <entry>Toolbar button - Invoke</entry>
-            <entry>Once the WSDL file has been selected, the service can be invoked by clicking this button. Reponse details will be displayed in the Response details panel</entry>
+            <entry>Once the WSDL file has been selected, the service can be invoked by clicking this button. Reponse details will be displayed in the <guilabel>Response Details</guilabel> panel.</entry>
           </row>
         </tbody>
       </tgroup>
@@ -110,7 +110,7 @@
         <tbody>
           <row>
             <entry>Prompt for Basic Authentication</entry>
-            <entry>Check this box to send a username and password with the request. Entering the user details for each subsequent request is not necessary as the details are stored in memory</entry>
+            <entry>Select this check box to send a username and password with the request. Entering the user details for each subsequent request is not necessary as the details are stored in memory.</entry>
           </row>
           <row>
             <entry>Headers</entry>
@@ -118,12 +118,11 @@
           </row>
           <row>
             <entry>Parameters</entry>
-            <entry>As for header information, enter one or more <varname>name</varname>=<literal>value</literal> pairs by clicking the <guibutton>Add</guibutton> button
-            </entry> 
+            <entry>As for header information, enter one or more <varname>name</varname>=<literal>value</literal> pairs by clicking the <guibutton>Add</guibutton> button.</entry> 
           </row>
            <row>
             <entry>Body</entry>
-            <entry>Enter the JAX-WS SOAP request messages or input for JAX-RS service invocations in this text box</entry>
+            <entry>Enter the JAX-WS SOAP request messages or input for JAX-RS service invocations in this text box.</entry>
           </row>
         </tbody>
       </tgroup>
@@ -147,15 +146,15 @@
           </row>
           <row>
             <entry>Response body</entry>
-            <entry>The JAX-WS and JAX-RS response bodies will be displayed in this box. The raw text returned form the web service invocation can be displayed by clicking the <guibutton>Show Raw</guibutton> button. The output will be embedded in a html browser by clicking the <guibutton>Show in Browser</guibutton> button. The output can alternatively be displayed in the Eclipse editor as xml or raw text (depending on the response content type) by clicking the <guibutton>Show in Editor</guibutton> button</entry>
+            <entry>The JAX-WS and JAX-RS response bodies will be displayed in this box. The raw text returned form the web service invocation can be displayed by clicking the <guibutton>Show Raw</guibutton> button. The output will be embedded in a html browser by clicking the <guibutton>Show in Browser</guibutton> button. The output can alternatively be displayed in the Eclipse editor as xml or raw text (depending on the response content type) by clicking the <guibutton>Show in Editor</guibutton> button.</entry>
           </row>
           <row>
             <entry>Parameters</entry>
-            <entry>As for header information, enter one or more <varname>name</varname>=<literal>value</literal> pairs by clicking the <guibutton>Add</guibutton> button</entry>
+            <entry>As for header information, enter one or more <varname>name</varname>=<literal>value</literal> pairs by clicking the <guibutton>Add</guibutton> button.</entry>
           </row>
            <row>
             <entry>Body</entry>
-            <entry>Enter JAX-WS SOAP request messages and input for JAX-RS service invocations in this text box</entry>
+            <entry>Enter JAX-WS SOAP request messages and input for JAX-RS service invocations in this text box.</entry>
           </row>
         </tbody>
       </tgroup>

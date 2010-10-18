@@ -6,6 +6,31 @@
 <procedure id="proc-jbt-new_dynamic_web_project">
      <title>Creating a dynamic web project</title>
         <step>
+          <title>Access the New Project Dialog</title>
+          <para>
+            Select <menuchoice><guimenu>File</guimenu><guisubmenu>New</guisubmenu><guisubmenu>Project</guisubmenu></menuchoice>
+          </para>
+          <formalpara><title>Result:</title>
+            <para>
+              The <guilabel>New Project</guilabel> screen displays.
+            </para>
+          </formalpara>
+          <!-- 
+          <figure id="figure-jbt-new_project_01">
+            <title>JBoss Tools Project Creation</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="images/image-jbt-new_project_01.png" format="PNG"/>
+              </imageobject>
+              <textobject>
+                <para>The New Project Dialog.</para>
+              </textobject>
+            </mediaobject>
+          </figure>
+          -->
+          <para>&HORIZ_LINE;</para>
+          </step>
+          <step>
           <title>Define the Project Type</title>
           <orderedlist numeration ="loweralpha">
           <listitem>
@@ -198,19 +223,19 @@
             <tbody>
             <row>
                 <entry>2.2</entry>
-                <entry>This web module version corresponds to the J2EE 1.2 implementation</entry>
+                <entry>This web module version corresponds to the J2EE 1.2 implementation.</entry>
               </row>
               <row>
                 <entry>2.3</entry>
-                <entry>This web module version corresponds to the J2EE 1.3 implementation</entry>
+                <entry>This web module version corresponds to the J2EE 1.3 implementation.</entry>
               </row>
               <row>
                 <entry>2.4</entry>
-               <entry>This web module version corresponds to the J2EE 1.4 implementation</entry>
+               <entry>This web module version corresponds to the J2EE 1.4 implementation.</entry>
               </row>
               <row>
                 <entry>2.5</entry>
-                <entry>This web module version corresponds to the JEE 5 implementation</entry>
+                <entry>This web module version corresponds to the JEE 5 implementation.</entry>
               </row>
             </tbody>
           </tgroup>
@@ -230,51 +255,51 @@
             <tbody>
              <row>
                 <entry>&lt;custom&gt;</entry>
-                <entry>Choosing from one of the pre-defined configurations will minimise the effort required to set up the project</entry>
+                <entry>Choosing from one of the pre-defined configurations will minimise the effort required to set up the project.</entry>
               </row>
               <row>
                 <entry>BIRT Charting Web Project</entry>
-                <entry>A project with the BIRT Charting Runtime Component</entry>
+                <entry>A project with the BIRT Charting Runtime Component.</entry>
               </row>
               <row>
                 <entry>BIRT Charting Web Project</entry>
-                <entry>A project with the BIRT Reporting Runtime Component</entry>
+                <entry>A project with the BIRT Reporting Runtime Component.</entry>
               </row>
               <row>
                 <entry>CXF Web Services Project v2.5</entry>
-                <entry>Configures a project with CXF using Web Module v2.5 and Java v5.0</entry>
+                <entry>Configures a project with CXF using Web Module v2.5 and Java v5.0.</entry>
               </row>
               <row>
                 <entry>Default Configuration for JBoss 5.0 Runtime</entry>
-                <entry>This option is a suitable starting point. Additional facets can be installed later to add new functionality</entry>
+                <entry>This option is a suitable starting point. Additional facets can be installed later to add new functionality.</entry>
               </row>
               <row>
                 <entry>Dynamic Web Project with Seam 1.2</entry>
-                <entry>Configures a project to use Seam v1.2</entry>
+                <entry>Configures a project to use Seam v1.2.</entry>
               </row>
               <row>
                 <entry>Dynamic Web Project with Seam 2.0</entry>
-                <entry>Configures a project to use Seam v2.0</entry>
+                <entry>Configures a project to use Seam v2.0.</entry>
               </row>
               <row>
                 <entry>Dynamic Web Project with Seam 2.1</entry>
-                <entry>Configures a project to use Seam v2.1</entry>
+                <entry>Configures a project to use Seam v2.1.</entry>
               </row>
               <row>
                 <entry>Dynamic Web Project with Seam 2.2</entry>
-                <entry>Configures a project to use Seam v2.2</entry>
+                <entry>Configures a project to use Seam v2.2.</entry>
               </row>
               <row>
                 <entry>JBoss WS Web Service Project v3.0</entry>
-                <entry>Configures a project with JBossWS using Web Module v2.5 and Java v5.0</entry>
+                <entry>Configures a project with JBossWS using Web Module v2.5 and Java v5.0.</entry>
               </row>
               <row>
                 <entry>JavaServer Faces v1.2 Project</entry>
-                <entry>Configures a project to use JSF v1.2</entry>
+                <entry>Configures a project to use JSF v1.2.</entry>
               </row>
               <row>
                 <entry>Minimal Configuration</entry>
-                <entry>The minimum required facets are installed. Additional facets can be chosen later to add functionality to the project</entry>
+                <entry>The minimum required facets are installed. Additional facets can be chosen later to add functionality to the project.</entry>
               </row>
               
             </tbody>
@@ -340,7 +365,7 @@
       <step>
         <title>Enter the web module settings</title>
           <para>
-            Define the settings as listed in <xref linkend="table-jbt-new_dynamic_web_project_04"/> root folder for path names in the web project context and the name of the web content directory.
+            Define the settings as listed in <xref linkend="table-jbt-new_dynamic_web_project_04"/> including the root folder for path names in the web project context and the name of the web content directory.
           </para>
           <table id="table-jbt-new_dynamic_web_project_04" frame='all'>
             <title>New Dynamic Web Project - Web Module</title>
@@ -362,20 +387,20 @@
                 <row>
                   <entry>Context root</entry>
                   <entry>yes</entry>
-                  <entry>Enter the context root for the project</entry>
-                  <entry>The context root identifies a web application to the server and which URLs to delegate to the application</entry>
+                  <entry>Enter the context root for the project.</entry>
+                  <entry>The context root identifies a web application to the server and which URLs to delegate to the application.</entry>
                 </row>
                 <row>
                   <entry>Content directory</entry>
                   <entry>yes</entry>
-                  <entry>Enter the directory name for the web content</entry>
-                  <entry>Web resources such as html, jsp files and graphic files will be written to the specified content directory</entry>
+                  <entry>Enter the directory name for the web content.</entry>
+                  <entry>Web resources such as html, jsp files and graphic files will be written to the specified content directory.</entry>
                 </row>
                 <row>
                   <entry>Generate web.xml deployment descriptor</entry>
                   <entry>no</entry>
-                  <entry>Check this box to generate a deployment descriptor for the project</entry>
-                  <entry>URL to servlet mappings and servlet authentication details are written to the deployment descriptor enabling the web server to serve requests</entry>
+                  <entry>Check this box to generate a deployment descriptor for the project.</entry>
+                  <entry>URL to servlet mappings and servlet authentication details are written to the deployment descriptor enabling the web server to serve requests.</entry>
                 </row>
               </tbody>
             </tgroup>

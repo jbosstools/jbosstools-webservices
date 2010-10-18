@@ -12,11 +12,11 @@
     <substeps>
       <step>
         <para>
-          The <guilabel>Web Service Test View</guilabel> should be opened as described in <xref linkend="proc-jbt-web_service_test_view"></xref>;
+          The <guilabel>Web Service Test View</guilabel> should be opened as described in <xref linkend="proc-jbt-web_service_test_view"></xref>.
         </para>
         <formalpara><title>Result:</title>
       <para>
-        The <guilabel>Web Service Test View</guilabel> displays.
+        The <guilabel>Web Service Test View</guilabel> is displayed.
       </para>
     </formalpara>
     <figure id="proc-jbt-test_JAX-WS_01">
@@ -33,12 +33,12 @@
       </step>
       <step>
         <para>
-          A JAX-WS web service has been deployed to the <filename>deploy</filename> directory of the chosen server profile as described in <xref linkend="proc-jbt-export-war_export"/>;
+          A JAX-WS web service has been deployed to the <filename>deploy</filename> directory of the chosen server profile as described in <xref linkend="proc-jbt-export-war_export"/>.
         </para> 
       </step>
       <step>
         <para>
-          The server has been started with <command>run.sh -c &lt;profile&gt;</command>
+          The server has been started with <command>run.sh -c &lt;profile&gt;</command>.
         </para>
       </step>
     </substeps>
@@ -68,7 +68,7 @@
   </step>
   <step>
     <para>
-      Enter the location of the WSDL file in the editable dropdown list. The location for the <application>WebServiceSample</application> web service is <uri> http://localhost:8080/WebServiceSample/HelloWorldResource?WSDL</uri>
+      Enter the location of the WSDL file in the editable dropdown list. The location for the <application>WebServiceSample</application> web service is <uri> http://localhost:8080/WebServiceSample/HelloWorld?WSDL</uri>
     </para>
     <para>&HORIZ_LINE;</para> 
   </step>
@@ -100,9 +100,9 @@
     <para>
       Select the <guilabel>Service</guilabel>, <guibutton>Port</guibutton> and <guibutton>Operation</guibutton> from the combo boxes and click <guibutton>OK</guibutton>
     </para>
-    <formalpara><title>Result:</title>
+    <formalpara><title>Results:</title>
       <para>
-        The &lt;soap:Body/&gt; section of the SOAP message is filled with the SayHello message details;
+        The &lt;soap:Body/&gt; section of the SOAP message is filled with the SayHello message details.
       </para>
     </formalpara>
     <figure id="figure-jbt-test_JAX-WS_04">
@@ -117,7 +117,7 @@
       </mediaobject>
     </figure>
     <para>
-      the response header details are returned;
+      The response header details are returned.
     </para>
     <figure id="figure-jbt-test_JAX-WS_05">
       <title>JBoss Tools Project Creation</title>
@@ -131,7 +131,7 @@
       </mediaobject>
     </figure>
     <para>
-      and the response message body is displayed in the <guilabel>Response Body</guilabel> textbox, all of which indicate a successful test
+      The response message body is displayed in the <guilabel>Response Body</guilabel> textbox.
     </para>
      <figure id="figure-jbt-test_JAX-WS_06">
       <title>JBoss Tools Project Creation</title>
@@ -144,6 +144,7 @@
         </textobject>
       </mediaobject>
     </figure>
+      <para>These results indicate a successful test.</para>
     <para>&HORIZ_LINE;</para> 
   </step>
 </procedure>

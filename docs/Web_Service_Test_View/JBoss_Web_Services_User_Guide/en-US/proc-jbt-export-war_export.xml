@@ -62,20 +62,20 @@
                 <row>
                   <entry>Web project</entry>
                   <entry>yes</entry>
-                  <entry>Enter the web project name</entry>
-                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list</entry>
+                  <entry>Enter the web project name.</entry>
+                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list.</entry>
                 </row>
                 <row>
                   <entry>Destination</entry>
                   <entry>yes</entry>
-                  <entry>Enter or browse to the destination</entry>
-                  <entry>Set the destination as the <filename>build</filename> folder to store the WAR file within the project or deploy directly to the <filename>deploy</filename> directory of the target server profile</entry>
+                  <entry>Enter or browse to the destination.</entry>
+                  <entry>Set the destination as the <filename>build</filename> folder to store the WAR file within the project. Alternatively, deploy the project directly to the <filename>deploy</filename> directory of the target server profile.</entry>
                 </row>
                 <row>
                   <entry>Optimize for a specific server runtime</entry>
                   <entry>no</entry>
-                  <entry>Check this box to optimize the <filename>WAR</filename> file for deployment to the targeted runtime</entry>
-                  <entry>Selecting this option will [import the necessary libraries] OR [??]. The list of available runtimes will be those configured during the project set up or by selecting <menuchoice><guimenu>File</guimenu><guisubmenu>New</guisubmenu><guimenuitem>Server</guimenuitem></menuchoice></entry>
+                  <entry>Select this box to optimize the <filename>WAR</filename> file for deployment to the targeted runtime.</entry>
+                  <entry>Selecting this option will <remark>[import the necessary libraries for the target runtime] OR [??]</remark>. The list of available runtimes will be those configured during the project set-up or by selecting <menuchoice><guimenu>File</guimenu><guisubmenu>New</guisubmenu><guimenuitem>Server</guimenuitem></menuchoice>.</entry>
                 </row>
               </tbody>
             </tgroup>
@@ -85,7 +85,7 @@
          <step>
           <title>Deploy the application</title>
             <para>
-              If not already set as the WAR file destination in <xref linkend="step_02"/>, copy the file to the <filename>deploy</filename> directory of the required target server profile such as the <command>all</command> profile. 
+              Copy the file to the <filename>deploy</filename> directory of the required target server profile, such as the <command>all</command> profile. Note that the WAR file destination may have already been set as the deploy directory in <xref linkend="step_02"/>. 
             </para>
          </step>   
           <!-- 

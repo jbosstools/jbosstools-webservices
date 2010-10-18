@@ -97,38 +97,38 @@
            
               <tbody>
                 <row>
-                  <entry>-Dynamic Web Project-</entry>
+                  <entry>Dynamic Web Project</entry>
                   <entry></entry>
                   <entry>yes</entry>
-                  <entry>Enter the project name</entry>
-                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list</entry>
+                  <entry>Enter the project name.</entry>
+                  <entry>The project name will default to the highlighted project in the <guilabel>Project Explorer</guilabel>. A different project can be selected from the list or entered directly in the editable drop-down list.</entry>
                 </row>
                 <row>
-                  <entry>-Web Service-</entry>
+                  <entry>Web Service</entry>
                   <entry>Name</entry>
                   <entry>yes</entry>
-                  <entry>Enter the name for the web service</entry>
-                  <entry>The web service name will be the url for the service as mapped in the deployment descriptor (<filename>web.xml</filename>)</entry>
+                  <entry>Enter the name for the web service.</entry>
+                  <entry>The web service name will be the url for the service as mapped in the deployment descriptor (<filename>web.xml</filename>).</entry>
                 </row>
                 <row>
                   <entry></entry>
                   <entry>Update web.xml</entry>
                   <entry>no</entry>
-                  <entry>Check this box to add the service to the deployment descriptor</entry>
-                  <entry>This option is checked by default and may be unchecked when deploying to JBoss AS 6.0 or RESTEasy 2.0 servers. Service information is not required in the deployment descriptor for these servers</entry>
+                  <entry>Check this box to add the service to the deployment descriptor.</entry>
+                  <entry>This option is checked by default and may be unchecked when deploying to JBoss AS 6.0 or RESTEasy 2.0 servers. Service information is not required in the deployment descriptor for these servers.</entry>
                 </row>
                 <row>
-                 <entry>-Sample Web Service Class-</entry>
+                 <entry>Sample Web Service Class</entry>
                   <entry>Package</entry>
                   <entry>yes</entry>
-                  <entry>Enter the package for the web service class</entry>
-                  <entry>The default package for the sample web service will be displayed</entry>
+                  <entry>Enter the package for the web service class.</entry>
+                  <entry>The default package for the sample web service will be displayed.</entry>
                 </row>
                 <row>
                   <entry></entry>
                   <entry>Class</entry>
                   <entry>yes</entry>
-                  <entry>Enter the name of the web service class containing the JAX-RS annotated path</entry>
+                  <entry>Enter the name of the web service class containing the JAX-RS annotated path.</entry>
                   <entry>
                     <remark>
                       This class defines the path to the web service and is referenced in the Application Class Name. The Application Class Name is declared in the deployment descriptor providing indirect access to the annotated path.
@@ -139,7 +139,7 @@
                   <entry></entry>
                   <entry>Application Class Name</entry>
                   <entry>yes</entry>
-                  <entry>Enter the name of the Application Class Name</entry>
+                  <entry>Enter the name of the Application Class Name.</entry>
                   <entry>
                     <remark>
                      The Application Class Name constructor instantiates objects of the web service class containing the JAX-RS annotated path, GET and POST methods. It serves as a single point of access to the application for the web server.
@@ -209,46 +209,44 @@
         </step>
           <step><title>Browse the web.xml deployment descriptor</title>
           <para>
-            Double click the <filename>web.xml</filename> file and note the jax.ws.rs.Application paramater mapped to the Application Class. Note also:
+            Double click the <filename>web.xml</filename> file and note the <parameter>jax.ws.rs.Application</parameter> paramater mapped to the <application>Application</application> class. Note also that:
           </para>
           <itemizedlist>
             <listitem>
               <para>
-                The main servlet for the application is org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher which is given the custom name Resteasy.  
+                the main servlet for the application is <classname>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</classname> which is given the custom name Resteasy; and  
               </para>
             </listitem>
             <listitem>
               <para>
-                The main servlet is not mapped to a particular url as indicated by <code>/*</code>. 
+                the main servlet is not mapped to a particular url as indicated by <code>/*</code>. 
+              </para>
+            </listitem>
+          </itemizedlist>
+          <para>
+            The url for sending GET requests can be resolved as follows:
+          </para>  
+          <orderedlist numeration="loweralpha">
+			<listitem>
+			  <para>
+                Identify the Application Class as defined in the deployment descriptor.
               </para>
             </listitem>
             <listitem>
               <para>
-                The url for sending GET requests can be resolved as follows:
-              </para>  
-                <orderedlist numeration="loweralpha">
-                  <listitem>
-                    <para>
-                      identify the Application Class as defined in the deployment descriptor
-                    </para>
-                  </listitem>
-                  <listitem>
-                    <para>
-                      note the object type instantiated in the Application Class and added to the singleton set <classname>HelloWorldResource</classname> 
-                    </para>
-                  </listitem>
-                  <listitem>
-                    <para>
-                      note the JAX-RS annotated path declared in the corresponding <classname>HelloWorldResource</classname> class; <code>@Path("/MyRESTApplication")</code>.  
-                    </para>
-                  </listitem>
-                </orderedlist>
+                Note the object type instantiated in the <application>Application</application> class and added to the singleton set: <classname>HelloWorldResource</classname>. 
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                Note the JAX-RS annotated path declared in the corresponding <classname>HelloWorldResource</classname> class: <code>@Path("/MyRESTApplication")</code> <token>[1]</token>.  
+              </para>
+            </listitem>
+          </orderedlist>
               <!--   
               by viewing the class containing the JAX-RS annotated path <code>@Path("/MyRESTApplication")</code> as shoen in <xref linkend="figure-jbt-generate_a_sample_restful_web_service_04"/>. This class can be identified by viewing the Application Class defined in the deployment descriptor. Objects of type (<classname>HelloWorldResource</classname>) are instantiated and added to the singleton set in the Application Class constructor (<xref linkend="figure-jbt-generate_a_sample_restful_web_service_04"/>). The url for sending GET requests therefore resolves to http://localhost:8080/RestfulSample/MyRESTApplication.
               </para> 
               --> 
-            </listitem>
-          </itemizedlist>
           <figure id="figure-jbt-generate_a_sample_restful_web_service_06">
             <title>web.xml</title>
             <mediaobject>
@@ -261,7 +259,7 @@
             </mediaobject>
           </figure>
           <para>
-            The url for sending GET requests is therefore <uri>http://localhost:8080/RestfulSample/MyRESTApplication</uri>. Testing RESTful web services is discussed in LINK HERE WHEN DONE.
+            The url for sending GET requests is therefore <uri>http://localhost:8080/ProjectName/[1]</uri> or, <uri>http://localhost:8080/RestfulSample/MyRESTApplication</uri>. Testing RESTful web services is discussed in LINK HERE WHEN DONE.
           </para>
         <para>&HORIZ_LINE;</para>
         </step>

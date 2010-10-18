@@ -6,7 +6,7 @@
 <chapter id="resteasy_simple_project_example">
   <title>RestEasy simple project example</title>
   <para>
-    JBoss Tools has many example projects available by selecting <menuchoice><guimenu>Help</guimenu><guisubmenu>Project Examples</guisubmenu></menuchoice>. The following sections decribe setting up the example RESTEasy project.
+    JBoss Tools includes many example projects which are available by selecting <menuchoice><guimenu>Help</guimenu><guisubmenu>Project Examples</guisubmenu></menuchoice>. The following sections describe setting up the example RESTEasy project. This project serves as a good example for testing the numerous <guilabel>Web Service Test View</guilabel> functions.
   </para>  
   <xi:include href="prerequisites-resteasy_simple_project_example.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
   <xi:include href="the_example_project-resteasy_simple_project_example.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />

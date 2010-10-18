@@ -8,29 +8,6 @@
   <para>
     Testing a RESTful (<acronym>JAX-RS</acronym>) web service is achieved by following a similar procedure to testing a JAX-WS web service. Instead of selecting the JAX-WS option in the combo box, the JAX-RS service is invoked by sending HTTP method requests of the form OPTIONS, GET, POST, PUT and DELETE. As there is no WSDL file associated with a JAX-RS service, the available options can be determined by selecting <guilabel>OPTIONS</guilabel> in the combo box.
   </para>
-  <orderedlist>
-    <listitem>
-      <para>
-        selecting the any of the HTTP method types such as <guilabel>OPTIONS</guilabel> from the combo box and;
-      </para>
-    </listitem>
-    <listitem>
-      <itemizedlist>
-        <listitem>
-          <para>
-            entering the location of the WDSL file in the editable dropdown list or;
-          </para>
-        </listitem>
-        <listitem>
-          <para>
-            clicking the <guibutton>Get from WSDL file</guibutton> button and entering the <guibutton>URL</guibutton>, <guibutton>Eclipse workspace</guibutton> or <guibutton>File system</guibutton> details.
-          </para>
-        </listitem>
-      </itemizedlist>
-    </listitem>
-  </orderedlist>
-  <para>
-    Procedure <xref linkend="proc-jbt-test_JAX-WS"/> demonstrates testing the <application>WebServiceSample</application> project developed in <xref linkend="proc-jbt-generate_a_sample_web_service"/>.     
-  </para>
+  
 
 </section>

@@ -6,10 +6,10 @@
 <section id="resteasy_simple_project_example-prerequisites">
   <title>Prerequisites</title>
   <para>
-    To be able to build the example RESTEasy project, the Maven plugin <application>M2Eclipse</application> should be installed. The following procedure describes installing the Maven Release, Maven Extras and Subclipse plugins. Subclipse is a dependency of Maven Extras. 
+    To be able to build the example RESTEasy project, the <application>Maven</application> plugin <application>M2Eclipse</application> should be installed. The following procedure describes installing the <application>Maven Release</application>, <application>Maven Extras</application> and <application>Subclipse</application> plugins. <application>Subclipse</application> is a dependency of <application>Maven Extras</application>. 
   </para>
   <para>
-    The update site urls to add in <xref linkend="site_information"/> in the order of installation are: 
+    The update site urls to add in <xref linkend="site_information"/> of the following procedure, in the order of installation, are: 
   </para>
   <orderedlist>
     <listitem>

@@ -11,19 +11,18 @@
   <itemizedlist>
     <listitem>
       <para>
-        <guilabel>Create a sample Web Service</guilabel> for a Java API for XML Web Services (<acronym>JAX-WS</acronym>) and;
+        <guilabel>Create a sample Web Service</guilabel> for a Java API for XML Web Services (<acronym>JAX-WS</acronym>) Web Service; and
       </para>
     </listitem>
     <listitem>
       <para>
-        <guilabel>Create a sample RESTful Web Service</guilabel> for a Java API for RESTful Web Services (<acronym>JAX-WS</acronym>) 
+        <guilabel>Create a sample RESTful Web Service</guilabel> for a Java API for RESTful Web Services (<acronym>JAX-WS</acronym>) Web Service. 
       </para>
     </listitem>
   </itemizedlist>  
   <para>
-    These wizards are used within a Dynamic Web project. Begin by creating a dynamic web project as shown in <xref linkend="proc-jbt-new_project"/> and <xref linkend="proc-jbt-new_dynamic_web_project"/>. 
+    These wizards are used within a Dynamic Web project. A dynamic web project can be created by following the steps in <xref linkend="proc-jbt-new_dynamic_web_project"/>. 
   </para>  
-  <xi:include href="proc-jbt-new_project.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
   <xi:include href="proc-jbt-new_dynamic_web_project.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
   
   

@@ -81,7 +81,7 @@
        <orderedlist numeration="loweralpha">
          <listitem>
            <para> 	
-             Choose the required plug-ins and any <guilabel>Optional</guilabel> plug-ins listed by clicking the relevant checkboxes. Sub-items can be selected or deselected as required.
+             Choose the required plug-ins and any <guilabel>Optional</guilabel> plug-ins listed by selecting the relevant check boxes. Sub-items can be selected or deselected as required.
            </para>
          </listitem>
       	 <listitem>
