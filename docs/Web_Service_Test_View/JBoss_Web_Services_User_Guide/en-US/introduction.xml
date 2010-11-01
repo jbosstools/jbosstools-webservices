@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Web_Services_User_Guide.ent">
+%BOOK_ENTITIES;
+]>
+<chapter id="introduction">
+  <title>Introduction</title>
+  <para>
+    A new tool has been incorporated into <application>JBoss Developer Studio</application> to enable the web service testing. The <guilabel>Web Service Tester</guilabel> is designed to provide basic web service testing capabilities and simplify common development tasks.
+  </para>
+  <para>
+  	The requirements for the tool to test a Java API for XML Web Services (<acronym>JAX-WS</acronym>) web service included the ability to create a sample SOAP request message by selecting an operation in a WSDL file. Additional requirements were the ability to invoke the service, passing the request message, and viewing the response headers and body.    
+  </para>
+  <para>  
+  	For a Java API for RESTful Web Services (<acronym>JAX-WS</acronym>) web service the requirements included the ability to use REST and standard HTTP operations to interact with a RESTful web service on a framework like RestEasy. The ability to see the response headers and any response message returned were also important requirements.
+  </para>
+  <para>
+    The following chapters discuss the use of the <guilabel>Web Service Tester</guilabel> view including:     
+  </para>
+  <itemizedlist>
+    <listitem>
+      <para>
+        Setting up a dynamic web project necessary for the creation of web services. 
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Using the Sample Web Service wizards. 
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Setting up the <application>RESTEasy</application> <guilabel>Project Example</guilabel>. 
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+       Outlining the features and use of the <guilabel>Web Service Tester</guilabel> view using the generated projects.
+      </para>
+    </listitem>
+  </itemizedlist>
+</chapter>

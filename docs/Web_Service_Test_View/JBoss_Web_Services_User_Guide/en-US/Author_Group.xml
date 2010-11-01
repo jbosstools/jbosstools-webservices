@@ -5,13 +5,22 @@
 ]>
 <authorgroup>
 	<author>
-		<firstname>Dude</firstname>
-		<surname>McPants</surname>
+		<firstname>Brian </firstname>
+		<surname>Fitzpatrick</surname>
 		<affiliation>
-			<orgname>Somewhere</orgname>
-			<orgdiv>Someone</orgdiv>
+			<orgname>Red Hat</orgname>
+			<orgdiv></orgdiv>
 		</affiliation>
-		<email>Dude.McPants@example.com</email>
+		<email>bfitzpatrick@redhat.com</email>
+	</author>
+	<author>
+		<firstname>Ben </firstname>
+		<surname>Clare</surname>
+		<affiliation>
+			<orgname>Red Hat</orgname>
+			<orgdiv></orgdiv>
+		</affiliation>
+		<email>bclare@redhat.com</email>
 	</author>
 </authorgroup>
 

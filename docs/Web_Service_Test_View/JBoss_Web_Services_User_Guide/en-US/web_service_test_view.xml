@@ -11,8 +11,9 @@
   
   <xi:include href="proc-jbt-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
   <para>
-    The following sections describe testing <acronym>JAX-WS</acronym> and <acronym>JAX-RS</acronym> web services.  
-  </para>  
+    The following sections describe testing <acronym>JAX-WS</acronym> and <acronym>JAX-RS</acronym> web services including the necessary preliminary steps.  
+  </para>
+   <xi:include href="preliminaries-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />  
   <xi:include href="testing_a_web_service-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
   <xi:include href="testing_a_restful_web_service-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
 </chapter>
