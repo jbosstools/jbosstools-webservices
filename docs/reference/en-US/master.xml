@@ -3,6 +3,7 @@
 "http://www.docbook.org/xml/4.3/docbookx.dtd"
 
 [<!ENTITY  overview SYSTEM "overview.xml">
+<!ENTITY simplewebservice SYSTEM "simple_web_service.xml">
 <!ENTITY topdown SYSTEM "topdown.xml">
 <!ENTITY preference SYSTEM "preference.xml">
 <!ENTITY webproject SYSTEM "webproject.xml">
@@ -65,6 +66,7 @@
     
     <toc/> 
     &overview;
+    &simplewebservice;
     &topdown;
     &client;
     &preference;
