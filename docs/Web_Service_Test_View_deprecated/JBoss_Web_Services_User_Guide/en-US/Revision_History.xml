@@ -8,12 +8,12 @@
 	<simpara>
 		<revhistory>
 			<revision>
-				<revnumber>0</revnumber>
+				<revnumber>0.0</revnumber>
 				<date>Tue Sep 7 2010</date>
 				<author>
-					<firstname>Dude</firstname>
-					<surname>McPants</surname>
-					<email>Dude.McPants@example.com</email>
+					<firstname>Ben</firstname>
+					<surname>Clare</surname>
+					<email>bclare@redhat.com</email>
 				</author>
 				<revdescription>
 					<simplelist>
