@@ -11,4 +11,5 @@
 		<firstname>Ben </firstname>
 		<surname>Clare</surname>
 		<email>bclare@redhat.com</email>
-	</author></authorgroup>
+	</author>
+	<editor><firstname>Isaac</firstname><surname>Rooskov</surname><email>irooskov@redhat.com</email></editor></authorgroup>
