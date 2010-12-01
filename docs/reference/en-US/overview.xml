@@ -2,7 +2,7 @@
 <chapter id="overview">
    <title>JBossWS Runtime Overview</title>
 
-    <para>JBossWS is a web service framework developed as a part of the JBoss Application Server. It implements the JAX-WS specification that defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5).</para>
+  <para>JBossWS is a web service framework developed as a part of the JBoss Application Server. It implements the JAX-WS and JAX-RS specifications. JAX-WS (Java API for XML Web Services) defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5). JAX-RS (Java API for RESTful Web Services) is a Java API that supports the creation of Representational State Transfer (REST) web services, using annotations. </para>
     <para>JBossWS integrates with most current JBoss Application Server releases as well as earlier ones, that did implement the J2EE 1.4 specifications. Even though JAX-RPC, the web service specification for J2EE 1.4, is still supported JBossWS does put a clear focus on JAX-WS.</para>
 
 <section>
@@ -31,6 +31,16 @@
                 <row>
                     <entry><para>JAX-RPC and JAX-WS support</para></entry>
                     <entry><para>JBossWS implements both the JAX-WS and JAX-RPC specifications.</para></entry>
+                   
+                </row>
+		
+		<row>
+		<entry>
+		   <para>JAX-RS support</para>
+		</entry>
+		<entry>
+                   <para>JBossWS implements the JAX-RS specification.</para>
+                </entry>
                    
                 </row>
                 
