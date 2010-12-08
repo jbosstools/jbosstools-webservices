@@ -43,7 +43,6 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		this.model = model;
 		cmdFileName_linux = getCommandLineFileName_linux();
 		cmdFileName_win = getCommandLineFileName_win();
-
 	}
 
 	@Override
@@ -54,24 +53,16 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		}
 		try {
 			monitor.beginTask("", 100); //$NON-NLS-1$
-			monitor
-					.subTask(JBossWSCreationCoreMessages.Progress_Message_Generating);
-
+			monitor.subTask(JBossWSCreationCoreMessages.Progress_Message_Generating);
 			IStatus status = Status.OK_STATUS;
 
-			IProject project = ResourcesPlugin.getWorkspace().getRoot()
-					.getProject(model.getWebProjectName());
-
+			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(model.getWebProjectName());
 			try {
-				String runtimeLocation = JBossWSCreationUtils
-						.getJBossWSRuntimeLocation(project);
-				String commandLocation = runtimeLocation + Path.SEPARATOR
-						+ "bin"; //$NON-NLS-1$
+				String runtimeLocation = JBossWSCreationUtils.getJBossWSRuntimeLocation(project);
+				String commandLocation = runtimeLocation + Path.SEPARATOR+ "bin"; //$NON-NLS-1$
 				IPath path = new Path(commandLocation);
-
 				List<String> command = new ArrayList<String>();
 				String[] env = getEnvironmentVariables(project);
-
 				if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) { //$NON-NLS-1$ //$NON-NLS-2$
 					command.add("cmd.exe"); //$NON-NLS-1$
 					command.add("/c"); //$NON-NLS-1$
@@ -82,77 +73,44 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					command.add(cmdFileName_linux);
 					path = path.append(cmdFileName_linux);
 				}
-
 				if (!path.toFile().getAbsoluteFile().exists()) {
-					return StatusUtils
-							.errorStatus(NLS
-									.bind(
-											JBossWSCreationCoreMessages.Error_Message_Command_File_Not_Found,
-											new String[] { path.toOSString() }));
+					return StatusUtils.errorStatus(NLS.bind(JBossWSCreationCoreMessages.Error_Message_Command_File_Not_Found, new String[] { path.toOSString() }));
 				}
-
 				addCommandlineArgs(command);
 				addCommonArgs(command, project);
 
-				Process proc = DebugPlugin.exec(command
-						.toArray(new String[command.size()]), new File(
-						commandLocation), env);
+				Process proc = DebugPlugin.exec(command.toArray(new String[command.size()]), new File(commandLocation), env);
 				StringBuffer errorResult = new StringBuffer();
 				StringBuffer inputResult = new StringBuffer();
-
 				convertInputStreamToString(errorResult, proc.getErrorStream());
 				convertInputStreamToString(inputResult, proc.getInputStream());
-
 				int exitValue = proc.waitFor();
-
 				String resultInput = inputResult.toString();
-
 				if (exitValue != 0) {
-
-					JBossWSCreationCorePlugin.getDefault().logError(
-							errorResult.toString());
-					JBossWSCreationCorePlugin.getDefault().logError(
-							inputResult.toString());
-
-					// there is no way to know if the failure of invoking is
-					// because of failure of
-					// compiling or because of failure of generating java code,
-					// so try to analyze the
-					// output string of the command, if the string contains
-					// "javac -d", means the java
-					// java code generating is complete.
-
-					if (resultInput != null
-							&& resultInput.indexOf("javac -d") >= 0) {//$NON-NLS-1$
-						return StatusUtils
-								.warningStatus(errorResult.toString());
+					JBossWSCreationCorePlugin.getDefault().logError(errorResult.toString());
+					JBossWSCreationCorePlugin.getDefault().logError(inputResult.toString());
+					// the resultInput containing "javac -d", means the java
+					// code generating is complete and there is only a javac error.
+					if (resultInput != null && resultInput.indexOf("javac -d") >= 0) {//$NON-NLS-1$
+						return StatusUtils.warningStatus(errorResult.toString());
 					}
 					return StatusUtils.errorStatus(errorResult.toString());
 				} else {
 					if (resultInput != null) {
-						if (resultInput.indexOf("[ERROR]") >= 0) { //$NON-NLS-1$
-							JBossWSCreationCorePlugin.getDefault().logWarning(
-									resultInput);
-							IStatus errorStatus = StatusUtils
-									.warningStatus(resultInput);
-							status = StatusUtils
-									.warningStatus(
-											JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
-											new CoreException(errorStatus));
+						// there are errors, but not complication error.
+						if (resultInput.indexOf("error") >= 0 && !(resultInput.indexOf("compilation failed") >= 0)) { //$NON-NLS-1$ //$NON-NLS-2$
+							JBossWSCreationCorePlugin.getDefault().logError(resultInput);
+							IStatus errorStatus = StatusUtils.errorStatus(resultInput);
+							status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,new CoreException(errorStatus));
+							return status;
 						}
-						if (resultInput.indexOf("error") >= 0) { //$NON-NLS-1$
-							JBossWSCreationCorePlugin.getDefault().logError(
-									resultInput);
-							IStatus errorStatus = StatusUtils
-									.errorStatus(resultInput);
-							status = StatusUtils
-									.errorStatus(
-											JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,
-											new CoreException(errorStatus));
+						if (resultInput.indexOf("[ERROR]") >= 0) { //$NON-NLS-1$
+							JBossWSCreationCorePlugin.getDefault().logWarning(resultInput);
+							IStatus errorStatus = StatusUtils.warningStatus(resultInput);
+							status = StatusUtils.warningStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code, new CoreException(errorStatus));
 						}
 					}
 				}
-
 			} catch (InterruptedException e) {
 				JBossWSCreationCorePlugin.getDefault().logError(e);
 				return StatusUtils.errorStatus(e);
@@ -164,7 +122,6 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				JBossWSCreationCorePlugin.getDefault().logError(e);
 				return StatusUtils.errorStatus(e);
 			}
-
 			return status;
 		} finally {
 			refreshProject(model.getWebProjectName(), monitor);
@@ -183,53 +140,39 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 			IJavaProject javaProject = JavaCore.create(project);
 			if (javaProject == null || !javaProject.exists())
 				return null;
-
 			try {
 				if (!javaProject.isOpen()) {
 					javaProject.open(null);
 				}
-
 				IVMInstall vm = JavaRuntime.getVMInstall(javaProject);
 				String javaLocation = vm.getInstallLocation().toString();
 				env = new String[] { JAVA_HOME + "=" + javaLocation }; //$NON-NLS-1$
-
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}
 		}
-
 		return env;
 	}
 
-	private void addCommonArgs(List<String> command, IProject project)
-			throws Exception {
-		String projectRoot = JBossWSCreationUtils.getProjectRoot(
-				model.getWebProjectName()).toOSString();
+	private void addCommonArgs(List<String> command, IProject project) throws Exception {
+		String projectRoot = JBossWSCreationUtils.getProjectRoot(model.getWebProjectName()).toOSString();
 		IJavaProject javaProject = JavaCore.create(project);
-
 		command.add("-k"); //$NON-NLS-1$
-
 		command.add("-s"); //$NON-NLS-1$
 		command.add(JBossWSCreationUtils.getJavaProjectSrcLocation(project));
-
 		command.add("-o"); //$NON-NLS-1$
 		StringBuffer opDir = new StringBuffer();
-		opDir.append(projectRoot).append(Path.SEPARATOR).append(
-				javaProject.getOutputLocation().removeFirstSegments(1)
-						.toOSString());
+		opDir.append(projectRoot).append(Path.SEPARATOR).append(javaProject.getOutputLocation().removeFirstSegments(1).toOSString());
 		command.add(opDir.toString());
 		if (model.getWsdlURI() != null) {
 			command.add(model.getWsdlURI());
 		}
-
 	}
 
 	private void convertInputStreamToString(final StringBuffer result,
 			final InputStream input) {
-
 		Thread thread = new Thread() {
 			public void run() {
-
 				try {
 					InputStreamReader ir = new InputStreamReader(input);
 					LineNumberReader reader = new LineNumberReader(ir);
@@ -238,7 +181,6 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					while (str != null) {
 						result.append(str).append("\t\r"); //$NON-NLS-1$
 						str = reader.readLine();
-
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -246,23 +188,19 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 
 			}
 		};
-
 		thread.start();
-
 	}
 
 	private void refreshProject(String project, IProgressMonitor monitor) {
 		try {
-			JBossWSCreationUtils.getProjectByName(project).refreshLocal(2,
-					monitor);
+			JBossWSCreationUtils.getProjectByName(project).refreshLocal(2,monitor);
 		} catch (CoreException e) {
 			e.printStackTrace();
 			JBossWSCreationCorePlugin.getDefault().logError(e);
 		}
 	}
 
-	abstract protected void addCommandlineArgs(List<String> command)
-			throws Exception;
+	abstract protected void addCommandlineArgs(List<String> command) throws Exception;
 
 	abstract protected String getCommandLineFileName_linux();
 
