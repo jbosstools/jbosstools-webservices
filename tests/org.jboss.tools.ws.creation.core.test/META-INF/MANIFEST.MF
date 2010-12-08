@@ -32,7 +32,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text,
  org.jboss.ide.eclipse.as.classpath.core,
  org.jboss.ide.eclipse.as.ui;bundle-version="2.1.0",
- org.jboss.ide.eclipse.as.wtp.core;bundle-version="2.1.0"
+ org.jboss.ide.eclipse.as.wtp.core;bundle-version="2.1.0",
+ org.jboss.ide.eclipse.as.test;bundle-version="2.2.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.creation.core.test,
  org.jboss.tools.ws.creation.core.test.command
