@@ -8,6 +8,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
@@ -92,7 +93,11 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
 		serverWC.modifyModules(modules, null, null);
 		serverWC.save(true, null).publish(0, null);
-		currentServer.publish(IServer.PUBLISH_FULL, null);
+		IStatus status = currentServer.publish(IServer.PUBLISH_FULL, null);
+		int i = 0;
+		while(!status.isOK() && i++ <30){
+			JobUtils.delay(500);
+		}
 	}
 	
 	private boolean isServerSupplied() {

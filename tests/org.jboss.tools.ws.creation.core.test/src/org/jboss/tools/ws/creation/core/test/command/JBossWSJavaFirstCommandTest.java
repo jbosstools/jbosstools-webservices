@@ -77,10 +77,8 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		project.refreshLocal(IResource.DEPTH_INFINITE, null);
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		
-		publishWebProject();
-		assertTrue(currentServer.getModules().length > 0);
 		startup(currentServer);
-		JobUtils.delay(12000);
+		publishWebProject();
 		String webServiceUrl = "http://127.0.0.1:8080/JavaFirstTestProject/HelloWorld?wsdl";
 		URL url = new URL(webServiceUrl);
 		URLConnection conn = url.openConnection();

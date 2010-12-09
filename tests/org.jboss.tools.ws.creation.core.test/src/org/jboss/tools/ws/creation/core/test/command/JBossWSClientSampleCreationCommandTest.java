@@ -43,18 +43,15 @@ public class JBossWSClientSampleCreationCommandTest extends TestCase{
 		try {
 			JobUtils.delay(500);
 			try {
-				System.out.println("Deleting " + prj);
 				prj.delete(true, null);
 				JobUtils.delay(500);
 			} catch (Exception e) {
-				System.out.println("Error deleting " + prj);
 				e.printStackTrace();
 				last = e;
 			}
 		} finally {
 			ResourcesUtils.setBuildAutomatically(oldAutoBuilding);
 		}
-
 		if (last != null)
 			throw last;
 		super.tearDown();
