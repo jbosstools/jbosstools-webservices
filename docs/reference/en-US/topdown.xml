@@ -123,7 +123,11 @@
          JBoss Web Service facet installed. </para>
       <para>See how to make it <link linkend="createproject">here</link> and <link
             linkend="addfacet">here</link>.</para>
-
+	 <note>
+	    <para>
+	       To use the <guilabel>Simple Web Service</guilabel> wizard to create this Web Service, replace the <guilabel>Class</guilabel> and <guilabel>Applicaiton Class</guilabel> fields with your specific classes, within the instructions in <xref linkend="simple_web_service" />.
+	    </para>
+	 </note>
       <para>To create a Web Service using JBossWS runtime select<emphasis>
             <property>File > New > Other > Web Services > Web Service</property>
          </emphasis> to run Web Service creation wizard. </para>
@@ -217,6 +221,11 @@
       <para>To create a Web service from a bean using JBoss WS:</para>
       <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
       <para>Create <link linkend="createproject">a Dynamic Web project</link>.</para>
+      <note>
+	 <para>
+	    To use the <guilabel>Simple Web Service</guilabel> wizard to create this Web Service, replace the <guilabel>Class</guilabel> and <guilabel>Applicaiton Class</guilabel> fields with your specific classes, within the instructions in <xref linkend="simple_web_service" />.
+	 </para>
+      </note>
       <para>Add <link linkend="addfacet">JBossWS Facet</link> to Web project.</para>
       <para>Create a Web Service from a java bean: </para>
       <itemizedlist>
