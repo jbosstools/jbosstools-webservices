@@ -23,20 +23,17 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.server.core,
  org.eclipse.core.filesystem,
  com.ibm.icu,
- org.apache.axis,
- javax.xml.rpc,
  org.eclipse.wst.internet.monitor.core,
  org.eclipse.wst.internet.monitor.ui,
  javax.wsdl;bundle-version="1.6.2",
  org.jdom,
- javax.xml.ws,
  org.eclipse.ui.forms,
  org.eclipse.emf.common,
  org.eclipse.jdt.ui,
  org.eclipse.osgi,
  org.eclipse.jst.ws.annotations.core,
  org.apache.commons.codec,
- javax.xml.soap;bundle-version="[1.2.0,1.3.0)"
+ org.apache.commons.discovery;bundle-version="[0.2.0,1.0.0)"
 Bundle-ActivationPolicy: lazy
 Export-Package: javax.ws.rs,
  javax.ws.rs.core,
@@ -50,9 +47,17 @@ Export-Package: javax.ws.rs,
 Bundle-Vendor: %PLUGIN_PROVIDER
 Eclipse-RegisterBuddy: org.eclipse.jst.ws.annotations.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Import-Package: javax.xml.ws,
+Import-Package: javax.activation,
+ javax.mail,
+ javax.mail.internet,
+ javax.servlet;version="[2.4.0,3.0.0)",
+ javax.servlet.http;version="[2.4.0,3.0.0)",
+ org.apache.commons.logging;version="[1.0.4,2.0.0)",
+ org.apache.commons.logging.impl;version="[1.0.4,2.0.0)",
  org.eclipse.jst.javaee.web,
  org.jboss.tools.ws.creation.core.commands,
  org.jboss.tools.ws.creation.core.data
-Bundle-ClassPath: lib/jaxrs-api.jar,
- .
+Bundle-ClassPath: .,
+ lib/jaxrs-api.jar,
+ lib/axis.jar,
+ lib/jaxrpc.jar
