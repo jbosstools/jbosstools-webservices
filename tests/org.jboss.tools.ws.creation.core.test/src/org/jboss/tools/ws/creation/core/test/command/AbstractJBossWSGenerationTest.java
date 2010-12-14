@@ -18,8 +18,10 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerUtil;
+import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
 import org.jboss.ide.eclipse.as.test.ASTest;
 import org.jboss.ide.eclipse.as.test.util.ServerRuntimeUtils;
+import org.jboss.ide.eclipse.as.test.util.jdt.JREUtils;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.test.util.TestProjectProvider;
@@ -36,8 +38,8 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	private String RuntimeName = "testjbosswsruntime";
 	public String wsdlFileName = "hello_world.wsdl";
 	public ServiceModel model;
-	private String JBOSS_AS_423_HOME = ASTest.JBOSS_AS_42_HOME;
-	private String JBOSS_WS_HOME = JBOSS_AS_423_HOME;
+	private String JBOSS_AS_42_HOME = ASTest.JBOSS_AS_42_HOME;
+	private String JBOSS_WS_HOME = JBOSS_AS_42_HOME;
 	public String wsHomePath;
 	IFacetedProject fproject;
 	public IFile wsdlFile;
@@ -50,7 +52,7 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	}
 	
 	public void createWSServer() throws Exception {
-		currentServer = create42Server();	
+		currentServer = createServer(IJBossToolingConstants.AS_42, IJBossToolingConstants.SERVER_AS_42, ASTest.JBOSS_AS_42_HOME, DEFAULT_CONFIG,JREUtils.createJRE());	
 	}
 
 	public IProject createProject(String prjName) throws CoreException {
