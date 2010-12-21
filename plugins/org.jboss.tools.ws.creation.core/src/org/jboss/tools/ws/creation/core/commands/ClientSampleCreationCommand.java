@@ -32,6 +32,8 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.PrimitiveType.Code;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
@@ -64,6 +66,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
+		argsNum = 0;
 		IStatus status = Status.OK_STATUS;
 		IJavaProject project = null;
 		try {
@@ -93,19 +96,19 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			return status;
 		}
 
-			List<String> packageList = new LinkedList<String>();
-			for (ICompilationUnit unit : clientUnits) {
-				if (!packageList.contains(unit.getParent().getElementName())) {
-					packageList.add(unit.getParent().getElementName());
-				}
+		List<String> packageList = new LinkedList<String>();
+		for (ICompilationUnit unit : clientUnits) {
+			if (!packageList.contains(unit.getParent().getElementName())) {
+				packageList.add(unit.getParent().getElementName());
 			}
-			for (int j = 0; j < packageList.size(); j++) {
-				status = createImplClass(packageList.get(j), project,
-						clientUnits, serviceUnits);
-				if (!status.isOK()) {
-					break;
-				}
+		}
+		for (int j = 0; j < packageList.size(); j++) {
+			status = createImplClass(packageList.get(j), project, clientUnits,
+					serviceUnits);
+			if (!status.isOK()) {
+				break;
 			}
+		}
 
 		return status;
 	}
@@ -141,7 +144,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		sb.append(LINE_SEPARATOR);
 		sb.append("        System.out.println(\"***********************\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
-		createWebServiceClient(clientUnits, serviceUnits, sb,packageName);
+		createWebServiceClient(clientUnits, serviceUnits, sb, packageName);
 		sb.append("        System.out.println(\"***********************\");"); //$NON-NLS-1$
 		sb.append(LINE_SEPARATOR);
 		sb.append("        System.out.println(\"").append( //$NON-NLS-1$
@@ -157,7 +160,114 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			return StatusUtils
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
+		System.out.println(sb.toString());
 		return Status.OK_STATUS;
+	}
+
+	/**
+	 * create a java class
+	 * 
+	 * @param packageName
+	 * @param className
+	 * @param isInterface
+	 * @param interfaceName
+	 * @param javaProject
+	 * @return
+	 */
+	public ICompilationUnit createJavaClass(String packageName,
+			String className, boolean isInterface, String interfaceName,
+			IJavaProject javaProject) {
+		try {
+			IPath srcPath = new Path(
+					JBossWSCreationUtils.getJavaProjectSrcLocation(javaProject
+							.getProject()));
+			srcPath = javaProject.getPath().append(
+					srcPath.makeRelativeTo(javaProject.getProject()
+							.getLocation()));
+			IPackageFragmentRoot root = javaProject
+					.findPackageFragmentRoot(srcPath);
+			if (packageName == null) {
+				packageName = ""; //$NON-NLS-1$
+			}
+			IPackageFragment pkg = root.createPackageFragment(packageName,
+					false, null);
+			ICompilationUnit wrapperCls = pkg.createCompilationUnit(className
+					+ ".java", "", true, null); //$NON-NLS-1$//$NON-NLS-2$
+			if (!packageName.equals("")) { //$NON-NLS-1$
+				wrapperCls.createPackageDeclaration(packageName, null);
+			}
+
+			String clsContent = ""; //$NON-NLS-1$
+			if (isInterface) {
+				clsContent = "public interface " + className + " {" //$NON-NLS-1$ //$NON-NLS-2$
+						+ LINE_SEPARATOR;
+				clsContent += "}" + LINE_SEPARATOR; //$NON-NLS-1$
+			} else {
+				clsContent = "public class " + className; //$NON-NLS-1$
+				if (interfaceName != null) {
+					clsContent += " implements " + interfaceName; //$NON-NLS-1$
+				}
+				clsContent += " {" + LINE_SEPARATOR; //$NON-NLS-1$
+				clsContent += "}" + LINE_SEPARATOR; //$NON-NLS-1$
+			}
+			wrapperCls.createType(clsContent, null, true, null);
+
+			wrapperCls.save(null, true);
+			return wrapperCls;
+		} catch (Exception e) {
+			JBossWSCreationCorePlugin.getDefault().logError(e);
+			return null;
+		}
+	}
+
+	/**
+	 * create a code block used to new a web service client
+	 * 
+	 * @param clientUnits
+	 * @param serviceUnits
+	 * @param sb
+	 */
+	private void createWebServiceClient(List<ICompilationUnit> clientUnits,
+			List<ICompilationUnit> serviceUnits, StringBuffer sb,
+			String packageName) {
+		sb.append("        System.out.println(\"" //$NON-NLS-1$
+				+ "Create Web Service Client...\");"); //$NON-NLS-1$
+		sb.append(LINE_SEPARATOR);
+		for (ICompilationUnit unit : clientUnits) {
+			// parse the unit
+			if (!packageName.equals(unit.getParent().getElementName())) {
+				continue;
+			}
+			ASTParser parser = ASTParser.newParser(AST.JLS3);
+			parser.setSource(unit);
+			parser.setResolveBindings(false);
+			parser.setFocalPosition(0);
+			CompilationUnit result = (CompilationUnit) parser.createAST(null);
+			@SuppressWarnings("rawtypes")
+			List types = result.types();
+			TypeDeclaration typeDec = (TypeDeclaration) types.get(0);
+			sb.append("        " + typeDec.getName()); //$NON-NLS-1$
+			sb.append(" service").append(serviceNum).append(" = new "); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append(typeDec.getName());
+			sb.append("();"); //$NON-NLS-1$
+			sb.append(LINE_SEPARATOR);
+
+			MethodDeclaration methodDec[] = typeDec.getMethods();
+
+			// create web service from web serivce client methods
+			for (MethodDeclaration method : methodDec) {
+				if (method.modifiers().get(0) instanceof NormalAnnotation) {
+					NormalAnnotation anno = (NormalAnnotation) method
+							.modifiers().get(0);
+					if (anno.getTypeName().getFullyQualifiedName()
+							.equals(JBossWSCreationCoreMessages.WebEndpoint)) {
+						createWebService(serviceUnits, method, sb);
+						portNum += 1;
+					}
+				}
+			}
+			serviceNum += 1;
+		}
 	}
 
 	/**
@@ -247,132 +357,61 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 	 * @param sb
 	 * @param j
 	 */
+	@SuppressWarnings("static-access")
 	private boolean createWebServiceOperationParameters(
 			@SuppressWarnings("rawtypes") List list, StringBuffer sb, int j) {
 		SingleVariableDeclaration para = (SingleVariableDeclaration) list
 				.get(j);
-
-		if ("String".equals(para.getType().toString())) { //$NON-NLS-1$
-			sb.append("args[").append(argsNum).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
-			if (j != list.size() - 1) {
-				sb.append(","); //$NON-NLS-1$
+		if (para.getType().isPrimitiveType()) {
+			PrimitiveType type = (PrimitiveType) para.getType();
+			Code code = type.getPrimitiveTypeCode();
+			if (type.INT.equals(code)) {
+				sb.append("Integer.parseInt(args["); //$NON-NLS-1$
+			} else if (type.BOOLEAN.equals(code)) {
+				sb.append("Boolean.parseBoolean(args["); //$NON-NLS-1$
+			} else if (type.BYTE.equals(code)) {
+				sb.append("Byte.parseByte(args["); //$NON-NLS-1$
+			} else if (type.SHORT.equals(code)) {
+				sb.append("Short.parseShort((args["); //$NON-NLS-1$
+			} else if (type.LONG.equals(code)) {
+				sb.append("Long.parseLong(args["); //$NON-NLS-1$
+			} else if (type.FLOAT.equals(code)) {
+				sb.append("Float.parseFloat(args["); //$NON-NLS-1$
+			} else if (type.DOUBLE.equals(code)) {
+				sb.append("Double.parseDouble(args["); //$NON-NLS-1$
+			} else {
+				if (type.CHAR.equals(code)) {
+					sb.append("args[").append(argsNum).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
+					countArgs(j, sb, list);
+					argsNum += 1;
+				}
+				return true;
 			}
+			sb.append(argsNum).append("])"); //$NON-NLS-1$
+			countArgs(j, sb, list);
 			argsNum += 1;
+			System.out.println(argsNum);
+			return true;
+		} else if ("String".equals(para.getType().toString())) { //$NON-NLS-1$
+			sb.append("args[").append(argsNum).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
+			countArgs(j, sb, list);
+			argsNum += 1;
+			System.out.println(argsNum);
 			return true;
 		}
-
 		if (list.get(j) instanceof Object) {
 			sb.append("null"); //$NON-NLS-1$
-			if (j != list.size() - 1) {
-				sb.append(","); //$NON-NLS-1$
-			}
+			countArgs(j, sb, list);
 			return false;
 		}
 		return true;
-
 	}
 
-	/**
-	 * create a code block used to new a web service client
-	 * 
-	 * @param clientUnits
-	 * @param serviceUnits
-	 * @param sb
-	 */
-	private void createWebServiceClient(List<ICompilationUnit> clientUnits,List<ICompilationUnit> serviceUnits, StringBuffer sb,String packageName) {
-		sb.append("        System.out.println(\"" //$NON-NLS-1$
-				+ "Create Web Service Client...\");"); //$NON-NLS-1$
-		sb.append(LINE_SEPARATOR);
-		for (ICompilationUnit unit : clientUnits) {
-			// parse the unit
-			if(!packageName.equals(unit.getParent().getElementName())){
-				continue;
-			}
-			ASTParser parser = ASTParser.newParser(AST.JLS3);
-			parser.setSource(unit);
-			parser.setResolveBindings(false);
-			parser.setFocalPosition(0);
-			CompilationUnit result = (CompilationUnit) parser.createAST(null);
-			@SuppressWarnings("rawtypes")
-			List types = result.types();
-			TypeDeclaration typeDec = (TypeDeclaration) types.get(0);
-			sb.append("        " + typeDec.getName()); //$NON-NLS-1$
-			sb.append(" service").append(serviceNum).append(" = new "); //$NON-NLS-1$ //$NON-NLS-2$
-			sb.append(typeDec.getName());
-			sb.append("();"); //$NON-NLS-1$
-			sb.append(LINE_SEPARATOR);
-
-			MethodDeclaration methodDec[] = typeDec.getMethods();
-
-			// create web service from web serivce client methods
-			for (MethodDeclaration method : methodDec) {
-				if (method.modifiers().get(0) instanceof NormalAnnotation) {
-					NormalAnnotation anno = (NormalAnnotation) method
-							.modifiers().get(0);
-					if (anno.getTypeName().getFullyQualifiedName()
-							.equals(JBossWSCreationCoreMessages.WebEndpoint)) {
-						createWebService(serviceUnits, method, sb);
-						portNum += 1;
-					}
-				}
-			}
-			serviceNum += 1;
+	private void countArgs(int j, StringBuffer sb,
+			@SuppressWarnings("rawtypes") List list) {
+		if (j != list.size() - 1) {
+			sb.append(","); //$NON-NLS-1$
 		}
 	}
 
-	/**
-	 * create a java class
-	 * 
-	 * @param packageName
-	 * @param className
-	 * @param isInterface
-	 * @param interfaceName
-	 * @param javaProject
-	 * @return
-	 */
-	public ICompilationUnit createJavaClass(String packageName,
-			String className, boolean isInterface, String interfaceName,
-			IJavaProject javaProject) {
-		try {
-			IPath srcPath = new Path(
-					JBossWSCreationUtils.getJavaProjectSrcLocation(javaProject
-							.getProject()));
-			srcPath = javaProject.getPath().append(
-					srcPath.makeRelativeTo(javaProject.getProject()
-							.getLocation()));
-			IPackageFragmentRoot root = javaProject
-					.findPackageFragmentRoot(srcPath);
-			if (packageName == null) {
-				packageName = ""; //$NON-NLS-1$
-			}
-			IPackageFragment pkg = root.createPackageFragment(packageName,
-					false, null);
-			ICompilationUnit wrapperCls = pkg.createCompilationUnit(className
-					+ ".java", "", true, null); //$NON-NLS-1$//$NON-NLS-2$
-			if (!packageName.equals("")) { //$NON-NLS-1$
-				wrapperCls.createPackageDeclaration(packageName, null);
-			}
-
-			String clsContent = ""; //$NON-NLS-1$
-			if (isInterface) {
-				clsContent = "public interface " + className + " {" //$NON-NLS-1$ //$NON-NLS-2$
-						+ LINE_SEPARATOR;
-				clsContent += "}" + LINE_SEPARATOR; //$NON-NLS-1$
-			} else {
-				clsContent = "public class " + className; //$NON-NLS-1$
-				if (interfaceName != null) {
-					clsContent += " implements " + interfaceName; //$NON-NLS-1$
-				}
-				clsContent += " {" + LINE_SEPARATOR; //$NON-NLS-1$
-				clsContent += "}" + LINE_SEPARATOR; //$NON-NLS-1$
-			}
-			wrapperCls.createType(clsContent, null, true, null);
-
-			wrapperCls.save(null, true);
-			return wrapperCls;
-		} catch (Exception e) {
-			JBossWSCreationCorePlugin.getDefault().logError(e);
-			return null;
-		}
-	}
 }
