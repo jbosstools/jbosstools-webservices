@@ -89,7 +89,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		List<ICompilationUnit> serviceUnits = JBossWSCreationUtils
 				.findJavaUnitsByAnnotation(
 						project,
-						JBossWSCreationCoreMessages.Webservice_Annotation_Check,
+						JBossWSCreationCoreMessages.Webservice_Annotation,
 						model.getCustomPackage());
 
 		if (clientUnits.size() == 0) {
@@ -160,7 +160,6 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			return StatusUtils
 					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
 		}
-		System.out.println(sb.toString());
 		return Status.OK_STATUS;
 	}
 
@@ -390,13 +389,11 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			sb.append(argsNum).append("])"); //$NON-NLS-1$
 			countArgs(j, sb, list);
 			argsNum += 1;
-			System.out.println(argsNum);
 			return true;
 		} else if ("String".equals(para.getType().toString())) { //$NON-NLS-1$
 			sb.append("args[").append(argsNum).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
 			countArgs(j, sb, list);
 			argsNum += 1;
-			System.out.println(argsNum);
 			return true;
 		}
 		if (list.get(j) instanceof Object) {

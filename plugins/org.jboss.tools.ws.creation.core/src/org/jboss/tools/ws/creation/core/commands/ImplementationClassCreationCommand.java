@@ -102,7 +102,7 @@ public class ImplementationClassCreationCommand extends
 			List<ICompilationUnit> serviceUnits = JBossWSCreationUtils
 					.findJavaUnitsByAnnotation(
 							javaPrj,
-							JBossWSCreationCoreMessages.Webservice_Annotation_Check,
+							JBossWSCreationCoreMessages.Webservice_Annotation,
 							model.getCustomPackage());
 			
 			packageName = model.getCustomPackage();

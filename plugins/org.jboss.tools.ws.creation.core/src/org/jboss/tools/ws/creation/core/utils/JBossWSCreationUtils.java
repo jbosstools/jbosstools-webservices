@@ -43,6 +43,7 @@ import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IParent;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.common.componentcore.ComponentCore;
@@ -446,23 +447,27 @@ public class JBossWSCreationUtils {
 		return path;
 	}
 
-	public static String composeSrcPackageClassPath ( IProject project, String packageName, String className) {
+	public static String composeSrcPackageClassPath(IProject project,
+			String packageName, String className) {
 		String classFilePath = null;
 		try {
-			String srcPath = JBossWSCreationUtils.getJavaProjectSrcLocation(project);
+			String srcPath = JBossWSCreationUtils
+					.getJavaProjectSrcLocation(project);
 			if (srcPath != null && srcPath.trim().length() > 0) {
 				String pathSeparator = "" + File.separatorChar; //$NON-NLS-1$
-				String packageToFolderPath = packageName.replace(".", pathSeparator); //$NON-NLS-1$
-				classFilePath = srcPath + pathSeparator + packageToFolderPath + pathSeparator + className + JAVA;
+				String packageToFolderPath = packageName.replace(
+						".", pathSeparator); //$NON-NLS-1$
+				classFilePath = srcPath + pathSeparator + packageToFolderPath
+						+ pathSeparator + className + JAVA;
 				return classFilePath;
 			}
 		} catch (JavaModelException e) {
 			return null;
 		}
 		return null;
-	
+
 	}
-	
+
 	public static File findFileByPath(String path) {
 		File file = new File(path);
 		if (file.exists())
@@ -534,9 +539,11 @@ public class JBossWSCreationUtils {
 			}
 			if (javaFiles != null) {
 				for (ICompilationUnit unit : javaFiles) {
-					if (unit.getSource().contains(annotation)) {
-						units.add(unit);
-
+					if (unit.getTypes().length > 0) {
+						IType type = unit.getTypes()[0];
+						if (type.getAnnotation(annotation).exists()) {
+							units.add(unit);
+						}
 					}
 				}
 			}

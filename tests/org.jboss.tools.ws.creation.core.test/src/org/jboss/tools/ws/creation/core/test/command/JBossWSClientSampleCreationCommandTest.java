@@ -33,7 +33,7 @@ public class JBossWSClientSampleCreationCommandTest extends TestCase{
 		ServiceModel model = new ServiceModel();
 		model.setCustomPackage("");
 		model.setWebProjectName("WebTest");
-		List<ICompilationUnit> list = JBossWSCreationUtils.findJavaUnitsByAnnotation(JavaCore.create(prj), "@WebService", "");	
+		List<ICompilationUnit> list = JBossWSCreationUtils.findJavaUnitsByAnnotation(JavaCore.create(prj), "WebService", "");	
 		assertTrue("No java files in src!",list.isEmpty());
 	}
 

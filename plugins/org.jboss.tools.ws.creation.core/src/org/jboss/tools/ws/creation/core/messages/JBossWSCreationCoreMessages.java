@@ -11,7 +11,6 @@ public class JBossWSCreationCoreMessages extends NLS {
 	public static String Value_Target_1;
 	public static String Separator_Java;
 	public static String WebserviceClient_Annotation;
-	public static String Webservice_Annotation_Check;
 	public static String Webservice_Annotation;
 	public static String Webservice_Annotation_Prefix;
     public static String WebEndpoint;
