@@ -537,19 +537,21 @@ public class JBossWSCreationUtils {
 				javaFiles = project.findPackageFragment(path)
 						.getCompilationUnits();
 			}
-			if (javaFiles != null) {
+			if (javaFiles != null && javaFiles.length > 0) {
 				for (ICompilationUnit unit : javaFiles) {
 					if (unit.getTypes().length > 0) {
 						IType type = unit.getTypes()[0];
 						if (type.getAnnotation(annotation).exists()) {
-							units.add(unit);
+							File file = new File(unit.getResource().getLocation().toOSString());
+                            if(file.lastModified() > JBossWSCreationCorePlugin.getDefault().getGenerateTime()){
+                            	units.add(unit);
+                            }
 						}
 					}
 				}
 			}
 		} catch (JavaModelException e) {
 			JBossWSCreationCorePlugin.getDefault().logError(e);
-
 		}
 	}
 

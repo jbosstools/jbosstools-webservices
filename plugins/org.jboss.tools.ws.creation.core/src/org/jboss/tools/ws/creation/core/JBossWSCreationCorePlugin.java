@@ -14,6 +14,8 @@ public class JBossWSCreationCorePlugin extends BaseUIPlugin {
 	// The shared instance
 	private static JBossWSCreationCorePlugin plugin;
 	
+	private long generateTime;
+	
 	/**
 	 * The constructor
 	 */
@@ -45,6 +47,14 @@ public class JBossWSCreationCorePlugin extends BaseUIPlugin {
 	 */
 	public static JBossWSCreationCorePlugin getDefault() {
 		return plugin;
+	}
+	
+	public long getGenerateTime(){
+		return generateTime;
+	}
+
+	public void setGenerateTime(long generateTime) {
+		this.generateTime = generateTime;
 	}
 
 }

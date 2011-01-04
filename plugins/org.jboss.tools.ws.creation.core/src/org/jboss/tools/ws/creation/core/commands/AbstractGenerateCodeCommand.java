@@ -57,6 +57,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 			IStatus status = Status.OK_STATUS;
 
 			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(model.getWebProjectName());
+			JBossWSCreationCorePlugin.getDefault().setGenerateTime(System.currentTimeMillis());
 			try {
 				String runtimeLocation = JBossWSCreationUtils.getJBossWSRuntimeLocation(project);
 				String commandLocation = runtimeLocation + Path.SEPARATOR+ "bin"; //$NON-NLS-1$
