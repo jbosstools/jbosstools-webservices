@@ -1,12 +1,15 @@
 package org.jboss.tools.ws.creation.core.commands;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
+import javax.wsdl.factory.WSDLFactory;
+import javax.wsdl.xml.WSDLReader;
+import javax.xml.namespace.QName;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
@@ -49,16 +52,17 @@ import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.WildcardType;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
-import org.jboss.tools.ws.creation.core.utils.WSDLPropertyReader;
 
 public class ImplementationClassCreationCommand extends
 		AbstractDataModelOperation {
@@ -100,27 +104,36 @@ public class ImplementationClassCreationCommand extends
 
 			IJavaProject javaPrj = JavaCore.create(project);
 			List<ICompilationUnit> serviceUnits = JBossWSCreationUtils
-					.findJavaUnitsByAnnotation(
-							javaPrj,
+					.findJavaUnitsByAnnotation(javaPrj,
 							JBossWSCreationCoreMessages.Webservice_Annotation,
 							model.getCustomPackage());
-			
+
 			packageName = model.getCustomPackage();
 			boolean noPackageName = false;
-			if("".equals(packageName)){ //$NON-NLS-1$
+			if ("".equals(packageName)) { //$NON-NLS-1$
 				noPackageName = true;
 			}
+			boolean isCheck = true;
 			for (ICompilationUnit service : serviceUnits) {
 				if (!service.findPrimaryType().isInterface()) {
 					continue;
 				}
-				if(noPackageName){
+				if (noPackageName) {
 					packageName = service.getParent().getElementName();
 				}
+				String implClsName = getImplClassName(getClassName(service
+						.getElementName()));
+				if (isCheck) {
+					if (findImplClass(implClsName)) {
+						isCheck = false;
+						if (!isOverwriteClass()) {
+							break;
+						}
+					}
+				}
 				generateImplClass(service);
-				String implClsName = getImplPackageName()
-						+ "." + getImplClassName(getClassName(service.getElementName())); //$NON-NLS-1$
-				model.addServiceClasses(implClsName);
+				model.addServiceClasses(getImplPackageName()
+						+ "." + implClsName); //$NON-NLS-1$
 			}
 
 		} catch (CoreException e) {
@@ -139,42 +152,48 @@ public class ImplementationClassCreationCommand extends
 		return status;
 	}
 
-	protected String getTNSFromWSDL() {
-		WSDLPropertyReader reader = new WSDLPropertyReader();
-		try {
-			URI fileURI = new URI(model.getWsdlURI());
-			File tempFile = new File(fileURI);
-			reader.readWSDL(tempFile.getAbsolutePath());
-			return reader.getTargetnamespace();
-		} catch (WSDLException e) {
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+	private boolean isOverwriteClass() throws JavaModelException {
+		boolean b = MessageDialog
+				.openConfirm(
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+								.getShell(),
+						JBossWSCreationCoreMessages.Confirm_Override_ImplClass,
+						JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSImpl_Overwrite);
+		return b;
 	}
 
-	protected String getServiceNameFromWSDL() {
-		WSDLPropertyReader reader = new WSDLPropertyReader();
-		
+	private boolean findImplClass(String claName) throws JavaModelException {
+		boolean b = false;
+		IPackageFragmentRoot root = getPackageFragmentRoot();
+		String implPackageName = getImplPackageName();
+		IPackageFragment pack = root.getPackageFragment(implPackageName);
+		if (pack.getCompilationUnit(claName + ".java").exists()) { //$NON-NLS-1$
+			b = true;
+		}
+		return b;
+	}
+
+	protected String[] getServiceNameFromWSDL() {
+		String[] names = new String[2];
 		try {
-			URI fileURI = new URI(model.getWsdlURI());
-			File tempFile = new File(fileURI);
-			reader.readWSDL(tempFile.getAbsolutePath());
-			List<String> services = reader.getServiceList();
-			if (services != null && services.size() > 0) {
-				return services.get(0);
+			WSDLFactory factory = WSDLFactory.newInstance();
+			WSDLReader wsdlReader = factory.newWSDLReader();
+			Definition def = wsdlReader.readWSDL(model.getWsdlURI());
+			Map<?, ?> services = def.getServices();
+			if (services != null) {
+				QName[] a = new QName[services.keySet().size()];
+				if (a != null && a.length > 0) {
+					services.keySet().toArray(a);
+					names[0] = a[0].getLocalPart();
+				}
 			}
+			names[1] = def.getTargetNamespace();
 		} catch (WSDLException e) {
 			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return null;
+		return names;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected void generateImplClass(ICompilationUnit service)
 			throws CoreException, BadLocationException {
@@ -186,10 +205,12 @@ public class ImplementationClassCreationCommand extends
 		String className = getClassName(service.getElementName());
 
 		String implFileName = getJavaFileName(className);
-		
-		String serviceName = getServiceNameFromWSDL();
-		
-		String targetNamespace = getTNSFromWSDL();
+
+		String[] names = getServiceNameFromWSDL();
+
+		String serviceName = names[0];
+
+		String targetNamespace = names[1];
 
 		ICompilationUnit icu = pack.createCompilationUnit(implFileName,
 				"", true, null); //$NON-NLS-1$
@@ -363,8 +384,8 @@ public class ImplementationClassCreationCommand extends
 				ANNOTATION_PROPERTY_ENDPOINT_INTERFACE, endpoint);
 		ann.values().add(member);
 		if (targetNamespace != null) {
-			member = createMemberValuePair(ast,
-					ANNOTATION_PROPERTY_TNS, targetNamespace);
+			member = createMemberValuePair(ast, ANNOTATION_PROPERTY_TNS,
+					targetNamespace);
 			ann.values().add(member);
 		}
 		return ann;

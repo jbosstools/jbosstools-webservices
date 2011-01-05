@@ -27,7 +27,6 @@ public class WSDL2JavaCommand extends AbstractGenerateCodeCommand{
 	
 	@Override
 	protected void addCommandlineArgs(List<String> command) {
-		
 		if(model.getCustomPackage() != null && !"".equals(model.getCustomPackage())){ //$NON-NLS-1$
 			command.add("-p"); //$NON-NLS-1$
 			command.add(model.getCustomPackage());

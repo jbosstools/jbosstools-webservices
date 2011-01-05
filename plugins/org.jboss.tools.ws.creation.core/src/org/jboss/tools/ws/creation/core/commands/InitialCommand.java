@@ -33,9 +33,7 @@ public class InitialCommand extends AbstractDataModelOperation {
 			throws ExecutionException {
 
 		try {
-			String location = JBossWSCreationUtils
-					.getJBossWSRuntimeLocation(JBossWSCreationUtils
-							.getProjectByName(model.getWebProjectName()));
+			String location = JBossWSCreationUtils.getJBossWSRuntimeLocation(JBossWSCreationUtils.getProjectByName(model.getWebProjectName()));
 			if (location.equals("")) { //$NON-NLS-1$
 				return StatusUtils
 						.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
