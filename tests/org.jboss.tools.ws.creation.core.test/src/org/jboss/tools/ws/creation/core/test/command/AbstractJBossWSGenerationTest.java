@@ -9,6 +9,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
@@ -46,6 +47,8 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	
 	public void setUp() throws Exception{
 		super.setUp();
+		assertNotNull(ASTest.JRE_5_HOME, "No JRE5 property in System");
+		assertTrue("The JRE5 location is not right", new Path(ASTest.JRE_5_HOME).toFile().exists());
 		createWSServer();
 		wsHomePath = getJBossWSHomeFolder().toString();
 		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName,wsHomePath, "", true);
