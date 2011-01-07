@@ -25,7 +25,7 @@ public class HelloWorldService
     static {
         URL url = null;
         try {
-            url = new URL("http://localhost:8080/JavaFirstTestProject/HelloWorld?wsdl");
+            url = new URL("http://127.0.0.1:8080/JavaFirstTestProject/HelloWorld?wsdl");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

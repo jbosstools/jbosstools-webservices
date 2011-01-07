@@ -47,6 +47,7 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	
 	public void setUp() throws Exception{
 		super.setUp();
+		System.setProperty("jbosstools.test.jre.5", "/qa/tools/opt/jdk1.5.0_15");
 		assertNotNull(ASTest.JRE_5_HOME, "No JRE5 property in System");
 		assertTrue("The JRE5 location is not right", new Path(ASTest.JRE_5_HOME).toFile().exists());
 		createWSServer();
