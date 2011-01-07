@@ -35,8 +35,8 @@
 				<version>${tychoVersion}</version>
 				<configuration>
 					<!-- timeout in seconds -->
-					<surefire.timeout>2700</surefire.timeout>
-					<forkedProcessTimeoutInSeconds>2700</forkedProcessTimeoutInSeconds>
+					<surefire.timeout>3600</surefire.timeout>
+					<forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
 				</configuration>
 			</plugin>
 		</plugins>
