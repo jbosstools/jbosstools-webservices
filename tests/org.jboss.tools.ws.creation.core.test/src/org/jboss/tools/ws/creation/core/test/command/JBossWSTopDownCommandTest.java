@@ -65,6 +65,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
 		startup(currentServer);
 		publishWebProject();
+		JobUtils.delay(12000);
 		assertTrue(currentServer.getModules().length > 0);
 		String webServiceUrl = "http://127.0.0.1:8080/JBossWSTestProject/Greeter?wsdl";
 		URL url = new URL(webServiceUrl);
