@@ -36,8 +36,7 @@
                click <property>New</property> button and browse to the location where it is installed to. You may set <emphasis>
                   <property>Target Runtime</property>
                </emphasis> to <emphasis>
-                  <property>None</property></emphasis>, in this case, you should add <link linkend="addfacet">JBoss Web Service
-                  facet to the project</link>.</para>
+                  <property>None</property></emphasis>, in this case, you should read the section <xref linkend="addfacet"/>.</para>
             <figure>
                <title>Dynamic Web Project Wizard</title>
                <mediaobject>
@@ -48,8 +47,7 @@
             </figure>
          </listitem>
          <listitem>
-            <para>Configuration: You may add <link linkend="addfacet">JBoss Web Service
-                  facet to the project</link> by clicking <property>Modify...</property> button. The opened page is like <property>Figure 2.4</property>.</para>
+            <para>Configuration: You may <xref linkend="addfacet"/> by clicking the <property>Modify...</property> button. The opened page is like <property>Figure 2.4</property>.</para>
          </listitem>
          <listitem>
             <para>Configure Web Module values:</para>
@@ -110,7 +108,7 @@
             </imageobject>
          </mediaobject>
       </figure>
-      <para>See how to configure a new JBossWS runtime <link linkend="preference">here</link>.</para>
+      <para>See how to configure a new JBossWS runtime in the <xref linkend="preference"/> section.</para>
       <para>After setting the information about JBoss Web Service facet, for saving the result, you should click the <property>Apply</property> or <property>OK</property> button at the bottom-right of the right-side of the project properties dialog.</para>
    </section>
 
@@ -121,8 +119,8 @@
          WSDL document using JBossWS runtime.</para>
       <para>At first, please make sure that you have already created a dynamic Web project with
          JBoss Web Service facet installed. </para>
-      <para>See how to make it <link linkend="createproject">here</link> and <link
-            linkend="addfacet">here</link>.</para>
+      <para>See how to make it in the <xref linkend="createproject"/> section and in the <xref
+            linkend="addfacet"/> section.</para>
 	 <note>
 	    <para>
 	       To use the <guilabel>Simple Web Service</guilabel> wizard to create this Web Service, replace the <guilabel>Class</guilabel> and <guilabel>Applicaiton Class</guilabel> fields with your specific classes, within the instructions in <xref linkend="simple_web_service" />.
@@ -219,14 +217,14 @@
       <para>The Web Service wizard assists you in creating a new Web service, configuring it for
          deployment, and then deploying it to the server.</para>
       <para>To create a Web service from a bean using JBoss WS:</para>
-      <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
-      <para>Create <link linkend="createproject">a Dynamic Web project</link>.</para>
+      <para>Setup <xref linkend="preference"/>.</para>
+      <para>Create <xref linkend="createproject"/>.</para>
       <note>
 	 <para>
 	    To use the <guilabel>Simple Web Service</guilabel> wizard to create this Web Service, replace the <guilabel>Class</guilabel> and <guilabel>Applicaiton Class</guilabel> fields with your specific classes, within the instructions in <xref linkend="simple_web_service" />.
 	 </para>
       </note>
-      <para>Add <link linkend="addfacet">JBossWS Facet</link> to Web project.</para>
+      <para><xref linkend="addfacet"/></para>
       <para>Create a Web Service from a java bean: </para>
       <itemizedlist>
          <listitem>

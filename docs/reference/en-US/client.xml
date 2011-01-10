@@ -2,9 +2,9 @@
 <chapter id="client" revisionflag="added">
   <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
   <para>To create a Web Service Client from a WSDL Document using JBoss WS you need to fulfil the following steps:</para>
-  <para>Setup <link linkend="preference">JBoss WS and development environment</link>.</para>
-  <para><link linkend="createproject">Create a Dynamic Web project</link>.</para>
-  <para><link linkend="addfacet">Add JBossWS Facet to Web project</link>.</para>
+  <para>Setup <xref linkend="preference"/>.</para>
+  <para><xref linkend="createproject"/>.</para>
+  <para><xref linkend="addfacet"/>.</para>
   <para>Then you can create a Web Service Client from a WSDL document: </para>
      <itemizedlist>
         <listitem>
@@ -22,7 +22,7 @@
              </figure>
         </listitem>
         <listitem>
-           <para>The first and the second Web Service Client wizard pages are the same as for <link linkend="topdownwebservice">Web Service from a WSDL document</link>.</para> 
+           <para>The first and the second Web Service Client wizard pages are the same as for <xref linkend="topdownwebservice"/>.</para> 
              <figure>
                 <title>Set Web Service Common values</title>
                 <mediaobject>
