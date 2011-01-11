@@ -15,7 +15,7 @@ import javax.xml.ws.WebServiceClient;
  * Generated source version: 2.0
  * 
  */
-@WebServiceClient(name = "HelloWorldService", targetNamespace = "http://www.example.org/HelloWorld", wsdlLocation = "http://127.0.0.1:8080/JavaFirstTestProject/HelloWorld?wsdl")
+@WebServiceClient(name = "HelloWorldService", targetNamespace = "http://www.example.org/HelloWorld", wsdlLocation = "http://localhost:8080/JavaFirstTestProject/HelloWorld?wsdl")
 public class HelloWorldService
     extends Service
 {
@@ -25,7 +25,7 @@ public class HelloWorldService
     static {
         URL url = null;
         try {
-            url = new URL("http://127.0.0.1:8080/JavaFirstTestProject/HelloWorld?wsdl");
+            url = new URL("http://localhost:8080/JavaFirstTestProject/HelloWorld?wsdl");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
