@@ -26,8 +26,8 @@ public class JBossWSCreationCoreTestSuite extends TestCase {
 	public static Test suite ()
 	{
 		TestSuite suite = new TestSuite(JBossWSCreationCoreTestSuite.class.getName());
-		suite.addTestSuite(JBossWSTopDownCommandTest.class);
-		suite.addTestSuite(JBossWSJavaFirstCommandTest.class);
+		//suite.addTestSuite(JBossWSTopDownCommandTest.class);
+		//suite.addTestSuite(JBossWSJavaFirstCommandTest.class);
 		suite.addTestSuite(JBossWSClientCommandTest.class);
 		suite.addTestSuite(JBossWSMergeWebXMLCommandTest.class);
 		suite.addTestSuite(JBossWSClientSampleCreationCommandTest.class);
