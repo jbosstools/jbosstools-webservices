@@ -73,13 +73,12 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		doValidateWSImplCommand();
 		doJava2WSCommand();
 
-		IProject project = fproject.getProject();
-		project.refreshLocal(IResource.DEPTH_INFINITE, null);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		fproject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
 		
 		startup(currentServer);
-		publishWebProject();
-		JobUtils.delay(18000);
+		publishWebProject(fproject.getProject());
+		JobUtils.delay(30000);
 		String webServiceUrl = "http://localhost:8080/JavaFirstTestProject/HelloWorld?wsdl";
 		URL url = new URL(webServiceUrl);
 		URLConnection conn = url.openConnection();

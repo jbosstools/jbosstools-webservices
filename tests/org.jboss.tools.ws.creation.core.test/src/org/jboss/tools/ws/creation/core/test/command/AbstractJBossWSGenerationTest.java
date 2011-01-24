@@ -92,17 +92,11 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 		return model;
 	}
 	
-	public void publishWebProject() throws CoreException {
-		IModule[] modules = ServerUtil.getModules(currentServer.getServerType()
-				.getRuntimeType().getModuleTypes());
-		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
-		serverWC.modifyModules(modules, null, null);
-		serverWC.save(true, null).publish(0, null);
-		IStatus status = currentServer.publish(IServer.PUBLISH_FULL, null);
-		int i = 0;
-		while(!status.isOK() && i++ <30){
-			JobUtils.delay(500);
-		}
+	public IStatus publishWebProject(IProject project) throws CoreException {
+		IModule mod = ServerUtil.getModule(project);
+		currentServer = ServerRuntimeUtils.addModule(currentServer, mod);
+		IStatus status = ServerRuntimeUtils.publish(currentServer);
+		return status;
 	}
 	
 	private boolean isServerSupplied() {
