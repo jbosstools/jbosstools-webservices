@@ -16,7 +16,7 @@
     </listitem>
     <listitem>
       <para>
-        <guilabel>Create a sample RESTful Web Service</guilabel> for a JAX-WS web service. 
+        <guilabel>Create a sample RESTful Web Service</guilabel> for a JAX-RS web service. 
       </para>
     </listitem>
   </itemizedlist>  
