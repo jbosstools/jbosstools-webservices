@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.wsdl.Binding;
 import javax.wsdl.Definition;
@@ -101,6 +103,8 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 	private Label portLabel;
 	private boolean showServicePortOperaton = true;
 
+	private Timer timer;
+
 	public WSDLBrowseDialog(Shell parentShell) {
 		super(parentShell);
 		setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE );
@@ -164,6 +168,28 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 		super.okPressed();
 	}
 
+	/*
+	 * Validate the incoming text for the WSDL URL and see if it's actually a valid URL
+	 * @param arg0
+	 */
+	private void validateLocation ( ModifyEvent arg0 ) {
+		this.getContents().getDisplay().asyncExec( new Runnable() {
+			public void run() {
+				setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
+				IStatus status = validate(false);
+				if (status != Status.OK_STATUS) {
+					setMessage(status.getMessage(), IMessageProvider.WARNING);
+					if (showServicePortOperaton)
+						setGroupEnabled(false);
+				} else {
+					setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
+					if (showServicePortOperaton)
+						setGroupEnabled(true);
+				}
+			}
+		});
+	}
+	
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		setTitle(JBossWSUIMessages.WSDLBrowseDialog_Title);
@@ -183,19 +209,22 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 		locationCombo = new Combo(mainComposite, SWT.BORDER | SWT.DROP_DOWN );
 		locationCombo.setLayoutData(gridData);
 		locationCombo.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent arg0) {
-				setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
-				IStatus status = validate(false);
-				if (status != Status.OK_STATUS) {
-					setMessage(status.getMessage(), IMessageProvider.WARNING);
-					if (showServicePortOperaton)
-						setGroupEnabled(false);
-				} else {
-					setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
-					if (showServicePortOperaton)
-						setGroupEnabled(true);
+			public void modifyText(final ModifyEvent arg0) {
+				// this delay code was reused from a question on StackOverflow
+				// http://stackoverflow.com/questions/4386085/delay-in-text-input
+				if(timer != null){
+					timer.cancel();
 				}
-			}
+				timer = new Timer();                
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						//handler
+						validateLocation(arg0);
+						timer.cancel();
+					};
+				}, 750); // 750 ms
+			};
 		});
 		if (WSDLBrowseDialog.oldValues != null && WSDLBrowseDialog.oldValues.length > 0) {
 			for (int i = 0; i < oldValues.length; i++) {
