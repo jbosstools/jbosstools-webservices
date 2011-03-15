@@ -466,12 +466,17 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 			name.addPropertyChangeListener(this);
 			version.doFillIntoGrid(root);
 			version.addPropertyChangeListener(this);
-			version.setValue(getWSFacetVersions().get(1));
+			if (current != null)
+				version.setValue(current.getVersion());
+			else
+				version.setValue(getWSFacetVersions().get(1));
 			homeDir.doFillIntoGrid(root);
 			homeDir.addPropertyChangeListener(this);
 
 			jars = new JBossWSLibraryListFieldEditor("", "", current); //$NON-NLS-1$ //$NON-NLS-2$
 			jars.doFillIntoGrid(root);
+			
+			
 			jars.addPropertyChangeListener(this);
 			setPageComplete(false);
 			setControl(root);
@@ -525,26 +530,28 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 				}
 			}
 
-			JBossWSRuntime jarJbws = (JBossWSRuntime) jars.getValue();
-			if (current != null
-					&& current.getName().equals(name.getValueAsString())
-					&& current.getHomeDir().equals(homeDir.getValueAsString())
-					&& current.getVersion().equals(version.getValueAsString())
-					&& current.isUserConfigClasspath() == jarJbws
-							.isUserConfigClasspath()
-					&& (!jarJbws.isUserConfigClasspath() || hasSameLibraies(
-							current.getLibraries(), jarJbws.getLibraries()))) {
-
-				setErrorMessage(null);
-				setPageComplete(false);
-				return;
-			}
-
-			if (jarJbws.isUserConfigClasspath()
-					&& jarJbws.getLibraries().size() == 0) {
-				setErrorMessage(JBossWSUIMessages.JBossRuntimeListFieldEditor_ErrorMessageAtLeastOneJar);
-				setPageComplete(false);
-				return;
+			if (jars != null) {
+				JBossWSRuntime jarJbws = (JBossWSRuntime) jars.getValue();
+				if (current != null
+						&& current.getName().equals(name.getValueAsString())
+						&& current.getHomeDir().equals(homeDir.getValueAsString())
+						&& current.getVersion().equals(version.getValueAsString())
+						&& current.isUserConfigClasspath() == jarJbws
+								.isUserConfigClasspath()
+						&& (!jarJbws.isUserConfigClasspath() || hasSameLibraies(
+								current.getLibraries(), jarJbws.getLibraries()))) {
+	
+					setErrorMessage(null);
+					setPageComplete(false);
+					return;
+				}
+	
+				if (jarJbws.isUserConfigClasspath()
+						&& jarJbws.getLibraries().size() == 0) {
+					setErrorMessage(JBossWSUIMessages.JBossRuntimeListFieldEditor_ErrorMessageAtLeastOneJar);
+					setPageComplete(false);
+					return;
+				}
 			}
 
 			if (homeDir.getValueAsString() == null

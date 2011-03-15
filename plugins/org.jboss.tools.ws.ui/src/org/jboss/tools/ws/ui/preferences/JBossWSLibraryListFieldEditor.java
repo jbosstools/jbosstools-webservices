@@ -104,6 +104,7 @@ public class JBossWSLibraryListFieldEditor extends BaseFieldEditor {
 		if (jbws != null) {
 			this.tempJbws.setUserConfigClasspath(jbws.isUserConfigClasspath());
 			this.tempJbws.getLibraries().addAll(jbws.getLibraries());
+			this.tempJbws.setVersion(jbws.getVersion());
 		}
 
 	}
