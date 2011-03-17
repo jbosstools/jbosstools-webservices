@@ -216,7 +216,7 @@
       </para>
     </formalpara>
    <figure id="figure-jbt-test_resteasy_JAX-RS_09">
-      <title>Custmer data updated</title>
+      <title>Customer data updated</title>
       <mediaobject>
         <imageobject>
           <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_09.png" format="PNG"/>
@@ -263,7 +263,7 @@
       </para>
     </formalpara>
    <figure id="figure-jbt-test_resteasy_JAX-RS_10">
-      <title>Custmer data deleted</title>
+      <title>Customer data deleted</title>
       <mediaobject>
         <imageobject>
           <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_10.png" format="PNG"/>

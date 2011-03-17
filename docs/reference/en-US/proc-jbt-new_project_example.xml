@@ -124,7 +124,7 @@
        </step>
        <step><title>Determine the URL for the web service</title>
           <para>
-            Double click the <filename>web.xml</filename> file and note the <parameter>jax.ws.rs.Application</parameter> paramater mapped to the <application>Application</application> class. Note also that:
+            Double click the <filename>web.xml</filename> file and note the <parameter>jax.ws.rs.Application</parameter> parameter mapped to the <application>Application</application> class. Note also that:
           </para>
           <itemizedlist>
             <listitem>

@@ -9,7 +9,7 @@
   <substeps>
     <step><title>Query the available options</title>
     <para>
-      Select <guilabel>OPTIONS</guilabel> from the available combo box options.
+      Select <guilabel>OPTIONS</guilabel> from the available combobox options.
     </para>
     </step>
     <step>
@@ -46,7 +46,7 @@
     <substeps>
     <step>
     <para>
-      Having established that the <guilabel>GET</guilabel> request is valid,  select <guilabel>GET</guilabel> from the available combo box options.
+      Having established that the <guilabel>GET</guilabel> request is valid,  select <guilabel>GET</guilabel> from the available combobox options.
     </para>
     </step>
     <step>

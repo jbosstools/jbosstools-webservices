@@ -59,7 +59,7 @@
   <step>
     <title>Select the required service attributes</title>
     <para>
-      Select the <guilabel>Service</guilabel>, <guibutton>Port</guibutton> and <guibutton>Operation</guibutton> from the combo boxes and click <guibutton>OK</guibutton>.
+      Select the <guilabel>Service</guilabel>, <guibutton>Port</guibutton> and <guibutton>Operation</guibutton> from the comboboxes and click <guibutton>OK</guibutton>.
     </para>
     <formalpara><title>Results:</title>
       <para>
