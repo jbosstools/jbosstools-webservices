@@ -17,11 +17,13 @@ import java.net.URL;
 import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 
+import junit.framework.TestCase;
+
 import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TesterWSDLUtilsTest {
+public class TesterWSDLUtilsTest extends TestCase {
 
 	@Test
 	public void testGetNSServiceNameAndMessageNameArray() {
