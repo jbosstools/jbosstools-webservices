@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2010 Red Hat, Inc. 
+ * Copyright (c) 2011 Red Hat, Inc. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -135,6 +135,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private static final String JAX_RS = "JAX-RS"; //$NON-NLS-1$
 	private static final String EMPTY_STRING = ""; //$NON-NLS-1$
 	private static final String RESULT_HEADER_DELIMITER = "%";//$NON-NLS-1$
+	private static final String HTTPS_STRING = "https";//$NON-NLS-1$
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -1173,6 +1174,13 @@ public class JAXRSWSTestView2 extends ViewPart {
 		
 		String tempUID = null;
 		String tempPwd = null;
+		
+		// per JBIDE-6919, if we encounter an "https" url make sure 
+		// basic authorization checkbox is checked
+		if (url.trim().startsWith(HTTPS_STRING)) {
+			useBasicAuthCB.setSelection(true);
+		}
+		
 		// If basic authorization checkbox is checked, use the uid/pwd
 		if (useBasicAuthCB.getSelection()) {
 			UidPwdDialog authDialog = new UidPwdDialog(getSite().getShell());
