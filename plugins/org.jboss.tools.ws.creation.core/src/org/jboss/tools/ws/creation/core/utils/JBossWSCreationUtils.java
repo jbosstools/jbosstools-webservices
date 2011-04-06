@@ -1,6 +1,6 @@
 /**
  * JBoss by Red Hat
- * Copyright 2006-2009, Red Hat Middleware, LLC, and individual contributors as indicated
+ * Copyright 2006-2011, Red Hat Middleware, LLC, and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -422,10 +422,14 @@ public class JBossWSCreationUtils {
 		IClasspathEntry[] es = javaProject.getResolvedClasspath(true);
 		for (int i = 0; i < es.length; i++) {
 			if (es[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+				IPath outputLocation = es[i].getOutputLocation();
 				IResource findMember = ResourcesPlugin.getWorkspace().getRoot()
 						.findMember(es[i].getPath());
 				if (findMember != null && findMember.exists()) {
-					resources.add(findMember);
+					// JBIDE-8642: if the output location is null, this is the default source path
+					if (outputLocation == null) {
+						resources.add(findMember);
+					}
 				}
 			}
 		}
