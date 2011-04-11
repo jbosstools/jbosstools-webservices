@@ -39,6 +39,7 @@ import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
@@ -46,6 +47,7 @@ import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -198,6 +200,7 @@ public class ImplementationClassCreationCommand extends
 	protected void generateImplClass(ICompilationUnit service)
 			throws CoreException, BadLocationException {
 		ASTParser astp = ASTParser.newParser(AST.JLS3);
+		astp.setKind(ASTParser.K_COMPILATION_UNIT);
 		astp.setSource(service);
 		CompilationUnit cu = (CompilationUnit) astp.createAST(null);
 		IPackageFragment pack = getImplPakcage();
@@ -416,7 +419,17 @@ public class ImplementationClassCreationCommand extends
 
 		Type sType = copyTypeFromOtherASTNode(ast, inMethod.getReturnType2());
 		md.setReturnType2(sType);
-
+		
+		@SuppressWarnings("rawtypes")
+		List thrownExceptions = inMethod.thrownExceptions();
+		for (Object obj : thrownExceptions) {
+			if (obj instanceof SimpleName) {
+				SimpleName sname = (SimpleName) obj;
+				Name newName = ast.newName(sname.getFullyQualifiedName());
+				md.thrownExceptions().add(newName);
+			}
+		}
+		
 		@SuppressWarnings("rawtypes")
 		List parameters = inMethod.parameters();
 
@@ -429,7 +442,7 @@ public class ImplementationClassCreationCommand extends
 			implSvd.setType(copyTypeFromOtherASTNode(ast, svd.getType()));
 			md.parameters().add(implSvd);
 		}
-
+		
 		// create method body
 		Block block = ast.newBlock();
 		// add log info statement
