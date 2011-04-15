@@ -566,8 +566,10 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 
 			IFile web = ((JBossWSAnnotatedClassWizard) this.getWizard()).getWebFile();
 			if (web == null || !web.exists()) {
-				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
-				return false;
+				if (updateWebXML.getSelection()) {
+					setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
+					return false;
+				}
 			}
 
 			try {
