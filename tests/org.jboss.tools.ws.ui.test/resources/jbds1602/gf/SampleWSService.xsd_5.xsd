@@ -1,16 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.1-hudson-28-. --><xs:schema xmlns:tns="http://example.com/ws" xmlns:ns6="http://example.com/attr/other" xmlns:ns5="http://example.com/ws/other" xmlns:ns4="http://example.com/attr/y" xmlns:ns3="http://example.com/attr/x" xmlns:ns2="http://example.com/ws/b" xmlns:ns1="http://example.com/ws/a" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="qualified" elementFormDefault="qualified" version="1.0" targetNamespace="http://example.com/ws">
 
-<xs:import namespace="http://example.com/ws/a" schemaLocation="http://localhost:8080/A/SampleWSService?xsd=4" />
+<xs:import namespace="http://example.com/ws/a" schemaLocation="SampleWSService.xsd_4.xsd" />
 
-<xs:import namespace="http://example.com/ws/b" schemaLocation="http://localhost:8080/A/SampleWSService?xsd=3" />
+<xs:import namespace="http://example.com/ws/b" schemaLocation="SampleWSService.xsd_3.xsd" />
 
-<xs:import namespace="http://example.com/attr/x" schemaLocation="http://localhost:8080/A/SampleWSService?xsd=7" />
+<xs:import namespace="http://example.com/attr/x" schemaLocation="SampleWSService.xsd_7.xsd" />
 
-<xs:import namespace="http://example.com/attr/y" schemaLocation="http://localhost:8080/A/SampleWSService?xsd=6" />
+<xs:import namespace="http://example.com/attr/y" schemaLocation="SampleWSService.xsd_6.xsd" />
 
-<xs:import namespace="http://example.com/ws/other" schemaLocation="http://localhost:8080/A/SampleWSService?xsd=2" />
+<xs:import namespace="http://example.com/ws/other" schemaLocation="SampleWSService.xsd_2.xsd" />
 
-<xs:import namespace="http://example.com/attr/other" schemaLocation="http://localhost:8080/A/SampleWSService?xsd=8" />
+<xs:import namespace="http://example.com/attr/other" schemaLocation="SampleWSService.xsd_8.xsd" />
 
 <xs:element name="SomeType" type="tns:someType" />
 
@@ -18,7 +18,7 @@
 <xs:sequence>
 <xs:element ref="ns1:A" />
 <xs:element ref="ns2:B" />
-<xs:element ref="ns5:OtherType" minOccurs="0" />
+<xs:element ref="ns5:OtherType" />
 </xs:sequence>
 <xs:attribute ref="ns3:C" use="required" />
 <xs:attribute ref="ns4:D" use="required" />
@@ -26,7 +26,7 @@
 
 <xs:complexType name="otherType">
 <xs:sequence>
-<xs:element ref="ns2:description" minOccurs="0" />
+<xs:element ref="ns2:description" />
 </xs:sequence>
 <xs:attribute ref="ns6:myid" />
 <xs:attribute ref="ns3:Y" use="required" />

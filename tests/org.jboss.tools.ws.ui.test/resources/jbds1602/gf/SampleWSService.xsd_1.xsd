@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.1-hudson-28-. --><xs:schema xmlns:tns="http://test/" xmlns:ns1="http://example.com/ws" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0" targetNamespace="http://test/">
 
-<xs:import namespace="http://example.com/ws" schemaLocation="http://localhost:8080/A/SampleWSService?xsd=5" />
+<xs:import namespace="http://example.com/ws" schemaLocation="SampleWSService.xsd_5.xsd" />
 
 <xs:element name="echo" type="tns:echo" />
 
@@ -8,7 +8,7 @@
 
 <xs:complexType name="echo">
 <xs:sequence>
-<xs:element name="arg0" type="ns1:someType" minOccurs="0" />
+<xs:element name="arg0" type="ns1:someType" />
 </xs:sequence>
 </xs:complexType>
 
