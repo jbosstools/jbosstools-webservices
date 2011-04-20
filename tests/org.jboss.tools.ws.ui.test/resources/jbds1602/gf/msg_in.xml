@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Body>
+        <ns8:echo
+            xmlns:ns2="http://example.com/ws/b"
+            xmlns:ns3="http://example.com/attr/other"
+            xmlns:ns4="http://example.com/attr/x"
+            xmlns:ns5="http://example.com/ws/other"
+            xmlns:ns6="http://example.com/attr/y"
+            xmlns:ns7="http://example.com/ws/a"
+            xmlns:ns8="http://test/"
+            xmlns:ns9="http://example.com/ws">
+            <arg0 ns6:D="4" ns4:C="3">
+                <ns7:A>1</ns7:A>
+                <ns2:B>2</ns2:B>
+                <ns5:OtherType ns4:Y="5" ns3:myid="myID">
+                    <ns2:description>aDescription</ns2:description>
+                </ns5:OtherType>
+            </arg0>
+        </ns8:echo>
+    </S:Body>
+</S:Envelope>
