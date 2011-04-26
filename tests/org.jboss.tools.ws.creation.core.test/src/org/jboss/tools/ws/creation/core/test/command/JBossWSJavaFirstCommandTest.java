@@ -11,9 +11,6 @@
 package org.jboss.tools.ws.creation.core.test.command;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
@@ -30,7 +27,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.TextConsole;
-import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
@@ -76,15 +72,10 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		fproject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
 		
-		startup(currentServer);
 		publishWebProject(fproject.getProject());
-		JobUtils.delay(60000);
-		String webServiceUrl = "http://localhost:8080/JavaFirstTestProject/HelloWorld?wsdl";
-		URL url = new URL(webServiceUrl);
-		URLConnection conn = url.openConnection();
-		assertEquals("unable to start JBoss server", IServer.STATE_STARTED,currentServer.getServerState());
-		conn.connect();
-		assertFalse("The url connection's status is "+ ((HttpURLConnection) conn).getResponseMessage(), "Ok".equals(((HttpURLConnection) conn).getResponseMessage()));
+		JobUtils.delay(20000);
+		startup(currentServer);
+		JobUtils.delay(20000);
 
 		model.setWebProjectName("ClientTest");
 		RemoveClientJarsCommand cmd = new RemoveClientJarsCommand(model);
@@ -105,6 +96,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		wc.launch(ILaunchManager.RUN_MODE, null);
 		IConsoleManager consolemanager = JBossWSCreationCoreTestUtils.getConsoleManager();
 		checkText(consolemanager.getConsoles());
+		undeployWebProject();
 	}
 
 	public void doInitialCommand() throws CoreException, ExecutionException {
@@ -155,5 +147,11 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 
 	public static boolean isContainString(IConsole console, String str) {
 		return ((TextConsole) console).getDocument().get().contains(str);
+	}
+	
+	
+	public void tearDown() throws Exception{
+		undeployWebProject();
+		super.tearDown();
 	}
 }

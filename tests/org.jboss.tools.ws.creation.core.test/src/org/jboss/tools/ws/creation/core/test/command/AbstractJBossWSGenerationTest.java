@@ -9,6 +9,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -19,6 +20,7 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerUtil;
+import org.jboss.ide.eclipse.as.core.server.internal.JBossServer;
 import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
 import org.jboss.ide.eclipse.as.test.ASTest;
 import org.jboss.ide.eclipse.as.test.util.ServerRuntimeUtils;
@@ -55,7 +57,7 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	}
 	
 	public void createWSServer() throws Exception {
-		currentServer = createServer(IJBossToolingConstants.AS_42, IJBossToolingConstants.SERVER_AS_42, ASTest.JBOSS_AS_42_HOME, DEFAULT_CONFIG,JREUtils.createJRE());	
+		currentServer = createServer(IJBossToolingConstants.AS_42, IJBossToolingConstants.SERVER_AS_42, ASTest.JBOSS_AS_42_HOME, DEFAULT_CONFIG,JREUtils.createJRE());		
 	}
 
 	public IProject createProject(String prjName) throws CoreException {
@@ -94,8 +96,13 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	
 	public IStatus publishWebProject(IProject project) throws CoreException {
 		IModule mod = ServerUtil.getModule(project);
-		currentServer = ServerRuntimeUtils.addModule(currentServer, mod);
-		IStatus status = ServerRuntimeUtils.publish(currentServer);
+		JBossServer ds = (JBossServer)currentServer.loadAdapter(JBossServer.class, new NullProgressMonitor());
+		IServerWorkingCopy copy = currentServer.createWorkingCopy();
+		copy.modifyModules(new IModule[]{mod}, new IModule[0], new NullProgressMonitor());
+		currentServer = copy.save(true, new NullProgressMonitor());
+		ds = (JBossServer)currentServer.loadAdapter(JBossServer.class, new NullProgressMonitor());
+		ds.setDeployLocationType("server");
+		IStatus status = ServerRuntimeUtils.publish(IServer.PUBLISH_INCREMENTAL,currentServer);
 		return status;
 	}
 	
@@ -104,7 +111,6 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	}
 	
 	public void tearDown() throws Exception{
-		undeployWebProject();
 		cleanResouces();
 		JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
         JBossWSRuntimeManager.getInstance().removeRuntime(runtime);
@@ -143,10 +149,10 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	protected void undeployWebProject() throws CoreException {
 		IModule[] modules = ServerUtil.getModules(currentServer.getServerType()
 				.getRuntimeType().getModuleTypes());
-		IServerWorkingCopy serverWC = currentServer.createWorkingCopy();
+		JBossServer ds = (JBossServer)currentServer.loadAdapter(JBossServer.class, new NullProgressMonitor());
+		IServerWorkingCopy serverWC = ds.getServerWorkingCopy();
 		serverWC.modifyModules(null, modules, null);
-		serverWC.save(true, null).publish(0, null);
-		currentServer.publish(IServer.PUBLISH_FULL, null);
+		serverWC.save(true, null).publish(IServer.PUBLISH_FULL, null);
 	}
 	
 	private final void addResourceToCleanup(final IResource resource) {

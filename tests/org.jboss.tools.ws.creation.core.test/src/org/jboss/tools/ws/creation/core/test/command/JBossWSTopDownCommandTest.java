@@ -34,6 +34,8 @@ import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.test.util.JobUtils;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.creation.core.commands.ImplementationClassCreationCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
@@ -63,9 +65,12 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		
 		fproject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 		fproject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-		startup(currentServer);
+		
 		publishWebProject(fproject.getProject());
-		JobUtils.delay(15000);
+		JobUtils.delay(10000);
+		startup(currentServer);
+		JobUtils.delay(10000);
+		
 		assertTrue(currentServer.getModules().length > 0);
 		String webServiceUrl = "http://127.0.0.1:8080/JBossWSTestProject/Greeter?wsdl";
 		URL url = new URL(webServiceUrl);
@@ -149,5 +154,10 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 			assertEquals("url pattern: ","/Greeter", mapping.getUrlPattern());
 			assertEquals("Greeter", mapping.getServlet().getServletName());
 		}	
+	}
+	
+	public void tearDown() throws Exception{
+		undeployWebProject();
+		super.tearDown();
 	}
 }

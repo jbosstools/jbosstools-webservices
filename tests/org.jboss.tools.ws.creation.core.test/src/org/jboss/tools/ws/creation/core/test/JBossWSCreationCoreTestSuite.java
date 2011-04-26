@@ -31,6 +31,7 @@ public class JBossWSCreationCoreTestSuite extends TestCase {
 		suite.addTestSuite(JBossWSClientCommandTest.class);
 		suite.addTestSuite(JBossWSMergeWebXMLCommandTest.class);
 		suite.addTestSuite(JBossWSClientSampleCreationCommandTest.class);
+
 		return suite;
 	}
 }
