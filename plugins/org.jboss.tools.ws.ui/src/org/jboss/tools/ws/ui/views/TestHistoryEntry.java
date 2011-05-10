@@ -24,7 +24,6 @@ public class TestHistoryEntry {
 	private String portName;
 	private String bindingName;
 	private String operationName;
-//	private String wsMethod;
 	private Definition wsdlDef = null;
 	private String[] serviceNSMessage = null;
 	private boolean isSOAP12 = false;
@@ -125,14 +124,6 @@ public class TestHistoryEntry {
 	public void setOperationName(String operationName) {
 		this.operationName = operationName;
 	}
-
-//	public void setWsMethod(String wsMethod) {
-//		this.wsMethod = wsMethod;
-//	}
-//
-//	public String getWsMethod() {
-//		return wsMethod;
-//	}
 
 	public void setWsdlDef(Definition wsdlDef) {
 		this.wsdlDef = wsdlDef;

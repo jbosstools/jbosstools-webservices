@@ -173,21 +173,25 @@ public class WSDLBrowseDialog extends TitleAreaDialog {
 	 * @param arg0
 	 */
 	private void validateLocation ( ModifyEvent arg0 ) {
-		this.getContents().getDisplay().asyncExec( new Runnable() {
-			public void run() {
-				setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
-				IStatus status = validate(false);
-				if (status != Status.OK_STATUS) {
-					setMessage(status.getMessage(), IMessageProvider.WARNING);
-					if (showServicePortOperaton)
-						setGroupEnabled(false);
-				} else {
-					setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
-					if (showServicePortOperaton)
-						setGroupEnabled(true);
-				}
+		if (this.getContents() != null) {
+			if (this.getContents().getDisplay() != null) {
+				this.getContents().getDisplay().asyncExec( new Runnable() {
+					public void run() {
+						setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
+						IStatus status = validate(false);
+						if (status != Status.OK_STATUS) {
+							setMessage(status.getMessage(), IMessageProvider.WARNING);
+							if (showServicePortOperaton)
+								setGroupEnabled(false);
+						} else {
+							setMessage(JBossWSUIMessages.WSDLBrowseDialog_Message);
+							if (showServicePortOperaton)
+								setGroupEnabled(true);
+						}
+					}
+				});
 			}
-		});
+		}
 	}
 	
 	@Override
