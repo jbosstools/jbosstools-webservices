@@ -109,6 +109,7 @@ import org.jboss.tools.ws.ui.utils.JAXRSTester;
 import org.jboss.tools.ws.ui.utils.JAXWSTester2;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorage;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorageInput;
+import org.jboss.tools.ws.ui.utils.SchemaUtils;
 import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
 import org.w3c.dom.Element;
@@ -421,7 +422,6 @@ public class JAXRSWSTestView2 extends ViewPart {
 			getCurrentHistoryEntry().setOperationName(null);
 
 			serviceNSMessage = null;
-//			actionText = null;
 			
 			Definition wsdlDef = wbDialog.getWSDLDefinition();
 			getCurrentHistoryEntry().setWsdlDef(wsdlDef);
@@ -432,7 +432,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			getCurrentHistoryEntry().setUrl(wbDialog.getWSDLText());
 			urlCombo.setText(wbDialog.getWSDLText());
 			
-			String output = TesterWSDLUtils.getSampleSOAPInputMessage(wsdlDef, 
+			String output = SchemaUtils.getSampleSOAPInputMessage(wsdlDef, 
 					wbDialog.getServiceTextValue(), 
 					wbDialog.getPortTextValue(), 
 					wbDialog.getBindingValue(), 
@@ -463,8 +463,14 @@ public class JAXRSWSTestView2 extends ViewPart {
 					wbDialog.getServiceTextValue(), 
 					wbDialog.getPortTextValue());
 			getCurrentHistoryEntry().setSOAP12(isSOAP12);
+			
+			String headerText = SchemaUtils.getSampleSOAPMessageHeader(wsdlDef, 
+					wbDialog.getServiceTextValue(), 
+					wbDialog.getPortTextValue(), 
+					wbDialog.getBindingValue(), 
+					wbDialog.getOperationTextValue());
 
-			String soapIn = generateSampleSOAP(output, isSOAP12);
+			String soapIn = generateSampleSOAP(headerText, output, isSOAP12);
 			if (opName != null) {
 				if (bodyText.getText().length() > 0) {
 					
@@ -487,15 +493,6 @@ public class JAXRSWSTestView2 extends ViewPart {
 							}
 					}
 				}
-//				if (MessageDialog.openQuestion(getSite().getShell(),
-//					JBossWSUIMessages.JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date, 
-//					JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
-//					
-//						bodyText.setText(soapIn);
-//						getCurrentHistoryEntry().setBody(soapIn);
-//						getCurrentHistoryEntry().setAction(actionURL);
-//						
-//				}
 			} else if (bodyText.getText().length() > 0) {
 				
 				String opNameInBody = getOpNameFromRequestBody();
@@ -519,9 +516,6 @@ public class JAXRSWSTestView2 extends ViewPart {
 						}
 				}
 			}
-			
-//			urlCombo.setText(endpointURL);
-//			actionText = actionURL;
 			
 			setControlsForWSType(getCurrentTestType());
 			setControlsForMethodType(methodCombo.getText());
@@ -984,25 +978,40 @@ public class JAXRSWSTestView2 extends ViewPart {
 		super.dispose();
 	}
 
-	private String generateSampleSOAP ( String innerText, boolean isSOAP12 ) {
+	private String generateSampleSOAP ( String headerText, String innerText, boolean isSOAP12 ) {
 		String prefix = TesterWSDLUtils.SOAP_PREFIX;
 		String soapURI = TesterWSDLUtils.SOAP_NS_URI;
 		if (isSOAP12) {
 			prefix = TesterWSDLUtils.SOAP12_PREFIX;
 			soapURI = TesterWSDLUtils.SOAP12_ENVELOPE_NS_URI;
 		}
-		String soapIn = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n" + //$NON-NLS-1$
-		"<" + prefix + ":Envelope xmlns:" + prefix + "=\"" + soapURI + "\" " + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-		"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +  //$NON-NLS-1$
-		"xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +  //$NON-NLS-1$
-		">\n" + //$NON-NLS-1$
-		"<" + prefix + ":Body>\n";//$NON-NLS-1$ //$NON-NLS-2$
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n");//$NON-NLS-1$
+		buffer.append("<" + prefix + ":Envelope xmlns:" + prefix + "=\"" + soapURI + "\" ");//$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		buffer.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " );//$NON-NLS-1$
+		buffer.append("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" >\n");//$NON-NLS-1$
+		buffer.append("<" + prefix + ":Header>\n");//$NON-NLS-1$ //$NON-NLS-2$
+		if (headerText != null) 
+			buffer.append(headerText);
+		buffer.append("</" + prefix + ":Header>\n");;//$NON-NLS-1$ //$NON-NLS-2$
+		buffer.append("<" + prefix + ":Body>\n");//$NON-NLS-1$ //$NON-NLS-2$
 		if (innerText != null)
-			soapIn = soapIn + innerText;
-		soapIn = soapIn +
-		"</" + prefix + ":Body>\n" + //$NON-NLS-1$ //$NON-NLS-2$
-		"</" + prefix + ":Envelope>";	 //$NON-NLS-1$ //$NON-NLS-2$
-		return soapIn;
+			buffer.append(innerText);
+		buffer.append("</" + prefix + ":Body>\n");;//$NON-NLS-1$ //$NON-NLS-2$
+		buffer.append("</" + prefix + ":Envelope>");//$NON-NLS-1$ //$NON-NLS-2$ 
+		
+//		String soapIn = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n" + //$NON-NLS-1$
+//		"<" + prefix + ":Envelope xmlns:" + prefix + "=\"" + soapURI + "\" " + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+//		"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +  //$NON-NLS-1$
+//		"xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +  //$NON-NLS-1$
+//		">\n" + //$NON-NLS-1$
+//		"<" + prefix + ":Body>\n";//$NON-NLS-1$ //$NON-NLS-2$
+//		if (innerText != null)
+//			soapIn = soapIn + innerText;
+//		soapIn = soapIn +
+//		"</" + prefix + ":Body>\n" + //$NON-NLS-1$ //$NON-NLS-2$
+//		"</" + prefix + ":Envelope>";	 //$NON-NLS-1$ //$NON-NLS-2$
+		return buffer.toString();
 	}
 
 	private void setMenusForCurrentState() {
@@ -1087,7 +1096,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			dlsList.setEnabled(false);
 
 			String emptySOAP = 
-				generateSampleSOAP(null, false);
+				generateSampleSOAP(null, null, false);
 			emptySOAP = WSTestUtils.addNLsToXML(emptySOAP);
 
 			if (bodyText.getText().trim().length() == 0) {
