@@ -100,37 +100,64 @@ public class TesterWSDLUtilsTest extends TestCase {
 		Assert.assertTrue(s1.contains("<tns:gQuery>?</tns:gQuery>"));
 
 		String s2 = getSampleMessage("/jbide6593/original.wsdl", "gsearch_rss", "gsearch_rssSoap", "gsearch_rssSoap", "GetSearchResults");
-		Assert.assertTrue(s2.contains("<tns:GetSearchResults xmlns:tns=\"http://www.ecubicle.net/webservices\">"));
-		Assert.assertTrue(s2.contains("<tns:gQuery>?</tns:gQuery>"));
-//		Assert.assertEquals(s1, s2);
+//		Assert.assertTrue(s2.contains("<tns:GetSearchResults xmlns:tns=\"http://www.ecubicle.net/webservices\">"));
+//		Assert.assertTrue(s2.contains("<tns:gQuery>?</tns:gQuery>"));
+		Assert.assertEquals(s1, s2);
 	}
 
 	@Test
 	public void testJBIDE6694() {
-		/*STILL WORKING ON THIS ONE*/
-//		String s1 = getSampleMessage("/jbide6694/ConverterPortType.wsdl", "ConverterPortType", "ConverterPortTypeImplPort", "ConverterPortTypeBinding", "convert");
-//		Assert.assertTrue(s1.contains("<tns:ChangeUnit xmlns:tns=\"http://test.jboss.org/ns\">"));
-//		Assert.assertTrue(s1.contains("<tns:value>?</tns:value>"));
-//		Assert.assertTrue(s1.contains("<tns:fromUnit>?</tns:fromUnit>"));
-//		Assert.assertTrue(s1.contains("<tns:toUnit>?</tns:toUnit>"));
-//
-//		String s2 = getSampleMessage("/jbide6694/jbide6694.wsdl", "Converter", "ConverterPort", "ConverterBinding", "convert");
-//		Assert.assertTrue(s2.contains("<ChangeUnit xmlns = \"http://test.jboss.org/ns\">"));
-//		Assert.assertTrue(s2.contains("<value>?</value>"));
-//		Assert.assertTrue(s2.contains("<fromUnit>?</fromUnit>"));
-//		Assert.assertTrue(s2.contains("<toUnit>?</toUnit>"));
+		String s1 = getSampleMessage("/jbide6694/ConverterPortType.wsdl", "ConverterPortType", "ConverterPortTypeImplPort", "ConverterPortTypeBinding", "convert");
+		Assert.assertTrue(s1.contains("<tns:ChangeUnit xmlns:tns=\"http://test.jboss.org/ns\">"));
+		Assert.assertTrue(s1.contains("<tns:value>?</tns:value>"));
+		Assert.assertTrue(s1.contains("<tns:fromUnit>?</tns:fromUnit>"));
+		Assert.assertTrue(s1.contains("<tns:toUnit>?</tns:toUnit>"));
+
+		String s2 = getSampleMessage("/jbide6694/jbide6694.wsdl", "Converter", "ConverterPort", "ConverterBinding", "convert");
+		Assert.assertTrue(s2.contains("<tns:ChangeUnit xmlns:tns=\"http://test.jboss.org/ns\">"));
+		Assert.assertTrue(s2.contains("<tns:value>?</tns:value>"));
+		Assert.assertTrue(s2.contains("<tns:fromUnit>?</tns:fromUnit>"));
+		Assert.assertTrue(s2.contains("<tns:toUnit>?</tns:toUnit>"));
 	}
 
 	@Test
 	public void testJBIDE6865() {
-		/*STILL WORKING ON THIS ONE*/
-//		String s1 = getSampleMessage("/jbide6865/wsdl1.wsdl", "DirectFlight", "DirectFlightSoap", "FlightAwareDirectFlight:DirectFlightSoap", "AirportInfo");
-//		Assert.assertTrue(s1.contains("<airportCode>?</airportCode>"));
+		String s1 = getSampleMessage("/jbide6865/wsdl1.wsdl", "DirectFlight", "DirectFlightSoap", "FlightAwareDirectFlight:DirectFlightSoap", "AirportInfo");
+		Assert.assertTrue(s1.contains("<airportCode>?</airportCode>"));
+	}
+	
+	@Test
+	public void testJBDS1602() {
+		String s1 = getSampleMessage("/jbds1602/StockQuoteService.wsdl", "StockQuoteService", "StockQuoteServicePort", "tns:StockQuoteServiceBinding", "getStockQuoteBySymbol");
+		Assert.assertTrue(s1.contains("<stoc:getStockQuoteBySymbol xmlns:stoc=\"http://www.jboss.com/webservices/StockQuoteService\">"));
+		Assert.assertTrue(s1.contains("<arg0>?</arg0>"));
+
+		String s2 = getSampleMessage("/jbds1602/jb/SampleWS.wsdl", "SampleWSService", "SampleWSPort", "tns:SampleWSServiceSoapBinding", "echo");
+		Assert.assertTrue(s2.contains("<test:echo xmlns:test=\"http://test/\">"));
+		Assert.assertTrue(s2.contains("<test:arg0  xmlns:x=\"http://example.com/attr/x\" x:C=\"?\"  xmlns:y=\"http://example.com/attr/y\" y:D=\"?\" >"));
+		Assert.assertTrue(s2.contains("<othe:OtherType  xmlns:othe=\"http://example.com/attr/other\" othe:myid=\"?\"  x:Y=\"?\" >"));
+		Assert.assertTrue(s2.contains("<b:description>?</b:description>"));
+	}
+	
+	@Test
+	public void testJBIDE8770() {
+		String s1 = getSampleMessage("/jbide8770/parts.wsdl", "basic", "minusPort", "minusSOAP", "minusOperation");
+		Assert.assertTrue(s1.contains("<basi:operationRequest xmlns:basi=\"http://www.example.org/ws/basic/\">"));
+		Assert.assertTrue(s1.contains("<a>?</a>"));
+		
+		String s2 = getSampleMessageHeader("/jbide8770/parts.wsdl", "basic", "minusPort", "minusSOAP", "minusOperation");
+		Assert.assertTrue(s2.contains("<squa:storeHeader xmlns:squa=\"http://www.example.org/ws/square/\">"));
+		Assert.assertTrue(s2.contains("<timestamp>?</timestamp>"));
 	}
 
 	private String getSampleMessage(String res, String service, String port, String binding, String operation) {
 		Definition def = readWSDL(res);
 		return SchemaUtils.getSampleSOAPInputMessage(def, service, port, binding, operation);
+	}
+
+	private String getSampleMessageHeader(String res, String service, String port, String binding, String operation) {
+		Definition def = readWSDL(res);
+		return SchemaUtils.getSampleSOAPMessageHeader(def, service, port, binding, operation);
 	}
 
 	private Definition readWSDL(String path) {
