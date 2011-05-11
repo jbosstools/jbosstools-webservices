@@ -671,7 +671,9 @@ public class SchemaUtils {
 					buf.append(createXMLForJDOMElement2( jdomSchemaElement2, child ));
 				}
 			}
-		} else {
+		} else if (part.getTypeName() != null && isTypeBaseXSDOrSimple(part.getTypeName().getNamespaceURI(), part.getTypeName().getLocalPart())) {
+			buf.append('<' + part.getName() + ">?</" + part.getName() + '>'); //$NON-NLS-1$
+	    } else {
 			buf.append(createXMLForJDOMElement2( jdomSchemaElement, jdomElement ));
 		}
 
@@ -1075,6 +1077,14 @@ public class SchemaUtils {
 		if (elemType != null && isTypeBaseXSDOrSimple(tns, elemType)) {
 			isSimpleType = true;
 		}
+		
+		boolean hasEnums = false;
+		if (element.getName().equals("simpleType")) { //$NON-NLS-1$
+			String enums = getEnumerations(element);
+			if (enums != null && enums.trim().length() > 0) {
+				hasEnums = true;
+			}
+		}
 
 		boolean includeTNSInRoot = false;
 		if (rootIsQualified_ && !isQualified) {
@@ -1083,6 +1093,9 @@ public class SchemaUtils {
 			tnsprefix = "tns"; //$NON-NLS-1$
 		} else if (isQualified) {
 			rootIsQualified_ = false;
+			if (tnsprefix ==  null) {
+				tnsprefix = "tns"; //$NON-NLS-1$
+			}
 		}
 		
 		boolean isSequence = element.getName().equals("sequence"); //$NON-NLS-1$
@@ -1116,7 +1129,7 @@ public class SchemaUtils {
 			}
 
 			
-			if (hasKids || isSimpleType)
+			if (hasKids || isSimpleType || hasEnums )
 				buf.append(">"); //$NON-NLS-1$
 			else
 				buf.append("/>");//$NON-NLS-1$
@@ -1144,9 +1157,9 @@ public class SchemaUtils {
 			}
 		}
 
-		if (!isSequence && ( hasKids || isSimpleType )) {
+		if (!isSequence && ( hasKids || isSimpleType || hasEnums )) {
 			// add ? for value 
-			if (!hasKids || isSimpleType)
+			if (!hasKids || isSimpleType || hasEnums )
 				buf.append('?');
 			
 			// close tag
@@ -1159,6 +1172,22 @@ public class SchemaUtils {
 			buf.append(">\n"); //$NON-NLS-1$
 		}
 		
+		return buf.toString();
+	}
+	
+	private static String getEnumerations ( org.jdom.Element element ) {
+		StringBuffer buf = new StringBuffer();
+		List<?> kids = element.getChildren();
+		for (Iterator<?> kidIter = kids.iterator(); kidIter.hasNext(); ) {
+			Element kid = (Element) kidIter.next();
+			if (kid.getChildren() != null && kid.getChildren().size() > 0) {
+				buf.append(getEnumerations(kid));
+			}
+			if (kid.getName().equals("enumeration")) { //$NON-NLS-1$
+				String value = kid.getAttributeValue("value"); //$NON-NLS-1$
+				buf.append(value + '|');
+			}
+		}
 		return buf.toString();
 	}
 	
