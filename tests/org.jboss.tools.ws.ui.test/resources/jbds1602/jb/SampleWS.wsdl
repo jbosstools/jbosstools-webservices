@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="SampleWSService" targetNamespace="http://test/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://test/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xs:schema elementFormDefault="qualified" targetNamespace="http://test/" version="1.0" xmlns:ns1="http://example.com/ws" xmlns:tns="http://test/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:import namespace="http://example.com/ws"/>
+<xs:element name="echo" type="tns:echo"/>
+<xs:element name="echoResponse" type="tns:echoResponse"/>
+<xs:complexType name="echo">
+<xs:sequence>
+<xs:element minOccurs="0" name="arg0" type="ns1:someType"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="echoResponse">
+<xs:sequence>
+<xs:element minOccurs="0" name="return" type="ns1:someType"/>
+</xs:sequence>
+</xs:complexType>
+</xs:schema>
+<xs:schema targetNamespace="http://example.com/ws/other" version="1.0" xmlns:ns1="http://example.com/ws" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:import namespace="http://example.com/ws"/>
+<xs:element name="OtherType" type="ns1:otherType"/>
+</xs:schema>
+<xs:schema targetNamespace="http://example.com/ws/b" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="B" type="xs:int"/>
+<xs:element name="description" type="xs:string"/>
+</xs:schema>
+<xs:schema targetNamespace="http://example.com/ws/a" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="A" type="xs:int"/>
+</xs:schema>
+<xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://example.com/ws" version="1.0" xmlns:ns1="http://example.com/ws/a" xmlns:ns2="http://example.com/ws/b" xmlns:ns3="http://example.com/attr/x" xmlns:ns4="http://example.com/attr/y" xmlns:ns5="http://example.com/ws/other" xmlns:ns6="http://example.com/attr/other" xmlns:tns="http://example.com/ws" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:import namespace="http://example.com/ws/a"/>
+<xs:import namespace="http://example.com/ws/b"/>
+<xs:import namespace="http://example.com/attr/x"/>
+<xs:import namespace="http://example.com/attr/y"/>
+<xs:import namespace="http://example.com/ws/other"/>
+<xs:import namespace="http://example.com/attr/other"/>
+<xs:element name="SomeType" type="tns:someType"/>
+<xs:complexType name="someType">
+<xs:sequence>
+<xs:element ref="ns1:A"/>
+<xs:element ref="ns2:B"/>
+<xs:element minOccurs="0" ref="ns5:OtherType"/>
+</xs:sequence>
+<xs:attribute ref="ns3:C" use="required"/>
+<xs:attribute ref="ns4:D" use="required"/>
+</xs:complexType>
+<xs:complexType name="otherType">
+<xs:sequence>
+<xs:element minOccurs="0" ref="ns2:description"/>
+</xs:sequence>
+<xs:attribute ref="ns6:myid"/>
+<xs:attribute ref="ns3:Y" use="required"/>
+</xs:complexType>
+</xs:schema>
+<xs:schema targetNamespace="http://example.com/attr/y" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:attribute name="D" type="xs:int"/>
+</xs:schema>
+<xs:schema targetNamespace="http://example.com/attr/x" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:attribute name="C" type="xs:int"/>
+<xs:attribute name="Y" type="xs:int"/>
+</xs:schema>
+<xs:schema targetNamespace="http://example.com/attr/other" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:attribute name="myid" type="xs:string"/>
+</xs:schema>
+  </wsdl:types>
+  <wsdl:message name="echoResponse">
+    <wsdl:part element="tns:echoResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="echo">
+    <wsdl:part element="tns:echo" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="SampleWS">
+    <wsdl:operation name="echo">
+      <wsdl:input message="tns:echo" name="echo">
+    </wsdl:input>
+      <wsdl:output message="tns:echoResponse" name="echoResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="SampleWSServiceSoapBinding" type="tns:SampleWS">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="echo">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="echo">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="echoResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="SampleWSService">
+    <wsdl:port binding="tns:SampleWSServiceSoapBinding" name="SampleWSPort">
+      <soap:address location="http://localhost:8080/ws/SampleWS"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

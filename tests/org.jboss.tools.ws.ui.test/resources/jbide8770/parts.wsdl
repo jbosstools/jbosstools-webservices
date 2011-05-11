@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:tns="http://www.example.org/ws/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:basic="http://www.example.org/ws/basic/"
+	xmlns:extra="http://www.example.org/ws/extra/" xmlns:square="http://www.example.org/ws/square/"
+	xmlns:common="http://www.example.org/ws/common/" name="example"
+	targetNamespace="http://www.example.org/ws/">
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://www.example.org/ws/common/"
+			xmlns:tns="http://www.example.org/ws/common/">
+			<xsd:element name="header" type="tns:headerType" />
+			<xsd:complexType name="headerType">
+				<xsd:sequence>
+					<xsd:element name="timestamp" type="xsd:dateTime" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+		<xsd:schema targetNamespace="http://www.example.org/ws/square/"
+			xmlns:tns="http://www.example.org/ws/square/">
+			<xsd:element name="square" type="tns:squareType" />
+			<xsd:element name="squareResponse" type="tns:squareResponseType" />
+			<xsd:element name="storeResult" type="tns:storeResultType" />
+			<xsd:element name="storeHeader" type="tns:storeHeaderType" />
+			<xsd:complexType name="squareType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:int" />
+					<xsd:element name="b" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="squareResponseType">
+				<xsd:sequence>
+					<xsd:element name="out" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="storeResultType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="storeHeaderType">
+				<xsd:sequence>
+					<xsd:element name="id" type="xsd:string" />
+					<xsd:element name="timestamp" type="xsd:dateTime" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+		<xsd:schema targetNamespace="http://www.example.org/ws/basic/"
+			xmlns:tns="http://www.example.org/ws/basic/">
+			<xsd:import namespace="http://www.example.org/ws/common/" />
+			<xsd:element name="operationRequest" type="tns:requestType" />
+			<xsd:element name="operationResponse" type="tns:responseType" />
+			<xsd:element name="invalidNumberFault" type="tns:faultType" />
+			<xsd:complexType name="requestType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:float" />
+					<xsd:element name="b" type="xsd:float" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="responseType">
+				<xsd:sequence>
+					<xsd:element name="out" type="xsd:float" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="faultType">
+				<xsd:sequence>
+					<xsd:element name="description" type="xsd:string" />
+					<xsd:element name="details" type="xsd:string" />
+					<xsd:element name="a" type="xsd:float" />
+					<xsd:element name="b" type="xsd:float" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+		<xsd:schema targetNamespace="http://www.example.org/ws/extra/"
+			xmlns:tns="http://www.example.org/ws/extra/">
+			<xsd:import namespace="http://www.example.org/ws/common/" />
+			<xsd:element name="operationRequest" type="tns:requestType" />
+			<xsd:element name="operationResponse" type="tns:responseType" />
+			<xsd:element name="invalidNumberFault" type="tns:faultType" />
+			<xsd:complexType name="requestType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:double" />
+					<xsd:element name="b" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="responseType">
+				<xsd:sequence>
+					<xsd:element name="out" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="faultType">
+				<xsd:sequence>
+					<xsd:element name="description" type="xsd:string" />
+					<xsd:element name="details" type="xsd:string" />
+					<xsd:element name="a" type="xsd:double" />
+					<xsd:element name="b" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="storeHeader">
+		<wsdl:part name="storeHeader" element="square:storeHeader" />
+	</wsdl:message>
+	<wsdl:message name="minusOperationRequest">
+		<wsdl:part name="parameters" element="basic:operationRequest" />
+		<wsdl:part name="header" element="common:header" />
+	</wsdl:message>
+	<wsdl:message name="minusOperationResponse">
+		<wsdl:part name="parameters" element="basic:operationResponse" />
+	</wsdl:message>
+	<wsdl:message name="invalidNumberFaultBasic">
+		<wsdl:part name="parameters" element="basic:invalidNumberFault" />
+	</wsdl:message>
+	<wsdl:message name="invalidNumberFaultExtra">
+		<wsdl:part name="parameters" element="extra:invalidNumberFault" />
+	</wsdl:message>
+	<wsdl:portType name="minusPortType">
+		<wsdl:operation name="minusOperation">
+			<wsdl:input message="tns:minusOperationRequest" name="minusOperationRequest" />
+			<wsdl:output message="tns:minusOperationResponse" name="minusOperationResponse" />
+			<wsdl:fault message="tns:invalidNumberFaultBasic" name="invalidNumberFault" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="minusSOAP" type="tns:minusPortType">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="minusOperation">
+			<soap:operation soapAction="http://www.example.org/ws/minusOperation" />
+			<wsdl:input>
+				<soap:header message="tns:storeHeader" part="storeHeader"
+					use="literal" />
+				<soap:body parts="parameters" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="basic">
+		<wsdl:port name="minusPort" binding="tns:minusSOAP">
+			<soap:address location="http://www.example.org/" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>
