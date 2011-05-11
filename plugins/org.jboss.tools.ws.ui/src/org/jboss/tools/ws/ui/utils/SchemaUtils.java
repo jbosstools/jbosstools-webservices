@@ -145,7 +145,7 @@ public class SchemaUtils {
 
 		Vector<String> errorMessages = new Vector<String>();
 		definition_ = wsdlDefinition;
-
+		schemaList_ = new Vector<XSDSchema>();
 
 		if (definition_ != null)
 		{
@@ -332,7 +332,6 @@ public class SchemaUtils {
 
 	private final static void gatherSchemas(Definition definition, String definitionURL)
 	{
-		schemaList_ = new Vector<XSDSchema>();
 		Types types = definition.getTypes();
 		if (types != null)
 		{
@@ -350,15 +349,14 @@ public class SchemaUtils {
 						if (isW3SchemaElementType(schemaElement.getElementType()))
 						{
 							xsdSchema = XSDSchemaImpl.createSchema(schemaElement.getElement());
-							if(!checkSchemaURI(definitionURL)){
-								schemaList_.addElement(xsdSchema);
-								gatherSchemaDirective(xsdSchema, definitionURL);
+							if (xsdSchema != null) {
+								xsdSchema.update();
+								xsdSchema.updateElement();
+								if(!checkSchemaURI(definitionURL)){
+									schemaList_.addElement(xsdSchema);
+									gatherSchemaDirective(xsdSchema, definitionURL);
+								}
 							}
-							xsdSchema.update();
-							xsdSchema.updateElement();
-							//Add the Schema to the resource
-							//		        	  boolean success = resource.getContents().add(xsdSchema);
-							//		        	  System.out.println(success + "Added schema " + xsdSchema.getTargetNamespace() + " to wsdl resource " + uri.toString());
 						}
 					}
 					else if (obj instanceof UnknownExtensibilityElement)
@@ -400,18 +398,21 @@ public class SchemaUtils {
 
 		if (schemaURI != null) {
 			schemaURI = normalize(schemaURI); 
-			if(schemaURI.equals(normalize(wsdlUrl_)))return false;
-			Enumeration<String> e = schemaURI_.elements();
-			while(e.hasMoreElements()){
-				String uri = (String)e.nextElement();	
-				if(schemaURI.equals(uri)){ 
-					found = true;
-					break;
-				}	
-			}
-	
-			if (!found){
-				schemaURI_.addElement(schemaURI);
+			if(schemaURI != null) {
+				if (schemaURI.equals(normalize(wsdlUrl_))) return false;
+				if (schemaURI_ == null) return false;
+				Enumeration<String> e = schemaURI_.elements();
+				while(e.hasMoreElements()){
+					String uri = (String)e.nextElement();	
+					if(schemaURI.equals(uri)){ 
+						found = true;
+						break;
+					}	
+				}
+		
+				if (!found){
+					schemaURI_.addElement(schemaURI);
+				}
 			}
 		}
 		return found;
@@ -624,6 +625,9 @@ public class SchemaUtils {
 		WSDLPartsToXSDTypeMapper mapper = new WSDLPartsToXSDTypeMapper();
 		mapper.addSchemas(schemaList_);
 		XSDNamedComponent xsdComponent = mapper.getXSDTypeFromSchema(part);
+		if (xsdComponent == null) {
+			return "<error>Generating sample SOAP request</error>"; //$NON-NLS-1$
+		}
 		xsdComponent.updateElement(true);
 		
 		XSDSchema schema = xsdComponent.getSchema();
@@ -691,6 +695,10 @@ public class SchemaUtils {
 						if (kidelement.getAttributeValue("name").equals(nstypename)) //$NON-NLS-1$
 							return kidelement;
 					}
+					if (kidelement.getName().equals("simpleType")) { //$NON-NLS-1$
+						if (kidelement.getAttributeValue("name").equals(nstypename)) //$NON-NLS-1$
+							return kidelement;
+					}
 					if (kidelement.getName().equals("attribute")) { //$NON-NLS-1$
 						if (kidelement.getAttributeValue("name").equals(nstypename)) //$NON-NLS-1$
 							return kidelement;
@@ -709,6 +717,10 @@ public class SchemaUtils {
 				if (kid instanceof org.jdom.Element) {
 					org.jdom.Element kidelement = (org.jdom.Element)kid;
 					if (kidelement.getName().equals("complexType")) { //$NON-NLS-1$
+						if (kidelement.getAttributeValue("name").equals(name)) //$NON-NLS-1$
+							return kidelement;
+					}
+					if (kidelement.getName().equals("simpleType")) { //$NON-NLS-1$
 						if (kidelement.getAttributeValue("name").equals(name)) //$NON-NLS-1$
 							return kidelement;
 					}
@@ -993,6 +1005,26 @@ public class SchemaUtils {
 						element2 = findJDOMElementInSchema(importXSDSchema, elemType);
 						if (element2 != null) {
 							element = element2;
+						} else {
+							element2 = findJDOMElementInSchemaByName(schemaElement, nstypename);
+							if (element2 != null) {
+								element = element2;
+							}
+						}
+					}
+				} else if (schemaElement != null) {
+					org.jdom.Element element2 = findJDOMTypeInSchema(schemaElement, elemType);
+					if (element2 != null) {
+						element = element2;
+					} else {
+						element2 = findJDOMElementInSchema(schemaElement, elemType);
+						if (element2 != null) {
+							element = element2;
+						} else {
+							element2 = findJDOMElementInSchemaByName(schemaElement, nstypename);
+							if (element2 != null) {
+								element = element2;
+							}
 						}
 					}
 				}
@@ -1097,7 +1129,8 @@ public class SchemaUtils {
 			List<?> kids = element.getChildren();
 			for (Iterator<?> kidIter = kids.iterator(); kidIter.hasNext(); ) {
 				Element kid = (Element) kidIter.next();
-				if (kid.getName().equals("complexType") || kid.getName().equals("sequence")) {//$NON-NLS-1$//$NON-NLS-2$
+				if (kid.getName().equals("complexType") || kid.getName().equals("sequence") || //$NON-NLS-1$//$NON-NLS-2$
+						kid.getName().equals("simpleType") || kid.getName().equals("restriction")) { //$NON-NLS-1$ //$NON-NLS-2$
 					List<?> innerkids = kid.getChildren();
 					for (Iterator<?> kidIter2 = innerkids.iterator(); kidIter2.hasNext(); ) {
 						Element innerkid = (Element) kidIter2.next();
@@ -1182,7 +1215,7 @@ public class SchemaUtils {
 			DOMBuilder domBuilder = new DOMBuilder();
 			schema.updateElement(true);
 			org.jdom.Element importXSDSchema = domBuilder.build(schema.getElement());
-			if (type.indexOf(':') > -1) {
+			if (type != null && type.indexOf(':') > -1) {
 				String typename = type.substring(type.indexOf(':') + 1, type.length());
 				org.jdom.Element element = findJDOMTypeInSchemaByNameAttr(importXSDSchema, typename);
 				if (element != null) {
@@ -1195,7 +1228,7 @@ public class SchemaUtils {
 		// typically the type starts with a namespace prefix, so
 		// we want to compare the end of the string with the actual
 		// type name
-		if (type.endsWith(STRING_TYPE_NAME) || 
+		if (type != null && type.endsWith(STRING_TYPE_NAME) || 
 				type.endsWith(BOOLEAN_TYPE_NAME) || 
 				type.endsWith(DECIMAL_TYPE_NAME) ||
 				type.endsWith(INT_TYPE_NAME) || 
@@ -1217,7 +1250,7 @@ public class SchemaUtils {
 				type.endsWith(PRECISION_DECIMAL_TYPE_NAME)
 				) {
 			return true;
-		} else if (type.contains(SIMPLE_TYPE_NAME)) {
+		} else if (type != null && type.contains(SIMPLE_TYPE_NAME)) {
 			return true;
 		}
 		return false;
