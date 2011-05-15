@@ -160,7 +160,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		IJavaProject javaProject = JavaCore.create(project);
 		command.add("-k"); //$NON-NLS-1$
 		command.add("-s"); //$NON-NLS-1$
-		command.add(JBossWSCreationUtils.getJavaProjectSrcLocation(project));
+		command.add(JBossWSCreationUtils.getCustomSrcLocation(model.getJavaSourceFolder()));
 		command.add("-o"); //$NON-NLS-1$
 		StringBuffer opDir = new StringBuffer();
 		opDir.append(projectRoot).append(Path.SEPARATOR).append(javaProject.getOutputLocation().removeFirstSegments(1).toOSString());

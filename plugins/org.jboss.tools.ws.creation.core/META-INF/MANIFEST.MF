@@ -38,7 +38,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.debug.core,
  org.eclipse.jst.jee.web,
  javax.wsdl;visibility:=reexport,
- org.eclipse.jst.ws.annotations.core
+ org.eclipse.jst.ws.annotations.core,
+ org.eclipse.wst.common.emfworkbench.integration
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.creation.core,
  org.jboss.tools.ws.creation.core.commands,

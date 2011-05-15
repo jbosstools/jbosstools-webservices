@@ -178,8 +178,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			IJavaProject javaProject) {
 		try {
 			IPath srcPath = new Path(
-					JBossWSCreationUtils.getJavaProjectSrcLocation(javaProject
-							.getProject()));
+					JBossWSCreationUtils.getCustomSrcLocation(model.getJavaSourceFolder()));
 			srcPath = javaProject.getPath().append(
 					srcPath.makeRelativeTo(javaProject.getProject()
 							.getLocation()));

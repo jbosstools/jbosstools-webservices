@@ -544,8 +544,7 @@ public class ImplementationClassCreationCommand extends
 	private IPath getSourceFolderPath(IProject project)
 			throws JavaModelException {
 		IPath path = new Path(
-				JBossWSCreationUtils.getJavaProjectSrcLocation(project
-						.getProject()));
+				JBossWSCreationUtils.getCustomSrcLocation(model.getJavaSourceFolder()));
 		return path.makeRelativeTo(project.getProject().getLocation());
 	}
 

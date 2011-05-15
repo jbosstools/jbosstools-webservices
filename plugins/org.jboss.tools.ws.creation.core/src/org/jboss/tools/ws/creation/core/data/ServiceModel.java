@@ -21,6 +21,7 @@ private String  webProjectName;
 	private String customClassName;
 	private String applicationClassName;
 	private String applicationName;
+	private String javaSourceFolder;
 
 	public int getWsScenario() {
 		return wsScenario;
@@ -166,5 +167,13 @@ private String  webProjectName;
 
 	public void setApplicationName(String applicationName) {
 		this.applicationName = applicationName;
+	}
+	
+	public String getJavaSourceFolder() {
+		return javaSourceFolder;
+	}
+
+	public void setJavaSourceFolder(String javaSourceFolder) {
+		this.javaSourceFolder = javaSourceFolder;
 	}
 }

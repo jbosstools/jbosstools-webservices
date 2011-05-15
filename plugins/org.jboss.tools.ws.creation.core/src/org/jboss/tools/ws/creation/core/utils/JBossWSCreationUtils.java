@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -396,10 +397,22 @@ public class JBossWSCreationUtils {
 
 		return null;
 	}
-
+	
+	// return the src location when user select a src path
+	public static String getCustomSrcLocation(String srcPath)
+			throws JavaModelException {
+		if (srcPath == null || "".equals(srcPath)) { //$NON-NLS-1$
+			return ""; //$NON-NLS-1$
+		}
+		IFolder srcFolder = ResourcesPlugin.getWorkspace().getRoot().getFolder(new Path(srcPath));
+		return srcFolder.getLocation().toOSString();
+	}
+	
+	//return the default src of a java project
 	public static String getJavaProjectSrcLocation(IProject project)
 			throws JavaModelException {
-		IResource[] rs = getJavaSourceRoots(project);
+		IJavaProject javaProject = JavaCore.create(project);
+		IResource[] rs = getJavaSourceRoots(javaProject);
 		String src = ""; //$NON-NLS-1$
 		if (rs == null || rs.length == 0)
 			return src;
@@ -413,9 +426,8 @@ public class JBossWSCreationUtils {
 		return src;
 	}
 
-	public static IResource[] getJavaSourceRoots(IProject project)
+	public static IResource[] getJavaSourceRoots(IJavaProject javaProject)
 			throws JavaModelException {
-		IJavaProject javaProject = JavaCore.create(project);
 		if (javaProject == null)
 			return null;
 		List<IResource> resources = new ArrayList<IResource>();
@@ -511,8 +523,7 @@ public class JBossWSCreationUtils {
 		try {
 			IPath path = addPackagetoPath(project, packageName);
 			if (path == null) {
-				IResource[] resources = JBossWSCreationUtils
-						.getJavaSourceRoots(project.getProject());
+				IResource[] resources = JBossWSCreationUtils.getJavaSourceRoots(project);
 				if (resources != null && resources.length > 0) {
 					IJavaElement[] elements = project.getPackageFragmentRoot(
 							resources[0]).getChildren();
