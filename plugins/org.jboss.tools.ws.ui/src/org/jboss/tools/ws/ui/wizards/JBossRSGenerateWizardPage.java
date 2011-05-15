@@ -355,7 +355,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 
 		// no source folder in web project
 		try {
-			if (""	.equals(JBossWSCreationUtils.getJavaProjectSrcLocation(((JBossRSGenerateWizard) this.getWizard()).getProject()))) { //$NON-NLS-1$
+			if ("".equals(JBossWSCreationUtils.getJavaProjectSrcLocation(((JBossRSGenerateWizard) this.getWizard()).getProject()))) { //$NON-NLS-1$
 				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoSrcInProject);
 				return false;
 			}

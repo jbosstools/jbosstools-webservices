@@ -67,8 +67,7 @@ public class JBossWSUIUtils {
 
 		IPackageFragmentRoot[] roots = null;
 		try {
-			IResource[] srcFolders = JBossWSCreationUtils
-					.getJavaSourceRoots(context.getJavaProject().getProject());
+			IResource[] srcFolders = JBossWSCreationUtils.getJavaSourceRoots(context.getJavaProject());
 			roots = new IPackageFragmentRoot[srcFolders.length];
 			int i = 0;
 			for (IResource src : srcFolders) {
