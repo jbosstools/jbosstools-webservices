@@ -17,12 +17,14 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetDataContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataEvents;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
+import org.jboss.tools.ws.creation.ui.utils.JBossCreationUIUtils;
 
 /**
  * @author Grid Qian
@@ -33,6 +35,7 @@ public class Java2WSDLCodeGenConfigWidget extends
 
 	private ServiceModel model;
 	private Button btnUpdateWebxml;
+	private Combo  sourceCombo;
 
 	public Java2WSDLCodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
@@ -46,6 +49,9 @@ public class Java2WSDLCodeGenConfigWidget extends
 		GridLayout layout = new GridLayout(2, false);
 		configCom.setLayout(layout);
 		configCom.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		//choose source folder
+		JBossCreationUIUtils.createSourceComboItem(configCom, sourceCombo, model);
 
 		final Button wsdlGen = new Button(configCom, SWT.CHECK | SWT.NONE);
 		GridData wsdlGenData = new GridData();

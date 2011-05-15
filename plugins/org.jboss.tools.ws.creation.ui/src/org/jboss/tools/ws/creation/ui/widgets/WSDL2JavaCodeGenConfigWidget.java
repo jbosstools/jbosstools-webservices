@@ -24,6 +24,7 @@ import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
+import org.jboss.tools.ws.creation.ui.utils.JBossCreationUIUtils;
 import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
 
 @SuppressWarnings("restriction")
@@ -44,6 +45,7 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 	private Button btnUpdateWebxml;
 	private Button btnGenDefaultImpl;
 	private Button btnExtension;
+	private Combo  sourceCombo;
 
 	public WSDL2JavaCodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
@@ -57,6 +59,9 @@ public class WSDL2JavaCodeGenConfigWidget extends SimpleWidgetDataContributor {
 		configCom.setLayout(layout);
 		configCom.setLayoutData(new GridData(GridData.FILL_BOTH));
 
+		//choose source folder
+		JBossCreationUIUtils.createSourceComboItem(configCom, sourceCombo, model);
+		
 		// custom package name
 		final Label lblCustomPakage = new Label(configCom, SWT.NONE);
 		lblCustomPakage
