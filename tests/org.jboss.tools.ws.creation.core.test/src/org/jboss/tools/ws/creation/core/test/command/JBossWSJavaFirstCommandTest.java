@@ -119,6 +119,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 
 	public void doJava2WSCommand() throws ExecutionException, CoreException {
 		model.setGenWSDL(true);
+		model.setJavaSourceFolder("//JavaFirstTestProject//src");
 		IProject project = fproject.getProject();
 		Java2WSCommand command = new Java2WSCommand(model);
 		IStatus status = command.execute(null, null);

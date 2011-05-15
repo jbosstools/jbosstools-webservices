@@ -69,6 +69,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 		IProject project = fproject.getProject();
 		
 		// test wsdl2Javacommand
+		model.setJavaSourceFolder("//JBossWSTestProject//src");
 		WSDL2JavaCommand cmdW2j = new WSDL2JavaCommand(model);
 		IStatus status = cmdW2j.execute(null, null);
 		assertFalse(status.getMessage(), Status.ERROR == status.getSeverity());

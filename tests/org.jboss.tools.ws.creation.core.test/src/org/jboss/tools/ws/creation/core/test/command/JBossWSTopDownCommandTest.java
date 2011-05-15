@@ -98,6 +98,8 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 	public void doCodeGenerationCommand() throws ExecutionException{
 		IProject project = fproject.getProject();
 		
+		model.setJavaSourceFolder("//JBossWSTestProject//src");
+		
 		//test wsdl2Javacommand
 		WSDL2JavaCommand cmdW2j = new WSDL2JavaCommand(model);
 		IStatus status = cmdW2j.execute(null, null);
