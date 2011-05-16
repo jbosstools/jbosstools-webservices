@@ -3,6 +3,8 @@ package org.jboss.tools.ws.creation.core.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.wsdl.Definition;
+
 public class ServiceModel {
 
 private String  webProjectName;
@@ -22,6 +24,7 @@ private String  webProjectName;
 	private String applicationClassName;
 	private String applicationName;
 	private String javaSourceFolder;
+	private Definition wsdlDefinition;
 
 	public int getWsScenario() {
 		return wsScenario;
@@ -176,4 +179,13 @@ private String  webProjectName;
 	public void setJavaSourceFolder(String javaSourceFolder) {
 		this.javaSourceFolder = javaSourceFolder;
 	}
+	
+
+	public Definition getWsdlDefinition() {
+		return wsdlDefinition;
+	}
+
+	public void setWsdlDefinition(Definition wsdlDefinition) {
+		this.wsdlDefinition = wsdlDefinition;
+	} 
 }

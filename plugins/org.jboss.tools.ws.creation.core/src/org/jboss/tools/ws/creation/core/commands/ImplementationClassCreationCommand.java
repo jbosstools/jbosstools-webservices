@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.wsdl.Definition;
-import javax.wsdl.WSDLException;
-import javax.wsdl.factory.WSDLFactory;
-import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -177,22 +174,16 @@ public class ImplementationClassCreationCommand extends
 
 	protected String[] getServiceNameFromWSDL() {
 		String[] names = new String[2];
-		try {
-			WSDLFactory factory = WSDLFactory.newInstance();
-			WSDLReader wsdlReader = factory.newWSDLReader();
-			Definition def = wsdlReader.readWSDL(model.getWsdlURI());
-			Map<?, ?> services = def.getServices();
-			if (services != null) {
-				QName[] a = new QName[services.keySet().size()];
-				if (a != null && a.length > 0) {
-					services.keySet().toArray(a);
-					names[0] = a[0].getLocalPart();
-				}
+		Definition def = model.getWsdlDefinition();
+		Map<?, ?> services = def.getServices();
+		if (services != null) {
+			QName[] a = new QName[services.keySet().size()];
+			if (a != null && a.length > 0) {
+				services.keySet().toArray(a);
+				names[0] = a[0].getLocalPart();
 			}
-			names[1] = def.getTargetNamespace();
-		} catch (WSDLException e) {
-			e.printStackTrace();
 		}
+		names[1] = def.getTargetNamespace();
 		return names;
 	}
 

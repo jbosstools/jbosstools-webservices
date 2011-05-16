@@ -29,6 +29,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.wsdl.Definition;
+import javax.wsdl.WSDLException;
+import javax.wsdl.factory.WSDLFactory;
+import javax.wsdl.xml.WSDLReader;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -597,5 +602,12 @@ public class JBossWSCreationUtils {
 		}
 		return path;
 	}
+	
+    public static Definition readWSDL(String wsdlURL) throws WSDLException{
+    	WSDLFactory factory = WSDLFactory.newInstance();
+		WSDLReader wsdlReader = factory.newWSDLReader();
+		Definition def = wsdlReader.readWSDL(wsdlURL);
+		return def;
+    }
 
 }

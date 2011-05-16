@@ -46,6 +46,7 @@ public class JBossWSCreationCoreMessages extends NLS {
     public static String Error_Message_No_Runtime_Specified;
     public static String Error_JBossWS_GenerateWizard_WSName_Same;
     public static String Error_JBossWS_GenerateWizard_WSImpl_Overwrite;
+    public static String Error_Read_WSDL;
 
 	public static String RestEasyLibUtils_Error_UnableToFindRuntimeForProject;
 

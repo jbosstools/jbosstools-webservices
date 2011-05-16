@@ -1,5 +1,8 @@
 package org.jboss.tools.ws.creation.core.commands;
 
+import javax.wsdl.Definition;
+import javax.wsdl.WSDLException;
+
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -51,6 +54,13 @@ public class InitialCommand extends AbstractDataModelOperation {
 		model.setTarget(JBossWSCreationCoreMessages.Value_Target_0);
 		if (scenario == WebServiceScenario.TOPDOWN) {
 			model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
+			Definition definition = null;
+			try {
+				definition = JBossWSCreationUtils.readWSDL(model.getWsdlURI());
+			} catch (WSDLException e) {
+				return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Read_WSDL);
+			}
+			model.setWsdlDefinition(definition);
 			model.setCustomPackage(""); //$NON-NLS-1$
 		} else {
 			model.addServiceClasses(ws.getWebServiceInfo().getImplURL());
@@ -60,7 +70,6 @@ public class InitialCommand extends AbstractDataModelOperation {
 	}
 
 	public ServiceModel getWebServiceDataModel() {
-
 		return model;
 	}
 
