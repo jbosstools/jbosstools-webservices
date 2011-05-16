@@ -23,7 +23,6 @@ public class JBossCreationUIUtils {
 		final Combo outputDirCombo = new Combo(parent, SWT.READ_ONLY);
         outputDirCombo.setToolTipText(JBossWSCreationCoreMessages.Tooltip_SourceFolder);
         outputDirCombo.addListener(SWT.Modify, new Listener(){
-			@Override
 			public void handleEvent(Event arg0) {
                 String javaSourceFolder = outputDirCombo.getText();
                 model.setJavaSourceFolder(javaSourceFolder);	
