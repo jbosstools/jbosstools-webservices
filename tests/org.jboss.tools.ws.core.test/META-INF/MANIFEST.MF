@@ -30,7 +30,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console,
  org.eclipse.jface.text,
  org.jboss.ide.eclipse.as.classpath.core,
- org.eclipse.jst.common.project.facet.core;bundle-version="1.4.1"
+ org.eclipse.jst.common.project.facet.core
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.core.test,
  org.jboss.tools.ws.core.test.classpath
