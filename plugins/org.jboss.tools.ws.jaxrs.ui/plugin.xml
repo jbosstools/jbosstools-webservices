@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+<extension
+         id="org.jboss.tools.ws.jaxrs.ui.javaCompetionProposalComputer"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+      <javaCompletionProposalComputer
+            activate="true"
+            categoryId="org.eclipse.jdt.ui.defaultProposalCategory"
+            class="org.jboss.tools.ws.jaxrs.ui.contentassist.PathParamAnnotationValueCompletionProposalComputer">
+         <partition
+               type="__dftl_partition_content_type">
+         </partition>
+         <partition
+               type="__java_string">
+         </partition>
+      </javaCompletionProposalComputer>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding viewerId="org.eclipse.jdt.ui.PackageExplorer">
+         <includes>
+            <contentExtension
+                  isRoot="false"
+                  pattern="org.jboss.tools.ws.jaxrs.ui.uriMappingsNavigatorContent">
+            </contentExtension>
+         </includes>
+      </viewerContentBinding>
+      <viewerContentBinding
+            viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+         <includes>
+            <contentExtension
+                  isRoot="false"
+                  pattern="org.jboss.tools.ws.jaxrs.ui.uriMappingsNavigatorContent">
+            </contentExtension>
+         </includes>
+      </viewerContentBinding>
+      <!-- Viewer content binding for our Custom implementation of o.e.ui.navigator.CommonNavigator : keep for later-->
+      <!--viewer 
+            viewerId="org.jboss.tools.ws.jaxrs.ui.viewpart.OutlineView">
+         <options>
+            <property
+                  name="org.eclipse.ui.navigator.hideLinkWithEditorAction"
+                  value="true">
+            </property>
+         </options>
+      </viewer>
+      <viewerContentBinding
+            viewerId="org.jboss.tools.ws.jaxrs.ui.viewpart.OutlineView">
+         <includes>
+            <contentExtension
+                  pattern="org.jboss.tools.ws.jaxrs.ui.*">
+            </contentExtension>
+         </includes>
+      </viewerContentBinding -->
+      <!--viewerActionBinding
+            viewerId="org.jboss.tools.ws.jaxrs.ui.jaxrsOutlineView">
+      </viewerActionBinding-->
+   </extension>
+   
+   
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <!-- Binding for Resource elements of the metamodel -->
+      <!-- navigatorContent
+            activeByDefault="true"
+            contentProvider="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.ResourcesContentProvider"
+            icon="icons/restful_11.gif"
+            id="org.jboss.tools.ws.jaxrs.ui.resourcesNavigatorContent"
+            labelProvider="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.ResourcesLabelProvider"
+            name="JAX-RS Resources"
+            priority="highest"
+            providesSaveables="false">
+         <triggerPoints>
+            <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.RootCategory"> 
+                  </instanceof>
+            </or>
+         </triggerPoints>
+         <possibleChildren>
+         	<or>
+               <instanceof
+                     value="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.ResourcesCategory">
+               </instanceof>
+              </or>
+         </possibleChildren>
+      </navigatorContent -->
+      <!-- Binding for Provider elements of the metamodel -->
+      <!-- navigatorContent
+            activeByDefault="true"
+            contentProvider="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.ProvidersContentProvider"
+            icon="icons/restful_11.gif"
+            id="org.jboss.tools.ws.jaxrs.ui.providersNavigatorContent"
+            labelProvider="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.ProvidersLabelProvider"
+            name="JAX-RS Providers"
+            priority="high"
+            providesSaveables="false">
+         <triggerPoints>
+            <or>
+              <instanceof
+                    value="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.RootCategory">
+              </instanceof>
+            </or>
+         </triggerPoints>
+         <possibleChildren>
+         	<or>
+               <instanceof
+                     value="org.jboss.tools.ws.jaxrs.ui.viewpart.cnf.ProvidersCategory">
+               </instanceof>
+              </or>
+         </possibleChildren>
+      </navigatorContent -->
+      
+      <!-- Binding for URI Mappings computed in the metamodel -->
+      <navigatorContent
+            activeByDefault="true"
+            appearsBefore="org.eclipse.jdt.java.ui.javaContent"
+            contentProvider="org.jboss.tools.ws.jaxrs.ui.cnf.UriMappingsContentProvider"
+            icon="icons/wsdl_file_obj.gif"
+            id="org.jboss.tools.ws.jaxrs.ui.uriMappingsNavigatorContent"
+            labelProvider="org.jboss.tools.ws.jaxrs.ui.cnf.UriMappingsLabelProvider"
+            name="RESTFul Web Services"
+            priority="highest"
+            providesSaveables="false">
+         <triggerPoints>
+            <and>
+              <instanceof
+                    value="org.eclipse.core.resources.IProject">
+              </instanceof>
+              <test
+	                forcePluginActivation="true"
+	                property="org.eclipse.core.resources.projectNature"
+	                value="org.jboss.tools.ws.jaxrs.nature">
+              </test>
+            </and>
+         </triggerPoints>
+         <possibleChildren>
+         	<or>
+               <instanceof
+                     value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory">
+               </instanceof>
+               <instanceof
+                     value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement">
+               </instanceof>
+               <instanceof
+                     value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement">
+               </instanceof>
+               <instanceof
+                     value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMethodMappingElement">
+               </instanceof>
+              </or>
+         </possibleChildren>
+         <commonSorter
+               class="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplatesSorter"
+               id="org.jboss.tools.ws.jaxrs.ui.cnf.uriPathTemplatesSorter">
+            <parentExpression>
+               <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory">
+                  </instanceof>
+               </or>
+            </parentExpression>
+         </commonSorter>
+         <commonSorter
+               class="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElementsSorter"
+               id="org.jboss.tools.ws.jaxrs.ui.cnf.uriPathTemplateElementsSorter">
+            <parentExpression>
+               <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement">
+                  </instanceof>
+               </or>
+            </parentExpression>
+         </commonSorter>
+         <actionProvider
+               class="org.jboss.tools.ws.jaxrs.ui.cnf.action.OpenJavaEditorActionProvider"
+               id="org.jboss.tools.ws.jaxrs.ui.cnf.openJavaEditorActionProvider"
+               priority="highest">
+            <enablement>
+               <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement">
+                  </instanceof>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMethodMappingElement">
+                  </instanceof>
+               </or>
+            </enablement>
+         </actionProvider>
+         <actionProvider
+               class="org.jboss.tools.ws.jaxrs.ui.cnf.action.CopyToClipboardActionProvider"
+               id="org.jboss.tools.ws.jaxrs.ui.cnf.copyToClipboardActionProvider"
+               priority="normal">
+            <enablement>
+               <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement">
+                  </instanceof>
+               </or>
+            </enablement>
+         </actionProvider>
+         <actionProvider
+               class="org.jboss.tools.ws.jaxrs.ui.cnf.action.RefreshNavigatorActionProvider"
+               id="org.jboss.tools.ws.jaxrs.ui.cnf.refreshNavigatorActionProvider"
+               priority="normal">
+            <enablement>
+               <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory">
+                  </instanceof>
+               </or>
+            </enablement>
+         </actionProvider>
+      </navigatorContent>
+   </extension>
+   
+   <extension
+         point="org.eclipse.jst.common.project.facet.core.libraryProviders">
+      <provider
+            abstract="false"
+            id="org.jboss.tools.ws.jaxrs.ui.pureJEE6LibraryProvider">
+         <action
+               type="INSTALL">
+            <operation
+                  class="org.jboss.tools.ws.jaxrs.ui.facet.PureJEE6LibraryInstallOperation">
+            </operation>
+         </action>
+         <action
+               type="UNINSTALL">
+            <operation
+                  class="org.jboss.tools.ws.jaxrs.ui.facet.PureJEE6LibraryUninstallOperation"></operation>
+         </action>
+         <label>Pure JEE6 Implementation</label>
+         <enablement>
+        <with variable="requestingProjectFacet">
+          <test property="org.eclipse.wst.common.project.facet.core.projectFacet"
+				value="jst.jaxrs:1.1" forcePluginActivation="true"/>
+        </with>
+        <with variable="projectFacets">
+            <count value="+"/>
+            <iterate operator="or">
+                <test property="org.eclipse.wst.common.project.facet.core.projectFacet"
+					value="java:[5.0" forcePluginActivation="true"/>
+            </iterate>
+        </with>        
+      </enablement>
+      </provider>
+   </extension>
+   
+   <extension point="org.eclipse.jst.common.project.facet.ui.libraryProviderActionPanels">
+    <panel 
+      provider="org.jboss.tools.ws.jaxrs.ui.pureJEE6LibraryProvider"
+      class="org.jboss.tools.ws.jaxrs.ui.facet.PureJEE6LibraryProviderInstallPanel"/>
+   </extension>
+   <extension
+         point="org.eclipse.wst.common.project.facet.core.listeners">
+      <listener
+            class="org.jboss.tools.ws.jaxrs.ui.facet.JaxrsFacetedProjectListener"
+            eventTypes="POST_INSTALL,POST_UNINSTALL">
+      </listener>
+   </extension>
+   <!-- see https://bugs.eclipse.org/bugs/show_bug.cgi?id=338898 -->
+   <extension
+         id="id1"
+         point="org.eclipse.jst.ws.jaxrs.core.jaxrsLibraryProvider">
+      <jaxrsLibraryprovider
+            libraryProviderID="org.jboss.tools.ws.jaxrs.ui.pureJEE6LibraryProvider"
+            showUpdateDD="true"
+            updateDDSelected="false">
+      </jaxrsLibraryprovider>
+   </extension>
+
+</plugin>

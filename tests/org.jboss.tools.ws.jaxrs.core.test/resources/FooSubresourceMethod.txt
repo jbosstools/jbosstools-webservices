@@ -1,0 +1,8 @@
+	@GET
+	@Path("{id}")
+	@Formatted
+	public Response getFoo2(@PathParam("id") Integer id, @Context UriInfo uriInfo,
+			@Context HttpServletRequest request) {
+		ResponseBuilder responseBuilder = Response.noContent();
+		return responseBuilder.build();
+	}

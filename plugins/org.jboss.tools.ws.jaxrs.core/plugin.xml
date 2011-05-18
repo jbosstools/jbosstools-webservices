@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         id="org.jboss.tools.ws.jaxrs.metamodelBuilder"
+         name="JAX-RS Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            callOnEmptyDelta="false"
+            hasNature="false"
+            isConfigurable="false">
+         <run
+               class="org.jboss.tools.ws.jaxrs.core.internal.builder.JaxrsMetamodelBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="org.jboss.tools.ws.jaxrs.configuration.nature.enable"
+            objectClass="org.eclipse.core.resources.IProject">
+         <visibility>
+            <and>
+               <objectState
+                     name="projectNature"
+                     value="org.eclipse.jdt.core.javanature">
+               </objectState>
+               <not>
+                  <objectState
+                        name="projectNature"
+                        value="org.jboss.tools.ws.jaxrs.nature">
+                  </objectState>
+               </not>
+            </and>
+         </visibility>
+         <action
+               class="org.jboss.tools.ws.jaxrs.core.configuration.AddNatureAction"
+               id="org.jboss.tools.ws.jaxrs.configuration.addJaxrsConfigurationAction"
+               label="Add JAX-RS 1.1 support..."
+               menubarPath="org.eclipse.ui.projectConfigure/additions">
+         </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="org.jboss.tools.ws.jaxrs.configuration.nature.disable"
+            objectClass="org.eclipse.core.resources.IProject">
+         <visibility>
+            <and>
+               <objectState
+                     name="projectNature"
+                     value="org.eclipse.jdt.core.javanature">
+               </objectState>
+               <objectState
+                     name="projectNature"
+                     value="org.jboss.tools.ws.jaxrs.nature">
+               </objectState>
+            </and>
+         </visibility>
+         <action
+               class="org.jboss.tools.ws.jaxrs.core.configuration.RemoveNatureAction"
+               id="org.jboss.tools.ws.jaxrs.removeJaxrsConfigurationAction"
+               label="Remove JAX-RS 1.1 support..."
+               menubarPath="org.eclipse.ui.projectConfigure/additions">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         id="org.jboss.tools.ws.jaxrs.nature"
+         name="JAX-RS 1.1 Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderConfigurer">
+         </run>
+      </runtime>
+      <builder
+            id="org.jboss.tools.ws.jaxrs.metamodelBuilder">
+      </builder>
+   </extension>
+   <extension
+         id="org.jboss.tools.ws.jaxrs.metamodelMarker"
+         name="JAX-RS Problem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+   </extension>
+  
+    
+   <!--extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            adaptable="true"
+            class="org.jboss.tools.ws.jaxrs.ui.Tapestry5SettingsPropertyPage"
+            id="org.jboss.tools.ws.jaxrs.propertyPage"
+            name="Tapestry5 Settings "
+            objectClass="org.eclipse.core.resources.IProject">
+         <enabledWhen>
+         <adapt type="org.eclipse.core.resources.IProject">
+            <test
+                  forcePluginActivation="true"
+                  property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                  value="org.jboss.tools.ws.jaxrs.projectFacet">
+            </test>
+            </adapt>
+         </enabledWhen>
+      </page>
+   </extension-->
+   
+</plugin>

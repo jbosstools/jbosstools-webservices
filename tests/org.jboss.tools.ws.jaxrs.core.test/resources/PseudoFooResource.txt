@@ -1,0 +1,52 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import java.net.URI;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.PersistenceContext;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+
+import org.jboss.tools.ws.jaxrs.sample.domain.Address;
+import org.jboss.tools.ws.jaxrs.sample.domain.Customer;
+import org.jboss.tools.ws.jaxrs.sample.domain.PurchaseOrder;
+import org.jboss.tools.ws.jaxrs.sample.services.dto.CustomerDTO;
+import org.jboss.tools.ws.jaxrs.sample.services.dto.CustomersDTO;
+import org.jboss.tools.ws.jaxrs.sample.services.dto.Link;
+import org.jboss.tools.ws.jaxrs.sample.services.dto.Page;
+import org.jboss.tools.ws.jaxrs.sample.services.dto.PurchaseOrderDTO;
+import org.jboss.resteasy.annotations.providers.jaxb.Formatted;
+
+public class FooResource {
+
+	@PersistenceContext
+	private EntityManager entityManager = null;
+
+	public Response createFoo(Object foo) {
+		return Response.created(null).build();
+	}
+
+	public Response getFoo(@PathParam("id") Integer id, @Context UriInfo uriInfo) {
+		ResponseBuilder responseBuilder = Response.noContent();
+		return responseBuilder.build();
+	}
+
+	
+	public void deleteFoo(@PathParam("id") Integer id) {
+	}
+}

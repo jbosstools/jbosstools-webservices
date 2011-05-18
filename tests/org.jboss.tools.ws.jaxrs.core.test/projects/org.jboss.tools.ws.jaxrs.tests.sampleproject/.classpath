@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6">
+		<attributes>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/persistence-api-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/jaxrs-api-2.0.1.GA.jar"/>
+	<classpathentry kind="lib" path="lib/resteasy-jaxrs-2.0.1.GA.jar"/>
+	<classpathentry kind="lib" path="lib/resteasy-jaxb-provider-2.0.1.GA.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>

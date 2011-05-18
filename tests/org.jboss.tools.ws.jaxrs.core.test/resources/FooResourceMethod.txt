@@ -1,0 +1,5 @@
+	@POST
+	public Response createFoo2(Object foo) {
+		return Response.created(null).build();
+	}
+

@@ -1,0 +1,30 @@
+@Service
+@Transactional
+@Path("/foo")
+@Consumes(MediaType.APPLICATION_XML)
+@Produces({ "application/vnd.bytesparadise.customer+xml", MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+class FooResource {
+
+	@PersistenceContext
+	private EntityManager entityManager = null;
+
+	@POST
+	public Response createFoo(Object foo) {
+		return Response.created(null).build();
+	}
+
+	@GET
+	@Path("{id}")
+	@Formatted
+	public Response getFoo(@PathParam("id") Integer id, @Context UriInfo uriInfo,
+			@Context HttpServletRequest request) {
+		ResponseBuilder responseBuilder = Response.noContent();
+		return responseBuilder.build();
+	}
+
+	
+	@DELETE
+	@Path("{id}")
+	public void deleteCustomer(@PathParam("id") Integer id) {
+	}
+}

@@ -1,0 +1,8 @@
+package org.jboss.tools.ws.jaxrs.sample;
+
+public class Multi() {
+}
+
+class Another() {
+
+}
