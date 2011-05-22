@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -43,9 +48,6 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  */
 public class Metamodel {
 
-	/** the number of steps to add or merge the metamodel. */
-	private static final int TOTAL_STEPS = 3;
-
 	/**
 	 * The qualified name of the metamodel when stored in the project session
 	 * properties.
@@ -53,11 +55,11 @@ public class Metamodel {
 	private static final QualifiedName METAMODEL_QUALIFIED_NAME = new QualifiedName(JBossJaxrsCorePlugin.PLUGIN_ID,
 			"metamodel");
 
-	/** The enclosing Project. */
-	private final IProject project;
+	/** The enclosing JavaProject. */
+	private final IJavaProject javaProject;
 
 	/** The Service URI. Default is "/" */
-	private String serviceURI = "/";
+	private String serviceUri = "/";
 
 	/**
 	 * List of JAX-RS annotation qualified names, including both core
@@ -65,6 +67,12 @@ public class Metamodel {
 	 * 
 	 */
 	private final List<String> jaxrsAnnotationNames = new ArrayList<String>();
+
+	/**
+	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although
+	 * there should be only one.
+	 */
+	private final Applications applications;
 
 	/**
 	 * All the resources (both rootresources and subresources) available in the
@@ -82,34 +90,6 @@ public class Metamodel {
 	/** The HTTP ResourceMethod elements container. */
 	private final HTTPMethods httpMethods;
 
-	/** The <code>javax.ws.rs.ext.Provider</code> annotation qualified name. */
-	@Deprecated
-	public static final String ANNOTATION_PROVIDER = "javax.ws.rs.ext.Provider";
-
-	/** The <code>@Produces</code> annotation qualified name. */
-	@Deprecated
-	public static final String ANNOTATION_PRODUCES = "javax.ws.rs.Produces";
-
-	/** The <code>@Path</code> annotation qualified name. */
-	@Deprecated
-	public static final String ANNOTATION_PATH = "javax.ws.rs.Path";
-
-	/** The <code>@HttpMethod</code> annotation qualified name. */
-	@Deprecated
-	public static final String ANNOTATION_HTTP_METHOD = "javax.ws.rs.HttpMethod";
-
-	/** The <code>@QueryParam</code> annotation qualified name. */
-	@Deprecated
-	public static final String ANNOTATION_QUERY_PARAM = "javax.ws.rs.QueryParam";
-
-	/** The <code>@PathParam</code> annotation qualified name. */
-	@Deprecated
-	public static final String ANNOTATION_PATH_PARAM = "javax.ws.rs.PathParam";
-
-	/** The <code>@Consumes</code> annotation qualified name. */
-	@Deprecated
-	public static final String ANNOTATION_CONSUMES = "javax.ws.rs.Consumes";
-
 	/**
 	 * Full constructor.
 	 * 
@@ -119,14 +99,21 @@ public class Metamodel {
 	 *             in case of underlying exception
 	 */
 	public Metamodel(final IJavaProject javaProject) throws CoreException {
-		this.project = javaProject.getProject();
+		this.javaProject = javaProject;
+		applications = new Applications(this);
 		providers = new Providers(javaProject, this);
 		resources = new Resources(this);
 		httpMethods = new HTTPMethods(this);
-		jaxrsAnnotationNames.addAll(Arrays.asList(new String[] { Metamodel.ANNOTATION_PROVIDER,
-				Metamodel.ANNOTATION_CONSUMES, Metamodel.ANNOTATION_PRODUCES, Metamodel.ANNOTATION_PATH,
-				Metamodel.ANNOTATION_HTTP_METHOD }));
-		project.setSessionProperty(METAMODEL_QUALIFIED_NAME, this);
+		jaxrsAnnotationNames.addAll(Arrays.asList(new String[] { Provider.class.getName(), Consumes.class.getName(),
+				Produces.class.getName(), Path.class.getName(), HttpMethod.class.getName() }));
+		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, this);
+	}
+
+	/**
+	 * @return the javaProject
+	 */
+	public IJavaProject getJavaProject() {
+		return javaProject;
 	}
 
 	/**
@@ -148,8 +135,8 @@ public class Metamodel {
 	 *             in case of underlying exception
 	 */
 	public final void remove() throws CoreException {
-		Logger.info("JAX-RS Metamodel removed for project " + project.getName());
-		project.setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
+		Logger.info("JAX-RS Metamodel removed for project " + javaProject.getElementName());
+		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
 	}
 
 	/**
@@ -174,24 +161,24 @@ public class Metamodel {
 	}
 
 	/**
-	 * @return the serviceURI
+	 * @return the serviceUri
 	 */
-	public final String getServiceURI() {
-		return serviceURI;
+	public final String getServiceUri() {
+		return serviceUri;
 	}
 
 	/**
 	 * Sets the Base URI for the URI mapping templates.
 	 * 
 	 * @param uri
-	 *            the serviceURI to set
+	 *            the serviceUri to set
 	 */
-	public final void setServiceURI(final String uri) {
+	public final void setServiceUri(final String uri) {
 		// remove trailing "*" character, if present.
 		if (uri.endsWith("*")) {
-			this.serviceURI = uri.substring(0, uri.length() - 1);
+			this.serviceUri = uri.substring(0, uri.length() - 1);
 		} else {
-			this.serviceURI = uri;
+			this.serviceUri = uri;
 		}
 	}
 
@@ -204,12 +191,14 @@ public class Metamodel {
 	 *            the progress monitor
 	 * @throws CoreException
 	 *             in case of underlying exception
+	 * @throws InvalidModelElementException
 	 */
 	public final void addElements(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		try {
-
-			progressMonitor.beginTask("Computing JAX-RS metamodel", TOTAL_STEPS);
+			progressMonitor.beginTask("Computing JAX-RS metamodel", 4);
+			applications.addFrom(scope, progressMonitor);
+			progressMonitor.worked(1);
 			httpMethods.addFrom(scope, progressMonitor);
 			progressMonitor.worked(1);
 			providers.addFrom(scope, new SubProgressMonitor(progressMonitor, 1,
@@ -234,7 +223,9 @@ public class Metamodel {
 	 */
 	public final void remove(final IResource resource, final IProgressMonitor progressMonitor) {
 		try {
-			progressMonitor.beginTask("Computing JAX-RS metamodel", TOTAL_STEPS);
+			progressMonitor.beginTask("Computing JAX-RS metamodel", 4);
+			applications.removeElement(resource, progressMonitor);
+			progressMonitor.worked(1);
 			httpMethods.removeElement(resource, progressMonitor);
 			progressMonitor.worked(1);
 			resources.removeElement(resource, progressMonitor);
@@ -314,6 +305,7 @@ public class Metamodel {
 	 *            the progress monitor
 	 * @throws CoreException
 	 *             in case of underlying exception
+	 * @throws InvalidModelElementException
 	 */
 	public final void applyDelta(final IResourceDelta delta, final IProgressMonitor progressMonitor)
 			throws CoreException {
@@ -353,6 +345,7 @@ public class Metamodel {
 	 *            the progress monitor
 	 * @throws CoreException
 	 *             in case of underlying exception
+	 * @throws InvalidModelElementException
 	 */
 	protected final void mergeElement(final ICompilationUnit compilationUnit, final IProgressMonitor progressMonitor)
 			throws CoreException {

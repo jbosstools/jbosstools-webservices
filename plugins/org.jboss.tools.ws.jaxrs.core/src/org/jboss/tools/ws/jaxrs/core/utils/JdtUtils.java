@@ -386,7 +386,8 @@ public final class JdtUtils {
 	 * @throws CoreException
 	 *             the underlying CoreException thrown by the manipulated JDT
 	 *             APIs
-	 * 
+	 * @deprecated use resolveAnnotationAttributeValue(IMember, CompilationUnit,
+	 *             Class<?>, String) instead.
 	 */
 	@Deprecated
 	public static Object resolveAnnotationAttributeValue(final IAnnotationBinding annotationBinding,

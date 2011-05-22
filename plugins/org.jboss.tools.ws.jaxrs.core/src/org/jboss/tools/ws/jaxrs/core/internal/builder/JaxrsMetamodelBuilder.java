@@ -63,7 +63,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 	public static final QualifiedName JAXRS_ELEMENT_CHANGE_LISTENER_NAME = new QualifiedName(
 			JBossJaxrsCorePlugin.PLUGIN_ID, "jaxrsPostReconcileListener");
 
-	private List<IJavaElementDelta> changeHints = new ArrayList<IJavaElementDelta>();
+	private final List<IJavaElementDelta> changeHints = new ArrayList<IJavaElementDelta>();
 
 	// TODO : add support for cancellation
 	// TODO : report build failed
@@ -178,7 +178,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 				metamodel.reset();
 			}
 			// FIXME : determine correct service base URI
-			metamodel.setServiceURI("/*");
+			metamodel.setServiceUri("/*");
 			metamodel.addElements(javaProject, monitor);
 			metamodel.validate(monitor);
 			long endTime = new Date().getTime();

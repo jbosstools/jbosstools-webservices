@@ -36,8 +36,11 @@ public abstract class BaseElementContainer<T extends BaseElement<?>> implements 
 	/**
 	 * Adding elements from the given scope.
 	 * 
+	 * @throws InvalidModelElementException
+	 * 
 	 */
-	public abstract void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor) throws CoreException;
+	public abstract void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor)
+			throws CoreException, InvalidModelElementException;
 
 	/**
 	 * Remove an element from the container given its underlying (eclipse)
@@ -134,5 +137,10 @@ public abstract class BaseElementContainer<T extends BaseElement<?>> implements 
 	 */
 	public void reset() {
 		this.elements.clear();
+	}
+
+	@Override
+	public String toString() {
+		return elements.toString();
 	}
 }

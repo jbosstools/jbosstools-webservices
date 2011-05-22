@@ -69,7 +69,8 @@ public class Resources extends BaseElementContainer<Resource> {
 			final IProgressMonitor progressMonitor) throws CoreException {
 		Map<ResolvedUriMapping, Stack<ResourceMethod>> uriMappings = new HashMap<ResolvedUriMapping, Stack<ResourceMethod>>();
 		for (Resource resource : getRootResources()) {
-			resolveResourcesUriMappings(resource, "/*", uriMappings, new Stack<ResourceMethod>(), progressMonitor);
+			resolveResourcesUriMappings(resource, metamodel.getServiceUri(), uriMappings, new Stack<ResourceMethod>(),
+					progressMonitor);
 		}
 		return uriMappings;
 	}

@@ -46,6 +46,7 @@ public class Providers extends BaseElementContainer<Provider> {
 	 * @param metamodel
 	 * @throws CoreException
 	 */
+	// TODO : use the Builder pattern here ?
 	public Providers(final IJavaProject javaProject, final Metamodel metamodel) throws CoreException {
 		super(metamodel);
 		providerInterfaces = new HashMap<EnumProviderKind, IType>();
