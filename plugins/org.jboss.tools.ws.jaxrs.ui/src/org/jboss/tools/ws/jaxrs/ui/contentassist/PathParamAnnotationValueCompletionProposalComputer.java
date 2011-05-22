@@ -54,7 +54,7 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 public class PathParamAnnotationValueCompletionProposalComputer implements IJavaCompletionProposalComputer {
 
 	/** Icon for completion proposals. */
-	private Image icon = JBossJaxrsUIPlugin.getDefault().createImage("url_mapping.gif");
+	private final Image icon = JBossJaxrsUIPlugin.getDefault().createImage("url_mapping.gif");
 
 	/**
 	 * {@inheritDoc}
@@ -119,7 +119,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 * @throws BadLocationException
-	 * @throws org.eclipse.jface.text.BadLocationException 
+	 * @throws org.eclipse.jface.text.BadLocationException
 	 */
 	private List<ICompletionProposal> internalComputePathParamProposals(JavaContentAssistInvocationContext javaContext,
 			IAnnotationBinding pathParamAnnotationBinding, IMethod method, CompilationUnit compilationUnit)
@@ -137,21 +137,20 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		return completionProposals;
 	}
 
-	private List<ICompletionProposal> generateCompletionProposal(IMember member, CompilationUnit compilationUnit, ITypedRegion region,
-			String matchValue) throws CoreException {
+	private List<ICompletionProposal> generateCompletionProposal(IMember member, CompilationUnit compilationUnit,
+			ITypedRegion region, String matchValue) throws CoreException {
 		List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
-		IAnnotationBinding pathAnnotationBinding = JdtUtils.resolveAnnotationBinding(member, compilationUnit,
-				Path.class);
-		String pathAnnotationValue = (String) JdtUtils.resolveAnnotationAttributeValue(pathAnnotationBinding, "value");
+		String pathAnnotationValue = (String) JdtUtils.resolveAnnotationAttributeValue(member, compilationUnit,
+				Path.class, "value");
 		if (pathAnnotationValue != null && pathAnnotationValue.contains("{") && pathAnnotationValue.contains("}")) {
 			List<String> uriParams = extractParamsFromUriTemplateFragment(pathAnnotationValue);
-			for(String uriParam : uriParams) {
+			for (String uriParam : uriParams) {
 				String replacementValue = "\"" + uriParam + "\"";
 				if (replacementValue.startsWith(matchValue)) {
 					String displayString = uriParam + " - JAX-RS Mapping";
 					StyledString displayStyledString = new StyledString(displayString);
-					displayStyledString.setStyle(uriParam.length(),
-							displayString.length() - uriParam.length(), StyledString.QUALIFIER_STYLER);
+					displayStyledString.setStyle(uriParam.length(), displayString.length() - uriParam.length(),
+							StyledString.QUALIFIER_STYLER);
 					completionProposals.add(new AnnotationCompletionProposal(replacementValue, displayStyledString,
 							region, icon, member, compilationUnit));
 				}
@@ -159,7 +158,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		}
 		return completionProposals;
 	}
-	
+
 	private static List<String> extractParamsFromUriTemplateFragment(String fragment) {
 		List<String> params = new ArrayList<String>();
 		int beginIndex = -1;
