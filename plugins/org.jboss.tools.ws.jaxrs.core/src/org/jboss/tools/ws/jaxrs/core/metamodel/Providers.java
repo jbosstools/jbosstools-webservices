@@ -14,19 +14,15 @@ package org.jboss.tools.ws.jaxrs.core.metamodel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JAXRSAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Provider.EnumProviderKind;
@@ -38,23 +34,20 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * @author xcoulon
  * 
  */
-public class Providers {
-
-	/**
-	 * The available providers (classes which implement MessageBodyWriter<T>,
-	 * MessageBodyReader<T> or ExceptionMapper<T>), , indexed by their
-	 * associated java type fully qualified name
-	 */
-	private final Map<String, Provider> providers = new HashMap<String, Provider>();
+public class Providers extends BaseElementContainer<Provider> {
 
 	/** The interfaces that a provider can implement, indexed by kind */
-	private Map<EnumProviderKind, IType> providerInterfaces;
+	private final Map<EnumProviderKind, IType> providerInterfaces;
 
-	private final Metamodel metamodel;
-
+	/**
+	 * Full constructor
+	 * 
+	 * @param javaProject
+	 * @param metamodel
+	 * @throws CoreException
+	 */
 	public Providers(final IJavaProject javaProject, final Metamodel metamodel) throws CoreException {
-		super();
-		this.metamodel = metamodel;
+		super(metamodel);
 		providerInterfaces = new HashMap<EnumProviderKind, IType>();
 		providerInterfaces.put(EnumProviderKind.CONSUMER,
 				JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject.getJavaProject(), null));
@@ -90,14 +83,14 @@ public class Providers {
 	 * implement the interface(s). (Yep, this is the hardest part of the thing,
 	 * but it provides added-value to the end-developper...)
 	 * 
-	 * @param errors
+	 * @param scope
+	 *            the scope from which elements should be added
 	 * 
-	 * @param javaElement
 	 * @param progressMonitor
 	 * @throws CoreException
-	 * @throws JavaModelException
 	 */
-	public final void addFrom(final IJavaElement scope, final SubProgressMonitor progressMonitor) throws CoreException {
+	@Override
+	public final void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor) throws CoreException {
 		progressMonitor.beginTask("Adding providers", 1);
 		try {
 			// FIXME : add support for javax.ws.rs.ext.ContextResolver(s) (most
@@ -109,8 +102,8 @@ public class Providers {
 			// exists. Throw an exception in constructor ?
 			for (IType providerType : providerTypes) {
 				try {
-					providers.put(providerType.getFullyQualifiedName(), new Provider(providerType, metamodel, this,
-							progressMonitor));
+					elements.put(providerType.getFullyQualifiedName(), new Provider.Builder(providerType, metamodel,
+							this).build(progressMonitor));
 				} catch (InvalidModelElementException e) {
 					Logger.warn("Type '" + providerType.getFullyQualifiedName() + "' is not a valid JAX-RS Provider : "
 							+ e.getMessage());
@@ -120,21 +113,6 @@ public class Providers {
 		} finally {
 			progressMonitor.done();
 		}
-
-	}
-
-	public final boolean contains(final IType providerType) {
-		return providers.containsKey(providerType.getFullyQualifiedName());
-	}
-
-	/**
-	 * Return the provider implemented by the given type, or null if not found.
-	 * 
-	 * @param peType
-	 * @return a provider, or null
-	 */
-	public final Provider getByType(final IType javaType) {
-		return providers.get(javaType.getFullyQualifiedName());
 	}
 
 	/**
@@ -147,7 +125,7 @@ public class Providers {
 	 * @return a provider, or null
 	 */
 	public final Provider getFor(final String type) {
-		for (Entry<String, Provider> providerEntry : providers.entrySet()) {
+		for (Entry<String, Provider> providerEntry : elements.entrySet()) {
 			Provider p = providerEntry.getValue();
 			for (Entry<EnumProviderKind, IType> kindEntry : p.getProvidedKinds().entrySet()) {
 				if (type.equals(kindEntry.getValue().getFullyQualifiedName())) {
@@ -168,7 +146,7 @@ public class Providers {
 	 * @return a provider, or null
 	 */
 	public final Provider getFor(final IType providedType) {
-		for (Entry<String, Provider> providerEntry : providers.entrySet()) {
+		for (Entry<String, Provider> providerEntry : elements.entrySet()) {
 			Provider p = providerEntry.getValue();
 			for (Entry<EnumProviderKind, IType> kindEntry : p.getProvidedKinds().entrySet()) {
 				if (providedType.equals(kindEntry.getValue())) {
@@ -208,7 +186,7 @@ public class Providers {
 
 	private List<Provider> filterProvidersByKind(final EnumProviderKind providerKind) {
 		List<Provider> matches = new ArrayList<Provider>();
-		for (Entry<String, Provider> entry : providers.entrySet()) {
+		for (Entry<String, Provider> entry : elements.entrySet()) {
 			Provider p = entry.getValue();
 			if (p.getProvidedKinds().containsKey(providerKind)) {
 				matches.add(p);
@@ -216,34 +194,4 @@ public class Providers {
 		}
 		return Collections.unmodifiableList(matches);
 	}
-
-	/**
-	 * @return the all the providers, no matter which role they have (reader,
-	 *         writer, exception mapper)
-	 */
-	public final List<Provider> getAll() {
-		return Collections.unmodifiableList(new ArrayList<Provider>(providers.values()));
-	}
-
-	public final void removeElement(final IResource removedResource, final IProgressMonitor progressMonitor) {
-		for (Iterator<Provider> iterator = providers.values().iterator(); iterator.hasNext();) {
-			Provider element = iterator.next();
-			if (removedResource.equals(element.getJavaElement().getResource())) {
-				iterator.remove();
-				return;
-			}
-		}
-	}
-
-	public final Object size() {
-		return providers.size();
-	}
-
-	/**
-	 * Resets the HTTPMethods list
-	 */
-	public void reset() {
-		this.providers.clear();
-	}
-
 }

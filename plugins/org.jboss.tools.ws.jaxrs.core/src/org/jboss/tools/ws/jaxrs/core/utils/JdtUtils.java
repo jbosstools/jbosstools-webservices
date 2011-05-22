@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
@@ -226,7 +227,7 @@ public final class JdtUtils {
 				ITypeBinding[] typeArgBindings = typeBinding.getTypeArguments();
 				arguments = new ArrayList<IType>(typeArgBindings.length);
 				for (ITypeBinding typeArgBinding : typeArgBindings) {
-					Logger.debug("Resolving Java Element for type argument '" + typeArgBinding.getName() +"'");
+					Logger.debug("Resolving Java Element for type argument '" + typeArgBinding.getName() + "'");
 					IJavaElement javaElement = typeArgBinding.getJavaElement();
 					if (javaElement.getElementType() == IJavaElement.TYPE && javaElement.exists()) {
 						arguments.add((IType) javaElement);
@@ -330,7 +331,6 @@ public final class JdtUtils {
 	 * @throws JavaModelException
 	 *             in case of underlying exception
 	 */
-	// TODO : merge with JdtUtils ?
 	public static Map<IAnnotationBinding, ITypedRegion> resolveMethodParamBindings(final IMethod javaMethod,
 			CompilationUnit compilationUnit, final Class<?> annotationTypeFilter) throws JavaModelException {
 		MemberAnnotationBindingsVisitor visitor = new MemberAnnotationBindingsVisitor(javaMethod,
@@ -386,9 +386,41 @@ public final class JdtUtils {
 	 * @throws CoreException
 	 *             the underlying CoreException thrown by the manipulated JDT
 	 *             APIs
+	 * 
 	 */
+	@Deprecated
 	public static Object resolveAnnotationAttributeValue(final IAnnotationBinding annotationBinding,
 			final String attributeName) throws CoreException {
+		if (annotationBinding != null) {
+			for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
+				if (binding.getName().equals(attributeName)) {
+					return binding.getValue();
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the value set for the given attribute from the given annotation
+	 * binding.
+	 * 
+	 * @param annotationBinding
+	 *            the annotation binding
+	 * @param attributeName
+	 *            the attribute name to look up
+	 * @return
+	 * @return the value of the attribute, or null if the attribute is not
+	 *         defined. The value can also be an Array of objects if the
+	 *         attribute is multi-valued.
+	 * @throws CoreException
+	 *             the underlying CoreException thrown by the manipulated JDT
+	 *             APIs
+	 */
+	public static Object resolveAnnotationAttributeValue(final IMember member, final CompilationUnit compilationUnit,
+			final Class<?> annotationClass, final String attributeName) throws CoreException {
+		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(member, compilationUnit,
+				annotationClass);
 		if (annotationBinding != null) {
 			for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
 				if (binding.getName().equals(attributeName)) {
@@ -489,6 +521,34 @@ public final class JdtUtils {
 			}
 		}
 		return problems;
+	}
+
+	/**
+	 * Resolves the method parameters.
+	 * 
+	 * @param javaMethod
+	 * @param compilationUnit
+	 * @param annotationType
+	 * @return the method parameters
+	 * @throws JavaModelException
+	 */
+	public static List<ResourceMethodAnnotatedParameter> resolveMethodParameters(IMethod javaMethod,
+			CompilationUnit compilationUnit, Class<?> annotationType) throws JavaModelException {
+		List<ResourceMethodAnnotatedParameter> parameters = new ArrayList<ResourceMethodAnnotatedParameter>();
+		Map<IAnnotationBinding, ITypedRegion> bindings = JdtUtils.resolveMethodParamBindings(javaMethod,
+				compilationUnit, annotationType);
+		for (Entry<IAnnotationBinding, ITypedRegion> entry : bindings.entrySet()) {
+			IAnnotationBinding binding = entry.getKey();
+			ITypedRegion region = entry.getValue();
+			IMemberValuePairBinding[] allMemberValuePairs = binding.getAllMemberValuePairs();
+			IMemberValuePairBinding memberValuePair = allMemberValuePairs[0];
+			String annotationValue = (String) memberValuePair.getValue();
+			int lineNumber = compilationUnit.getLineNumber(region.getOffset());
+			parameters.add(new ResourceMethodAnnotatedParameter(region.getType(), annotationType.getName(),
+					annotationValue, region.getOffset(), region.getOffset() + region.getLength(), lineNumber));
+		}
+		Collections.sort(parameters);
+		return parameters;
 	}
 
 }

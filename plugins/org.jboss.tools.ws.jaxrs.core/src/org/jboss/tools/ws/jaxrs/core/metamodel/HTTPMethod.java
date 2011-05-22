@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
@@ -97,25 +96,49 @@ public class HTTPMethod extends BaseElement<IType> implements Comparable<HTTPMet
 	}
 
 	/**
-	 * Full constructor.
+	 * Internal 'HTTPMethod' element builder.
 	 * 
-	 * @param javaType
-	 *            the underlying java type
-	 * @param metamodel
-	 *            the associated parent metamodel
-	 * @param progressMonitor
-	 *            the progress monitor
-	 * @throws CoreException
-	 *             in case of underlying exception
-	 * @throws InvalidModelElementException
-	 *             in case of underlying exception
+	 * @author xcoulon
+	 * 
 	 */
-	public HTTPMethod(final IType javaType, final Metamodel metamodel, final IProgressMonitor progressMonitor)
-			throws CoreException, InvalidModelElementException {
-		super(metamodel, javaType);
-		// this.state = EnumState.CREATING;
-		merge(javaType, progressMonitor);
-		// this.state = EnumState.CREATED;
+	public static class Builder {
+
+		private final Metamodel metamodel;
+		private final IType javaType;
+
+		/**
+		 * Mandatory attributes of the enclosing 'HTTPMethod' element.
+		 * 
+		 * @param javaType
+		 * @param metamodel
+		 */
+		public Builder(final IType javaType, final Metamodel metamodel) {
+			this.javaType = javaType;
+			this.metamodel = metamodel;
+		}
+
+		/**
+		 * Builds and returns the elements. Internally calls the merge() method.
+		 * 
+		 * @param progressMonitor
+		 * @return
+		 * @throws InvalidModelElementException
+		 * @throws CoreException
+		 */
+		public HTTPMethod build(IProgressMonitor progressMonitor) throws InvalidModelElementException, CoreException {
+			HTTPMethod httpMethod = new HTTPMethod(this);
+			httpMethod.merge(javaType, progressMonitor);
+			return httpMethod;
+		}
+	}
+
+	/**
+	 * Full constructor using the inner 'Builder' static class.
+	 * 
+	 * @param builder
+	 */
+	private HTTPMethod(Builder builder) {
+		super(builder.javaType, builder.metamodel);
 	}
 
 	@Override
@@ -132,19 +155,11 @@ public class HTTPMethod extends BaseElement<IType> implements Comparable<HTTPMet
 		if (!JdtUtils.isTopLevelType(javaType)) {
 			throw new InvalidModelElementException("Type is not a top-level type");
 		}
-		CompilationUnit compilationUnit = getCompilationUnit(javaType, progressMonitor);
-		/*
-		 * if (state == EnumState.CREATED) { Set<IProblem> problems =
-		 * JdtUtils.resolveErrors(javaType, compilationUnit); if (problems !=
-		 * null && problems.size() > 0) { //metamodel.reportErrors(javaType,
-		 * problems); return; } }
-		 */
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(getJavaElement(), compilationUnit,
-				HttpMethod.class);
-		if (annotationBinding == null) {
+		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
+		this.httpVerb = (String) JdtUtils.resolveAnnotationAttributeValue(getJavaElement(), compilationUnit,
+				HttpMethod.class, "value");
+		if (this.httpVerb == null) {
 			throw new InvalidModelElementException("Annotation binding not found : missing 'import' statement ?");
-		} else {
-			this.httpVerb = (String) JdtUtils.resolveAnnotationAttributeValue(annotationBinding, "value");
 		}
 
 	}

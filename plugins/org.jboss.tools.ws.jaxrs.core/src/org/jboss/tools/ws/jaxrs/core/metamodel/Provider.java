@@ -56,17 +56,52 @@ public class Provider extends BaseElement<IType> {
 	private final Providers container;
 
 	/**
-	 * @param javaType
-	 * @throws CoreException
-	 * @throws InvalidModelElementException
+	 * Internal 'Provider' element builder.
+	 * 
+	 * @author xcoulon
+	 * 
 	 */
-	public Provider(final IType javaType, final Metamodel metamodel, final Providers container,
-			final IProgressMonitor progressMonitor) throws CoreException, InvalidModelElementException {
-		super(metamodel, javaType);
-		this.container = container;
-		setState(EnumState.CREATING);
-		merge(javaType, progressMonitor);
-		setState(EnumState.CREATED);
+	public static class Builder {
+
+		private final Metamodel metamodel;
+		private final IType javaType;
+		private final Providers container;
+
+		/**
+		 * Mandatory attributes of the enclosing 'Provider' element.
+		 * 
+		 * @param javaType
+		 * @param metamodel
+		 */
+		public Builder(final IType javaType, final Metamodel metamodel, final Providers container) {
+			this.javaType = javaType;
+			this.metamodel = metamodel;
+			this.container = container;
+		}
+
+		/**
+		 * Builds and returns the elements. Internally calls the merge() method.
+		 * 
+		 * @param progressMonitor
+		 * @return
+		 * @throws InvalidModelElementException
+		 * @throws CoreException
+		 */
+		public Provider build(IProgressMonitor progressMonitor) throws InvalidModelElementException, CoreException {
+			Provider provider = new Provider(this);
+			provider.merge(javaType, progressMonitor);
+			return provider;
+		}
+	}
+
+	/**
+	 * Full constructor using the inner 'Builder' static class.
+	 * 
+	 * @param builder
+	 */
+	private Provider(Builder builder) {
+		super(builder.javaType, builder.metamodel);
+		this.container = builder.container;
 	}
 
 	/**
@@ -80,13 +115,11 @@ public class Provider extends BaseElement<IType> {
 		if (!JdtUtils.isTopLevelType(javaType)) {
 			throw new InvalidModelElementException("Type is not a top-level type");
 		}
-		CompilationUnit compilationUnit = getCompilationUnit(javaType, progressMonitor);
-		if (getState() == EnumState.CREATED) {
-			Set<IProblem> problems = JdtUtils.resolveErrors(javaType, compilationUnit);
-			if (problems != null && problems.size() > 0) {
-				// metamodel.reportErrors(javaType, problems);
-				return;
-			}
+		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
+		Set<IProblem> problems = JdtUtils.resolveErrors(javaType, compilationUnit);
+		if (problems != null && problems.size() > 0) {
+			// metamodel.reportErrors(javaType, problems);
+			return;
 		}
 		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(javaType, compilationUnit,
 				javax.ws.rs.ext.Provider.class);

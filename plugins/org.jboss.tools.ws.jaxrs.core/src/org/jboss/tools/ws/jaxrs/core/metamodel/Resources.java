@@ -11,10 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,7 +20,6 @@ import java.util.Stack;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
@@ -33,24 +29,44 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.BaseElement.EnumType;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
-public class Resources {
+public class Resources extends BaseElementContainer<Resource> {
 
-	private final Map<String, Resource> resources = new HashMap<String, Resource>();
-
-	private final Metamodel metamodel;
-
+	/**
+	 * Full constructor
+	 * 
+	 * @param metamodel
+	 */
 	public Resources(final Metamodel metamodel) {
-		this.metamodel = metamodel;
+		super(metamodel);
+	}
+
+	// FIXME deal with interfaces/implementations
+	@Override
+	public final void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor) throws CoreException {
+		progressMonitor.beginTask("Adding resources and resourceMethods", 1);
+		HTTPMethods httpMethods = metamodel.getHttpMethods();
+		List<IType> javaTypes = JAXRSAnnotationsScanner.findResources(scope, httpMethods.getTypeNames(),
+				progressMonitor);
+		for (IType javaType : javaTypes) {
+			try {
+				elements.put(javaType.getFullyQualifiedName(),
+						new Resource.Builder(javaType, metamodel).build(progressMonitor));
+			} catch (InvalidModelElementException e) {
+				Logger.warn("Type '" + javaType.getFullyQualifiedName() + "' is not a valid JAX-RS Resource: "
+						+ e.getMessage());
+			}
+		}
 	}
 
 	/**
 	 * Resolve the URI Mappings in the model, given all root resources,
-	 * subresources , resource resourceMethods , subresource resourceMethods and subresource
-	 * locators
+	 * subresources , resource resourceMethods , subresource resourceMethods and
+	 * subresource locators
 	 * 
 	 * @throws CoreException
 	 */
-	public final Map<ResolvedUriMapping, Stack<ResourceMethod>> resolveUriMappings(final IProgressMonitor progressMonitor) throws CoreException {
+	public final Map<ResolvedUriMapping, Stack<ResourceMethod>> resolveUriMappings(
+			final IProgressMonitor progressMonitor) throws CoreException {
 		Map<ResolvedUriMapping, Stack<ResourceMethod>> uriMappings = new HashMap<ResolvedUriMapping, Stack<ResourceMethod>>();
 		for (Resource resource : getRootResources()) {
 			resolveResourcesUriMappings(resource, "/*", uriMappings, new Stack<ResourceMethod>(), progressMonitor);
@@ -68,12 +84,14 @@ public class Resources {
 	private void resolveResourcesUriMappings(final Resource resource, final String uriTemplateFragment,
 			final Map<ResolvedUriMapping, Stack<ResourceMethod>> uriMappings, final Stack<ResourceMethod> methodsStack,
 			final IProgressMonitor progressMonitor) throws CoreException {
-		// resource resourceMethods and subresources resourceMethods are treated the same way
+		// resource resourceMethods and subresources resourceMethods are treated
+		// the same way
 		for (ResourceMethod resourceMethod : resource.getAllMethods()) {
 			String uriPathTemplate = resolveURIPathTemplate(uriTemplateFragment, resource, resourceMethod);
 			MediaTypeCapabilities mediaTypeCapabilities = resolveMediaTypeCapabilities(resource, resourceMethod);
 			UriMapping resourceUriMapping = resourceMethod.getUriMapping();
-			ResolvedUriMapping uriMapping = new ResolvedUriMapping(resourceUriMapping.getHTTPMethod(), uriPathTemplate, resourceUriMapping.getQueryParams(), mediaTypeCapabilities);
+			ResolvedUriMapping uriMapping = new ResolvedUriMapping(resourceUriMapping.getHTTPMethod(), uriPathTemplate,
+					resourceUriMapping.getQueryParams(), mediaTypeCapabilities);
 			@SuppressWarnings("unchecked")
 			Stack<ResourceMethod> stack = (Stack<ResourceMethod>) methodsStack.clone();
 			stack.add(resourceMethod);
@@ -84,7 +102,7 @@ public class Resources {
 		for (ResourceMethod resourceMethod : resource.getSubresourceLocators()) {
 			String uriPathTemplate = resolveURIPathTemplate(uriTemplateFragment, resource, resourceMethod);
 			IType returnType = resourceMethod.getReturnType();
-			if(returnType == null) {
+			if (returnType == null) {
 				continue;
 			}
 			ITypeHierarchy subresourceTypeHierarchy = JdtUtils.resolveTypeHierarchy(returnType, false, progressMonitor);
@@ -101,7 +119,8 @@ public class Resources {
 	}
 
 	// FIXME : include method parameters if annotated with @QueryParam
-	private static final String resolveURIPathTemplate(final String uriTemplateFragment, final Resource resource, final ResourceMethod resourceMethod) {
+	private static final String resolveURIPathTemplate(final String uriTemplateFragment, final Resource resource,
+			final ResourceMethod resourceMethod) {
 		StringBuffer uriTemplateBuffer = new StringBuffer(uriTemplateFragment);
 		String resourceUriPathTemplate = resource.getUriPathTemplate();
 		String methodUriPathTemplate = resourceMethod.getUriMapping().getUriPathTemplateFragment();
@@ -114,7 +133,8 @@ public class Resources {
 		return uriTemplateBuffer.toString().replaceAll("/\\*", "/").replaceAll("///", "/").replaceAll("//", "/");
 	}
 
-	private static final MediaTypeCapabilities resolveMediaTypeCapabilities(final Resource resource, final ResourceMethod resourceMethod) {
+	private static final MediaTypeCapabilities resolveMediaTypeCapabilities(final Resource resource,
+			final ResourceMethod resourceMethod) {
 		MediaTypeCapabilities resourceMediaTypeCapabilities = resource.getMediaTypeCapabilities();
 		MediaTypeCapabilities methodMediaTypeCapabilities = resourceMethod.getUriMapping().getMediaTypeCapabilities();
 		MediaTypeCapabilities mediaTypeCapabilities = new MediaTypeCapabilities();
@@ -137,60 +157,17 @@ public class Resources {
 		return mediaTypeCapabilities;
 	}
 
-	// FIXME deal with interfaces/implementations
-	public final void addFrom(final IJavaElement scope, final SubProgressMonitor progressMonitor) throws CoreException {
-		progressMonitor.beginTask("Adding resources and resourceMethods", 1);
-		HTTPMethods httpMethods = metamodel.getHttpMethods();
-		List<IType> javaTypes = JAXRSAnnotationsScanner.findResources(scope, httpMethods.getTypeNames(),
-				progressMonitor);
-		for (IType javaType : javaTypes) {
-			try {
-				resources.put(javaType.getFullyQualifiedName(), new Resource(javaType, metamodel, progressMonitor));
-			} catch (InvalidModelElementException e) {
-				Logger.warn("Type '" + javaType.getFullyQualifiedName() + "' is not a valid JAX-RS Resource: "
-						+ e.getMessage());
-			}
-		}
-	}
-
-	public final void removeElement(final IResource removedResource, final IProgressMonitor progressMonitor) {
-		for (Iterator<Resource> iterator = resources.values().iterator(); iterator.hasNext();) {
-			Resource r = iterator.next();
-			if (removedResource.equals(r.getJavaElement().getResource())) {
-				iterator.remove();
-			}
-		}
-	}
-
-	public final Resource getByType(final IType type) {
-		if(type == null) {
-			return null;
-		}
-		return resources.get(type.getFullyQualifiedName());
-	}
-	
 	public Resource getByResource(IResource resource) {
-		if(resource == null) {
+		if (resource == null) {
 			return null;
 		}
-		for(Entry<String, Resource> entry : resources.entrySet()) {
+		for (Entry<String, Resource> entry : elements.entrySet()) {
 			Resource r = entry.getValue();
-			if(resource.equals(r.getJavaElement().getResource())) {
+			if (resource.equals(r.getJavaElement().getResource())) {
 				return r;
 			}
 		}
 		return null;
-	}
-
-	public final boolean contains(final IType type) {
-		if(type == null) {
-			return false;
-		}
-		return resources.containsKey(type.getFullyQualifiedName());
-	}
-
-	public final Resource getByTypeName(final String fullyQualifiedName) {
-		return resources.get(fullyQualifiedName);
 	}
 
 	/**
@@ -200,7 +177,7 @@ public class Resources {
 	 * @return
 	 */
 	public final Resource getByPath(final String path) {
-		for (Entry<String, Resource> entry : resources.entrySet()) {
+		for (Entry<String, Resource> entry : elements.entrySet()) {
 			Resource resource = entry.getValue();
 			if (resource.isRootResource() && resource.getUriPathTemplate().endsWith(path)) {
 				return resource;
@@ -210,24 +187,12 @@ public class Resources {
 		return null;
 	}
 
-	public final List<Resource> getAll() {
-		return Collections.unmodifiableList(new ArrayList<Resource>(resources.values()));
-	}
-
 	public final List<Resource> getRootResources() {
-		return CollectionFilterUtil.filterElementsByKind(resources.values(), EnumType.ROOT_RESOURCE);
+		return CollectionFilterUtil.filterElementsByKind(elements.values(), EnumType.ROOT_RESOURCE);
 	}
 
 	public final List<Resource> getSubresources() {
-		return CollectionFilterUtil.filterElementsByKind(resources.values(), EnumType.SUBRESOURCE);
+		return CollectionFilterUtil.filterElementsByKind(elements.values(), EnumType.SUBRESOURCE);
 	}
-
-	/**
-	 * Resets the HTTPMethods list
-	 */
-	public void reset() {
-		this.resources.clear();
-	}
-
 
 }

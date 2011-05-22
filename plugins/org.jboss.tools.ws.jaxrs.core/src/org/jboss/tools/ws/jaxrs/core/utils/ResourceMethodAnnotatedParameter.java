@@ -9,10 +9,11 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core.metamodel;
+package org.jboss.tools.ws.jaxrs.core.utils;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.jboss.tools.ws.jaxrs.core.metamodel.Validable;
 
 public class ResourceMethodAnnotatedParameter implements Validable, Comparable<ResourceMethodAnnotatedParameter> {
 

@@ -29,6 +29,8 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 
 	/** The functional type of the JAX-RS Element. */
 	public enum EnumType {
+		/** An application */
+		APPLICATION,
 		/** A root resource. */
 		ROOT_RESOURCE,
 		/** A subresource. */
@@ -61,7 +63,7 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 	}
 
 	/** The current instance state. */
-	private EnumState state = EnumState.UNKNOWN;
+	EnumState state = EnumState.UNKNOWN;
 
 	/** The associated metamodel. */
 	private final Metamodel metamodel;
@@ -79,9 +81,10 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 	 *            the associated metamodel
 	 * @param element
 	 *            the underlying java element
+	 * @throws InvalidModelElementException
 	 */
-	public BaseElement(final Metamodel model, final T element) {
-		this.metamodel = model;
+	public BaseElement(final T element, final Metamodel metamodel) {
+		this.metamodel = metamodel;
 		this.javaElement = element;
 	}
 
@@ -93,7 +96,8 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 	}
 
 	/**
-	 * @param javaElement the javaElement to set
+	 * @param javaElement
+	 *            the javaElement to set
 	 */
 	public void setJavaElement(T javaElement) {
 		this.javaElement = javaElement;
@@ -124,28 +128,17 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 
 	/**
 	 * Returns the CompilationUnit (AST3/DOM) of the given java element.
-	 * @param element the java element
-	 * @param progressMonitor the progress monitor
+	 * 
+	 * @param element
+	 *            the java element
+	 * @param progressMonitor
+	 *            the progress monitor
 	 * @return the compilation unit or null
-	 * @throws JavaModelException in case of underlying exception
+	 * @throws JavaModelException
+	 *             in case of underlying exception
 	 */
-	final CompilationUnit getCompilationUnit(final T element, final IProgressMonitor progressMonitor)
-			throws JavaModelException {
-		return JdtUtils.parse(element, progressMonitor);
-	}
-
-	/**
-	 * @return the state
-	 */
-	public final EnumState getState() {
-		return state;
-	}
-
-	/**
-	 * @param s the state to set
-	 */
-	public final void setState(final EnumState s) {
-		this.state = s;
+	final CompilationUnit getCompilationUnit(final IProgressMonitor progressMonitor) throws JavaModelException {
+		return JdtUtils.parse(javaElement, progressMonitor);
 	}
 
 	/**

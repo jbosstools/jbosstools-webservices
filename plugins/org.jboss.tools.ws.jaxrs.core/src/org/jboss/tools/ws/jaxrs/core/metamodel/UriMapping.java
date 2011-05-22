@@ -12,10 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
@@ -29,13 +26,12 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
-import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
-import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.osgi.util.NLS;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JAXRSAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ValidationMessages;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.ResourceMethodAnnotatedParameter;
 
 public class UriMapping {
 
@@ -55,11 +51,53 @@ public class UriMapping {
 
 	private final Metamodel metamodel;
 
-	public UriMapping(final IMethod javaMethod, final CompilationUnit compilationUnit, final Metamodel metamodel)
-			throws CoreException {
-		this.javaMethod = javaMethod;
-		this.metamodel = metamodel;
-		merge(javaMethod, compilationUnit);
+	/**
+	 * Internal 'Resource' element builder.
+	 * 
+	 * @author xcoulon
+	 * 
+	 */
+	public static class Builder {
+
+		private final IMethod javaMethod;
+		private final Metamodel metamodel;
+
+		/**
+		 * Mandatory attributes of the enclosing 'ResourceMethod' element.
+		 * 
+		 * @param javaMethod
+		 * @param metamodel
+		 * @param parentResource
+		 */
+		public Builder(final IMethod javaMethod, final Metamodel metamodel) {
+			this.javaMethod = javaMethod;
+			this.metamodel = metamodel;
+		}
+
+		/**
+		 * Builds and returns the elements. Internally calls the merge() method.
+		 * 
+		 * @param progressMonitor
+		 * @return
+		 * @throws InvalidModelElementException
+		 * @throws CoreException
+		 */
+		public UriMapping build(final CompilationUnit compilationUnit) throws InvalidModelElementException,
+				CoreException {
+			UriMapping resourceMethod = new UriMapping(this);
+			resourceMethod.merge(compilationUnit);
+			return resourceMethod;
+		}
+	}
+
+	/**
+	 * Full constructor using the inner 'Builder' static class.
+	 * 
+	 * @param builder
+	 */
+	private UriMapping(Builder builder) {
+		this.javaMethod = builder.javaMethod;
+		this.metamodel = builder.metamodel;
 	}
 
 	/**
@@ -68,33 +106,28 @@ public class UriMapping {
 	 * @throws JavaModelException
 	 * @throws CoreException
 	 */
-	protected void merge(IMethod javaMethod, CompilationUnit compilationUnit) throws JavaModelException, CoreException {
-		IAnnotationBinding pathAnnotationBinding = JdtUtils.resolveAnnotationBinding(javaMethod, compilationUnit,
-				Path.class);
-		IAnnotationBinding httpMethodAnnotationBinding = null;
+	public void merge(CompilationUnit compilationUnit) throws JavaModelException, CoreException {
+		HTTPMethod httpMethod = null;
 		for (String httpMethodName : metamodel.getHttpMethods().getTypeNames()) {
-			httpMethodAnnotationBinding = JdtUtils
-					.resolveAnnotationBinding(javaMethod, compilationUnit, httpMethodName);
+			IAnnotationBinding httpMethodAnnotationBinding = JdtUtils.resolveAnnotationBinding(javaMethod,
+					compilationUnit, httpMethodName);
 			if (httpMethodAnnotationBinding != null) {
+				// String qualifiedName =
+				// JdtUtils.resolveAnnotationFullyQualifiedName(httpMethodAnnotationBinding);
+				// httpMethod =
+				// metamodel.getHttpMethods().getByTypeName(qualifiedName);
+				httpMethod = metamodel.getHttpMethods().getByTypeName(httpMethodName);
 				// stop iterating
 				break;
 			}
 		}
 		// resource method
-		HTTPMethod httpMethod = null;
-		String uriPathTemplateFragment = null;
-		if (httpMethodAnnotationBinding != null) {
-			String qualifiedName = JdtUtils.resolveAnnotationFullyQualifiedName(httpMethodAnnotationBinding);
-			httpMethod = metamodel.getHttpMethods().getByTypeName(qualifiedName);
-		}
-		if (pathAnnotationBinding != null) {
-			uriPathTemplateFragment = (String) JdtUtils.resolveAnnotationAttributeValue(pathAnnotationBinding, "value");
-		}
-
-		List<ResourceMethodAnnotatedParameter> pathParams = resolveParameters(javaMethod, compilationUnit,
-				PathParam.class);
-		List<ResourceMethodAnnotatedParameter> queryParams = resolveParameters(javaMethod, compilationUnit,
-				QueryParam.class);
+		String uriPathTemplateFragment = (String) JdtUtils.resolveAnnotationAttributeValue(javaMethod, compilationUnit,
+				Path.class, "value");
+		List<ResourceMethodAnnotatedParameter> pathParams = JdtUtils.resolveMethodParameters(javaMethod,
+				compilationUnit, PathParam.class);
+		List<ResourceMethodAnnotatedParameter> queryParams = JdtUtils.resolveMethodParameters(javaMethod,
+				compilationUnit, QueryParam.class);
 		setHTTPMethod(httpMethod);
 		setUriPathTemplateFragment(uriPathTemplateFragment);
 		setPathParams(pathParams);
@@ -105,56 +138,13 @@ public class UriMapping {
 		setMediaTypeCapabilities(mediaTypeCapabilities);
 	}
 
-	private List<ResourceMethodAnnotatedParameter> resolveParameters(IMethod javaMethod,
-			CompilationUnit compilationUnit, Class<?> annotationType) throws JavaModelException {
-		List<ResourceMethodAnnotatedParameter> parameters = new ArrayList<ResourceMethodAnnotatedParameter>();
-		Map<IAnnotationBinding, ITypedRegion> bindings = JdtUtils.resolveMethodParamBindings(javaMethod,
-				compilationUnit, annotationType);
-		for (Entry<IAnnotationBinding, ITypedRegion> entry : bindings.entrySet()) {
-			IAnnotationBinding binding = entry.getKey();
-			ITypedRegion region = entry.getValue();
-			IMemberValuePairBinding[] allMemberValuePairs = binding.getAllMemberValuePairs();
-			IMemberValuePairBinding memberValuePair = allMemberValuePairs[0];
-			String annotationValue = (String) memberValuePair.getValue();
-			int lineNumber = compilationUnit.getLineNumber(region.getOffset());
-			parameters.add(new ResourceMethodAnnotatedParameter(region.getType(), annotationType.getName(),
-					annotationValue, region.getOffset(), region.getOffset() + region.getLength(), lineNumber));
-		}
-		Collections.sort(parameters);
-		return parameters;
-	}
-
-	/**
-	 * Convenient constructor
-	 * 
-	 * @param httpMethod
-	 *            optional http method
-	 * @param consumes
-	 *            optional single consumed media type
-	 * @param produces
-	 *            optional single produced media type
-	 * @param uriPathTemplateFragment
-	 *            optional URI path template fragment public UriMapping(final
-	 *            HTTPMethod httpMethod, final String uriPathTemplateFragment,
-	 *            final String consumes, final String produces, final Metamodel
-	 *            metamodel) { super(); this.metamodel = metamodel;
-	 *            this.httpMethod = httpMethod; List<String> producedMimeTypes =
-	 *            new ArrayList<String>(); if (produces != null) {
-	 *            producedMimeTypes.add(produces); } List<String>
-	 *            consumedMimeTypes = new ArrayList<String>(); if (consumes !=
-	 *            null) { consumedMimeTypes.add(consumes); }
-	 *            setMediaTypeCapabilities(new
-	 *            MediaTypeCapabilities(consumedMimeTypes, producedMimeTypes));
-	 *            setUriPathTemplateFragment(uriPathTemplateFragment);
-	 *            setQueryParams(new HashMap<String, String>()); }
-	 */
-
 	/**
 	 * Validates the URI Mapping by checking that all
 	 * <code>javax.ws.rs.PathParam</code> annotation values match a parameter in
 	 * the URI Path Template fragment defined by the value of the
 	 * <code>java.ws.rs.Path</code> annotation value.
-	 * @throws CoreException 
+	 * 
+	 * @throws CoreException
 	 * 
 	 */
 	public void validate() throws CoreException {

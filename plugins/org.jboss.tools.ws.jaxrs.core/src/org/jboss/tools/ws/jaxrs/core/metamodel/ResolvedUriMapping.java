@@ -14,6 +14,8 @@ package org.jboss.tools.ws.jaxrs.core.metamodel;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jboss.tools.ws.jaxrs.core.utils.ResourceMethodAnnotatedParameter;
+
 public class ResolvedUriMapping implements Comparable<ResolvedUriMapping> {
 
 	private HTTPMethod httpMethod = null;

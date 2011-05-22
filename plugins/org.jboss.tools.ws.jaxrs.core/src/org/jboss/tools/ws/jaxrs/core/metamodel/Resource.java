@@ -31,7 +31,6 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JAXRSAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionFilterUtil;
@@ -79,21 +78,49 @@ public class Resource extends BaseElement<IType> {
 	final Map<String, ResourceMethod> resourceMethods = new HashMap<String, ResourceMethod>();
 
 	/**
-	 * Full constructor
+	 * Internal 'Resource' element builder.
 	 * 
-	 * @param javaType
-	 * @param metamodel
-	 * @param compilationUnit
-	 * @param mediaTypeCapabilities
-	 * @throws CoreException
-	 * @throws InvalidModelElementException
+	 * @author xcoulon
+	 * 
 	 */
-	public Resource(final IType javaType, final Metamodel metamodel, final IProgressMonitor progressMonitor)
-			throws CoreException, InvalidModelElementException {
-		super(metamodel, javaType);
-		setState(EnumState.CREATING);
-		merge(javaType, progressMonitor);
-		setState(EnumState.CREATED);
+	public static class Builder {
+
+		private final Metamodel metamodel;
+		private final IType javaType;
+
+		/**
+		 * Mandatory attributes of the enclosing 'HTTPMethod' element.
+		 * 
+		 * @param javaType
+		 * @param metamodel
+		 */
+		public Builder(final IType javaType, final Metamodel metamodel) {
+			this.javaType = javaType;
+			this.metamodel = metamodel;
+		}
+
+		/**
+		 * Builds and returns the elements. Internally calls the merge() method.
+		 * 
+		 * @param progressMonitor
+		 * @return
+		 * @throws InvalidModelElementException
+		 * @throws CoreException
+		 */
+		public Resource build(IProgressMonitor progressMonitor) throws InvalidModelElementException, CoreException {
+			Resource resource = new Resource(this);
+			resource.merge(javaType, progressMonitor);
+			return resource;
+		}
+	}
+
+	/**
+	 * Full constructor using the inner 'Builder' static class.
+	 * 
+	 * @param builder
+	 */
+	private Resource(Builder builder) {
+		super(builder.javaType, builder.metamodel);
 	}
 
 	public final boolean isRootResource() {
@@ -114,25 +141,22 @@ public class Resource extends BaseElement<IType> {
 		if (!JdtUtils.isTopLevelType(javaType)) {
 			throw new InvalidModelElementException("Type is not a top-level type");
 		}
-		CompilationUnit compilationUnit = getCompilationUnit(javaType, progressMonitor);
+		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
 		// TODO : base64.decode()
-		if (getState() == EnumState.CREATED) {
-			Set<IProblem> problems = JdtUtils.resolveErrors(javaType, compilationUnit);
-			if (problems != null && problems.size() > 0) {
-				// metamodel.reportErrors(javaType, problems);
-				return;
-			}
+		// if (state == EnumState.CREATED) {
+		Set<IProblem> problems = JdtUtils.resolveErrors(javaType, compilationUnit);
+		if (problems != null && problems.size() > 0) {
+			return;
 		}
+		// }
 
 		// String serviceURI = container.getMetamodel().getServiceURI();
-		IAnnotationBinding pathAnnotationBinding = JdtUtils.resolveAnnotationBinding(javaType, compilationUnit,
-				Path.class);
-		if (pathAnnotationBinding != null) {
+		this.uriPathTemplate = (String) JdtUtils.resolveAnnotationAttributeValue(javaType, compilationUnit, Path.class,
+				"value");
+		if (uriPathTemplate != null) {
 			isRootResource = true;
-			this.uriPathTemplate = (String) JdtUtils.resolveAnnotationAttributeValue(pathAnnotationBinding, "value");
 		} else {
 			isRootResource = false;
-			this.uriPathTemplate = null;
 		}
 
 		mediaTypeCapabilities.setConsumedMimeTypes(JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(javaType,
@@ -184,8 +208,8 @@ public class Resource extends BaseElement<IType> {
 					resourceMethod.merge(javaMethod, progressMonitor);
 					Logger.debug("Updated " + resourceMethod.toString());
 				} else {
-					ResourceMethod resourceMethod = new ResourceMethod(javaMethod, this, getMetamodel(),
-							progressMonitor);
+					ResourceMethod resourceMethod = new ResourceMethod.Builder(javaMethod, this, getMetamodel())
+							.build(progressMonitor);
 					resourceMethods.put(key, resourceMethod);
 					Logger.debug("Added " + resourceMethod.toString());
 				}
@@ -262,8 +286,8 @@ public class Resource extends BaseElement<IType> {
 		return CollectionFilterUtil.filterElementsByKind(resourceMethods.values(), EnumType.SUBRESOURCE_LOCATOR);
 	}
 
-	public final ResourceMethod getByURIMapping(final HTTPMethod httpMethod, final String uriPathTemplateFragment, final String consumes,
-			final String produces) {
+	public final ResourceMethod getByURIMapping(final HTTPMethod httpMethod, final String uriPathTemplateFragment,
+			final String consumes, final String produces) {
 		for (ResourceMethod resourceMethod : resourceMethods.values()) {
 			if (resourceMethod.getUriMapping().matches(httpMethod, uriPathTemplateFragment, consumes, produces)) {
 				return resourceMethod;

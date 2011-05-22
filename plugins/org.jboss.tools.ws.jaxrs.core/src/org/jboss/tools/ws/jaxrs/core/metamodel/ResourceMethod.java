@@ -42,39 +42,75 @@ public class ResourceMethod extends BaseElement<IMethod> {
 	private IType returnType = null;
 
 	/**
-	 * Constructor
+	 * Internal 'Resource' element builder.
 	 * 
-	 * @param javaMethod
-	 * @param metamodel
-	 * @param problems
-	 * @throws CoreException
-	 * @throws InvalidModelElementException
+	 * @author xcoulon
+	 * 
 	 */
-	public ResourceMethod(final IMethod javaMethod, final Resource parentResource, final Metamodel metamodel,
-			final IProgressMonitor progressMonitor) throws InvalidModelElementException, CoreException {
-		super(metamodel, javaMethod);
-		this.parentResource = parentResource;
-		setState(EnumState.CREATING);
-		merge(javaMethod, progressMonitor);
-		setState(EnumState.CREATED);
+	public static class Builder {
+
+		private final Metamodel metamodel;
+		private final IMethod javaMethod;
+		private final Resource parentResource;
+
+		/**
+		 * Mandatory attributes of the enclosing 'ResourceMethod' element.
+		 * 
+		 * @param javaMethod
+		 * @param metamodel
+		 * @param parentResource
+		 */
+		public Builder(final IMethod javaMethod, final Resource parentResource, final Metamodel metamodel) {
+			this.javaMethod = javaMethod;
+			this.metamodel = metamodel;
+			this.parentResource = parentResource;
+		}
+
+		/**
+		 * Builds and returns the elements. Internally calls the merge() method.
+		 * 
+		 * @param progressMonitor
+		 * @return
+		 * @throws InvalidModelElementException
+		 * @throws CoreException
+		 */
+		public ResourceMethod build(IProgressMonitor progressMonitor) throws InvalidModelElementException,
+				CoreException {
+			ResourceMethod resourceMethod = new ResourceMethod(this);
+			resourceMethod.merge(javaMethod, progressMonitor);
+			return resourceMethod;
+		}
 	}
 
+	/**
+	 * Full constructor using the inner 'Builder' static class.
+	 * 
+	 * @param builder
+	 */
+	public ResourceMethod(final Builder builder) throws InvalidModelElementException, CoreException {
+		super(builder.javaMethod, builder.metamodel);
+		this.parentResource = builder.parentResource;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public final void merge(final IMethod javaMethod, final IProgressMonitor progressMonitor)
 			throws InvalidModelElementException, CoreException {
-		CompilationUnit compilationUnit = getCompilationUnit(javaMethod, progressMonitor);
-		if (getState() == EnumState.CREATED) {
+		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
+		if (state == EnumState.CREATED) {
 			Set<IProblem> problems = JdtUtils.resolveErrors(javaMethod, compilationUnit);
 			if (problems != null && problems.size() > 0) {
-				// metamodel.reportErrors(javaType, problems);
+				// metamodel.reportErrors(javaMethod, problems);
 				return;
 			}
 		}
 		IMethodBinding methodBinding = JdtUtils.resolveMethodBinding(javaMethod, compilationUnit);
 		if (uriMapping == null) {
-			this.uriMapping = new UriMapping(javaMethod, compilationUnit, getMetamodel());
+			this.uriMapping = new UriMapping.Builder(javaMethod, getMetamodel()).build(compilationUnit);
 		} else {
-			this.uriMapping.merge(javaMethod, compilationUnit);
+			this.uriMapping.merge(compilationUnit);
 		}
 		HTTPMethod httpMethod = uriMapping.getHTTPMethod();
 		String uriPathTemplateFragment = uriMapping.getUriPathTemplateFragment();
@@ -104,6 +140,7 @@ public class ResourceMethod extends BaseElement<IMethod> {
 		getUriMapping().validate();
 	}
 
+	@Override
 	public final BaseElement.EnumType getKind() {
 		return kind;
 	}

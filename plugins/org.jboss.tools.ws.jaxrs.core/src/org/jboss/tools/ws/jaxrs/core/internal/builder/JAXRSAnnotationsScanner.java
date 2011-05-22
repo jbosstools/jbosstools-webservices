@@ -28,7 +28,6 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -123,7 +122,7 @@ public final class JAXRSAnnotationsScanner {
 	public static List<IType> findHTTPMethodTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		IJavaSearchScope searchScope = null;
-		if(scope instanceof IJavaProject) {
+		if (scope instanceof IJavaProject) {
 			IJavaProject javaProject = (IJavaProject) scope;
 			searchScope = SearchEngine.createJavaSearchScope(javaProject.getPackageFragmentRoots());
 		} else {
@@ -243,13 +242,10 @@ public final class JAXRSAnnotationsScanner {
 	 */
 	public static List<String> resolveMediaTypeCapabilities(final IMember annotatedMember,
 			final CompilationUnit compilationUnit, final Class<?> annotationClass) throws CoreException {
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(annotatedMember, compilationUnit,
-				annotationClass);
-		Object capabilities = JdtUtils.resolveAnnotationAttributeValue(annotationBinding, "value");
+		Object capabilities = JdtUtils.resolveAnnotationAttributeValue(annotatedMember, compilationUnit,
+				annotationClass, "value");
 		return asList(capabilities);
 	}
-
-	
 
 	/**
 	 * Converts the type signature to a human-readable literal.

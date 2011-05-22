@@ -64,7 +64,7 @@ public class Metamodel {
 	 * annotations (@Path, etc.) and custom annotations (HTTP Methods).
 	 * 
 	 */
-	private List<String> jaxrsAnnotationNames = new ArrayList<String>();
+	private final List<String> jaxrsAnnotationNames = new ArrayList<String>();
 
 	/**
 	 * All the resources (both rootresources and subresources) available in the
@@ -208,6 +208,7 @@ public class Metamodel {
 	public final void addElements(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		try {
+
 			progressMonitor.beginTask("Computing JAX-RS metamodel", TOTAL_STEPS);
 			httpMethods.addFrom(scope, progressMonitor);
 			progressMonitor.worked(1);
@@ -278,7 +279,7 @@ public class Metamodel {
 	private BaseElement<IMethod> findElement(final IMethod method) throws JavaModelException {
 		Resource resource = resources.getByType((IType) (method.getParent()));
 		if (resource != null) {
-			return resource.getByJavaMethod((IMethod) method);
+			return resource.getByJavaMethod(method);
 		}
 		return null;
 	}
@@ -427,7 +428,7 @@ public class Metamodel {
 		this.httpMethods.reset();
 		this.providers.reset();
 		this.resources.reset();
-		
+
 	}
 
 }
