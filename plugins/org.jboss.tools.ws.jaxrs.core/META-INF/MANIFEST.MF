@@ -22,7 +22,10 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.7.0";visibility:=reex
  org.eclipse.ltk.core.refactoring;bundle-version="3.5.200"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: org.jboss.tools.ws.jaxrs.core.configuration,
+Export-Package: javax.ws.rs,
+ javax.ws.rs.core,
+ javax.ws.rs.ext,
+ org.jboss.tools.ws.jaxrs.core.configuration,
  org.jboss.tools.ws.jaxrs.core.internal.builder;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
  org.jboss.tools.ws.jaxrs.core.metamodel,
  org.jboss.tools.ws.jaxrs.core.utils

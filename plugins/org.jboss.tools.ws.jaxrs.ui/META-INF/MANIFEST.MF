@@ -23,5 +23,4 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.6.0",
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: %PLUGIN_PROVIDER
-Bundle-ClassPath: lib/jaxrs-api.jar,
- .
+Bundle-ClassPath: .

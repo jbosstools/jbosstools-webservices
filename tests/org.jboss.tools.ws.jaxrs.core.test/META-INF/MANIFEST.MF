@@ -18,5 +18,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Eclipse-RegisterBuddy: org.apache.log4j
 Eclipse-BuddyPolicy: registered
-Bundle-ClassPath: lib/jaxrs-api.jar,
- .
+Bundle-ClassPath: .
