@@ -29,5 +29,5 @@ Export-Package: javax.ws.rs,
  org.jboss.tools.ws.jaxrs.core.internal.builder;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
  org.jboss.tools.ws.jaxrs.core.metamodel,
  org.jboss.tools.ws.jaxrs.core.utils
-Bundle-ClassPath: lib/jaxrs-api.jar,
- .
+Bundle-ClassPath: .,
+ lib/jaxrs-api.jar
