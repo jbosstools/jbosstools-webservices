@@ -4,12 +4,11 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.jboss.tools</groupId>
-		<artifactId>org.jboss.tools.parent.pom</artifactId>
-		<version>0.0.2-SNAPSHOT</version>
+		<groupId>org.jboss.tools.ws</groupId>
+		<artifactId>tests</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-
-	<groupId>org.jboss.tools.ws.jaxrs.tests</groupId>
+	<groupId>org.jboss.tools.ws.tests</groupId>
 	<artifactId>org.jboss.tools.ws.jaxrs.core.tests</artifactId>
 	<version>1.2.0-SNAPSHOT</version>
 	<packaging>eclipse-test-plugin</packaging>
@@ -30,36 +29,16 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
-			<!-- plugin>
-				<groupId>org.sonatype.tycho</groupId>
-				<artifactId>maven-osgi-test-plugin</artifactId>
-				<version>${tychoVersion}</version>
-				<configuration>
-					<useUIHarness>false</useUIHarness>
-					<surefire.timeout>3600</surefire.timeout>
-					<forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
-					<includes>
-						<include>**/TestCase.class</include>
-						<include>**/*TestSuite*.class</include>
-					</includes>
-				</configuration>
-			</plugin -->
-			<!--plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>test</id>
-						<phase>test</phase>
-						<configuration>
-							<testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-						</configuration>
-						<goals>
-							<goal>test</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin-->
+			<!-- plugin> <groupId>org.sonatype.tycho</groupId> <artifactId>maven-osgi-test-plugin</artifactId> 
+				<version>${tychoVersion}</version> <configuration> <useUIHarness>false</useUIHarness> 
+				<surefire.timeout>3600</surefire.timeout> <forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds> 
+				<includes> <include>**/TestCase.class</include> <include>**/*TestSuite*.class</include> 
+				</includes> </configuration> </plugin -->
+			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId> 
+				<executions> <execution> <id>test</id> <phase>test</phase> <configuration> 
+				<testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory> 
+				</configuration> <goals> <goal>test</goal> </goals> </execution> </executions> 
+				</plugin -->
 		</plugins>
 	</build>
 </project>
