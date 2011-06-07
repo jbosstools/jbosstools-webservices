@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.creation.ui.widgets;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -19,9 +20,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.wst.command.internal.env.ui.widgets.SimpleWidgetDataContributor;
 import org.eclipse.wst.command.internal.env.ui.widgets.WidgetDataEvents;
+import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.ui.utils.JBossCreationUIUtils;
@@ -36,6 +39,8 @@ public class Java2WSDLCodeGenConfigWidget extends
 	private ServiceModel model;
 	private Button btnUpdateWebxml;
 	private Combo  sourceCombo;
+	private boolean isOK;
+	private IStatus status = null;
 
 	public Java2WSDLCodeGenConfigWidget(ServiceModel model) {
 		this.model = model;
@@ -51,7 +56,18 @@ public class Java2WSDLCodeGenConfigWidget extends
 		configCom.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		//choose source folder
-		JBossCreationUIUtils.createSourceComboItem(configCom, sourceCombo, model);
+		sourceCombo = JBossCreationUIUtils.createComboItem(configCom, model,JBossWSCreationCoreMessages.Label_SourceFolder_Name ,JBossWSCreationCoreMessages.Tooltip_SourceFolder);
+		sourceCombo.addListener(SWT.Modify, new Listener(){
+			@Override
+			public void handleEvent(Event arg0) {
+                String javaSourceFolder = sourceCombo.getText();
+                model.setJavaSourceFolder(javaSourceFolder);	
+			}	
+        });
+		isOK = JBossCreationUIUtils.populateSourceFolderCombo(sourceCombo, model.getSrcList());
+		if(!isOK) {
+			status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_No_SourceFolder);
+		}
 
 		final Button wsdlGen = new Button(configCom, SWT.CHECK | SWT.NONE);
 		GridData wsdlGenData = new GridData();
@@ -77,5 +93,9 @@ public class Java2WSDLCodeGenConfigWidget extends
 			}
 		});
 		return this;
+	}
+
+	public IStatus getStatus() {
+		return status;
 	}
 }
