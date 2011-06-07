@@ -36,6 +36,8 @@ import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
  * @author Grid Qian
  */
 public class JBossWSUIUtils {
+	private static String JAVA = ".java"; //$NON-NLS-1$
+	private static String CLASS = ".class"; //$NON-NLS-1$
 
 	public static String addAnotherNodeToPath(String currentPath, String newNode) {
 		return currentPath + File.separator + newNode;
@@ -47,6 +49,20 @@ public class JBossWSUIUtils {
 			returnPath = returnPath + File.separator + newNode[i];
 		}
 		return returnPath;
+	}
+	
+	public static IStatus validateClassName(String name, IJavaElement context) {
+		IStatus status = null;
+		String[] sourceComplianceLevels = getSourceComplianceLevels(context);
+		status = JavaConventions.validateClassFileName(name + CLASS, sourceComplianceLevels[0], sourceComplianceLevels[1]);
+		if (status != null && status.getSeverity() == IStatus.ERROR) {
+			return status;
+		}
+		File file = JBossWSCreationUtils.findFileByPath(name + JAVA, context.getJavaProject().getProject().getLocation().toOSString());
+		if (file != null && file.exists()) {
+			status = StatusUtils.warningStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+		}
+		return status;
 	}
 
 	public static IStatus validatePackageName(String name, IJavaElement context) {
