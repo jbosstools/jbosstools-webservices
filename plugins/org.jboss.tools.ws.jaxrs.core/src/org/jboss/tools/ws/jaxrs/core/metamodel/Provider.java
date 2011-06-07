@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ public class Provider extends BaseElement<IType> {
 
 	// the mime-types the the provider consumes or produces. May be null for an
 	// ExceptionMapper
-	private final Map<EnumProviderKind, List<String>> mediaTypeCapabilities = new HashMap<EnumProviderKind, List<String>>();
+	private final Map<EnumProviderKind, MediaTypeCapabilities> mediaTypeCapabilities = new HashMap<EnumProviderKind, MediaTypeCapabilities>();
 
 	private final Map<EnumProviderKind, IType> providedKinds = new HashMap<EnumProviderKind, IType>();
 
@@ -95,7 +96,8 @@ public class Provider extends BaseElement<IType> {
 	}
 
 	/**
-	 * Full constructor using the inner 'Builder' static class.
+	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
+	 * class.
 	 * 
 	 * @param builder
 	 */
@@ -106,20 +108,23 @@ public class Provider extends BaseElement<IType> {
 
 	/**
 	 * @param javaType
+	 * @return
 	 * @throws InvalidModelElementException
 	 * @throws CoreException
 	 */
 	@Override
-	public final void merge(final IType javaType, final IProgressMonitor progressMonitor)
+	public final Set<EnumElementChange> merge(final IType javaType, final IProgressMonitor progressMonitor)
 			throws InvalidModelElementException, CoreException {
 		if (!JdtUtils.isTopLevelType(javaType)) {
 			throw new InvalidModelElementException("Type is not a top-level type");
 		}
+		Set<EnumElementChange> changes = new HashSet<EnumElementChange>();
+
 		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
 		Set<IProblem> problems = JdtUtils.resolveErrors(javaType, compilationUnit);
 		if (problems != null && problems.size() > 0) {
 			// metamodel.reportErrors(javaType, problems);
-			return;
+			return changes;
 		}
 		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(javaType, compilationUnit,
 				javax.ws.rs.ext.Provider.class);
@@ -147,12 +152,12 @@ public class Provider extends BaseElement<IType> {
 		// annotations
 		if (providerKinds != null) {
 			for (Entry<EnumProviderKind, IType> entry : providerKinds.entrySet()) {
-				List<String> mediaTypes = resolveMediaTypeCapabilities(getJavaElement(), compilationUnit,
+				MediaTypeCapabilities mediaTypes = resolveMediaTypeCapabilities(getJavaElement(), compilationUnit,
 						entry.getKey());
-				this.addProvidedKind(entry.getKey(), entry.getValue(), mediaTypes);
+				addProviderKind(entry.getKey(), entry.getValue(), mediaTypes);
 			}
 		}
-
+		return changes;
 	}
 
 	/**
@@ -163,7 +168,7 @@ public class Provider extends BaseElement<IType> {
 
 	}
 
-	public static List<String> resolveMediaTypeCapabilities(final IType javaType,
+	public static MediaTypeCapabilities resolveMediaTypeCapabilities(final IType javaType,
 			final CompilationUnit compilationUnit, final EnumProviderKind key) throws CoreException {
 		if (key == EnumProviderKind.PRODUCER) {
 			return JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(javaType, compilationUnit, Produces.class);
@@ -173,8 +178,8 @@ public class Provider extends BaseElement<IType> {
 		return null;
 	}
 
-	public final BaseElement.EnumType getKind() {
-		return BaseElement.EnumType.PROVIDER;
+	public final BaseElement.EnumKind getKind() {
+		return BaseElement.EnumKind.PROVIDER;
 	}
 
 	/**
@@ -187,9 +192,9 @@ public class Provider extends BaseElement<IType> {
 	}
 
 	/**
-	 * @return the mimetype
+	 * @return the media type capabilities
 	 */
-	public final List<String> getMediaTypeCapabilities(final EnumProviderKind providerKind) {
+	public final MediaTypeCapabilities getMediaTypeCapabilities(final EnumProviderKind providerKind) {
 		return mediaTypeCapabilities.get(providerKind);
 	}
 
@@ -200,10 +205,19 @@ public class Provider extends BaseElement<IType> {
 		return providedKinds;
 	}
 
-	public final void addProvidedKind(final EnumProviderKind providerKind, final IType providedType,
-			final List<String> mediaTypes) {
-		this.providedKinds.put(providerKind, providedType);
-		this.mediaTypeCapabilities.put(providerKind, mediaTypes);
+	private final void addProviderKind(final EnumProviderKind providerKind, final IType providedType,
+			final MediaTypeCapabilities mediaTypes) {
+		switch (providerKind) {
+		case CONSUMER:
+		case PRODUCER:
+			if (mediaTypeCapabilities.containsKey(providerKind)) {
+				this.mediaTypeCapabilities.get(providerKind).merge(mediaTypes);
+			} else {
+				this.mediaTypeCapabilities.put(providerKind, mediaTypes);
+			}
+		case EXCEPTION_MAPPER:
+			this.providedKinds.put(providerKind, providedType);
+		}
 	}
 
 	/*

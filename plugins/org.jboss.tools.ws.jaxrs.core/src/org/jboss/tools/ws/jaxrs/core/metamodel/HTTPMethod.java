@@ -11,6 +11,9 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.ws.rs.HttpMethod;
 
 import org.eclipse.core.runtime.CoreException;
@@ -133,7 +136,8 @@ public class HTTPMethod extends BaseElement<IType> implements Comparable<HTTPMet
 	}
 
 	/**
-	 * Full constructor using the inner 'Builder' static class.
+	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
+	 * class.
 	 * 
 	 * @param builder
 	 */
@@ -142,14 +146,15 @@ public class HTTPMethod extends BaseElement<IType> implements Comparable<HTTPMet
 	}
 
 	@Override
-	public final void merge(final IType javaType, final IProgressMonitor progressMonitor)
+	public final Set<EnumElementChange> merge(final IType javaType, final IProgressMonitor progressMonitor)
 			throws InvalidModelElementException, CoreException {
-
+		Set<EnumElementChange> changes = new HashSet<EnumElementChange>();
+		setJavaElement(javaType);
 		// not much to validate on binary types..
 		if (javaType instanceof BinaryType) {
 			this.httpVerb = (String) javaType.getAnnotation(HttpMethod.class.getName()).getMemberValuePairs()[0]
 					.getValue();
-			return;
+			return changes;
 		}
 
 		if (!JdtUtils.isTopLevelType(javaType)) {
@@ -161,6 +166,7 @@ public class HTTPMethod extends BaseElement<IType> implements Comparable<HTTPMet
 		if (this.httpVerb == null) {
 			throw new InvalidModelElementException("Annotation binding not found : missing 'import' statement ?");
 		}
+		return changes;
 
 	}
 
@@ -173,8 +179,8 @@ public class HTTPMethod extends BaseElement<IType> implements Comparable<HTTPMet
 	}
 
 	@Override
-	public final BaseElement.EnumType getKind() {
-		return BaseElement.EnumType.HTTP_METHOD;
+	public final BaseElement.EnumKind getKind() {
+		return BaseElement.EnumKind.HTTP_METHOD;
 	}
 
 	/**

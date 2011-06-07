@@ -88,12 +88,14 @@ public class WorkbenchTasks {
 		LOGGER.info("Target workspace location: " + targetWorkspace.getRoot().getRawLocation());
 		SyncFileSystemStructureProvider syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(
 				projectSourcePath, project.getLocation());
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path(".svn"));
 		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path("target"));
 		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path("bin"));
 		List<File> filesToImport = syncFileSystemStructureProvider.getChildren(projectSourcePath.toFile());
 		if (filesToImport != null && filesToImport.size() > 0) {
 			ImportOperation operation = new ImportOperation(project.getFullPath(), projectSourcePath.toFile(),
 					syncFileSystemStructureProvider, new IOverwriteQuery() {
+						@Override
 						public String queryOverwrite(String pathString) {
 							return IOverwriteQuery.YES;
 						}
@@ -136,6 +138,7 @@ public class WorkbenchTasks {
 		}
 		ImportOperation operation = new ImportOperation(containerPath, new FileSystemStructureProvider(),
 				new IOverwriteQuery() {
+					@Override
 					public String queryOverwrite(String pathString) {
 						return IOverwriteQuery.YES;
 					}
@@ -242,9 +245,9 @@ public class WorkbenchTasks {
 	 * @param javaProject
 	 * @param name
 	 * @param progressMonitor
-	 * @throws CoreException 
-	 * @throws InterruptedException 
-	 * @throws OperationCanceledException 
+	 * @throws CoreException
+	 * @throws InterruptedException
+	 * @throws OperationCanceledException
 	 */
 	public static boolean removeReferencedLibrary(IJavaProject javaProject, String name,
 			IProgressMonitor progressMonitor) throws CoreException, OperationCanceledException, InterruptedException {

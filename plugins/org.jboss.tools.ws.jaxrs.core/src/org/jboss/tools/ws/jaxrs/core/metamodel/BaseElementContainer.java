@@ -36,10 +36,12 @@ public abstract class BaseElementContainer<T extends BaseElement<?>> implements 
 	/**
 	 * Adding elements from the given scope.
 	 * 
+	 * @return
+	 * 
 	 * @throws InvalidModelElementException
 	 * 
 	 */
-	public abstract void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor)
+	public abstract List<T> addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException, InvalidModelElementException;
 
 	/**
@@ -49,14 +51,15 @@ public abstract class BaseElementContainer<T extends BaseElement<?>> implements 
 	 * @param removedResource
 	 * @param progressMonitor
 	 */
-	public final void removeElement(final IResource removedResource, final IProgressMonitor progressMonitor) {
+	public T removeElement(final IResource removedResource, final IProgressMonitor progressMonitor) {
 		for (Iterator<T> iterator = elements.values().iterator(); iterator.hasNext();) {
 			T element = iterator.next();
 			if (removedResource.equals(element.getJavaElement().getResource())) {
 				iterator.remove();
-				return;
+				return element;
 			}
 		}
+		return null;
 	}
 
 	/*

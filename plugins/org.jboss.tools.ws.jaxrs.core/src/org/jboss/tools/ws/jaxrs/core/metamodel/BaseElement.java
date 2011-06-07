@@ -28,7 +28,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Validable {
 
 	/** The functional type of the JAX-RS Element. */
-	public enum EnumType {
+	public enum EnumKind {
 		/** An application */
 		APPLICATION,
 		/** A root resource. */
@@ -46,24 +46,6 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 		/** An HTTP method. */
 		HTTP_METHOD;
 	}
-
-	/**
-	 * The state of the instance.
-	 * 
-	 * @author xcoulon
-	 * 
-	 */
-	enum EnumState {
-		/** unknown state (before initialization). */
-		UNKNOWN,
-		/** During initilization. */
-		CREATING,
-		/** After initialization. */
-		CREATED;
-	}
-
-	/** The current instance state. */
-	EnumState state = EnumState.UNKNOWN;
 
 	/** The associated metamodel. */
 	private final Metamodel metamodel;
@@ -106,7 +88,7 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 	/**
 	 * @return the functional kind of the JAX-RS element.
 	 */
-	public abstract EnumType getKind();
+	public abstract EnumKind getKind();
 
 	/**
 	 * Sets a flag of whether the underlying java element has compilation errors
@@ -147,4 +129,5 @@ public abstract class BaseElement<T extends IMember> implements Mergeable<T>, Va
 	public final Metamodel getMetamodel() {
 		return metamodel;
 	}
+
 }

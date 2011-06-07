@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-
-<extension
-         id="org.jboss.tools.ws.jaxrs.ui.javaCompetionProposalComputer"
-         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-      <javaCompletionProposalComputer
-            activate="true"
-            categoryId="org.eclipse.jdt.ui.defaultProposalCategory"
-            class="org.jboss.tools.ws.jaxrs.ui.contentassist.PathParamAnnotationValueCompletionProposalComputer">
-         <partition
-               type="__dftl_partition_content_type">
-         </partition>
-         <partition
-               type="__java_string">
-         </partition>
-      </javaCompletionProposalComputer>
-   </extension>
    
    <extension
          point="org.eclipse.ui.navigator.viewer">
@@ -187,6 +171,9 @@
                   <instanceof
                         value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMethodMappingElement">
                   </instanceof>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement">
+                  </instanceof>
                </or>
             </enablement>
          </actionProvider>
@@ -262,7 +249,6 @@
             eventTypes="POST_INSTALL,POST_UNINSTALL">
       </listener>
    </extension>
-   <!-- see https://bugs.eclipse.org/bugs/show_bug.cgi?id=338898 -->
    <extension
          id="id1"
          point="org.eclipse.jst.ws.jaxrs.core.jaxrsLibraryProvider">
@@ -272,5 +258,22 @@
             updateDDSelected="false">
       </jaxrsLibraryprovider>
    </extension>
+
+<extension
+         id="org.jboss.tools.ws.jaxrs.ui.javaCompetionProposalComputer"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+      <javaCompletionProposalComputer
+            activate="true"
+            categoryId="org.eclipse.jdt.ui.defaultProposalCategory"
+            class="org.jboss.tools.ws.jaxrs.ui.contentassist.PathParamAnnotationValueCompletionProposalComputer">
+         <partition
+               type="__dftl_partition_content_type">
+         </partition>
+         <partition
+               type="__java_string">
+         </partition>
+      </javaCompletionProposalComputer>
+   </extension>
+   <!-- see https://bugs.eclipse.org/bugs/show_bug.cgi?id=338898 -->
 
 </plugin>

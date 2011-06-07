@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -90,6 +91,8 @@ public class Metamodel {
 	/** The HTTP ResourceMethod elements container. */
 	private final HTTPMethods httpMethods;
 
+	private final Routes routes;
+
 	/**
 	 * Full constructor.
 	 * 
@@ -101,9 +104,10 @@ public class Metamodel {
 	public Metamodel(final IJavaProject javaProject) throws CoreException {
 		this.javaProject = javaProject;
 		applications = new Applications(this);
-		providers = new Providers(javaProject, this);
+		providers = new Providers.Builder(javaProject, this).build();
 		resources = new Resources(this);
 		httpMethods = new HTTPMethods(this);
+		routes = new Routes(this);
 		jaxrsAnnotationNames.addAll(Arrays.asList(new String[] { Provider.class.getName(), Consumes.class.getName(),
 				Produces.class.getName(), Path.class.getName(), HttpMethod.class.getName() }));
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, this);
@@ -156,6 +160,13 @@ public class Metamodel {
 	/**
 	 * @return the httpMethods
 	 */
+	public final Application getApplication() {
+		return applications.size() == 1 ? applications.iterator().next().getValue() : null;
+	}
+
+	/**
+	 * @return the httpMethods
+	 */
 	public final HTTPMethods getHttpMethods() {
 		return httpMethods;
 	}
@@ -196,16 +207,25 @@ public class Metamodel {
 	public final void addElements(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		try {
-			progressMonitor.beginTask("Computing JAX-RS metamodel", 4);
-			applications.addFrom(scope, progressMonitor);
+			progressMonitor.beginTask("Computing JAX-RS metamodel", 5);
+			applications.addFrom(scope, new SubProgressMonitor(progressMonitor, 1,
+					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 			progressMonitor.worked(1);
-			httpMethods.addFrom(scope, progressMonitor);
+			httpMethods.addFrom(scope, new SubProgressMonitor(progressMonitor, 1,
+					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 			progressMonitor.worked(1);
 			providers.addFrom(scope, new SubProgressMonitor(progressMonitor, 1,
 					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 			progressMonitor.worked(1);
-			resources.addFrom(scope, new SubProgressMonitor(progressMonitor, 1,
+			@SuppressWarnings("unused")
+			List<Resource> addedResources = resources.addFrom(scope, new SubProgressMonitor(progressMonitor, 1,
 					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
+			progressMonitor.worked(1);
+			/*
+			 * routes.addFrom(addedResources, new
+			 * SubProgressMonitor(progressMonitor, 1,
+			 * SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
+			 */
 			progressMonitor.worked(1);
 		} finally {
 			progressMonitor.done();
@@ -220,17 +240,25 @@ public class Metamodel {
 	 *            the resource to which the JAX-RS element is mapped
 	 * @param progressMonitor
 	 *            the progress monitor
+	 * @throws CoreException
 	 */
-	public final void remove(final IResource resource, final IProgressMonitor progressMonitor) {
+	public final void remove(final IResource resource, final IProgressMonitor progressMonitor) throws CoreException {
 		try {
-			progressMonitor.beginTask("Computing JAX-RS metamodel", 4);
-			applications.removeElement(resource, progressMonitor);
+			progressMonitor.beginTask("Computing JAX-RS metamodel", 5);
+			applications.removeElement(resource, new SubProgressMonitor(progressMonitor, 1,
+					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 			progressMonitor.worked(1);
-			httpMethods.removeElement(resource, progressMonitor);
+			httpMethods.removeElement(resource, new SubProgressMonitor(progressMonitor, 1,
+					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 			progressMonitor.worked(1);
-			resources.removeElement(resource, progressMonitor);
+			Resource removedResource = resources.removeElement(resource, new SubProgressMonitor(progressMonitor, 1,
+					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 			progressMonitor.worked(1);
-			providers.removeElement(resource, progressMonitor);
+			providers.removeElement(resource, new SubProgressMonitor(progressMonitor, 1,
+					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
+			progressMonitor.worked(1);
+			routes.removeFrom(removedResource, new SubProgressMonitor(progressMonitor, 1,
+					SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 			progressMonitor.worked(1);
 		} finally {
 			progressMonitor.done();
@@ -309,30 +337,36 @@ public class Metamodel {
 	 */
 	public final void applyDelta(final IResourceDelta delta, final IProgressMonitor progressMonitor)
 			throws CoreException {
-		IResource resource = delta.getResource();
-		ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(resource);
-		if (resource.exists()) {
-			IMarker[] markers = resource
-					.findMarkers(JaxrsMetamodelBuilder.JAVA_PROBLEM, true, IResource.DEPTH_INFINITE);
-			if (reportErrors(compilationUnit, markers)) {
-				Logger.warn("Resource '" + resource.getName() + "' contains errors.");
-				return;
+		long startTime = new Date().getTime();
+		try {
+			IResource resource = delta.getResource();
+			ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(resource);
+			if (resource.exists()) {
+				IMarker[] markers = resource.findMarkers(JaxrsMetamodelBuilder.JAVA_PROBLEM, true,
+						IResource.DEPTH_INFINITE);
+				if (reportErrors(compilationUnit, markers)) {
+					Logger.warn("Resource '" + resource.getName() + "' contains errors.");
+					return;
+				}
 			}
-		}
-		switch (delta.getKind()) {
-		case IResourceDelta.ADDED:
-			addElements(compilationUnit, progressMonitor);
-			break;
-		case IResourceDelta.REMOVED:
-			remove(resource, progressMonitor);
-			break;
-		case IResourceDelta.CHANGED:
-			if ((delta.getFlags() & IResourceDelta.CONTENT) != 0) {
-				mergeElement(compilationUnit, progressMonitor);
+			switch (delta.getKind()) {
+			case IResourceDelta.ADDED:
+				addElements(compilationUnit, progressMonitor);
 				break;
+			case IResourceDelta.REMOVED:
+				remove(resource, progressMonitor);
+				break;
+			case IResourceDelta.CHANGED:
+				if ((delta.getFlags() & IResourceDelta.CONTENT) != 0) {
+					mergeElement(compilationUnit, progressMonitor);
+					break;
+				}
 			}
-		default:
-			break;
+		} finally {
+			long endTime = new Date().getTime();
+			Logger.info("JAX-RS Metamodel delta for project '" + javaProject.getElementName() + "' applied in "
+					+ (endTime - startTime) + "ms.");
+
 		}
 	}
 
@@ -421,7 +455,11 @@ public class Metamodel {
 		this.httpMethods.reset();
 		this.providers.reset();
 		this.resources.reset();
+		this.routes.reset();
+	}
 
+	public Routes getRoutes() {
+		return routes;
 	}
 
 }

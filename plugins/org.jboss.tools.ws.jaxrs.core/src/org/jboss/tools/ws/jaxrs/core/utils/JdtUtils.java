@@ -386,10 +386,7 @@ public final class JdtUtils {
 	 * @throws CoreException
 	 *             the underlying CoreException thrown by the manipulated JDT
 	 *             APIs
-	 * @deprecated use resolveAnnotationAttributeValue(IMember, CompilationUnit,
-	 *             Class<?>, String) instead.
 	 */
-	@Deprecated
 	public static Object resolveAnnotationAttributeValue(final IAnnotationBinding annotationBinding,
 			final String attributeName) throws CoreException {
 		if (annotationBinding != null) {
@@ -422,14 +419,7 @@ public final class JdtUtils {
 			final Class<?> annotationClass, final String attributeName) throws CoreException {
 		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(member, compilationUnit,
 				annotationClass);
-		if (annotationBinding != null) {
-			for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
-				if (binding.getName().equals(attributeName)) {
-					return binding.getValue();
-				}
-			}
-		}
-		return null;
+		return resolveAnnotationAttributeValue(annotationBinding, attributeName);
 	}
 
 	/**

@@ -34,15 +34,18 @@ public class Applications extends BaseElementContainer<Application> {
 	/**
 	 * {@inheritDoc}
 	 * 
+	 * @return
+	 * 
 	 * @throws InvalidModelElementException
 	 */
 	@Override
-	public void addFrom(IJavaElement scope, IProgressMonitor progressMonitor) throws CoreException {
+	public List<Application> addFrom(IJavaElement scope, IProgressMonitor progressMonitor) throws CoreException {
 		IType applicationType = JdtUtils.resolveType(javax.ws.rs.core.Application.class.getName(),
 				metamodel.getJavaProject(), progressMonitor);
 		ITypeHierarchy applicationTypeHierarchy = JdtUtils
 				.resolveTypeHierarchy(applicationType, false, progressMonitor);
 		IType[] subtypes = applicationTypeHierarchy.getAllSubtypes(applicationType);
+		List<Application> addedApps = new ArrayList<Application>();
 		if (subtypes.length > 1) {
 			List<String> s = new ArrayList<String>();
 			for (IType t : subtypes) {
@@ -54,7 +57,8 @@ public class Applications extends BaseElementContainer<Application> {
 		for (IType t : subtypes) {
 			Application application = new Application.Builder(t, metamodel).build(progressMonitor);
 			elements.put(t.getElementName(), application);
+			addedApps.add(application);
 		}
-
+		return addedApps;
 	}
 }

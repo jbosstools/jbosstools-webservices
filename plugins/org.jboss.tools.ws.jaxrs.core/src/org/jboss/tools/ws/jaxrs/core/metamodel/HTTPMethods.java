@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -48,7 +49,8 @@ public class HTTPMethods extends BaseElementContainer<HTTPMethod> {
 	 * org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	public final void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor) throws CoreException {
+	public final List<HTTPMethod> addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor)
+			throws CoreException {
 		try {
 			progressMonitor.beginTask("HTTP Methods registration", 2);
 			// call the scanner
@@ -56,17 +58,20 @@ public class HTTPMethods extends BaseElementContainer<HTTPMethod> {
 			httpMethodTypes = JAXRSAnnotationsScanner.findHTTPMethodTypes(scope, progressMonitor);
 			progressMonitor.worked(1);
 			// HTTPMethods
+			List<HTTPMethod> addedHttpMethods = new ArrayList<HTTPMethod>();
 			for (IType httpMethodType : httpMethodTypes) {
 				try {
 					// FIXME : must retrieve java errors somewhere around here
-					elements.put(httpMethodType.getFullyQualifiedName(), new HTTPMethod.Builder(httpMethodType,
-							metamodel).build(progressMonitor));
+					HTTPMethod httpMethod = new HTTPMethod.Builder(httpMethodType, metamodel).build(progressMonitor);
+					elements.put(httpMethodType.getFullyQualifiedName(), httpMethod);
+					addedHttpMethods.add(httpMethod);
 				} catch (InvalidModelElementException e) {
 					Logger.warn("Type '" + httpMethodType.getFullyQualifiedName()
 							+ "' is not a valid JAX-RS HTTP ResourceMethod: " + e.getMessage());
 				}
 			}
 			progressMonitor.worked(1);
+			return addedHttpMethods;
 		} finally {
 			progressMonitor.done();
 		}

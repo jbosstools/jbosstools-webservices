@@ -28,11 +28,13 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
+import org.jboss.tools.ws.jaxrs.core.metamodel.MediaTypeCapabilities;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
@@ -236,15 +238,23 @@ public final class JAXRSAnnotationsScanner {
 	 *            the fully qualified name of the annotation (should be
 	 *            <code>javax.ws.rs.Consumes</code> or
 	 *            <code>javax.ws.rs.Produces</code>)
-	 * @return a list of media types capabilities with bindings resolution
+	 * @return a list of media types capabilities along with their corresponding
+	 *         (or source) annotation, or null if the given member does not have
+	 *         the expected annotation
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
-	public static List<String> resolveMediaTypeCapabilities(final IMember annotatedMember,
-			final CompilationUnit compilationUnit, final Class<?> annotationClass) throws CoreException {
-		Object capabilities = JdtUtils.resolveAnnotationAttributeValue(annotatedMember, compilationUnit,
-				annotationClass, "value");
-		return asList(capabilities);
+	public static MediaTypeCapabilities resolveMediaTypeCapabilities(final IMember annotatedMember,
+			final CompilationUnit compilationUnit, Class<?> annotationName) throws CoreException {
+		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(annotatedMember, compilationUnit,
+				annotationName);
+		if (annotationBinding != null) {
+			return new MediaTypeCapabilities(annotationBinding.getJavaElement(),
+					asList(JdtUtils.resolveAnnotationAttributeValue(annotationBinding, "value")));
+		} else {
+			return new MediaTypeCapabilities(annotatedMember);
+		}
+
 	}
 
 	/**

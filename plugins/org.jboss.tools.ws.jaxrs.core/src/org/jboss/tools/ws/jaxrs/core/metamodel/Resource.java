@@ -11,16 +11,14 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -33,7 +31,7 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JAXRSAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JaxrsMetamodelBuilder;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionFilterUtil;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionFilterUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
@@ -46,21 +44,6 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * 
  */
 public class Resource extends BaseElement<IType> {
-
-	/**
-	 * indicates if the resource is a root resource (type annotated with @Path)
-	 * or not. Can change
-	 */
-	boolean isRootResource = false;
-
-	/** The URI path template. As with annotations, it can change */
-	private String uriPathTemplate;
-
-	/**
-	 * the default media type capabilities offered by this resource. May be
-	 * overridden at method level
-	 */
-	final MediaTypeCapabilities mediaTypeCapabilities = new MediaTypeCapabilities();
 
 	/**
 	 * A map of all JAX-RS resourceMethods this resource has, including
@@ -77,13 +60,19 @@ public class Resource extends BaseElement<IType> {
 	 */
 	final Map<String, ResourceMethod> resourceMethods = new HashMap<String, ResourceMethod>();
 
+	/** The resource mapping. */
+	private final ResourceMapping resourceMapping;
+
+	/** Optional Application. */
+	private Application application = null;
+
 	/**
 	 * Internal 'Resource' element builder.
 	 * 
 	 * @author xcoulon
 	 * 
 	 */
-	public static class Builder {
+	public static class ResourceBuilder {
 
 		private final Metamodel metamodel;
 		private final IType javaType;
@@ -94,7 +83,7 @@ public class Resource extends BaseElement<IType> {
 		 * @param javaType
 		 * @param metamodel
 		 */
-		public Builder(final IType javaType, final Metamodel metamodel) {
+		public ResourceBuilder(final IType javaType, final Metamodel metamodel) {
 			this.javaType = javaType;
 			this.metamodel = metamodel;
 		}
@@ -115,56 +104,121 @@ public class Resource extends BaseElement<IType> {
 	}
 
 	/**
-	 * Full constructor using the inner 'Builder' static class.
+	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
+	 * class.
 	 * 
 	 * @param builder
 	 */
-	private Resource(Builder builder) {
+	private Resource(ResourceBuilder builder) {
 		super(builder.javaType, builder.metamodel);
+		this.resourceMapping = new ResourceMapping(this);
+	}
+
+	public final ResourceMapping getMapping() {
+		return resourceMapping;
 	}
 
 	public final boolean isRootResource() {
-		return isRootResource;
+		return getKind() == EnumKind.ROOT_RESOURCE;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public final EnumType getKind() {
-		if (isRootResource) {
-			return EnumType.ROOT_RESOURCE;
+	public final EnumKind getKind() {
+		if (this.resourceMapping.getUriPathTemplateFragment() != null) {
+			return EnumKind.ROOT_RESOURCE;
 		}
-		return EnumType.SUBRESOURCE;
+		return EnumKind.SUBRESOURCE;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return
+	 * 
+	 * @throws CoreException
+	 */
 	@Override
-	public final void merge(final IType javaType, final IProgressMonitor progressMonitor) throws CoreException,
-			InvalidModelElementException {
+	public final Set<EnumElementChange> merge(final IType javaType, final IProgressMonitor progressMonitor)
+			throws CoreException, InvalidModelElementException {
 		if (!JdtUtils.isTopLevelType(javaType)) {
 			throw new InvalidModelElementException("Type is not a top-level type");
 		}
+		Set<EnumElementChange> changes = new HashSet<EnumElementChange>();
 		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
 		// TODO : base64.decode()
-		// if (state == EnumState.CREATED) {
 		Set<IProblem> problems = JdtUtils.resolveErrors(javaType, compilationUnit);
 		if (problems != null && problems.size() > 0) {
-			return;
+			for (IProblem problem : problems) {
+				Logger.debug("Problem found: " + problem.getMessage());
+			}
+			return changes;
 		}
-		// }
+		Set<EnumElementChange> resourceChanges = this.resourceMapping.merge(compilationUnit);
+		mergeMethods(javaType, compilationUnit, resourceChanges, progressMonitor);
+		return changes;
+	}
 
-		// String serviceURI = container.getMetamodel().getServiceURI();
-		this.uriPathTemplate = (String) JdtUtils.resolveAnnotationAttributeValue(javaType, compilationUnit, Path.class,
-				"value");
-		if (uriPathTemplate != null) {
-			isRootResource = true;
-		} else {
-			isRootResource = false;
+	// FIXME deal with interfaces/implementations
+	private final void mergeMethods(final IJavaElement scope, final CompilationUnit compilationUnit,
+			final Set<EnumElementChange> resourceChanges, final IProgressMonitor progressMonitor) throws CoreException {
+		Set<String> httpMethodNames = getMetamodel().getHttpMethods().getTypeNames();
+		List<IMethod> javaMethods = JAXRSAnnotationsScanner
+				.findResourceMethods(scope, httpMethodNames, progressMonitor);
+		Map<IMethod, String> keys = new HashMap<IMethod, String>();
+		for (IMethod javaMethod : javaMethods) {
+			keys.put(javaMethod, computeKey(javaMethod));
 		}
 
-		mediaTypeCapabilities.setConsumedMimeTypes(JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(javaType,
-				compilationUnit, Consumes.class));
-		mediaTypeCapabilities.setProducedMimeTypes(JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(javaType,
-				compilationUnit, Produces.class));
+		for (Iterator<String> iterator = resourceMethods.keySet().iterator(); iterator.hasNext();) {
+			String key = iterator.next();
+			if (!keys.containsValue(key)) {
+				ResourceMethod resourceMethod = resourceMethods.get(key);
+				Logger.debug("Removed " + resourceMethod.toString());
+				iterator.remove();
+				getMetamodel().getRoutes().removeFrom(resourceMethod, progressMonitor);
+			}
+		}
+		for (IMethod javaMethod : javaMethods) {
+			try {
+				String key = keys.get(javaMethod);
+				if (resourceMethods.containsKey(key)) {
+					ResourceMethod resourceMethod = resourceMethods.get(key);
 
-		mergeMethods(javaType, compilationUnit, progressMonitor);
+					Set<EnumElementChange> resourceMethodChanges = resourceMethod.merge(javaMethod, progressMonitor);
+					Set<EnumElementChange> changes = new HashSet<EnumElementChange>();
+					changes.addAll(resourceChanges);
+					changes.addAll(resourceMethodChanges);
+					for (EnumElementChange change : changes) {
+						switch (change) {
+						case KIND:
+							getMetamodel().getRoutes().merge(resourceMethod, progressMonitor);
+							break;
+						case MAPPING:
+							List<Route> routes = this.getMetamodel().getRoutes().getByResourceMethod(resourceMethod);
+							if (routes != null) {
+								for (Route route : routes) {
+									route.getEndpoint().merge();
+								}
+							}
+							break;
+						}
+					}
+					Logger.debug("Updated " + resourceMethod.toString());
+				} else {
+					ResourceMethod resourceMethod = new ResourceMethod(javaMethod, this, getMetamodel(),
+							progressMonitor);
+					resourceMethods.put(key, resourceMethod);
+					getMetamodel().getRoutes().merge(resourceMethod, progressMonitor);
+					Logger.debug("Added " + resourceMethod.toString());
+				}
+			} catch (InvalidModelElementException e) {
+				Logger.warn("ResourceMethod '" + javaMethod.getElementName()
+						+ "' is not a valid JAX-RS ResourceMethod: " + e.getMessage());
+			}
+		}
 	}
 
 	/**
@@ -183,43 +237,9 @@ public class Resource extends BaseElement<IType> {
 		Logger.debug("Validation done.");
 	}
 
-	// FIXME deal with interfaces/implementations
-	public final void mergeMethods(final IJavaElement scope, final CompilationUnit compilationUnit,
-			final IProgressMonitor progressMonitor) throws CoreException {
-		Set<String> httpMethodNames = getMetamodel().getHttpMethods().getTypeNames();
-		List<IMethod> javaMethods = JAXRSAnnotationsScanner
-				.findResourceMethods(scope, httpMethodNames, progressMonitor);
-		Map<IMethod, String> keys = new HashMap<IMethod, String>();
-		for (IMethod javaMethod : javaMethods) {
-			keys.put(javaMethod, computeKey(javaMethod));
-		}
-
-		for (Iterator<String> iterator = resourceMethods.keySet().iterator(); iterator.hasNext();) {
-			String key = iterator.next();
-			if (!keys.containsValue(key)) {
-				iterator.remove();
-			}
-		}
-		for (IMethod javaMethod : javaMethods) {
-			try {
-				String key = keys.get(javaMethod);
-				if (resourceMethods.containsKey(key)) {
-					ResourceMethod resourceMethod = resourceMethods.get(key);
-					resourceMethod.merge(javaMethod, progressMonitor);
-					Logger.debug("Updated " + resourceMethod.toString());
-				} else {
-					ResourceMethod resourceMethod = new ResourceMethod.Builder(javaMethod, this, getMetamodel())
-							.build(progressMonitor);
-					resourceMethods.put(key, resourceMethod);
-					Logger.debug("Added " + resourceMethod.toString());
-				}
-			} catch (InvalidModelElementException e) {
-				Logger.warn("ResourceMethod '" + javaMethod.getElementName()
-						+ "' is not a valid JAX-RS ResourceMethod: " + e.getMessage());
-			}
-		}
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public final void hasErrors(final boolean hasErrors) {
 		super.hasErrors(hasErrors);
@@ -238,34 +258,24 @@ public class Resource extends BaseElement<IType> {
 		return key.append(')').toString();
 	}
 
-	/**
-	 * @return the mediaTypeCapabilities
-	 */
-	public final MediaTypeCapabilities getMediaTypeCapabilities() {
-		return mediaTypeCapabilities;
-	}
-
 	public final String getName() {
 		return getJavaElement().getElementName();
-	}
-
-	/**
-	 * @return the uriPathTemplate
-	 */
-	public final String getUriPathTemplate() {
-		return uriPathTemplate;
 	}
 
 	public final ResourceMethod getByJavaMethod(final IMethod javaMethod) throws JavaModelException {
 		return resourceMethods.get(computeKey(javaMethod));
 	}
 
+	public final Application getApplication() {
+		return application;
+	}
+
 	public final List<ResourceMethod> getResourceMethods() {
-		return CollectionFilterUtil.filterElementsByKind(resourceMethods.values(), EnumType.RESOURCE_METHOD);
+		return CollectionFilterUtils.filterElementsByKind(resourceMethods.values(), EnumKind.RESOURCE_METHOD);
 	}
 
 	public final List<ResourceMethod> getSubresourceMethods() {
-		return CollectionFilterUtil.filterElementsByKind(resourceMethods.values(), EnumType.SUBRESOURCE_METHOD);
+		return CollectionFilterUtils.filterElementsByKind(resourceMethods.values(), EnumKind.SUBRESOURCE_METHOD);
 	}
 
 	/**
@@ -275,25 +285,33 @@ public class Resource extends BaseElement<IType> {
 	 *         SUBRESOURCE_METHOD
 	 */
 	public final List<ResourceMethod> getAllMethods() {
-		return CollectionFilterUtil.filterElementsByKind(resourceMethods.values(), EnumType.RESOURCE_METHOD,
-				EnumType.SUBRESOURCE_METHOD);
+		// return
+		// CollectionFilterUtils.filterElementsByKind(resourceMethods.values(),
+		// EnumKind.RESOURCE_METHOD,
+		// EnumKind.SUBRESOURCE_METHOD);
+		return new ArrayList<ResourceMethod>(resourceMethods.values());
 	}
 
 	/**
 	 * @return the subresourceLocators
 	 */
 	public final List<ResourceMethod> getSubresourceLocators() {
-		return CollectionFilterUtil.filterElementsByKind(resourceMethods.values(), EnumType.SUBRESOURCE_LOCATOR);
+		return CollectionFilterUtils.filterElementsByKind(resourceMethods.values(), EnumKind.SUBRESOURCE_LOCATOR);
 	}
 
-	public final ResourceMethod getByURIMapping(final HTTPMethod httpMethod, final String uriPathTemplateFragment,
+	public final ResourceMethod getByMapping(final HTTPMethod httpMethod, final String uriPathTemplateFragment,
 			final String consumes, final String produces) {
 		for (ResourceMethod resourceMethod : resourceMethods.values()) {
-			if (resourceMethod.getUriMapping().matches(httpMethod, uriPathTemplateFragment, consumes, produces)) {
+			if (resourceMethod.getMapping().matches(httpMethod, uriPathTemplateFragment, consumes, produces)) {
 				return resourceMethod;
 			}
 		}
 		return null;
 	}
 
+	@Override
+	public String toString() {
+		return new StringBuffer().append(getName()).append(" (root:").append(isRootResource()).append(") ")
+				.append(resourceMapping).toString();
+	}
 }

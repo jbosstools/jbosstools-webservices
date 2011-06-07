@@ -22,6 +22,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.navigator.CommonViewer;
 import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement;
+import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMethodMappingElement;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
@@ -41,16 +42,19 @@ public class OpenJavaEditorAction extends Action implements ISelectionChangedLis
 	@Override
 	public void run() {
 		ITreeSelection treeSelection = ((ITreeSelection) selection);
-		for (Object o : treeSelection.toList()) {
+		for (Object selection : treeSelection.toList()) {
 			try {
-				if (o instanceof UriPathTemplateElement) {
-					ResourceMethod lastMethod = ((UriPathTemplateElement) o).getLastMethod();
+				if (selection instanceof UriPathTemplateElement) {
+					ResourceMethod lastMethod = ((UriPathTemplateElement) selection).getLastMethod();
 					IMethod javaMethod = lastMethod.getJavaElement();
 					JavaUI.revealInEditor(JavaUI.openInEditor(javaMethod), (IJavaElement) javaMethod);
-				} else if (o instanceof UriPathTemplateMethodMappingElement) {
-					ResourceMethod lastMethod = ((UriPathTemplateMethodMappingElement) o).getLastMethod();
+				} else if (selection instanceof UriPathTemplateMethodMappingElement) {
+					ResourceMethod lastMethod = ((UriPathTemplateMethodMappingElement) selection).getResourceMethod();
 					IMethod javaMethod = lastMethod.getJavaElement();
 					JavaUI.revealInEditor(JavaUI.openInEditor(javaMethod), (IJavaElement) javaMethod);
+				} else if (selection instanceof UriPathTemplateMediaTypeMappingElement) {
+					IJavaElement element = ((UriPathTemplateMediaTypeMappingElement) selection).getElement();
+					JavaUI.revealInEditor(JavaUI.openInEditor(element), element);
 				}
 			} catch (Exception e) {
 				Logger.error("Failed to open Java editor", e);

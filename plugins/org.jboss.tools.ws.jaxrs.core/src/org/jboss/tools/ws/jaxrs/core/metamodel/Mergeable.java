@@ -11,19 +11,28 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import java.util.Set;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 public interface Mergeable<T> {
 
 	/**
-	 * Merge of the current JAX-RS element with the java element given in parameter.
-	 * @param element the java element that changed
-	 * @param progressMonitor the progress monitor
-	 * @throws InvalidModelElementException in case of underlying exception
-	 * @throws CoreException in case of underlying exception
+	 * Merge of the current JAX-RS element with the java element given in
+	 * parameter.
+	 * 
+	 * @param element
+	 *            the java element that changed
+	 * @param progressMonitor
+	 *            the progress monitor
+	 * @return a list of changes
+	 * @throws InvalidModelElementException
+	 *             in case of underlying exception
+	 * @throws CoreException
+	 *             in case of underlying exception
 	 */
-	abstract void merge(T element, IProgressMonitor progressMonitor) throws InvalidModelElementException, CoreException;
+	abstract Set<EnumElementChange> merge(T element, IProgressMonitor progressMonitor)
+			throws InvalidModelElementException, CoreException;
 
-	
 }

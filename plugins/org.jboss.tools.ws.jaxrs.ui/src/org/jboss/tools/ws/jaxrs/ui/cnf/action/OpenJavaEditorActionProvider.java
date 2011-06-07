@@ -38,17 +38,8 @@ public class OpenJavaEditorActionProvider extends CommonActionProvider {
 	@Override
 	public void init(ICommonActionExtensionSite aSite) {
 
-		/*
-		 * ICompilationUnit cu = member.getCompilationUnit(); IEditorPart
-		 * javaEditor = JavaUI.openInEditor(cu);
-		 * JavaUI.revealInEditor(javaEditor, (IJavaElement)member);
-		 */
-		
 		ICommonViewerSite viewSite = aSite.getViewSite();
 		if (viewSite instanceof ICommonViewerWorkbenchSite) {
-			//ICommonViewerWorkbenchSite commonViewerWorkbenchSite = (ICommonViewerWorkbenchSite) viewSite;
-			//JavaUI.revealInEditor(JavaUI.openInEditor(element), element)
-			//JavaUI.openInEditor(null)
 			openJavaEditorAction = new OpenJavaEditorAction();
 			openJavaEditorAction.setSelection(aSite.getStructuredViewer().getSelection());
 			aSite.getStructuredViewer().addSelectionChangedListener(openJavaEditorAction);
@@ -66,8 +57,11 @@ public class OpenJavaEditorActionProvider extends CommonActionProvider {
 	@Override
 	public void fillActionBars(IActionBars actionBars) {
 		super.fillActionBars(actionBars);
-		actionBars.setGlobalActionHandler("org.bytesparadise.tools.jaxrs.ui.cnf.openJavaEditorActionProvider", openJavaEditorAction);
-		actionBars.setGlobalActionHandler(ICommonActionConstants.OPEN,openJavaEditorAction);
+		// enables java editor opening on double-click
+		actionBars.setGlobalActionHandler("org.jboss.tools.ws.jaxrs.ui.cnf.openJavaEditorActionProvider",
+				openJavaEditorAction);
+		actionBars.setGlobalActionHandler(ICommonActionConstants.OPEN, openJavaEditorAction);
+
 	}
 
 	/*

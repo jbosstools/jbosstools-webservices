@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.builder;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +48,8 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.Metamodel;
  * @author xcoulon
  * 
  */
-// FIXME : add constraint : this builder must run after JDT Builder.
+// FIXME : add constraint : this builder must run after JDT
+// MediaTypeCapabilitiesBuilder.
 public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor {
 
 	/** The number of steps to fully build the JAX-RS Metamodel. */
@@ -78,7 +80,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 			Logger.warn("Project '" + project.getName() + "' is not a JAX-RS project.");
 			return null;
 		}
-		logBuild(kind, project);
+		logBuild(kind, args, project);
 		switch (kind) {
 		case CLEAN_BUILD:
 		case FULL_BUILD:
@@ -181,12 +183,12 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 			metamodel.setServiceUri("/*");
 			metamodel.addElements(javaProject, monitor);
 			metamodel.validate(monitor);
-			long endTime = new Date().getTime();
-			Logger.info("JAX-RS Metamodel for project '" + project.getName() + "' fully built in "
-					+ (endTime - startTime) + "ms.");
 		} catch (CoreException e) {
 			Logger.error("Failed to load metamodel from project '" + project.getName() + "''s session properties", e);
 		} finally {
+			long endTime = new Date().getTime();
+			Logger.info("JAX-RS Metamodel for project '" + project.getName() + "' fully built in "
+					+ (endTime - startTime) + "ms.");
 			monitor.done();
 		}
 	}
@@ -196,10 +198,11 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 	 * 
 	 * @param kind
 	 *            the build kind
+	 * @param args
 	 * @param project
 	 *            the project being built
 	 */
-	private void logBuild(final int kind, final IProject project) {
+	private void logBuild(final int kind, @SuppressWarnings("rawtypes") final Map args, final IProject project) {
 		StringBuilder sb = new StringBuilder("'");
 		for (Field field : IncrementalProjectBuilder.class.getDeclaredFields()) {
 			String name = field.getName();
@@ -216,6 +219,17 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 			}
 		}
 		sb.append("' on project ").append(project.getName());
+		if (args != null && !args.isEmpty()) {
+			sb.append(" (");
+			for (Iterator<?> iterator = args.keySet().iterator(); iterator.hasNext();) {
+				Object key = iterator.next();
+				sb.append(key).append("=").append(args.get(key));
+				if (iterator.hasNext()) {
+					sb.append(", ");
+				}
+			}
+			sb.append(")");
+		}
 		Logger.debug(sb.toString());
 	}
 

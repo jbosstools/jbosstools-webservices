@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.builder;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -19,6 +20,8 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
+import org.jboss.tools.ws.jaxrs.core.metamodel.BaseElement.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.MediaTypeCapabilities;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Resource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Resources;
 import org.junit.Assert;
@@ -35,11 +38,13 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		// pre-conditions
 		Resources resources = metamodel.getResources();
 		Assert.assertEquals(5, resources.getAll().size());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 		// operation
 		WorkbenchUtils.createCompilationUnit(javaProject, "FooResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java", bundle);
 		// post-conditions
 		Assert.assertEquals(6, resources.getAll().size());
+		Assert.assertEquals("Wrong number of routes", 12, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -55,6 +60,8 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		// root resource (not a public class)
 		Assert.assertEquals("Wrong result : the total number of root resources shouldn't have changed", 5, resources
 				.getAll().size());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
+
 		// TODO: there should be a warning on the added type :
 		// "type is not public and thus, it is not reachable"
 	}
@@ -70,7 +77,7 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		IType fooType = fooCompilationUnit.getType("FooResource");
 		WorkbenchUtils.addTypeAnnotation(fooType, "@Path(\"/foo\") ");
 		WorkbenchUtils.addImport(fooCompilationUnit, "javax.ws.rs.Path");
-		
+
 		// post-conditions
 
 		// The total number should have increased even the type is not a valid
@@ -80,10 +87,11 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 				.size());
 		Resource foo = resources.getByType(fooCompilationUnit.findPrimaryType());
 		Assert.assertNotNull("Resource not found", foo);
-		Assert.assertTrue("Wrong resource kind", foo.isRootResource());
+		Assert.assertTrue("Wrong resource kind", foo.getKind() == EnumKind.ROOT_RESOURCE);
 		Assert.assertEquals("No resource method expected", 0, foo.getResourceMethods().size());
 		Assert.assertEquals("No subresource method expected", 0, foo.getSubresourceMethods().size());
 		Assert.assertEquals("No subresource locator expected", 0, foo.getSubresourceLocators().size());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 		// TODO: there should be a warning on the added type :
 		// "type has no request method designator"
 	}
@@ -102,6 +110,7 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		// post-conditions : switch
 		Assert.assertEquals(4, resources.getRootResources().size());
 		Assert.assertEquals(1, resources.getSubresources().size());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -110,12 +119,14 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Resources resources = metamodel.getResources();
 		Assert.assertEquals(3, resources.getRootResources().size());
 		Assert.assertEquals(2, resources.getSubresources().size());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 		IType customerResourceType = resources.getByPath("/customers").getJavaElement();
 		// operation : add @Path("/foo") annotation on type level
 		WorkbenchUtils.removeFirstOccurrenceOfCode(customerResourceType, "@Path(CustomerResource.URI_BASE)");
 		// post-conditions : switch
 		Assert.assertEquals(2, resources.getRootResources().size());
 		Assert.assertEquals(3, resources.getSubresources().size());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -127,6 +138,7 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		WorkbenchUtils.delete(resource.getJavaElement().getCompilationUnit());
 		// post-conditions
 		Assert.assertEquals(4, metamodel.getResources().getAll().size());
+		Assert.assertEquals("Wrong number of routes", 4, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -138,6 +150,7 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		WorkbenchUtils.delete(resource.getJavaElement().getCompilationUnit());
 		// post-conditions
 		Assert.assertEquals(4, metamodel.getResources().getAll().size());
+		Assert.assertEquals("Wrong number of routes", 4, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -147,11 +160,14 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		// operation
 		Resource customersResource = metamodel.getResources().getByPath("/customers");
 		Assert.assertNotNull("CustomerResource not found", customersResource);
-		WorkbenchUtils.removeFirstOccurrenceOfCode(customersResource.getJavaElement(), "@Path(CustomerResource.URI_BASE)");
+		WorkbenchUtils.removeFirstOccurrenceOfCode(customersResource.getJavaElement(),
+				"@Path(CustomerResource.URI_BASE)");
 		WorkbenchUtils.addTypeAnnotation(customersResource.getJavaElement(), "@Path(\"/foo\")");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
-		Assert.assertEquals("Wrong uri path template", "/foo", customersResource.getUriPathTemplate());
+		Assert.assertEquals("Wrong uri path template", "/foo", customersResource.getMapping()
+				.getUriPathTemplateFragment());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -160,15 +176,15 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
 		Resource ordersResource = metamodel.getResources().getByPath("/orders");
 		Assert.assertNotNull("OrdersResource not found", ordersResource);
-		Assert.assertTrue("Wrong mediatype capabilities", ordersResource.getMediaTypeCapabilities()
-				.getProducedMimeTypes().isEmpty());
+		MediaTypeCapabilities procucedMediaTypes = ordersResource.getMapping().getProcucedMediaTypes();
+		Assert.assertTrue("Wrong mediatype capabilities", procucedMediaTypes.isEmpty());
 		// operation
 		WorkbenchUtils.addTypeAnnotation(ordersResource.getJavaElement(),
 				"import javax.ws.rs.Produces;\n@Produces(\"foo/bar\")");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
-		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", ordersResource.getMediaTypeCapabilities()
-				.getProducedMimeTypes().get(0));
+		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", procucedMediaTypes.get(0));
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -177,14 +193,17 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
 		Resource customersResource = metamodel.getResources().getByPath("/customers");
 		Assert.assertNotNull("CustomersResource not found", customersResource);
+		MediaTypeCapabilities procucedMediaTypes = customersResource.getMapping().getProcucedMediaTypes();
+		Assert.assertEquals("Wrong mediatype capabilities", "application/vnd.bytesparadise.customer+xml",
+				procucedMediaTypes.get(0));
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(customersResource.getJavaElement(),
 				"{ \"application/vnd.bytesparadise.customer+xml\", "
 						+ "MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON }", "\"foo/bar\"");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
-		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", customersResource.getMediaTypeCapabilities()
-				.getProducedMimeTypes().get(0));
+		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", procucedMediaTypes.get(0));
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -193,14 +212,17 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
 		Resource customersResource = metamodel.getResources().getByPath("/customers");
 		Assert.assertNotNull("CustomersResource not found", customersResource);
+		MediaTypeCapabilities procucedMediaTypes = customersResource.getMapping().getProcucedMediaTypes();
+		Assert.assertEquals("Wrong mediatype capabilities", "application/vnd.bytesparadise.customer+xml",
+				procucedMediaTypes.get(0));
 		// operation
 		WorkbenchUtils.removeFirstOccurrenceOfCode(customersResource.getJavaElement(),
 				"@Produces({ \"application/vnd.bytesparadise.customer+xml\", "
 						+ "MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
-		Assert.assertTrue("Wrong mediatype capabilities", customersResource.getMediaTypeCapabilities()
-				.getProducedMimeTypes().isEmpty());
+		Assert.assertTrue("Wrong mediatype capabilities", procucedMediaTypes.isEmpty());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -209,15 +231,15 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
 		Resource ordersResource = metamodel.getResources().getByPath("/orders");
 		Assert.assertNotNull("OrdersResource not found", ordersResource);
-		Assert.assertTrue("Wrong mediatype capabilities", ordersResource.getMediaTypeCapabilities()
-				.getConsumedMimeTypes().isEmpty());
+		MediaTypeCapabilities consumedMediaTypes = ordersResource.getMapping().getConsumedMediaTypes();
+		Assert.assertTrue("Wrong mediatype capabilities", consumedMediaTypes.isEmpty());
 		// operation
 		WorkbenchUtils.addTypeAnnotation(ordersResource.getJavaElement(),
 				"import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
-		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", ordersResource.getMediaTypeCapabilities()
-				.getConsumedMimeTypes().get(0));
+		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", consumedMediaTypes.get(0));
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -226,13 +248,15 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
 		Resource customersResource = metamodel.getResources().getByPath("/customers");
 		Assert.assertNotNull("CustomersResource not found", customersResource);
+		MediaTypeCapabilities consumedMediaTypes = customersResource.getMapping().getConsumedMediaTypes();
+		Assert.assertEquals("Wrong mediatype capabilities", MediaType.APPLICATION_XML, consumedMediaTypes.get(0));
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(customersResource.getJavaElement(), "MediaType.APPLICATION_XML",
 				"\"foo/bar\"");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
-		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", customersResource.getMediaTypeCapabilities()
-				.getConsumedMimeTypes().get(0));
+		Assert.assertEquals("Wrong mediatype capabilities", "foo/bar", consumedMediaTypes.get(0));
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -241,13 +265,15 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
 		Resource customersResource = metamodel.getResources().getByPath("/customers");
 		Assert.assertNotNull("CustomersResource not found", customersResource);
+		MediaTypeCapabilities consumedMediaTypes = customersResource.getMapping().getConsumedMediaTypes();
+		Assert.assertEquals("Wrong mediatype capabilities", MediaType.APPLICATION_XML, consumedMediaTypes.get(0));
 		// operation
 		WorkbenchUtils.removeFirstOccurrenceOfCode(customersResource.getJavaElement(),
 				"@Consumes(MediaType.APPLICATION_XML)");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getResources().getAll().size());
-		Assert.assertTrue("Wrong mediatype capabilities", customersResource.getMediaTypeCapabilities()
-				.getConsumedMimeTypes().isEmpty());
+		Assert.assertTrue("Wrong mediatype capabilities", consumedMediaTypes.isEmpty());
+		Assert.assertEquals("Wrong number of routes", 10, metamodel.getRoutes().getAll().size());
 	}
 
 	@Test
@@ -268,5 +294,6 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		// post-conditions 2: errors reported (import is missing)
 		Assert.assertEquals(6, metamodel.getHttpMethods().size());
 		Assert.assertFalse("Resource still marked with errors", fooResource.hasErrors());
+		Assert.assertEquals("Wrong number of routes", 12, metamodel.getRoutes().getAll().size());
 	}
 }

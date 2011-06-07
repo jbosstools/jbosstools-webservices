@@ -41,8 +41,7 @@ public final class Logger {
 	 *            the throwable cause
 	 */
 	public static void error(String message) {
-		JBossJaxrsUIPlugin.getDefault().getLog()
-				.log(new Status(Status.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, message));
+		JBossJaxrsUIPlugin.getDefault().getLog().log(new Status(Status.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, message));
 	}
 
 	/**
@@ -65,14 +64,18 @@ public final class Logger {
 	 *            the message to log
 	 */
 	public static void warn(final String message) {
-		JBossJaxrsUIPlugin.getDefault().getLog()
-				.log(new Status(Status.WARNING, JBossJaxrsUIPlugin.PLUGIN_ID, message));
+		JBossJaxrsUIPlugin.getDefault().getLog().log(new Status(Status.WARNING, JBossJaxrsUIPlugin.PLUGIN_ID, message));
 	}
 
 	public static void warn(String message, Throwable cause) {
 		JBossJaxrsUIPlugin.getDefault().getLog()
-		.log(new Status(Status.WARNING, JBossJaxrsUIPlugin.PLUGIN_ID, message, cause));
+				.log(new Status(Status.WARNING, JBossJaxrsUIPlugin.PLUGIN_ID, message, cause));
 	}
+
+	public static void info(String message) {
+		JBossJaxrsUIPlugin.getDefault().getLog().log(new Status(Status.INFO, JBossJaxrsUIPlugin.PLUGIN_ID, message));
+	}
+
 	/**
 	 * Outputs a debug message in the trace file (not the error view of the
 	 * runtime workbench). Traces must be activated for this plugin in order to
@@ -88,6 +91,5 @@ public final class Logger {
 		}
 
 	}
-
 
 }

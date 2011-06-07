@@ -25,15 +25,18 @@ public class UriPathTemplatesSorter extends ViewerSorter {
 		super(collator);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ViewerComparator#compare(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.eclipse.jface.viewers.ViewerComparator#compare(org.eclipse.jface.
+	 * viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public int compare(Viewer viewer, Object e1, Object e2) {
 		UriPathTemplateElement element1 = (UriPathTemplateElement) e1;
 		UriPathTemplateElement element2 = (UriPathTemplateElement) e2;
-		return element1.getResolvedUriMapping().compareTo(element2.getResolvedUriMapping());
+		return element1.getResolvedUriMapping().getEndpoint().compareTo(element2.getResolvedUriMapping().getEndpoint());
 	}
 
-	
 }

@@ -32,8 +32,7 @@ public class CopyToClipboardAction extends Action implements ISelectionChangedLi
 	private ISelection selection = null;
 
 	public CopyToClipboardAction() {
-		super("Copy URI Path Template", JBossJaxrsUIPlugin.getDefault().createImageDescriptor(
-				"copyqualifiedname.gif"));
+		super("Copy URI Path Template", JBossJaxrsUIPlugin.getDefault().createImageDescriptor("copyqualifiedname.gif"));
 	}
 
 	/*
@@ -52,9 +51,10 @@ public class CopyToClipboardAction extends Action implements ISelectionChangedLi
 		Object selectedObject = selections.get(0);
 		try {
 			if (selectedObject instanceof UriPathTemplateElement) {
-				String uriPathTemplate = ((UriPathTemplateElement) selectedObject).getResolvedUriMapping().getFullUriPathTemplate();
+				String uriPathTemplate = ((UriPathTemplateElement) selectedObject).getResolvedUriMapping()
+						.getEndpoint().getUriPathTemplate();
 				Clipboard clipboard = new Clipboard(Display.getCurrent());
-				clipboard.setContents(new Object[]{uriPathTemplate}, new Transfer[]{TextTransfer.getInstance()});
+				clipboard.setContents(new Object[] { uriPathTemplate }, new Transfer[] { TextTransfer.getInstance() });
 			}
 		} catch (Exception e) {
 			Logger.error("Failed to open Java editor", e);

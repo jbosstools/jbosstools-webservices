@@ -11,41 +11,37 @@
 
 package org.jboss.tools.ws.jaxrs.ui.cnf;
 
-import java.util.Arrays;
 import java.util.List;
+
+import org.eclipse.jdt.core.IJavaElement;
+import org.jboss.tools.ws.jaxrs.core.metamodel.MediaTypeCapabilities;
 
 public class UriPathTemplateMediaTypeMappingElement {
 
-	public enum EnumMediaType {
-		CONSUMES, PROVIDES;
+	public enum EnumCapabilityType {
+		CONSUMES, PRODUCES;
 	}
 
-	private final List<String> mediaTypes;
+	private final EnumCapabilityType type;
 
-	private final EnumMediaType mediaType;
+	private final MediaTypeCapabilities mediaTypeCapabilities;
 
-	public UriPathTemplateMediaTypeMappingElement(List<String> mediaTypes, EnumMediaType mediaType) {
+	public UriPathTemplateMediaTypeMappingElement(final MediaTypeCapabilities mediaTypes, final EnumCapabilityType type) {
 		super();
-		this.mediaType = mediaType;
-		if (mediaTypes != null && !mediaTypes.isEmpty()) {
-			this.mediaTypes = mediaTypes;
-		} else {
-			this.mediaTypes = Arrays.asList("*/*");
-		}
+		this.mediaTypeCapabilities = mediaTypes;
+		this.type = type;
 	}
 
-	/**
-	 * @return the mediaTypes
-	 */
+	public EnumCapabilityType getType() {
+		return type;
+	}
+
+	public IJavaElement getElement() {
+		return mediaTypeCapabilities.getElement();
+	}
+
 	public List<String> getMediaTypes() {
-		return mediaTypes;
-	}
-
-	/**
-	 * @return the mediaType
-	 */
-	public EnumMediaType getMediaType() {
-		return mediaType;
+		return mediaTypeCapabilities.getMediatypes();
 	}
 
 }

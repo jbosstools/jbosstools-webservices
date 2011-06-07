@@ -9,7 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<groupId>org.jboss.tools.ws.tests</groupId>
-	<artifactId>org.jboss.tools.ws.jaxrs.core.tests</artifactId>
+	<artifactId>org.jboss.tools.ws.jaxrs.core.test</artifactId>
 	<version>1.2.0-SNAPSHOT</version>
 	<packaging>eclipse-test-plugin</packaging>
 

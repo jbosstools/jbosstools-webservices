@@ -28,6 +28,7 @@ import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestsPlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.MediaTypeCapabilities;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -157,12 +158,12 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 			}
 		}
 		Assert.assertNotNull("ResourceMethod not found", method);
-		List<String> mediaTypes = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(method, compilationUnit,
-				Produces.class);
-		Assert.assertEquals("Wrong result", 3, mediaTypes.size());
-		Assert.assertEquals("Wrong result", "application/vnd.bytesparadise.order+xml", mediaTypes.get(0));
-		Assert.assertEquals("Wrong result", "application/xml", mediaTypes.get(1));
-		Assert.assertEquals("Wrong result", "application/json", mediaTypes.get(2));
+		MediaTypeCapabilities mediaTypesCapabilities = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(method,
+				compilationUnit, Produces.class);
+		Assert.assertEquals("Wrong result", 3, mediaTypesCapabilities.size());
+		Assert.assertEquals("Wrong result", "application/vnd.bytesparadise.order+xml", mediaTypesCapabilities.get(0));
+		Assert.assertEquals("Wrong result", "application/xml", mediaTypesCapabilities.get(1));
+		Assert.assertEquals("Wrong result", "application/json", mediaTypesCapabilities.get(2));
 	}
 
 	@Test
@@ -171,11 +172,11 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 				new NullProgressMonitor());
 		Assert.assertNotNull("Type not found", type);
 		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-		List<String> mediaTypes = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(type, compilationUnit,
-				Produces.class);
-		Assert.assertEquals("Wrong result", 2, mediaTypes.size());
-		Assert.assertEquals("Wrong result", "application/xml", mediaTypes.get(0));
-		Assert.assertEquals("Wrong result", "application/json", mediaTypes.get(1));
+		MediaTypeCapabilities mediaTypesCapabilities = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(type,
+				compilationUnit, Produces.class);
+		Assert.assertEquals("Wrong result", 2, mediaTypesCapabilities.size());
+		Assert.assertEquals("Wrong result", "application/xml", mediaTypesCapabilities.get(0));
+		Assert.assertEquals("Wrong result", "application/json", mediaTypesCapabilities.get(1));
 	}
 
 	@Test
@@ -184,9 +185,9 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 				new NullProgressMonitor());
 		Assert.assertNotNull("Type not found", type);
 		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-		List<String> mediaTypes = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(type, compilationUnit,
-				Consumes.class);
-		Assert.assertNull("Wrong result", mediaTypes);
+		MediaTypeCapabilities mediaTypeCapabilities = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(type,
+				compilationUnit, Consumes.class);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 	}
 
 	@Test
@@ -203,11 +204,11 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 			}
 		}
 		Assert.assertNotNull("ResourceMethod not found", method);
-		List<String> mediaTypes = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(method, compilationUnit,
-				Produces.class);
-		Assert.assertEquals("Wrong result", "application/vnd.bytesparadise.book+xml", mediaTypes.get(0));
-		Assert.assertEquals("Wrong result", "application/xml", mediaTypes.get(1));
-		Assert.assertEquals("Wrong result", "application/json", mediaTypes.get(2));
+		MediaTypeCapabilities mediaTypesCapabilities = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(method,
+				compilationUnit, Produces.class);
+		Assert.assertEquals("Wrong result", "application/vnd.bytesparadise.book+xml", mediaTypesCapabilities.get(0));
+		Assert.assertEquals("Wrong result", "application/xml", mediaTypesCapabilities.get(1));
+		Assert.assertEquals("Wrong result", "application/json", mediaTypesCapabilities.get(2));
 	}
 
 	@Test
@@ -224,13 +225,14 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 			}
 		}
 		Assert.assertNotNull("ResourceMethod not found", method);
-		List<String> mediaTypes = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(method, compilationUnit,
-				Consumes.class);
-		Assert.assertNull("Wrong result", mediaTypes);
+		MediaTypeCapabilities mediaTypeCapabilities = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(method,
+				compilationUnit, Consumes.class);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 	}
 
 	@Test
-	public void shouldStillResolvedMimeTypesAfterLibraryRemoved() throws JavaModelException, CoreException, OperationCanceledException, InterruptedException {
+	public void shouldStillResolvedMimeTypesAfterLibraryRemoved() throws JavaModelException, CoreException,
+			OperationCanceledException, InterruptedException {
 		NullProgressMonitor progressMonitor = new NullProgressMonitor();
 		try {
 			IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject,
@@ -240,11 +242,11 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 			boolean removed = WorkbenchTasks.removeReferencedLibrary(javaProject, "jaxrs-api-2.0.1.GA.jar",
 					progressMonitor);
 			Assert.assertTrue("Referenced library not removed", removed);
-			List<String> mediaTypes = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(type, compilationUnit,
-					Produces.class);
+			MediaTypeCapabilities mediaTypesCapabilities = JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(type,
+					compilationUnit, Produces.class);
 			// works even if the library was removed (does not take compilation
 			// error into account)
-			Assert.assertEquals("Wrong result", 2, mediaTypes.size());
+			Assert.assertEquals("Wrong result", 2, mediaTypesCapabilities.size());
 		} finally {
 			WorkbenchTasks.addJavaProjectLibrary(javaProject, "jaxrs-api-2.0.1.GA.jar", progressMonitor);
 

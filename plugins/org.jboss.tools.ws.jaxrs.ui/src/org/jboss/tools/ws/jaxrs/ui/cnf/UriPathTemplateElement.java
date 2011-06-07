@@ -13,84 +13,92 @@ package org.jboss.tools.ws.jaxrs.ui.cnf;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.jboss.tools.ws.jaxrs.core.metamodel.ResolvedUriMapping;
 import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
-import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement.EnumMediaType;
+import org.jboss.tools.ws.jaxrs.core.metamodel.Route;
+import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement.EnumCapabilityType;
 
 public class UriPathTemplateElement implements ITreeContentProvider {
 
-	private final ResolvedUriMapping resolvedUriMapping;
-	
-	private final Stack<ResourceMethod> resourceMethods;
-	
+	private final Route route;
+
 	private final UriPathTemplateCategory uriPathTemplateCategory;
 
-	public UriPathTemplateElement(ResolvedUriMapping uriMapping, Stack<ResourceMethod> resourceMethods,
-			UriPathTemplateCategory uriPathTemplateCategory) {
+	public UriPathTemplateElement(Route route, UriPathTemplateCategory uriPathTemplateCategory) {
 		super();
-		this.resolvedUriMapping = uriMapping;
-		this.resourceMethods = resourceMethods;
+		this.route = route;
 		this.uriPathTemplateCategory = uriPathTemplateCategory;
 	}
 
+	@Override
 	public Object[] getChildren(Object parentElement) {
 		List<Object> elements = new ArrayList<Object>(3);
-		elements.add(new UriPathTemplateMediaTypeMappingElement(resolvedUriMapping.getMediaTypeCapabilities().getConsumedMimeTypes(), EnumMediaType.CONSUMES));
-		elements.add(new UriPathTemplateMediaTypeMappingElement(resolvedUriMapping.getMediaTypeCapabilities().getProducedMimeTypes(), EnumMediaType.PROVIDES));
-		elements.add(new UriPathTemplateMethodMappingElement(resourceMethods));
+		elements.add(new UriPathTemplateMediaTypeMappingElement(route.getEndpoint().getConsumedMediaTypes(),
+				EnumCapabilityType.CONSUMES));
+		elements.add(new UriPathTemplateMediaTypeMappingElement(route.getEndpoint().getProducedMediaTypes(),
+				EnumCapabilityType.PRODUCES));
+		elements.add(new UriPathTemplateMethodMappingElement(route.getResourceMethods()));
 		return elements.toArray();
 	}
 
+	@Override
 	public Object getParent(Object element) {
 		return uriPathTemplateCategory;
 	}
 
+	@Override
 	public boolean hasChildren(Object element) {
 		return (getChildren(element).length > 0);
 	}
 
+	@Override
 	public Object[] getElements(Object inputElement) {
 		return getChildren(inputElement);
 	}
 
+	@Override
 	public void dispose() {
 	}
 
+	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		// TODO Auto-generated method stub
 
 	}
 
 	public boolean hasErrors() {
-		return resourceMethods.lastElement().hasErrors();
+		return getLastMethod().hasErrors();
 	}
+
 	/**
 	 * @return the uriMapping
 	 */
-	public ResolvedUriMapping getResolvedUriMapping() {
-		return resolvedUriMapping;
-	}
-	
-	public ResourceMethod getLastMethod() {
-		return resourceMethods.lastElement();
+	public Route getResolvedUriMapping() {
+		return route;
 	}
 
-	/* (non-Javadoc)
+	public ResourceMethod getLastMethod() {
+		return route.getResourceMethods().getLast();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((resolvedUriMapping == null) ? 0 : resolvedUriMapping.hashCode());
+		result = prime * result + ((route == null) ? 0 : route.hashCode());
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -102,13 +110,12 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 		if (getClass() != obj.getClass())
 			return false;
 		UriPathTemplateElement other = (UriPathTemplateElement) obj;
-		if (resolvedUriMapping == null) {
-			if (other.resolvedUriMapping != null)
+		if (route == null) {
+			if (other.route != null)
 				return false;
-		} else if (!resolvedUriMapping.equals(other.resolvedUriMapping))
+		} else if (!route.equals(other.route))
 			return false;
 		return true;
 	}
-	
 
 }

@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -62,37 +63,55 @@ public abstract class AbstractCommonTestCase {
 
 	@BeforeClass
 	public static void setupWorkspace() throws Exception {
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		if (workspace.isAutoBuilding()) {
-			IWorkspaceDescription description = workspace.getDescription();
-			description.setAutoBuilding(false);
-			workspace.setDescription(description);
+		long startTime = new Date().getTime();
+		try {
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			if (workspace.isAutoBuilding()) {
+				IWorkspaceDescription description = workspace.getDescription();
+				description.setAutoBuilding(false);
+				workspace.setDescription(description);
+			}
+
+			workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+			LOGGER.info("Initial Synchronization (@BeforeClass)");
+			WorkbenchTasks.syncSampleProject(DEFAULT_SAMPLE_PROJECT_NAME);
+		} finally {
+			long endTime = new Date().getTime();
+			LOGGER.info("Initial Workspace setup in " + (endTime - startTime) + "ms.");
 		}
-		
-		workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
-		LOGGER.info("Initial Synchronization (@BeforeClass)");
-		WorkbenchTasks.syncSampleProject(DEFAULT_SAMPLE_PROJECT_NAME);
 	}
 
 	@Before
 	public void bindSampleProject() throws Exception {
-		projectName = WorkbenchUtils.retrieveSampleProjectName(this.getClass());
-		project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-		javaProject = JavaCore.create(project);
-		Assert.assertNotNull("JavaProject not found", javaProject.exists());
-		Assert.assertNotNull("Project not found", javaProject.getProject().exists());
-		Assert.assertTrue("Project is not a JavaProject", JavaProject.hasJavaNature(javaProject.getProject()));
-		synchronizor = new ProjectSynchronizator();
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		workspace.addResourceChangeListener(synchronizor);
+		long startTime = new Date().getTime();
+		try {
+			projectName = WorkbenchUtils.retrieveSampleProjectName(this.getClass());
+			project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+			javaProject = JavaCore.create(project);
+			Assert.assertNotNull("JavaProject not found", javaProject.exists());
+			Assert.assertNotNull("Project not found", javaProject.getProject().exists());
+			Assert.assertTrue("Project is not a JavaProject", JavaProject.hasJavaNature(javaProject.getProject()));
+			synchronizor = new ProjectSynchronizator();
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			workspace.addResourceChangeListener(synchronizor);
+		} finally {
+			long endTime = new Date().getTime();
+			LOGGER.info("Test Workspace setup in " + (endTime - startTime) + "ms.");
+		}
 	}
 
 	@After
 	public void removeListener() throws CoreException, InvocationTargetException, InterruptedException {
-		// remove listener before sync' to avoid desync...
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		workspace.removeResourceChangeListener(synchronizor);
-		synchronizor.resync();
+		long startTime = new Date().getTime();
+		try {
+			// remove listener before sync' to avoid desync...
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			workspace.removeResourceChangeListener(synchronizor);
+			synchronizor.resync();
+		} finally {
+			long endTime = new Date().getTime();
+			LOGGER.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
+		}
 	}
 
 }

@@ -13,6 +13,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.builder;
 
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -20,6 +22,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
+import org.jboss.tools.ws.jaxrs.core.metamodel.MediaTypeCapabilities;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Provider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Provider.EnumProviderKind;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
@@ -163,12 +166,11 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 						+ "import org.jboss.tools.ws.jaxrs.sample.TestQualifiedException;");
 		// post-conditions
 		actualExceptionType = provider.getProvidedKinds().get(EnumProviderKind.EXCEPTION_MAPPER);
-		exceptionType = JdtUtils.resolveType(
-				"org.jboss.tools.ws.jaxrs.sample.TestQualifiedException.TestException", javaProject, null);
+		exceptionType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.TestQualifiedException.TestException",
+				javaProject, null);
 		Assert.assertEquals("Wrong java type", exceptionType.getFullyQualifiedName(),
 				actualExceptionType.getFullyQualifiedName());
-		Assert.assertEquals("Wrong pkg name",
-				"org.jboss.tools.ws.jaxrs.sample.TestQualifiedException$TestException",
+		Assert.assertEquals("Wrong pkg name", "org.jboss.tools.ws.jaxrs.sample.TestQualifiedException$TestException",
 				actualExceptionType.getFullyQualifiedName());
 	}
 
@@ -294,44 +296,51 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.AnotherDummyProvider",
 				javaProject, new NullProgressMonitor());
 		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertNull("No mediatype expected", provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER));
+		MediaTypeCapabilities mediaTypeCapabilities = provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER);
+		Assert.assertNotNull("No media types capabilities expected", mediaTypeCapabilities);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 		// operation
 		WorkbenchUtils.addImport(providerType, "javax.ws.rs.Produces");
 		WorkbenchUtils.addTypeAnnotation(providerType, "@Produces(MediaType.APPLICATION_JSON)");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		Assert.assertEquals("Wrong mediatype", "application/json",
-				provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER).get(0));
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_JSON, mediaTypeCapabilities.get(0));
 	}
 
 	@Test
 	public void shouldChangeWhenChangingProducesAnnotation() throws CoreException {
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider",
-				javaProject, new NullProgressMonitor());
+		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject,
+				new NullProgressMonitor());
+		Provider provider = metamodel.getProviders().getByType(providerType);
+		MediaTypeCapabilities producerMediaTypeCapabilities = provider
+				.getMediaTypeCapabilities(EnumProviderKind.PRODUCER);
+		MediaTypeCapabilities consumerMediaTypeCapabilities = provider
+				.getMediaTypeCapabilities(EnumProviderKind.CONSUMER);
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_XML, producerMediaTypeCapabilities.get(0));
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_XML, consumerMediaTypeCapabilities.get(0));
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "@Produces(MediaType.APPLICATION_XML)",
 				"@Produces(MediaType.APPLICATION_JSON)");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertEquals("Wrong mediatype", "application/json",
-				provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER).get(0));
-		Assert.assertEquals("Wrong mediatype", "application/xml",
-				provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER).get(0));
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_JSON, producerMediaTypeCapabilities.get(0));
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_XML, consumerMediaTypeCapabilities.get(0));
 	}
 
 	@Test
 	public void shouldChangeWhenRemovingProducesAnnotation() throws CoreException {
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider",
-				javaProject, new NullProgressMonitor());
+		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject,
+				new NullProgressMonitor());
 		// operation
 		WorkbenchUtils.removeFirstOccurrenceOfCode(providerType, "@Produces(MediaType.APPLICATION_XML)");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getProviders().size());
 		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertNull("No mediatype expected", provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER));
+		MediaTypeCapabilities mediaTypeCapabilities = provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER);
+		Assert.assertNotNull("No media types capabilities expected", mediaTypeCapabilities);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 	}
 
 	@Test
@@ -340,44 +349,51 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.AnotherDummyProvider",
 				javaProject, new NullProgressMonitor());
 		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertNull("No mediatype expected", provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER));
+		MediaTypeCapabilities mediaTypeCapabilities = provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER);
+		Assert.assertNotNull("No media types capabilities expected", mediaTypeCapabilities);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 		// operation
 		WorkbenchUtils.addImport(providerType, "javax.ws.rs.Consumes");
 		WorkbenchUtils.addTypeAnnotation(providerType, "@Consumes(MediaType.APPLICATION_JSON)");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		Assert.assertEquals("Wrong mediatype", "application/json",
-				provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER).get(0));
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_JSON, mediaTypeCapabilities.get(0));
 	}
 
 	@Test
 	public void shouldChangeWhenChangingConsumesAnnotation() throws CoreException {
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider",
-				javaProject, new NullProgressMonitor());
+		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject,
+				new NullProgressMonitor());
+		Provider provider = metamodel.getProviders().getByType(providerType);
+		MediaTypeCapabilities consumesMediaTypeCapabilities = provider
+				.getMediaTypeCapabilities(EnumProviderKind.CONSUMER);
+		MediaTypeCapabilities producesMediaTypeCapabilities = provider
+				.getMediaTypeCapabilities(EnumProviderKind.PRODUCER);
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "@Consumes(MediaType.APPLICATION_XML)",
 				"@Consumes(MediaType.APPLICATION_JSON)");
 		// post-conditions
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_JSON, consumesMediaTypeCapabilities.get(0));
+		Assert.assertEquals("Wrong mediatype", MediaType.APPLICATION_XML, producesMediaTypeCapabilities.get(0));
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertEquals("Wrong mediatype", "application/json",
-				provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER).get(0));
-		Assert.assertEquals("Wrong mediatype", "application/xml",
-				provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER).get(0));
 	}
 
 	@Test
 	public void shouldChangeWhenRemovingConsumesAnnotation() throws CoreException {
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider",
-				javaProject, new NullProgressMonitor());
+		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject,
+				new NullProgressMonitor());
+		Provider provider = metamodel.getProviders().getByType(providerType);
+		MediaTypeCapabilities mediaTypeCapabilities = provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER);
+		Assert.assertNotNull("No media types capabilities expected", mediaTypeCapabilities);
+		Assert.assertEquals("Wrong result", MediaType.APPLICATION_XML, mediaTypeCapabilities.get(0));
 		// operation
 		WorkbenchUtils.removeFirstOccurrenceOfCode(providerType, "@Consumes(MediaType.APPLICATION_XML)");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertNull("No mediatype expected", provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER));
+		Assert.assertNotNull("No media types capabilities expected", mediaTypeCapabilities);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 	}
 
 	@Test
@@ -387,13 +403,15 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 				"SimpleMessageBodyWriter.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"SimpleMessageBodyWriter.java", bundle);
 		Assert.assertEquals(6, metamodel.getProviders().size());
-		// operation
 		IType providerType = JdtUtils.resolveTopLevelType(compilationUnit);
+		Provider provider = metamodel.getProviders().getByType(providerType);
+		MediaTypeCapabilities mediaTypeCapabilities = provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
+		// operation
 		WorkbenchUtils.addTypeAnnotation(providerType, "@Consumes(MediaType.APPLICATION_JSON)");
 		// post-conditions
 		Assert.assertEquals(6, metamodel.getProviders().size());
-		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertNull("No mediatype expected", provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER));
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 		Assert.assertNull("No mediatype expected here: provider is not a MessageBodyReader !",
 				provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER));
 	}
@@ -405,13 +423,15 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 				"SimpleMessageBodyReader.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"SimpleMessageBodyReader.java", bundle);
 		Assert.assertEquals(6, metamodel.getProviders().size());
-		// operation
 		IType providerType = JdtUtils.resolveTopLevelType(compilationUnit);
+		Provider provider = metamodel.getProviders().getByType(providerType);
+		MediaTypeCapabilities mediaTypeCapabilities = provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
+		// operation
 		WorkbenchUtils.addTypeAnnotation(providerType, "@Produces(MediaType.APPLICATION_JSON)");
 		// post-conditions
 		Assert.assertEquals(6, metamodel.getProviders().size());
-		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertNull("No mediatype expected", provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER));
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 		Assert.assertNull("No mediatype expected here: provider is not a MessageBodyWriter !",
 				provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER));
 	}
@@ -423,13 +443,15 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 				"SimpleMessageBodyReader.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"SimpleMessageBodyReader.java", bundle);
 		Assert.assertEquals(6, metamodel.getProviders().size());
-		// operation
 		IType providerType = JdtUtils.resolveTopLevelType(compilationUnit);
+		Provider provider = metamodel.getProviders().getByType(providerType);
+		MediaTypeCapabilities mediaTypeCapabilities = provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER);
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
+		// operation
 		WorkbenchUtils.removeFirstOccurrenceOfCode(providerType, "import java.io.IOException;");
 		// post-conditions
 		Assert.assertEquals(6, metamodel.getProviders().size());
-		Provider provider = metamodel.getProviders().getByType(providerType);
-		Assert.assertNull("No mediatype expected", provider.getMediaTypeCapabilities(EnumProviderKind.CONSUMER));
+		Assert.assertTrue("Wrong result", mediaTypeCapabilities.isEmpty());
 		Assert.assertNull("No mediatype expected here: provider is not a MessageBodyWriter !",
 				provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER));
 	}
@@ -437,15 +459,15 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 	@Test
 	public void shouldReportErrorWhenSettingInvalidMediaTypeOnProducesAnnotation() throws CoreException {
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider",
-				javaProject, new NullProgressMonitor());
+		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject,
+				new NullProgressMonitor());
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "@Produces(MediaType.APPLICATION_XML)",
 				"@Produces(FOO)");
 		// post-conditions
 		Assert.assertEquals(5, metamodel.getProviders().size());
 		Provider provider = metamodel.getProviders().getByType(providerType);
-		List<String> mediaTypes = provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER);
+		List<String> mediaTypes = provider.getMediaTypeCapabilities(EnumProviderKind.PRODUCER).getMediatypes();
 		Assert.assertTrue("No error reported", provider.hasErrors());
 		Assert.assertEquals("Wrong number of mediatypes", 1, mediaTypes.size());
 		Assert.assertEquals("Wrong mediatype", "application/xml", mediaTypes.get(0));
@@ -455,8 +477,8 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 	@Test
 	public void shouldReportErrorWhenSettingInvalidMediaTypeOnConsumesAnnotation() throws CoreException {
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider",
-				javaProject, new NullProgressMonitor());
+		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject,
+				new NullProgressMonitor());
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "@Consumes(MediaType.APPLICATION_XML)",
 				"@Consumes(FOO)");
@@ -474,8 +496,8 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 	public void shouldReportErrorWhenRemovingProviderAnnotationImport() throws CoreException {
 		// pre-conditions
 		Assert.assertEquals(5, metamodel.getProviders().size());
-		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider",
-				javaProject, new NullProgressMonitor());
+		IType providerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject,
+				new NullProgressMonitor());
 		// operation
 		WorkbenchUtils.removeImport(providerType.getCompilationUnit(), javax.ws.rs.ext.Provider.class.getName());
 		// post-conditions : 1 HTTPMethod less
@@ -496,8 +518,7 @@ public class ProviderChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		String[] oldContents = new String[] { "import javax.persistence.PersistenceException;",
 				"public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceException>",
 				"public Response toResponse(PersistenceException exception)" };
-		String[] newContents = new String[] {
-				"import javax.persistence.EntityExistsException;",
+		String[] newContents = new String[] { "import javax.persistence.EntityExistsException;",
 				"@Provider public class PersistenceExceptionMapper implements ExceptionMapper<EntityExistsException>",
 				"public Response toResponse(EntityExistsException exception)" };
 

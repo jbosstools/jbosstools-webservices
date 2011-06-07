@@ -39,23 +39,38 @@ public class Providers extends BaseElementContainer<Provider> {
 	/** The interfaces that a provider can implement, indexed by kind */
 	private final Map<EnumProviderKind, IType> providerInterfaces;
 
+	public static class Builder {
+
+		private final IJavaProject javaProject;
+		private final Metamodel metamodel;
+
+		public Builder(final IJavaProject javaProject, final Metamodel metamodel) {
+			this.javaProject = javaProject;
+			this.metamodel = metamodel;
+		}
+
+		public Providers build() throws CoreException {
+			Map<EnumProviderKind, IType> providerInterfaces = new HashMap<EnumProviderKind, IType>();
+			providerInterfaces.put(EnumProviderKind.CONSUMER,
+					JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject.getJavaProject(), null));
+			providerInterfaces.put(EnumProviderKind.PRODUCER,
+					JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyWriter", javaProject.getJavaProject(), null));
+			providerInterfaces.put(EnumProviderKind.EXCEPTION_MAPPER,
+					JdtUtils.resolveType("javax.ws.rs.ext.ExceptionMapper", javaProject.getJavaProject(), null));
+			return new Providers(metamodel, providerInterfaces);
+		}
+
+	}
+
 	/**
 	 * Full constructor
 	 * 
 	 * @param javaProject
-	 * @param metamodel
-	 * @throws CoreException
+	 * @param providerInterfaces
 	 */
-	// TODO : use the Builder pattern here ?
-	public Providers(final IJavaProject javaProject, final Metamodel metamodel) throws CoreException {
+	private Providers(final Metamodel metamodel, final Map<EnumProviderKind, IType> providerInterfaces) {
 		super(metamodel);
-		providerInterfaces = new HashMap<EnumProviderKind, IType>();
-		providerInterfaces.put(EnumProviderKind.CONSUMER,
-				JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject.getJavaProject(), null));
-		providerInterfaces.put(EnumProviderKind.PRODUCER,
-				JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyWriter", javaProject.getJavaProject(), null));
-		providerInterfaces.put(EnumProviderKind.EXCEPTION_MAPPER,
-				JdtUtils.resolveType("javax.ws.rs.ext.ExceptionMapper", javaProject.getJavaProject(), null));
+		this.providerInterfaces = providerInterfaces;
 	}
 
 	public final Map<EnumProviderKind, IType> getProviderInterfaces() {
@@ -91,7 +106,8 @@ public class Providers extends BaseElementContainer<Provider> {
 	 * @throws CoreException
 	 */
 	@Override
-	public final void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor) throws CoreException {
+	public final List<Provider> addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor)
+			throws CoreException {
 		progressMonitor.beginTask("Adding providers", 1);
 		try {
 			// FIXME : add support for javax.ws.rs.ext.ContextResolver(s) (most
@@ -101,16 +117,19 @@ public class Providers extends BaseElementContainer<Provider> {
 			List<IType> providerTypes = JAXRSAnnotationsScanner.findProviderTypes(scope, false, progressMonitor);
 			// FIXME : should check type is a top level and annotation binding
 			// exists. Throw an exception in constructor ?
+			List<Provider> addedProviders = new ArrayList<Provider>();
 			for (IType providerType : providerTypes) {
 				try {
-					elements.put(providerType.getFullyQualifiedName(), new Provider.Builder(providerType, metamodel,
-							this).build(progressMonitor));
+					Provider provider = new Provider.Builder(providerType, metamodel, this).build(progressMonitor);
+					elements.put(providerType.getFullyQualifiedName(), provider);
+					addedProviders.add(provider);
 				} catch (InvalidModelElementException e) {
 					Logger.warn("Type '" + providerType.getFullyQualifiedName() + "' is not a valid JAX-RS Provider : "
 							+ e.getMessage());
 				}
 			}
 			progressMonitor.worked(1);
+			return addedProviders;
 		} finally {
 			progressMonitor.done();
 		}

@@ -10,6 +10,9 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IType;
@@ -57,14 +60,15 @@ public class Application extends BaseElement<IType> {
 		 * @throws CoreException
 		 */
 		public Application build(IProgressMonitor progressMonitor) throws CoreException {
-			Application httpMethod = new Application(this);
-			httpMethod.merge(javaType, progressMonitor);
-			return httpMethod;
+			Application app = new Application(this);
+			app.merge(javaType, progressMonitor);
+			return app;
 		}
 	}
 
 	/**
-	 * Full constructor using the inner 'Builder' static class.
+	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
+	 * class.
 	 * 
 	 * @param builder
 	 */
@@ -73,13 +77,21 @@ public class Application extends BaseElement<IType> {
 	}
 
 	@Override
-	public void merge(IType element, IProgressMonitor progressMonitor) throws CoreException {
-		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
-		String appPath = (String) JdtUtils.resolveAnnotationAttributeValue(getJavaElement(), compilationUnit,
-				javax.ws.rs.ApplicationPath.class, "value");
-		if (appPath != null) {
-			getMetamodel().setServiceUri(appPath);
+	public Set<EnumElementChange> merge(IType element, IProgressMonitor progressMonitor) throws CoreException {
+		Set<EnumElementChange> changes = new HashSet<EnumElementChange>();
+		if (getJavaElement() != null) {
+			CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
+			String appPath = (String) JdtUtils.resolveAnnotationAttributeValue(getJavaElement(), compilationUnit,
+					javax.ws.rs.ApplicationPath.class, "value");
+			if (appPath != null) {
+				getMetamodel().setServiceUri(appPath);
+			} else {
+				getMetamodel().setServiceUri("/");
+			}
+		} else {
+			getMetamodel().setServiceUri("/");
 		}
+		return changes;
 	}
 
 	@Override
@@ -89,7 +101,7 @@ public class Application extends BaseElement<IType> {
 	}
 
 	@Override
-	public org.jboss.tools.ws.jaxrs.core.metamodel.BaseElement.EnumType getKind() {
+	public org.jboss.tools.ws.jaxrs.core.metamodel.BaseElement.EnumKind getKind() {
 		// TODO Auto-generated method stub
 		return null;
 	}

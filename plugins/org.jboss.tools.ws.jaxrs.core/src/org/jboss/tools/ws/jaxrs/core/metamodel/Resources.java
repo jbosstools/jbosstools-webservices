@@ -11,11 +11,9 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Stack;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -24,9 +22,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.jboss.tools.ws.jaxrs.core.internal.builder.JAXRSAnnotationsScanner;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionFilterUtil;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionFilterUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.BaseElement.EnumType;
+import org.jboss.tools.ws.jaxrs.core.metamodel.BaseElement.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.Resource.ResourceBuilder;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 public class Resources extends BaseElementContainer<Resource> {
@@ -42,120 +41,31 @@ public class Resources extends BaseElementContainer<Resource> {
 
 	// FIXME deal with interfaces/implementations
 	@Override
-	public final void addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor) throws CoreException {
+	public List<Resource> addFrom(final IJavaElement scope, final IProgressMonitor progressMonitor)
+			throws CoreException {
 		progressMonitor.beginTask("Adding resources and resourceMethods", 1);
 		HTTPMethods httpMethods = metamodel.getHttpMethods();
 		List<IType> javaTypes = JAXRSAnnotationsScanner.findResources(scope, httpMethods.getTypeNames(),
 				progressMonitor);
+		List<Resource> addedResources = new ArrayList<Resource>();
 		for (IType javaType : javaTypes) {
 			try {
-				elements.put(javaType.getFullyQualifiedName(),
-						new Resource.Builder(javaType, metamodel).build(progressMonitor));
+				Resource addedResource = new ResourceBuilder(javaType, metamodel).build(progressMonitor);
+				elements.put(javaType.getFullyQualifiedName(), addedResource);
+				addedResources.add(addedResource);
+				// TODO: update the resolved mappings from here
 			} catch (InvalidModelElementException e) {
 				Logger.warn("Type '" + javaType.getFullyQualifiedName() + "' is not a valid JAX-RS Resource: "
 						+ e.getMessage());
 			}
 		}
+		return addedResources;
 	}
 
-	/**
-	 * Resolve the URI Mappings in the model, given all root resources,
-	 * subresources , resource resourceMethods , subresource resourceMethods and
-	 * subresource locators
-	 * 
-	 * @throws CoreException
-	 */
-	public final Map<ResolvedUriMapping, Stack<ResourceMethod>> resolveUriMappings(
-			final IProgressMonitor progressMonitor) throws CoreException {
-		Map<ResolvedUriMapping, Stack<ResourceMethod>> uriMappings = new HashMap<ResolvedUriMapping, Stack<ResourceMethod>>();
-		for (Resource resource : getRootResources()) {
-			resolveResourcesUriMappings(resource, metamodel.getServiceUri(), uriMappings, new Stack<ResourceMethod>(),
-					progressMonitor);
-		}
-		return uriMappings;
-	}
-
-	/**
-	 * @param progressMonitor
-	 * @param uriMappings
-	 * @param resource
-	 * @param methodsStack
-	 * @throws CoreException
-	 */
-	private void resolveResourcesUriMappings(final Resource resource, final String uriTemplateFragment,
-			final Map<ResolvedUriMapping, Stack<ResourceMethod>> uriMappings, final Stack<ResourceMethod> methodsStack,
-			final IProgressMonitor progressMonitor) throws CoreException {
-		// resource resourceMethods and subresources resourceMethods are treated
-		// the same way
-		for (ResourceMethod resourceMethod : resource.getAllMethods()) {
-			String uriPathTemplate = resolveURIPathTemplate(uriTemplateFragment, resource, resourceMethod);
-			MediaTypeCapabilities mediaTypeCapabilities = resolveMediaTypeCapabilities(resource, resourceMethod);
-			UriMapping resourceUriMapping = resourceMethod.getUriMapping();
-			ResolvedUriMapping uriMapping = new ResolvedUriMapping(resourceUriMapping.getHTTPMethod(), uriPathTemplate,
-					resourceUriMapping.getQueryParams(), mediaTypeCapabilities);
-			@SuppressWarnings("unchecked")
-			Stack<ResourceMethod> stack = (Stack<ResourceMethod>) methodsStack.clone();
-			stack.add(resourceMethod);
-			uriMappings.put(uriMapping, stack);
-		}
-		// TODO : verify support chain of subresource locators
-		// TODO : stack resourceMethods and detect+prevent cycles
-		for (ResourceMethod resourceMethod : resource.getSubresourceLocators()) {
-			String uriPathTemplate = resolveURIPathTemplate(uriTemplateFragment, resource, resourceMethod);
-			IType returnType = resourceMethod.getReturnType();
-			if (returnType == null) {
-				continue;
-			}
-			ITypeHierarchy subresourceTypeHierarchy = JdtUtils.resolveTypeHierarchy(returnType, false, progressMonitor);
-			for (IType subresourceType : subresourceTypeHierarchy.getSubtypes(returnType)) {
-				Resource subresource = getByType(subresourceType);
-				if (subresource != null && !subresource.isRootResource()) {
-					@SuppressWarnings("unchecked")
-					Stack<ResourceMethod> stack = (Stack<ResourceMethod>) methodsStack.clone();
-					stack.add(resourceMethod);
-					resolveResourcesUriMappings(subresource, uriPathTemplate, uriMappings, stack, progressMonitor);
-				}
-			}
-		}
-	}
-
-	// FIXME : include method parameters if annotated with @QueryParam
-	private static final String resolveURIPathTemplate(final String uriTemplateFragment, final Resource resource,
-			final ResourceMethod resourceMethod) {
-		StringBuffer uriTemplateBuffer = new StringBuffer(uriTemplateFragment);
-		String resourceUriPathTemplate = resource.getUriPathTemplate();
-		String methodUriPathTemplate = resourceMethod.getUriMapping().getUriPathTemplateFragment();
-		if (resourceUriPathTemplate != null) {
-			uriTemplateBuffer.append("/").append(resourceUriPathTemplate);
-		}
-		if (methodUriPathTemplate != null) {
-			uriTemplateBuffer.append("/").append(methodUriPathTemplate);
-		}
-		return uriTemplateBuffer.toString().replaceAll("/\\*", "/").replaceAll("///", "/").replaceAll("//", "/");
-	}
-
-	private static final MediaTypeCapabilities resolveMediaTypeCapabilities(final Resource resource,
-			final ResourceMethod resourceMethod) {
-		MediaTypeCapabilities resourceMediaTypeCapabilities = resource.getMediaTypeCapabilities();
-		MediaTypeCapabilities methodMediaTypeCapabilities = resourceMethod.getUriMapping().getMediaTypeCapabilities();
-		MediaTypeCapabilities mediaTypeCapabilities = new MediaTypeCapabilities();
-		if (!methodMediaTypeCapabilities.getConsumedMimeTypes().isEmpty()) {
-			mediaTypeCapabilities.setConsumedMimeTypes(methodMediaTypeCapabilities.getConsumedMimeTypes());
-		} else if (!resourceMediaTypeCapabilities.getConsumedMimeTypes().isEmpty()) {
-			mediaTypeCapabilities.setConsumedMimeTypes(resourceMediaTypeCapabilities.getConsumedMimeTypes());
-		} else {
-			// leave empty collection
-			// mediaTypeCapabilities.setConsumedMimeTypes(Arrays.asList("*/*"));
-		}
-		if (!methodMediaTypeCapabilities.getProducedMimeTypes().isEmpty()) {
-			mediaTypeCapabilities.setProducedMimeTypes(methodMediaTypeCapabilities.getProducedMimeTypes());
-		} else if (!resourceMediaTypeCapabilities.getProducedMimeTypes().isEmpty()) {
-			mediaTypeCapabilities.setProducedMimeTypes(resourceMediaTypeCapabilities.getProducedMimeTypes());
-		} else {
-			// leave empty collection
-			// mediaTypeCapabilities.setProducedMimeTypes(Arrays.asList("*/*"));
-		}
-		return mediaTypeCapabilities;
+	@Override
+	public Resource removeElement(final IResource removedResource, final IProgressMonitor progressMonitor) {
+		Resource resource = super.removeElement(removedResource, progressMonitor);
+		return resource;
 	}
 
 	public Resource getByResource(IResource resource) {
@@ -180,7 +90,8 @@ public class Resources extends BaseElementContainer<Resource> {
 	public final Resource getByPath(final String path) {
 		for (Entry<String, Resource> entry : elements.entrySet()) {
 			Resource resource = entry.getValue();
-			if (resource.isRootResource() && resource.getUriPathTemplate().endsWith(path)) {
+			if (resource.getKind() == EnumKind.ROOT_RESOURCE
+					&& resource.getMapping().getUriPathTemplateFragment().endsWith(path)) {
 				return resource;
 			}
 		}
@@ -188,12 +99,33 @@ public class Resources extends BaseElementContainer<Resource> {
 		return null;
 	}
 
+	/**
+	 * @return The Subresource locators that match the given return type.
+	 * @param returnType
+	 *            the return type.
+	 * @throws CoreException
+	 */
+	public final List<ResourceMethod> findSubresourceLocators(IType returnType, IProgressMonitor progressMonitor)
+			throws CoreException {
+		List<ResourceMethod> locators = new ArrayList<ResourceMethod>();
+		for (Resource resource : getAll()) {
+			for (ResourceMethod locator : resource.getSubresourceLocators()) {
+				ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(locator.getReturnType(), true,
+						progressMonitor);
+				if (returnTypeHierarchy.contains(returnType)) {
+					locators.add(locator);
+				}
+			}
+		}
+		return locators;
+	}
+
 	public final List<Resource> getRootResources() {
-		return CollectionFilterUtil.filterElementsByKind(elements.values(), EnumType.ROOT_RESOURCE);
+		return CollectionFilterUtils.filterElementsByKind(elements.values(), EnumKind.ROOT_RESOURCE);
 	}
 
 	public final List<Resource> getSubresources() {
-		return CollectionFilterUtil.filterElementsByKind(elements.values(), EnumType.SUBRESOURCE);
+		return CollectionFilterUtils.filterElementsByKind(elements.values(), EnumKind.SUBRESOURCE);
 	}
 
 }

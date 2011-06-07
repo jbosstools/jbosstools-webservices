@@ -259,7 +259,7 @@ public class WorkbenchUtils {
 		ISourceRange sourceRange = method.getSourceRange();
 		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
 		int offset = buffer.getContents().indexOf(oldContent, sourceRange.getOffset());
-		Assert.assertTrue("Old content not found", offset != -1);
+		Assert.assertTrue("Old content not found: '" + oldContent + "'", offset != -1);
 		buffer.replace(offset, oldContent.length(), newContent);
 		saveAndClose(workingCopy);
 	}
@@ -339,10 +339,10 @@ public class WorkbenchUtils {
 		saveAndClose(workingCopy);
 		// return the last method of the java type, assuming it is the one given
 		// in parameter
-		return javaType.getMethods()[javaType.getMethods().length - 1];
+		return javaType.getMethods()[0];
 	}
 
-	public static void addMethodAnnotion(IMethod method, String annotation) throws JavaModelException {
+	public static void addMethodAnnotation(IMethod method, String annotation) throws JavaModelException {
 		ICompilationUnit compilationUnit = method.getCompilationUnit();
 		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
 		ISourceRange sourceRange = method.getSourceRange();

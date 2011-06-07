@@ -11,13 +11,13 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -27,13 +27,16 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * @author xcoulon
  * 
  */
+// FIXME : Use protected vs public methods to retrieve resolved/internal
+// mappings ?
+
 public class ResourceMethod extends BaseElement<IMethod> {
 
 	private final Resource parentResource;
 
-	private UriMapping uriMapping = null;
+	private final ResourceMethodMapping resourceMethodMapping;
 
-	private EnumType kind = null;
+	private EnumKind kind = null;
 
 	/**
 	 * return type of the java method. Null if this is not a subresource
@@ -42,92 +45,69 @@ public class ResourceMethod extends BaseElement<IMethod> {
 	private IType returnType = null;
 
 	/**
-	 * Internal 'Resource' element builder.
+	 * Full constructor.
 	 * 
-	 * @author xcoulon
-	 * 
+	 * @throws CoreException
+	 * @throws InvalidModelElementException
 	 */
-	public static class Builder {
-
-		private final Metamodel metamodel;
-		private final IMethod javaMethod;
-		private final Resource parentResource;
-
-		/**
-		 * Mandatory attributes of the enclosing 'ResourceMethod' element.
-		 * 
-		 * @param javaMethod
-		 * @param metamodel
-		 * @param parentResource
-		 */
-		public Builder(final IMethod javaMethod, final Resource parentResource, final Metamodel metamodel) {
-			this.javaMethod = javaMethod;
-			this.metamodel = metamodel;
-			this.parentResource = parentResource;
-		}
-
-		/**
-		 * Builds and returns the elements. Internally calls the merge() method.
-		 * 
-		 * @param progressMonitor
-		 * @return
-		 * @throws InvalidModelElementException
-		 * @throws CoreException
-		 */
-		public ResourceMethod build(IProgressMonitor progressMonitor) throws InvalidModelElementException,
-				CoreException {
-			ResourceMethod resourceMethod = new ResourceMethod(this);
-			resourceMethod.merge(javaMethod, progressMonitor);
-			return resourceMethod;
-		}
-	}
-
-	/**
-	 * Full constructor using the inner 'Builder' static class.
-	 * 
-	 * @param builder
-	 */
-	public ResourceMethod(final Builder builder) throws InvalidModelElementException, CoreException {
-		super(builder.javaMethod, builder.metamodel);
-		this.parentResource = builder.parentResource;
+	public ResourceMethod(final IMethod javaMethod, final Resource parentResource, final Metamodel metamodel,
+			final IProgressMonitor progressMonitor) throws InvalidModelElementException, CoreException {
+		super(javaMethod, metamodel);
+		this.parentResource = parentResource;
+		this.resourceMethodMapping = new ResourceMethodMapping(this);
+		merge(javaMethod, progressMonitor);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final void merge(final IMethod javaMethod, final IProgressMonitor progressMonitor)
+	// FIXME : always returning at least MAPPING ??
+	public final Set<EnumElementChange> merge(final IMethod javaMethod, final IProgressMonitor progressMonitor)
 			throws InvalidModelElementException, CoreException {
 		CompilationUnit compilationUnit = getCompilationUnit(progressMonitor);
-		if (state == EnumState.CREATED) {
-			Set<IProblem> problems = JdtUtils.resolveErrors(javaMethod, compilationUnit);
-			if (problems != null && problems.size() > 0) {
-				// metamodel.reportErrors(javaMethod, problems);
-				return;
-			}
+		Set<EnumElementChange> changes = new HashSet<EnumElementChange>();
+
+		if (this.resourceMethodMapping.merge(compilationUnit)) {
+			changes.add(EnumElementChange.MAPPING);
 		}
-		IMethodBinding methodBinding = JdtUtils.resolveMethodBinding(javaMethod, compilationUnit);
-		if (uriMapping == null) {
-			this.uriMapping = new UriMapping.Builder(javaMethod, getMetamodel()).build(compilationUnit);
-		} else {
-			this.uriMapping.merge(compilationUnit);
-		}
-		HTTPMethod httpMethod = uriMapping.getHTTPMethod();
-		String uriPathTemplateFragment = uriMapping.getUriPathTemplateFragment();
+		/*
+		 * Set<IProblem> problems = JdtUtils.resolveErrors(javaMethod,
+		 * compilationUnit); if (problems != null && problems.size() > 0) { //
+		 * metamodel.reportErrors(javaMethod, problems); return; }
+		 */
+		HTTPMethod httpMethod = resourceMethodMapping.getHTTPMethod();
+		String uriPathTemplateFragment = resourceMethodMapping.getUriPathTemplateFragment();
+		EnumKind nextKind = null;
 		if (uriPathTemplateFragment == null && httpMethod != null) {
-			this.kind = EnumType.RESOURCE_METHOD;
+			nextKind = EnumKind.RESOURCE_METHOD;
 		} else if (uriPathTemplateFragment != null && httpMethod != null) {
-			this.kind = EnumType.SUBRESOURCE_METHOD;
+			nextKind = EnumKind.SUBRESOURCE_METHOD;
 		} else if (uriPathTemplateFragment != null && httpMethod == null) {
-			this.kind = EnumType.SUBRESOURCE_LOCATOR;
+			nextKind = EnumKind.SUBRESOURCE_LOCATOR;
 		} else {
 			throw new InvalidModelElementException(
 					"ResourceMethod has no valid @Path annotation and no HTTP ResourceMethod annotation");
 		}
-		ITypeBinding javaReturnType = methodBinding.getReturnType();
-		if (javaReturnType != null) {
-			this.returnType = (IType) javaReturnType.getJavaElement();
+		if (this.kind != nextKind) {
+			if (this.kind == EnumKind.SUBRESOURCE_LOCATOR || nextKind == EnumKind.SUBRESOURCE_LOCATOR) {
+				changes.add(EnumElementChange.KIND);
+			} else {
+				changes.add(EnumElementChange.MAPPING);
+			}
+			this.kind = nextKind;
 		}
+		IMethodBinding methodBinding = JdtUtils.resolveMethodBinding(javaMethod, compilationUnit);
+
+		ITypeBinding javaReturnType = methodBinding.getReturnType();
+		IType nextReturnType = javaReturnType != null ? (IType) javaReturnType.getJavaElement() : null;
+		if ((nextReturnType != null && !nextReturnType.equals(this.returnType))
+				|| (this.returnType != null && !this.returnType.equals(nextReturnType))) {
+			changes.add(EnumElementChange.KIND);
+			this.returnType = nextReturnType;
+		}
+
+		return changes;
 	}
 
 	/**
@@ -137,11 +117,11 @@ public class ResourceMethod extends BaseElement<IMethod> {
 	 */
 	@Override
 	public void validate(IProgressMonitor progressMonitor) throws CoreException {
-		getUriMapping().validate();
+		getMapping().validate();
 	}
 
 	@Override
-	public final BaseElement.EnumType getKind() {
+	public final BaseElement.EnumKind getKind() {
 		return kind;
 	}
 
@@ -153,10 +133,10 @@ public class ResourceMethod extends BaseElement<IMethod> {
 	}
 
 	/**
-	 * @return the uriMapping
+	 * @return the resourceMethodMapping
 	 */
-	public final UriMapping getUriMapping() {
-		return uriMapping;
+	public final ResourceMethodMapping getMapping() {
+		return resourceMethodMapping;
 	}
 
 	/**
@@ -174,22 +154,30 @@ public class ResourceMethod extends BaseElement<IMethod> {
 	@Override
 	public final String toString() {
 		return "ResourceMethod [" + parentResource.getName() + "." + getJavaElement().getElementName() + "] -> "
-				+ uriMapping.toString() + ", kind=" + kind + "]";
+				+ resourceMethodMapping.toString() + ", kind=" + kind + "]";
 	}
 
 	/*
-	 * private static UriMapping computeUriMapping(IMethod javaMethod,
-	 * CompilationUnit compilationUnit, List<HTTPMethod> httpMethods,
-	 * IProgressMonitor progressMonitor) throws JavaModelException,
-	 * CoreException { // look for any @HTTPMethod annotation HTTPMethod
-	 * httpMethod = lookupHTTPMethod(httpMethods, javaMethod, compilationUnit,
-	 * progressMonitor); // look for @Path annotation String
-	 * methodLevelUriPathTemplate = (String)
-	 * JdtUtils.resolveAnnotationAttributeValue(javaMethod, compilationUnit,
-	 * ANNOTATION_PATH, "value"); MediaTypeCapabilities mediaTypeCapabilities =
-	 * JAXRSAnnotationsScanner.resolveMediaTypeCapabilities(javaMethod,
-	 * compilationUnit, progressMonitor); return new UriMapping(httpMethod,
-	 * methodLevelUriPathTemplate, mediaTypeCapabilities); }
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
 	 */
+	@Override
+	public int hashCode() {
+		return getJavaElement().hashCode();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ResourceMethod) {
+			return getJavaElement().equals(((ResourceMethod) obj).getJavaElement());
+		}
+		return false;
+	}
 
 }

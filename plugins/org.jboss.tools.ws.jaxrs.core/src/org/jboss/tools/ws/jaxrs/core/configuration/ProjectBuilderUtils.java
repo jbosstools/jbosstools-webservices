@@ -26,7 +26,7 @@ public final class ProjectBuilderUtils {
 	
 	//TODO : replace with javabuilder, add jaxrs builder after this one.
 	public static final String VALIDATION_BUILDER_ID = "org.eclipse.wst.validation.validationbuilder";
-	/** The JAX-RS Builder Id. */
+	/** The JAX-RS MediaTypeCapabilitiesBuilder Id. */
 	public static final String JAXRS_BUILDER_ID = "org.jboss.tools.ws.jaxrs.metamodelBuilder";
 
 	/**
@@ -42,8 +42,8 @@ public final class ProjectBuilderUtils {
 	 * @param project
 	 *            the project to look into
 	 * @param builderId
-	 *            the Builder ID to look up in the project's builders
-	 * @return true if the Builder is installed (ie, declared)
+	 *            the MediaTypeCapabilitiesBuilder ID to look up in the project's builders
+	 * @return true if the MediaTypeCapabilitiesBuilder is installed (ie, declared)
 	 * @throws CoreException
 	 *             in case of exception
 	 */

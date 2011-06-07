@@ -19,8 +19,8 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
-import org.jboss.tools.ws.jaxrs.core.metamodel.ResolvedUriMapping;
 import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.Route;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
 /**
@@ -34,29 +34,26 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	 * 
 	 * @see org.eclipse.jface.viewers.ILabelProvider#getImage(java.lang.Object)
 	 */
+	@Override
 	public Image getImage(Object element) {
 		if (element instanceof UriPathTemplateCategory) {
 			return JBossJaxrsUIPlugin.getDefault().createImage("wsdl_file_obj.gif");
-		}
-
-		if (element instanceof UriPathTemplateElement) {
-			if(((UriPathTemplateElement)element).hasErrors()) {
+		} else if (element instanceof UriPathTemplateElement) {
+			if (((UriPathTemplateElement) element).hasErrors()) {
 				return JBossJaxrsUIPlugin.getDefault().createImage("url_mapping_error.gif");
 			}
 			return JBossJaxrsUIPlugin.getDefault().createImage("url_mapping.gif");
-		}
-
-		if (element instanceof UriPathTemplateMediaTypeMappingElement) {
-			switch (((UriPathTemplateMediaTypeMappingElement) element).getMediaType()) {
+		} else if (element instanceof UriPathTemplateMediaTypeMappingElement) {
+			switch (((UriPathTemplateMediaTypeMappingElement) element).getType()) {
 			case CONSUMES:
 				return JBossJaxrsUIPlugin.getDefault().createImage("filter_mapping_in.gif");
-			case PROVIDES:
+			case PRODUCES:
 				return JBossJaxrsUIPlugin.getDefault().createImage("filter_mapping_out.gif");
 			}
-		}
-
-		if (element instanceof UriPathTemplateMethodMappingElement) {
+		} else if (element instanceof UriPathTemplateMethodMappingElement) {
 			return JBossJaxrsUIPlugin.getDefault().createImage("servlet_mapping.gif");
+		} else if (element instanceof WaitWhileBuildingElement) {
+			return JBossJaxrsUIPlugin.getDefault().createImage("systemprocess.gif");
 		}
 
 		return null;
@@ -69,6 +66,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	 * org.eclipse.jface.viewers.IBaseLabelProvider#addListener(org.eclipse.
 	 * jface.viewers.ILabelProviderListener)
 	 */
+	@Override
 	public void addListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 
@@ -79,6 +77,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	 * 
 	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#dispose()
 	 */
+	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
 
@@ -91,6 +90,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	 * org.eclipse.jface.viewers.IBaseLabelProvider#isLabelProperty(java.lang
 	 * .Object, java.lang.String)
 	 */
+	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		// TODO Auto-generated method stub
 		return false;
@@ -103,6 +103,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	 * org.eclipse.jface.viewers.IBaseLabelProvider#removeListener(org.eclipse
 	 * .jface.viewers.ILabelProviderListener)
 	 */
+	@Override
 	public void removeListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 
@@ -115,10 +116,10 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 		}
 
 		if (element instanceof UriPathTemplateElement) {
-			ResolvedUriMapping uriMapping = ((UriPathTemplateElement) element).getResolvedUriMapping();
+			Route route = ((UriPathTemplateElement) element).getResolvedUriMapping();
 			StringBuilder sb = new StringBuilder();
-			String httpVerb = uriMapping.getHTTPMethod().getHttpVerb();
-			String uriTemplate = uriMapping.getFullUriPathTemplate();
+			String httpVerb = route.getEndpoint().getHttpMethod().getHttpVerb();
+			String uriTemplate = route.getEndpoint().getUriPathTemplate();
 			sb.append(httpVerb);
 			sb.append(" ");
 			sb.append(uriTemplate);
@@ -130,22 +131,41 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 		if (element instanceof UriPathTemplateMediaTypeMappingElement) {
 			UriPathTemplateMediaTypeMappingElement mappingElement = ((UriPathTemplateMediaTypeMappingElement) element);
 			StringBuilder sb = new StringBuilder();
+			int offset = 0;
+			switch (((UriPathTemplateMediaTypeMappingElement) element).getType()) {
+			case CONSUMES:
+				sb.append("consumes: ");
+				offset = sb.length();
+				break;
+			case PRODUCES:
+				sb.append("produces: ");
+				offset = sb.length();
+				break;
+			}
 			for (Iterator<String> iterator = mappingElement.getMediaTypes().iterator(); iterator.hasNext();) {
 				sb.append(iterator.next());
 				if (iterator.hasNext()) {
 					sb.append(",");
 				}
 			}
-			return new StyledString(sb.toString());
+			StyledString styledString = new StyledString(sb.toString());
+			styledString.setStyle(0, offset, StyledString.QUALIFIER_STYLER);
+			return styledString;
 		}
 		if (element instanceof UriPathTemplateMethodMappingElement) {
-			ResourceMethod lastMethod = ((UriPathTemplateMethodMappingElement) element).getLastMethod();
+			ResourceMethod lastMethod = ((UriPathTemplateMethodMappingElement) element).getResourceMethod();
 			StringBuilder sb = new StringBuilder();
 			IMethod javaMethod = lastMethod.getJavaElement();
 			// TODO : add method parameters from signature
 			sb.append(javaMethod.getParent().getElementName()).append(".").append(javaMethod.getElementName())
 					.append("(...)");
 			return new StyledString(sb.toString());
+		}
+		if (element instanceof WaitWhileBuildingElement) {
+			String message = "Building RESTful Web Services...";
+			StyledString styledString = new StyledString(message);
+			styledString.setStyle(0, message.length(), StyledString.DECORATIONS_STYLER);
+			return new StyledString(message);
 		}
 		return null;
 	}

@@ -1,165 +1,148 @@
-/******************************************************************************* 
- * Copyright (c) 2008 Red Hat, Inc. 
- * Distributed under license by Red Hat, Inc. All rights reserved. 
- * This program is made available under the terms of the 
- * Eclipse Public License v1.0 which accompanies this distribution, 
- * and is available at http://www.eclipse.org/legal/epl-v10.html 
- * 
- * Contributors: 
- * Xavier Coulon - Initial API and implementation 
- ******************************************************************************/
-
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * Application classes can declare the supported request and response media
  * types using the @Consumes and @Produces annotations respectively. These
  * annotations MAY be applied to a resource method, a resource class, or to an
  * entity provider. Use of these annotations on a resource method overrides any
- * on the resource class or on an entity provider for a method argument or
- * return type. In the absence of either of these annotations, support for any
- * media type is assumed.
+ * on the resource class or on an entity provider for a method argument or retu
+ * import java.util.Iterator; rn type. In the absence of either of these
+ * annotations, support for any media type is assumed.
  * 
  * @author xcoulon
  * 
  */
 public class MediaTypeCapabilities implements Comparable<MediaTypeCapabilities> {
 
-	private final List<String> consumedMimeTypes = new ArrayList<String>();
+	/** The Java Element that carries the media types. */
+	private IJavaElement element;
 
-	private final List<String> producedMimeTypes = new ArrayList<String>();
+	private final List<String> mediatypes = new ArrayList<String>();
 
-	/**
-	 * Constructor with default values.
+	/*
+	 * public static class MediaTypeCapabilitiesBuilder {
 	 * 
-	 * @param consumedMimeTypes
-	 * @param producedMimeTypes
-	 */
-	public MediaTypeCapabilities() {
-	}
-
-	/**
-	 * Constructor with specific values.
+	 * private List<String> mediaTypes;
 	 * 
-	 * @param consumedMimeTypes
-	 * @param producedMimeTypes
+	 * private IAnnotation annotation;
+	 * 
+	 * private IMember annotatedMember;
+	 * 
+	 * public MediaTypeCapabilitiesBuilder(IMember annotatedMember) {
+	 * this.annotatedMember = annotatedMember; }
+	 * 
+	 * public MediaTypeCapabilitiesBuilder annotation(IAnnotation annotation) {
+	 * this.annotation = annotation; return this; }
+	 * 
+	 * public MediaTypeCapabilitiesBuilder mediaTypes(List<String> mediaTypes) {
+	 * this.mediaTypes = mediaTypes; return this; }
+	 * 
+	 * public MediaTypeCapabilities build() { IJavaElement element = (annotation
+	 * != null) ? annotation : annotatedMember;
+	 * 
+	 * if (mediaTypes == null || mediaTypes.isEmpty()) { this.mediaTypes =
+	 * Collections.emptyList(); } return new MediaTypeCapabilities(mediaTypes,
+	 * element); } }
 	 */
-	public MediaTypeCapabilities(final List<String> consumedMimeTypes, final List<String> producedMimeTypes) {
-		if (consumedMimeTypes != null) {
-			this.consumedMimeTypes.addAll(consumedMimeTypes);
-		}
-		if (producedMimeTypes != null) {
-			this.producedMimeTypes.addAll(producedMimeTypes);
-		}
+
+	/**
+	 * Full constructor, used in conjunction with its
+	 * MediaTypeCapabilitiesBuilder private MediaTypeCapabilities(List<String>
+	 * mediaTypes, IJavaElement element) { super(mediaTypes); this.element =
+	 * element; }
+	 */
+
+	/**
+	 * Full constructor.
+	 */
+	public MediaTypeCapabilities(IJavaElement element) {
+		this.element = element;
 	}
 
 	/**
-	 * @return the consumedMimeTypes
+	 * Full constructor with mediatypes
 	 */
-	public final List<String> getConsumedMimeTypes() {
-		return consumedMimeTypes;
+	public MediaTypeCapabilities(IJavaElement element, List<String> mediatypes) {
+		this.element = element;
+		this.mediatypes.addAll(mediatypes);
 	}
 
 	/**
-	 * @return the producedMimeTypes. Never null, size can be 0
+	 * Replace the current media types capabilities with the ones given in
+	 * parameter
+	 * 
+	 * @param mediaTypes
+	 *            the new supported media types
+	 * @return true if changed were made
 	 */
-	public final List<String> getProducedMimeTypes() {
-		return producedMimeTypes;
+	public boolean merge(MediaTypeCapabilities capabilities) {
+		boolean changed = false;
+		// remove obsolete values
+		changed = mediatypes.retainAll(capabilities.getMediatypes());
+		// avoid duplicates
+		mediatypes.removeAll(capabilities.getMediatypes());
+		changed = changed | mediatypes.addAll(capabilities.getMediatypes());
+		this.element = capabilities.getElement();
+		return changed;
 	}
-
-	
-	public void merge(MediaTypeCapabilities mediaTypeCapabilities) {
-		setConsumedMimeTypes(mediaTypeCapabilities.getConsumedMimeTypes());
-		setProducedMimeTypes(mediaTypeCapabilities.getProducedMimeTypes());
-	}
-
 
 	/**
-	 * Clears the previous consumed types and replaces with the one given in parametets.
-	 * @param consumes the list of new consumed mediatypes
+	 * @return the annotation
 	 */
-	public final void setConsumedMimeTypes(final List<String> consumes) {
-		this.consumedMimeTypes.clear();
-		if (consumes != null) {
-			this.consumedMimeTypes.addAll(consumes);
-		}
+	public IJavaElement getElement() {
+		return element;
 	}
 
-	public final void setProducedMimeTypes(final List<String> produces) {
-		this.producedMimeTypes.clear();
-		if (produces != null) {
-			this.producedMimeTypes.addAll(produces);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
+	/**
+	 * @return the mediatypes
 	 */
-	@Override
-	public final int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((consumedMimeTypes == null) ? 0 : consumedMimeTypes.hashCode());
-		result = prime * result + ((producedMimeTypes == null) ? 0 : producedMimeTypes.hashCode());
-		return result;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public final boolean equals(final Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		MediaTypeCapabilities other = (MediaTypeCapabilities) obj;
-		if (consumedMimeTypes == null) {
-			if (other.consumedMimeTypes != null) {
-				return false;
-			}
-		} else if (!consumedMimeTypes.equals(other.consumedMimeTypes)) {
-			return false;
-		}
-		if (producedMimeTypes == null) {
-			if (other.producedMimeTypes != null) {
-				return false;
-			}
-		} else if (!producedMimeTypes.equals(other.producedMimeTypes)) {
-			return false;
-		}
-		return true;
+	public List<String> getMediatypes() {
+		return mediatypes;
 	}
 
 	@Override
-	public final int compareTo(final MediaTypeCapabilities other) {
-		int comp = compare(this.getConsumedMimeTypes(), other.getConsumedMimeTypes());
-		if(comp != 0) {
-			return comp;
-		}
-		return compare(this.getProducedMimeTypes(), other.getProducedMimeTypes());
-	}
-	
-	private static int compare(final List<String> oneList, final List<String> otherList) {
-		for(int i = 0; i < oneList.size(); i++) {
-			if(i >= otherList.size()) {
+	public int compareTo(MediaTypeCapabilities otherMediaTypes) {
+		for (int i = 0; i < mediatypes.size(); i++) {
+			if (i >= otherMediaTypes.size()) {
 				return 1; // 'this' is greater than 'other'
 			}
-			int comp = oneList.get(i).compareTo(otherList.get(i));
-			if(comp != 0) {
+			int comp = mediatypes.get(i).compareTo(otherMediaTypes.get(i));
+			if (comp != 0) {
 				return comp;
 			}
 		}
 		return 0;
 	}
 
+	public String get(int i) {
+		return mediatypes.get(i);
+	}
+
+	public int size() {
+		return mediatypes.size();
+	}
+
+	public boolean contains(String mediatype) {
+		return mediatypes.contains(mediatype);
+	}
+
+	public boolean isEmpty() {
+		return mediatypes.isEmpty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "MediaTypeCapabilities [element=" + element + ", mediatypes=" + mediatypes + "]";
+	}
 
 }

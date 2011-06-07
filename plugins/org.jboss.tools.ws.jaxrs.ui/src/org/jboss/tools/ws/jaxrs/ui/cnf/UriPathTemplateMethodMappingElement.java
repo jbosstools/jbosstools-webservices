@@ -11,23 +11,21 @@
 
 package org.jboss.tools.ws.jaxrs.ui.cnf;
 
-import java.util.Stack;
+import java.util.LinkedList;
 
 import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
 
 public class UriPathTemplateMethodMappingElement {
 
-	private final Stack<ResourceMethod> resourceMethods;
+	private final LinkedList<ResourceMethod> resourceMethods;
 
-	public UriPathTemplateMethodMappingElement(Stack<ResourceMethod> resourceMethods) {
+	public UriPathTemplateMethodMappingElement(LinkedList<ResourceMethod> resourceMethods) {
 		super();
 		this.resourceMethods = resourceMethods;
 	}
 
-
-	public ResourceMethod getLastMethod() {
-		return resourceMethods.lastElement();
+	public ResourceMethod getResourceMethod() {
+		return resourceMethods.getLast();
 	}
-	
 
 }
