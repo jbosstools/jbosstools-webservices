@@ -430,6 +430,22 @@ public class JBossWSCreationUtils {
 		}
 		return src;
 	}
+	
+	public static List<String> getJavaProjectSrcFolder(IProject project) throws JavaModelException{
+		IPackageFragmentRoot[] packageFragmentRoots = JavaCore.create(
+				project).getAllPackageFragmentRoots();
+		if (packageFragmentRoots != null && packageFragmentRoots.length > 0) {
+			List<String> list = new ArrayList<String>();
+			for (int i = 0; i < packageFragmentRoots.length; i++) {
+				IPackageFragmentRoot packageFragmentRoot = packageFragmentRoots[i];
+				if (packageFragmentRoot.getKind() == IPackageFragmentRoot.K_SOURCE) {
+					list.add(packageFragmentRoot.getResource().getFullPath().toOSString());
+				}
+			}
+			return list;
+		}
+		return null;
+	}
 
 	public static IResource[] getJavaSourceRoots(IJavaProject javaProject)
 			throws JavaModelException {
@@ -609,5 +625,26 @@ public class JBossWSCreationUtils {
 		Definition def = wsdlReader.readWSDL(wsdlURL);
 		return def;
     }
+    
+	public static boolean isOptions(String str) {
+		String[] isUsed = {
+				"-k", "-s", "-o", "-p", "-b", "-c", "-t", "-e", "-v", "-h", "-w" }; //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ 
+		boolean boo = true;
+		for (int i = 0; i < isUsed.length; i++) {
+			if (str.trim().startsWith(isUsed[i])) {
+				boo = false;
+				break;
+			}
+		}
+		return boo;
+	}
+	
+	public static IPackageFragmentRoot getPackageFragmentRoot(IJavaProject project, String src) throws JavaModelException {
+		IPath path = new Path(JBossWSCreationUtils.getCustomSrcLocation(src));
+		String str = project.getProject().getName() + File.separator + path.makeRelativeTo(project.getProject().getLocation());
+		IPath path1 = new Path(str);
+		IResource res = ResourcesPlugin.getWorkspace().getRoot().findMember(path1);
+		return project.getPackageFragmentRoot(res);
 
+	}
 }

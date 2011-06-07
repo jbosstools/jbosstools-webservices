@@ -18,12 +18,10 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 import org.jboss.tools.common.util.FileUtil;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.ClasspathParser;
-import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 /**
  * @author Grid Qian
@@ -49,13 +47,8 @@ public class Java2WSCommand extends AbstractGenerateCodeCommand {
 
 	@Override
 	protected void addCommandlineArgs(List<String> command) throws IOException {
-
-		String projectName = model.getWebProjectName();
-		String projectRoot = JBossWSCreationUtils.getProjectRoot(projectName)
-				.toOSString();
-
-		IProject iProject = ResourcesPlugin.getWorkspace().getRoot()
-				.getProject(projectName);
+		String projectRoot = model.getJavaProject().getProject().getLocation().toOSString();
+		IProject iProject = model.getJavaProject().getProject();
 		
 		if (model.isGenWSDL()) {
 			command.add("-w"); //$NON-NLS-1$

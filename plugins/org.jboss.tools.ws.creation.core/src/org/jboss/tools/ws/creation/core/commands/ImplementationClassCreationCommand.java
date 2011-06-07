@@ -1,30 +1,23 @@
 package org.jboss.tools.ws.creation.core.commands;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
-import javax.wsdl.Definition;
-import javax.xml.namespace.QName;
+import javax.wsdl.Port;
+import javax.wsdl.Service;
 
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -42,7 +35,6 @@ import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.PrimitiveType;
-import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
@@ -74,67 +66,76 @@ public class ImplementationClassCreationCommand extends
 	private static final String ANNOTATION_PROPERTY_SERVICE_NAME = "serviceName"; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_ENDPOINT_INTERFACE = "endpointInterface"; //$NON-NLS-1$
 	private static final String ANNOTATION_PROPERTY_TNS = "targetNamespace"; //$NON-NLS-1$
+	private static final String IMPL_PACKAGE = ".impl"; //$NON-NLS-1$
+	public static final String LINE_SEPARATOR = System.getProperty("line.separator"); //$NON-NLS-1$
 
 	private ServiceModel model;
-	private IWorkspaceRoot fWorkspaceRoot;
-	private IProject project;
+	private IJavaProject project;
 	private String packageName;
+	private String serviceName;
+	private String targetNamespace;
 
 	public ImplementationClassCreationCommand(ServiceModel model) {
 		this.model = model;
-		fWorkspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-
 	}
 
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-
+		
+		IStatus status = Status.OK_STATUS;
 		// if the user does not check the generate implementation class button,
 		// do nothing
 		if (!model.isGenImplementation()) {
-			return Status.OK_STATUS;
+			return status;
 		}
-
-		IStatus status = Status.OK_STATUS;
-		project = JBossWSCreationUtils.getProjectByName(model
-				.getWebProjectName());
+		
+		project = model.getJavaProject();
+		packageName = model.getCustomPackage();
+		List<ICompilationUnit> portTypeUnits = JBossWSCreationUtils
+				.findJavaUnitsByAnnotation(project, JBossWSCreationCoreMessages.Webservice_Annotation, packageName);
+		if (portTypeUnits.size() == 0 ) {
+			return status;
+		}
+		
+		packageName = portTypeUnits.get(0).getParent().getElementName() + IMPL_PACKAGE;
+		IPackageFragment pack = null;
 		try {
-
-			IJavaProject javaPrj = JavaCore.create(project);
-			List<ICompilationUnit> serviceUnits = JBossWSCreationUtils
-					.findJavaUnitsByAnnotation(javaPrj,
-							JBossWSCreationCoreMessages.Webservice_Annotation,
-							model.getCustomPackage());
-
-			packageName = model.getCustomPackage();
-			boolean noPackageName = false;
-			if ("".equals(packageName)) { //$NON-NLS-1$
-				noPackageName = true;
-			}
-			boolean isCheck = true;
-			for (ICompilationUnit service : serviceUnits) {
-				if (!service.findPrimaryType().isInterface()) {
+			pack = createImplPackage(packageName);
+		} catch (JavaModelException e1) {
+			status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_to_Generate_Implementation,e1);
+			return status;
+		}
+		Service service = model.getService();
+		serviceName = service.getQName().getLocalPart();
+		targetNamespace = model.getWsdlDefinition().getTargetNamespace();
+		Iterator<?> iter = service.getPorts().values().iterator();
+		List<String> ptList = new LinkedList<String>();
+		while (iter.hasNext()) {
+			Port port = (Port) iter.next();
+			ptList.add(port.getBinding().getPortType().getQName().getLocalPart().toLowerCase());
+		}
+		
+		boolean isOverWrite = false;
+		try {
+			for (ICompilationUnit portType : portTypeUnits) {
+				if (!portType.findPrimaryType().isInterface()) {
 					continue;
 				}
-				if (noPackageName) {
-					packageName = service.getParent().getElementName();
+				String clsName = getClassName(portType.getElementName());
+				String implClsName = getImplClassName(clsName);
+				if (!ptList.contains(clsName.toLowerCase())) {
+					continue;
+				}				
+				if (!isOverWrite && findImplClass(implClsName)) {
+					if (!isOverwriteClass()) {
+						break;
+					} 
+				    isOverWrite = true;
 				}
-				String implClsName = getImplClassName(getClassName(service
-						.getElementName()));
-				if (isCheck) {
-					if (findImplClass(implClsName)) {
-						isCheck = false;
-						if (!isOverwriteClass()) {
-							break;
-						}
-					}
-				}
-				generateImplClass(service);
-				model.addServiceClasses(getImplPackageName()
-						+ "." + implClsName); //$NON-NLS-1$
+				generateImplClass(portType, pack, clsName, implClsName);
+				model.addServiceClasses(new StringBuffer(packageName).append(".").append(implClsName).toString()); //$NON-NLS-1$
 			}
-
 		} catch (CoreException e) {
 			status = StatusUtils
 					.errorStatus(
@@ -151,79 +152,28 @@ public class ImplementationClassCreationCommand extends
 		return status;
 	}
 
-	private boolean isOverwriteClass() throws JavaModelException {
-		boolean b = MessageDialog
-				.openConfirm(
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-								.getShell(),
-						JBossWSCreationCoreMessages.Confirm_Override_ImplClass,
-						JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSImpl_Overwrite);
-		return b;
-	}
-
-	private boolean findImplClass(String claName) throws JavaModelException {
-		boolean b = false;
-		IPackageFragmentRoot root = getPackageFragmentRoot();
-		String implPackageName = getImplPackageName();
-		IPackageFragment pack = root.getPackageFragment(implPackageName);
-		if (pack.getCompilationUnit(claName + ".java").exists()) { //$NON-NLS-1$
-			b = true;
-		}
-		return b;
-	}
-
-	protected String[] getServiceNameFromWSDL() {
-		String[] names = new String[2];
-		Definition def = model.getWsdlDefinition();
-		Map<?, ?> services = def.getServices();
-		if (services != null) {
-			QName[] a = new QName[services.keySet().size()];
-			if (a != null && a.length > 0) {
-				services.keySet().toArray(a);
-				names[0] = a[0].getLocalPart();
-			}
-		}
-		names[1] = def.getTargetNamespace();
-		return names;
-	}
-
 	@SuppressWarnings("unchecked")
-	protected void generateImplClass(ICompilationUnit service)
+	protected void generateImplClass(ICompilationUnit portType, IPackageFragment pack, String ptCls, String clsName)
 			throws CoreException, BadLocationException {
 		ASTParser astp = ASTParser.newParser(AST.JLS3);
 		astp.setKind(ASTParser.K_COMPILATION_UNIT);
-		astp.setSource(service);
+		astp.setSource(portType);
 		CompilationUnit cu = (CompilationUnit) astp.createAST(null);
-		IPackageFragment pack = getImplPakcage();
-
-		String className = getClassName(service.getElementName());
-
-		String implFileName = getJavaFileName(className);
-
-		String[] names = getServiceNameFromWSDL();
-
-		String serviceName = names[0];
-
-		String targetNamespace = names[1];
-
-		ICompilationUnit icu = pack.createCompilationUnit(implFileName,
-				"", true, null); //$NON-NLS-1$
+		String implFileName = getJavaFileName(clsName);
+		ICompilationUnit icu = pack.createCompilationUnit(implFileName,"", true, null); //$NON-NLS-1$
+		
 		// create a working copy with a new owner
-
 		icu.becomeWorkingCopy(null);
-
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setSource(icu);
 		parser.setResolveBindings(false);
 		parser.setFocalPosition(0);
-
 		CompilationUnit implCu = (CompilationUnit) parser.createAST(null);
 		AST ast = implCu.getAST();
 
 		// creation of a Document and ASTRewrite
 		String source = icu.getBuffer().getContents();
 		Document document = new Document(source);
-
 		implCu.recordModifications();
 
 		// start to add content into implementation class
@@ -234,25 +184,23 @@ public class ImplementationClassCreationCommand extends
 		implCu.setPackage(implPackage);
 
 		// add imports for implementation class
-		addImportsToImplementationClass(implCu, cu, className);
+		addImportsToImplementationClass(implCu, cu, ptCls);
 
 		// add class declaration
 		TypeDeclaration type = ast.newTypeDeclaration();
 		type.setInterface(false);
 		// add WebService annotation
-		String endpoint = getServiceInterfaceFullName(className);
+		String endpoint = getPortTypeFullName(portType.getParent().getElementName(), ptCls);
 		NormalAnnotation ann = null;
 		if (serviceName != null) {
 			ann = createAnnotation(ast, serviceName, endpoint, targetNamespace);
 		} else {
-			ann = createAnnotation(ast, className, endpoint, targetNamespace);
+			ann = createAnnotation(ast, clsName, endpoint, targetNamespace);
 		}
 		type.modifiers().add(ann);
-		type.modifiers().add(
-				ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
-		type.setName(ast.newSimpleName(getImplClassName(className)));
-		type.superInterfaceTypes().add(
-				ast.newSimpleType(ast.newName(className)));
+		type.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
+		type.setName(ast.newSimpleName(clsName));
+		type.superInterfaceTypes().add(ast.newSimpleType(ast.newName(ptCls)));
 
 		// add Logger variable declaration
 		// createLoggerField(ast, type, portTypeName);
@@ -268,7 +216,6 @@ public class ImplementationClassCreationCommand extends
 					methods[i]);
 			type.bodyDeclarations().add(newMethod);
 		}
-
 		implCu.types().add(type);
 
 		// try to save the Java file
@@ -288,20 +235,8 @@ public class ImplementationClassCreationCommand extends
 		return packageName;
 	}
 
-	private IPackageFragmentRoot getPackageFragmentRoot()
-			throws JavaModelException {
-		String str = model.getWebProjectName() + File.separator
-				+ getSourceFolderPath(project);
-		IPath path = new Path(str);
-		IResource res = fWorkspaceRoot.findMember(path);
-		IJavaProject javaPrj = JavaCore.create(project);
-		return javaPrj.getPackageFragmentRoot(res);
-
-	}
-
 	private String getJavaFileName(String className) {
-
-		return getImplClassName(className) + DEFAULT_CU_SUFFIX;
+		return className + DEFAULT_CU_SUFFIX;
 	}
 
 	private String getImplClassName(String className) {
@@ -313,20 +248,7 @@ public class ImplementationClassCreationCommand extends
 		return clsName;
 	}
 
-	private IPackageFragment getImplPakcage() throws JavaModelException {
-		IPackageFragmentRoot root = getPackageFragmentRoot();
-		String implPackageName = getImplPackageName();
-		IPackageFragment pack = root.getPackageFragment(implPackageName);
-
-		if (!pack.exists()) {
-			String packName = pack.getElementName();
-			pack = root.createPackageFragment(packName, true, null);
-		}
-
-		return pack;
-	}
-
-	private String getServiceInterfaceFullName(String className) {
+	private String getPortTypeFullName(String packageName, String className) {
 		return packageName + "." + className; //$NON-NLS-1$
 	}
 
@@ -345,11 +267,8 @@ public class ImplementationClassCreationCommand extends
 
 		// import port type interface
 		ImportDeclaration importDec = implAST.newImportDeclaration();
-		QualifiedName portTypeImport = implAST.newQualifiedName(
-				implAST.newName(serviceCU.getPackage().getName()
-						.getFullyQualifiedName()),
-				implAST.newSimpleName(serviceName));
-		importDec.setName(portTypeImport);
+		importDec.setName(implAST.newName(serviceCU.getPackage().getName().toString()));
+		importDec.setOnDemand(true);
 		implCU.imports().add(importDec);
 		// importDec = implAST.newImportDeclaration();
 		// importDec.setName(implAST.newName(LOGGER_CLASS_FULLNAME));
@@ -515,6 +434,31 @@ public class ImplementationClassCreationCommand extends
 
 		return null;
 	}
+	
+
+	private IPackageFragment createImplPackage(String implPackage) throws JavaModelException {
+		IPackageFragmentRoot root = JBossWSCreationUtils.getPackageFragmentRoot(project, model.getJavaSourceFolder());
+		return root.createPackageFragment(implPackage,false, null);
+	}
+
+	private boolean isOverwriteClass() throws JavaModelException {
+		boolean b = MessageDialog
+				.openConfirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						JBossWSCreationCoreMessages.Confirm_Override_ImplClass,
+						JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSImpl_Overwrite);
+		return b;
+	}
+
+	private boolean findImplClass(String claName) throws JavaModelException {
+		boolean b = false;
+		IPackageFragmentRoot root = JBossWSCreationUtils.getPackageFragmentRoot(project, model.getJavaSourceFolder());
+		String implPackageName = getImplPackageName();
+		IPackageFragment pack = root.getPackageFragment(implPackageName);
+		if (pack.getCompilationUnit(claName + ".java").exists()) { //$NON-NLS-1$
+			b = true;
+		}
+		return b;
+	}
 
 	protected List<ImportDeclaration> getImportsWithoutJaxwsAnnotation(
 			CompilationUnit cu) {
@@ -530,13 +474,6 @@ public class ImplementationClassCreationCommand extends
 		}
 
 		return importList;
-	}
-
-	private IPath getSourceFolderPath(IProject project)
-			throws JavaModelException {
-		IPath path = new Path(
-				JBossWSCreationUtils.getCustomSrcLocation(model.getJavaSourceFolder()));
-		return path.makeRelativeTo(project.getProject().getLocation());
 	}
 
 }

@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jst.j2ee.model.IModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
@@ -53,6 +54,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 
 	private ServiceModel model;
 	IStatus status;
+	private IJavaProject project;
 	private static String WEB_XML = "web.xml"; //$NON-NLS-1$
 
 	public MergeWebXMLCommand(ServiceModel model) {
@@ -73,17 +75,16 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		for (int i = 0; i < serviceClasses.size(); i++) {
 			servletDescriptors[i] = getServletDescriptor(serviceClasses.get(i));
 		}
-		IProject pro = JBossWSCreationUtils.getProjectByName(model
-				.getWebProjectName());
-		if (!hasWebXML(pro)) {
-			IVirtualComponent vc = ComponentCore.createComponent(pro);
+		project = model.getJavaProject();
+		if (!hasWebXML(project.getProject())) {
+			IVirtualComponent vc = ComponentCore.createComponent(project.getProject());
 			IDataModel model = DataModelFactory
 					.createDataModel(new WebCreateDeploymentFilesDataModelProvider());
 			model.setProperty(
 					ICreateDeploymentFilesDataModelProperties.GENERATE_DD, vc);
 			model.setProperty(
 					ICreateDeploymentFilesDataModelProperties.TARGET_PROJECT,
-					pro);
+					project.getProject());
 			IDataModelOperation op = model.getDefaultOperation();
 			try {
 				op.execute(new NullProgressMonitor(), null);
@@ -96,37 +97,28 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 	}
 
 	private void mergeWebXML(final ServletDescriptor[] servletDescriptors) {
-		final IModelProvider provider = ModelProviderManager
-				.getModelProvider(JBossWSCreationUtils.getProjectByName(model
-						.getWebProjectName()));
+		final IModelProvider provider = ModelProviderManager.getModelProvider(project.getProject());
 		provider.modify(new Runnable() {
 			public void run() {
 				Object object = provider.getModelObject();
 				if (object instanceof WebApp) {
 					WebApp webApp = (WebApp) object;
 					for (int i = 0; i < servletDescriptors.length; i++) {
-						addjeeServlet(JBossWSCreationUtils
-								.getProjectByName(model.getWebProjectName()),
-								servletDescriptors[i], webApp);
+						addjeeServlet(servletDescriptors[i], webApp);
 					}
 				}
 				if (object instanceof org.eclipse.jst.j2ee.webapplication.WebApp) {
 					org.eclipse.jst.j2ee.webapplication.WebApp webApp = (org.eclipse.jst.j2ee.webapplication.WebApp) object;
 					for (int i = 0; i < servletDescriptors.length; i++) {
-						addServlet(JBossWSCreationUtils.getProjectByName(model
-								.getWebProjectName()), servletDescriptors[i],
-								webApp);
+						addServlet(servletDescriptors[i],webApp);
 					}
 				}
 			}
-
 		}, null);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void addServlet(IProject projectByName,
-			ServletDescriptor servletDescriptor,
-			org.eclipse.jst.j2ee.webapplication.WebApp webapp) {
+	protected void addServlet(ServletDescriptor servletDescriptor, org.eclipse.jst.j2ee.webapplication.WebApp webapp) {
 		@SuppressWarnings("rawtypes")
 		List theServlets = webapp.getServlets();
 		boolean b = false;
@@ -193,8 +185,7 @@ public class MergeWebXMLCommand extends AbstractDataModelOperation {
 		}
 	}
 
-	public void addjeeServlet(IProject webProject,
-			ServletDescriptor servletDescriptor, WebApp webapp) {
+	public void addjeeServlet(ServletDescriptor servletDescriptor, WebApp webapp) {
 		@SuppressWarnings("rawtypes")
 		List theServlets = webapp.getServlets();
 

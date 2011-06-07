@@ -16,10 +16,8 @@ import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
@@ -68,15 +66,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			throws ExecutionException {
 		argsNum = 0;
 		IStatus status = Status.OK_STATUS;
-		IJavaProject project = null;
-		try {
-			project = JBossWSCreationUtils.getJavaProjectByName(model
-					.getWebProjectName());
-		} catch (JavaModelException e) {
-			JBossWSCreationCorePlugin.getDefault().logError(e);
-			return StatusUtils
-					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
-		}
+		IJavaProject project = model.getJavaProject();
 
 		// find web service client classes
 		List<ICompilationUnit> clientUnits = JBossWSCreationUtils
@@ -177,13 +167,7 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 			String className, boolean isInterface, String interfaceName,
 			IJavaProject javaProject) {
 		try {
-			IPath srcPath = new Path(
-					JBossWSCreationUtils.getCustomSrcLocation(model.getJavaSourceFolder()));
-			srcPath = javaProject.getPath().append(
-					srcPath.makeRelativeTo(javaProject.getProject()
-							.getLocation()));
-			IPackageFragmentRoot root = javaProject
-					.findPackageFragmentRoot(srcPath);
+			IPackageFragmentRoot root = JBossWSCreationUtils.getPackageFragmentRoot(javaProject, model.getJavaSourceFolder());
 			if (packageName == null) {
 				packageName = ""; //$NON-NLS-1$
 			}

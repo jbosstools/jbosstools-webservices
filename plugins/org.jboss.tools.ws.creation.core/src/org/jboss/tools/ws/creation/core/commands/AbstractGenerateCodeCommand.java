@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -21,7 +20,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.osgi.util.NLS;
@@ -56,14 +54,14 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 			monitor.subTask(JBossWSCreationCoreMessages.Progress_Message_Generating);
 			IStatus status = Status.OK_STATUS;
 
-			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(model.getWebProjectName());
+			IProject project = model.getJavaProject().getProject();
 			JBossWSCreationCorePlugin.getDefault().setGenerateTime(System.currentTimeMillis());
 			try {
 				String runtimeLocation = JBossWSCreationUtils.getJBossWSRuntimeLocation(project);
 				String commandLocation = runtimeLocation + Path.SEPARATOR+ "bin"; //$NON-NLS-1$
 				IPath path = new Path(commandLocation);
 				List<String> command = new ArrayList<String>();
-				String[] env = getEnvironmentVariables(project);
+				String[] env = getEnvironmentVariables(model.getJavaProject());
 				if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) { //$NON-NLS-1$ //$NON-NLS-2$
 					command.add("cmd.exe"); //$NON-NLS-1$
 					command.add("/c"); //$NON-NLS-1$
@@ -78,7 +76,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 					return StatusUtils.errorStatus(NLS.bind(JBossWSCreationCoreMessages.Error_Message_Command_File_Not_Found, new String[] { path.toOSString() }));
 				}
 				addCommandlineArgs(command);
-				addCommonArgs(command, project);
+				addCommonArgs(command, model.getJavaProject());
 
 				Process proc = DebugPlugin.exec(command.toArray(new String[command.size()]), new File(commandLocation), env);
 				StringBuffer errorResult = new StringBuffer();
@@ -125,7 +123,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 			}
 			return status;
 		} finally {
-			refreshProject(model.getWebProjectName(), monitor);
+			refreshProject(model.getJavaProject(), monitor);
 			monitor.done();
 		}
 
@@ -134,11 +132,10 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 	// SET JAVA_HOME environment variable to the location of java runtime of the
 	// project if the user
 	// doesn't set the env variable
-	private String[] getEnvironmentVariables(IProject project) {
+	protected String[] getEnvironmentVariables(IJavaProject javaProject) {
 		String[] env = null;
 		String javaHome = System.getenv(JAVA_HOME);
 		if (javaHome == null || !(new File(javaHome).exists())) {
-			IJavaProject javaProject = JavaCore.create(project);
 			if (javaProject == null || !javaProject.exists())
 				return null;
 			try {
@@ -155,9 +152,8 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		return env;
 	}
 
-	private void addCommonArgs(List<String> command, IProject project) throws Exception {
-		String projectRoot = JBossWSCreationUtils.getProjectRoot(model.getWebProjectName()).toOSString();
-		IJavaProject javaProject = JavaCore.create(project);
+	protected void addCommonArgs(List<String> command, IJavaProject javaProject) throws Exception {
+		String projectRoot = model.getJavaProject().getProject().getLocation().toOSString();
 		command.add("-k"); //$NON-NLS-1$
 		command.add("-s"); //$NON-NLS-1$
 		command.add(JBossWSCreationUtils.getCustomSrcLocation(model.getJavaSourceFolder()));
@@ -165,12 +161,19 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		StringBuffer opDir = new StringBuffer();
 		opDir.append(projectRoot).append(Path.SEPARATOR).append(javaProject.getOutputLocation().removeFirstSegments(1).toOSString());
 		command.add(opDir.toString());
+		if (model.getAddOptions() != null && !"".equals(model.getAddOptions())) { //$NON-NLS-1$
+			String str = model.getAddOptions().trim();
+			String[] strArray = str.split(" +"); //$NON-NLS-1$
+			for (int i=0 ; i<strArray.length; i++) {
+				command.add(strArray[i]);
+			}
+		}
 		if (model.getWsdlURI() != null) {
 			command.add(model.getWsdlURI());
 		}
 	}
 
-	private void convertInputStreamToString(final StringBuffer result,
+	protected void convertInputStreamToString(final StringBuffer result,
 			final InputStream input) {
 		Thread thread = new Thread() {
 			public void run() {
@@ -192,9 +195,9 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		thread.start();
 	}
 
-	private void refreshProject(String project, IProgressMonitor monitor) {
+	protected void refreshProject(IJavaProject project, IProgressMonitor monitor) {
 		try {
-			JBossWSCreationUtils.getProjectByName(project).refreshLocal(2,monitor);
+			project.getProject().refreshLocal(2,monitor);
 		} catch (CoreException e) {
 			e.printStackTrace();
 			JBossWSCreationCorePlugin.getDefault().logError(e);

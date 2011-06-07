@@ -24,7 +24,6 @@ import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
-import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 /**
  * @author Grid Qian
@@ -42,10 +41,8 @@ public class ValidateWSImplCommand extends AbstractDataModelOperation {
 			throws ExecutionException {
 
 		String implClass = model.getServiceClasses().get(0);
-		String project = model.getWebProjectName();
 		try {
-			IType type = JBossWSCreationUtils.getJavaProjectByName(project)
-					.findType(implClass);
+			IType type = model.getJavaProject().findType(implClass);
 			if (type != null) {
 				if(!type.getPackageFragment().exists()|| type.getPackageFragment().isDefaultPackage()){
 					return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_No_Package);					
@@ -63,13 +60,13 @@ public class ValidateWSImplCommand extends AbstractDataModelOperation {
 			} else {
 				return StatusUtils.errorStatus(NLS.bind(
 						JBossWSCreationCoreMessages.Error_No_Class,
-						new String[] { implClass, project }));
+						new String[] { implClass, model.getJavaProject().getProject().getName() }));
 			}
 		} catch (JavaModelException e) {
 			JBossWSCreationCorePlugin.getDefault().logError(e);
 			return StatusUtils.errorStatus(NLS.bind(
 					JBossWSCreationCoreMessages.Error_No_Class, new String[] {
-							implClass, project }));
+							implClass, model.getJavaProject().getProject().getName() }));
 		}
 		return Status.OK_STATUS;
 	}

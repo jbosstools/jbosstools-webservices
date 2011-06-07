@@ -12,12 +12,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
-import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
-import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 
 public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
@@ -39,15 +36,7 @@ public class ServiceSampleCreationCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-		IJavaProject project = null;
-		try {
-			project = JBossWSCreationUtils.getJavaProjectByName(model
-					.getWebProjectName());
-		} catch (JavaModelException e) {
-			JBossWSCreationCorePlugin.getDefault().logError(e);
-			return StatusUtils
-					.errorStatus(JBossWSCreationCoreMessages.Error_Create_Client_Sample);
-		}
+		IJavaProject project = model.getJavaProject();
 
 		ICompilationUnit createdClass =
 			createJavaClass(model.getCustomPackage(), JBossWSCreationUtils

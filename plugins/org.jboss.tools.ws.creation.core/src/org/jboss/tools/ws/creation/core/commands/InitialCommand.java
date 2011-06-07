@@ -1,5 +1,7 @@
 package org.jboss.tools.ws.creation.core.commands;
 
+import java.util.List;
+
 import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 
@@ -10,6 +12,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
@@ -34,8 +39,10 @@ public class InitialCommand extends AbstractDataModelOperation {
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info)
 			throws ExecutionException {
-
+		IJavaProject project = null;
 		try {
+			project = JavaCore.create(JBossWSCreationUtils.getProjectByName(model.getWebProjectName()));
+			model.setJavaProject(project);
 			String location = JBossWSCreationUtils.getJBossWSRuntimeLocation(JBossWSCreationUtils.getProjectByName(model.getWebProjectName()));
 			if (location.equals("")) { //$NON-NLS-1$
 				return StatusUtils
@@ -52,6 +59,18 @@ public class InitialCommand extends AbstractDataModelOperation {
 					.errorStatus(JBossWSCreationCoreMessages.Error_WS_Location);
 		}
 		model.setTarget(JBossWSCreationCoreMessages.Value_Target_0);
+		try {
+			List<String> list = JBossWSCreationUtils.getJavaProjectSrcFolder(project.getProject());
+			if (list != null && list.size() > 0) {
+				model.setSrcList(list);
+				model.setJavaSourceFolder(list.get(0));
+			} else {
+				return StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_No_SourceFolder);
+			}
+		} catch (JavaModelException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		if (scenario == WebServiceScenario.TOPDOWN) {
 			model.setWsdlURI(ws.getWebServiceInfo().getWsdlURL());
 			Definition definition = null;

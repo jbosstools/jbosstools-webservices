@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.wsdl.Definition;
+import javax.wsdl.Service;
+
+import org.eclipse.jdt.core.IJavaProject;
 
 public class ServiceModel {
 
@@ -25,6 +28,10 @@ private String  webProjectName;
 	private String applicationName;
 	private String javaSourceFolder;
 	private Definition wsdlDefinition;
+	private IJavaProject project;
+	private Service service;
+	private String addOptions;
+	private List<String> srcList;
 
 	public int getWsScenario() {
 		return wsScenario;
@@ -188,4 +195,37 @@ private String  webProjectName;
 	public void setWsdlDefinition(Definition wsdlDefinition) {
 		this.wsdlDefinition = wsdlDefinition;
 	} 
+	
+	public IJavaProject getJavaProject() {
+		return project;
+	}
+
+	public void setJavaProject(IJavaProject project) {
+		this.project = project;
+	}
+	
+	public Service getService() {
+		return service;
+	}
+
+	public void setService(Service service) {
+		this.service = service;
+	}
+	
+	public String getAddOptions() {
+		return addOptions;
+	}
+
+	public void setAddOptions(String addOptions) {
+		this.addOptions = addOptions;
+	}
+
+	public List<String> getSrcList() {
+		return srcList;
+	}
+
+	public void setSrcList(List<String> srcList) {
+		this.srcList = srcList;
+	}
+
 }
