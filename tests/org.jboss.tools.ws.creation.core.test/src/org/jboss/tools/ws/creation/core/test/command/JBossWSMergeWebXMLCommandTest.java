@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.test.util.TestProjectProvider;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
@@ -32,6 +33,8 @@ public class JBossWSMergeWebXMLCommandTest extends TestCase {
 		ServiceModel model = new ServiceModel();
 		model.setUpdateWebxml(true);
 		model.setWebProjectName("WebTest");
+		model.setJavaProject(JavaCore.create(prj));
+		
 		MergeWebXMLCommand command = new MergeWebXMLCommand(model);
 		command.execute(null, null);
 		file = JBossWSCreationUtils.findFileByPath("web.xml", prj.getLocation().toOSString());

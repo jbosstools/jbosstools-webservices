@@ -14,6 +14,10 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Iterator;
+
+import javax.wsdl.Definition;
+import javax.wsdl.Service;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
@@ -34,8 +38,6 @@ import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
 import org.jboss.tools.test.util.JobUtils;
-import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.creation.core.commands.ImplementationClassCreationCommand;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
@@ -89,6 +91,10 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		//test initial command
 		InitialCommand cmdInitial = new InitialCommand(model, ws, WebServiceScenario.TOPDOWN);
 		IStatus status = cmdInitial.execute(null, null);
+		assertNotNull(model.getWsdlDefinition());
+		Definition def = model.getWsdlDefinition();
+		Iterator<?> iter = def.getServices().values().iterator();
+		model.setService((Service) iter.next());
 		assertTrue(status.getMessage(), status.isOK());
 		assertEquals(wsdlFile.getLocationURI().toString(), model.getWsdlURI());
 		assertEquals("", model.getCustomPackage());		
@@ -111,18 +117,18 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		ImplementationClassCreationCommand cmdImpl = new ImplementationClassCreationCommand(model);
 		status = cmdImpl.execute(null, null);
 		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
-		assertFalse(project.getFile("src/org/apache/hello_world_soap_http/GreeterImpl.java").exists());
+		assertFalse(project.getFile("src/org/apache/hello_world_soap_http.impl/GreeterImpl.java").exists());
 		
 		model.setGenerateImplementatoin(true);
 		cmdImpl = new ImplementationClassCreationCommand(model);
 		status = cmdImpl.execute(null, null);
 		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);
-		assertTrue("failed to generate implemenatation class", project.getFile("src/org/apache/hello_world_soap_http/GreeterImpl.java").exists());		
+		assertTrue("failed to generate implemenatation class", project.getFile("src/org/apache/hello_world_soap_http/impl/GreeterImpl.java").exists());		
 	}
 	
 	public void doMergeWebXMLCommand() throws ExecutionException{
 		model.setGenerateImplementatoin(true);
-		model.addServiceClasses("org.apache.hello_world_soap_http.GreeterImpl");
+		model.addServiceClasses("org.apache.hello_world_soap_http.impl.GreeterImpl");
 		
 		MergeWebXMLCommand cmdweb = new MergeWebXMLCommand(model);
 		IStatus  status = cmdweb.execute(null, null);
@@ -138,7 +144,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 			assertTrue("failed to update web.xml ", webApp.getServlets().size() > 0);
 			Servlet servlet = (Servlet)webApp.getServlets().get(0);
 			assertEquals("the servlet with the name 'Greeter' was not created", servlet.getServletName(), "Greeter");
-			assertEquals("org.apache.hello_world_soap_http.GreeterImpl", servlet.getServletClass());
+			assertEquals("org.apache.hello_world_soap_http.impl.GreeterImpl", servlet.getServletClass());
 			
 			ServletMapping mapping = (ServletMapping)webApp.getServletMappings().get(0);
 			assertEquals("Greeter", mapping.getServletName());
@@ -150,7 +156,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 			assertEquals("servlet display name:","Greeter", servlet.getDisplayName());
 			if(servlet.getWebType() instanceof ServletType){
 				ServletType webtype = (ServletType)servlet.getWebType();
-				assertEquals("org.apache.hello_world_soap_http.GreeterImpl", webtype.getClassName());
+				assertEquals("org.apache.hello_world_soap_http.impl.GreeterImpl", webtype.getClassName());
 			}			
 			org.eclipse.jst.j2ee.webapplication.ServletMapping mapping = (org.eclipse.jst.j2ee.webapplication.ServletMapping)webApp.getServletMappings().get(0);
 			assertEquals("url pattern: ","/Greeter", mapping.getUrlPattern());

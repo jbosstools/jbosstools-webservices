@@ -67,7 +67,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 
 	public void testClientCodeGenerationCommand() throws ExecutionException {
 		IProject project = fproject.getProject();
-		
+		model.setJavaProject(JavaCore.create(project));
 		// test wsdl2Javacommand
 		model.setJavaSourceFolder("//JBossWSTestProject//src");
 		WSDL2JavaCommand cmdW2j = new WSDL2JavaCommand(model);
@@ -84,6 +84,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 
 	public void testRemoveClientJarsCommand() throws ExecutionException {
 		RemoveClientJarsCommand command = new RemoveClientJarsCommand(model);
+		model.setJavaProject(JavaCore.create(fproject.getProject()));
 		IStatus status = command.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 		try {
