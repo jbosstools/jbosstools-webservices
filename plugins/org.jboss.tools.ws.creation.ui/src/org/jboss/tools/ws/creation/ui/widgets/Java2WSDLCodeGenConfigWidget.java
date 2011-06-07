@@ -58,7 +58,6 @@ public class Java2WSDLCodeGenConfigWidget extends
 		//choose source folder
 		sourceCombo = JBossCreationUIUtils.createComboItem(configCom, model,JBossWSCreationCoreMessages.Label_SourceFolder_Name ,JBossWSCreationCoreMessages.Tooltip_SourceFolder);
 		sourceCombo.addListener(SWT.Modify, new Listener(){
-			@Override
 			public void handleEvent(Event arg0) {
                 String javaSourceFolder = sourceCombo.getText();
                 model.setJavaSourceFolder(javaSourceFolder);	
