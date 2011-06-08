@@ -8,5 +8,8 @@
 	<feature url="features/org.jboss.tools.ws.feature_0.0.0.jar" id="org.jboss.tools.ws.feature" version="0.0.0">
 		<category name="JBoss Tools ws Nightly Build Update Site"/>
 	</feature>
+	<feature url="features/org.jboss.tools.ws.jaxrs.feature_0.0.0.jar" id="org.jboss.tools.ws.jaxrs.feature" version="0.0.0">
+		<category name="JBoss Tools ws Nightly Build Update Site"/>
+	</feature>
 
 </site>
