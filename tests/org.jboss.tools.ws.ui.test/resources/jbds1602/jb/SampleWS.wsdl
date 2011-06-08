@@ -7,12 +7,12 @@
 <xs:element name="echoResponse" type="tns:echoResponse"/>
 <xs:complexType name="echo">
 <xs:sequence>
-<xs:element minOccurs="0" name="arg0" type="ns1:someType"/>
+<xs:element name="arg0" type="ns1:someType"/>
 </xs:sequence>
 </xs:complexType>
 <xs:complexType name="echoResponse">
 <xs:sequence>
-<xs:element minOccurs="0" name="return" type="ns1:someType"/>
+<xs:element name="return" type="ns1:someType"/>
 </xs:sequence>
 </xs:complexType>
 </xs:schema>
@@ -39,14 +39,14 @@
 <xs:sequence>
 <xs:element ref="ns1:A"/>
 <xs:element ref="ns2:B"/>
-<xs:element minOccurs="0" ref="ns5:OtherType"/>
+<xs:element ref="ns5:OtherType"/>
 </xs:sequence>
 <xs:attribute ref="ns3:C" use="required"/>
 <xs:attribute ref="ns4:D" use="required"/>
 </xs:complexType>
 <xs:complexType name="otherType">
 <xs:sequence>
-<xs:element minOccurs="0" ref="ns2:description"/>
+<xs:element ref="ns2:description"/>
 </xs:sequence>
 <xs:attribute ref="ns6:myid"/>
 <xs:attribute ref="ns3:Y" use="required"/>

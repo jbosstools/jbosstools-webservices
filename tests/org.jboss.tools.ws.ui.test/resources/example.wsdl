@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:tns="http://www.example.org/ws/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy"
+	xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:basic="http://www.example.org/ws/basic/"
+	xmlns:extra="http://www.example.org/ws/extra/" xmlns:square="http://www.example.org/ws/square/"
+	xmlns:common="http://www.example.org/ws/common/" 
+	name="example" targetNamespace="http://www.example.org/ws/">
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://www.example.org/ws/common/"
+			xmlns:tns="http://www.example.org/ws/common/">
+			<xsd:element name="header" type="tns:headerType" />
+			<xsd:complexType name="headerType">
+				<xsd:sequence>
+					<xsd:element name="timestamp" type="xsd:dateTime" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+		<xsd:schema targetNamespace="http://www.example.org/ws/square/"
+			xmlns:tns="http://www.example.org/ws/square/">
+			<xsd:element name="square" type="tns:squareType" />
+			<xsd:element name="squareResponse" type="tns:squareResponseType" />
+			<xsd:element name="storeResult" type="tns:storeResultType" />
+			<xsd:element name="storeHeader" type="tns:storeHeaderType" />
+			<xsd:complexType name="squareType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:int" />
+					<xsd:element name="b" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="squareResponseType">
+				<xsd:sequence>
+					<xsd:element name="out" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="storeResultType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="storeHeaderType">
+				<xsd:sequence>
+					<xsd:element name="id" type="xsd:string" />
+					<xsd:element name="timestamp" type="xsd:dateTime" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+		<xsd:schema targetNamespace="http://www.example.org/ws/basic/"
+			xmlns:tns="http://www.example.org/ws/basic/">
+			<xsd:import namespace="http://www.example.org/ws/common/" />
+			<xsd:element name="operationRequest" type="tns:requestType" />
+			<xsd:element name="operationResponse" type="tns:responseType" />
+			<xsd:element name="invalidNumberFault" type="tns:faultType" />
+			<xsd:complexType name="requestType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:float" />
+					<xsd:element name="b" type="xsd:float" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="responseType">
+				<xsd:sequence>
+					<xsd:element name="out" type="xsd:float" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="faultType">
+				<xsd:sequence>
+					<xsd:element name="description" type="xsd:string" />
+					<xsd:element name="details" type="xsd:string" />
+					<xsd:element name="a" type="xsd:float" />
+					<xsd:element name="b" type="xsd:float" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+		<xsd:schema targetNamespace="http://www.example.org/ws/extra/"
+			xmlns:tns="http://www.example.org/ws/extra/">
+			<xsd:import namespace="http://www.example.org/ws/common/" />
+			<xsd:element name="operationRequest" type="tns:requestType" />
+			<xsd:element name="operationResponse" type="tns:responseType" />
+			<xsd:element name="invalidNumberFault" type="tns:faultType" />
+			<xsd:complexType name="requestType">
+				<xsd:sequence>
+					<xsd:element name="a" type="xsd:double" />
+					<xsd:element name="b" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="responseType">
+				<xsd:sequence>
+					<xsd:element name="out" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="faultType">
+				<xsd:sequence>
+					<xsd:element name="description" type="xsd:string" />
+					<xsd:element name="details" type="xsd:string" />
+					<xsd:element name="a" type="xsd:double" />
+					<xsd:element name="b" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="square">
+		<wsdl:part name="parameters" element="square:square" />
+	</wsdl:message>
+	<wsdl:message name="squareResponse">
+		<wsdl:part name="parameters" element="square:squareResponse" />
+	</wsdl:message>
+	<wsdl:message name="storeResult">
+		<wsdl:part name="parameters" element="square:storeResult" />
+	</wsdl:message>
+	<wsdl:message name="storeHeader">
+		<wsdl:part name="storeHeader" element="square:storeHeader" />
+	</wsdl:message>
+	<wsdl:message name="addOperationRequest">
+		<wsdl:part name="addOperationRequest" element="basic:operationRequest" />
+		<wsdl:part name="header" element="common:header" />
+	</wsdl:message>
+	<wsdl:message name="addOperationResponse">
+		<wsdl:part name="addOperationResponse" element="basic:operationResponse" />
+	</wsdl:message>
+	<wsdl:message name="minusOperationRequest">
+		<wsdl:part name="parameters" element="basic:operationRequest" />
+		<wsdl:part name="header" element="common:header" />
+	</wsdl:message>
+	<wsdl:message name="minusOperationResponse">
+		<wsdl:part name="parameters" element="basic:operationResponse" />
+	</wsdl:message>
+	<wsdl:message name="multiplyOperationRequest">
+		<wsdl:part name="parameters" element="extra:operationRequest" />
+	</wsdl:message>
+	<wsdl:message name="multiplyOperationResponse">
+		<wsdl:part name="parameters" element="extra:operationResponse" />
+	</wsdl:message>
+	<wsdl:message name="divideOperationRequest">
+		<wsdl:part name="parameters" element="extra:operationRequest" />
+		<wsdl:part name="header" element="common:header" />
+	</wsdl:message>
+	<wsdl:message name="divideOperationResponse">
+		<wsdl:part name="parameters" element="extra:operationResponse" />
+	</wsdl:message>
+	<wsdl:message name="invalidNumberFaultBasic">
+		<wsdl:part name="parameters" element="basic:invalidNumberFault" />
+	</wsdl:message>
+	<wsdl:message name="invalidNumberFaultExtra">
+		<wsdl:part name="parameters" element="extra:invalidNumberFault" />
+	</wsdl:message>
+	<wsdl:portType name="squarePortType">
+		<wsdl:operation name="square">
+			<wsdl:input message="tns:square" name="square" />
+			<wsdl:output message="tns:squareResponse" name="squareResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="storeResult">
+			<wsdl:input message="tns:storeResult" name="storeResult"
+				wsam:Action="http://www.example.org/ws/squarePortType/storeResult"
+				wsaw:Action="http://www.example.org/ws/squarePortType/storeResult" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:portType name="addPortType">
+		<wsdl:operation name="addOperation">
+			<wsdl:input message="tns:addOperationRequest" name="addOperationRequest" />
+			<wsdl:output message="tns:addOperationResponse" name="addOperationResponse" />
+			<wsdl:fault message="tns:invalidNumberFaultBasic" name="invalidNumberFault" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:portType name="minusPortType">
+		<wsdl:operation name="minusOperation">
+			<wsdl:input message="tns:minusOperationRequest" name="minusOperationRequest" />
+			<wsdl:output message="tns:minusOperationResponse" name="minusOperationResponse" />
+			<wsdl:fault message="tns:invalidNumberFaultBasic" name="invalidNumberFault" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:portType name="multiplyPortType">
+		<wsdl:operation name="multiplyOperation">
+			<wsdl:input message="tns:multiplyOperationRequest" name="multiplyOperationRequest"
+				wsam:Action="http://www.example.org/ws/multiplyPortType/multiplyOperationRequest"
+				wsaw:Action="http://www.example.org/ws/multiplyPortType/multiplyOperationRequest" />
+			<wsdl:output message="tns:multiplyOperationResponse"
+				name="multiplyOperationResponse"
+				wsam:Action="http://www.example.org/ws/multiplyPortType/multiplyOperationResponse"
+				wsaw:Action="http://www.example.org/ws/multiplyPortType/multiplyOperationResponse" />
+			<wsdl:fault message="tns:invalidNumberFaultExtra" name="invalidNumberFault"
+				wsam:Action="http://www.example.org/ws/multiplyPortType/multiplyOperation/Fault/invalidNumberFault" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:portType name="dividerPortType">
+		<wsdl:operation name="divideOperation">
+			<wsdl:input message="tns:divideOperationRequest" name="divideOperationRequest"
+				wsam:Action="http://www.example.org/ws/dividerPortType/divideOperationRequest"
+				wsaw:Action="http://www.example.org/ws/dividerPortType/divideOperationRequest" />
+			<wsdl:output message="tns:divideOperationResponse" name="divideOperationResponse"
+				wsam:Action="http://www.example.org/ws/dividerPortType/divideOperationResponse"
+				wsaw:Action="http://www.example.org/ws/dividerPortType/divideOperationResponse" />
+			<wsdl:fault message="tns:invalidNumberFaultExtra" name="invalidNumberFault"
+				wsam:Action="http://www.example.org/ws/dividerPortType/divideOperation/Fault/invalidNumberFault" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="squareSOAP" type="tns:squarePortType">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsaw:UsingAddressing wsdl:required="true" />
+		<wsp:PolicyReference URI="#squareSOAPBinding_WSAM_Addressing_Policy" />
+		<wsdl:operation name="square">
+			<soap:operation soapAction="http://www.example.org/ws/squareOperation" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="storeResult">
+			<soap:operation soapAction="http://www.example.org/ws/storeResultOperation" />
+			<wsdl:input>
+				<soap:header message="tns:storeHeader" part="storeHeader"
+					use="literal" />
+				<soap:body use="literal" />
+			</wsdl:input>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="squareSOAP12" type="tns:squarePortType">
+		<soap12:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsaw:UsingAddressing wsdl:required="true" />
+		<wsp:PolicyReference URI="#squareSOAPBinding_WSAM_Addressing_Policy" />
+		<wsdl:operation name="square">
+			<soap12:operation soapAction="http://www.example.org/ws/squareOperation" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="storeResult">
+			<soap12:operation soapAction="http://www.example.org/ws/storeResultOperation" />
+			<wsdl:input>
+				<soap12:header message="tns:storeHeader" part="storeHeader"
+					use="literal" />
+				<soap12:body use="literal" />
+			</wsdl:input>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="addSOAP" type="tns:addPortType">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="addOperation">
+			<soap:operation soapAction="http://www.example.org/ws/addOperation" />
+			<wsdl:input>
+				<soap:header message="tns:addOperationRequest" part="header"
+					use="literal" />
+				<soap:body parts="addOperationRequest" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="minusSOAP" type="tns:minusPortType">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="minusOperation">
+			<soap:operation soapAction="http://www.example.org/ws/minusOperation" />
+			<wsdl:input>
+				<soap:header message="tns:storeHeader" part="storeHeader"
+					use="literal" />
+				<soap:body parts="parameters" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="multiplySOAP" type="tns:multiplyPortType">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsaw:UsingAddressing wsdl:required="true" />
+		<wsp:PolicyReference URI="#multiplySOAPBinding_WSAM_Addressing_Policy" />
+		<wsdl:operation name="multiplyOperation">
+			<soap:operation soapAction="http://www.example.org/ws/multiplyOperation" />
+			<wsdl:input>
+				<soap:header message="tns:storeHeader" part="storeHeader"
+					use="literal" />
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="divideSOAP" type="tns:dividerPortType">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsaw:UsingAddressing wsdl:required="true" />
+		<wsp:PolicyReference URI="#divideSOAPBinding_WSAM_Addressing_Policy" />
+		<wsdl:operation name="divideOperation">
+			<soap:operation soapAction="http://www.example.org/ws/divideOperation" />
+			<wsdl:input>
+				<soap:header message="tns:divideOperationRequest" part="header"
+					use="literal" />
+				<soap:body parts="parameters" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="basic">
+		<wsdl:port name="adderPort" binding="tns:addSOAP">
+			<soap:address location="http://www.example.org/" />
+		</wsdl:port>
+		<wsdl:port name="minusPort" binding="tns:minusSOAP">
+			<soap:address location="http://www.example.org/" />
+		</wsdl:port>
+	</wsdl:service>
+	<wsdl:service name="extra">
+		<wsdl:port name="multiplierPort" binding="tns:multiplySOAP">
+			<soap:address location="http://www.example.org/" />
+		</wsdl:port>
+		<wsdl:port name="dividerPort" binding="tns:divideSOAP">
+			<soap:address location="http://www.example.org/" />
+		</wsdl:port>
+	</wsdl:service>
+	<wsdl:service name="square">
+		<wsdl:port name="squarePort" binding="tns:squareSOAP">
+			<soap:address location="http://www.example.org/" />
+		</wsdl:port>
+	</wsdl:service>
+	<wsdl:service name="square12">
+		<wsdl:port name="squarePort12" binding="tns:squareSOAP12">
+			<soap12:address location="http://www.example.org/" />
+		</wsdl:port>
+	</wsdl:service>
+	<wsp:Policy wsu:Id="multiplySOAPBinding_WSAM_Addressing_Policy"
+		xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+		<wsam:Addressing>
+			<wsp:Policy />
+		</wsam:Addressing>
+	</wsp:Policy>
+	<wsp:Policy wsu:Id="divideSOAPBinding_WSAM_Addressing_Policy"
+		xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+		<wsam:Addressing>
+			<wsp:Policy />
+		</wsam:Addressing>
+	</wsp:Policy>
+	<wsp:Policy wsu:Id="squareSOAPBinding_WSAM_Addressing_Policy"
+		xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+		<wsam:Addressing>
+			<wsp:Policy />
+		</wsam:Addressing>
+	</wsp:Policy>
+</wsdl:definitions>

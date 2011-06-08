@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions
+	xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
+	xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:tns="http://enumtest/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	targetNamespace="http://enumtest/" name="EnumTest">
+    <types>
+        <xsd:schema>
+            <xsd:import namespace="http://enumtest/" schemaLocation="EnumTest.xsd" />
+        </xsd:schema>
+    </types>
+    <message name="hello">
+        <part name="parameters" element="tns:hello" />
+    </message>
+    <message name="helloResponse">
+        <part name="parameters" element="tns:helloResponse" />
+    </message>
+    <portType name="EnumTest">
+        <operation name="hello">
+            <input wsam:Action="http://EnumTest/EnumTest/helloRequest"
+				message="tns:hello" />
+            <output wsam:Action="http://enumtest/EnumTest/helloResponse"
+				message="tns:helloResponse" />
+        </operation>
+    </portType>
+    <binding name="EnumTestPortBinding" type="tns:EnumTest">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <operation name="hello">
+            <soap:operation soapAction="http://localhost:8080/soapAction"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+    <binding name="EnumTest12PortBinding" type="tns:EnumTest">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+        <operation name="hello">
+            <soap12:operation soapAction="http://localhost:8081/soap12Action" />
+            <input>
+                <soap12:body use="literal" />
+            </input>
+            <output>
+                <soap12:body use="literal" />
+            </output>
+        </operation>
+    </binding>
+    <service name="EnumTest">
+        <port name="EnumTestPort" binding="tns:EnumTestPortBinding">
+            <soap:address location="http://localhost:8080/A/EnumTest"/>
+        </port>
+        <port name="EnumTest12Port" binding="tns:EnumTest12PortBinding">
+            <soap12:address location="http://localhost:8081/A/EnumTest" />
+        </port>
+    </service>
+</definitions>

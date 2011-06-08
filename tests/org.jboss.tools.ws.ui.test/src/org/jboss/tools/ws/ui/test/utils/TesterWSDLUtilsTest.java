@@ -19,6 +19,7 @@ import javax.wsdl.WSDLException;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.runtime.IStatus;
 import org.jboss.tools.ws.ui.utils.SchemaUtils;
 import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
 import org.junit.Assert;
@@ -27,8 +28,19 @@ import org.junit.Test;
 public class TesterWSDLUtilsTest extends TestCase {
 
 	@Test
+	public void testIsWSDLAccessible() throws Exception {
+		URL u = TesterWSDLUtilsTest.class.getResource("/jbide6558/x.wsdl").toURI().toURL();
+		IStatus st = TesterWSDLUtils.isWSDLAccessible(u);
+		Assert.assertEquals(IStatus.OK, st.getSeverity());
+		
+		st = TesterWSDLUtils.isWSDLAccessible(new URL("http://https.ax.com/a.wsdl"));
+		Assert.assertEquals(IStatus.ERROR, st.getSeverity());
+	}
+	
+	
+	@Test
 	public void testGetNSServiceNameAndMessageNameArray() {
-		Definition def = readWSDL("/jbide6558/x.wsdl");
+		Definition def = readWSDL("/jbide6558/", "x.wsdl");
 		String[] r = TesterWSDLUtils.getNSServiceNameAndMessageNameArray(def, "HelloWorldService", "HelloWorldPort", "HelloWorldBinding", "sayHello");
 		Assert.assertArrayEquals(new String[] {"http://webservices.samples.jboss.org/", "HelloWorldService", "HelloWorldPort"}, r);
 
@@ -46,12 +58,19 @@ public class TesterWSDLUtilsTest extends TestCase {
 		String r = TesterWSDLUtils.getEndpointURL(def, "HelloWorldService", "HelloWorldPort", "HelloWorldBinding", "sayHello");
 		Assert.assertEquals("http://localhost:8080/ws/HelloWorld", r);
 
-		def = readWSDL("/jbide6593/original.wsdl");
+		def = readWSDL("/jbide6593/", "original.wsdl");
 		r = TesterWSDLUtils.getEndpointURL(def, "gsearch_rss", "gsearch_rssSoap", "gsearch_rssSoap", "GetSearchResults");
 		Assert.assertEquals("http://www.ecubicle.net/gsearch_rss.asmx", r);
 
 		r = TesterWSDLUtils.getEndpointURL(def, "EchoService", "EchoPort", "EchoPortBinding", "echo");
 		Assert.assertEquals("http://localhost:8080/webws/EchoPortType", r);
+		
+		def = readWSDL("/soap12/EnumTest.wsdl");
+		r = TesterWSDLUtils.getEndpointURL(def, "EnumTest", "EnumTestPort", "EnumTestPortBinding", "hello");
+		Assert.assertEquals("http://localhost:8080/A/EnumTest", r);
+
+		r = TesterWSDLUtils.getEndpointURL(def, "EnumTest", "EnumTest12Port", "EnumTest12PortBinding", "hello");
+		Assert.assertEquals("http://localhost:8081/A/EnumTest", r);
 	}
 
 	@Test
@@ -66,6 +85,13 @@ public class TesterWSDLUtilsTest extends TestCase {
 
 		r = TesterWSDLUtils.getActionURL(def, "EchoService", "EchoPort", "EchoPortBinding", "echo");
 		Assert.assertEquals("", r);
+
+		def = readWSDL("/soap12/EnumTest.wsdl");
+		r = TesterWSDLUtils.getActionURL(def, "EnumTest", "EnumTestPort", "EnumTestPortBinding", "hello");
+		Assert.assertEquals("http://localhost:8080/soapAction", r);
+
+		r = TesterWSDLUtils.getActionURL(def, "EnumTest", "EnumTest12Port", "EnumTest12PortBinding", "hello");
+		Assert.assertEquals("http://localhost:8081/soap12Action", r);
 	}
 
 	@Test
@@ -161,8 +187,12 @@ public class TesterWSDLUtilsTest extends TestCase {
 	}
 
 	private Definition readWSDL(String path) {
+		return readWSDL(path, "");
+	}
+
+	private Definition readWSDL(String path, String file) {
 		try {
-			URL url = SchemaUtils.class.getResource(path).toURI().toURL();
+			URL url = TesterWSDLUtilsTest.class.getResource(path + file).toURI().toURL();
 			return SchemaUtils.readWSDLURL(url);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
