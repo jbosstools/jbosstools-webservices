@@ -29,7 +29,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Resources;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Route;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -247,7 +246,6 @@ public class ResourceMethodChangesTestCase extends AbstractMetamodelBuilderTestC
 	}
 
 	@Test
-	@Ignore
 	public void shouldBecomeSubresourceLocatorWhenRemovingHTTPMethodAnnotation() throws CoreException {
 		// pre-conditions
 		Resource resource = metamodel.getResources().getByTypeName(

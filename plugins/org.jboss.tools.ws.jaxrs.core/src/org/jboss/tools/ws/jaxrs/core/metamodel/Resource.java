@@ -186,7 +186,6 @@ public class Resource extends BaseElement<IType> {
 				String key = keys.get(javaMethod);
 				if (resourceMethods.containsKey(key)) {
 					ResourceMethod resourceMethod = resourceMethods.get(key);
-
 					Set<EnumElementChange> resourceMethodChanges = resourceMethod.merge(javaMethod, progressMonitor);
 					Set<EnumElementChange> changes = new HashSet<EnumElementChange>();
 					changes.addAll(resourceChanges);
@@ -215,8 +214,12 @@ public class Resource extends BaseElement<IType> {
 					Logger.debug("Added " + resourceMethod.toString());
 				}
 			} catch (InvalidModelElementException e) {
-				Logger.warn("ResourceMethod '" + javaMethod.getElementName()
+				Logger.warn("ResourceMethod bound to '" + javaMethod.getElementName()
 						+ "' is not a valid JAX-RS ResourceMethod: " + e.getMessage());
+				if (resourceMethods.containsKey(javaMethod)) {
+					resourceMethods.remove(javaMethod);
+				}
+
 			}
 		}
 	}

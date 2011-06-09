@@ -37,7 +37,10 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	@Override
 	public Image getImage(Object element) {
 		if (element instanceof UriPathTemplateCategory) {
-			return JBossJaxrsUIPlugin.getDefault().createImage("wsdl_file_obj.gif");
+			if (((UriPathTemplateCategory) element).hasErrors()) {
+				return JBossJaxrsUIPlugin.getDefault().createImage("restful_web_services_error.gif");
+			}
+			return JBossJaxrsUIPlugin.getDefault().createImage("restful_web_services.gif");
 		} else if (element instanceof UriPathTemplateElement) {
 			if (((UriPathTemplateElement) element).hasErrors()) {
 				return JBossJaxrsUIPlugin.getDefault().createImage("url_mapping_error.gif");

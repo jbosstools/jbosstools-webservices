@@ -120,6 +120,21 @@ public class ResourceMethod extends BaseElement<IMethod> {
 		getMapping().validate();
 	}
 
+	/**
+	 * Sets a flag of whether the underlying java method has compilation errors
+	 * or not. If true, also marke the parent resource with errors flag.
+	 * 
+	 * @param h
+	 *            : true if the java element has errors, false otherwise
+	 */
+	@Override
+	public void hasErrors(final boolean h) {
+		super.hasErrors(h);
+		if (hasErrors()) {
+			parentResource.hasErrors(true);
+		}
+	}
+
 	@Override
 	public final BaseElement.EnumKind getKind() {
 		return kind;

@@ -69,7 +69,12 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 	}
 
 	public boolean hasErrors() {
-		return getLastMethod().hasErrors();
+		for (ResourceMethod resourceMethod : route.getResourceMethods()) {
+			if (resourceMethod.hasErrors()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

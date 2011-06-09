@@ -35,17 +35,15 @@ import org.slf4j.LoggerFactory;
  * 
  */
 @SuppressWarnings("restriction")
-public class SyncFileSystemStructureProvider implements
-		IImportStructureProvider {
+public class SyncFileSystemStructureProvider implements IImportStructureProvider {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(SyncFileSystemStructureProvider.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SyncFileSystemStructureProvider.class);
 
 	private final IPath source;
 
 	private final IPath destination;
 
-	private final List<IPath> ignoredRelativePaths = new ArrayList<IPath>();
+	private final List<String> ignoredRelativePaths = new ArrayList<String>();
 
 	/**
 	 * Creates an instance of <code>SyncFileSystemStructureProvider</code>.
@@ -61,6 +59,7 @@ public class SyncFileSystemStructureProvider implements
 	/*
 	 * (non-Javadoc) Method declared on IImportStructureProvider
 	 */
+	@Override
 	public List<File> getChildren(Object element) {
 		File folder = (File) element;
 		String[] children = folder.list();
@@ -69,28 +68,22 @@ public class SyncFileSystemStructureProvider implements
 
 		for (int i = 0; i < childrenLength; i++) {
 			File sourceFile = new File(folder, children[i]);
-			IPath relativeSourcePath = new Path(sourceFile.getAbsolutePath())
-					.makeRelativeTo(source);
+			IPath relativeSourcePath = new Path(sourceFile.getAbsolutePath()).makeRelativeTo(source);
 			// always add the sub directories
-			if (ignoredRelativePaths.contains(relativeSourcePath)) {
+			if (ignoredRelativePaths.contains(relativeSourcePath.lastSegment())) {
 				continue;
 			}
 
-			if (sourceFile.isDirectory()) {
+			if (sourceFile.isDirectory() && !ignoredRelativePaths.contains(relativeSourcePath.lastSegment())) {
 				result.addAll(getChildren(sourceFile));
 			}
 			// only add the other files if they are missing or were modified in
 			// the destination destination
 			else {
-				IPath relativeDestinationPath = destination
-						.append(relativeSourcePath);
-				File destinationFile = new File(
-						relativeDestinationPath.toOSString());
-				if (!destinationFile.exists()
-						|| destinationFile.lastModified() > sourceFile
-								.lastModified()) {
-					LOGGER.debug("Adding '" + relativeSourcePath
-							+ "' to sync operation.");
+				IPath relativeDestinationPath = destination.append(relativeSourcePath);
+				File destinationFile = new File(relativeDestinationPath.toOSString());
+				if (!destinationFile.exists() || destinationFile.lastModified() > sourceFile.lastModified()) {
+					LOGGER.debug("Adding '" + relativeSourcePath + "' to sync operation.");
 					result.add(sourceFile);
 				}
 			}
@@ -102,6 +95,7 @@ public class SyncFileSystemStructureProvider implements
 	/*
 	 * (non-Javadoc) Method declared on IImportStructureProvider
 	 */
+	@Override
 	public InputStream getContents(Object element) {
 		try {
 			return new FileInputStream((File) element);
@@ -114,6 +108,7 @@ public class SyncFileSystemStructureProvider implements
 	/*
 	 * (non-Javadoc) Method declared on IImportStructureProvider
 	 */
+	@Override
 	public String getFullPath(Object element) {
 		return ((File) element).getPath();
 	}
@@ -121,6 +116,7 @@ public class SyncFileSystemStructureProvider implements
 	/*
 	 * (non-Javadoc) Method declared on IImportStructureProvider
 	 */
+	@Override
 	public String getLabel(Object element) {
 
 		// Get the name - if it is empty then return the path as it is a file
@@ -136,11 +132,12 @@ public class SyncFileSystemStructureProvider implements
 	/*
 	 * (non-Javadoc) Method declared on IImportStructureProvider
 	 */
+	@Override
 	public boolean isFolder(Object element) {
 		return ((File) element).isDirectory();
 	}
 
-	public void ignoreRelativeSourcePath(IPath relativePath) {
+	public void ignoreRelativeSourcePath(String relativePath) {
 		this.ignoredRelativePaths.add(relativePath);
 
 	}

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.utils.ResourceMethodAnnotatedParameter;
 
 public class RouteEndpoint implements Comparable<RouteEndpoint> {
@@ -88,7 +89,9 @@ public class RouteEndpoint implements Comparable<RouteEndpoint> {
 				return h;
 			}
 		}
-		throw new InvalidModelElementException("No HttpMethod annotation found for this endpoint: " + resourceMethods);
+		Logger.debug("No HttpMethod annotation found for this endpoint: " + resourceMethods);
+		return null;
+
 	}
 
 	private static String computeUriPathTemplate(LinkedList<ResourceMethod> resourceMethods) {

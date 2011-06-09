@@ -21,8 +21,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.metamodel.BaseElement.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.HTTPMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.MediaTypeCapabilities;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Resource;
+import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.Resources;
 import org.junit.Assert;
 import org.junit.Test;
@@ -291,9 +293,31 @@ public class ResourceChangesTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertTrue("Resource not marked with errors", fooResource.hasErrors());
 		// operation 2
 		WorkbenchUtils.addImport(fooResource.getJavaElement().getCompilationUnit(), Path.class.getName());
-		// post-conditions 2: errors reported (import is missing)
+		// post-conditions 2: no error reported (import was restored)
 		Assert.assertEquals(6, metamodel.getHttpMethods().size());
 		Assert.assertFalse("Resource still marked with errors", fooResource.hasErrors());
 		Assert.assertEquals("Wrong number of routes", 12, metamodel.getRoutes().getAll().size());
+	}
+
+	@Test
+	public void shouldReportErrorsWhenChangingPathParam() throws JavaModelException {
+		// pre-condition
+		Resource customersResource = metamodel.getResources().getByPath("/customers");
+		Assert.assertNotNull("CustomersResource not found", customersResource);
+		Assert.assertFalse("No error expected", customersResource.hasErrors());
+		HTTPMethod httpMethod = metamodel.getHttpMethods().getByVerb("GET");
+		ResourceMethod resourceMethod = customersResource.getByMapping(httpMethod, "{id}", null, null);
+		Assert.assertNotNull("ResourceMethod not found", resourceMethod);
+		// operation 1
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "{id}", "{i}");
+		// post-conditions 1: error(s) reported
+		Assert.assertTrue("Resource not marked with errors", resourceMethod.hasErrors());
+		Assert.assertTrue("Resource not marked with errors", customersResource.hasErrors());
+		// operation 2
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "{i}", "{id}");
+		// post-conditions 2: no error reported (PathParam value was fixed)
+		Assert.assertFalse("Resource still marked with errors", resourceMethod.hasErrors());
+		Assert.assertFalse("Resource still marked with errors", customersResource.hasErrors());
+
 	}
 }

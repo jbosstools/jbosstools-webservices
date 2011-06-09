@@ -18,20 +18,20 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.Validable;
 public class ResourceMethodAnnotatedParameter implements Validable, Comparable<ResourceMethodAnnotatedParameter> {
 
 	private final String parameterType;
-	
+
 	private final String annotationType;
 
 	private final String annotationValue;
-	
+
 	private final int charStart;
-	
+
 	private final int charEnd;
-	
+
 	private final int lineNumber;
-	
 
 	/**
 	 * Full constructor
+	 * 
 	 * @param parent
 	 * @param parameterName
 	 * @param parameterType
@@ -41,8 +41,8 @@ public class ResourceMethodAnnotatedParameter implements Validable, Comparable<R
 	 * @param charEnd
 	 * @param lineNumber
 	 */
-	public ResourceMethodAnnotatedParameter(String parameterType,
-			String annotationType, String annotationValue, int charStart, int charEnd, int lineNumber) {
+	public ResourceMethodAnnotatedParameter(String parameterType, String annotationType, String annotationValue,
+			int charStart, int charEnd, int lineNumber) {
 		super();
 		this.parameterType = parameterType;
 		this.annotationType = annotationType;
@@ -100,14 +100,25 @@ public class ResourceMethodAnnotatedParameter implements Validable, Comparable<R
 	}
 
 	/**
-	 * Compares method parameters by their textual location
-	 * {@inheritDoc}
+	 * Compares method parameters by their textual location {@inheritDoc}
+	 * 
 	 * @param otherParam
 	 * @return
 	 */
 	@Override
 	public int compareTo(ResourceMethodAnnotatedParameter otherParam) {
-		return getCharStart() - otherParam.getCharStart(); 
+		return getCharStart() - otherParam.getCharStart();
 	}
-	
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "ResourceMethodAnnotatedParameter [parameterType=" + parameterType + ", annotationType="
+				+ annotationType + ", annotationValue=" + annotationValue + "]";
+	}
+
 }

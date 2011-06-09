@@ -88,9 +88,9 @@ public class WorkbenchTasks {
 		LOGGER.info("Target workspace location: " + targetWorkspace.getRoot().getRawLocation());
 		SyncFileSystemStructureProvider syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(
 				projectSourcePath, project.getLocation());
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path(".svn"));
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path("target"));
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path("bin"));
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".svn");
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath("target");
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath("bin");
 		List<File> filesToImport = syncFileSystemStructureProvider.getChildren(projectSourcePath.toFile());
 		if (filesToImport != null && filesToImport.size() > 0) {
 			ImportOperation operation = new ImportOperation(project.getFullPath(), projectSourcePath.toFile(),
@@ -109,11 +109,12 @@ public class WorkbenchTasks {
 		LOGGER.info("Removing added files from the target workspace");
 		// reverse detection operation
 		syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(project.getLocation(), projectSourcePath);
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path("target"));
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path("bin"));
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path(".project"));
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path(".classpath"));
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(new Path(".settings"));
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath("target");
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath("bin");
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".svn");
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".project");
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".classpath");
+		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".settings");
 		List<File> filesToRemove = syncFileSystemStructureProvider.getChildren(project.getLocation().toFile());
 		for (File fileToRemove : filesToRemove) {
 			Assert.assertTrue("File not deleted : " + fileToRemove, fileToRemove.delete());

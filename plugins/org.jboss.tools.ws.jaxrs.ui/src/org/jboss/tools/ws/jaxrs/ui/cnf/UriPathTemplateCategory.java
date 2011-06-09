@@ -91,6 +91,17 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		Logger.debug("Input changed in UriPathTemplateCategory");
 	}
 
+	public boolean hasErrors() {
+		for (Route route : metamodel.getRoutes().getAll()) {
+			for (ResourceMethod resourceMethod : route.getResourceMethods()) {
+				if (resourceMethod.hasErrors()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public void dispose() {
 	}

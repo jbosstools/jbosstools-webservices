@@ -186,6 +186,7 @@ public class ResourceMethodMapping {
 					marker.setAttribute(IMarker.LINE_NUMBER, pathParam.getLineNumber());
 					marker.setAttribute(IMarker.CHAR_START, pathParam.getCharStart());
 					marker.setAttribute(IMarker.CHAR_END, pathParam.getCharEnd());
+					this.resourceMethod.hasErrors(true);
 				}
 			}
 		}

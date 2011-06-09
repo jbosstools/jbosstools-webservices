@@ -27,6 +27,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.MethodRule;
+import org.junit.rules.TestWatchman;
+import org.junit.runners.model.FrameworkMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +64,24 @@ public abstract class AbstractCommonTestCase {
 			.retrieveSampleProjectName(AbstractCommonTestCase.class);
 
 	private ProjectSynchronizator synchronizor;
+
+	@Rule
+	public MethodRule watchman = new TestWatchman() {
+		@Override
+		public void starting(FrameworkMethod method) {
+			LOGGER.info("**********************************************************************************");
+			LOGGER.info("Starting test '{}'...", method.getName());
+			LOGGER.info("**********************************************************************************");
+		}
+
+		@Override
+		public void finished(FrameworkMethod method) {
+			LOGGER.info("**********************************************************************************");
+			LOGGER.info("Test '{}' finished.", method.getName());
+			LOGGER.info("**********************************************************************************");
+		}
+
+	};
 
 	@BeforeClass
 	public static void setupWorkspace() throws Exception {
