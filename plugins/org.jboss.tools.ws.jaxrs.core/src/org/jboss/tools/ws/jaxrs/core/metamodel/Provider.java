@@ -215,9 +215,10 @@ public class Provider extends BaseElement<IType> {
 			} else {
 				this.mediaTypeCapabilities.put(providerKind, mediaTypes);
 			}
+
 		case EXCEPTION_MAPPER:
-			this.providedKinds.put(providerKind, providedType);
 		}
+		this.providedKinds.put(providerKind, providedType);
 	}
 
 	/*

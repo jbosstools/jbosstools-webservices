@@ -17,10 +17,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
- * Class to configure (add/remove) the JAX-RS MediaTypeCapabilitiesBuilder on a project.
+ * Class to configure (add/remove) the JAX-RS MediaTypeCapabilitiesBuilder on a
+ * project.
  * 
  * @author xcoulon
- *
+ * 
  */
 public class ProjectBuilderConfigurer implements IProjectNature {
 
@@ -32,7 +33,8 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 		if (project == null) {
 			return;
 		}
-		// project nature installation triggers the project builder installation, by configuration/association in the plugin.xml file.
+		// project nature installation triggers the project builder
+		// installation, by configuration/association in the plugin.xml file.
 		if (ProjectBuilderUtils.installProjectBuilder(project, ProjectBuilderUtils.JAXRS_BUILDER_ID)) {
 			Logger.info("JAX-RS Builder is now installed.");
 		} else {
@@ -46,9 +48,9 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 			return;
 		}
 		if (ProjectBuilderUtils.uninstallProjectBuilder(project, ProjectBuilderUtils.JAXRS_BUILDER_ID)) {
-			Logger.info("JAX-RS MediaTypeCapabilitiesBuilder is now uninstalled.");
+			Logger.debug("JAX-RS MediaTypeCapabilitiesBuilder is now uninstalled.");
 		} else {
-			Logger.info("JAX-RS MediaTypeCapabilitiesBuilder was not installed.");
+			Logger.debug("JAX-RS MediaTypeCapabilitiesBuilder was not installed.");
 		}
 	}
 

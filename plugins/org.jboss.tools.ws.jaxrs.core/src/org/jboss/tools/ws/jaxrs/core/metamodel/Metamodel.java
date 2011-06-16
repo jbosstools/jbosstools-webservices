@@ -139,7 +139,7 @@ public class Metamodel {
 	 *             in case of underlying exception
 	 */
 	public final void remove() throws CoreException {
-		Logger.info("JAX-RS Metamodel removed for project " + javaProject.getElementName());
+		Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
 	}
 
@@ -364,7 +364,7 @@ public class Metamodel {
 			}
 		} finally {
 			long endTime = new Date().getTime();
-			Logger.info("JAX-RS Metamodel delta for project '" + javaProject.getElementName() + "' applied in "
+			Logger.debug("JAX-RS Metamodel delta for project '" + javaProject.getElementName() + "' applied in "
 					+ (endTime - startTime) + "ms.");
 
 		}

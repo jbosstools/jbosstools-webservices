@@ -187,7 +187,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 			Logger.error("Failed to load metamodel from project '" + project.getName() + "''s session properties", e);
 		} finally {
 			long endTime = new Date().getTime();
-			Logger.info("JAX-RS Metamodel for project '" + project.getName() + "' fully built in "
+			Logger.debug("JAX-RS Metamodel for project '" + project.getName() + "' fully built in "
 					+ (endTime - startTime) + "ms.");
 			monitor.done();
 		}
@@ -307,7 +307,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 		}
 
 		sb.append("]");
-		Logger.info(sb.toString().replace("+]", "]"));
+		Logger.debug(sb.toString().replace("+]", "]"));
 	}
 
 }
