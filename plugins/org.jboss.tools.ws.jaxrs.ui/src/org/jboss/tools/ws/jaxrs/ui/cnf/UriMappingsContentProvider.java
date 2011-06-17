@@ -61,9 +61,11 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IResour
 								if (job.belongsTo(ResourcesPlugin.FAMILY_AUTO_BUILD)
 										|| job.belongsTo(ResourcesPlugin.FAMILY_AUTO_REFRESH)
 										|| job.belongsTo(ResourcesPlugin.FAMILY_MANUAL_BUILD)
-										|| job.belongsTo(ResourcesPlugin.FAMILY_MANUAL_REFRESH)) {
+										|| job.belongsTo(ResourcesPlugin.FAMILY_MANUAL_REFRESH)
+										&& job.getState() == Job.RUNNING) {
 									// joining running job
-									Logger.debug("Joining Running job: " + job.getName());
+									Logger.debug("Joining Running job: " + job.getName() + "(blocking="
+											+ job.isBlocking() + "/state=" + job.getState() + ")");
 									job.join();
 									Logger.debug("Job finished: " + job.getName());
 								}

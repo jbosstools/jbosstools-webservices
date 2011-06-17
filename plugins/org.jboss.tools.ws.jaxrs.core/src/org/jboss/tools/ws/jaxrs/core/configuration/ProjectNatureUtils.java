@@ -30,8 +30,9 @@ public final class ProjectNatureUtils {
 	 * Hidden constructor of the utility class.
 	 */
 	private ProjectNatureUtils() {
-		
+
 	}
+
 	/**
 	 * Check if a nature identified by its ID is installed on a given project.
 	 * 
@@ -56,10 +57,15 @@ public final class ProjectNatureUtils {
 	/**
 	 * Adds the nature identified by its ID to the given project.
 	 * 
-	 * @param project the project
-	 * @param natureId the nature id
-	 * @return true if the nature was actually added to the project, false if it was already installed
-	 * @throws CoreException in case of underlying exception (the nature may not be installed)
+	 * @param project
+	 *            the project
+	 * @param natureId
+	 *            the nature id
+	 * @return true if the nature was actually added to the project, false if it
+	 *         was already installed
+	 * @throws CoreException
+	 *             in case of underlying exception (the nature may not be
+	 *             installed)
 	 */
 	public static boolean installProjectNature(final IProject project, final String natureId) throws CoreException {
 		if (isProjectNatureInstalled(project, natureId)) {
@@ -95,7 +101,7 @@ public final class ProjectNatureUtils {
 				// remove builder from project
 				String[] newNatureIds = new String[natures.length - 1];
 				System.arraycopy(natures, 0, newNatureIds, 0, i);
-				System.arraycopy(natures, i + 1, newNatureIds, 0, natures.length - i - 1);
+				System.arraycopy(natures, i + 1, newNatureIds, i, natures.length - i - 1);
 				desc.setNatureIds(newNatureIds);
 				project.setDescription(desc, null);
 				return true;

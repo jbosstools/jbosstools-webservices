@@ -40,12 +40,15 @@ public class Applications extends BaseElementContainer<Application> {
 	 */
 	@Override
 	public List<Application> addFrom(IJavaElement scope, IProgressMonitor progressMonitor) throws CoreException {
+		List<Application> addedApps = new ArrayList<Application>();
 		IType applicationType = JdtUtils.resolveType(javax.ws.rs.core.Application.class.getName(),
 				metamodel.getJavaProject(), progressMonitor);
+		if (applicationType == null) {
+			return addedApps;
+		}
 		ITypeHierarchy applicationTypeHierarchy = JdtUtils
 				.resolveTypeHierarchy(applicationType, false, progressMonitor);
 		IType[] subtypes = applicationTypeHierarchy.getAllSubtypes(applicationType);
-		List<Application> addedApps = new ArrayList<Application>();
 		if (subtypes.length > 1) {
 			List<String> s = new ArrayList<String>();
 			for (IType t : subtypes) {
