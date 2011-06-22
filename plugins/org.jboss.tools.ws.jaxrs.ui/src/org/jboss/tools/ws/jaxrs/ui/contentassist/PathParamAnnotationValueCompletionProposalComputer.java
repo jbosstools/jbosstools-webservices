@@ -21,6 +21,7 @@ import javax.ws.rs.PathParam;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -40,6 +41,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
@@ -78,7 +80,16 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			final IProgressMonitor monitor) {
 		JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
 		try {
+
+			IJavaProject project = javaContext.getProject();
+			// skip if the JAX-RS Nature is not configured for this project
+			if (!ProjectNatureUtils.isProjectNatureInstalled(project.getProject(), ProjectNatureUtils.JAXRS_NATURE_ID)) {
+				return Collections.emptyList();
+			}
 			CompilationUnit compilationUnit = resolveContextualCompilationUnit(monitor, javaContext);
+			if (compilationUnit == null) {
+				return Collections.emptyList();
+			}
 			IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
 					context.getInvocationOffset());
 			if (invocationElement.getElementType() == IJavaElement.METHOD) {
@@ -222,6 +233,11 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	 *             in case of underlying exception
 	 */
 	private IType getEnclosingType(final IJavaElement element) throws JavaModelException {
+		if (element == null) {
+			// no enclosing parent. For example, an annotation is set before the
+			// method itself was written.
+			return null;
+		}
 		switch (element.getElementType()) {
 		case IJavaElement.TYPE:
 			return (IType) element;

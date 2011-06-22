@@ -252,12 +252,15 @@ public final class JdtUtils {
 	 *            the progress monitor
 	 * @return compilationUnit the DOM CompilationUnit returned by the parse()
 	 *         method. This operation is expensive and should be performed only
-	 *         once for each type.
+	 *         once for each type. Returns null if the given member was null.
 	 * @throws JavaModelException
 	 *             in case of exception underneath...
 	 */
 	public static CompilationUnit parse(final IMember member, final IProgressMonitor progressMonitor)
 			throws JavaModelException {
+		if (member == null) {
+			return null;
+		}
 		IType type = null;
 		if (member.getElementType() == IMember.TYPE) {
 			type = (IType) member;

@@ -53,33 +53,11 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IResour
 				if (!uriPathTemplateCategories.containsKey(project)) {
 					Metamodel metamodel = Metamodel.get(project);
 					if (metamodel == null) {
-						// trigger background build and immediately return a
-						// temporary element to the UI
-						Job[] jobs = Job.getJobManager().find(null);
-						if (jobs != null) {
-							for (Job job : jobs) {
-								if (job.belongsTo(ResourcesPlugin.FAMILY_AUTO_BUILD)
-										|| job.belongsTo(ResourcesPlugin.FAMILY_AUTO_REFRESH)
-										|| job.belongsTo(ResourcesPlugin.FAMILY_MANUAL_BUILD)
-										|| job.belongsTo(ResourcesPlugin.FAMILY_MANUAL_REFRESH)
-										&& job.getState() == Job.RUNNING) {
-									// joining running job
-									Logger.debug("Joining Running job: " + job.getName() + "(blocking="
-											+ job.isBlocking() + "/state=" + job.getState() + ")");
-									job.join();
-									Logger.debug("Job finished: " + job.getName());
-								}
-							}
-						}
-						// after running job is done, check if the metamodel
-						// was
-						// built, otherwise, force it.
-						metamodel = Metamodel.get(project);
-						if (metamodel == null) {
-							Logger.debug("Metamodel is (still) null for project '" + project.getName() + "'");
-							CoreUtility.startBuildInBackground(project);
-							return new Object[] { new WaitWhileBuildingElement() };
-						}
+						Logger.debug("Metamodel needs to be built for project '" + project.getName() + "'");
+						Job buildJob = CoreUtility.getBuildJob(project);
+						buildJob.setRule(ResourcesPlugin.getWorkspace().getRoot());
+						buildJob.schedule();
+						return new Object[] { new WaitWhileBuildingElement() };
 					}
 					UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, metamodel,
 							project);
@@ -88,10 +66,6 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IResour
 				return new Object[] { uriPathTemplateCategories.get(project) };
 			} catch (CoreException e) {
 				Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
-			} catch (InterruptedException e) {
-				Logger.error(
-						"Failed to join currently running job while building or retrieving metamodel for project '"
-								+ project.getName() + "'", e);
 			} finally {
 				long endTime = new Date().getTime();
 				Logger.debug("JAX-RS Metamodel UI for project '" + project.getName() + "' refreshed in "
