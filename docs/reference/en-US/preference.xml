@@ -98,13 +98,5 @@
         </imageobject>
       </mediaobject>
     </figure>
-     
-    <para>
-      On the whole, this guide covers the fundamental concepts of work with tooling for <property>JBossWS</property>. It describes how to easily create a Web Service and a Web Service Client using JBossWS Runtime and adjust JBossWS and development environment as well.
-    </para>
-     
-    <para>
-      If the information on JBossWS tools in this guide isn't enough for you, ask questions on our <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">forum</ulink>. Your comments and suggestions are also welcome.
-    </para>
   </section>
 </chapter>
