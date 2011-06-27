@@ -54,6 +54,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -62,10 +63,10 @@ import org.jboss.tools.common.ui.widget.editor.BaseFieldEditor;
 import org.jboss.tools.common.ui.widget.editor.ButtonFieldEditor;
 import org.jboss.tools.common.ui.widget.editor.IFieldEditor;
 import org.jboss.tools.common.ui.widget.editor.IFieldEditorFactory;
-import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
-import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
+import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
 
 /**
  * @author Grid Qian
@@ -210,8 +211,7 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 
 		TableColumn tc3 = new TableColumn(tableView.getTable(), SWT.LEFT);
 		tc3.setWidth(TC_VERSION_WIDTH);
-		tc3
-				.setText(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version);
+		tc3.setText(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version);
 
 		TableColumn tc4 = new TableColumn(tableView.getTable(), SWT.LEFT);
 		tc4.setWidth(TC_PATH_WIDTH);
@@ -420,28 +420,23 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 
 		List<JBossWSRuntime> value = null;
 
-		IFieldEditor name = IFieldEditorFactory.INSTANCE.createTextEditor(
-				SRT_NAME,
+		IFieldEditor name = IFieldEditorFactory.INSTANCE.createTextEditor(SRT_NAME,
 				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Name2, ""); //$NON-NLS-1$ 
 
-		IFieldEditor version = IFieldEditorFactory.INSTANCE.createComboEditor(
-				SRT_VERSION,
-				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version,
-				getWSFacetVersions(), ""); //$NON-NLS-1$ 
+		IFieldEditor version = IFieldEditorFactory.INSTANCE.createComboEditor(SRT_VERSION,
+				JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Version, getWSFacetVersions(), ""); //$NON-NLS-1$ 
 
-		IFieldEditor homeDir = IFieldEditorFactory.INSTANCE
-				.createBrowseFolderEditor(
-						SRT_HOMEDIR,
-						JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Home_Folder,
-						""); //$NON-NLS-1$ 
+		IFieldEditor homeDir = IFieldEditorFactory.INSTANCE.createBrowseFolderEditor(SRT_HOMEDIR,
+			    JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Home_Folder,""); //$NON-NLS-1$ 
+		
+		Label impl;
+		Label vDetail;
 
 		JBossWSRuntime current = null;
-
 		IFieldEditor jars = null;
 
 		public JBossWSRuntimeWizardPage(List<JBossWSRuntime> editedList) {
-			super(
-					JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_New_Runtime);
+			super(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_New_Runtime);
 			setMessage(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Create_A_Runtime);
 			setTitle(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime);
 			value = editedList;
@@ -450,8 +445,7 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 		/**
 		 * Create Wizard page content
 		 * 
-		 * @param parent
-		 *            Composite - parent composite
+		 * @param parent Composite - parent composite
 		 */
 		public void createControl(Composite parent) {
 			parent.setLayout(new GridLayout(GL_PARENT_COLUMNS, false));
@@ -472,11 +466,18 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 				version.setValue(getWSFacetVersions().get(1));
 			homeDir.doFillIntoGrid(root);
 			homeDir.addPropertyChangeListener(this);
+			
+			Label[] texts = JBossWSUIUtils.createWSRuntimeDetailsGroup(root, 3);
+			impl = texts[0];
+			vDetail = texts[1];
+			if (current != null) {
+			    impl.setText(current.getImpl());
+			    vDetail.setText(current.getVersionDetail());
+			}
 
 			jars = new JBossWSLibraryListFieldEditor("", "", current); //$NON-NLS-1$ //$NON-NLS-2$
 			jars.doFillIntoGrid(root);
-			
-			
+						
 			jars.addPropertyChangeListener(this);
 			setPageComplete(false);
 			setControl(root);
@@ -486,20 +487,18 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 		 * Process evt: setup default values based on JBossWS Home folder and
 		 * validate user input
 		 * 
-		 * @param evt
-		 *            PropertyChangeEvent describes changes in wizard
+		 * @param evt PropertyChangeEvent describes changes in wizard
 		 */
 		public void propertyChange(java.beans.PropertyChangeEvent evt) {
 			if ("homeDir".equals(evt.getPropertyName())) { //$NON-NLS-1$
-				if (name.getValueAsString() == null
-						|| "".equals(name.getValueAsString().trim()) //$NON-NLS-1$
+				if (name.getValueAsString() == null || "".equals(name.getValueAsString().trim()) //$NON-NLS-1$
 						|| this.getErrorMessage() != null) {
 					String homeDirName = homeDir.getValueAsString();
 					if (homeDirName != null && !"".equals(homeDirName.trim())) { //$NON-NLS-1$
 						File folder = new File(homeDirName);
 						homeDirName = folder.getName();
 					}
-					name.setValue(homeDirName);
+					name.setValue(homeDirName);					
 				}
 			}
 
@@ -510,8 +509,7 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 				return;
 			}
 
-			if (!name.getValueAsString().matches(
-					"[a-zA-Z_][a-zA-Z0-9_\\-\\. ]*")) { //$NON-NLS-1$
+			if (!name.getValueAsString().matches("[a-zA-Z_][a-zA-Z0-9_\\-\\. ]*")) { //$NON-NLS-1$
 				setErrorMessage(JBossWSUIMessages.Error_JBossWS_Runtime_List_Field_Editor_Runtime_Name_Is_Not_Correct);
 				setPageComplete(false);
 				return;
@@ -521,9 +519,7 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 					continue;
 				}
 				if (rt.getName().equals(name.getValueAsString())) {
-					setErrorMessage(NLS
-							.bind(
-									JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime_Already_Exists,
+					setErrorMessage(NLS.bind(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Runtime_Already_Exists,
 									name.getValueAsString()));
 					setPageComplete(false);
 					return;
@@ -536,37 +532,37 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 						&& current.getName().equals(name.getValueAsString())
 						&& current.getHomeDir().equals(homeDir.getValueAsString())
 						&& current.getVersion().equals(version.getValueAsString())
-						&& current.isUserConfigClasspath() == jarJbws
-								.isUserConfigClasspath()
+						&& current.isUserConfigClasspath() == jarJbws.isUserConfigClasspath()
 						&& (!jarJbws.isUserConfigClasspath() || hasSameLibraies(
-								current.getLibraries(), jarJbws.getLibraries()))) {
-	
+								current.getLibraries(), jarJbws.getLibraries()))) {	
 					setErrorMessage(null);
 					setPageComplete(false);
 					return;
 				}
 	
-				if (jarJbws.isUserConfigClasspath()
-						&& jarJbws.getLibraries().size() == 0) {
+				if (jarJbws.isUserConfigClasspath()&& jarJbws.getLibraries().size() == 0) {
 					setErrorMessage(JBossWSUIMessages.JBossRuntimeListFieldEditor_ErrorMessageAtLeastOneJar);
 					setPageComplete(false);
 					return;
 				}
 			}
 
-			if (homeDir.getValueAsString() == null
-					|| "".equals(homeDir.getValueAsString().trim())) { //$NON-NLS-1$
+			if (homeDir.getValueAsString() == null || "".equals(homeDir.getValueAsString().trim())) { //$NON-NLS-1$
 				setErrorMessage(JBossWSUIMessages.Error_JBossWS_Runtime_List_Field_Editor_Path_To_Home_Diretory_Cannot_Be_Empty);
 				setPageComplete(false);
 				return;
-			}
+			} 
 
 			if (!runtimeExist(homeDir.getValueAsString())) {
 				setErrorMessage(JBossWSUIMessages.Error_JBossWS_Label_Runtime_Load);
 				setPageComplete(false);
 				return;
+			} else if ("homeDir".equals(evt.getPropertyName())) { //$NON-NLS-1$
+				String[] strs = JBossWSUIUtils.getWSRuntimeDetail(homeDir.getValueAsString());
+				impl.setText(strs[0]);
+				vDetail.setText(strs[1]);
 			}
-
+			
 			setErrorMessage(null);
 			setPageComplete(true);
 		}
@@ -578,7 +574,6 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 				if (!lib2.contains(jar))
 					return false;
 			}
-
 			return true;
 		}
 
@@ -587,12 +582,10 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 		 */
 		private List<String> getWSFacetVersions() {
 			List<String> versions = new ArrayList<String>();
-			IProjectFacet wsFacet = ProjectFacetsManager
-					.getProjectFacet("jbossws.core"); //$NON-NLS-1$
+			IProjectFacet wsFacet = ProjectFacetsManager.getProjectFacet("jbossws.core"); //$NON-NLS-1$
 			for (IProjectFacetVersion version : wsFacet.getVersions()) {
 				versions.add(version.getVersionString());
 			}
-
 			return versions;
 		}
 
@@ -606,6 +599,8 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 			newRt.setName(name.getValueAsString());
 			newRt.setVersion(version.getValueAsString());
 			newRt.setHomeDir(homeDir.getValueAsString());
+			newRt.setImpl(impl.getText());
+			newRt.setVersionDetail(vDetail.getText());
 			JBossWSRuntime rt = (JBossWSRuntime) jars.getValue();
 			newRt.setLibraries(rt.getLibraries());
 			newRt.setUserConfigClasspath(rt.isUserConfigClasspath());
@@ -617,11 +612,9 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 			return new ButtonFieldEditor.ButtonPressedAction(buttonName) {
 				@Override
 				public void run() {
-					DirectoryDialog dialog = new DirectoryDialog(Display
-							.getCurrent().getActiveShell());
+					DirectoryDialog dialog = new DirectoryDialog(Display.getCurrent().getActiveShell());
 					dialog.setFilterPath(getFieldEditor().getValueAsString());
-					dialog
-							.setMessage(JBossWSUIMessages.JBossWS_SWT_Field_Editor_Factory_Select_Home_Folder);
+					dialog.setMessage(JBossWSUIMessages.JBossWS_SWT_Field_Editor_Factory_Select_Home_Folder);
 					dialog.setFilterPath(getFieldEditor().getValueAsString());
 					String directory = dialog.open();
 					if (directory != null) {
@@ -632,23 +625,13 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 		}
 
 		private boolean runtimeExist(String path) {
-
 			File jbosswsHomeDir = new File(path);
 			if (!jbosswsHomeDir.isDirectory())
 				return false;
-			String[] newNode = { JBossWSUIMessages.Bin,
-					JBossWSUIMessages.Command };
+			String[] newNode = { JBossWSUIMessages.Bin, JBossWSUIMessages.Command };
 			String jbosswsBinPath = JBossWSUIUtils.addNodesToPath(
 					jbosswsHomeDir.getAbsolutePath(), newNode);
-			if (new File(jbosswsBinPath).isFile()
-					&& new File(JBossWSUIUtils.addAnotherNodeToPath(
-							jbosswsHomeDir.getAbsolutePath(),
-							JBossWSUIMessages.Client)).isDirectory()
-					&& new File(JBossWSUIUtils
-							.addNodesToPath(jbosswsHomeDir.getAbsolutePath(),
-									new String[] { JBossWSUIMessages.Lib,
-											JBossWSUIMessages.Endorsed }))
-							.isDirectory()) {
+			if (new File(jbosswsBinPath).isFile()) {
 				return true;
 			}
 			return false;
@@ -665,8 +648,7 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 		List<JBossWSRuntime> added = null;
 		List<JBossWSRuntime> value = null;
 
-		public JBossWSRuntimeNewWizard(List<JBossWSRuntime> exist,
-				List<JBossWSRuntime> added) {
+		public JBossWSRuntimeNewWizard(List<JBossWSRuntime> exist,List<JBossWSRuntime> added) {
 			super();
 			setWindowTitle(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_New_Runtime);
 			page1 = new JBossWSRuntimeWizardPage(exist);
@@ -726,10 +708,8 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 			super();
 			setWindowTitle(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Edit_Runtime);
 			page1 = new JBossWSRuntimeWizardPage(existing);
-			page1
-					.setMessage(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Modify_Runtime);
-			page1
-					.setTitle(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Edit_Runtime);
+			page1.setMessage(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Modify_Runtime);
+			page1.setTitle(JBossWSUIMessages.JBossWS_Runtime_List_Field_Editor_Edit_Runtime);
 			addPage(page1);
 			this.value = existing;
 			this.added = added;
@@ -756,6 +736,8 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 				source.setVersion(rt.getVersion());
 				source.setUserConfigClasspath(rt.isUserConfigClasspath());
 				source.setLibraries(rt.getLibraries());
+				source.setImpl(rt.getImpl());
+				source.setVersionDetail(rt.getVersionDetail());
 			} else {
 				changed.put(rt, source);
 				if (source.isDefault()) {
@@ -1105,5 +1087,9 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 				checkedElement = null;
 			}
 		}
+	}
+	
+	public CheckboxTableViewer getTableView() {
+		return tableView;
 	}
 }

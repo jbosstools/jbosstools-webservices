@@ -31,6 +31,9 @@ public class JBossWSRuntime {
 
 	private boolean userConfigClasspath;
 
+	private String impl;
+	private String versionDetail;
+
 	/**
 	 * Default constructor
 	 */
@@ -119,5 +122,23 @@ public class JBossWSRuntime {
 	public void setVersion(String version) {
 		this.version = version;
 	}
+	
+	
+	public String getImpl() {
+		return impl;
+	}
+
+	public void setImpl(String impl) {
+		this.impl = impl;
+	}
+
+	public String getVersionDetail() {
+		return versionDetail;
+	}
+
+	public void setVersionDetail(String versionDetail) {
+		this.versionDetail = versionDetail;
+	}
+
 
 }

@@ -29,6 +29,8 @@ public class JBossWSRuntimeListConverter {
 		private static final String NAME = "name"; //$NON-NLS-1$
 		private static final String USER_CONFIG_CLASSPATH = "userConfig"; //$NON-NLS-1$
 		private static final String LIBRARY = "libraries"; //$NON-NLS-1$
+		private static final String IMPL= "impl"; //$NON-NLS-1$
+		private static final String VDETAIL = "vdetail"; //$NON-NLS-1$
 
 		/**
 		 * Load String to JBossWSRuntime map from String
@@ -63,12 +65,16 @@ public class JBossWSRuntimeListConverter {
 						rt.setVersion(value);
 					} else if (DEFAULT.equals(name)) {
 						rt.setDefault(Boolean.parseBoolean(value));
-					}else if(USER_CONFIG_CLASSPATH.equals(name)){
+					} else if (USER_CONFIG_CLASSPATH.equals(name)){
 						rt.setUserConfigClasspath(Boolean.parseBoolean(value));
-					}else if(LIBRARY.equals(name)){
+					} else if (LIBRARY.equals(name)){
 						if(value != null && !EMPTY_STRING.equals(value)){
 							rt.setLibraries(getLibrariesFromString(value));
 						}
+					} else if (IMPL.equals(name)) {
+						rt.setImpl(value);
+					} else if (VDETAIL.equals(name)) {
+						rt.setVersionDetail(value);
 					}
 					
 				}
@@ -129,6 +135,10 @@ public class JBossWSRuntimeListConverter {
 				buffer.append(runtimes[i].isDefault());
 				buffer.append(FIELD_SEPARATOR).append(USER_CONFIG_CLASSPATH).append(FIELD_SEPARATOR);
 				buffer.append(runtimes[i].isUserConfigClasspath());
+				buffer.append(FIELD_SEPARATOR).append(IMPL).append(FIELD_SEPARATOR);
+				buffer.append(runtimes[i].getImpl());
+				buffer.append(FIELD_SEPARATOR).append(VDETAIL).append(FIELD_SEPARATOR);
+				buffer.append(runtimes[i].getVersionDetail());				
 				buffer.append(FIELD_SEPARATOR).append(LIBRARY).append(FIELD_SEPARATOR);
 				buffer.append(convertListToString(runtimes[i].getLibraries()));
 				if (i != runtimes.length - 1) {

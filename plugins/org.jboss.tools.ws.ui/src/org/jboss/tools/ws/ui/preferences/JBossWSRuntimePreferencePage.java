@@ -20,11 +20,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
+import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
 
 /**
  * @author Grid Qian
@@ -42,6 +44,9 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 	JBossWSRuntimeListFieldEditor jbossWSRuntimes = new JBossWSRuntimeListFieldEditor(
 			"rtlist", JBossWSUIMessages.JBossWS_Preference_Page_Runtimes, new ArrayList<JBossWSRuntime>(Arrays.asList(JBossWSRuntimeManager.getInstance().getRuntimes()))); //$NON-NLS-1$
 
+	Label impl;
+	Label vDetail;
+	
 	/**
 	 * Create contents of JBossWS preferences page. JBossWSRuntime list editor
 	 * is created
@@ -52,6 +57,12 @@ public class JBossWSRuntimePreferencePage extends PreferencePage implements
 		GridLayout gl = new GridLayout(COLUMNS, false);
 		root.setLayout(gl);
 		jbossWSRuntimes.doFillIntoGrid(root);
+		
+		Label[] texts = JBossWSUIUtils.createWSRuntimeDetailsGroup(root, 2);
+		impl = texts[0];
+		vDetail = texts[1];
+		
+		jbossWSRuntimes.getTableView().addSelectionChangedListener(new WSRuntimeSelectionChangedListener(impl, vDetail));
 
 		return root;
 	}

@@ -42,6 +42,7 @@ import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jboss.tools.ws.ui.preferences.JBossWSRuntimeListFieldEditor;
+import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
 
 public class JBossWSRuntimeConfigBlock {
 
@@ -50,6 +51,8 @@ public class JBossWSRuntimeConfigBlock {
 	private Combo cmbRuntimes;
 	private Button btnDeploy;
 	private Button btnNew;
+	private Label  impl;
+	private Label  vDetail;
 
 	private String errMsg;
 	private IMessageNotifier notifier;
@@ -96,8 +99,7 @@ public class JBossWSRuntimeConfigBlock {
 				setServerSuppliedSelection(e);
 			}
 		});
-		lblServerSupplied
-				.setText(JBossWSUIMessages.JBossWSFacetInstallPage_ServerSuppliedJBossWS);
+		lblServerSupplied.setText(JBossWSUIMessages.JBossWSFacetInstallPage_ServerSuppliedJBossWS);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		lblServerSupplied.setLayoutData(gd);
@@ -115,8 +117,7 @@ public class JBossWSRuntimeConfigBlock {
 		cmbRuntimes.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				String runtimeName = cmbRuntimes.getText();
-				JBossWSRuntime jr = (JBossWSRuntime) cmbRuntimes
-						.getData(runtimeName);
+				JBossWSRuntime jr = (JBossWSRuntime) cmbRuntimes.getData(runtimeName);
 				saveJBosswsRuntimeToModel(jr);
 				changePageStatus();
 			}
@@ -132,18 +133,19 @@ public class JBossWSRuntimeConfigBlock {
 		});
 
 		btnDeploy = new Button(composite, SWT.CHECK);
-		btnDeploy
-				.setText(JBossWSUIMessages.JBossWSFacetInstallPage_Deploy);
+		btnDeploy.setText(JBossWSUIMessages.JBossWSFacetInstallPage_Deploy);
 		btnDeploy.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				model.setBooleanProperty(
-						IJBossWSFacetDataModelProperties.JBOSS_WS_DEPLOY,
-						btnDeploy.getSelection());
+				model.setBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_DEPLOY, btnDeploy.getSelection());
 			}
 		});
 		gd = new GridData();
 		gd.horizontalSpan = 3;
 		btnDeploy.setLayoutData(gd);
+		
+		Label[] texts = JBossWSUIUtils.createWSRuntimeDetailsGroup(composite, 2);
+		impl = texts[0];
+		vDetail = texts[1];
 
 		setInitialValues();
 		changePageStatus();
@@ -152,7 +154,7 @@ public class JBossWSRuntimeConfigBlock {
 
 	}
 
-	private void validateTargetRuntime() {
+	private void validateandDisplayTargetRuntime() {
 		IFacetedProjectWorkingCopy fpWorkingCopy = (IFacetedProjectWorkingCopy) model
 				.getProperty(JBossWSFacetInstallDataModelProvider.FACETED_PROJECT_WORKING_COPY);
 		IRuntime runtime = null;
@@ -181,7 +183,11 @@ public class JBossWSRuntimeConfigBlock {
 				return;
 			}
 		}
-
+		
+		String[] strs = JBossWSUIUtils.getWSRuntimeDetail(serverRuntime.getLocation().toFile().getAbsolutePath());
+        impl.setText(strs[0]);
+        vDetail.setText(strs[1]);
+		
 		setErrorMessage(null);
 
 	}
@@ -216,33 +222,21 @@ public class JBossWSRuntimeConfigBlock {
 					StatusUtils.errorStatus(e1));
 		}
 		if ("".equals(duplicateMsg)) { //$NON-NLS-1$
-			model.setStringProperty(
-					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
-					jbws.getHomeDir());
-			model.setStringProperty(
-					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, jbws
-							.getName());
+			model.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME, jbws.getHomeDir());
+			model.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, jbws.getName());
 		} else {
-			model.setStringProperty(
-					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, null);
-			model.setStringProperty(
-					IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME,
-					null);
+			model.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, null);
+			model.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME, null);
 		}
 	}
 
 	protected void setServerSuppliedSelection(EventObject e) {
 		btnServerSupplied.setSelection(true);
 		btnUserSupplied.setSelection(false);
-		model
-				.setBooleanProperty(
-						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED,
-						true);
+		model.setBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED, true);
 		// remove user supplied properties
-		model.setStringProperty(
-				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, null);
-		model.setStringProperty(
-				IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME, null);
+		model.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_ID, null);
+		model.setStringProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_HOME, null);
 		enableUserSupplied(false);
 
 		changePageStatus();
@@ -252,13 +246,9 @@ public class JBossWSRuntimeConfigBlock {
 	protected void setUserSuppliedSelection(EventObject e) {
 		btnServerSupplied.setSelection(false);
 		btnUserSupplied.setSelection(true);
-		model
-				.setBooleanProperty(
-						IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED,
-						false);
+		model.setBooleanProperty(IJBossWSFacetDataModelProperties.JBOSS_WS_RUNTIME_IS_SERVER_SUPPLIED, false);
 		String runtimeId = cmbRuntimes.getText();
-		JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance()
-				.findRuntimeByName(runtimeId);
+		JBossWSRuntime jbws = JBossWSRuntimeManager.getInstance().findRuntimeByName(runtimeId);
 
 		if (jbws != null) {
 			saveJBosswsRuntimeToModel(jbws);
@@ -281,8 +271,7 @@ public class JBossWSRuntimeConfigBlock {
 		// int selectIndex = 0;
 		int defaultIndex = 0;
 		cmRuntime.removeAll();
-		JBossWSRuntime[] runtimes = JBossWSRuntimeManager.getInstance()
-				.getRuntimes();
+		JBossWSRuntime[] runtimes = JBossWSRuntimeManager.getInstance().getRuntimes();
 		for (int i = 0; i < runtimes.length; i++) {
 			JBossWSRuntime jr = runtimes[i];
 			if (jbossWSVersion.compareTo(jr.getVersion()) > 0) {
@@ -348,22 +337,27 @@ public class JBossWSRuntimeConfigBlock {
 			setErrorMessage(JBossWSUIMessages.Error_WS_Chose_runtime);
 		} else if (btnUserSupplied.getSelection()) {
 			String duplicateMsg = ""; //$NON-NLS-1$
+			String jr = cmbRuntimes.getText();
 			try {
-				duplicateMsg = getDuplicateJars(cmbRuntimes.getText());
+				duplicateMsg = getDuplicateJars(jr);
 			} catch (JavaModelException e1) {
 				JBossWSUIPlugin.getDefault().getLog().log(
 						StatusUtils.errorStatus(e1));
 			}
 			if (!duplicateMsg.equals("")) { //$NON-NLS-1$
-				setErrorMessage(MessageFormat
-						.format(
-								JBossWSUIMessages.Error_JBossWSRuntimeConfigBlock_Duplicated_Jar,
-								duplicateMsg));
+				setErrorMessage(MessageFormat.format(JBossWSUIMessages.Error_JBossWSRuntimeConfigBlock_Duplicated_Jar,duplicateMsg));
 			} else {
 				setErrorMessage(null);
 			}
+			if (jr != null) {
+				JBossWSRuntime r = (JBossWSRuntime)cmbRuntimes.getData(jr);
+				if (r != null) {
+				    impl.setText(r.getImpl());
+				    vDetail.setText(r.getVersionDetail());
+				}
+			}
 		} else if (btnServerSupplied.getSelection()) {
-			validateTargetRuntime();
+			validateandDisplayTargetRuntime();
 		} else {
 			setErrorMessage(null);
 		}
@@ -397,8 +391,7 @@ public class JBossWSRuntimeConfigBlock {
 
 	protected String getDuplicateJars(String jbwsName)
 			throws JavaModelException {
-		String prjName = model
-				.getStringProperty(IFacetDataModelProperties.FACET_PROJECT_NAME);
+		String prjName = model.getStringProperty(IFacetDataModelProperties.FACET_PROJECT_NAME);
 
 		if (prjName == null || "".equals(prjName)) { //$NON-NLS-1$
 			return ""; //$NON-NLS-1$

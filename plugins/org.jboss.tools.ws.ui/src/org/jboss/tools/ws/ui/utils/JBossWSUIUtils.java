@@ -12,7 +12,10 @@
 package org.jboss.tools.ws.ui.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -27,6 +30,12 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaConventions;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
@@ -38,6 +47,14 @@ import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 public class JBossWSUIUtils {
 	private static String JAVA = ".java"; //$NON-NLS-1$
 	private static String CLASS = ".class"; //$NON-NLS-1$
+	private static final String WS_NATIVE_JAR = "jbossws-native-client.jar"; //$NON-NLS-1$
+	private static final String WS_CXF_JAR = "jbossws-cxf-client.jar"; //$NON-NLS-1$
+	private static final String WS_METRO_JAR = "jbossws-metro-client.jar"; //$NON-NLS-1$
+	private static final String CLIENT_FOLDER = "client"; //$NON-NLS-1$
+	private static final String CLIENT_AS7_FOLDER = "modules:org:jboss:ws:jaxws-client:main"; //$NON-NLS-1$
+	private static final String WS_IMPL = "Implementation-Title"; //$NON-NLS-1$
+	private static final String WS_VERSION = "Implementation-Version"; //$NON-NLS-1$
+	private static final String WS_JAR = "jbossws-client.jar"; //$NON-NLS-1$
 
 	public static String addAnotherNodeToPath(String currentPath, String newNode) {
 		return currentPath + File.separator + newNode;
@@ -156,6 +173,96 @@ public class JBossWSUIUtils {
 		}
 		return new String[] { JavaCore.getOption(JavaCore.COMPILER_SOURCE),
 				JavaCore.getOption(JavaCore.COMPILER_COMPLIANCE) };
+	}
+	
+	
+	public static String[] getWSRuntimeDetail(String serverHome) {
+		String[] strs = null;
+		File jbosswsHomeDir = new File(serverHome);
+		
+		String jarPath = JBossWSUIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), new String[] {CLIENT_FOLDER, WS_CXF_JAR});
+		strs = getWSRuntimeDetailFromPath(jarPath);
+		if (strs != null) {
+			return strs;
+		}
+		jarPath = JBossWSUIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), new String[] {CLIENT_FOLDER, WS_NATIVE_JAR});
+		strs = getWSRuntimeDetailFromPath(jarPath);
+		if (strs != null) {
+			return strs;
+		}
+		jarPath = JBossWSUIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), new String[] {CLIENT_FOLDER, WS_METRO_JAR});
+		strs = getWSRuntimeDetailFromPath(jarPath);
+		if (strs != null) {
+			return strs;
+		}
+		jarPath = JBossWSUIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), new String[] {CLIENT_FOLDER, WS_JAR});
+		strs = getWSRuntimeDetailFromPath(jarPath);
+		if (strs != null) {
+			return strs;
+		}
+		
+        String as7 = JBossWSUIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), CLIENT_AS7_FOLDER.split(":")); //$NON-NLS-1$
+        File as7File = new File(as7);
+        if (!as7File.isDirectory()) {
+        	return new String[] {"", ""}; //$NON-NLS-1$ //$NON-NLS-2$; 
+        }
+        File[] files = as7File.listFiles();
+        String jarName = ""; //$NON-NLS-1$
+        for (int i = 0 ; i < files.length ; i++) {
+        	jarName = files[i].getName();
+        	if (jarName.contains(WS_CXF_JAR.substring(0, WS_CXF_JAR.length()-5)) 
+        			|| jarName.contains(WS_CXF_JAR.substring(0, WS_NATIVE_JAR.length()-5))
+        			|| jarName.contains(WS_CXF_JAR.substring(0, WS_METRO_JAR.length()-5))) {
+        		strs = getWSRuntimeDetailFromPath(files[i].getAbsolutePath());
+        		if (strs != null) {
+        			return strs;
+        		}
+        	}
+        }
+		return new String[] {"", ""}; //$NON-NLS-1$ //$NON-NLS-2$;			
+	}
+	
+    public static String[] getWSRuntimeDetailFromPath(String path) {
+    	File jarFile = new File(path);
+		if (!jarFile.isFile()) {
+			return null;
+		}
+		String[] strs = new String[] {"", ""}; //$NON-NLS-1$ //$NON-NLS-2$
+			JarFile jar;
+			try {
+				jar = new JarFile(jarFile);
+			    Attributes attributes = jar.getManifest().getMainAttributes();
+			    strs[0] = attributes.getValue(WS_IMPL);
+			    strs[1] = attributes.getValue(WS_VERSION);
+			} catch (IOException e) {
+				return strs;
+			}
+		return strs;
+	}
+
+	public static Label[] createWSRuntimeDetailsGroup(Composite root, int horizontalSpan) {
+		Group wsRuntimeDetails = new Group(root, SWT.NONE);
+		wsRuntimeDetails.setText(JBossWSUIMessages.Runtime_Details);
+		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = horizontalSpan;
+		wsRuntimeDetails.setLayout(new GridLayout(2, false));
+		wsRuntimeDetails.setLayoutData(gd);
+		
+		new Label(wsRuntimeDetails, SWT.NONE).setText(JBossWSUIMessages.Runtime_Details_Impl);
+		Label impl = new Label(wsRuntimeDetails, SWT.NONE);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		impl.setLayoutData(gd);
+		
+		new Label(wsRuntimeDetails, SWT.NONE).setText(JBossWSUIMessages.Runtime_Details_Version);
+		Label vDetail = new Label(wsRuntimeDetails, SWT.NONE);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		vDetail.setLayoutData(gd);
+		
+		Label[] labels = new Label[] {impl, vDetail};
+		
+		return labels;
+		
+		
 	}
 
 }

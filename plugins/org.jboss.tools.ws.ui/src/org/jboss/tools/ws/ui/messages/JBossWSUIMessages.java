@@ -66,6 +66,9 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWS_Runtime_List_Field_Editor_Name2;
 	public static String JBossWS_Runtime_Check_Field_Default_Classpath;
 	public static String JBossWS_Preference_Page_Runtimes;
+	public static String Runtime_Details;
+	public static String Runtime_Details_Impl;
+	public static String Runtime_Details_Version;
 	public static String JBossWSLibraryListFieldEditor_ActionAdd;
 	public static String JBossWSLibraryListFieldEditor_ActionRemove;
 	public static String JBossWSLibraryListFieldEditor_LIBRARY_JARS;
