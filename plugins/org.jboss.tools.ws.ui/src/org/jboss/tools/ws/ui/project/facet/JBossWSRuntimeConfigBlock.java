@@ -143,7 +143,7 @@ public class JBossWSRuntimeConfigBlock {
 		gd.horizontalSpan = 3;
 		btnDeploy.setLayoutData(gd);
 		
-		Label[] texts = JBossWSUIUtils.createWSRuntimeDetailsGroup(composite, 2);
+		Label[] texts = JBossWSUIUtils.createWSRuntimeDetailsGroup(composite, 3);
 		impl = texts[0];
 		vDetail = texts[1];
 
