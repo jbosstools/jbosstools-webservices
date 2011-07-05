@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.jboss.tools</groupId>
 	<artifactId>ws</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.2.2-SNAPSHOT</version>
 	<name>ws.all</name>
 	<packaging>pom</packaging>
 	<modules>
