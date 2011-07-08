@@ -2,14 +2,14 @@
 <!DOCTYPE Book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 ]>
 <bookinfo>
-	<title>JBoss RESTful Web Services User Guide</title>
-	<subtitle>Provides information relating to RESTful Web Services for JBoss.</subtitle>
+	<title>JBoss SOAP Web Services User Guide</title>
+	<subtitle>Provides information relating to SOAP Web Services for JBoss.</subtitle>
 	<productname>JBoss Developer Studio</productname>
 	<productnumber>5.0</productnumber>
 	<edition>5.0.0</edition>
 	<pubsnumber>1</pubsnumber>
 	<abstract>
-		<para>The JBoss RESTful Web Services User Guide explains how to use RESTful Web Services to implement web services in Java.</para>
+		<para>The JBoss SOAP Web Services User Guide explains how to use the JBoss Web Services module to implement SOAP web services in Java.</para>
 	</abstract>
 	<corpauthor>
 		<inlinemediaobject>

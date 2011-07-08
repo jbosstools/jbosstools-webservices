@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3CR3//EN"
+"http://www.docbook.org/xml/4.3/docbookx.dtd"
+
+[<!ENTITY  overview SYSTEM "overview.xml">
+<!ENTITY simplewebservice SYSTEM "simple_web_service.xml">
+<!ENTITY topdown SYSTEM "topdown.xml">
+<!ENTITY preference SYSTEM "preference.xml">
+<!ENTITY webproject SYSTEM "webproject.xml">
+<!ENTITY client SYSTEM "client.xml">
+<!ENTITY samplewizard SYSTEM "sample_web_service_wizards.xml">
+<!ENTITY resteasyexample SYSTEM "resteasy_simple_project_example.xml">
+<!ENTITY testview SYSTEM "web_service_test_view.xml">
+]>
+
+<book>
+    
+     <bookinfo>
+         <title>JBoss SOAP Web Services User Guide</title>
+         
+         <corpauthor>
+             <inlinemediaobject>
+                 <imageobject role="fo">
+                     <imagedata format="PNG" fileref="images/jbosstools_logo.png" />
+                 </imageobject>	
+                 <imageobject role="html">
+                     <imagedata/>
+                 </imageobject>	
+             </inlinemediaobject>           
+         </corpauthor>
+         <author><firstname>Denny</firstname><surname>Xu</surname></author>
+	 <author>
+	    <firstname>Grid</firstname>
+	    <surname>Qian</surname>
+	 </author>
+	 <author>
+	    <firstname>Brian </firstname>
+	    <surname>Fitzpatrick</surname>
+	 </author>
+	<author>
+		<firstname>Ben </firstname>
+		<surname>Clare</surname>
+	</author>           
+      <editor>
+		<firstname>Isaac</firstname>
+		<surname>Rooskov</surname>
+	</editor>
+	     <copyright>
+	          <year>2011</year>
+	          <holder>JBoss by Red Hat</holder>
+	     </copyright>
+         <releaseinfo>
+           Version: 3.2.1.GA
+         </releaseinfo>
+<!--<abstract>
+   <title/>
+       <para>
+           <ulink url="http://download.jboss.org/jbosstools/nightly-docs/en/ws_ref_guide/pdf/WS_Reference_Guide.pdf">PDF version</ulink>
+       </para>
+    </abstract>-->
+
+
+    </bookinfo>
+    
+    <toc/> 
+    &overview;
+    &simplewebservice;
+    &topdown;
+    &client;
+    &preference;
+    &samplewizard;
+    &testview;
+</book> 
