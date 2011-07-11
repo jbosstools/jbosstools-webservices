@@ -195,8 +195,78 @@
       </mediaobject>
     </figure>
      
+	<itemizedlist>
+		<listitem>
+			<para>
+				Select the stages of Web service development that you want to complete using the slider:
+			</para>
+			
+			<itemizedlist>
+				<listitem>
+					<para>
+						Develop: this will develop the WSDL definition and implementation of the Web service. This includes such tasks as creating modules that will contain generated code, WSDL files, deployment descriptors, and Java files when appropriate.
+					</para>
+				</listitem>
+				
+				<listitem>
+					<para>
+						Assemble: this ensures the project that will host the Web service or client gets associated to an EAR when required by the target application server.
+					</para>
+				</listitem>
+				
+				<listitem>
+					<para>
+						Deploy: this will create the deployment code for the service.
+					</para>
+				</listitem>
+				
+				<listitem>
+					<para>
+						Install: this will install and configure the Web module and EARs on the target server.
+					</para>
+				</listitem>
+				
+				<listitem>
+					<para>
+						Start: this will start the server once the service has been installed on it. The server-config.wsdd file will be generated.
+					</para>
+				</listitem>
+				
+				<listitem>
+					<para>
+						Test: this will provide various options for testing the service, such as using the Web Service Explorer or sample JSPs.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</listitem>
+		
+		<listitem>
+			<para>
+				Select your server: the default server is displayed. If you want to deploy your service to a different server click the link to specify a different server.
+			</para>
+		</listitem>
+		
+		<listitem>
+			<para>
+				Select your runtime: ensure the JBoss WS runtime is selected.
+			</para>
+		</listitem>
+		
+		<listitem>
+			<para>
+				Select the service project: the project selected in your workspace is displayed. To select a different project click on the project link. If you are deploying to JBoss Application Server you will also be asked to select the EAR associated with the project. Ensure that the project selected as the Client Web Project is different from the Service Web Project, or the service will be overwritten by the client's generated artifacts.
+			</para>
+		</listitem>
+		
+		<listitem>
+			<para>
+				If you want to create a client, select the type of proxy to be generated and repeat the above steps for the client. The better way is to create a web service client project separately.
+			</para>
+		</listitem>
+	</itemizedlist>
+	
     <para>
-      First, please select <property>Top down Java bean Web Service</property> from the Web Service type list, and select a WSDL document from workspace, click on the Server name link on the page will bring you to another dialog. Here you can specify the server to a JBoss Server and Web Service runtime to JBossWS runtime:
+      First, select <property>Top down Java bean Web Service</property> from the Web Service type list, and select a WSDL document from workspace, click on the Server name link on the page will bring you to another dialog. Here you can specify the server to a JBoss Server and Web Service runtime to JBossWS runtime:
     </para>
      
     <figure id="figure_create_ws_topdown_setserver">
@@ -415,7 +485,7 @@
             </imageobject>
           </mediaobject>
         </figure>
-         
+         <!--
         <itemizedlist>
           <listitem>
             <para>
@@ -485,6 +555,7 @@
             </para>
           </listitem>
         </itemizedlist>
+		-->
          
         <para>
           Click on the <property>Next</property> button.
