@@ -159,7 +159,7 @@
       See how to make it in the <xref linkend="createproject"/> section and in the <xref
             linkend="addfacet"/> section.
     </para>
-     
+   <!--  
     <note>
       <para>
         To use the 
@@ -177,7 +177,7 @@
          fields with your specific classes, within the instructions in <xref linkend="simple_web_service" />.
       </para>
     </note>
-     
+	-->
     <para>
       To create a Web Service using JBossWS runtime select<emphasis> <property>File > New > Other > Web Services > Web Service</property> </emphasis> to run Web Service creation wizard.
     </para>
