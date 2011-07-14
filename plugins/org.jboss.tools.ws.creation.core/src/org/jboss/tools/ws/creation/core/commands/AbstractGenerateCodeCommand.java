@@ -97,7 +97,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 				} else {
 					if (resultInput != null) {
 						// there are errors, but not complication error.
-						if (resultInput.indexOf("error") >= 0 && !(resultInput.indexOf("compilation failed") >= 0)) { //$NON-NLS-1$ //$NON-NLS-2$
+						if (resultInput.indexOf("error:") >= 0 && !(resultInput.indexOf("compilation failed") >= 0)) { //$NON-NLS-1$ //$NON-NLS-2$
 							JBossWSCreationCorePlugin.getDefault().logError(resultInput);
 							IStatus errorStatus = StatusUtils.errorStatus(resultInput);
 							status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code,new CoreException(errorStatus));
