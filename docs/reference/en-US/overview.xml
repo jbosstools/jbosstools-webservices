@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <chapter id="overview">
-   <title>JBossWS Runtime Overview</title>
-
+  <title>JBossWS Runtime and Tools support Overview</title>
   <para>JBossWS is a web service framework developed as a part of the JBoss Application Server. It implements the JAX-WS and JAX-RS specifications. JAX-WS (Java API for XML Web Services) defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5). JAX-RS (Java API for RESTful Web Services) is a Java API that supports the creation of Representational State Transfer (REST) web services, using annotations. </para>
-    <para>JBossWS integrates with most current JBoss Application Server releases as well as earlier ones, that did implement the J2EE 1.4 specifications. Even though JAX-RPC, the web service specification for J2EE 1.4, is still supported JBossWS does put a clear focus on JAX-WS.</para>
-
+  <para>JBossWS integrates with most current JBoss Application Server releases as well as earlier ones, that did implement the J2EE 1.4 specifications. Even though JAX-RPC, the web service specification for J2EE 1.4, is still supported JBossWS does put a clear focus on JAX-WS.</para>
+  <para>JBossWS Tool works with <property>JBossWS Runtime</property>. Users can easily create, deploy and run a Web Service(WSDL base or RESTful base) and a Web Service Client using JBossWS Tool and JBossWS Runtime.</para>
+  <para>Also JBossWS Tool gives a way to test a web service running on a server.</para>
 <section>
     <title>Key Features of JBossWS</title>
+    
     <para>For a start, we propose you to look through the table of main features of JBossWS Runtime:</para>
-
     <table>
         
         <title>Key Functionality for JBossWS</title>
@@ -71,9 +71,7 @@
             </tbody>
             
         </tgroup>
-    </table>
-    
-    
+    </table>  
 </section>
 <section>
         <title>Other relevant resources on the topic</title>
@@ -82,15 +80,14 @@
         <itemizedlist>
             <listitem>
                 <para>
-                    <ulink url="http://www.jboss.org/community/wiki/JBossWS-FAQ#Tools">JBossWS Tools Wiki FAQ.</ulink>
+                    <ulink url="http://www.jboss.org/community/wiki/JBossWS-FAQ#Tools">JBossWS Wiki FAQ.</ulink>
                 </para>
             </listitem>
-        </itemizedlist>
-
-        
-    </section>
-
-    
-    
-
+            <listitem>
+                <para>
+                    <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">JBossWS Tools Forum.</ulink>
+                </para>
+            </listitem>            
+        </itemizedlist>   
+</section>
 </chapter>

@@ -5,6 +5,17 @@
     <title>Revision History</title>
     <simpara>
         <revhistory>
+		<revision>
+                <revnumber>3.0</revnumber><date>Mon Jun 27 2011</date>
+                <author>
+                    <firstname>Isaac</firstname><surname>Rooskov</surname><email></email>
+                </author>
+                <revdescription>
+                    <simplelist>
+                        <member>Updated with new information concerning JBoss Web Service Code Generation Configuration</member>
+                    </simplelist>
+                </revdescription>
+            </revision>
             <revision>
                 <revnumber>2.0</revnumber><date>Tue Nov 16 2010</date>
                 <author>

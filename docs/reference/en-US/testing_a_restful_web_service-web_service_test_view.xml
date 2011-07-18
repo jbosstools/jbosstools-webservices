@@ -4,31 +4,41 @@
 %BOOK_ENTITIES;
    ]>-->
 <section id="web_service_test_view-testing_a_restful_web_service">
-  <title>Testing a RESTful Web Service</title>
+  <title>Testing a RESTful Web Service</title> 
   <para>
-    Testing a RESTful (<acronym>JAX-RS</acronym>) web service is achieved by following a similar procedure to testing a JAX-WS web service. Instead of selecting the JAX-WS option in the combo box, the JAX-RS service is invoked by sending HTTP method requests of the form OPTIONS, GET, POST, PUT and DELETE. As there is no WSDL file associated with a JAX-RS service, the available options can be determined by selecting <guilabel>OPTIONS</guilabel> in the combo box.
+    Testing a RESTful ( 
+    <acronym>
+      JAX-RS
+    </acronym>
+     ) web service is achieved by following a similar procedure to testing a JAX-WS web service. Instead of selecting the JAX-WS option in the combobox, the JAX-RS service is invoked by sending HTTP method requests of the form OPTIONS, GET, POST, PUT and DELETE. As there is no WSDL file associated with a JAX-RS service, the available options can be determined by selecting <guilabel> OPTIONS </guilabel> in the combobox.
   </para>
-   <para>
-    A JAX-RS web service can be tested by using the <guilabel>Web Service Tester View </guilabel> displayed in <xref linkend="figure-jbt-web_service_test_view"/>. The JAX-RS test is specified by:
+   
+  <para>
+    A JAX-RS web service can be tested by using the <guilabel> Web Service Tester View </guilabel> displayed in <xref linkend="figure-jbt-web_service_test_view"/>. The JAX-RS test is specified by:
   </para>
+   
   <orderedlist>
     <listitem>
       <para>
-        Selecting the <guilabel>OPTIONS</guilabel> combo box option.
+        Selecting the <guilabel> OPTIONS </guilabel> combobox option.
       </para>
     </listitem>
+     
     <listitem id="restful_step2">
       <para>
         Entering the url of the JAX-RS web service.
       </para>
     </listitem>
-    </orderedlist>
-    <para>
-      The test procedure is discussed in the following sections for both the <application>RestfulSample</application> and the <application>RESTEasy</application> sample projects developed earlier. 
-    </para>
-    <xi:include href="restfulsample_project-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
-    <xi:include href="resteasy_sample_project-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
-    <!--
+  </orderedlist>
+   
+  <para>
+    The test procedure is discussed in the following sections for both the <application>RestfulSample</application> and the <application>RESTEasy</application> sample projects developed earlier.
+  </para>
+   
+  <xi:include href="restfulsample_project-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+   
+  <xi:include href="resteasy_sample_project-web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+<!--
     <formalpara><title>Testing a JAX-RS web service - Preliminaries</title>
       <para>
         <xref linkend="proc-jbt-test_JAX-RS_prelim"/>  lists the preliminary steps required before testing a JAX-RS web service project.     
