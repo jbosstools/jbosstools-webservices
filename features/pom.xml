@@ -15,6 +15,7 @@
 	<modules>
 		<module>org.jboss.tools.ws.feature</module>
 		<module>org.jboss.tools.ws.jaxrs.feature</module>
+		<module>org.jboss.tools.ws.tests.feature</module>
 	</modules>
 </project>
 	

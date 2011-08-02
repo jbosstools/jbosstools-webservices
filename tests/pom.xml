@@ -17,6 +17,7 @@
 		<module>org.jboss.tools.ws.creation.core.test</module>
 		<module>org.jboss.tools.ws.ui.test</module>
 		<module>org.jboss.tools.ws.jaxrs.core.test</module>
+		<module>org.jboss.tools.ws.ui.bot.test</module>
 	</modules>
 </project>
 	
