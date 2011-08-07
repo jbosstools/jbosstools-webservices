@@ -11,7 +11,7 @@
     </para>
     <formalpara><title>Result:</title>
       <para>
-        The SOAP message details are displayed in the <guilabel>Body Text</guilabel> textbox of the <guilabel>Request Details</guilabel> panel.
+        The SOAP message details are displayed in the <guilabel>Request Body</guilabel> textbox of the <guilabel>Request Details</guilabel> panel.
       </para>
     </formalpara>
    <figure id="figure-jbt-test_JAX-WS_02">
