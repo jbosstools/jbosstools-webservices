@@ -317,7 +317,7 @@
               </listitem>
               <listitem>
                 <para>
-                <emphasis> <property>Package name</property> </emphasis> : input a package name. You can click the Brown button to choose one. If you don't input a package name, system will generate one for you. 
+                <emphasis> <property>Package name</property> </emphasis> : input a package name. You can click the Browse button to choose one. If you don't input a package name, system will generate one for you. 
                 </para>
               </listitem>
               <listitem>
