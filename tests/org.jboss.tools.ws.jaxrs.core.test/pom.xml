@@ -20,15 +20,15 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.sonatype.tycho</groupId>
-				<artifactId>maven-osgi-compiler-plugin</artifactId>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-compiler-plugin</artifactId>
 				<version>${tychoVersion}</version>
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
 			</plugin>
-			<!-- plugin> <groupId>org.sonatype.tycho</groupId> <artifactId>maven-osgi-test-plugin</artifactId> 
+			<!-- plugin> <groupId>org.eclipse.tycho</groupId> <artifactId>tycho-surefire-plugin</artifactId> 
 				 <configuration> <useUIHarness>false</useUIHarness> 
 				<surefire.timeout>3600</surefire.timeout> <forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds> 
 				<includes> <include>**/TestCase.class</include> <include>**/*TestSuite*.class</include> 
