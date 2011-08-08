@@ -91,7 +91,7 @@
     <para>Click the <guibutton>Invoke</guibutton> button.</para>
     <formalpara><title>Result:</title>
       <para>
-	 The <guilabel>Response Headers</guilabel> area indicated that a record was created and lists the location as <ulink url="http://localhost:8080/simple/rest-services/cuntomers/1">http://localhost:8080/simple/rest-services/cuntomers/1</ulink> as shown in <xref linkend="figure-jbt-test_resteasy_JAX-RS_05"/>.
+	 The <guilabel>Response Headers</guilabel> area indicated that a record was created and lists the location as <ulink url="http://localhost:8080/simple/rest-services/customers/1">http://localhost:8080/simple/rest-services/customers/1</ulink> as shown in <xref linkend="figure-jbt-test_resteasy_JAX-RS_05"/>.
       </para>
     </formalpara>
    <figure id="figure-jbt-test_resteasy_JAX-RS_05">
