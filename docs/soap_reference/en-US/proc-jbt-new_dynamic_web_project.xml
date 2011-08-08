@@ -242,7 +242,7 @@
         </table> 
          
            <table id="table-jbt-new_dynamic_web_project_03">
-            <title>New Dymanic Project - Configuration</title>
+            <title>New Dynamic Project - Configuration</title>
             <tgroup cols='2' align='left' colsep='1' rowsep='1'>
             <colspec colname='c1' colwidth="1*"/>
             <colspec colname='c2' colwidth="2*"/>
@@ -333,7 +333,7 @@
        <!-- <para>&HORIZ_LINE;</para>-->
       </step>
       <step>
-        <title>Define the source and ouput folders</title>
+        <title>Define the source and output folders</title>
           <para>
             Define the Dynamic Web Project source and output folders by adding or editing folders as required.
           </para>
