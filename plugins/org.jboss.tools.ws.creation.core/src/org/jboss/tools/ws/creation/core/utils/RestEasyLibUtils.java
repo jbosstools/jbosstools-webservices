@@ -29,7 +29,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.JBossWSCreationCorePlugin;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
 /**
@@ -39,7 +38,8 @@ import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 public class RestEasyLibUtils {
 
 	private static final String REST_EASY = "RestEasy"; //$NON-NLS-1$
-	private static final String JAXRS_API_JAR = "jaxrs-api.jar"; //$NON-NLS-1$
+	private static final String JAXRS_API_PREFIX = "jaxrs-api"; //$NON-NLS-1$
+	private static final String JAXRS_API_POSTFIX = ".jar"; //$NON-NLS-1$
 	private static final String LIB = "lib"; //$NON-NLS-1$
 	
 	/**
@@ -105,7 +105,7 @@ public class RestEasyLibUtils {
 				if (libDir.exists() && libDir.isDirectory()) {
 					File[] jars = libDir.listFiles(new FilenameFilter() {
 						public boolean accept(File dir, String name) {
-							if (name.equalsIgnoreCase(JAXRS_API_JAR)) {
+							if (name.startsWith(JAXRS_API_PREFIX) && name.endsWith(JAXRS_API_POSTFIX)) {
 								return true;
 							}
 							return false;
