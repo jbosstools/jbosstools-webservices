@@ -7,7 +7,7 @@
 		<version>1.2.2-SNAPSHOT</version>
 	</parent>
 	<groupId>org.jboss.tools.ws.features</groupId>
-	<artifactId>org.jboss.tools.ws.tests.feature</artifactId>
+	<artifactId>org.jboss.tools.ws.test.feature</artifactId>
 
 	<packaging>eclipse-feature</packaging>
 </project>
