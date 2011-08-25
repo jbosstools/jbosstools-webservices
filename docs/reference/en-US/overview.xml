@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<chapter id="overview">
+  <title>JBossWS Runtime and Tools support Overview</title>
+  <para>JBossWS is a web service framework developed as a part of the JBoss Application Server. It implements the JAX-WS and JAX-RS specifications. JAX-WS (Java API for XML Web Services) defines a programming model and run-time architecture for implementing web services in Java, targeted at the Java Platform, Enterprise Edition 5 (Java EE 5). JAX-RS (Java API for RESTful Web Services) is a Java API that supports the creation of Representational State Transfer (REST) web services, using annotations. </para>
+  <para>JBossWS integrates with most current JBoss Application Server releases as well as earlier ones, that did implement the J2EE 1.4 specifications. Even though JAX-RPC, the web service specification for J2EE 1.4, is still supported JBossWS does put a clear focus on JAX-WS.</para>
+  <para>JBossWS Tool works with <property>JBossWS Runtime</property>. Users can easily create, deploy and run a Web Service(WSDL base or RESTful base) and a Web Service Client using JBossWS Tool and JBossWS Runtime.</para>
+  <para>Also JBossWS Tool gives a way to test a web service running on a server.</para>
+<section>
+    <title>Key Features of JBossWS</title>
+    
+    <para>For a start, we propose you to look through the table of main features of JBossWS Runtime:</para>
+    <table>
+        
+        <title>Key Functionality for JBossWS</title>
+        <tgroup cols="2">
+            
+            <colspec colnum="1" align="left" colwidth="2*"/>
+            <colspec colnum="2" colwidth="4*"/>
+           
+            
+            <thead>
+                <row>
+                    <entry>Feature</entry>
+                    <entry>Benefit</entry>
+                  
+                </row>
+            </thead>
+            
+            <tbody>
+                
+                <row>
+                    <entry><para>JAX-RPC and JAX-WS support</para></entry>
+                    <entry><para>JBossWS implements both the JAX-WS and JAX-RPC specifications.</para></entry>
+                   
+                </row>
+		
+		<row>
+		<entry>
+		   <para>JAX-RS support</para>
+		</entry>
+		<entry>
+                   <para>JBossWS implements the JAX-RS specification.</para>
+                </entry>
+                   
+                </row>
+                
+                <row>
+                    <entry><para>EJB 2.1, EJB3 and JSE endpoints</para></entry>
+                    <entry><para>JBossWS supports EJB 2.1, EJB3 and JSE as Web Service Endpoints.</para></entry>
+                    
+                </row>
+                
+                <row>
+                    <entry><para>WS-Security 1.0 for XML Encryption/Signature of the SOAP message</para></entry>
+                    <entry><para>WS-Security standardizes authorization, encryption, and digital signature processing of web services.</para></entry>
+                    
+                </row>
+                
+                <row>
+                    <entry><para>JBoss AS</para></entry>
+                    <entry><para>JBoss Application Server 5 (JavaEE 5 compliant) web service stack.</para></entry>
+                    
+                </row>
+                
+                <row>
+                    <entry><para>Support for MTOM/XOP and SwA-Ref</para></entry>
+                    <entry><para>Message Transmission Optimization Mechanism (MTOM) and XML-binary Optimized Packaging (XOP) more efficiently serialize XML Infosets that have certain types of content.</para></entry>
+                    
+                </row>
+                
+            </tbody>
+            
+        </tgroup>
+    </table>  
+</section>
+<section>
+        <title>Other relevant resources on the topic</title>
+
+        <para>You can find some extra information on:</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <ulink url="http://www.jboss.org/community/wiki/JBossWS-FAQ#Tools">JBossWS Wiki FAQ.</ulink>
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    <ulink url="http://www.jboss.com/index.html?module=bb&amp;op=viewforum&amp;f=201">JBossWS Tools Forum.</ulink>
+                </para>
+            </listitem>            
+        </itemizedlist>   
+</section>
+</chapter>

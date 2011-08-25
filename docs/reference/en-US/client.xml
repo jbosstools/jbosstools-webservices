@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<chapter id="client" revisionflag="added">
+  <title>Creating a Web Service Client from a WSDL Document using JBoss WS</title>
+  <para>To create a Web Service Client from a WSDL Document using JBoss WS you need to fulfil the following steps:</para>
+  <para>Setup <xref linkend="preference"/>.</para>
+  <para><xref linkend="createproject"/>.</para>
+  <para><xref linkend="addfacet"/>.</para>
+  <para>Then you can create a Web Service Client from a WSDL document: </para>
+     <itemizedlist>
+        <listitem>
+           <para>Switch to the Java EE perspective <emphasis><property>Window > Open Perspective > Java EE</property></emphasis>.</para>
+        </listitem>
+        <listitem>
+           <para>Click <emphasis><property>File > New > Other</property></emphasis>. Select Web Services in order to display the various Web service wizards. Select the Web Service Client wizard. Click on the <property>Next</property> button.</para> 
+             <figure>
+                <title>New Web Service Client</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/client/jbossws_client.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+        </listitem>
+        <listitem>
+           <para>The first and the second Web Service Client wizard pages are the same as for <xref linkend="topdownwebservice"/>.</para> 
+             <figure>
+                <title>Set Web Service Common values</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/client/jbossws_client_1.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+             <figure>
+                <title>Set Web Service values related to WSDL file</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata fileref="images/client/jbossws_client_2.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+           <para>The only difference is:</para>
+              <itemizedlist>
+                 <listitem>
+                    <para><property>Client Type:</property> Support  of Java Proxy only.</para>
+                 </listitem>
+               </itemizedlist>
+           <para>Click on the <property>Finish</property> button.</para>
+        </listitem>     
+     </itemizedlist>
+     <para>After the Web Service Client has been created, the following may occur depending on the options you selected:</para>
+     <itemizedlist>
+        <listitem>
+           <para> the generated web service and client codes</para>
+        </listitem>
+        <listitem>
+           <para>a client sample class.</para>
+             <figure>
+                <title>Client Sample Class</title>
+                <mediaobject>
+                   <imageobject>
+                      <imagedata scale="80" fileref="images/client/jbossws_client_3.png"></imagedata>
+                   </imageobject>
+                </mediaobject>
+             </figure>
+        </listitem>
+     </itemizedlist>
+     <para>JBoss WS use a Java class to test Web Service. A client sample class will be generated, you may run this client as a java application to call a web service.</para>
+   <note>
+      <title>Note:</title>
+      <para>To run <property>client sample</property> as a Java application you need a <property>JBoss Runtime</property> in build path.  </para>
+   </note>
+</chapter>
