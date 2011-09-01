@@ -17,3 +17,8 @@ where ${NATIVE_TOOLS}${SEP}${JAVA16} and ${NATIVE_TOOLS}${SEP}${JAVA15} may be s
 /opt/sun-java2-5.0/
 /opt/sun-java2-6.0/
 
+Thus, to run locally use something like this:
+
+export PATH=/opt/sun-java2-5.0/:$PATH
+mvn clean install -Djbosstools.test.jre.5="/opt/sun-java2-5.0/" -Djbosstools.test.jre.6="/opt/sun-java2-6.0/" 
+
