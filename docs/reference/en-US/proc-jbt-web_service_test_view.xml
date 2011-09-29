@@ -90,7 +90,7 @@
           </row>
            <row>
             <entry>Toolbar button - Invoke</entry>
-            <entry>Once the WSDL file has been selected, the service can be invoked by clicking this button. Reponse details will be displayed in the <guilabel>Response Details</guilabel> panel.</entry>
+            <entry>Once the WSDL file has been selected, the service can be invoked by clicking this button. Response details will be displayed in the <guilabel>Response Details</guilabel> panel.</entry>
           </row>
         </tbody>
       </tgroup>
@@ -146,7 +146,7 @@
           </row>
           <row>
             <entry>Response body</entry>
-            <entry>The JAX-WS and JAX-RS response bodies will be displayed in this box. The raw text returned form the web service invocation can be displayed by clicking the <guibutton>Show Raw</guibutton> button. The output will be embedded in a html browser by clicking the <guibutton>Show in Browser</guibutton> button. The output can alternatively be displayed in the Eclipse editor as xml or raw text (depending on the response content type) by clicking the <guibutton>Show in Editor</guibutton> button.</entry>
+            <entry>The JAX-WS and JAX-RS response bodies will be displayed in this box. The raw text returned from the web service invocation can be displayed by clicking the <guibutton>Show Raw</guibutton> button. The output will be embedded in a html browser by clicking the <guibutton>Show in Browser</guibutton> button. The output can alternatively be displayed in the Eclipse editor as xml or raw text (depending on the response content type) by clicking the <guibutton>Show in Editor</guibutton> button.</entry>
           </row>
           <row>
             <entry>Parameters</entry>
