@@ -80,7 +80,7 @@
           </row>
           <row>
             <entry>Combo box</entry>
-			<entry>Select the type of service to test. The options are <guilabel>JAX-WS</guilabel> or any other option to test a <guilabel>JAX-RS</guilabel> service using HTTP request methods (<methodname>PUT</methodname>, <methodname>GET</methodname>, <methodname>POST</methodname>, <methodname>DELETE</methodname> or <methodname>OPTIONS</methodname>).For RESTful web services use the <guilabel>JAX-RS</guilabel> service option.</entry>
+	    <entry>Select the type of service to test. The options are <guilabel>JAX-WS</guilabel> or any other option to test a <guilabel>JAX-RS</guilabel> service using HTTP request methods (<methodname>PUT</methodname>, <methodname>GET</methodname>, <methodname>POST</methodname>, <methodname>DELETE</methodname> or <methodname>OPTIONS</methodname>).</entry>
           </row>
           <row>
             <entry>Toolbar button - Get From WSDL</entry>
@@ -90,7 +90,7 @@
           </row>
            <row>
             <entry>Toolbar button - Invoke</entry>
-            <entry>Once the WSDL file has been selected, the service can be invoked by clicking this button. Reponse details will be displayed in the <guilabel>Response Details</guilabel> panel.</entry>
+            <entry>Once the WSDL file has been selected, the service can be invoked by clicking this button. Response details will be displayed in the <guilabel>Response Details</guilabel> panel.</entry>
           </row>
         </tbody>
       </tgroup>
@@ -122,7 +122,7 @@
           </row>
            <row>
             <entry>Body</entry>
-			<entry>Enter the input for the JAX-RS service invocations into this text box.</entry>
+            <entry>Enter the JAX-WS SOAP request messages or input for JAX-RS service invocations in this text box.</entry>
           </row>
         </tbody>
       </tgroup>
@@ -146,7 +146,7 @@
           </row>
           <row>
             <entry>Response body</entry>
-            <entry>The JAX-RS response bodies will be displayed in this box. The raw text returned form the web service invocation can be displayed by clicking the <guibutton>Show Raw</guibutton> button. The output will be embedded in a html browser by clicking the <guibutton>Show in Browser</guibutton> button. The output can alternatively be displayed in the Eclipse editor as xml or raw text (depending on the response content type) by clicking the <guibutton>Show in Editor</guibutton> button.</entry>
+            <entry>The JAX-WS and JAX-RS response bodies will be displayed in this box. The raw text returned from the web service invocation can be displayed by clicking the <guibutton>Show Raw</guibutton> button. The output will be embedded in a html browser by clicking the <guibutton>Show in Browser</guibutton> button. The output can alternatively be displayed in the Eclipse editor as xml or raw text (depending on the response content type) by clicking the <guibutton>Show in Editor</guibutton> button.</entry>
           </row>
           <row>
             <entry>Parameters</entry>
@@ -154,7 +154,7 @@
           </row>
            <row>
             <entry>Body</entry>
-            <entry>Enter the input for the JAX-RS service invocations into this text box.</entry>
+            <entry>Enter JAX-WS SOAP request messages and input for JAX-RS service invocations in this text box.</entry>
           </row>
         </tbody>
       </tgroup>
