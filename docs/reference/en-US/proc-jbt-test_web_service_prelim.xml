@@ -37,14 +37,14 @@
           <itemizedlist>
             <listitem>
               <para>
-                <xref linkend="proc-jbt-export-war_export"/> for the <application>RestfulSample</application> project; or
+				  <xref linkend="proc-jbt-export-war_export"/> for the <application>RestfulSample</application> project <!--; or <-->
               </para>
             </listitem>
-            <listitem>
+    <!--        <listitem>
               <para>
                 <xref linkend="proc-jbt-new_project_example"/> for the <application>RESTEasy</application> sample project.
               </para>
-            </listitem>
+		  </listitem> -->
           </itemizedlist>
         </para> 
       </step>
