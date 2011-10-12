@@ -145,6 +145,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder implements 
 	public final boolean visit(final IResourceDelta delta) throws CoreException {
 		IResource resource = delta.getResource();
 		if (resource.getType() == IResource.FILE && getProject().getFullPath().isPrefixOf(resource.getFullPath())
+				&& resource.getFullPath().getFileExtension() != null 
 				&& resource.getFullPath().getFileExtension().equals("java")) {
 			Metamodel metamodel = Metamodel.get(resource.getProject());
 			if (metamodel == null) {
