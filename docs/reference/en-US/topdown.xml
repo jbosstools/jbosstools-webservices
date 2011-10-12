@@ -342,7 +342,7 @@
               </listitem> 
               <listitem>
                 <para>
-                <emphasis> <property>Generate default Web Service implementation classes</property> </emphasis> : select it if you want to generate empty implementation classes for the selected WSDL Service.
+                <emphasis> <property>Generate default Web Service Implementation classes</property> </emphasis> : select it if you want to generate empty implementation classes for the selected WSDL Service.
                 </para>
               </listitem> 
               <listitem>

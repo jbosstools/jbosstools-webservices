@@ -85,7 +85,7 @@
           <row>
             <entry>Toolbar button - Get From WSDL</entry>
             <entry>
-              Click this button to display the <guilabel>Select WSDL</guilabel> dialog. Enter the <guibutton>URL</guibutton>, <guibutton>File system</guibutton> location or Eclipse <guibutton>Workspace</guibutton> location of the WSDL file. Given a vaild file, the dialog will allow selection of the <guilabel>Port</guilabel> and <guilabel>Operation</guilabel> to test. Once selected, the request details will be displayed in the <guilabel>Request Details</guilabel> panel.
+              Click this button to display the <guilabel>Select WSDL</guilabel> dialog. Enter the <guibutton>URL</guibutton>, <guibutton>File system</guibutton> location or Eclipse <guibutton>Workspace</guibutton> location of the WSDL file. Given a valid file, the dialog will allow selection of the <guilabel>Port</guilabel> and <guilabel>Operation</guilabel> to test. Once selected, the request details will be displayed in the <guilabel>Request Details</guilabel> panel.
             </entry>   
           </row>
            <row>

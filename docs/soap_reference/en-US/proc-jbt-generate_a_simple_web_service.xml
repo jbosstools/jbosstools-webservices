@@ -111,7 +111,7 @@
                  <entry>Service details</entry>
                   <entry>Service name</entry>
                   <entry>yes</entry>
-                  <entry>Enter the name to for the web service.</entry>
+                  <entry>Enter the name for the web service.</entry>
 		  <entry>The web service name will be the URL for the service as mapped in the deployment descriptor (<filename>web.xml</filename>).</entry>
                 </row>
 		<row>

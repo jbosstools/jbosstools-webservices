@@ -310,7 +310,7 @@
          set to 2.0 if your JBossWS runtime in JBoss Server is JBossWS native runtime. You can
          specify a catalog file and binding files if you have them. If you want the wizard to
          generate empty implementation classes for the Web Service, check the <emphasis>
-            <property moreinfo="none">Generate default Web Service implementation classes</property>
+            <property moreinfo="none">Generate default Web Service Implementation classes</property>
          </emphasis> check box. If you want to update the default Web.xml file with the Web Service
          servlets configured, check the <emphasis>
             <property moreinfo="none">Update the default Web.xml</property>
