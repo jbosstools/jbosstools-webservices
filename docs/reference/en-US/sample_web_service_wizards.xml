@@ -11,12 +11,12 @@
   <itemizedlist>
     <listitem>
       <para>
-        <guilabel>Create a sample Web Service</guilabel> for a JAX-WS web service; and
+        <guilabel>Create a Sample Web Service</guilabel> for a JAX-WS web service; and
       </para>
     </listitem>
     <listitem>
       <para>
-        <guilabel>Create a sample RESTful Web Service</guilabel> for a JAX-RS web service. 
+        <guilabel>Create a Sample RESTful Web Service</guilabel> for a JAX-RS web service. 
       </para>
     </listitem>
   </itemizedlist>  

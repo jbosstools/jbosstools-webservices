@@ -304,9 +304,60 @@
       </mediaobject>
     </figure>
 
-              
+    <itemizedlist>
+              <listitem>
+                <para>
+                <emphasis> <property>WSDL Service</property> </emphasis> :  display the services in your WSDL file, you can select one to generate Web Service.
+                </para>
+              </listitem>
+              <listitem>
+                <para>
+                <emphasis> <property>Source Folder</property> </emphasis> : display the source codes folder in your web project, you can select one to generate java codes.
+                </para>
+              </listitem>
+              <listitem>
+                <para>
+                <emphasis> <property>Package name</property> </emphasis> : input a package name. You can click the Browse button to choose one. If you don't input a package name, system will generate one for you. 
+                </para>
+              </listitem>
+              <listitem>
+                <para>
+                <emphasis> <property>JAX-WS specificaiton</property> </emphasis> : display the supported JAX-WS version, include, 2.0, 2.1, 2.2
+                </para>
+              </listitem>
+              <listitem>
+                <para>
+                <emphasis> <property>Catalog file</property> </emphasis> : specify a catalog file.
+                </para>
+              </listitem>
+              <listitem>
+                <para>
+                <emphasis> <property>Binding files</property> </emphasis> : specify some binding files that are used by your WSDL file
+                </para>
+              </listitem>    
+              <listitem>
+                <para>
+                <emphasis> <property>Enable binding extension support (Only available for JBossWS 3.0 or later)</property> </emphasis> : select it if you need the binding extension support. Only work based on JBossWS 3.0 or later.
+                </para>
+              </listitem> 
+              <listitem>
+                <para>
+                <emphasis> <property>Generate default Web Service Implementation classes</property> </emphasis> : select it if you want to generate empty implementation classes for the selected WSDL Service.
+                </para>
+              </listitem> 
+              <listitem>
+                <para>
+                <emphasis> <property>Update the default Web.xml</property> </emphasis> : update the Web.xml file with your Web Service servlets configured.
+                </para>
+              </listitem>
+              <listitem>
+                <para>
+                <emphasis> <property>Additional Options</property> </emphasis> : the senior options for the generating process. Only for the senior user.
+                </para>
+              </listitem>                                       
+    </itemizedlist>          
     <para>
-		On this page, the default package name comes from the namespace of the WSDL document, you also can change it to any valid package name you want. JAX-WS specification should be set to 2.0 if your JBossWS runtime in JBoss Server is JBossWS native runtime. You can specify a catalog file and binding files if you have them. If you want the wizard to generate empty implementation classes for the Web Service, check the <guilabel>Generate default Web Service implementation classes</guilabel> check box. If you want to update the default <filename>Web.xml</filename> file with the Web Service servlets configured, check the <guilabel>Update the default Web.xml</guilabel> check box. Click on the <guibutton>Next</guibutton> or on the <guibutton>Finish</guibutton> button to generate code. 
+    Click on the <emphasis> <property>Next</property> </emphasis> or on the <emphasis> <property>Finish</property> </emphasis> button to generate code.
     </para>
      
     <para>
