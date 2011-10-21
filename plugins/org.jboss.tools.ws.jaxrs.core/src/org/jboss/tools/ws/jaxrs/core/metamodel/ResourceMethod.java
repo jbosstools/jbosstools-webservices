@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -97,14 +98,22 @@ public class ResourceMethod extends BaseElement<IMethod> {
 			}
 			this.kind = nextKind;
 		}
-		IMethodBinding methodBinding = JdtUtils.resolveMethodBinding(javaMethod, compilationUnit);
+		if (this.kind == EnumKind.SUBRESOURCE_LOCATOR) {
+			IMethodBinding methodBinding = JdtUtils.resolveMethodBinding(
+					javaMethod, compilationUnit);
+			ITypeBinding javaReturnTypeBinding = methodBinding.getReturnType();
+			IJavaElement nextReturnType = javaReturnTypeBinding != null ? javaReturnTypeBinding
+					.getJavaElement() : null;
 
-		ITypeBinding javaReturnType = methodBinding.getReturnType();
-		IType nextReturnType = javaReturnType != null ? (IType) javaReturnType.getJavaElement() : null;
-		if ((nextReturnType != null && !nextReturnType.equals(this.returnType))
-				|| (this.returnType != null && !this.returnType.equals(nextReturnType))) {
-			changes.add(EnumElementChange.KIND);
-			this.returnType = nextReturnType;
+			if (nextReturnType.getElementType() == IJavaElement.TYPE
+					&& ((nextReturnType != null && !nextReturnType
+							.equals(this.returnType)) || (this.returnType != null && !this.returnType
+							.equals(nextReturnType)))) {
+				changes.add(EnumElementChange.KIND);
+				this.returnType = (IType) nextReturnType;
+			}
+		} else {
+			this.returnType = null;
 		}
 
 		return changes;
