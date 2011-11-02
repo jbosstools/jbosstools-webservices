@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<chapter id="Working_with_RESTful_web_services">
+	<title>Working with RESTful web services</title>
+	<para>
+		After JAX-RS support has been enabled, a <guilabel>RESTful Web Services</guilabel> node will appear within the project file list, in the <guilabel>Project Explorer</guilabel>. This node outlines the various RESTful services that your project contains. 
+	</para>
+	<figure id="working_with_RESTful_01">
+		<title>Working with RESTful web services</title>
+		<mediaobject>
+			<imageobject>
+				<imagedata fileref="images/working_with_RESTful_01.png" format="PNG"/>
+			</imageobject>
+			<textobject>
+				<para>Working with RESTful web services</para>
+			</textobject>
+		</mediaobject>
+	</figure>
+	<para>
+		Each element in the navigator displays the resolved HTTP method (for example: GET and POST) followed by the Uniform Resource Identifier (URI) path template (for example: /customers/{id}). <property>@Path</property> annotations are available for resources and subresources, at the method level. Optional <property>@ApplicationPath</property> annotation is available only any subclass of <classname>javax.ws.rs.core.Application</classname>.
+	</para>
+	<para>
+		Under each element are the resolved, consumed and produced media types (based on the annotations you have supplied for the method or type) and the associated Java method.
+	</para>
+	<para>
+		To navigate to the related source code for a JAX-RS resource, double click the elements of the resource explorer and the related source code will be opened and highlighted. You can also copy the URI path template for later use.
+	</para>
+</chapter>

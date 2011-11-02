@@ -7,6 +7,8 @@
 <xi:include href="overview.xml" xmlns:xi="http://www.w3.org/2001/XInclude"></xi:include>
 <xi:include href="adding_JAX-RS_support_to_a_project.xml" xmlns:xi="http://www.w3.org/2001/XInclude">
 </xi:include>
+<xi:include href="working_with_RESTful_web_services.xml" xmlns:xi="http://www.w3.org/2001/XInclude">
+</xi:include>
 <xi:include href="sample_web_service_wizards.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
 <xi:include href="resteasy_simple_project_example.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
 <xi:include href="web_service_test_view.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
