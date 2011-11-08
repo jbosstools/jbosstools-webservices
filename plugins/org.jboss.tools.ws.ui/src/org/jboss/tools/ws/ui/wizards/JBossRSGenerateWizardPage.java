@@ -342,8 +342,10 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		// project not a dynamic web project
 		IFile web = ((JBossRSGenerateWizard) this.getWizard()).getWebFile();
 		if (web == null || !web.exists()) {
-			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
-			return false;
+			if (updateWebXML.getSelection()) {
+				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
+				return false;
+			}
 		}
 		
 		IStatus reInstalledStatus =

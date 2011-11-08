@@ -1,6 +1,6 @@
 /**
  * JBoss by Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual contributors as indicated
+ * Copyright 2011, Red Hat Middleware, LLC, and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -38,9 +38,10 @@ import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 public class RestEasyLibUtils {
 
 	private static final String REST_EASY = "RestEasy"; //$NON-NLS-1$
-	private static final String JAXRS_API_PREFIX = "jaxrs-api"; //$NON-NLS-1$
 	private static final String JAXRS_API_POSTFIX = ".jar"; //$NON-NLS-1$
 	private static final String LIB = "lib"; //$NON-NLS-1$
+	private static final String MODULES = "modules"; //$NON-NLS-1$
+
 	
 	/**
 	 * Simple check to see if the JBoss WS runtime associated with a project
@@ -96,6 +97,9 @@ public class RestEasyLibUtils {
 				if (dir.isDirectory() && name.equals(LIB)) {
 					return true;
 				}
+				else if (dir.isDirectory() && name.equals(MODULES)) {
+					return true;
+				}
 				return false;
 			}
 		});
@@ -103,21 +107,42 @@ public class RestEasyLibUtils {
 			for (int i = 0; i < children.length; i++) {
 				File libDir = (File) children[i];
 				if (libDir.exists() && libDir.isDirectory()) {
-					File[] jars = libDir.listFiles(new FilenameFilter() {
-						public boolean accept(File dir, String name) {
-							if (name.startsWith(JAXRS_API_PREFIX) && name.endsWith(JAXRS_API_POSTFIX)) {
-								return true;
-							}
-							return false;
-						}
-					});
-					if (jars != null && jars.length > 0) {
+					File temp = recursiveRESearch(libDir);
+					if (temp != null)
 						return libDir;
-					}
 				}
 			}
 		}
 		return null;
 	}
 
+	
+	/*
+	 * Recursive file search
+	 * @param input (file)
+	 * @return RestEasy jar indicating RE is installed
+	 */
+	private static File recursiveRESearch(File input) {
+		if( input.isDirectory() == true ){
+			for(int i=0; i<input.list().length; i++){
+				File temp = new File( input + "\\" + input.list()[i]); //$NON-NLS-1$
+				File temp2 = recursiveRESearch(temp);
+				if (temp2 != null)
+					return temp2;
+			}
+		}
+		else{
+			if (input.getName().length() > 0) {
+				String name = input.getName().toUpperCase();
+				boolean starts = name.startsWith(REST_EASY.toUpperCase());
+				boolean ends = name.endsWith(JAXRS_API_POSTFIX.toUpperCase());
+				if (starts && ends) {
+					return input;
+				}
+			}
+		}
+				
+		return null;
+	}
+	
 }
