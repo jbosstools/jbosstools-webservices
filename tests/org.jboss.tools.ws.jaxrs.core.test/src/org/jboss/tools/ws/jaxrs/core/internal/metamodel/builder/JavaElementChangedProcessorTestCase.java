@@ -8,6 +8,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_CONSUMED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_ELEMENT_KIND;
@@ -49,6 +52,7 @@ import javax.ws.rs.core.UriInfo;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMember;
@@ -105,28 +109,20 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		return httpMethod;
 	}
 
-	private IType getType(String typeName) throws CoreException {
-		return JdtUtils.resolveType(typeName, javaProject, progressMonitor);
+	
+	private Annotation createAnnotation(IAnnotation annotation, String name) {
+		return createAnnotation(annotation, name, null);
 	}
 
-	private IMethod getMethod(IType parentType, String methodName) throws JavaModelException {
-		return WorkbenchUtils.getMethod(parentType, methodName);
+	private Annotation createAnnotation(Class<?> clazz, String value) {
+		return createAnnotation(null, clazz.getName(), value);
 	}
-
-	private Annotation getAnnotation(final IMember member, final Class<?> annotationClass) throws JavaModelException {
-		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, progressMonitor), annotationClass);
+	
+	private Annotation createAnnotation(IAnnotation annotation, String name, String value) {
+		Map<String, List<String>> values = new HashMap<String, List<String>>();
+		values.put("value", Arrays.asList(value));
+		return new Annotation(annotation, name, values, null);
 	}
-
-	private Annotation getAnnotation(final IMember member, final Class<?> annotationClass, String... values)
-			throws JavaModelException {
-		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, progressMonitor),
-				annotationClass);
-		Map<String, List<String>> elements = new HashMap<String, List<String>>();
-		elements.put("value", Arrays.asList(values));
-		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getName(), elements));
-		return annotation;
-	}
-
 	private List<JaxrsElementChangedEvent> processEvent(JavaElementChangedEvent event, IProgressMonitor progressmonitor) {
 		return delegate.processEvents(Arrays.asList(event), progressmonitor);
 	}
@@ -411,7 +407,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
-		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		// operation
 		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
 		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
@@ -426,7 +422,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		metamodel.add(httpMethod);
-		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
 		// operation
 		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
 		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
@@ -440,7 +436,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddSubresourceLocatorWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
-		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		// operation
 		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
 		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
@@ -454,7 +450,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceWhenAddingSourceType() throws CoreException {
 		// pre-conditions
-		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		// operation
 		final JavaElementChangedEvent event = createEvent(type, ADDED);
 		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
@@ -470,7 +466,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceWhenAddingPathAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Path.class);
 		// operation
 		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
@@ -491,7 +487,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldBecomeRootResourceWhenAddingPathAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Path.class);
 		final IJaxrsResource resource = new JaxrsResource.Builder(type, metamodel).build();
 		metamodel.add(resource);
@@ -507,7 +503,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldNotAddResourceWhenAddingAnotherAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Consumes.class);
 		// operation
 		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
@@ -520,7 +516,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceWhenChangingPathAnnotationValue() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Path.class, "/bar");
 		final IJaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
 		metamodel.add(resource);
@@ -537,7 +533,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceWhenAddingConsumesAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Consumes.class);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
@@ -554,7 +550,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceWhenChangingConsumesAnnotationValue() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final Annotation consumesAnnotation = getAnnotation(type, Consumes.class, "application/foo");
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
@@ -572,7 +568,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceWhenRemovingConsumesAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final Annotation consumesAnnotation = getAnnotation(type, Consumes.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
@@ -590,7 +586,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceWhenAddingProducesAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -607,7 +603,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceWhenChangingProducesAnnotationValue() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Produces.class, "application/foo");
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
@@ -625,7 +621,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceWhenRemovingProducesAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Produces.class);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
@@ -643,7 +639,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceFieldWhenAddingPathParamAnnotationOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -657,6 +653,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	}
 
 	@Test
+	@Ignore
 	public void shouldAddResourceFieldWhenAddingImportPathParam() throws CoreException {
 		/*
 		 * // pre-conditions final IType type =
@@ -676,7 +673,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceFieldWhenAddingQueryParamAnnotationOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -692,7 +689,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceFieldWhenAddingMatrixParamAnnotationOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -708,7 +705,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithPathParam() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -724,7 +721,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithQueryParam() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -740,7 +737,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithMatrixParam() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -756,7 +753,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenAddingFieldWithAnyAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -771,7 +768,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenAddingAnotherAnnotationOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -786,7 +783,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingPathParamAnnotationValueOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -805,7 +802,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingQueryParamAnnotationValueOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -824,7 +821,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingMatrixParamAnnotationValueOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -843,7 +840,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenChangingAnotherAnnotationValueOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -861,7 +858,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingPathParamAnnotatedOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -880,7 +877,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingQueryParamAnnotationOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -899,7 +896,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingMatrixParamAnnotationOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -918,7 +915,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithQueryParam() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -937,7 +934,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithPathParam() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -957,7 +954,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithMatrixParam() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -976,7 +973,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenRemovingAnotherAnnotationOnField() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -991,7 +988,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenAnnotationValueRemainsSameOnResource() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor),
 				Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
@@ -1006,7 +1003,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingResourceWhenChangingAnotherAnnotationValue() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1021,7 +1018,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final IJaxrsResource resource = new JaxrsResource.Builder(type, metamodel).build();
 		metamodel.add(resource);
 		// operation
@@ -1037,7 +1034,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final IJaxrsResource resource = new JaxrsResource.Builder(type, metamodel).build();
 		metamodel.add(resource);
 		// operation
@@ -1053,7 +1050,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceWhenRemovingAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Path.class);
 		final IJaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
 		metamodel.add(resource);
@@ -1076,7 +1073,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1101,7 +1098,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1123,7 +1120,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenRemovingAnotherAnnotationOnResource() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final IJaxrsResource resource = new JaxrsResource.Builder(type, metamodel).build();
 		metamodel.add(resource);
 		// in case it would be removed
@@ -1141,7 +1138,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Consumes.class);
 		final IJaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
 		metamodel.add(resource);
@@ -1165,7 +1162,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS HttpMethod
 		metamodel.add(createHttpMethod(POST.class));
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1185,7 +1182,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS HttpMethod
 		metamodel.add(createHttpMethod(POST.class));
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1202,7 +1199,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	public void shouldAddSubresourceLocatorWhenAddingPathAnnotation() throws CoreException {
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1223,7 +1220,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1247,7 +1244,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(
 				getAnnotation(type, Path.class)).build();
 		metamodel.add(resource);
@@ -1274,7 +1271,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(
 				getAnnotation(type, Path.class)).build();
 		metamodel.add(resource);
@@ -1301,7 +1298,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(
 				getAnnotation(type, Path.class)).build();
 		metamodel.add(resource);
@@ -1325,7 +1322,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	public void shouldRemoveSubresourceLocatorWhenRemovingPathAnnotation() throws CoreException {
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(
 				getAnnotation(type, Path.class)).build();
 		metamodel.add(resource);
@@ -1350,7 +1347,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(
 				getAnnotation(type, Path.class)).build();
 		metamodel.add(resource);
@@ -1377,7 +1374,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1404,7 +1401,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1431,7 +1428,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1458,7 +1455,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1485,7 +1482,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(POST.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1512,7 +1509,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		metamodel.add(httpMethod);
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1542,7 +1539,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1550,9 +1547,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getCustomer");
 		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(), null);
 		final JavaMethodParameter contextParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(new Annotation(null, Context.class.getName())));
+				Arrays.asList(createAnnotation(Context.class, null)));
 		final IJaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName()))
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName(), javaProject))
 				.methodParameter(pathParameter).methodParameter(contextParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
@@ -1570,18 +1567,18 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
 		// JAX-RS Resource Method
 		final IMethod method = getMethod(type, "getCustomer");
 		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(),
-				Arrays.asList(new Annotation(null, PathParam.class.getName(), "foo!")));
+				Arrays.asList(createAnnotation(PathParam.class, "foo!")));
 		final JavaMethodParameter contextParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(new Annotation(null, Context.class.getName())));
+				Arrays.asList(createAnnotation(Context.class, null)));
 		final IJaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName()))
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName(), javaProject))
 				.methodParameter(pathParameter).methodParameter(contextParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
@@ -1598,19 +1595,19 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
 		// JAX-RS Resource Method
 		final IMethod method = getMethod(type, "updateCustomer");
 		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(),
-				Arrays.asList(new Annotation(null, PathParam.class.getName(), "id")));
+				Arrays.asList(createAnnotation(PathParam.class, "id")));
 		final JavaMethodParameter customerParameter = new JavaMethodParameter("update",
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", Arrays.asList(new Annotation(null,
-						PathParam.class.getName(), "foo")));
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", Arrays.asList(createAnnotation(
+						PathParam.class, "foo")));
 		final IJaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, PUT.class)).returnType(getType("void"))
+				.httpMethod(getAnnotation(method, PUT.class)).returnType(getType("void", javaProject))
 				.methodParameter(pathParameter).methodParameter(customerParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
@@ -1627,18 +1624,18 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
 		// JAX-RS Resource Method (size param is not declared)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(new Annotation(null, QueryParam.class.getName(), "start")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(new Annotation(null, Context.class.getName())));
+				Arrays.asList(createAnnotation(Context.class, null)));
 		final IJaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List"))
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(uriInfoParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
@@ -1655,20 +1652,20 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
 		// JAX-RS Resource Method (@QueryParam on 'size' param is not declared)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(new Annotation(null, QueryParam.class.getName(), "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(new Annotation(
-				null, DefaultValue.class.getName(), "2")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
+				DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(new Annotation(null, Context.class.getName())));
+				Arrays.asList(createAnnotation(Context.class, null)));
 		final IJaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List"))
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
 				.build();
 		metamodel.add(jaxrsMethod);
@@ -1686,7 +1683,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1694,13 +1691,13 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// "size" on second param)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(new Annotation(null, QueryParam.class.getName(), "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(new Annotation(
-				null, QueryParam.class.getName(), "length"), new Annotation(null, DefaultValue.class.getName(), "2")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
+				QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(new Annotation(null, Context.class.getName())));
+				Arrays.asList(createAnnotation(Context.class, null)));
 		final IJaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List"))
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
 				.build();
 		metamodel.add(jaxrsMethod);
@@ -1718,21 +1715,21 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
 		// JAX-RS Resource Method (an extra annotation on 'start' param)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int", Arrays.asList(
-				new Annotation(null, QueryParam.class.getName(), "start"),
-				new Annotation(null, DefaultValue.class.getName(), "0")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(new Annotation(
-				null, QueryParam.class.getName(), "size"), new Annotation(null, DefaultValue.class.getName(), "2")));
+				createAnnotation(QueryParam.class, "start"),
+				createAnnotation(DefaultValue.class, "0")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
+				QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(new Annotation(null, Context.class.getName())));
+				Arrays.asList(createAnnotation(Context.class, null)));
 		final IJaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List"))
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
 				.build();
 		metamodel.add(jaxrsMethod);
@@ -1768,7 +1765,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1776,13 +1773,13 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// 'javax.ws.rs.Response')
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(new Annotation(null, QueryParam.class.getName(), "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(new Annotation(
-				null, QueryParam.class.getName(), "size"), new Annotation(null, DefaultValue.class.getName(), "2")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
+				QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(new Annotation(null, Context.class.getName())));
+				Arrays.asList(createAnnotation(Context.class, null)));
 		final IJaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName()))
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName(), javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
 				.build();
 		metamodel.add(jaxrsMethod);
@@ -1792,7 +1789,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_RETURN_TYPE));
+		// annotations were not provided but are retrieved... 
+		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_RETURN_TYPE + F_METHOD_PARAMETERS));
 	}
 
 	@Test
@@ -1806,16 +1804,16 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// the method signature is changed
 		// pre-conditions
 		// Parent JAX-RS Resource
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
 		// JAX-RS Resource Method (@Context is not declared on 'uriInfo' param)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(new Annotation(null, QueryParam.class.getName(), "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(new Annotation(
-				null, QueryParam.class.getName(), "length"), new Annotation(null, DefaultValue.class.getName(), "2")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
+				QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(), null);
 		final IJaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
@@ -1843,7 +1841,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenAddingBasicJavaMethod() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1859,7 +1857,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenChangingBasicJavaMethod() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
@@ -1875,7 +1873,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenRemovingBasicJavaMethod() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);

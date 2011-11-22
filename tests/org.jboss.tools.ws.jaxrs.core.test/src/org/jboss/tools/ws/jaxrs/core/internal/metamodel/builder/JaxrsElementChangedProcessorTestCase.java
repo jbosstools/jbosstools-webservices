@@ -54,6 +54,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.*;
+
 public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase {
 
 	private JaxrsMetamodel metamodel;
@@ -68,7 +70,7 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 	}
 
 	private JaxrsResource createResource(String typeName) throws CoreException, JavaModelException {
-		final IType resourceType = getType(typeName);
+		final IType resourceType = getType(typeName, javaProject);
 		final JaxrsResource customerResource = new JaxrsResource.Builder(resourceType, metamodel).pathTemplate(
 				getAnnotation(resourceType, Path.class)).build();
 		metamodel.add(customerResource);
@@ -95,7 +97,7 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 	}
 
 	private JaxrsHttpMethod createHttpMethod(Class<?> annotationClass) throws JavaModelException, CoreException {
-		final IType type = getType(annotationClass.getName());
+		final IType type = getType(annotationClass.getName(), javaProject);
 		final Annotation httpAnnotation = getAnnotation(type, HttpMethod.class);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
@@ -109,31 +111,7 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		return endpoint;
 	}
 
-	private IType getType(String typeName) throws CoreException {
-		return JdtUtils.resolveType(typeName, javaProject, progressMonitor);
-	}
-
-	private IMethod getMethod(IType parentType, String methodName) throws JavaModelException {
-		return WorkbenchUtils.getMethod(parentType, methodName);
-	}
-
-	private Annotation getAnnotation(final IMember member, final Class<?> annotationClass) throws JavaModelException {
-		if (annotationClass == null) {
-			return null;
-		}
-		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, progressMonitor), annotationClass);
-	}
-
-	private Annotation getAnnotation(final IMember member, final Class<?> annotationClass, String... values)
-			throws JavaModelException {
-		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, progressMonitor),
-				annotationClass);
-		Map<String, List<String>> elements = new HashMap<String, List<String>>();
-		elements.put("value", Arrays.asList(values));
-		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getName(), elements));
-		return annotation;
-	}
-
+	
 	@Test
 	public void shouldConstructSimpleEndpoint() throws JavaModelException, CoreException {
 		// pre-conditions

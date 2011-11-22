@@ -655,6 +655,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		assertThat(javaAnnotation.getName(), equalTo(Path.class.getName()));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
+		assertThat(javaAnnotation.getRegion(), notNullValue());
 	}
 
 	@Test
@@ -670,8 +671,9 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(javaAnnotations.size(), equalTo(4));
 		for (Entry<String, Annotation> entry : javaAnnotations.entrySet()) {
-			assertThat(entry.getValue().getJavaAnnotation(), notNullValue());
 			assertThat(entry.getKey(), equalTo(entry.getValue().getName()));
+			assertThat(entry.getValue().getJavaAnnotation(), notNullValue());
+			assertThat(entry.getValue().getRegion(), notNullValue());
 		}
 	}
 

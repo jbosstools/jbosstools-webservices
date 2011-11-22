@@ -22,8 +22,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
@@ -46,10 +44,12 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
-/** Computes proposals for <code>java.ws.rs.PathParam</code> annotation values in
+/**
+ * Computes proposals for <code>java.ws.rs.PathParam</code> annotation values in
  * the compilation unit context.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class PathParamAnnotationValueCompletionProposalComputer implements IJavaCompletionProposalComputer {
 
 	/** Icon for completion proposals. */
@@ -101,7 +101,8 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		return Collections.emptyList();
 	}
 
-	/** Computes the valid proposals for the <code>javax.ws.rs.PathParam</code>
+	/**
+	 * Computes the valid proposals for the <code>javax.ws.rs.PathParam</code>
 	 * annotation value. The proposals are based on:
 	 * <ul>
 	 * <li>The values of the <code>javax.ws.rs.Path</code> annotations, both at
@@ -120,98 +121,51 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 * @throws BadLocationException
-	 * @throws org.eclipse.jface.text.BadLocationException */
+	 * @throws org.eclipse.jface.text.BadLocationException
+	 */
 	private List<ICompletionProposal> internalComputePathParamProposals(
 			final JavaContentAssistInvocationContext javaContext, final Annotation pathParamAnnotation,
 			final IJaxrsResourceMethod resourceMethod) throws CoreException, BadLocationException {
-		ITypedRegion region = getRegion(javaContext);
+		final List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
+		final ITypedRegion region = getRegion(javaContext);
 		String matchValue = javaContext.getDocument().get(region.getOffset(),
 				javaContext.getInvocationOffset() - region.getOffset());
-		// int cursorPosition = javaContext.getInvocationOffset();
-		List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
-		// compute proposals from @Path annotations on the method
-		completionProposals.addAll(generateCompletionProposal(resourceMethod.getPathAnnotation(), region, matchValue));
-		// compute proposals from @Path annotations on the type
-		completionProposals.addAll(generateCompletionProposal(resourceMethod.getParentResource().getPathAnnotation(),
-				region, matchValue));
-		return completionProposals;
-	}
+		if(matchValue.charAt(0) == '\"') {
+			matchValue = matchValue.substring(1);
+		}
+		List<String> proposals = resourceMethod.getPathParamValueProposals();
+		for (String proposal : proposals) {
+			if (proposal.startsWith(matchValue)) {
+				completionProposals.add(generateCompletionProposal(resourceMethod.getJavaElement(), region, proposal));
 
-	private List<ICompletionProposal> generateCompletionProposal(Annotation annotation, ITypedRegion region,
-			String matchValue) throws CoreException {
-		final List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
-		if (annotation != null) {
-			final String pathAnnotationValue = annotation.getValue("value");
-			if (pathAnnotationValue != null && pathAnnotationValue.contains("{") && pathAnnotationValue.contains("}")) {
-				List<String> uriParams = extractParamsFromUriTemplateFragment(pathAnnotationValue);
-				for (String uriParam : uriParams) {
-					String replacementValue = "\"" + uriParam + "\"";
-					if (replacementValue.startsWith(matchValue)) {
-						String displayString = uriParam + " - JAX-RS Mapping";
-						StyledString displayStyledString = new StyledString(displayString);
-						displayStyledString.setStyle(uriParam.length(), displayString.length() - uriParam.length(),
-								StyledString.QUALIFIER_STYLER);
-						completionProposals.add(new AnnotationCompletionProposal(replacementValue, displayStyledString,
-								region, icon, (IMember) annotation.getJavaParent()));
-					}
-				}
 			}
 		}
 		return completionProposals;
 	}
 
-	private static List<String> extractParamsFromUriTemplateFragment(String fragment) {
-		List<String> params = new ArrayList<String>();
-		int beginIndex = -1;
-		while ((beginIndex = fragment.indexOf("{", beginIndex + 1)) != -1) {
-			int semicolonIndex = fragment.indexOf(":", beginIndex);
-			int closingCurlyBraketIndex = fragment.indexOf("}", beginIndex);
-			int endIndex = semicolonIndex != -1 ? semicolonIndex : closingCurlyBraketIndex;
-			params.add(fragment.substring(beginIndex + 1, endIndex).trim());
-		}
-		return params;
+	private ICompletionProposal generateCompletionProposal(IMember member, ITypedRegion region, String proposalValue)
+			throws CoreException {
+		String replacementValue = "\"" + proposalValue + "\"";
+		String displayString = proposalValue + " - JAX-RS Mapping";
+		StyledString displayStyledString = new StyledString(displayString);
+		displayStyledString.setStyle(proposalValue.length(), displayString.length() - proposalValue.length(),
+				StyledString.QUALIFIER_STYLER);
+		return new AnnotationCompletionProposal(replacementValue, displayStyledString, region, icon, member);
 	}
 
-	/** Resolves the typed region for the given java content assist invocation
+	/**
+	 * Resolves the typed region for the given java content assist invocation
 	 * context.
 	 * 
 	 * @param javaContext
 	 *            the java content assist invocation context
-	 * @return the typed region */
+	 * @return the typed region
+	 */
 	private ITypedRegion getRegion(final JavaContentAssistInvocationContext javaContext) {
 		IDocument document = javaContext.getDocument();
 		IDocumentPartitioner documentPartitioner = ((IDocumentExtension3) document)
 				.getDocumentPartitioner(IJavaPartitions.JAVA_PARTITIONING);
 		return documentPartitioner.getPartition(javaContext.getInvocationOffset());
-	}
-
-	/** Returns the enclosing java type for the given java element.
-	 * 
-	 * @param element
-	 *            the element
-	 * @return the enclosing type, or null if the given element is neither a
-	 *         method nor the type itself
-	 * @throws JavaModelException
-	 *             in case of underlying exception */
-	private IType getEnclosingType(final IJavaElement element) throws JavaModelException {
-		if (element == null) {
-			// no enclosing parent. For example, an annotation is set before the
-			// method itself was written.
-			return null;
-		}
-		switch (element.getElementType()) {
-		case IJavaElement.TYPE:
-			return (IType) element;
-		case IJavaElement.METHOD:
-			return (IType) element.getParent();
-		case IJavaElement.FIELD:
-			return null;
-		default:
-			break;
-		}
-		// Logger.error("Unexpected element type for " +
-		// element.getElementName() + ": " + element.getElementType());
-		return null;
 	}
 
 	/** {@inheritDoc} */

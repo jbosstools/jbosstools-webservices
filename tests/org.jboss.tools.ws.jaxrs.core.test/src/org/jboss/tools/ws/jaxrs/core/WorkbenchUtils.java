@@ -22,8 +22,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +65,8 @@ import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.osgi.framework.Bundle;
@@ -811,6 +815,27 @@ public class WorkbenchUtils {
 		// refresh/build project
 		WorkbenchTasks.buildProject(javaProject.getProject(), progressMonitor);
 		return found;
+	}
+
+	public static Annotation getAnnotation(final IMember member, final Class<?> annotationClass) throws JavaModelException {
+		if(annotationClass == null) {
+			return null;
+		}
+		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationClass);
+	}
+
+	public static Annotation getAnnotation(final IMember member, final Class<?> annotationClass, String... values)
+			throws JavaModelException {
+		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null),
+				annotationClass);
+		Map<String, List<String>> elements = new HashMap<String, List<String>>();
+		elements.put("value", Arrays.asList(values));
+		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getName(), elements, null));
+		return annotation;
+	}
+
+	public static IType getType(String typeName, IJavaProject javaProject) throws CoreException {
+		return JdtUtils.resolveType(typeName, javaProject, null);
 	}
 
 }

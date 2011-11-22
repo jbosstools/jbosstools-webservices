@@ -32,45 +32,6 @@ public class Annotation {
 		this.region = region;
 	}
 
-	/** convenient constructor: no typed region specified
-	 * 
-	 * @param annotation
-	 * @param name
-	 * @param annotationElements */
-	public Annotation(IAnnotation annotation, String name, Map<String, List<String>> annotationElements) {
-		this.javaAnnotation = annotation;
-		this.javaAnnotationName = name;
-		this.javaAnnotationElements = new HashMap<String, List<String>>(annotationElements);
-		this.region = null;
-	}
-
-	/** Convenient constructor : only one element named "value", whose value is
-	 * given in parameter
-	 * 
-	 * @param annotation
-	 * @param name */
-	public Annotation(IAnnotation annotation, String name) {
-		this.javaAnnotation = annotation;
-		this.javaAnnotationName = name;
-		this.javaAnnotationElements = new HashMap<String, List<String>>();
-		this.region = null;
-	}
-
-	/** Convenient constructor : no element provided
-	 * 
-	 * @param annotation
-	 * @param name
-	 * @param singleElementValue */
-	public Annotation(IAnnotation annotation, String name, String singleElementValue) {
-		this.javaAnnotation = annotation;
-		this.javaAnnotationName = name;
-		this.javaAnnotationElements = new HashMap<String, List<String>>();
-		if (singleElementValue != null) {
-			this.javaAnnotationElements.put("value", Arrays.asList(singleElementValue));
-		}
-		this.region = null;
-	}
-
 	public boolean update(Annotation annotation) {
 		assert annotation != null;
 

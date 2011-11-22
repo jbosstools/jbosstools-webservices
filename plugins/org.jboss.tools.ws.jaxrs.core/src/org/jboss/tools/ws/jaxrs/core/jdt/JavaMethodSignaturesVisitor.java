@@ -10,22 +10,45 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.TypedRegion;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 public class JavaMethodSignaturesVisitor extends ASTVisitor {
 
 	private final ICompilationUnit compilationUnit;
 
+	private final IMethod method;
+
 	private final List<JavaMethodSignature> methodSignatures = new ArrayList<JavaMethodSignature>();
 
-	public JavaMethodSignaturesVisitor(ICompilationUnit compilationUnit2) {
-		this.compilationUnit = compilationUnit2;
+	/**
+	 * Constructor to use when you need all Java Method signatures in the given
+	 * compilation unit
+	 * 
+	 * @param method
+	 */
+	public JavaMethodSignaturesVisitor(ICompilationUnit compilationUnit) {
+		this.compilationUnit = compilationUnit;
+		this.method = null;
+	}
+
+	/**
+	 * Constructor to use when you only need a single Java Method signature
+	 * 
+	 * @param method
+	 */
+	public JavaMethodSignaturesVisitor(IMethod method) {
+		this.compilationUnit = method.getCompilationUnit();
+		this.method = method;
 	}
 
 	/*
@@ -38,6 +61,10 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	public boolean visit(MethodDeclaration declaration) {
 		try {
 			IMethod method = (IMethod) compilationUnit.getElementAt(declaration.getStartPosition());
+			if (this.method != null && !this.method.getHandleIdentifier().equals(method.getHandleIdentifier())) {
+				return true;
+			}
+
 			final IMethodBinding methodBinding = declaration.resolveBinding();
 			// sometimes, the binding cannot be resolved
 			if (methodBinding == null) {
@@ -45,27 +72,33 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 			} else {
 				final IType returnedType = methodBinding.getReturnType() != null ? (IType) methodBinding
 						.getReturnType().getJavaElement() : null;
-				final ITypeBinding[] parameterTypeBindings = methodBinding.getParameterTypes();
 				List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
 				@SuppressWarnings("unchecked")
 				List<SingleVariableDeclaration> parameters = declaration.parameters();
-				for (int i = 0; i < parameterTypeBindings.length; i++) {
-					final ITypeBinding parameterTypeBinding = parameterTypeBindings[i];
-					final String paramTypeName = parameterTypeBinding.getQualifiedName();
-					final String paramName = parameters.get(i).getName().getFullyQualifiedName();
-					final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
-					final IAnnotationBinding[] parameterAnnotationBindings = methodBinding.getParameterAnnotations(i);
-					for (IAnnotationBinding parameterAnnotationBinding : parameterAnnotationBindings) {
-						final String annotationName = parameterAnnotationBinding.getAnnotationType().getBinaryName();
-						// ((IType)parameterAnnotationBinding.getAnnotationType().getJavaElement()).getF
-						final Map<String, List<String>> annotationElements = resolveAnnotationElements(parameterAnnotationBinding);
-						// method parameters are not eligible java elements...
-						paramAnnotations.add(new Annotation(null, annotationName, annotationElements));
+				for (SingleVariableDeclaration parameter : parameters) {
+					final String paramName = parameter.getName().getFullyQualifiedName();
+					final IVariableBinding paramBinding = parameter.resolveBinding();
+					final String paramTypeName = paramBinding.getType().getQualifiedName();
+					final List<org.jboss.tools.ws.jaxrs.core.jdt.Annotation> paramAnnotations = new ArrayList<org.jboss.tools.ws.jaxrs.core.jdt.Annotation>();
+					final List<?> modifiers = (List<?>) (parameter
+							.getStructuralProperty(SingleVariableDeclaration.MODIFIERS2_PROPERTY));
+					for (Object modifier : modifiers) {
+						if (modifier instanceof Annotation) {
+							final Annotation annotation = (Annotation) modifier;
+							IAnnotationBinding annotationBinding = annotation.resolveAnnotationBinding();
+							final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
+							final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
+							final TypedRegion typedRegion = new TypedRegion(annotation.getStartPosition(),
+									annotation.getLength(), IDocument.DEFAULT_CONTENT_TYPE);
+							paramAnnotations.add(new org.jboss.tools.ws.jaxrs.core.jdt.Annotation(null, annotationName,
+									annotationElements, typedRegion));
+						}
 					}
 					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations));
 				}
+
 				// TODO : add support for thrown exceptions
-				methodSignatures.add(new JavaMethodSignature(method, returnedType, methodParameters));
+				this.methodSignatures.add(new JavaMethodSignature(method, returnedType, methodParameters));
 			}
 		} catch (JavaModelException e) {
 			Logger.error("Failed to analyse compilation unit methods", e);
@@ -90,7 +123,16 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	}
 
 	/** @return the methodDeclarations */
+	public JavaMethodSignature getMethodSignature() {
+		if (this.methodSignatures.size() == 0) {
+			return null;
+		}
+		return this.methodSignatures.get(0);
+
+	}
+
+	/** @return the methodDeclarations */
 	public List<JavaMethodSignature> getMethodSignatures() {
-		return methodSignatures;
+		return this.methodSignatures;
 	}
 }

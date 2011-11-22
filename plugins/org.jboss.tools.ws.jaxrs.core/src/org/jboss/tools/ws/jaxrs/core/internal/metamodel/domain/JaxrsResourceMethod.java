@@ -334,4 +334,37 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		return false;
 	}
 
+	@Override
+	public List<String> getPathParamValueProposals() {
+		List<String> proposals = new ArrayList<String>();
+		final Annotation methodPathAnnotation = getPathAnnotation();
+		if(methodPathAnnotation != null) {
+			final String value = methodPathAnnotation.getValue("value");
+			proposals.addAll(extractParamsFromUriTemplateFragment(value));
+		}
+		final Annotation typePathAnnotation = getParentResource().getPathAnnotation();
+		if(typePathAnnotation != null) {
+			final String value = typePathAnnotation.getValue("value");
+			proposals.addAll(extractParamsFromUriTemplateFragment(value));
+		}
+		return proposals;
+	}
+	
+	/**
+	 * Extracts all the character sequences inside of curly braces ('{' and '}') and returns them as a list of strings
+	 * @param value the given value
+	 * @return the list of character sequences, or an empty list
+	 */
+	private static List<String> extractParamsFromUriTemplateFragment(String value) {
+		List<String> params = new ArrayList<String>();
+		int beginIndex = -1;
+		while ((beginIndex = value.indexOf("{", beginIndex + 1)) != -1) {
+			int semicolonIndex = value.indexOf(":", beginIndex);
+			int closingCurlyBraketIndex = value.indexOf("}", beginIndex);
+			int endIndex = semicolonIndex != -1 ? semicolonIndex : closingCurlyBraketIndex;
+			params.add(value.substring(beginIndex + 1, endIndex).trim());
+		}
+		return params;
+	}
+
 }

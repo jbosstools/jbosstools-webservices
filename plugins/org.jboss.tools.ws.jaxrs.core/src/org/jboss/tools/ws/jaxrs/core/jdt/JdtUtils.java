@@ -247,8 +247,8 @@ public final class JdtUtils {
 		if (member.isBinary()) {
 			IAnnotatable javaElement = (IAnnotatable) member;
 			final IAnnotation annotation = javaElement.getAnnotation(annotationName);
-			if (annotation.exists()) {
-				return new Annotation(annotation, annotation.getElementName(), resolveAnnotationElements(annotation));
+			if (annotation != null && annotation.exists()) {
+				return new Annotation(annotation, annotation.getElementName(), resolveAnnotationElements(annotation), null);
 			}
 			return null;
 		}
@@ -291,7 +291,7 @@ public final class JdtUtils {
 				final IAnnotation annotation = javaElement.getAnnotation(annotationName);
 				if (annotation.exists()) {
 					annotations.put(annotationName, new Annotation(annotation, annotation.getElementName(),
-							resolveAnnotationElements(annotation)));
+							resolveAnnotationElements(annotation), null));
 				}
 			}
 			return annotations;
@@ -754,7 +754,7 @@ public final class JdtUtils {
 	}
 
 	public static JavaMethodSignature resolveMethodSignature(IMethod method, CompilationUnit ast) {
-		JavaMethodSignatureVisitor methodsVisitor = new JavaMethodSignatureVisitor(method);
+		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(method);
 		ast.accept(methodsVisitor);
 		return methodsVisitor.getMethodSignature();
 	}

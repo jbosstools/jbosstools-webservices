@@ -42,5 +42,12 @@ public interface IJaxrsResourceMethod extends IJaxrsElement<IMethod> {
 	abstract List<String> getProducedMediaTypes();
 
 	List<JavaMethodParameter> getJavaMethodParameters();
+	
+	/**
+	 * Determines the proposals for the PathParam annotated method parameters of the underlying Java Method.
+	 * This list is based on the @Path annotation found on the Java Method and on the parent Java Type.
+	 * @return
+	 */
+	List<String> getPathParamValueProposals();
 
 }
