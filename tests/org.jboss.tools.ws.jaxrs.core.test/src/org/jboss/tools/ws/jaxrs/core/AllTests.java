@@ -11,7 +11,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFacto
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodelTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidatorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtilsTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.PathParamValidationTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepositoryTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.pubsub.PubSubServiceTestCase;
@@ -25,7 +24,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		JavaElementChangedEventFilterTestCase.class, JavaElementChangedProcessorTestCase.class,
 		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelBuildJobTestCase.class,
 		JaxrsElementFactoryTestCase.class, JaxrsMetamodelTestCase.class, CollectionUtilsTestCase.class,
-		PathParamValidationTestCase.class, PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class })
+		PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class })
 public class AllTests {
 
 }
