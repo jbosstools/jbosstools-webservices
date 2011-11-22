@@ -1,0 +1,317 @@
+package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
+
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_CONSUMED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_PRODUCED_MEDIATYPES_VALUE;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.QueryParam;
+
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
+
+public class JaxrsEndpoint implements IJaxrsEndpoint {
+
+	private final IJaxrsHttpMethod httpMethod;
+
+	private final LinkedList<IJaxrsResourceMethod> resourceMethods;
+
+	private String uriPathTemplate = null;
+
+	private List<String> consumedMediaTypes = null;
+
+	private List<String> producedMediaTypes = null;
+
+	public JaxrsEndpoint(IJaxrsHttpMethod httpMethod, IJaxrsResourceMethod resourceMethod) {
+		this(httpMethod, new LinkedList<IJaxrsResourceMethod>(Arrays.asList(resourceMethod)));
+	}
+
+	public JaxrsEndpoint(IJaxrsHttpMethod httpMethod, LinkedList<IJaxrsResourceMethod> resourceMethods) {
+		this.httpMethod = httpMethod;
+		this.resourceMethods = resourceMethods;
+		refreshUriPathTemplate();
+		refreshConsumedMediaTypes();
+		refreshProducedMediaTypes();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		final IMethod javaMethod = resourceMethods.getLast().getJavaElement();
+		return (httpMethod != null ? httpMethod.getHttpVerb() : null) + " " + uriPathTemplate + " | consumes:"
+				+ consumedMediaTypes + " | produces=" + producedMediaTypes + " in method "
+				+ javaMethod.getParent().getElementName() + "." + javaMethod.getElementName() + "(...)";
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((consumedMediaTypes == null) ? 0 : consumedMediaTypes.hashCode());
+		result = prime * result + ((httpMethod == null) ? 0 : httpMethod.hashCode());
+		result = prime * result + ((producedMediaTypes == null) ? 0 : producedMediaTypes.hashCode());
+		result = prime * result + ((resourceMethods == null) ? 0 : resourceMethods.hashCode());
+		result = prime * result + ((uriPathTemplate == null) ? 0 : uriPathTemplate.hashCode());
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		JaxrsEndpoint other = (JaxrsEndpoint) obj;
+		if (consumedMediaTypes == null) {
+			if (other.consumedMediaTypes != null) {
+				return false;
+			}
+		} else if (!consumedMediaTypes.equals(other.consumedMediaTypes)) {
+			return false;
+		}
+		if (httpMethod == null) {
+			if (other.httpMethod != null) {
+				return false;
+			}
+		} else if (!httpMethod.equals(other.httpMethod)) {
+			return false;
+		}
+		if (producedMediaTypes == null) {
+			if (other.producedMediaTypes != null) {
+				return false;
+			}
+		} else if (!producedMediaTypes.equals(other.producedMediaTypes)) {
+			return false;
+		}
+		if (resourceMethods == null) {
+			if (other.resourceMethods != null) {
+				return false;
+			}
+		} else if (!resourceMethods.equals(other.resourceMethods)) {
+			return false;
+		}
+		if (uriPathTemplate == null) {
+			if (other.uriPathTemplate != null) {
+				return false;
+			}
+		} else if (!uriPathTemplate.equals(other.uriPathTemplate)) {
+			return false;
+		}
+		return true;
+	}
+
+	/** Triggers a refresh when changes occurred on one or more elements
+	 * (HttpMethod and/or ResourcMethods) of the endpoint.
+	 * 
+	 * @return true if the endpoint is still valid, false otherwise (it should
+	 *         be removed from the metamodel) */
+	public boolean refresh(IJaxrsResourceMethod changedResourceMethod, int flags) {
+		// check if the chain of resource methods still match
+		/*
+		 * if ((flags & F_ELEMENT_KIND) > 0 && changedResourceMethod.getKind()
+		 * == EnumKind.SUBRESOURCE_LOCATOR) {
+		 * return false;
+		 * }
+		 */
+		if ((flags & F_PATH_VALUE) > 0) {
+			refreshUriPathTemplate();
+		}
+
+		// look for mediatype capabilities at the method level, then fall back
+		// at the type level, then "any" otherwise
+		if ((flags & F_CONSUMED_MEDIATYPES_VALUE) > 0 || (flags & F_PRODUCED_MEDIATYPES_VALUE) > 0) {
+			if ((flags & F_CONSUMED_MEDIATYPES_VALUE) > 0) {
+				refreshConsumedMediaTypes();
+			}
+			if ((flags & F_PRODUCED_MEDIATYPES_VALUE) > 0) {
+				refreshProducedMediaTypes();
+			}
+		}
+		return true;
+	}
+
+	private void refreshProducedMediaTypes() {
+		final IJaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+		final IJaxrsResource resource = resourceMethod.getParentResource();
+		if (resourceMethod.getProducedMediaTypes() != null) {
+			this.producedMediaTypes = resourceMethod.getProducedMediaTypes();
+		} else if (resourceMethod.getParentResource().getProducedMediaTypes() != null) {
+			this.producedMediaTypes = resource.getProducedMediaTypes();
+		} else {
+			this.producedMediaTypes = Arrays.asList("*/*");
+		}
+	}
+
+	private void refreshConsumedMediaTypes() {
+		final IJaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+		final IJaxrsResource resource = resourceMethod.getParentResource();
+		if (resourceMethod.getConsumedMediaTypes() != null) {
+			this.consumedMediaTypes = resourceMethod.getConsumedMediaTypes();
+		} else if (resourceMethod.getParentResource().getConsumedMediaTypes() != null) {
+			this.consumedMediaTypes = resource.getConsumedMediaTypes();
+		} else {
+			this.consumedMediaTypes = Arrays.asList("*/*");
+		}
+	}
+
+	private void refreshUriPathTemplate() {
+		// compute the URI Path Template from the chain of Methods/Resources
+		StringBuilder uriPathTemplateBuilder = new StringBuilder();
+		for (IJaxrsResourceMethod resourceMethod : resourceMethods) {
+			if (resourceMethod.getParentResource().getPathTemplate() != null) {
+				uriPathTemplateBuilder.append("/").append(resourceMethod.getParentResource().getPathTemplate());
+			}
+			if (resourceMethod.getPathTemplate() != null) {
+				uriPathTemplateBuilder.append("/").append(resourceMethod.getPathTemplate());
+			}
+			if (resourceMethod.getJavaMethodParameters() != null) {
+				List<JavaMethodParameter> queryParameters = new ArrayList<JavaMethodParameter>();
+				for (Iterator<JavaMethodParameter> paramIterator = resourceMethod.getJavaMethodParameters().iterator(); paramIterator
+						.hasNext();) {
+					JavaMethodParameter parameter = paramIterator.next();
+					if (parameter.getAnnotation(QueryParam.class.getName()) != null) {
+						queryParameters.add(parameter);
+					}
+				}
+				if (queryParameters.size() > 0) {
+					uriPathTemplateBuilder.append('?');
+					for (Iterator<JavaMethodParameter> iterator = queryParameters.iterator(); iterator.hasNext();) {
+						JavaMethodParameter parameter = iterator.next();
+						final Annotation queryParamAnnotation = parameter.getAnnotation(QueryParam.class.getName());
+						uriPathTemplateBuilder.append(queryParamAnnotation.getValue("value")).append("={");
+						final Annotation defaultValueAnnotation = parameter.getAnnotation(DefaultValue.class.getName());
+						uriPathTemplateBuilder.append(parameter.getTypeName());
+						if (defaultValueAnnotation != null) {
+							uriPathTemplateBuilder.append(':').append(defaultValueAnnotation.getValue("value"));
+						}
+						uriPathTemplateBuilder.append('}');
+
+						if (iterator.hasNext()) {
+							uriPathTemplateBuilder.append('&');
+						}
+					}
+				}
+			}
+
+		}
+		this.uriPathTemplate = uriPathTemplateBuilder.toString();
+		while (uriPathTemplate.indexOf("//") > -1) {
+			this.uriPathTemplate = uriPathTemplate.replace("//", "/");
+		}
+	}
+
+	@Override
+	public int compareTo(IJaxrsEndpoint other) {
+		int uriPathTemplateComparison = this.uriPathTemplate.compareTo(other.getUriPathTemplate());
+		if (uriPathTemplateComparison != 0) {
+			return uriPathTemplateComparison;
+		}
+		return this.httpMethod.compareTo(other.getHttpMethod());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
+	 * #getHttpMethod()
+	 */
+	@Override
+	public IJaxrsHttpMethod getHttpMethod() {
+		return httpMethod;
+	}
+
+	/** Convenient method to check if this endpoint uses this HttpMethod.
+	 * 
+	 * @return true if this endpoint's HttpMethod is the one given in parameter */
+	public boolean match(IJaxrsHttpMethod httpMethod) {
+		return this.httpMethod.equals(httpMethod);
+	}
+
+	/** @return the resourceMethods */
+	@Override
+	public LinkedList<IJaxrsResourceMethod> getResourceMethods() {
+		return resourceMethods;
+	}
+
+	/** Convenient method to check if this endpoint uses this ResourceMethod.
+	 * 
+	 * @return true if this endpoint's ResourceMethod is the one given in
+	 *         parameter */
+	public boolean match(IJaxrsResourceMethod resourceMethod) {
+		return this.resourceMethods.contains(resourceMethod);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
+	 * #getUriPathTemplate()
+	 */
+	@Override
+	public String getUriPathTemplate() {
+		return uriPathTemplate;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
+	 * #getConsumedMediaTypes()
+	 */
+	@Override
+	public List<String> getConsumedMediaTypes() {
+		return consumedMediaTypes;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
+	 * #getProducedMediaTypes()
+	 */
+	@Override
+	public List<String> getProducedMediaTypes() {
+		return producedMediaTypes;
+	}
+
+	@Override
+	public IJavaProject getJavaProject() {
+		return this.httpMethod.getJavaElement().getJavaProject();
+	}
+
+}

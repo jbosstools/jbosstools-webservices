@@ -20,45 +20,43 @@ import java.util.Map;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.jboss.tools.ws.jaxrs.core.metamodel.Metamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.Route;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 public class UriPathTemplateCategory implements ITreeContentProvider {
 
-	private final Metamodel metamodel;
+	private final IJaxrsMetamodel metamodel;
 
 	private final IProject project;
 
 	private final UriMappingsContentProvider parent;
 
-	private final Map<Route, UriPathTemplateElement> wrapperCache = new HashMap<Route, UriPathTemplateElement>();
+	private final Map<IJaxrsEndpoint, UriPathTemplateElement> wrapperCache = new HashMap<IJaxrsEndpoint, UriPathTemplateElement>();
 
-	public UriPathTemplateCategory(UriMappingsContentProvider parent, Metamodel metamodel, IProject project) {
+	public UriPathTemplateCategory(UriMappingsContentProvider parent, IJaxrsMetamodel metamodel, IProject project) {
 		super();
 		this.parent = parent;
 		this.metamodel = metamodel;
 		this.project = project;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		if (metamodel == null) {
 			return new Object[0];
 		}
-		List<Route> routes = metamodel.getRoutes().getAll();
+		List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
 		List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
 		// Collections.sort(uriMappings);
-		for (Route entry : routes) {
-			UriPathTemplateElement element = wrapperCache.get(entry);
-			LinkedList<ResourceMethod> resourceMethods = entry.getResourceMethods();
+		for (IJaxrsEndpoint endpoint : endpoints) {
+			UriPathTemplateElement element = wrapperCache.get(endpoint);
+			LinkedList<IJaxrsResourceMethod> resourceMethods = endpoint.getResourceMethods();
 			if (element == null || !element.getLastMethod().equals(resourceMethods.getLast())) {
-				element = new UriPathTemplateElement(entry, this);
-				wrapperCache.put(entry, element);
+				element = new UriPathTemplateElement(endpoint, this);
+				wrapperCache.put(endpoint, element);
 			}
 			if (element != null) {
 				uriPathTemplateElements.add(element);
@@ -78,7 +76,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		if (metamodel == null) {
 			return false;
 		}
-		return (metamodel.getResources().getAll().size() > 0);
+		return (metamodel.getAllEndpoints().size() > 0);
 	}
 
 	@Override
@@ -92,13 +90,17 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	}
 
 	public boolean hasErrors() {
-		for (Route route : metamodel.getRoutes().getAll()) {
-			for (ResourceMethod resourceMethod : route.getResourceMethods()) {
-				if (resourceMethod.hasErrors()) {
-					return true;
-				}
-			}
-		}
+
+		// if (jaxrsMetamodel != null) {
+		// for (IJaxrsRoute jaxrsRoute : jaxrsMetamodel.getAllRoutes()) {
+		// for (IJaxrsResourceMethod jaxrsResourceMethod :
+		// jaxrsRoute.getResourceMethods()) {
+		// if (jaxrsResourceMethod.hasErrors()) {
+		// return true;
+		// }
+		// }
+		// }
+		// }
 		return false;
 	}
 
@@ -107,7 +109,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	}
 
 	public void refreshContent() {
-		parent.refreshContent();
+		parent.refreshContent(project);
 	}
 
 }

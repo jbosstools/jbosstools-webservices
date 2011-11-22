@@ -14,7 +14,6 @@ package org.jboss.tools.ws.jaxrs.ui.cnf;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElement;
-import org.jboss.tools.ws.jaxrs.core.metamodel.MediaTypeCapabilities;
 
 public class UriPathTemplateMediaTypeMappingElement {
 
@@ -24,24 +23,28 @@ public class UriPathTemplateMediaTypeMappingElement {
 
 	private final EnumCapabilityType type;
 
-	private final MediaTypeCapabilities mediaTypeCapabilities;
+	private final List<String> mediaTypeCapabilities;
 
-	public UriPathTemplateMediaTypeMappingElement(final MediaTypeCapabilities mediaTypes, final EnumCapabilityType type) {
+	private final IJavaElement element;
+
+	public UriPathTemplateMediaTypeMappingElement(final List<String> mediaTypeCapabilities,
+			final EnumCapabilityType type, final IJavaElement element) {
 		super();
-		this.mediaTypeCapabilities = mediaTypes;
+		this.mediaTypeCapabilities = mediaTypeCapabilities;
 		this.type = type;
+		this.element = element;
 	}
 
 	public EnumCapabilityType getType() {
 		return type;
 	}
 
-	public IJavaElement getElement() {
-		return mediaTypeCapabilities.getElement();
+	public List<String> getMediaTypes() {
+		return mediaTypeCapabilities;
 	}
 
-	public List<String> getMediaTypes() {
-		return mediaTypeCapabilities.getMediatypes();
+	public IJavaElement getElement() {
+		return element;
 	}
 
 }

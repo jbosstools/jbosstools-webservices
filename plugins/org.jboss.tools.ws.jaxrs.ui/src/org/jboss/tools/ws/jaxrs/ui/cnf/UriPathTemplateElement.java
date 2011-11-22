@@ -16,30 +16,30 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.Route;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement.EnumCapabilityType;
 
 public class UriPathTemplateElement implements ITreeContentProvider {
 
-	private final Route route;
+	private final IJaxrsEndpoint endpoint;
 
 	private final UriPathTemplateCategory uriPathTemplateCategory;
 
-	public UriPathTemplateElement(Route route, UriPathTemplateCategory uriPathTemplateCategory) {
+	public UriPathTemplateElement(IJaxrsEndpoint endpoint, UriPathTemplateCategory uriPathTemplateCategory) {
 		super();
-		this.route = route;
+		this.endpoint = endpoint;
 		this.uriPathTemplateCategory = uriPathTemplateCategory;
 	}
 
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		List<Object> elements = new ArrayList<Object>(3);
-		elements.add(new UriPathTemplateMediaTypeMappingElement(route.getEndpoint().getConsumedMediaTypes(),
-				EnumCapabilityType.CONSUMES));
-		elements.add(new UriPathTemplateMediaTypeMappingElement(route.getEndpoint().getProducedMediaTypes(),
-				EnumCapabilityType.PRODUCES));
-		elements.add(new UriPathTemplateMethodMappingElement(route.getResourceMethods()));
+		elements.add(new UriPathTemplateMediaTypeMappingElement(endpoint.getConsumedMediaTypes(),
+				EnumCapabilityType.CONSUMES, endpoint.getResourceMethods().getLast().getJavaElement()));
+		elements.add(new UriPathTemplateMediaTypeMappingElement(endpoint.getProducedMediaTypes(),
+				EnumCapabilityType.PRODUCES, endpoint.getResourceMethods().getLast().getJavaElement()));
+		elements.add(new UriPathTemplateMethodMappingElement(endpoint.getResourceMethods()));
 		return elements.toArray();
 	}
 
@@ -69,7 +69,7 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 	}
 
 	public boolean hasErrors() {
-		for (ResourceMethod resourceMethod : route.getResourceMethods()) {
+		for (IJaxrsResourceMethod resourceMethod : endpoint.getResourceMethods()) {
 			if (resourceMethod.hasErrors()) {
 				return true;
 			}
@@ -77,15 +77,13 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 		return false;
 	}
 
-	/**
-	 * @return the uriMapping
-	 */
-	public Route getResolvedUriMapping() {
-		return route;
+	/** @return the uriMapping */
+	public IJaxrsEndpoint getEndpoint() {
+		return endpoint;
 	}
 
-	public ResourceMethod getLastMethod() {
-		return route.getResourceMethods().getLast();
+	public IJaxrsResourceMethod getLastMethod() {
+		return endpoint.getResourceMethods().getLast();
 	}
 
 	/*
@@ -97,7 +95,7 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((route == null) ? 0 : route.hashCode());
+		result = prime * result + ((endpoint == null) ? 0 : endpoint.hashCode());
 		return result;
 	}
 
@@ -115,10 +113,10 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 		if (getClass() != obj.getClass())
 			return false;
 		UriPathTemplateElement other = (UriPathTemplateElement) obj;
-		if (route == null) {
-			if (other.route != null)
+		if (endpoint == null) {
+			if (other.endpoint != null)
 				return false;
-		} else if (!route.equals(other.route))
+		} else if (!endpoint.equals(other.endpoint))
 			return false;
 		return true;
 	}

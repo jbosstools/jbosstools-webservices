@@ -19,14 +19,11 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
-import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.Route;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
-/**
- * @author xcoulon
- * 
- */
+/** @author xcoulon */
 public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelProvider {
 
 	/*
@@ -119,10 +116,10 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 		}
 
 		if (element instanceof UriPathTemplateElement) {
-			Route route = ((UriPathTemplateElement) element).getResolvedUriMapping();
+			IJaxrsEndpoint endpoint = ((UriPathTemplateElement) element).getEndpoint();
 			StringBuilder sb = new StringBuilder();
-			String httpVerb = route.getEndpoint().getHttpMethod().getHttpVerb();
-			String uriTemplate = route.getEndpoint().getUriPathTemplate();
+			String httpVerb = endpoint.getHttpMethod().getHttpVerb();
+			String uriTemplate = endpoint.getUriPathTemplate();
 			sb.append(httpVerb);
 			sb.append(" ");
 			sb.append(uriTemplate);
@@ -156,7 +153,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 			return styledString;
 		}
 		if (element instanceof UriPathTemplateMethodMappingElement) {
-			ResourceMethod lastMethod = ((UriPathTemplateMethodMappingElement) element).getResourceMethod();
+			IJaxrsResourceMethod lastMethod = ((UriPathTemplateMethodMappingElement) element).getResourceMethod();
 			StringBuilder sb = new StringBuilder();
 			IMethod javaMethod = lastMethod.getJavaElement();
 			// TODO : add method parameters from signature

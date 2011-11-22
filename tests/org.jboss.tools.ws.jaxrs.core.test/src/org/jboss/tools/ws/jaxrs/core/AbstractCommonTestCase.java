@@ -31,20 +31,18 @@ import org.junit.Rule;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestWatchman;
 import org.junit.runners.model.FrameworkMethod;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Made abstract, so won't be automatically picked up as test (since intended to
+/** Made abstract, so won't be automatically picked up as test (since intended to
  * be subclassed).
  * 
  * Based on
  * http://dev.eclipse.org/viewcvs/index.cgi/incubator/sourceediting/tests
  * /org.eclipse
  * .wst.xsl.ui.tests/src/org/eclipse/wst/xsl/ui/tests/AbstractXSLUITest
- * .java?revision=1.2&root=WebTools_Project&view=markup
- * 
- */
+ * .java?revision=1.2&root=WebTools_Project&view=markup */
 @RunWithProject("org.jboss.tools.ws.jaxrs.tests.sampleproject")
 @SuppressWarnings("restriction")
 public abstract class AbstractCommonTestCase {
@@ -59,6 +57,8 @@ public abstract class AbstractCommonTestCase {
 	protected IJavaProject javaProject;
 
 	protected IProject project;
+
+	protected Bundle bundle = JBossJaxrsCoreTestsPlugin.getDefault().getBundle();
 
 	public final static String DEFAULT_SAMPLE_PROJECT_NAME = WorkbenchUtils
 			.retrieveSampleProjectName(AbstractCommonTestCase.class);
@@ -80,7 +80,6 @@ public abstract class AbstractCommonTestCase {
 			LOGGER.info("Test '{}' finished.", method.getName());
 			LOGGER.info("**********************************************************************************");
 		}
-
 	};
 
 	@BeforeClass
@@ -103,10 +102,17 @@ public abstract class AbstractCommonTestCase {
 		}
 	}
 
+	@BeforeClass
+	public static void unregistrerListeners() {
+		JBossJaxrsCorePlugin.getDefault().unregisterListeners();
+	}
+
 	@Before
 	public void bindSampleProject() throws Exception {
 		long startTime = new Date().getTime();
 		try {
+			JBossJaxrsCorePlugin.getDefault().unregisterListeners();
+
 			projectName = WorkbenchUtils.retrieveSampleProjectName(this.getClass());
 			project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 			javaProject = JavaCore.create(project);
@@ -123,9 +129,10 @@ public abstract class AbstractCommonTestCase {
 	}
 
 	@After
-	public void removeListener() throws CoreException, InvocationTargetException, InterruptedException {
+	public void removeResourceChangeListener() throws CoreException, InvocationTargetException, InterruptedException {
 		long startTime = new Date().getTime();
 		try {
+			LOGGER.info("Synchronizing the workspace back to its initial state...");
 			// remove listener before sync' to avoid desync...
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			workspace.removeResourceChangeListener(synchronizor);

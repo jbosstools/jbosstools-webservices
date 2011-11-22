@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.java.hover.JavadocBrowserInformationControlInput;
@@ -49,6 +50,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.osgi.framework.Bundle;
 
@@ -57,17 +59,13 @@ public class AnnotationCompletionProposal implements ICompletionProposal, ICompl
 		ICompletionProposalExtension3, ICompletionProposalExtension4, ICompletionProposalExtension5,
 		ICompletionProposalExtension6, IJavaCompletionProposal {
 
-	/**
-	 * The maximum relevance value, to ensure the proposal is at the top of the
-	 * list.
-	 */
+	/** The maximum relevance value, to ensure the proposal is at the top of the
+	 * list. */
 	public static final int MAX_RELEVANCE = 1000;
 
 	private String additionalProposalInfo;
 
 	private final IMember member;
-
-	private final CompilationUnit compilationUnit;
 
 	private final String replacementString;
 
@@ -81,14 +79,14 @@ public class AnnotationCompletionProposal implements ICompletionProposal, ICompl
 
 	private final int relevance;
 
-	private int cursorPosition;
+	private final int cursorPosition;
 
 	private String fgCSSStyles;
 
 	private IInformationControlCreator creator;
 
-	public AnnotationCompletionProposal(String replacementString, StyledString displayStyledString,
-			ITypedRegion region, Image icon, IMember member, CompilationUnit compilationUnit) {
+	public AnnotationCompletionProposal(final String replacementString, final StyledString displayStyledString,
+			final ITypedRegion region, final Image icon, final IMember member) {
 		this.replacementString = replacementString;
 		this.replacementOffset = region.getOffset();
 		this.replacementLength = region.getLength();
@@ -97,7 +95,6 @@ public class AnnotationCompletionProposal implements ICompletionProposal, ICompl
 		this.cursorPosition = replacementString.length();
 		this.relevance = MAX_RELEVANCE;
 		this.member = member;
-		this.compilationUnit = compilationUnit;
 	}
 
 	@Override
@@ -114,7 +111,7 @@ public class AnnotationCompletionProposal implements ICompletionProposal, ICompl
 	public void apply(IDocument document, char trigger, int offset) {
 		try {
 			document.replace(replacementOffset, replacementLength, replacementString);
-			//cursorPosition++;
+			// cursorPosition++;
 		} catch (BadLocationException e) {
 			Logger.warn("Failed to replace document content with selected proposal", e);
 		}
@@ -123,32 +120,38 @@ public class AnnotationCompletionProposal implements ICompletionProposal, ICompl
 	@Override
 	public String getAdditionalProposalInfo() {
 		if (additionalProposalInfo == null) {
-			additionalProposalInfo = ((JavadocBrowserInformationControlInput) getAdditionalProposalInfo(new NullProgressMonitor())).getHtml();
+			additionalProposalInfo = ((JavadocBrowserInformationControlInput) getAdditionalProposalInfo(new NullProgressMonitor()))
+					.getHtml();
 		}
 		return additionalProposalInfo.toString();
 	}
 
 	@Override
 	public Object getAdditionalProposalInfo(IProgressMonitor monitor) {
-		MemberDeclarationVisitor memberDeclarationVisitor = new MemberDeclarationVisitor(member);
-		compilationUnit.accept(memberDeclarationVisitor);
-		String sourceOverview = memberDeclarationVisitor.getSourceOverview();
-		StringBuffer buffer = new StringBuffer();
-		HTMLPrinter.insertPageProlog(buffer, 0, getCSSStyles());
-		buffer.append("Matching URI Template mapping defined in the <strong>@Path</strong> annotation value below:</br></br>");
-		buffer.append(sourceOverview.replaceFirst("@Path.*\n", "<strong>$0</strong>").replaceAll("\n", "<br/>")
-				.replaceAll("\t", "  ").replaceAll("<br/>\\s*", "<br/>"));
-		HTMLPrinter.addPageEpilog(buffer);
-		this.additionalProposalInfo = buffer.toString();
-		return new JavadocBrowserInformationControlInput(null, null, this.additionalProposalInfo, 0);
+		CompilationUnit compilationUnit;
+		try {
+			compilationUnit = JdtUtils.parse(member, monitor);
+			MemberDeclarationVisitor memberDeclarationVisitor = new MemberDeclarationVisitor(member);
+			compilationUnit.accept(memberDeclarationVisitor);
+			String sourceOverview = memberDeclarationVisitor.getSourceOverview();
+			StringBuffer buffer = new StringBuffer();
+			HTMLPrinter.insertPageProlog(buffer, 0, getCSSStyles());
+			buffer.append("Matching URI Template mapping defined in the <strong>@Path</strong> annotation value below:</br></br>");
+			buffer.append(sourceOverview.replaceFirst("@Path.*\n", "<strong>$0</strong>").replaceAll("\n", "<br/>")
+					.replaceAll("\t", "  ").replaceAll("<br/>\\s*", "<br/>"));
+			HTMLPrinter.addPageEpilog(buffer);
+			this.additionalProposalInfo = buffer.toString();
+			return new JavadocBrowserInformationControlInput(null, null, this.additionalProposalInfo, 0);
+		} catch (JavaModelException e) {
+			// do nothing
+		}
+		return null;
 	}
 
-	/**
-	 * Returns the style information for displaying HTML (Javadoc) content.
+	/** Returns the style information for displaying HTML (Javadoc) content.
 	 * 
 	 * @return the CSS styles
-	 * @since 3.3
-	 */
+	 * @since 3.3 */
 	protected String getCSSStyles() {
 		if (fgCSSStyles == null) {
 			Bundle bundle = Platform.getBundle(JavaPlugin.getPluginId());
@@ -240,27 +243,28 @@ public class AnnotationCompletionProposal implements ICompletionProposal, ICompl
 
 	@Override
 	public IInformationControlCreator getInformationControlCreator() {
-		Shell shell= JavaPlugin.getActiveWorkbenchShell();
+		Shell shell = JavaPlugin.getActiveWorkbenchShell();
 		if (shell == null || !BrowserInformationControl.isAvailable(shell)) {
 			return null;
 		}
 		if (creator == null) {
-			JavadocHover.PresenterControlCreator presenterControlCreator= new JavadocHover.PresenterControlCreator(getSite());
-			creator= new JavadocHover.HoverControlCreator(presenterControlCreator, true);
+			JavadocHover.PresenterControlCreator presenterControlCreator = new JavadocHover.PresenterControlCreator(
+					getSite());
+			creator = new JavadocHover.HoverControlCreator(presenterControlCreator, true);
 		}
 		return creator;
 	}
 
 	private IWorkbenchSite getSite() {
-		IWorkbenchPage page= JavaPlugin.getActivePage();
+		IWorkbenchPage page = JavaPlugin.getActivePage();
 		if (page != null) {
-			IWorkbenchPart part= page.getActivePart();
+			IWorkbenchPart part = page.getActivePart();
 			if (part != null)
 				return part.getSite();
 		}
 		return null;
 	}
-	
+
 	@Override
 	public CharSequence getPrefixCompletionText(IDocument document, int completionOffset) {
 		return null;

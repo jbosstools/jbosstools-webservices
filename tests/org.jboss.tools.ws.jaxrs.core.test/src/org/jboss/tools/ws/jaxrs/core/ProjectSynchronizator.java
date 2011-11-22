@@ -31,7 +31,7 @@ public class ProjectSynchronizator implements IResourceChangeListener, IResource
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProjectSynchronizator.class);
 
-	private Stack<IResourceDelta> deltaStack = new Stack<IResourceDelta>();
+	private final Stack<IResourceDelta> deltaStack = new Stack<IResourceDelta>();
 
 	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
@@ -51,30 +51,32 @@ public class ProjectSynchronizator implements IResourceChangeListener, IResource
 		// any CONTENT delta type on a file (not .project file) is put on top of
 		// the
 		// stack
-		if (delta.getResource().getType() == IResource.FILE && (delta.getFlags() != IResourceDelta.MARKERS)
-				&& !delta.getResource().getName().equals(".project")) {
+		if (delta.getResource().getType() == IResource.FILE) {
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				LOGGER.debug("Resource added: {}", delta.getResource());
+				deltaStack.add(delta);
 				break;
 			case IResourceDelta.CHANGED:
-				LOGGER.debug("Resource changed: {}", delta.getResource());
+				if (delta.getFlags() == IResourceDelta.CONTENT) {
+					LOGGER.debug("Resource changed: {}", delta.getResource());
+					deltaStack.add(delta);
+				}
 				break;
 			case IResourceDelta.REMOVED:
 				LOGGER.debug("Resource removed: {}", delta.getResource());
+				deltaStack.add(delta);
 				break;
 			}
 
-			deltaStack.add(delta);
+			// deltaStack.add(delta);
 
 		}
 		// only creation and deletion on a folder is put on top of the stack
-		else if (delta.getResource().getType() == IResource.FOLDER
-				&& delta.getKind() == IResourceDelta.ADDED) {
+		else if (delta.getResource().getType() == IResource.FOLDER && delta.getKind() == IResourceDelta.ADDED) {
 			LOGGER.debug("Resource added : {}", delta.getResource());
 			deltaStack.add(delta);
-		} else if (delta.getResource().getType() == IResource.FOLDER
-				&& delta.getKind() == IResourceDelta.REMOVED) {
+		} else if (delta.getResource().getType() == IResource.FOLDER && delta.getKind() == IResourceDelta.REMOVED) {
 			LOGGER.debug("Resource removed : {}", delta.getResource());
 			deltaStack.add(delta);
 		}
@@ -85,7 +87,8 @@ public class ProjectSynchronizator implements IResourceChangeListener, IResource
 		LOGGER.debug("Starting project resource resync'...");
 		IWorkspace junitWorkspace = ResourcesPlugin.getWorkspace();
 		NullProgressMonitor monitor = new NullProgressMonitor();
-		IPath projectSourcePath = WorkbenchUtils.getSampleProjectPath(AbstractCommonTestCase.DEFAULT_SAMPLE_PROJECT_NAME);
+		IPath projectSourcePath = WorkbenchUtils
+				.getSampleProjectPath(AbstractCommonTestCase.DEFAULT_SAMPLE_PROJECT_NAME);
 		while (!deltaStack.isEmpty()) {
 			IResourceDelta delta = deltaStack.pop();
 			switch (delta.getKind()) {

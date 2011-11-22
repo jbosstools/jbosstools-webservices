@@ -14,13 +14,10 @@ package org.jboss.tools.ws.jaxrs.core;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -32,16 +29,13 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.internal.ide.filesystem.FileSystemStructureProvider;
-import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -51,21 +45,6 @@ import org.slf4j.LoggerFactory;
 public class WorkbenchTasks {
 
 	static final Logger LOGGER = LoggerFactory.getLogger(WorkbenchTasks.class);
-
-	public static void removeSourceFolder(IProject project, IProgressMonitor progressMonitor) throws JavaModelException {
-		IFolder srcFolder = project.getFolder(new Path("src"));
-		IJavaProject javaProject = JavaCore.create(project);
-		List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>(Arrays.asList(javaProject.getRawClasspath()));
-		IClasspathEntry srcEntry = JavaCore.newSourceEntry(srcFolder.getFullPath());
-		for (Iterator<IClasspathEntry> entryIterator = entries.iterator(); entryIterator.hasNext();) {
-			IClasspathEntry entry = entryIterator.next();
-			if (entry.equals(srcEntry)) {
-				entries.remove(entry);
-			}
-		}
-		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), progressMonitor);
-
-	}
 
 	/**
 	 * Synchronize the target project with the path given in parameter.
@@ -161,7 +140,7 @@ public class WorkbenchTasks {
 	 * @throws CoreException
 	 * @throws InvocationTargetException
 	 */
-	private static IProject getTargetWorkspaceProject(IPath projectSourcePath, IWorkspace targetWorkspace,
+	public static IProject getTargetWorkspaceProject(IPath projectSourcePath, IWorkspace targetWorkspace,
 			IProgressMonitor monitor) throws CoreException, InvocationTargetException {
 		IPath dotProjectPath = projectSourcePath.addTrailingSeparator().append(".project");
 		IProjectDescription description = targetWorkspace.loadProjectDescription(dotProjectPath);
@@ -174,44 +153,9 @@ public class WorkbenchTasks {
 			project.open(monitor);
 		}
 		if (!project.exists()) {
-			createProject(monitor, description, projectName, targetWorkspace, project);
+			WorkbenchUtils.createProject(monitor, description, projectName, targetWorkspace, project);
 		}
 		return project;
-	}
-
-	/**
-	 * @param monitor
-	 * @param description
-	 * @param projectName
-	 * @param workspace
-	 * @param project
-	 * @throws InvocationTargetException
-	 */
-	private static void createProject(IProgressMonitor monitor, IProjectDescription description, String projectName,
-			IWorkspace workspace, IProject project) throws InvocationTargetException {
-		// import from file system
-
-		// import project from location copying files - use default project
-		// location for this workspace
-		// if location is null, project already exists in this location or
-		// some error condition occured.
-		IProjectDescription desc = workspace.newProjectDescription(projectName);
-		desc.setBuildSpec(description.getBuildSpec());
-		desc.setComment(description.getComment());
-		desc.setDynamicReferences(description.getDynamicReferences());
-		desc.setNatureIds(description.getNatureIds());
-		desc.setReferencedProjects(description.getReferencedProjects());
-		description = desc;
-
-		try {
-			monitor.beginTask(DataTransferMessages.WizardProjectsImportPage_CreateProjectsTask, 100);
-			project.create(description, new SubProgressMonitor(monitor, 30));
-			project.open(IResource.BACKGROUND_REFRESH, new SubProgressMonitor(monitor, 70));
-		} catch (CoreException e) {
-			throw new InvocationTargetException(e);
-		} finally {
-			monitor.done();
-		}
 	}
 
 	public static void buildWorkspace(IProgressMonitor progressMonitor) throws CoreException,
@@ -227,69 +171,22 @@ public class WorkbenchTasks {
 		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
 	}
 
-	public static void addJavaProjectLibrary(IJavaProject javaProject, String name, IProgressMonitor progressMonitor)
-			throws CoreException, OperationCanceledException, InterruptedException {
+	public static IPackageFragmentRoot addClasspathEntry(IJavaProject javaProject, String name,
+			IProgressMonitor progressMonitor) throws CoreException, OperationCanceledException, InterruptedException {
 		IPath path = javaProject.getProject().getLocation().append("lib").addTrailingSeparator().append(name);
 		Assert.assertTrue("Following library does not exist or is not readable: " + path.toFile(), path.toFile()
 				.exists() && path.toFile().canRead());
 		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
-		classpathEntries = (IClasspathEntry[]) ArrayUtils.add(classpathEntries,
-				JavaCore.newLibraryEntry(path, null, null));
+		IClasspathEntry newLibraryEntry = JavaCore.newLibraryEntry(path, null, null);
+		classpathEntries = (IClasspathEntry[]) ArrayUtils.add(classpathEntries, newLibraryEntry);
 		javaProject.setRawClasspath(classpathEntries, progressMonitor);
 		buildProject(javaProject.getProject(), progressMonitor);
-	}
-
-	/**
-	 * Remove the first referenced library those absolute path contains the
-	 * given name.
-	 * 
-	 * @param javaProject
-	 * @param name
-	 * @param progressMonitor
-	 * @throws CoreException
-	 * @throws InterruptedException
-	 * @throws OperationCanceledException
-	 */
-	public static boolean removeReferencedLibrary(IJavaProject javaProject, String name,
-			IProgressMonitor progressMonitor) throws CoreException, OperationCanceledException, InterruptedException {
-		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
-		int index = 0;
-		boolean found = false;
-		for (IClasspathEntry entry : classpathEntries) {
-			if (entry.getPath().toFile().getAbsolutePath().contains(name)) {
-				found = true;
-				break;
-			}
-			index++;
-		}
-		if (index < classpathEntries.length) {
-			classpathEntries = (IClasspathEntry[]) ArrayUtils.remove(classpathEntries, index);
-			javaProject.setRawClasspath(classpathEntries, progressMonitor);
-		}
-		buildProject(javaProject.getProject(), progressMonitor);
-		return found;
-	}
-
-	public static boolean removeReferencedLibrarySourceAttachment(IJavaProject javaProject, String name,
-			NullProgressMonitor progressMonitor) throws OperationCanceledException, CoreException, InterruptedException {
-		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
-		boolean found = false;
-		for (int i = 0; i < classpathEntries.length; i++) {
-			IClasspathEntry classpathEntry = classpathEntries[i];
-			IPath path = classpathEntry.getPath();
-			if (path.toFile().getAbsolutePath().contains(name)) {
-				if (!path.isAbsolute()) {
-					path = JavaCore.getClasspathVariable("M2_REPO").append(path.makeRelativeTo(new Path("M2_REPO")));
-				}
-				classpathEntries[i] = JavaCore.newLibraryEntry(path, null, null, classpathEntry.getAccessRules(),
-						classpathEntry.getExtraAttributes(), classpathEntry.isExported());
-				found = true;
+		for (IPackageFragmentRoot fragment : javaProject.getAllPackageFragmentRoots()) {
+			if (fragment.getRawClasspathEntry().equals(newLibraryEntry)) {
+				return fragment;
 			}
 		}
-		javaProject.setRawClasspath(classpathEntries, progressMonitor);
-		// refresh/build project
-		buildProject(javaProject.getProject(), progressMonitor);
-		return found;
+		return null;
 	}
 
 	/**

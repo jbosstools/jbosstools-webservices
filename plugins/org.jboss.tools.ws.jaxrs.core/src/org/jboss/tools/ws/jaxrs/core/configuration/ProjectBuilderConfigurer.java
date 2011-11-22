@@ -16,13 +16,10 @@ import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
-/**
- * Class to configure (add/remove) the JAX-RS MediaTypeCapabilitiesBuilder on a
+/** Class to configure (add/remove) the JAX-RS Metamodel Builder on a
  * project.
  * 
- * @author xcoulon
- * 
- */
+ * @author xcoulon */
 public class ProjectBuilderConfigurer implements IProjectNature {
 
 	/** the selected project. */
@@ -48,23 +45,19 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 			return;
 		}
 		if (ProjectBuilderUtils.uninstallProjectBuilder(project, ProjectBuilderUtils.JAXRS_BUILDER_ID)) {
-			Logger.debug("JAX-RS MediaTypeCapabilitiesBuilder is now uninstalled.");
+			Logger.debug("JAX-RS Metamodel Builder is now uninstalled.");
 		} else {
-			Logger.debug("JAX-RS MediaTypeCapabilitiesBuilder was not installed.");
+			Logger.debug("JAX-RS Metamodel Builder was not installed.");
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public final IProject getProject() {
 		return project;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public final void setProject(final IProject p) {
 		this.project = p;

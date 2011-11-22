@@ -1,5 +1,3 @@
-@Service
-@Transactional
 @Path("/foo")
 @Consumes(MediaType.APPLICATION_XML)
 @Produces({ "application/vnd.bytesparadise.customer+xml", MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
@@ -15,9 +13,7 @@ class FooResource {
 
 	@GET
 	@Path("{id}")
-	@Formatted
-	public Response getFoo(@PathParam("id") Integer id, @Context UriInfo uriInfo,
-			@Context HttpServletRequest request) {
+	public Response getFoo(@PathParam("id") Integer id, @Context UriInfo uriInfo) {
 		ResponseBuilder responseBuilder = Response.noContent();
 		return responseBuilder.build();
 	}

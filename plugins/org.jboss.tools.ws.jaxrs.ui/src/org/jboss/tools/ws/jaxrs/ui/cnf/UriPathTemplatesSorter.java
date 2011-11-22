@@ -36,7 +36,7 @@ public class UriPathTemplatesSorter extends ViewerSorter {
 	public int compare(Viewer viewer, Object e1, Object e2) {
 		UriPathTemplateElement element1 = (UriPathTemplateElement) e1;
 		UriPathTemplateElement element2 = (UriPathTemplateElement) e2;
-		return element1.getResolvedUriMapping().getEndpoint().compareTo(element2.getResolvedUriMapping().getEndpoint());
+		return element1.getEndpoint().compareTo(element2.getEndpoint());
 	}
 
 }

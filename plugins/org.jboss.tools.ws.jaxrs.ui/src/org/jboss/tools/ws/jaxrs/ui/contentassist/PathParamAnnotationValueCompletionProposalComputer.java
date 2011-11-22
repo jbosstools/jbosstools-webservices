@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import org.eclipse.core.runtime.CoreException;
@@ -23,11 +22,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
@@ -37,69 +33,66 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.TypedRegion;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
-import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
-/**
- * Computes proposals for <code>java.ws.rs.PathParam</code> annotation values in
+/** Computes proposals for <code>java.ws.rs.PathParam</code> annotation values in
  * the compilation unit context.
  * 
- * @author xcoulon
- * 
- */
+ * @author xcoulon */
 public class PathParamAnnotationValueCompletionProposalComputer implements IJavaCompletionProposalComputer {
 
 	/** Icon for completion proposals. */
 	private final Image icon = JBossJaxrsUIPlugin.getDefault().createImage("url_mapping.gif");
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public void sessionStarted() {
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public void sessionEnded() {
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public final List<ICompletionProposal> computeCompletionProposals(final ContentAssistInvocationContext context,
 			final IProgressMonitor monitor) {
 		JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
 		try {
-
-			IJavaProject project = javaContext.getProject();
+			final IJavaProject project = javaContext.getProject();
+			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 			// skip if the JAX-RS Nature is not configured for this project
-			if (!ProjectNatureUtils.isProjectNatureInstalled(project.getProject(), ProjectNatureUtils.JAXRS_NATURE_ID)) {
-				return Collections.emptyList();
-			}
-			CompilationUnit compilationUnit = resolveContextualCompilationUnit(monitor, javaContext);
-			if (compilationUnit == null) {
+			if (metamodel == null) {
 				return Collections.emptyList();
 			}
 			IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
 					context.getInvocationOffset());
 			if (invocationElement.getElementType() == IJavaElement.METHOD) {
-				IAnnotationBinding annotationBinding = resolveContextualAnnotationBinding(javaContext, compilationUnit);
-				// completion proposal on @PathParam method annotation
-				if (annotationBinding != null
-						&& PathParam.class.getName().equals(
-								JdtUtils.resolveAnnotationFullyQualifiedName(annotationBinding))) {
-					return internalComputePathParamProposals(javaContext, annotationBinding,
-							(IMethod) invocationElement, compilationUnit);
+				IJaxrsResourceMethod resourceMethod = (IJaxrsResourceMethod) metamodel.getElement(invocationElement);
+				for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
+					for (Annotation annotation : methodParameter.getAnnotations()) {
+						final TypedRegion region = annotation.getRegion();
+						if (annotation.getName().equals(PathParam.class.getName()) && region != null
+								&& context.getInvocationOffset() >= region.getOffset()
+								&& context.getInvocationOffset() < (region.getOffset() + region.getLength())) {
+							// completion proposal on @PathParam method
+							// annotation
+							return internalComputePathParamProposals(javaContext, annotation, resourceMethod);
+						}
+
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -108,8 +101,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		return Collections.emptyList();
 	}
 
-	/**
-	 * Computes the valid proposals for the <code>javax.ws.rs.PathParam</code>
+	/** Computes the valid proposals for the <code>javax.ws.rs.PathParam</code>
 	 * annotation value. The proposals are based on:
 	 * <ul>
 	 * <li>The values of the <code>javax.ws.rs.Path</code> annotations, both at
@@ -120,8 +112,6 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	 * 
 	 * @param javaContext
 	 *            the invocation context
-	 * @param pathParamAnnotationBinding
-	 *            the annotation bindings
 	 * @param method
 	 *            the enclosing java method
 	 * @param compilationUnit
@@ -130,40 +120,40 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 * @throws BadLocationException
-	 * @throws org.eclipse.jface.text.BadLocationException
-	 */
-	private List<ICompletionProposal> internalComputePathParamProposals(JavaContentAssistInvocationContext javaContext,
-			IAnnotationBinding pathParamAnnotationBinding, IMethod method, CompilationUnit compilationUnit)
-			throws CoreException, BadLocationException {
+	 * @throws org.eclipse.jface.text.BadLocationException */
+	private List<ICompletionProposal> internalComputePathParamProposals(
+			final JavaContentAssistInvocationContext javaContext, final Annotation pathParamAnnotation,
+			final IJaxrsResourceMethod resourceMethod) throws CoreException, BadLocationException {
 		ITypedRegion region = getRegion(javaContext);
 		String matchValue = javaContext.getDocument().get(region.getOffset(),
 				javaContext.getInvocationOffset() - region.getOffset());
 		// int cursorPosition = javaContext.getInvocationOffset();
 		List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
 		// compute proposals from @Path annotations on the method
-		completionProposals.addAll(generateCompletionProposal(method, compilationUnit, region, matchValue));
+		completionProposals.addAll(generateCompletionProposal(resourceMethod.getPathAnnotation(), region, matchValue));
 		// compute proposals from @Path annotations on the type
-		completionProposals.addAll(generateCompletionProposal(method.getDeclaringType(), compilationUnit, region,
-				matchValue));
+		completionProposals.addAll(generateCompletionProposal(resourceMethod.getParentResource().getPathAnnotation(),
+				region, matchValue));
 		return completionProposals;
 	}
 
-	private List<ICompletionProposal> generateCompletionProposal(IMember member, CompilationUnit compilationUnit,
-			ITypedRegion region, String matchValue) throws CoreException {
-		List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
-		String pathAnnotationValue = (String) JdtUtils.resolveAnnotationAttributeValue(member, compilationUnit,
-				Path.class, "value");
-		if (pathAnnotationValue != null && pathAnnotationValue.contains("{") && pathAnnotationValue.contains("}")) {
-			List<String> uriParams = extractParamsFromUriTemplateFragment(pathAnnotationValue);
-			for (String uriParam : uriParams) {
-				String replacementValue = "\"" + uriParam + "\"";
-				if (replacementValue.startsWith(matchValue)) {
-					String displayString = uriParam + " - JAX-RS Mapping";
-					StyledString displayStyledString = new StyledString(displayString);
-					displayStyledString.setStyle(uriParam.length(), displayString.length() - uriParam.length(),
-							StyledString.QUALIFIER_STYLER);
-					completionProposals.add(new AnnotationCompletionProposal(replacementValue, displayStyledString,
-							region, icon, member, compilationUnit));
+	private List<ICompletionProposal> generateCompletionProposal(Annotation annotation, ITypedRegion region,
+			String matchValue) throws CoreException {
+		final List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
+		if (annotation != null) {
+			final String pathAnnotationValue = annotation.getValue("value");
+			if (pathAnnotationValue != null && pathAnnotationValue.contains("{") && pathAnnotationValue.contains("}")) {
+				List<String> uriParams = extractParamsFromUriTemplateFragment(pathAnnotationValue);
+				for (String uriParam : uriParams) {
+					String replacementValue = "\"" + uriParam + "\"";
+					if (replacementValue.startsWith(matchValue)) {
+						String displayString = uriParam + " - JAX-RS Mapping";
+						StyledString displayStyledString = new StyledString(displayString);
+						displayStyledString.setStyle(uriParam.length(), displayString.length() - uriParam.length(),
+								StyledString.QUALIFIER_STYLER);
+						completionProposals.add(new AnnotationCompletionProposal(replacementValue, displayStyledString,
+								region, icon, (IMember) annotation.getJavaParent()));
+					}
 				}
 			}
 		}
@@ -182,39 +172,12 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		return params;
 	}
 
-	/**
-	 * @param javaContext
-	 * @param unit
-	 * @return
-	 */
-	private IAnnotationBinding resolveContextualAnnotationBinding(JavaContentAssistInvocationContext javaContext,
-			CompilationUnit unit) {
-		TypedRegionVisitor visitor = new TypedRegionVisitor(javaContext.getInvocationOffset());
-		unit.accept(visitor);
-		return visitor.getBinding();
-	}
-
-	/**
-	 * @param monitor
-	 * @param javaContext
-	 * @return
-	 * @throws JavaModelException
-	 */
-	private CompilationUnit resolveContextualCompilationUnit(final IProgressMonitor monitor,
-			JavaContentAssistInvocationContext javaContext) throws JavaModelException {
-		IType type = getEnclosingType(javaContext.getCompilationUnit().getElementAt(javaContext.getInvocationOffset()));
-		CompilationUnit unit = JdtUtils.parse(type, monitor);
-		return unit;
-	}
-
-	/**
-	 * Resolves the typed region for the given java content assist invocation
+	/** Resolves the typed region for the given java content assist invocation
 	 * context.
 	 * 
 	 * @param javaContext
 	 *            the java content assist invocation context
-	 * @return the typed region
-	 */
+	 * @return the typed region */
 	private ITypedRegion getRegion(final JavaContentAssistInvocationContext javaContext) {
 		IDocument document = javaContext.getDocument();
 		IDocumentPartitioner documentPartitioner = ((IDocumentExtension3) document)
@@ -222,16 +185,14 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		return documentPartitioner.getPartition(javaContext.getInvocationOffset());
 	}
 
-	/**
-	 * Returns the enclosing java type for the given java element.
+	/** Returns the enclosing java type for the given java element.
 	 * 
 	 * @param element
 	 *            the element
 	 * @return the enclosing type, or null if the given element is neither a
 	 *         method nor the type itself
 	 * @throws JavaModelException
-	 *             in case of underlying exception
-	 */
+	 *             in case of underlying exception */
 	private IType getEnclosingType(final IJavaElement element) throws JavaModelException {
 		if (element == null) {
 			// no enclosing parent. For example, an annotation is set before the
@@ -243,25 +204,24 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			return (IType) element;
 		case IJavaElement.METHOD:
 			return (IType) element.getParent();
+		case IJavaElement.FIELD:
+			return null;
 		default:
 			break;
 		}
-		Logger.error("Unexpected element type for " + element.getElementName() + ": " + element.getElementType());
+		// Logger.error("Unexpected element type for " +
+		// element.getElementName() + ": " + element.getElementType());
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public final List<IContextInformation> computeContextInformation(final ContentAssistInvocationContext context,
 			final IProgressMonitor monitor) {
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public final String getErrorMessage() {
 		return null;

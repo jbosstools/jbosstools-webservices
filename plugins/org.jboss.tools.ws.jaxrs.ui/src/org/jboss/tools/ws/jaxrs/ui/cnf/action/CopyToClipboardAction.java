@@ -51,8 +51,7 @@ public class CopyToClipboardAction extends Action implements ISelectionChangedLi
 		Object selectedObject = selections.get(0);
 		try {
 			if (selectedObject instanceof UriPathTemplateElement) {
-				String uriPathTemplate = ((UriPathTemplateElement) selectedObject).getResolvedUriMapping()
-						.getEndpoint().getUriPathTemplate();
+				String uriPathTemplate = ((UriPathTemplateElement) selectedObject).getEndpoint().getUriPathTemplate();
 				Clipboard clipboard = new Clipboard(Display.getCurrent());
 				clipboard.setContents(new Object[] { uriPathTemplate }, new Transfer[] { TextTransfer.getInstance() });
 			}

@@ -16,15 +16,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
-import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestsPlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.Metamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +31,7 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractMetamodelBuilderTestCase.class);
 
-	protected Bundle bundle = JBossJaxrsCoreTestsPlugin.getDefault().getBundle();
-
-	protected Metamodel metamodel;
+	protected JaxrsMetamodel metamodel;
 
 	@Before
 	public void buildMetamodel() throws CoreException, OperationCanceledException, InterruptedException {
@@ -45,7 +42,7 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 		WorkbenchUtils.setAutoBuild(ResourcesPlugin.getWorkspace(), false);
 		// project.build(FULL_BUILD, new NullProgressMonitor());
 		WorkbenchTasks.buildProject(project, new NullProgressMonitor());
-		metamodel = Metamodel.get(project);
+		metamodel = JaxrsMetamodel.get(project);
 	}
 
 	@After
@@ -55,12 +52,12 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 		ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
 	}
 
-	protected Metamodel buildMetamodel(int mode) throws CoreException {
+	protected IJaxrsMetamodel buildMetamodel(int mode) throws CoreException {
 		LOGGER.info("Building metamodel (mode=" + mode + ")");
 		javaProject.getProject().build(mode, new NullProgressMonitor());
-		Metamodel metamodel = Metamodel.get(javaProject.getProject());
-		Assert.assertNotNull("Metamodel not built", metamodel);
-		return metamodel;
+		JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodel.get(javaProject.getProject());
+		Assert.assertNotNull("Metamodel not built", jaxrsMetamodel);
+		return jaxrsMetamodel;
 	}
 
 }

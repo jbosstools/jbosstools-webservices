@@ -11,7 +11,10 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.jdt.core.JavaCore;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedListener;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -24,7 +27,9 @@ public class JBossJaxrsCorePlugin extends Plugin {
 
 	// The shared instance
 	private static JBossJaxrsCorePlugin plugin;
-	
+
+	private final JavaElementChangedListener listener = new JavaElementChangedListener();
+
 	/**
 	 * The constructor
 	 */
@@ -33,25 +38,51 @@ public class JBossJaxrsCorePlugin extends Plugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
+	 * )
 	 */
+	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		registerListeners();
+	}
+
+	/**
+	 * 
+	 */
+	public void registerListeners() {
+		JavaCore.addElementChangedListener(listener);
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(listener);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
+	 * )
 	 */
+	@Override
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
+		unregisterListeners();
 		super.stop(context);
 	}
 
 	/**
+	 * 
+	 */
+	public void unregisterListeners() {
+		JavaCore.removeElementChangedListener(listener);
+		ResourcesPlugin.getWorkspace().removeResourceChangeListener(listener);
+	}
+
+	/**
 	 * Returns the shared instance
-	 *
+	 * 
 	 * @return the shared instance
 	 */
 	public static JBossJaxrsCorePlugin getDefault() {

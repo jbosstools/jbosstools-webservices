@@ -13,18 +13,18 @@ package org.jboss.tools.ws.jaxrs.ui.cnf;
 
 import java.util.LinkedList;
 
-import org.jboss.tools.ws.jaxrs.core.metamodel.ResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
 public class UriPathTemplateMethodMappingElement {
 
-	private final LinkedList<ResourceMethod> resourceMethods;
+	private final LinkedList<IJaxrsResourceMethod> resourceMethods;
 
-	public UriPathTemplateMethodMappingElement(LinkedList<ResourceMethod> resourceMethods) {
+	public UriPathTemplateMethodMappingElement(LinkedList<IJaxrsResourceMethod> resourceMethods) {
 		super();
 		this.resourceMethods = resourceMethods;
 	}
 
-	public ResourceMethod getResourceMethod() {
+	public IJaxrsResourceMethod getResourceMethod() {
 		return resourceMethods.getLast();
 	}
 

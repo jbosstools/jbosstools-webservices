@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
+@Deprecated
 public class MemberDeclarationVisitor extends ASTVisitor {
 
 	private final IMember member;
@@ -30,9 +31,7 @@ public class MemberDeclarationVisitor extends ASTVisitor {
 		this.member = member;
 	}
 
-	/**
-	 * @return the sourceOverview
-	 */
+	/** @return the sourceOverview */
 	public String getSourceOverview() {
 		return sourceOverview;
 	}
@@ -55,10 +54,10 @@ public class MemberDeclarationVisitor extends ASTVisitor {
 					Javadoc javaDoc = node.getJavadoc();
 					Block body = node.getBody();
 					node.getLocationInParent();
-					int beginIndex = (javaDoc != null) ? (javaDoc.getStartPosition() + javaDoc.getLength()):member.getSourceRange().getOffset();
+					int beginIndex = (javaDoc != null) ? (javaDoc.getStartPosition() + javaDoc.getLength()) : member
+							.getSourceRange().getOffset();
 					sourceOverview = member.getCompilationUnit().getSource()
-							.substring(beginIndex, body.getStartPosition())
-							.trim();
+							.substring(beginIndex, body.getStartPosition()).trim();
 				}
 			} catch (JavaModelException e) {
 				Logger.warn("Failed to visit node", e);

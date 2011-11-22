@@ -16,37 +16,30 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 
-/**
- * Utility class to manipulate WTP project facets .
+/** Utility class to manipulate WTP project facets .
  * 
- * @author xcoulon
- * 
- */
+ * @author xcoulon */
 public final class ProjectBuilderUtils {
-	
-	//TODO : replace with javabuilder, add jaxrs builder after this one.
+
+	// TODO : replace with javabuilder, add jaxrs builder after this one.
 	public static final String VALIDATION_BUILDER_ID = "org.eclipse.wst.validation.validationbuilder";
-	/** The JAX-RS MediaTypeCapabilitiesBuilder Id. */
+	/** The JAX-RS Metamodel Builder Id. */
 	public static final String JAXRS_BUILDER_ID = "org.jboss.tools.ws.jaxrs.metamodelBuilder";
 
-	/**
-	 * Hidden constructor of the utility method. Prevents instantiation.
-	 */
+	/** Hidden constructor of the utility method. Prevents instantiation. */
 	private ProjectBuilderUtils() {
 		super();
 	}
 
-	/**
-	 * Check if a builder identified by its ID is installed on a given project.
+	/** Check if a builder identified by its ID is installed on a given project.
 	 * 
 	 * @param project
 	 *            the project to look into
 	 * @param builderId
-	 *            the MediaTypeCapabilitiesBuilder ID to look up in the project's builders
-	 * @return true if the MediaTypeCapabilitiesBuilder is installed (ie, declared)
+	 *            the Metamodel Builder ID to look up in the project's builders
+	 * @return true if the Metamodel Builder is installed (ie, declared)
 	 * @throws CoreException
-	 *             in case of exception
-	 */
+	 *             in case of exception */
 	public static boolean isProjectBuilderInstalled(final IProject project, final String builderId)
 			throws CoreException {
 		ICommand[] commands = project.getDescription().getBuildSpec();
@@ -58,8 +51,7 @@ public final class ProjectBuilderUtils {
 		return false;
 	}
 
-	/**
-	 * Install the given builder identified by its ID on the given project as
+	/** Install the given builder identified by its ID on the given project as
 	 * the first builder of the project, to be sure it is always called before
 	 * the validation builder.
 	 * 
@@ -69,8 +61,7 @@ public final class ProjectBuilderUtils {
 	 *            the id of the builder to install
 	 * @return true if the facet was installed
 	 * @throws CoreException
-	 *             in case of exception
-	 */
+	 *             in case of exception */
 	public static boolean installProjectBuilder(final IProject project, final String builderId) throws CoreException {
 		IProjectDescription desc = project.getDescription();
 		ICommand[] commands = desc.getBuildSpec();
@@ -78,7 +69,7 @@ public final class ProjectBuilderUtils {
 		if (isProjectBuilderInstalled(project, builderId)) {
 			return false;
 		}
-		
+
 		ICommand[] newCommands = new ICommand[commands.length + 1];
 		for (int i = 0; i < commands.length; i++) {
 			if (commands[i].getBuilderName().equals(VALIDATION_BUILDER_ID)) {
@@ -103,13 +94,16 @@ public final class ProjectBuilderUtils {
 		return true;
 	}
 
-	/**
-	 * Returns the builder position in the indexed list of builders of the given project, starting from 0
-	 * @param project the project
-	 * @param builderId the builder ID
+	/** Returns the builder position in the indexed list of builders of the given
+	 * project, starting from 0
+	 * 
+	 * @param project
+	 *            the project
+	 * @param builderId
+	 *            the builder ID
 	 * @return the index or -1 if not found
-	 * @throws CoreException in case of underlying exception
-	 */
+	 * @throws CoreException
+	 *             in case of underlying exception */
 	public static int getBuilderPosition(final IProject project, final String builderId) throws CoreException {
 		IProjectDescription desc = project.getDescription();
 		ICommand[] commands = desc.getBuildSpec();
@@ -122,8 +116,7 @@ public final class ProjectBuilderUtils {
 		return -1;
 	}
 
-	/**
-	 * Remove the given builder identified by its ID on the given project.
+	/** Remove the given builder identified by its ID on the given project.
 	 * 
 	 * @param project
 	 *            the project from which the facet should be removed
@@ -131,8 +124,7 @@ public final class ProjectBuilderUtils {
 	 *            the id of the builder to remove
 	 * @return true if the facet was removed
 	 * @throws CoreException
-	 *             in case of exception
-	 */
+	 *             in case of exception */
 	public static boolean uninstallProjectBuilder(final IProject project, final String builderId) throws CoreException {
 		IProjectDescription desc = project.getDescription();
 		ICommand[] commands = desc.getBuildSpec();

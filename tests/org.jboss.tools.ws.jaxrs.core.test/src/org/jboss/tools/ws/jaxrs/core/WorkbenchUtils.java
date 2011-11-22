@@ -11,14 +11,26 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -28,24 +40,36 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class WorkbenchUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WorkbenchUtils.class);
@@ -65,9 +89,7 @@ public class WorkbenchUtils {
 		// removeSampleProject();
 	}
 
-	/**
-	 * @throws CoreException
-	 */
+	/** @throws CoreException */
 	public static void setAutoBuild(IWorkspace workspace, boolean value) throws CoreException {
 		if (workspace.isAutoBuilding() != value) {
 			IWorkspaceDescription description = workspace.getDescription();
@@ -87,10 +109,8 @@ public class WorkbenchUtils {
 
 	}
 
-	/**
-	 * @return
-	 * @throws JavaModelException
-	 */
+	/** @return
+	 * @throws JavaModelException */
 	public static IPackageFragment createPackage(IJavaProject javaProject, String pkgName) throws JavaModelException {
 		IFolder folder = javaProject.getProject().getFolder("src/main/java");
 		IPackageFragmentRoot packageFragmentRoot = javaProject.getPackageFragmentRoot(folder);
@@ -154,8 +174,7 @@ public class WorkbenchUtils {
 		return null;
 	}
 
-	/**
-	 * Create a compilation unit from the given filename content, in the given
+	/** Create a compilation unit from the given filename content, in the given
 	 * package, with the given name
 	 * 
 	 * @param fileName
@@ -167,8 +186,7 @@ public class WorkbenchUtils {
 	 * @param unitName
 	 *            the target compilation unit name
 	 * @return the created compilation unit
-	 * @throws JavaModelException
-	 */
+	 * @throws JavaModelException */
 	public static ICompilationUnit createCompilationUnit(IJavaProject javaProject, String fileName, String pkg,
 			String unitName, Bundle bundle) throws JavaModelException {
 		String contents = "";
@@ -184,60 +202,64 @@ public class WorkbenchUtils {
 		return foocompilationUnit;
 	}
 
-	public static void appendCompilationUnitType(ICompilationUnit compilationUnit, String resourceName, Bundle bundle)
-			throws CoreException {
-		IType type = compilationUnit.findPrimaryType();
-		Assert.assertTrue("Type does not exist", type.exists());
-		int offset = type.getSourceRange().getOffset() + type.getSourceRange().getLength();
+	public static IType appendCompilationUnitType(ICompilationUnit compilationUnit, String resourceName, Bundle bundle,
+			boolean useWorkingCopy) throws CoreException {
 		String content = getResourceContent(resourceName, bundle);
-		insertCodeAtLocation(type, content, offset);
-
+		int offset = 0;
+		IType lastType = getLastTypeInSource(compilationUnit);
+		if (lastType != null) {
+			offset = lastType.getSourceRange().getOffset() + lastType.getSourceRange().getLength();
+		}
+		insertCodeAtLocation(compilationUnit, content, offset, useWorkingCopy);
+		return getLastTypeInSource(compilationUnit);
 	}
 
-	private static void insertCodeAtLocation(IType type, String content, int offset) throws CoreException {
-		ICompilationUnit compilationUnit = type.getCompilationUnit();
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
+	private static IType getLastTypeInSource(ICompilationUnit compilationUnit) throws JavaModelException {
+		IType[] types = compilationUnit.getTypes();
+		if (types != null && types.length > 0) {
+			return types[types.length - 1];
+		}
+		return null;
+	}
+
+	private static void insertCodeAtLocation(ICompilationUnit compilationUnit, String content, int offset,
+			boolean useWorkingCopy) throws CoreException {
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		buffer.replace(offset, 0, content + "\n"); // append a new line at the
 													// same time
-		saveAndClose(workingCopy);
-		String subSource = type.getCompilationUnit().getSource().substring(offset, offset + content.length());
+		saveAndClose(unit);
+		String subSource = compilationUnit.getSource().substring(offset, offset + content.length());
 		Assert.assertEquals("Content was not inserted", content, subSource);
 	}
 
-	/**
-	 * Removes the first occurrence of the given content (not a regexp)
+	/** Removes the first occurrence of the given content (not a regexp)
 	 * 
 	 * @param type
 	 * @param content
-	 * @throws JavaModelException
-	 */
-	public static void removeFirstOccurrenceOfCode(IType type, String content) throws JavaModelException {
-		replaceFirstOccurrenceOfCode(type, content, "");
-	}
-
-	/**
-	 * Replaces the first occurrence of the given old content (not a regexp)
-	 * with the given new content
-	 * 
-	 * @param compilationUnit
-	 * @param oldContent
-	 * @param newContent
-	 * @throws JavaModelException
-	 */
-	public static void replaceFirstOccurrenceOfCode(IType type, String oldContent, String newContent)
+	 * @throws JavaModelException */
+	public static void removeFirstOccurrenceOfCode(IType type, String content, boolean useWorkingCopy)
 			throws JavaModelException {
-		replaceFirstOccurrenceOfCode(type.getCompilationUnit(), oldContent, newContent);
+		replaceFirstOccurrenceOfCode(type, content, "", useWorkingCopy);
 	}
 
 	public static void replaceFirstOccurrenceOfCode(ICompilationUnit compilationUnit, String oldContent,
-			String newContent) throws JavaModelException {
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
+			String newContent, boolean useWorkingCopy) throws JavaModelException {
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		int offset = buffer.getContents().indexOf(oldContent);
 		Assert.assertTrue("Old content not found", offset != -1);
 		buffer.replace(offset, oldContent.length(), newContent);
-		saveAndClose(workingCopy);
+		saveAndClose(unit);
+	}
+
+	/** @param compilationUnit
+	 * @param useWorkingCopy
+	 * @return
+	 * @throws JavaModelException */
+	public static ICompilationUnit getCompilationUnit(ICompilationUnit compilationUnit, boolean useWorkingCopy)
+			throws JavaModelException {
+		return useWorkingCopy ? createWorkingCopy(compilationUnit) : compilationUnit;
 	}
 
 	public static void replaceFirstOccurrenceOfCode(ICompilationUnit compilationUnit, String[] oldContents,
@@ -253,35 +275,44 @@ public class WorkbenchUtils {
 		saveAndClose(workingCopy);
 	}
 
-	public static void replaceFirstOccurrenceOfCode(IMethod method, String oldContent, String newContent)
-			throws JavaModelException {
-		ICompilationUnit workingCopy = createWorkingCopy(method.getCompilationUnit());
-		ISourceRange sourceRange = method.getSourceRange();
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
+	public static <T extends IMember> T replaceFirstOccurrenceOfCode(T member, String oldContent, String newContent,
+			boolean useWorkingCopy) throws JavaModelException {
+		ICompilationUnit compilationUnit = member.getCompilationUnit();
+		ICompilationUnit unit = useWorkingCopy ? createWorkingCopy(compilationUnit) : member.getCompilationUnit();
+		ISourceRange sourceRange = member.getSourceRange();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		int offset = buffer.getContents().indexOf(oldContent, sourceRange.getOffset());
 		Assert.assertTrue("Old content not found: '" + oldContent + "'", offset != -1);
 		buffer.replace(offset, oldContent.length(), newContent);
-		saveAndClose(workingCopy);
+		// IJavaElement modifiedMethod =
+		// workingCopy.getElementAt(sourceRange.getOffset());
+		saveAndClose(unit);
+		@SuppressWarnings("unchecked")
+		T modifiedElement = (T) compilationUnit.getElementAt(sourceRange.getOffset());
+		return modifiedElement;
 	}
 
 	public static void replaceAllOccurrencesOfCode(ICompilationUnit compilationUnit, String oldContent,
-			String newContent) throws JavaModelException {
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
+			String newContent, boolean useWorkingCopy) throws JavaModelException {
+
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		int offset = 0;
-		while ((offset = buffer.getContents().indexOf(oldContent)) != -1) {
+		while ((offset = buffer.getContents().indexOf(oldContent, offset)) != -1) {
 			buffer.replace(offset, oldContent.length(), newContent);
+			offset = offset + newContent.length();
+
 		}
-		saveAndClose(workingCopy);
+		saveAndClose(unit);
 	}
 
-	public static void addImport(IType type, String name) throws JavaModelException {
+	public static void createImport(IType type, String name) throws JavaModelException {
 		LOGGER.debug("Adding import " + name);
 		ICompilationUnit compilationUnit = type.getCompilationUnit();
-		addImport(compilationUnit, name);
+		createImport(compilationUnit, name);
 	}
 
-	public static void addImport(ICompilationUnit compilationUnit, String name) throws JavaModelException {
+	public static void createImport(ICompilationUnit compilationUnit, String name) throws JavaModelException {
 		LOGGER.debug("Adding import " + name);
 		NullProgressMonitor monitor = new NullProgressMonitor();
 		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
@@ -309,57 +340,131 @@ public class WorkbenchUtils {
 		saveAndClose(workingCopy);
 	}
 
-	public static void removeMethod(ICompilationUnit compilationUnit, String methodName) throws JavaModelException {
+	public static IMethod removeMethod(ICompilationUnit compilationUnit, String methodName, boolean useWorkingCopy)
+			throws JavaModelException {
 		LOGGER.debug("Removing method " + methodName);
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		for (IMethod method : compilationUnit.findPrimaryType().getMethods()) {
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		for (IMethod method : unit.findPrimaryType().getMethods()) {
 			if (method.getElementName().equals(methodName)) {
 				ISourceRange sourceRange = method.getSourceRange();
-				IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
+				IBuffer buffer = ((IOpenable) unit).getBuffer();
 				buffer.replace(sourceRange.getOffset(), sourceRange.getLength(), "");
-				saveAndClose(workingCopy);
-				return;
+				saveAndClose(unit);
+				return method;
 			}
 		}
 		Assert.fail("Method not found.");
+		return null;
 	}
 
-	public static void removeMethod(IType javaType, String methodName) throws JavaModelException {
+	public static void removeMethod(IType javaType, String methodName, boolean useWorkingCopy)
+			throws JavaModelException {
 		LOGGER.info("Removing method " + javaType.getElementName() + "." + methodName + "(...)");
-		removeMethod(javaType.getCompilationUnit(), methodName);
+		removeMethod(javaType.getCompilationUnit(), methodName, useWorkingCopy);
 	}
 
-	public static IMethod addMethod(IType javaType, String contents) throws JavaModelException {
+	public static void removeType(IType type, boolean useWorkingCopy) throws JavaModelException {
+		LOGGER.info("Removing type " + type.getElementName() + "...");
+		ICompilationUnit unit = getCompilationUnit(type.getCompilationUnit(), useWorkingCopy);
+		unit.getType(type.getElementName()).delete(true, new NullProgressMonitor());
+		saveAndClose(unit);
+	}
+
+	public static IMethod createMethod(IType javaType, String contents, boolean useWorkingCopy)
+			throws JavaModelException {
 		LOGGER.info("Adding method into type " + javaType.getElementName());
-		ICompilationUnit workingCopy = createWorkingCopy(javaType.getCompilationUnit());
+		ICompilationUnit unit = javaType.getCompilationUnit();
+		if (useWorkingCopy) {
+			unit = createWorkingCopy(unit);
+		}
 		ISourceRange sourceRange = javaType.getMethods()[0].getSourceRange();
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		// insert before 1 method
 		buffer.replace(sourceRange.getOffset(), 0, contents);
-		saveAndClose(workingCopy);
+		saveAndClose(unit);
 		// return the last method of the java type, assuming it is the one given
 		// in parameter
 		return javaType.getMethods()[0];
 	}
 
-	public static void addMethodAnnotation(IMethod method, String annotation) throws JavaModelException {
-		ICompilationUnit compilationUnit = method.getCompilationUnit();
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		ISourceRange sourceRange = method.getSourceRange();
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
-		buffer.replace(sourceRange.getOffset(), 0, annotation + "\n");
-		saveAndClose(workingCopy);
-		return;
+	public static IField createField(IType type, String contents, boolean useWorkingCopy) throws JavaModelException {
+		LOGGER.info("Adding type into type " + type.getElementName());
+		ICompilationUnit unit = useWorkingCopy ? createWorkingCopy(type.getCompilationUnit()) : type
+				.getCompilationUnit();
+		ISourceRange sourceRange = type.getFields()[0].getSourceRange();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		// insert before 1 method
+		buffer.replace(sourceRange.getOffset(), 0, contents);
+		saveAndClose(unit);
+		// return the last method of the java type, assuming it is the one given
+		// in parameter
+		return type.getFields()[0];
 	}
 
-	public static void addTypeAnnotation(IType type, String annotation) throws JavaModelException, CoreException {
-		LOGGER.info("Adding annotation " + annotation + " on type " + type.getElementName());
-		insertCodeAtLocation(type, annotation, type.getSourceRange().getOffset());
+	public static IField removeField(IField field, boolean useWorkingCopy) throws JavaModelException {
+		LOGGER.info("Removing field " + field.getElementName());
+		ICompilationUnit unit = useWorkingCopy ? createWorkingCopy(field.getCompilationUnit()) : field
+				.getCompilationUnit();
+		ISourceRange sourceRange = field.getSourceRange();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		// remove
+		buffer.replace(sourceRange.getOffset(), sourceRange.getLength(), "");
+		saveAndClose(unit);
+		// return the last method of the java type, assuming it is the one given
+		// in parameter
+		return field;
+
 	}
 
-	public static void removeMethodAnnotation(IType javaType, String methodName, String annotation)
+	/** @param type
+	 * @return
+	 * @throws JavaModelException */
+	public static IMethod getMethod(IType type, String name) throws JavaModelException {
+		for (IMethod method : type.getMethods()) {
+			if (method.getElementName().equals(name)) {
+				return method;
+			}
+		}
+		Assert.fail("Failed to locate method named '" + name + "'");
+		return null;
+	}
+
+	public static IAnnotation addMethodAnnotation(IMethod method, String annotationStmt, boolean useWorkingCopy)
 			throws JavaModelException {
-		LOGGER.info("Removing annotation " + annotation + " on " + javaType.getElementName() + "." + methodName
+		ICompilationUnit compilationUnit = method.getCompilationUnit();
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		ISourceRange sourceRange = method.getSourceRange();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		buffer.replace(sourceRange.getOffset(), 0, annotationStmt + "\n");
+		saveAndClose(unit);
+		method = (IMethod) compilationUnit.getElementAt(method.getSourceRange().getOffset());
+		String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
+		for (IAnnotation annotation : method.getAnnotations()) {
+			if (annotation.getElementName().equals(annotationName)) {
+				return annotation;
+			}
+		}
+		Assert.fail("SimpleAnnotation '" + annotationName + "'not found on method " + method.getSource());
+		return null;
+	}
+
+	public static IAnnotation addTypeAnnotation(IType type, String annotationStmt, boolean useWorkingCopy)
+			throws JavaModelException, CoreException {
+		LOGGER.info("Adding annotation " + annotationStmt + " on type " + type.getElementName());
+		insertCodeAtLocation(type.getCompilationUnit(), annotationStmt, type.getSourceRange().getOffset(),
+				useWorkingCopy);
+		String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
+		for (IAnnotation annotation : type.getAnnotations()) {
+			if (annotation.getElementName().equals(annotationName)) {
+				return annotation;
+			}
+		}
+		return null;
+	}
+
+	public static void removeMethodAnnotation(IType javaType, String methodName, String annotationStmt)
+			throws JavaModelException {
+		LOGGER.info("Removing annotation " + annotationStmt + " on " + javaType.getElementName() + "." + methodName
 				+ "(...)");
 		ICompilationUnit compilationUnit = javaType.getCompilationUnit();
 		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
@@ -367,12 +472,10 @@ public class WorkbenchUtils {
 			if (method.getElementName().equals(methodName)) {
 				ISourceRange sourceRange = method.getSourceRange();
 				IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
-				int index = buffer.getContents().indexOf(annotation, sourceRange.getOffset());
-				Assert.assertTrue(
-						"Annotation not found",
-						(index >= sourceRange.getOffset())
-								&& (index <= sourceRange.getOffset() + sourceRange.getLength()));
-				buffer.replace(index, annotation.length(), "");
+				int index = buffer.getContents().indexOf(annotationStmt, sourceRange.getOffset());
+				Assert.assertTrue("SimpleAnnotation not found", (index >= sourceRange.getOffset())
+						&& (index <= sourceRange.getOffset() + sourceRange.getLength()));
+				buffer.replace(index, annotationStmt.length(), "");
 				saveAndClose(workingCopy);
 				return;
 			}
@@ -380,23 +483,61 @@ public class WorkbenchUtils {
 		Assert.fail("Method not found.");
 	}
 
-	public static void removeMethodAnnotation(IMethod method, String annotation) throws JavaModelException {
+	public static void removeMethodAnnotation(IMethod method, String annotationStmt) throws JavaModelException {
 		ICompilationUnit compilationUnit = method.getCompilationUnit();
 		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
 		ISourceRange sourceRange = method.getSourceRange();
 		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
-		int index = buffer.getContents().indexOf(annotation, sourceRange.getOffset());
-		Assert.assertTrue("Annotation not found: '" + annotation + "'", (index >= sourceRange.getOffset())
+		int index = buffer.getContents().indexOf(annotationStmt, sourceRange.getOffset());
+		Assert.assertTrue("SimpleAnnotation not found: '" + annotationStmt + "'", (index >= sourceRange.getOffset())
 				&& (index <= sourceRange.getOffset() + sourceRange.getLength()));
-		buffer.replace(index, annotation.length(), "");
+		buffer.replace(index, annotationStmt.length(), "");
 		saveAndClose(workingCopy);
 	}
 
-	public static void addMethodParameter(IMethod method, String parameter) throws JavaModelException {
+	public static IAnnotation removeMethodAnnotation(IMethod method, IAnnotation annotation, boolean useWorkingCopy)
+			throws JavaModelException {
 		ICompilationUnit compilationUnit = method.getCompilationUnit();
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		ISourceRange sourceRange = annotation.getSourceRange();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		buffer.replace(sourceRange.getOffset(), sourceRange.getLength(), "");
+		saveAndClose(unit);
+		return annotation;
+	}
+
+	public static IAnnotation addFieldAnnotation(IField field, String annotationStmt, boolean useWorkingCopy)
+			throws CoreException {
+		LOGGER.info("Adding annotation " + annotationStmt + " on type " + field.getElementName());
+		insertCodeAtLocation(field.getCompilationUnit(), annotationStmt, field.getSourceRange().getOffset(),
+				useWorkingCopy);
+		String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
+		for (IAnnotation annotation : field.getAnnotations()) {
+			if (annotation.getElementName().equals(annotationName)) {
+				return annotation;
+			}
+		}
+		return null;
+	}
+
+	public static void removeFieldAnnotation(IField field, String annotationStmt, boolean useWorkingCopy)
+			throws JavaModelException {
+		ICompilationUnit compilationUnit = field.getCompilationUnit();
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		ISourceRange sourceRange = field.getSourceRange();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		int index = buffer.getContents().indexOf(annotationStmt, sourceRange.getOffset());
+		Assert.assertTrue("SimpleAnnotation not found: '" + annotationStmt + "'", (index >= sourceRange.getOffset())
+				&& (index <= sourceRange.getOffset() + sourceRange.getLength()));
+		buffer.replace(index, annotationStmt.length(), "");
+		saveAndClose(unit);
+	}
+
+	public static IMethod addMethodParameter(IMethod method, String parameter, boolean useWorkingCopy)
+			throws JavaModelException {
+		ICompilationUnit unit = getCompilationUnit(method.getCompilationUnit(), useWorkingCopy);
 		ISourceRange sourceRange = method.getSourceRange();
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		String[] parameterNames = method.getParameterNames();
 		int offset = buffer.getContents().indexOf("public", sourceRange.getOffset());
 		int index = buffer.getContents().indexOf("(", offset);
@@ -405,39 +546,84 @@ public class WorkbenchUtils {
 		} else {
 			buffer.replace(index + 1, 0, parameter + ",");
 		}
-		saveAndClose(workingCopy);
+		saveAndClose(unit);
+		return (IMethod) method.getCompilationUnit().getElementAt(sourceRange.getOffset());
 	}
 
-	/**
-	 * @param compilationUnit
+	/** @param compilationUnit
 	 * @return
-	 * @throws JavaModelException
-	 */
-	private static ICompilationUnit createWorkingCopy(ICompilationUnit compilationUnit) throws JavaModelException {
+	 * @throws JavaModelException */
+	public static ICompilationUnit createWorkingCopy(ICompilationUnit compilationUnit) throws JavaModelException {
 		LOGGER.debug("Creating working copy...");
-		ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new NullProgressMonitor());
+		// ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new
+		// NullProgressMonitor());
+		ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new WorkingCopyOwner() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * org.eclipse.jdt.core.WorkingCopyOwner#getProblemRequestor(org
+			 * .eclipse.jdt.core.ICompilationUnit)
+			 */
+			@Override
+			public IProblemRequestor getProblemRequestor(ICompilationUnit workingCopy) {
+				// TODO Auto-generated method stub
+				return new IProblemRequestor() {
+
+					@Override
+					public boolean isActive() {
+						// TODO Auto-generated method stub
+						return true;
+					}
+
+					@Override
+					public void endReporting() {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void beginReporting() {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void acceptProblem(IProblem problem) {
+						LOGGER.debug("Reporting problem: {}", problem);
+
+					}
+				};
+			}
+		}, new NullProgressMonitor());
+
+		// ICompilationUnit workingCopy =
+		// JavaPlugin.getDefault().getWorkingCopyManager().getWorkingCopy();
 		LOGGER.debug("Working copy created.");
 		return workingCopy;
 	}
 
-	/**
-	 * @param compilationUnit
-	 * @throws JavaModelException
-	 */
-	private static void saveAndClose(ICompilationUnit compilationUnit) throws JavaModelException {
+	/** @param unit
+	 * @throws JavaModelException */
+	public static void saveAndClose(ICompilationUnit unit) throws JavaModelException {
 		try {
-			if (compilationUnit.isWorkingCopy()) {
+			if (unit.isWorkingCopy()) {
 				LOGGER.debug("Reconciling unit...");
-				compilationUnit.reconcile(ICompilationUnit.NO_AST, false, null, null);
+
+				unit.reconcile(AST.JLS3, ICompilationUnit.FORCE_PROBLEM_DETECTION, unit.getOwner(),
+						new NullProgressMonitor());
 				// Commit changes
-				LOGGER.debug("Commiting changes...");
-				compilationUnit.commitWorkingCopy(false, null);
+				LOGGER.debug("Commiting working copy...");
+				unit.commitWorkingCopy(true, null);
 				// Destroy working copy
 				LOGGER.debug("Discarding working copy...");
-				compilationUnit.discardWorkingCopy();
+				unit.discardWorkingCopy();
+			} else {
+				unit.save(new NullProgressMonitor(), true);
 			}
 			// explicitly trigger the project build
-			compilationUnit.getJavaProject().getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+			unit.getJavaProject().getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
 
 		} catch (Exception e) {
 			LOGGER.error("Failed to build project", e);
@@ -463,7 +649,8 @@ public class WorkbenchUtils {
 
 	public static void delete(ICompilationUnit compilationUnit) throws CoreException {
 		compilationUnit.delete(true, new NullProgressMonitor());
-		saveAndClose(compilationUnit);
+
+		// saveAndClose(compilationUnit);
 	}
 
 	/*
@@ -488,9 +675,142 @@ public class WorkbenchUtils {
 		saveAndClose(compilationUnit);
 	}
 
-	public static void rename(IMethod method, String name) throws JavaModelException {
-		method.rename(name, true, new NullProgressMonitor());
-		saveAndClose(method.getCompilationUnit());
+	public static IMethod renameMethod(ICompilationUnit compilationUnit, String oldName, String newName,
+			boolean useWorkingCopy) throws JavaModelException {
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		for (IMethod method : unit.findPrimaryType().getMethods()) {
+			if (method.getElementName().equals(oldName)) {
+				method.rename(newName, true, new NullProgressMonitor());
+				saveAndClose(unit);
+				return method;
+			}
+		}
+		Assert.fail("Method not found");
+		return null;
+	}
+
+	public static void removeSourceFolder(IProject project, IProgressMonitor progressMonitor) throws JavaModelException {
+		IFolder srcFolder = project.getFolder(new Path("src"));
+		IJavaProject javaProject = JavaCore.create(project);
+		List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>(Arrays.asList(javaProject.getRawClasspath()));
+		IClasspathEntry srcEntry = JavaCore.newSourceEntry(srcFolder.getFullPath());
+		for (Iterator<IClasspathEntry> entryIterator = entries.iterator(); entryIterator.hasNext();) {
+			IClasspathEntry entry = entryIterator.next();
+			if (entry.equals(srcEntry)) {
+				entries.remove(entry);
+			}
+		}
+		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), progressMonitor);
+	}
+
+	/** Iterates through the project's package fragment roots and returns the one
+	 * (source or binary) which project relative path matches the given path.
+	 * 
+	 * @param project
+	 * @param path
+	 * @param progressMonitor
+	 * @return
+	 * @throws JavaModelException */
+	public static IPackageFragmentRoot getPackageFragmentRoot(IJavaProject project, String path,
+			IProgressMonitor progressMonitor) throws JavaModelException {
+		for (IPackageFragmentRoot packageFragmentRoot : project.getAllPackageFragmentRoots()) {
+			final String fragmentPath = packageFragmentRoot.getPath().makeRelativeTo(project.getPath())
+					.toPortableString();
+			if (fragmentPath.equals(path)) {
+				return packageFragmentRoot;
+			}
+		}
+		fail("Entry with path " + path + " not found in project.");
+		return null;
+	}
+
+	/** @param monitor
+	 * @param description
+	 * @param projectName
+	 * @param workspace
+	 * @param project
+	 * @throws InvocationTargetException */
+	static void createProject(IProgressMonitor monitor, IProjectDescription description, String projectName,
+			IWorkspace workspace, IProject project) throws InvocationTargetException {
+		// import from file system
+
+		// import project from location copying files - use default project
+		// location for this workspace
+		// if location is null, project already exists in this location or
+		// some error condition occured.
+		IProjectDescription desc = workspace.newProjectDescription(projectName);
+		desc.setBuildSpec(description.getBuildSpec());
+		desc.setComment(description.getComment());
+		desc.setDynamicReferences(description.getDynamicReferences());
+		desc.setNatureIds(description.getNatureIds());
+		desc.setReferencedProjects(description.getReferencedProjects());
+		description = desc;
+
+		try {
+			monitor.beginTask(DataTransferMessages.WizardProjectsImportPage_CreateProjectsTask, 100);
+			project.create(description, new SubProgressMonitor(monitor, 30));
+			project.open(IResource.BACKGROUND_REFRESH, new SubProgressMonitor(monitor, 70));
+		} catch (CoreException e) {
+			throw new InvocationTargetException(e);
+		} finally {
+			monitor.done();
+		}
+	}
+
+	/** Remove the first referenced library those absolute path contains the
+	 * given name.
+	 * 
+	 * @param javaProject
+	 * @param name
+	 * @param progressMonitor
+	 * @throws CoreException
+	 * @throws InterruptedException
+	 * @throws OperationCanceledException */
+	public static List<IPackageFragmentRoot> removeClasspathEntry(IJavaProject javaProject, String name,
+			IProgressMonitor progressMonitor) throws CoreException, OperationCanceledException, InterruptedException {
+		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
+		int index = 0;
+		List<IPackageFragmentRoot> fragments = null;
+		for (IClasspathEntry entry : classpathEntries) {
+			if (entry.getPath().toFile().getAbsolutePath().contains(name)) {
+				fragments = new ArrayList<IPackageFragmentRoot>();
+				for (IPackageFragmentRoot fragment : javaProject.getAllPackageFragmentRoots()) {
+					if (fragment.getRawClasspathEntry().equals(entry)) {
+						fragments.add(fragment);
+					}
+				}
+				break;
+			}
+			index++;
+		}
+		if (index < classpathEntries.length) {
+			classpathEntries = (IClasspathEntry[]) ArrayUtils.remove(classpathEntries, index);
+			javaProject.setRawClasspath(classpathEntries, progressMonitor);
+		}
+		WorkbenchTasks.buildProject(javaProject.getProject(), progressMonitor);
+		return fragments;
+	}
+
+	public static boolean removeReferencedLibrarySourceAttachment(IJavaProject javaProject, String name,
+			IProgressMonitor progressMonitor) throws OperationCanceledException, CoreException, InterruptedException {
+		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
+		boolean found = false;
+		for (int i = 0; i < classpathEntries.length; i++) {
+			IClasspathEntry classpathEntry = classpathEntries[i];
+			IPath path = classpathEntry.getPath();
+			if (path.toFile().getAbsolutePath().contains(name)) {
+				if (!path.isAbsolute()) {
+					path = JavaCore.getClasspathVariable("M2_REPO").append(path.makeRelativeTo(new Path("M2_REPO")));
+				}
+				classpathEntries[i] = JavaCore.newLibraryEntry(path, null, null, classpathEntry.getAccessRules(),
+						classpathEntry.getExtraAttributes(), classpathEntry.isExported());
+				found = true;
+			}
+		}
+		javaProject.setRawClasspath(classpathEntries, progressMonitor);
+		// refresh/build project
+		WorkbenchTasks.buildProject(javaProject.getProject(), progressMonitor);
+		return found;
 	}
 
 }

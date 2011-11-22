@@ -1,24 +1,30 @@
 package org.jboss.tools.ws.jaxrs.core;
 
-import org.jboss.tools.ws.jaxrs.core.builder.FullBuilderTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.builder.HttpMethodChangesTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.builder.JaxrsAnnotationScannerTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.builder.ProviderChangesTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.builder.ResourceChangesTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.builder.ResourceMethodChangesTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.configuration.ProjectBuilderUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.configuration.ProjectNatureUtilsTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ElementChangedEventScannerTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEventFilterTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedProcessorTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelFullBuildJobTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactoryTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodelTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.PathParamValidationTestCase;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtilsTestCase;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepositoryTestCase;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtilsTestCase;
+import org.jboss.tools.ws.jaxrs.core.pubsub.PubSubServiceTestCase;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ FullBuilderTestCase.class, HttpMethodChangesTestCase.class, JaxrsAnnotationScannerTestCase.class,
-		ProviderChangesTestCase.class, ResourceChangesTestCase.class, ResourceMethodChangesTestCase.class,
-		ProjectBuilderUtilsTestCase.class, ProjectNatureUtilsTestCase.class, PathParamValidationTestCase.class,
-		JdtUtilsTestCase.class })
+@SuiteClasses({ ProjectBuilderUtilsTestCase.class, ProjectNatureUtilsTestCase.class, JdtUtilsTestCase.class,
+		CompilationUnitsRepositoryTestCase.class, ElementChangedEventScannerTestCase.class,
+		JavaElementChangedEventFilterTestCase.class, JavaElementChangedProcessorTestCase.class,
+		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelFullBuildJobTestCase.class,
+		JaxrsElementFactoryTestCase.class, JaxrsMetamodelTestCase.class, CollectionUtilsTestCase.class,
+		PathParamValidationTestCase.class, PubSubServiceTestCase.class })
 public class AllTests {
 
 }

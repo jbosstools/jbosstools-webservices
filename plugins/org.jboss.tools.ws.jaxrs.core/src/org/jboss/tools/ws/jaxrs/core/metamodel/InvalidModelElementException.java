@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+@Deprecated
 public class InvalidModelElementException extends Exception {
 
 	/** serialVersionUID */

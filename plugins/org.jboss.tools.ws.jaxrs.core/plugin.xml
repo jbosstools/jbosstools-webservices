@@ -10,7 +10,7 @@
             hasNature="false"
             isConfigurable="false">
          <run
-               class="org.jboss.tools.ws.jaxrs.core.internal.builder.JaxrsMetamodelBuilder">
+               class="org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelFullBuilder">
          </run>
       </builder>
    </extension>
