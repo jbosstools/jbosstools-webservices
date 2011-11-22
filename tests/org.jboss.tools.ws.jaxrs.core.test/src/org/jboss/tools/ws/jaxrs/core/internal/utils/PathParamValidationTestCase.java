@@ -20,7 +20,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelFullBuilder;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -34,14 +34,14 @@ public class PathParamValidationTestCase extends AbstractMetamodelBuilderTestCas
 		// pre-conditions : add a standard class : no new root resource (yet)
 		ICompilationUnit fooCompilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "FooResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java", bundle);
-		IMarker[] markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelFullBuilder.JAXRS_PROBLEM, true,
+		IMarker[] markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelBuilder.JAXRS_PROBLEM, true,
 				IResource.DEPTH_INFINITE);
 		Assert.assertEquals("No marker expected", 0, markers.length);
 		// operation : replace @PathParam("id") with @PathParam("ide")
 		WorkbenchUtils.replaceAllOccurrencesOfCode(fooCompilationUnit, "@PathParam(\"id\")", "@PathParam(\"ide\")",
 				true);
 		// post-conditions: expect a validation error
-		markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelFullBuilder.JAXRS_PROBLEM, true,
+		markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelBuilder.JAXRS_PROBLEM, true,
 				IResource.DEPTH_INFINITE);
 		Assert.assertEquals("Wrong number of markers", 1, markers.length);
 
@@ -54,7 +54,7 @@ public class PathParamValidationTestCase extends AbstractMetamodelBuilderTestCas
 				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java", bundle);
 		List<IJaxrsResource> resources = metamodel.getAllResources();
 		Assert.assertEquals(6, resources.size());
-		IMarker[] markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelFullBuilder.JAXRS_PROBLEM, true,
+		IMarker[] markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelBuilder.JAXRS_PROBLEM, true,
 				IResource.DEPTH_INFINITE);
 		Assert.assertEquals("No marker expected", 0, markers.length);
 		// operation : change both @Path and @PathParam values
@@ -63,7 +63,7 @@ public class PathParamValidationTestCase extends AbstractMetamodelBuilderTestCas
 		WorkbenchUtils.replaceAllOccurrencesOfCode(fooCompilationUnit, "@PathParam(\"id\")", "@PathParam(\"ide\")",
 				true);
 		// post-conditions: expect no validation error
-		markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelFullBuilder.JAXRS_PROBLEM, true,
+		markers = fooCompilationUnit.getResource().findMarkers(JaxrsMetamodelBuilder.JAXRS_PROBLEM, true,
 				IResource.DEPTH_INFINITE);
 		Assert.assertEquals("No marker expected", 0, markers.length);
 

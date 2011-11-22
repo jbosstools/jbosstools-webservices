@@ -20,13 +20,17 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.wst.validation.ValidatorMessage;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
@@ -34,14 +38,11 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
 /** @author xcoulon */
 public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrsResourceMethod {
 
 	private final JaxrsResource parentResource;
-
-	private final EnumKind kind = null;
 
 	/** return type of the java javaMethod. Null if this is not a subresource
 	 * locator. */
@@ -178,11 +179,26 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		return EnumElementKind.RESOURCE_METHOD;
 	}
 
-	/** {@inheritDoc}
-	 * 
-	 * @throws CoreException */
 	@Override
-	public void validate(IProgressMonitor progressMonitor) throws CoreException {
+	public List<ValidatorMessage> validate() {
+		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		final List<String> pathParamValueProposals = getPathParamValueProposals();
+		for (JavaMethodParameter parameter : this.javaMethodParameters) {
+			final Annotation annotation = parameter.getAnnotation(PathParam.class.getName());
+			if(annotation != null) {
+				final String value = annotation.getValue("value");
+				if(!pathParamValueProposals.contains(value)) {
+					final ValidatorMessage message = ValidatorMessage.create("Invalid @PathParam value: expected " + pathParamValueProposals, this.getResource());
+					message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
+					message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+					message.setAttribute(IMarker.CHAR_START, annotation.getRegion().getOffset());
+					message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset() + annotation.getRegion().getLength());
+					messages.add(message);
+					Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(), message);
+				}
+			}
+		}
+		return messages;
 	}
 
 	/*
@@ -366,5 +382,6 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		}
 		return params;
 	}
+
 
 }

@@ -38,6 +38,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
@@ -47,7 +48,6 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
 /** Base class for all elements in the JAX-RS Metamodel.
  * 
@@ -55,7 +55,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
  * 
  * @param <T>
  *            the underlying Java type managed by the JAX-RS ElementKind. */
-public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T>, IValidable {
+public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T> {
 
 	/** The associated metamodel. */
 	private final JaxrsMetamodel metamodel;
@@ -145,6 +145,10 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 	@Override
 	public List<Annotation> getAnnotations() {
 		return Collections.unmodifiableList(new ArrayList<Annotation>(annotations.values()));
+	}
+	
+	IResource getResource() {
+		return this.javaElement.getResource();
 	}
 
 	@Override

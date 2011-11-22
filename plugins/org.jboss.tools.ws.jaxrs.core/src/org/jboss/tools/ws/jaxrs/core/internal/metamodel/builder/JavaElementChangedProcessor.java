@@ -129,7 +129,8 @@ public class JavaElementChangedProcessor {
 		return Collections.emptyList();
 	}
 
-	/** Process the addition of a Java Element (can be a JavaProject or a Java
+	/**
+	 * Process the addition of a Java Element (can be a JavaProject or a Java
 	 * Package Fragment root).
 	 * 
 	 * @param scope
@@ -140,7 +141,8 @@ public class JavaElementChangedProcessor {
 	 *            the progress monitor
 	 * @return a list of impacts (ie, JAX-RS elements that where created)
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	private List<JaxrsElementChangedEvent> processAddition(final IJavaElement scope, final JaxrsMetamodel metamodel,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
@@ -176,9 +178,11 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param type
+	/**
+	 * @param type
 	 * @param progressMonitor
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementChangedEvent> processAddition(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
@@ -210,9 +214,11 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param type
+	/**
+	 * @param type
 	 * @param progressMonitor
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementChangedEvent> processAddition(final IMethod javaMethod, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
@@ -223,9 +229,11 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param javaAnnotation
+	/**
+	 * @param javaAnnotation
 	 * @param progressMonitor
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementChangedEvent> processAddition(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
@@ -247,26 +255,30 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param javaAnnotation
+	/**
+	 * @param javaAnnotation
 	 * @param progressMonitor
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	// FIXME : same code as method processAddition(annotation, etc..) ?!?
 	private List<JaxrsElementChangedEvent> processChange(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
-		final IJaxrsElement<?> jaxrsElement = metamodel.getElement(annotation);
-		if (jaxrsElement == null) {
-			final List<IJaxrsElement<?>> elements = factory.createElement(javaAnnotation, ast, metamodel);
-			for (IJaxrsElement<?> element : elements) {
-				if (element != null) {
-					impacts.add(new JaxrsElementChangedEvent(element, ADDED));
+		if (annotation != null) {
+			final IJaxrsElement<?> jaxrsElement = metamodel.getElement(annotation);
+			if (jaxrsElement == null) {
+				final List<IJaxrsElement<?>> elements = factory.createElement(javaAnnotation, ast, metamodel);
+				for (IJaxrsElement<?> element : elements) {
+					if (element != null) {
+						impacts.add(new JaxrsElementChangedEvent(element, ADDED));
+					}
 				}
-			}
-		} else {
-			final int flags = jaxrsElement.addOrUpdateAnnotation(annotation);
-			if (flags > 0) {
-				impacts.add(new JaxrsElementChangedEvent(jaxrsElement, CHANGED, flags));
+			} else {
+				final int flags = jaxrsElement.addOrUpdateAnnotation(annotation);
+				if (flags > 0) {
+					impacts.add(new JaxrsElementChangedEvent(jaxrsElement, CHANGED, flags));
+				}
 			}
 		}
 		return impacts;
@@ -286,10 +298,12 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param element
+	/**
+	 * @param element
 	 * @param progressMonitor
 	 * @return
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementChangedEvent> processRemoval(IPackageFragmentRoot packageFragmentRoot,
 			final JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
@@ -301,11 +315,13 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param element
+	/**
+	 * @param element
 	 * @param ast
 	 * @param progressMonitor
 	 * @return
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementChangedEvent> processRemoval(ICompilationUnit compilationUnit, CompilationUnit ast,
 			final JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
@@ -317,9 +333,11 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param javaType
+	/**
+	 * @param javaType
 	 * @param progressMonitor
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementChangedEvent> processRemoval(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
@@ -332,9 +350,11 @@ public class JavaElementChangedProcessor {
 		return impacts;
 	}
 
-	/** @param javaAnnotation
+	/**
+	 * @param javaAnnotation
 	 * @param progressMonitor
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementChangedEvent> processRemoval(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();

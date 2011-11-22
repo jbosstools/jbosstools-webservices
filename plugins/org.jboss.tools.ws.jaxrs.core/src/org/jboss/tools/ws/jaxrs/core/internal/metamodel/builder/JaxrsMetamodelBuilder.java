@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -25,7 +24,6 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /** The JAX-RS Metamodel builder. Invoked when a full build or an incremental
@@ -35,7 +33,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
  * Metamodel which is kept in the project's session properties.
  * 
  * @author xcoulon */
-public class JaxrsMetamodelFullBuilder extends IncrementalProjectBuilder {
+public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 
 	/** The number of steps to fully build the JAX-RS Metamodel. */
 	private static final int FULL_BUILD_STEPS = 100;
@@ -65,18 +63,13 @@ public class JaxrsMetamodelFullBuilder extends IncrementalProjectBuilder {
 		switch (kind) {
 		case CLEAN_BUILD:
 		case FULL_BUILD:
-			fullBuild(project, monitor);
+			build(project, true, monitor);
 			break;
 		case AUTO_BUILD:
 		case INCREMENTAL_BUILD:
-			if (JaxrsMetamodel.get(getProject()) == null) {
-				fullBuild(getProject(), monitor);
-			}
-
-			/*
-			 * else { IResourceDelta delta = getDelta(project);
-			 * incrementalBuild(project, delta, monitor); }
-			 */
+			//if (JaxrsMetamodel.get(getProject()) == null) {
+				build(getProject(), false, monitor);
+			//}
 			break;
 		default:
 			break;
@@ -97,46 +90,7 @@ public class JaxrsMetamodelFullBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	/** Performs and incremental build on the given project, using the given
-	 * delta.
-	 * 
-	 * @param project
-	 *            the project
-	 * @param delta
-	 *            the resource delta
-	 * @param monitor
-	 *            the progress monitor (optional)
-	 * @throws CoreException
-	 *             in case of underlying exception */
-	@SuppressWarnings("unused")
-	private void incrementalBuild(final IProject project, final IResourceDelta delta, final IProgressMonitor monitor)
-			throws CoreException {
-		if (delta == null) {
-			return;
-		}
-		// delta.accept(this);
-	}
-
-	// @Override
-	// public final boolean visit(final IResourceDelta delta) throws
-	// CoreException {
-	// IResource resource = delta.getResource();
-	// if (resource.getType() == IResource.FILE &&
-	// getProject().getFullPath().isPrefixOf(resource.getFullPath())
-	// && resource.getFullPath().getFileExtension().equals("java")) {
-	// JaxrsMetamodel jaxrsMetamodel =
-	// JaxrsMetamodel.get(resource.getProject());
-	// if (jaxrsMetamodel == null) {
-	// Logger.warn("No Metamodel found for project " +
-	// resource.getProject().getName());
-	// return false;
-	// }
-	// logDelta(delta);
-	// jaxrsMetamodel.applyDelta(delta, new NullProgressMonitor());
-	// jaxrsMetamodel.validate(new NullProgressMonitor());
-	// }
-	// return true;
-	// }
+	
 
 	/** Performs a full build of the project's JAX-RS Metamodel. This method has
 	 * a public visibility so that it can be called from other components
@@ -145,14 +99,14 @@ public class JaxrsMetamodelFullBuilder extends IncrementalProjectBuilder {
 	 *            the project
 	 * @param monitor
 	 *            the progress monitor */
-	private void fullBuild(final IProject project, final IProgressMonitor monitor) {
+	private void build(final IProject project, final boolean requiresReset, final IProgressMonitor monitor) {
 		long startTime = new Date().getTime();
 		try {
 			monitor.beginTask("Building JAX-RS metamodel...", FULL_BUILD_STEPS);
-			JaxrsMetamodelBuildJob fullBuildJob = new JaxrsMetamodelBuildJob(project);
-			fullBuildJob.schedule();
+			JaxrsMetamodelBuildJob buildJob = new JaxrsMetamodelBuildJob(project, requiresReset);
+			buildJob.schedule();
 			// wait until the job is finished
-			fullBuildJob.join();
+			buildJob.join();
 		} catch (InterruptedException e) {
 			Logger.error("Error while building the JAX-RS Metamodel for project " + project.getName(), e);
 		} catch (CoreException e) {

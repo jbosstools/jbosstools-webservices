@@ -10,7 +10,7 @@
             hasNature="false"
             isConfigurable="false">
          <run
-               class="org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelFullBuilder">
+               class="org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder">
          </run>
       </builder>
    </extension>
@@ -86,26 +86,24 @@
             type="org.eclipse.core.resources.problemmarker">
       </super>
    </extension>
+   <extension
+         id="org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"
+         name="JAX-RS Metamodel Validator"
+         point="org.eclipse.wst.validation.validatorV2">
+      <validator
+            build="true"
+            class="org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator"
+            manual="true"
+            markerId="org.jboss.tools.ws.jaxrs.metamodelMarker">
+         <include>
+            <rules>
+               <projectNature
+                     id="org.jboss.tools.ws.jaxrs.nature">
+               </projectNature>
+            </rules>
+         </include>
+      </validator>
+   </extension>
   
-    
-   <!--extension
-         point="org.eclipse.ui.propertyPages">
-      <page
-            adaptable="true"
-            class="org.jboss.tools.ws.jaxrs.ui.Tapestry5SettingsPropertyPage"
-            id="org.jboss.tools.ws.jaxrs.propertyPage"
-            name="Tapestry5 Settings "
-            objectClass="org.eclipse.core.resources.IProject">
-         <enabledWhen>
-         <adapt type="org.eclipse.core.resources.IProject">
-            <test
-                  forcePluginActivation="true"
-                  property="org.eclipse.wst.common.project.facet.core.projectFacet"
-                  value="org.jboss.tools.ws.jaxrs.projectFacet">
-            </test>
-            </adapt>
-         </enabledWhen>
-      </page>
-   </extension-->
-   
+
 </plugin>

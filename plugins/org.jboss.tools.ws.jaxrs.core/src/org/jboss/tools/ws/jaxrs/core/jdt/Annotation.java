@@ -17,13 +17,15 @@ public class Annotation {
 
 	private final Map<String, List<String>> javaAnnotationElements;
 
-	private final TypedRegion region;
+	private TypedRegion region;
 
-	/** Full constructor
+	/**
+	 * Full constructor
 	 * 
 	 * @param annotation
 	 * @param name
-	 * @param annotationElements */
+	 * @param annotationElements
+	 */
 	public Annotation(IAnnotation annotation, String name, Map<String, List<String>> annotationElements,
 			final TypedRegion region) {
 		this.javaAnnotation = annotation;
@@ -40,6 +42,9 @@ public class Annotation {
 		}
 		this.javaAnnotationElements.clear();
 		this.javaAnnotationElements.putAll(annotation.getJavaAnnotationElements());
+		if (annotation.getRegion() != null) {
+			this.region = annotation.getRegion();
+		}
 		return true;
 	}
 

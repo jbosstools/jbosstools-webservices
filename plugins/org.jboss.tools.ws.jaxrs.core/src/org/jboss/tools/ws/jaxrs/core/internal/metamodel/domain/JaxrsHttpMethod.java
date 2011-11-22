@@ -11,27 +11,36 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.HttpMethod;
 
-import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.wst.validation.ValidatorMessage;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
-/** A request method designator is a runtime annotation that is annotated with
+/**
+ * A request method designator is a runtime annotation that is annotated with
  * the @HttpMethod annotation. JAX-RS defines a set of request method
  * designators for the common HTTP resourceMethods: @GET, @POST, @PUT, @DELETE,
  * 
  * @HEAD. Users may define their own custom request method designators including
  *        alternate designators for the common HTTP resourceMethods.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMethod {
 
-	/** A Simple sorter for HTTP Verbs: the preferred order is
-	 * GET/POST/PUT/DELETE/HEAD/OPTION. Other/custom Verbs come after. */
+	/**
+	 * A Simple sorter for HTTP Verbs: the preferred order is
+	 * GET/POST/PUT/DELETE/HEAD/OPTION. Other/custom Verbs come after.
+	 */
 	private enum HttpVerbSortEnum {
 		/** GET Verb. */
 		GET(0),
@@ -51,10 +60,12 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 		/** the order rank. */
 		private int rank = 0;
 
-		/** The constructor.
+		/**
+		 * The constructor.
 		 * 
 		 * @param r
-		 *            the rank */
+		 *            the rank
+		 */
 		HttpVerbSortEnum(final int r) {
 			this.rank = r;
 		}
@@ -64,12 +75,14 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 			return rank;
 		}
 
-		/** Converter from literal to enum value. If no direct match, 'OTHER' is
+		/**
+		 * Converter from literal to enum value. If no direct match, 'OTHER' is
 		 * returned.
 		 * 
 		 * @param verb
 		 *            the HTTP verb
-		 * @return the corresponding value in the enum. */
+		 * @return the corresponding value in the enum.
+		 */
 		static HttpVerbSortEnum from(final String verb) {
 			for (HttpVerbSortEnum e : HttpVerbSortEnum.values()) {
 				if (verb.equals(e.toString())) {
@@ -89,11 +102,27 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 		return EnumElementKind.HTTP_METHOD;
 	}
 
-	/** {@inheritDoc} */
 	@Override
-	public void validate(IProgressMonitor progressMonitor) {
-
+	public List<ValidatorMessage> validate() {
+		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		final Annotation annotation = getHttpMethodAnnotation();
+		if(annotation == null) {
+			
+		} else {
+			final String httpValue = annotation.getValue("value");
+			if(httpValue == null || httpValue.isEmpty()) {
+				final ValidatorMessage message = ValidatorMessage.create("HTTP Verb should not be empty", getResource());
+				message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
+				message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+				message.setAttribute(IMarker.CHAR_START, annotation.getRegion().getOffset());
+				message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset() + annotation.getRegion().getLength());
+				messages.add(message);
+			}
+		}
+		return messages;
 	}
+
+	
 
 	/*
 	 * (non-Javadoc)
@@ -111,9 +140,11 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 		return null;
 	}
 
-	/** @param httpVerb
+	/**
+	 * @param httpVerb
 	 *            the httpVerb to set
-	 * @return */
+	 * @return
+	 */
 	public boolean setHttpMethodAnnotation(final Annotation httpVerbAnnotation) {
 		return getHttpMethodAnnotation().update(httpVerbAnnotation);
 	}

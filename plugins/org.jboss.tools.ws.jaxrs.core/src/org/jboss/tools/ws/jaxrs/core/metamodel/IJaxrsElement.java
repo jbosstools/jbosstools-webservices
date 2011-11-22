@@ -3,6 +3,7 @@ package org.jboss.tools.ws.jaxrs.core.metamodel;
 import java.util.List;
 
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 public interface IJaxrsElement<T extends IMember> {
@@ -24,5 +25,7 @@ public interface IJaxrsElement<T extends IMember> {
 	int removeAnnotation(String handleIdentifier);
 
 	EnumKind getKind();
+
+	List<ValidatorMessage> validate();
 
 }

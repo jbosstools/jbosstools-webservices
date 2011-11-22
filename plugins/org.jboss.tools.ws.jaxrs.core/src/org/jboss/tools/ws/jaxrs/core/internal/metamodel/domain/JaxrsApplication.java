@@ -10,14 +10,17 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
 /** The optional '@Application' annotation, used to designate the base context
  * URI of the root resources.
@@ -83,14 +86,14 @@ public class JaxrsApplication extends JaxrsElement<IType> implements IJaxrsAppli
 	 */
 
 	@Override
-	public void validate(IProgressMonitor progressMonitor) throws CoreException {
-		// TODO Auto-generated method stub
-
+	public EnumKind getKind() {
+		return EnumKind.APPLICATION;
 	}
 
 	@Override
-	public EnumKind getKind() {
-		return EnumKind.APPLICATION;
+	public List<ValidatorMessage> validate() {
+		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		return messages;
 	}
 
 }

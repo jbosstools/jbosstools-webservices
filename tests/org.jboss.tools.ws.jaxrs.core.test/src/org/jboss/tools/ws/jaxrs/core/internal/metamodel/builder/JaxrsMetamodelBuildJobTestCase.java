@@ -12,11 +12,8 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
@@ -38,7 +35,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /** @author xcoulon */
-public class JaxrsMetamodelFullBuildJobTestCase extends AbstractMetamodelBuilderTestCase {
+public class JaxrsMetamodelBuildJobTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldAssertHTTPMethods() throws CoreException {

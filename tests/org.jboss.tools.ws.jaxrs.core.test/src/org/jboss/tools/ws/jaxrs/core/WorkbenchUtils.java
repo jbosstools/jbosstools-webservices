@@ -828,6 +828,7 @@ public class WorkbenchUtils {
 			throws JavaModelException {
 		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null),
 				annotationClass);
+		
 		Map<String, List<String>> elements = new HashMap<String, List<String>>();
 		elements.put("value", Arrays.asList(values));
 		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getName(), elements, null));

@@ -23,13 +23,10 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelFullBuilder;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
@@ -143,29 +140,6 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		return EnumKind.UNDEFINED;
 	}
 
-	/** {@inheritDoc}
-	 * 
-	 * @throws CoreException */
-	@Override
-	public void validate(IProgressMonitor progressMonitor) throws CoreException {
-		Logger.debug("Validating " + super.getJavaElement().getFullyQualifiedName());
-		super.getJavaElement()
-				.getResource()
-				.deleteMarkers(JaxrsMetamodelFullBuilder.JAXRS_PROBLEM, true,
-						org.eclipse.core.resources.IResource.DEPTH_INFINITE);
-		for (Entry<String, IJaxrsResourceMethod> entry : resourceMethods.entrySet()) {
-			((JaxrsResourceMethod) entry.getValue()).validate(progressMonitor);
-		}
-		Logger.debug("Validation done.");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#hasErrors(
-	 * boolean)
-	 */
 	@Override
 	public final void hasErrors(final boolean hasErrors) {
 		super.hasErrors(hasErrors);
@@ -347,6 +321,17 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 	@Override
 	public List<IJaxrsResourceMethod> getResourceMethods() {
 		return new ArrayList<IJaxrsResourceMethod>(resourceMethods.values());
+	}
+
+	@Override
+	public List<ValidatorMessage> validate() {
+		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		// delegating the validation to the undelying resource methods 
+		for(Entry<String, IJaxrsResourceMethod> entry : resourceMethods.entrySet()) {
+			final IJaxrsResourceMethod resourceMethod = entry.getValue();
+			messages.addAll(resourceMethod.validate());
+		}
+		return messages;
 	}
 
 }

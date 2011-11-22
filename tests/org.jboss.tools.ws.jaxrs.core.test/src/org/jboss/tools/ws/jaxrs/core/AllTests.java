@@ -6,9 +6,10 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ElementChangedEv
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEventFilterTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedProcessorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelFullBuildJobTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuildJobTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactoryTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodelTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidatorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.PathParamValidationTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepositoryTestCase;
@@ -22,9 +23,9 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({ ProjectBuilderUtilsTestCase.class, ProjectNatureUtilsTestCase.class, JdtUtilsTestCase.class,
 		CompilationUnitsRepositoryTestCase.class, ElementChangedEventScannerTestCase.class,
 		JavaElementChangedEventFilterTestCase.class, JavaElementChangedProcessorTestCase.class,
-		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelFullBuildJobTestCase.class,
+		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelBuildJobTestCase.class,
 		JaxrsElementFactoryTestCase.class, JaxrsMetamodelTestCase.class, CollectionUtilsTestCase.class,
-		PathParamValidationTestCase.class, PubSubServiceTestCase.class })
+		PathParamValidationTestCase.class, PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class })
 public class AllTests {
 
 }

@@ -3,6 +3,7 @@
  */
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.DefaultValue;
@@ -10,9 +11,8 @@ import javax.ws.rs.MatrixParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
@@ -58,9 +58,11 @@ public class JaxrsParamField extends JaxrsElement<IField> implements IJaxrsParam
 	}
 
 	@Override
-	public void validate(IProgressMonitor progressMonitor) throws CoreException {
-
+	public List<ValidatorMessage> validate() {
+		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		return messages;
 	}
+
 
 	@Override
 	public EnumKind getKind() {

@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -34,21 +33,18 @@ public class JaxrsMetamodelBuildJob extends Job {
 
 	private final IJavaProject javaProject;
 
-	private final int kind;
-
 	private final Object event;
 
-	public JaxrsMetamodelBuildJob(final IProject project) throws CoreException {
-		super("Full JAX-RS Metamodel build for " + project.getName() + "...");
+	public JaxrsMetamodelBuildJob(final IProject project, final boolean requiresReset) throws CoreException {
+		super("JAX-RS Metamodel build for " + project.getName() + "...");
 		this.javaProject = JavaCore.create(project);
 		JavaElementDelta delta = new JavaElementDelta(javaProject);
 		delta.added();
 		this.event = new ElementChangedEvent(delta, ElementChangedEvent.POST_RECONCILE);
-		this.kind = IncrementalProjectBuilder.FULL_BUILD;
 		final JaxrsMetamodel metamodel = JaxrsMetamodel.get(javaProject);
 		if (metamodel == null) {
 			JaxrsMetamodel.create(javaProject);
-		} else {
+		} else if(requiresReset) {
 			metamodel.reset();
 		}
 	}
@@ -57,14 +53,12 @@ public class JaxrsMetamodelBuildJob extends Job {
 		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
 		this.javaProject = JavaCore.create(event.getDelta().getResource().getProject());
-		this.kind = IncrementalProjectBuilder.INCREMENTAL_BUILD;
 	}
 
 	public JaxrsMetamodelBuildJob(final ElementChangedEvent event) {
 		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.javaProject = event.getDelta().getElement().getJavaProject();
 		this.event = event;
-		this.kind = IncrementalProjectBuilder.INCREMENTAL_BUILD;
 	}
 
 	@Override

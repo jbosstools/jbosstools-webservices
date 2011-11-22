@@ -11,14 +11,17 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
 /** JAX-RS Provider class Providers *must* implement MessageBodyReader,
  * MessageBodyWriter or ExceptionMapper Providers *may* be annotated with
@@ -50,7 +53,7 @@ public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider
 		 * @return
 		 * @throws InvalidModelElementException
 		 * @throws CoreException */
-		public JaxrsProvider build(IProgressMonitor progressMonitor) throws InvalidModelElementException, CoreException {
+		public JaxrsProvider build(IProgressMonitor progressMonitor) throws CoreException {
 			JaxrsProvider provider = new JaxrsProvider(this);
 			// provider.merge(javaType, progressMonitor);
 			return provider;
@@ -119,11 +122,12 @@ public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider
 	 *           entry.getKey()); addProviderKind(entry.getKey(),
 	 *           entry.getValue(), mediaTypes); } } return changes; } */
 
-	/** {@inheritDoc} */
 	@Override
-	public void validate(IProgressMonitor progressMonitor) {
-
+	public List<ValidatorMessage> validate() {
+		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		return messages;
 	}
+
 
 	@Override
 	public EnumKind getKind() {

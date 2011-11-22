@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -21,6 +22,7 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TypedRegion;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 
 public class JavaMethodSignaturesVisitor extends ASTVisitor {
 
@@ -60,7 +62,11 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	@Override
 	public boolean visit(MethodDeclaration declaration) {
 		try {
-			IMethod method = (IMethod) compilationUnit.getElementAt(declaration.getStartPosition());
+			final IJavaElement element = compilationUnit.getElementAt(declaration.getStartPosition());
+			if(element.getElementType() != IJavaElement.METHOD) {
+				return true;
+			}
+			IMethod method = (IMethod) element;
 			if (this.method != null && !this.method.getHandleIdentifier().equals(method.getHandleIdentifier())) {
 				return true;
 			}

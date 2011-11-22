@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
@@ -47,14 +48,18 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
-/** Manages all the JAX-RS domain classes of the JAX-RS Metamodel. Not only a
+/**
+ * Manages all the JAX-RS domain classes of the JAX-RS Metamodel. Not only a
  * POJO, but also provides business services.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class JaxrsMetamodel implements IJaxrsMetamodel {
 
-	/** The qualified name of the metamodel when stored in the project session
-	 * properties. */
+	/**
+	 * The qualified name of the metamodel when stored in the project session
+	 * properties.
+	 */
 	public static final QualifiedName METAMODEL_QUALIFIED_NAME = new QualifiedName(JBossJaxrsCorePlugin.PLUGIN_ID,
 			"metamodel");
 
@@ -64,17 +69,23 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	/** The Service URI. Default is "/" */
 	private String serviceUri = "/";
 
-	/** All the subclasses of <code>javax.ws.rs.core.Application</code>, although
-	 * there should be only one. */
+	/**
+	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although
+	 * there should be only one.
+	 */
 	private final List<IJaxrsApplication> applications = new ArrayList<IJaxrsApplication>();
 
-	/** All the resources (both rootresources and subresources) available in the
-	 * service , indexed by their associated java type fully qualified name. */
+	/**
+	 * All the resources (both rootresources and subresources) available in the
+	 * service , indexed by their associated java type fully qualified name.
+	 */
 	private final List<IJaxrsResource> resources = new ArrayList<IJaxrsResource>();
 
-	/** The available providers (classes which implement MessageBodyWriter<T>,
+	/**
+	 * The available providers (classes which implement MessageBodyWriter<T>,
 	 * MessageBodyReader<T> or ExceptionMapper<T>), , indexed by their
-	 * associated java type fully qualified name. */
+	 * associated java type fully qualified name.
+	 */
 	private final List<IJaxrsProvider> providers = new ArrayList<IJaxrsProvider>();
 
 	/** The HTTP ResourceMethod elements container. */
@@ -86,12 +97,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	/** the endpoints, built from the resource methods. */
 	private final List<IJaxrsEndpoint> endpoints = new ArrayList<IJaxrsEndpoint>();
 
-	/** Full constructor.
+	/**
+	 * Full constructor.
 	 * 
 	 * @param javaProject
 	 *            the enclosing java project
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	private JaxrsMetamodel(final IJavaProject javaProject) throws CoreException {
 		this.javaProject = javaProject;
 	}
@@ -107,13 +120,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return javaProject;
 	}
 
-	/** Accessor to the metamodel from the given project's session properties.
+	/**
+	 * Accessor to the metamodel from the given project's session properties.
 	 * 
 	 * @param javaProject
 	 *            the java project
 	 * @return the metamodel or null if none was found
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public static JaxrsMetamodel create(final IJavaProject javaProject) throws CoreException {
 		if (javaProject == null || javaProject.getProject() == null) {
 			return null;
@@ -124,13 +139,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return metamodel;
 	}
 
-	/** Accessor to the metamodel from the given project's session properties.
+	/**
+	 * Accessor to the metamodel from the given project's session properties.
 	 * 
 	 * @param javaProject
 	 *            the java project
 	 * @return the metamodel or null if none was found
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public static JaxrsMetamodel get(final IJavaProject javaProject) throws CoreException {
 		if (javaProject == null || javaProject.getProject() == null) {
 			return null;
@@ -141,19 +158,23 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return metamodel;
 	}
 
-	/** Accessor to the metamodel from the given project's session properties.
+	/**
+	 * Accessor to the metamodel from the given project's session properties.
 	 * 
 	 * @param project
 	 *            the project
 	 * @return the metamodel or null if none was found
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public static JaxrsMetamodel get(final IProject project) throws CoreException {
 		return get(JavaCore.create(project));
 	}
 
-	/** @throws CoreException
-	 *             in case of underlying exception */
+	/**
+	 * @throws CoreException
+	 *             in case of underlying exception
+	 */
 	public final void remove() throws CoreException {
 		Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
@@ -173,20 +194,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			this.resources.add((IJaxrsResource) element);
 			break;
 		/*
-		 * case RESOURCE_FIELD:
-		 * final JaxrsResource fieldParent = findResource((IType)
-		 * element.getJavaElement().getParent());
-		 * if (fieldParent != null) {
-		 * fieldParent.addField((JaxrsParamField) element);
-		 * }
-		 * break;
-		 * case RESOURCE_METHOD:
-		 * final JaxrsResource methodParent = findResource((IType)
-		 * element.getJavaElement().getParent());
-		 * if (methodParent != null) {
-		 * methodParent.addMethod((IJaxrsResourceMethod) element);
-		 * }
-		 * break;
+		 * case RESOURCE_FIELD: final JaxrsResource fieldParent =
+		 * findResource((IType) element.getJavaElement().getParent()); if
+		 * (fieldParent != null) { fieldParent.addField((JaxrsParamField)
+		 * element); } break; case RESOURCE_METHOD: final JaxrsResource
+		 * methodParent = findResource((IType)
+		 * element.getJavaElement().getParent()); if (methodParent != null) {
+		 * methodParent.addMethod((IJaxrsResourceMethod) element); } break;
 		 */
 		}
 		indexElement(element);
@@ -196,9 +210,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	protected void indexElement(final IJaxrsElement<?> element) {
 		final IJavaElement javaElement = element.getJavaElement();
 		indexElement(element, javaElement);
-		indexElement(element, JdtUtils.getCompilationUnit(javaElement));
-		indexElement(element, JdtUtils.getPackageFragmentRoot(javaElement));
-		indexElement(element, javaElement.getJavaProject());
+		// index element that are bound to a java type, not a field or a method
+		if (element.getJavaElement().getElementType() == IJavaElement.TYPE) {
+			indexElement(element, JdtUtils.getCompilationUnit(javaElement));
+			indexElement(element, JdtUtils.getPackageFragmentRoot(javaElement));
+			indexElement(element, javaElement.getJavaProject());
+		}
 		for (Annotation annotation : element.getAnnotations()) {
 			indexElement(element, annotation);
 		}
@@ -210,8 +227,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 	}
 
-	/** @param jaxrsElement
-	 * @param javaElement */
+	/**
+	 * @param jaxrsElement
+	 * @param javaElement
+	 */
 	@SuppressWarnings("unchecked")
 	private void indexElement(final IJaxrsElement<?> jaxrsElement, final IJavaElement javaElement) {
 		if (javaElement == null) {
@@ -260,21 +279,17 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return Collections.unmodifiableList(providers);
 	}
 
-	/** @param field
+	/**
+	 * @param field
 	 * @param iJavaElement
-	 * @return
-	 *         private JaxrsResource findResource(final IType javaElement) {
+	 * @return private JaxrsResource findResource(final IType javaElement) {
 	 *         final String targetIdentifier =
-	 *         javaElement.getHandleIdentifier();
-	 *         for (IJaxrsResource resource : resources) {
-	 *         final String resourceIdentifier =
-	 *         resource.getJavaElement().getHandleIdentifier();
-	 *         if (resourceIdentifier.equals(targetIdentifier)) {
-	 *         return (JaxrsResource) resource;
-	 *         }
-	 *         }
-	 *         return null;
-	 *         } */
+	 *         javaElement.getHandleIdentifier(); for (IJaxrsResource resource :
+	 *         resources) { final String resourceIdentifier =
+	 *         resource.getJavaElement().getHandleIdentifier(); if
+	 *         (resourceIdentifier.equals(targetIdentifier)) { return
+	 *         (JaxrsResource) resource; } } return null; }
+	 */
 
 	@Override
 	public final List<IJaxrsHttpMethod> getAllHttpMethods() {
@@ -290,10 +305,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return serviceUri;
 	}
 
-	/** Sets the Base URI for the URI mapping templates.
+	/**
+	 * Sets the Base URI for the URI mapping templates.
 	 * 
 	 * @param uri
-	 *            the serviceUri to set */
+	 *            the serviceUri to set
+	 */
 	public final void setServiceUri(final String uri) {
 		// remove trailing "*" character, if present.
 		if (uri.endsWith("*")) {
@@ -303,13 +320,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 	}
 
-	/** Returns the JAX-RS ElementKind associated with the given java element.
+	/**
+	 * Returns the JAX-RS ElementKind associated with the given java element.
 	 * 
 	 * @param element
 	 *            the underlying java element (can be IType or IMethod)
 	 * @return the associated JAX-RS element, or null if none found
 	 * @throws JavaModelException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public final IJaxrsElement<?> find(final IJavaElement element) throws JavaModelException {
 		switch (element.getElementType()) {
 		case IJavaElement.TYPE:
@@ -322,7 +341,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return null;
 	}
 
-	/** Report errors from the given markers into the JAX-RS element(s)
+	/**
+	 * Report errors from the given markers into the JAX-RS element(s)
 	 * associated with the given compiltation unit.
 	 * 
 	 * @param compilationUnit
@@ -331,7 +351,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            the markers
 	 * @return true if errors were found and reported, false otherwise
 	 * @throws JavaModelException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public final boolean reportErrors(final ICompilationUnit compilationUnit, final IMarker[] markers)
 			throws JavaModelException {
 		boolean hasErrors = false;
@@ -350,11 +371,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return hasErrors;
 	}
 
-	/** Resets this metamodel for further re-use (ie, before a new 'full/clean'
+	/**
+	 * Resets this metamodel for further re-use (ie, before a new 'full/clean'
 	 * build). Keeping the same instance of Metamodel in the project's session
 	 * properties is a convenient thing, especially on the UI side, where some
 	 * caching system is use to maintain the state of nodes in the Common
-	 * Navigator (framework). */
+	 * Navigator (framework).
+	 */
 	public void reset() {
 		Logger.debug("Reseting the JAX-RS Metamodel fpr project {}", this.javaProject.getElementName());
 		this.applications.clear();
@@ -364,11 +387,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		this.elementsIndex.clear();
 	}
 
-	/** @param annotation
+	/**
+	 * @param annotation
 	 * @param metamodel
 	 * @param annotationName
 	 * @return
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	public IJaxrsHttpMethod getHttpMethod(final String annotationName) throws CoreException {
 		IType annotationType = JdtUtils.resolveType(annotationName, javaProject, new NullProgressMonitor());
 		if (annotationType != null) {
@@ -382,6 +407,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	@Override
 	public IJaxrsElement<?> getElement(IJavaElement element) {
+		if (element == null) {
+			return null;
+		}
 		final String handleIdentifier = element.getHandleIdentifier();
 		final Set<IJaxrsElement<?>> elements = elementsIndex.get(handleIdentifier);
 		if (elements == null || elements.isEmpty()) {
@@ -423,10 +451,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return elements;
 	}
 
-	/** Remove the given JAX-RS Resource from the metamodel.
+	/**
+	 * Remove the given JAX-RS Resource from the metamodel.
 	 * 
 	 * @param resource
-	 * @return true if the resource was actually removed, false otherwise. */
+	 * @return true if the resource was actually removed, false otherwise.
+	 */
 	public void remove(IJaxrsElement<?> element) {
 		if (element == null) {
 			return;
@@ -474,6 +504,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 		this.endpoints.add(endpoint);
 		return true;
+	}
+
+	public IJaxrsElement<?> getElement(IResource resource) {
+
+		return null;
 	}
 
 }

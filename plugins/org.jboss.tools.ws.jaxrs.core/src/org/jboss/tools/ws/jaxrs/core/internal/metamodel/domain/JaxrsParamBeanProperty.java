@@ -3,9 +3,11 @@
  */
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
@@ -27,9 +29,11 @@ public class JaxrsParamBeanProperty extends JaxrsElement<IMethod> implements IJa
 	}
 
 	@Override
-	public void validate(IProgressMonitor progressMonitor) throws CoreException {
-
+	public List<ValidatorMessage> validate() {
+		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		return messages;
 	}
+
 
 	@Override
 	public EnumKind getKind() {

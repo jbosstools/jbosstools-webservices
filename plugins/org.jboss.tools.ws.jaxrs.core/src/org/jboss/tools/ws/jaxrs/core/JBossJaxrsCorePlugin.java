@@ -36,20 +36,6 @@ public class JBossJaxrsCorePlugin extends Plugin {
 	public JBossJaxrsCorePlugin() {
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
-	 * )
-	 */
-	@Override
-	public void start(BundleContext context) throws Exception {
-		super.start(context);
-		plugin = this;
-		registerListeners();
-	}
-
 	/**
 	 * 
 	 */
@@ -70,6 +56,20 @@ public class JBossJaxrsCorePlugin extends Plugin {
 		plugin = null;
 		unregisterListeners();
 		super.stop(context);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
+	 * )
+	 */
+	@Override
+	public void start(BundleContext context) throws Exception {
+		super.start(context);
+		plugin = this;
+		registerListeners();
 	}
 
 	/**
