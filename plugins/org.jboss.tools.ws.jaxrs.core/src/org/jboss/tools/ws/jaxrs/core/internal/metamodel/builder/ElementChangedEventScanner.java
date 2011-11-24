@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceDelta;
@@ -81,6 +82,10 @@ public class ElementChangedEventScanner {
 	private List<JavaElementChangedEvent> scanDelta(IResourceDelta delta) throws CoreException {
 		final List<JavaElementChangedEvent> events = new ArrayList<JavaElementChangedEvent>();
 		final IResource resource = delta.getResource();
+		if(resource.getType() == IResource.PROJECT && !((IProject)resource).isOpen()) {
+			// skip as the project is closed
+			return Collections.emptyList();
+		}
 		final boolean isJavaFile = resource.getType() == IResource.FILE && ("java").equals(resource.getFileExtension());
 		final boolean javaFileAdded = isJavaFile && delta.getKind() == ADDED;
 		final boolean javaFileWithMarkers = isJavaFile && delta.getKind() == CHANGED
@@ -142,6 +147,11 @@ public class ElementChangedEventScanner {
 	private List<JavaElementChangedEvent> scanDelta(IJavaElementDelta delta) throws CoreException {
 		final List<JavaElementChangedEvent> events = new ArrayList<JavaElementChangedEvent>();
 		IJavaElement element = delta.getElement();
+		if(element == null || !element.getJavaProject().getProject().isOpen()) {
+			// skip as the project is closed
+			return Collections.emptyList();
+		}
+
 		int elementKind = element.getElementType(); // retrieveJavaElementKind(delta);
 		int deltaKind = retrieveDeltaKind(delta);
 		int[] flags = retrieveFlags(delta);

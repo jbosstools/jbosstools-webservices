@@ -31,20 +31,18 @@ public class JaxrsMetamodelBuildJob extends Job {
 
 	private static final int SCALE = 10;
 
-	private final IJavaProject javaProject;
-
 	private final Object event;
 
 	public JaxrsMetamodelBuildJob(final IProject project, final boolean requiresReset) throws CoreException {
 		super("JAX-RS Metamodel build for " + project.getName() + "...");
-		this.javaProject = JavaCore.create(project);
+		IJavaProject javaProject = JavaCore.create(project);
 		JavaElementDelta delta = new JavaElementDelta(javaProject);
 		delta.added();
 		this.event = new ElementChangedEvent(delta, ElementChangedEvent.POST_RECONCILE);
 		final JaxrsMetamodel metamodel = JaxrsMetamodel.get(javaProject);
 		if (metamodel == null) {
 			JaxrsMetamodel.create(javaProject);
-		} else if(requiresReset) {
+		} else if (requiresReset) {
 			metamodel.reset();
 		}
 	}
@@ -52,12 +50,10 @@ public class JaxrsMetamodelBuildJob extends Job {
 	public JaxrsMetamodelBuildJob(final IResourceChangeEvent event) {
 		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
-		this.javaProject = JavaCore.create(event.getDelta().getResource().getProject());
 	}
 
 	public JaxrsMetamodelBuildJob(final ElementChangedEvent event) {
 		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
-		this.javaProject = event.getDelta().getElement().getJavaProject();
 		this.event = event;
 	}
 
@@ -65,19 +61,9 @@ public class JaxrsMetamodelBuildJob extends Job {
 	protected IStatus run(IProgressMonitor progressMonitor) {
 		try {
 			progressMonitor.beginTask("Build JAX-RS Metamodel", 8 * SCALE);
-			/*
-			 * JaxrsMetamodel metamodel = JaxrsMetamodel.get(javaProject);
-			 * if (metamodel == null) {
-			 * metamodel = JaxrsMetamodel.create(javaProject);
-			 * }
-			 * if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-			 * metamodel.reset();
-			 * }
-			 */
 			progressMonitor.worked(SCALE);
 			// create fake event at the JavaProject level:
 			// scan and filter delta, retrieve a list of java changes
-
 			final List<JavaElementChangedEvent> events = new ElementChangedEventScanner().scanAndFilterEvent(event,
 					new SubProgressMonitor(progressMonitor, SCALE));
 			// process events against HTTP Methods, retrieve jaxrs changes
