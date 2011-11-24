@@ -147,7 +147,7 @@ public class ElementChangedEventScanner {
 	private List<JavaElementChangedEvent> scanDelta(IJavaElementDelta delta) throws CoreException {
 		final List<JavaElementChangedEvent> events = new ArrayList<JavaElementChangedEvent>();
 		IJavaElement element = delta.getElement();
-		if(element == null || !element.getJavaProject().getProject().isOpen()) {
+		if(element == null || (element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen())) {
 			// skip as the project is closed
 			return Collections.emptyList();
 		}
