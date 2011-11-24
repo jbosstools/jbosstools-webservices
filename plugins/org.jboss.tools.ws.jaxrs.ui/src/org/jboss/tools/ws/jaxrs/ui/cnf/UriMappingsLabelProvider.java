@@ -112,7 +112,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	@Override
 	public StyledString getStyledText(Object element) {
 		if (element instanceof UriPathTemplateCategory) {
-			return new StyledString("RESTful Web Services");
+			return new StyledString("JAX-RS REST Web Services");
 		}
 
 		if (element instanceof UriPathTemplateElement) {

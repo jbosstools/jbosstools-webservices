@@ -106,7 +106,7 @@
             icon="icons/restful_web_services.gif"
             id="org.jboss.tools.ws.jaxrs.ui.uriMappingsNavigatorContent"
             labelProvider="org.jboss.tools.ws.jaxrs.ui.cnf.UriMappingsLabelProvider"
-            name="RESTFul Web Services"
+            name="%navigatorContentName"
             priority="highest"
             providesSaveables="false">
          <triggerPoints>
