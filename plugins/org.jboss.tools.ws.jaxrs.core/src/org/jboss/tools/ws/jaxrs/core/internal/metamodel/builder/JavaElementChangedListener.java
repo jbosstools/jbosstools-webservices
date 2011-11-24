@@ -8,7 +8,6 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IElementChangedListener;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /** Listens to all change events (Java elements and resources) and triggers a new
  * job for each change.<br>

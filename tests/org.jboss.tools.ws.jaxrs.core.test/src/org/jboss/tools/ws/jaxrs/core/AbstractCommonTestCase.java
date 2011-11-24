@@ -58,7 +58,7 @@ public abstract class AbstractCommonTestCase {
 
 	protected IProject project;
 
-	protected Bundle bundle = JBossJaxrsCoreTestsPlugin.getDefault().getBundle();
+	protected static Bundle bundle = JBossJaxrsCoreTestsPlugin.getDefault().getBundle();
 
 	public final static String DEFAULT_SAMPLE_PROJECT_NAME = WorkbenchUtils
 			.retrieveSampleProjectName(AbstractCommonTestCase.class);
@@ -84,6 +84,7 @@ public abstract class AbstractCommonTestCase {
 
 	@BeforeClass
 	public static void setupWorkspace() throws Exception {
+		org.eclipse.jdt.core.JavaCore.getPlugin().start(bundle.getBundleContext());
 		long startTime = new Date().getTime();
 		try {
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();

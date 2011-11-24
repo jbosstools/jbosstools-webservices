@@ -31,10 +31,12 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TypedRegion;
 
-/** A visitor for a single annotation on a java member (can be a method or a
+/**
+ * A visitor for a single annotation on a java member (can be a method or a
  * type).
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class JavaAnnotationsVisitor extends ASTVisitor {
 
 	/** the annotated member name. */
@@ -49,7 +51,8 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	/** the bindings for the matching annotation. */
 	private final List<Annotation> annotations = new ArrayList<Annotation>();
 
-	/** Full Constructor to resolve a single annotation from its fully qualified
+	/**
+	 * Full Constructor to resolve a single annotation from its fully qualified
 	 * name.
 	 * 
 	 * @param name
@@ -57,7 +60,8 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	 * @param memberType
 	 *            the member type
 	 * @param name
-	 *            the annotation name */
+	 *            the annotation name
+	 */
 	public JavaAnnotationsVisitor(final IMember member, final String annotationName) {
 		super();
 		this.memberName = member.getElementName();
@@ -65,7 +69,8 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 		this.annotationNames.add(annotationName);
 	}
 
-	/** Full Constructor to resolve a multiple annotations from their fully
+	/**
+	 * Full Constructor to resolve a multiple annotations from their fully
 	 * qualified name.
 	 * 
 	 * @param name
@@ -73,7 +78,8 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	 * @param memberType
 	 *            the member type
 	 * @param name
-	 *            the annotation name */
+	 *            the annotation name
+	 */
 	public JavaAnnotationsVisitor(final IMember member, final List<String> annotationNames) {
 		super();
 		this.memberName = member.getElementName();
@@ -81,9 +87,11 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 		this.annotationNames.addAll(annotationNames);
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 * 
-	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.AnnotationTypeDeclaration) */
+	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.AnnotationTypeDeclaration)
+	 */
 	@Override
 	public final boolean visit(final AnnotationTypeDeclaration node) {
 		if (memberType == IJavaElement.TYPE && node.getName().getFullyQualifiedName().equals(memberName)) {
@@ -93,10 +101,12 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 		return true;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 * 
 	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.
-	 *      TypeDeclaration) */
+	 *      TypeDeclaration)
+	 */
 	@Override
 	public final boolean visit(final TypeDeclaration node) {
 		if (memberType == IJavaElement.TYPE && node.getName().getFullyQualifiedName().equals(memberName)) {
@@ -106,10 +116,12 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 		return true;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 * 
 	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.
-	 *      MethodDeclaration) */
+	 *      MethodDeclaration)
+	 */
 	@Override
 	public final boolean visit(final MethodDeclaration node) {
 		if (memberType == IJavaElement.METHOD && node.getName().getFullyQualifiedName().equals(memberName)) {
@@ -119,10 +131,12 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 		return true;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 * 
 	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.
-	 *      MethodDeclaration) */
+	 *      MethodDeclaration)
+	 */
 	@Override
 	public final boolean visit(final FieldDeclaration node) {
 		if (memberType == IJavaElement.FIELD) {
@@ -135,38 +149,44 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 		return true;
 	}
 
-	/** Visits the modifiers.
+	/**
+	 * Visits the modifiers.
 	 * 
 	 * @param modifiers
-	 *            the modifiers */
+	 *            the modifiers
+	 */
 	private void visitExtendedModifiers(final List<?> modifiers) {
 		for (Object modifier : modifiers) {
 			if (modifier instanceof org.eclipse.jdt.core.dom.Annotation) {
 				final org.eclipse.jdt.core.dom.Annotation annotation = (org.eclipse.jdt.core.dom.Annotation) modifier;
 				IAnnotationBinding annotationBinding = ((org.eclipse.jdt.core.dom.Annotation) modifier)
 						.resolveAnnotationBinding();
-				final String qualifiedName = annotationBinding.getAnnotationType().getQualifiedName();
-				final String name = annotationBinding.getAnnotationType().getName();
-				if (annotationNames.contains(qualifiedName) || annotationNames.contains(name)) {
-					final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
-					final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
-					final TypedRegion typedRegion = new TypedRegion(annotation.getStartPosition(),
-							annotation.getLength(), IDocument.DEFAULT_CONTENT_TYPE);
-					final IAnnotation javaAnnotation = (IAnnotation) annotationBinding.getJavaElement();
-					annotations.add(new Annotation(javaAnnotation, annotationName, annotationElements, typedRegion));
+				if (annotationBinding != null) {
+					final String qualifiedName = annotationBinding.getAnnotationType().getQualifiedName();
+					final String name = annotationBinding.getAnnotationType().getName();
+					if (annotationNames.contains(qualifiedName) || annotationNames.contains(name)) {
+						final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
+						final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
+						final TypedRegion typedRegion = new TypedRegion(annotation.getStartPosition(),
+								annotation.getLength(), IDocument.DEFAULT_CONTENT_TYPE);
+						final IAnnotation javaAnnotation = (IAnnotation) annotationBinding.getJavaElement();
+						annotations
+								.add(new Annotation(javaAnnotation, annotationName, annotationElements, typedRegion));
+					}
 				}
 			}
 		}
 	}
 
-	/** Returns the Annotation element matching the annotation name given in the
-	 * visitor constructor.
-	 * This method should only be called when the constructor with a single
-	 * annotation name was used.
+	/**
+	 * Returns the Annotation element matching the annotation name given in the
+	 * visitor constructor. This method should only be called when the
+	 * constructor with a single annotation name was used.
 	 * 
 	 * @return the annotation found on the target java element
 	 * @throws JavaModelException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public final Annotation getResolvedAnnotation() throws JavaModelException {
 		assert annotationNames.size() == 1;
 		if (annotations.size() == 0) {
@@ -175,19 +195,19 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 		return annotations.get(0);
 	}
 
-	/** Returns the Annotation elements matching the annotations name given in
-	 * the
-	 * visitor constructor. The matching annotations are indexed by their
-	 * associated Java type's fully qualified names.
-	 * This method should only be called when the constructor with multiple
-	 * annotation names was used.
+	/**
+	 * Returns the Annotation elements matching the annotations name given in
+	 * the visitor constructor. The matching annotations are indexed by their
+	 * associated Java type's fully qualified names. This method should only be
+	 * called when the constructor with multiple annotation names was used.
 	 * 
 	 * @return the annotation found on the target java element
 	 * @throws JavaModelException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public final Map<String, Annotation> getResolvedAnnotations() throws JavaModelException {
 		final Map<String, Annotation> resolvedJavaAnnotations = new HashMap<String, Annotation>();
-		for (Annotation annotation: annotations) {
+		for (Annotation annotation : annotations) {
 			resolvedJavaAnnotations.put(annotation.getName(), annotation);
 		}
 		return resolvedJavaAnnotations;

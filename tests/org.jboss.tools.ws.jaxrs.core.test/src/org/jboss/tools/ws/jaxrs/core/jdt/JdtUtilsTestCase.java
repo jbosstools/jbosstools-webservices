@@ -31,7 +31,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import junit.framework.Assert;
@@ -50,9 +49,6 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IAnnotationBinding;
-import org.eclipse.jdt.core.dom.IMethodBinding;
-import org.eclipse.jface.text.ITypedRegion;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestsPlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
@@ -160,167 +156,6 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldAssertTypeHasAnnotationWithFullyQualifiedNameUsage() throws JavaModelException, CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		Assert.assertNotNull("Type SimpleAnnotation not found",
-				JdtUtils.resolveAnnotationBinding(resourceType, compilationUnit, Path.class));
-	}
-
-	@Test
-	public void shouldAssertTypeHasAnnotationWithSimpleNameUsage() throws JavaModelException, CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		Assert.assertNotNull("Type SimpleAnnotation not found",
-				JdtUtils.resolveAnnotationBinding(resourceType, compilationUnit, Path.class));
-	}
-
-	@Test
-	public void shouldAssertMethodHasAnnotationWithSimpleName() throws JavaModelException, CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		for (IMethod method : resourceType.getMethods()) {
-			if (method.getElementName().equals("createCustomer")) {
-				Assert.assertNotNull("Method SimpleAnnotation not found",
-						JdtUtils.resolveAnnotationBinding(method, compilationUnit, "javax.ws.rs.POST"));
-			}
-		}
-	}
-
-	@Test
-	public void shouldNotAssertTypeHasInvalidAnnotation() throws JavaModelException, CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		Assert.assertNull("Type SimpleAnnotation not expected",
-				JdtUtils.resolveAnnotationBinding(resourceType, compilationUnit, "@Path"));
-
-	}
-
-	@Test
-	public void shouldNotAssertTypeHasUnusedAnnotation() throws JavaModelException, CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		Assert.assertNull("Type SimpleAnnotation not expected",
-				JdtUtils.resolveAnnotationBinding(resourceType, compilationUnit, HttpMethod.class));
-
-	}
-
-	@Test
-	public void shouldResolveTypeAnnotationAttributeValue() throws CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		Object value = JdtUtils.resolveAnnotationAttributeValue(resourceType, compilationUnit, Path.class, "value");
-		Assert.assertEquals("Wrong result", "/orders", value);
-	}
-
-	@Test
-	public void shouldNotResolveTypeAnnotationAttributeValueWhenAttributeUnknown() throws CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		Assert.assertNull("Wrong result",
-				JdtUtils.resolveAnnotationAttributeValue(resourceType, compilationUnit, Path.class, "unknown"));
-	}
-
-	@Test
-	public void shouldNotResolveTypeAnnotationOnbinaryType() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, progressMonitor);
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(type, compilationUnit, Produces.class);
-		Assert.assertNull("Type SimpleAnnotation not expected", annotationBinding);
-	}
-
-	@Test
-	public void shouldResolveTypeAnnotationAttributeValueAsSingleString() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, progressMonitor);
-		Object value = JdtUtils.resolveAnnotationAttributeValue(type, compilationUnit, Path.class, "value");
-		Assert.assertNotNull("Values not found", value);
-		Assert.assertTrue("Wrong result type", value instanceof String);
-		Assert.assertEquals("Wrong result value", "/orders", value);
-	}
-
-	@Test
-	public void shouldResolveTypeAnnotationAttributeValueAsSingleStringQualifiedValue() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, progressMonitor);
-		Object value = JdtUtils.resolveAnnotationAttributeValue(type, compilationUnit, Path.class, "value");
-		Assert.assertNotNull("Values not found", value);
-		Assert.assertTrue("Wrong result type", value instanceof String);
-		Assert.assertEquals("Wrong result value", "/customers", value);
-	}
-
-	@Test
-	public void shouldResolveTypeAnnotationAttributeValueAsSingleQualifiedMediaTypeValue() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, progressMonitor);
-		Object value = JdtUtils.resolveAnnotationAttributeValue(type, compilationUnit, Consumes.class, "value");
-		Assert.assertNotNull("Values not found", value);
-		Assert.assertTrue("Wrong result type: " + value.getClass(), value instanceof Object[]);
-		Assert.assertEquals("Wrong result: " + value, 1, ((Object[]) value).length);
-		Assert.assertTrue("Wrong result type: " + value, ((Object[]) value)[0] instanceof String);
-		Assert.assertEquals("Wrong result value", "application/xml", ((Object[]) value)[0]);
-	}
-
-	@Test
-	public void shouldResolveTypeAnnotationAttributeValueAsSingleSimpleMediaTypeValue() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.GameResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		// warning : ensure the annotation syntax includes brackets to make an
-		// array : @Consumes({ APPLICATION_XML })
-		CompilationUnit compilationUnit = JdtUtils.parse(type, progressMonitor);
-		Object values = JdtUtils.resolveAnnotationAttributeValue(type, compilationUnit, Consumes.class, "value");
-		Assert.assertNotNull("Values not found", values);
-		Assert.assertTrue("Wrong result type: " + values.getClass(), values instanceof Object[]);
-		Assert.assertEquals("Wrong result value", "application/xml", ((Object[]) values)[0]);
-	}
-
-	@Test
-	public void shouldNotResolveTypeAnnotationAttributeValueOnMissingAnnotation() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, progressMonitor);
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(type, compilationUnit, Consumes.class);
-		Assert.assertNull("Type SimpleAnnotation not expected", annotationBinding);
-	}
-
-	@Test
 	public void shouldResolveConcreteTypeArgumentsOnBinaryTypesWithoutSources() throws CoreException,
 			OperationCanceledException, InterruptedException {
 
@@ -419,34 +254,6 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldResolveFullyQualifiedNameFromSimpleName() throws JavaModelException, CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(resourceType, compilationUnit,
-				Path.class);
-		Assert.assertNotNull("Type SimpleAnnotation not found", annotationBinding);
-		Assert.assertEquals("Type SimpleAnnotation not found", Path.class.getName(),
-				JdtUtils.resolveAnnotationFullyQualifiedName(annotationBinding));
-	}
-
-	@Test
-	public void shouldResolveFullyQualifiedNameFromQualifiedName() throws JavaModelException, CoreException {
-
-		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		Assert.assertNotNull("ResourceType not found", resourceType);
-		CompilationUnit compilationUnit = JdtUtils.parse(resourceType, progressMonitor);
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(resourceType, compilationUnit,
-				Consumes.class);
-		Assert.assertNotNull("Type SimpleAnnotation not found", annotationBinding);
-		Assert.assertEquals("Type SimpleAnnotation not found", Consumes.class.getName(),
-				JdtUtils.resolveAnnotationFullyQualifiedName(annotationBinding));
-	}
-
-	@Test
 	public void shouldResolveTopLevelTypeFromSourceType() throws JavaModelException, CoreException {
 
 		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
@@ -490,21 +297,6 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldResolveMethodBinding() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals("getProduct")) {
-				IMethodBinding methodBinding = JdtUtils.resolveMethodBinding(method, compilationUnit);
-				Assert.assertNotNull("Binding not found", methodBinding);
-			}
-		}
-	}
-
-	@Test
 	public void shouldGetCompiltationUnitFromType() throws CoreException {
 		IResource resource = project
 				.findMember("src/main/java/org/jboss/tools/ws/jaxrs/sample/services/BookResource.java");
@@ -517,124 +309,6 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		IResource resource = project.findMember("src/main/resources/log4j.xml");
 		Assert.assertNotNull("Resource not found", resource);
 		Assert.assertNull("CompilationUnit not expected", JdtUtils.getCompilationUnit(resource));
-	}
-
-	@Test
-	public void shouldResolveMethodAnnotationBinding() throws CoreException {
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator",
-				javaProject, new NullProgressMonitor());
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals("getProductResourceLocator")) {
-				IAnnotationBinding binding = JdtUtils.resolveAnnotationBinding(method, compilationUnit,
-						javax.ws.rs.Path.class);
-				Assert.assertNotNull("Binding not found", binding);
-			}
-		}
-	}
-
-	@Test
-	public void shouldResolveMethodZeroQueryParam() throws CoreException {
-
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals("getProduct")) {
-				Map<IAnnotationBinding, ITypedRegion> resolvedQueryParams = JdtUtils.resolveMethodParamBindings(method,
-						compilationUnit, QueryParam.class);
-				Assert.assertEquals("Wrong number of params", 0, resolvedQueryParams.size());
-			}
-		}
-	}
-
-	@Test
-	public void shouldResolveMethodZeroQueryParamOnNoAnnotatedParamMethod() throws CoreException {
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals("createCustomer")) {
-				Map<IAnnotationBinding, ITypedRegion> resolvedQueryParams = JdtUtils.resolveMethodParamBindings(method,
-						compilationUnit, QueryParam.class);
-				Assert.assertEquals("Wrong number of params", 0, resolvedQueryParams.size());
-			}
-		}
-	}
-
-	@Test
-	public void shouldResolveMethodZeroQueryParamOnNoQueryParamAnnotatedParamMethod() throws CoreException {
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals("createCustomer")) {
-				Map<IAnnotationBinding, ITypedRegion> resolvedQueryParams = JdtUtils.resolveMethodParamBindings(method,
-						compilationUnit, QueryParam.class);
-				Assert.assertEquals("Wrong number of params", 0, resolvedQueryParams.size());
-			}
-		}
-	}
-
-	@Test
-	public void shouldResolveMethodTwoQueryParam() throws CoreException {
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		CompilationUnit compilationUnit = JdtUtils.parse(type, null);
-
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals("getCustomers")) {
-				Map<IAnnotationBinding, ITypedRegion> resolvedQueryParams = JdtUtils.resolveMethodParamBindings(method,
-						compilationUnit, QueryParam.class);
-				Assert.assertEquals("Wrong number of params", 2, resolvedQueryParams.size());
-			}
-		}
-	}
-
-	@Test
-	public void shoudRetrieveTwoMethodParametersWithAnnotations() throws CoreException {
-		// preconditions
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		MethodParametersVisitor visitor = new MethodParametersVisitor(WorkbenchUtils.getMethod(type, "getCustomers"));
-		final CompilationUnit ast = JdtUtils.parse(type.getCompilationUnit(), progressMonitor);
-		// operation
-		ast.accept(visitor);
-		List<MethodParameter> methodParameters = visitor.getMethodParameters();
-		// verifications
-		assertThat(methodParameters.size(), equalTo(3));
-		assertThat(methodParameters.get(0).getName(), equalTo("start"));
-		assertThat(methodParameters.get(0).getTypeName(), equalTo("int"));
-		assertThat(methodParameters.get(0).getAnnotations().get(0).getAnnotationTypeName(),
-				equalTo(QueryParam.class.getName()));
-		assertThat(methodParameters.get(0).getAnnotations().get(0).getAnnotationValue(), equalTo("start"));
-		assertThat(methodParameters.get(1).getAnnotations().size(), equalTo(2));
-	}
-
-	@Test
-	public void shoudRetrieveOneMethodParametersWithoutAnnotation() throws CoreException {
-		// pre-conditions
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
-		Assert.assertNotNull("Type not found", type);
-		MethodParametersVisitor visitor = new MethodParametersVisitor(WorkbenchUtils.getMethod(type, "createCustomer"));
-		// operation
-		JdtUtils.parse(type, progressMonitor).accept(visitor);
-		List<MethodParameter> methodParameters = visitor.getMethodParameters();
-		// verifications
-		assertThat(methodParameters.size(), equalTo(1));
-		assertThat(methodParameters.get(0).getName(), equalTo("customer"));
-		assertThat(methodParameters.get(0).getTypeName(), equalTo("org.jboss.tools.ws.jaxrs.sample.domain.Customer"));
-		assertThat(methodParameters.get(0).getAnnotations().size(), equalTo(0));
 	}
 
 	@Test

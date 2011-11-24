@@ -22,6 +22,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
 /** JAX-RS Provider class Providers *must* implement MessageBodyReader,
  * MessageBodyWriter or ExceptionMapper Providers *may* be annotated with

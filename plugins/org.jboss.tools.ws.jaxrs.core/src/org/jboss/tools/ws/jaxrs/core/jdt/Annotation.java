@@ -1,6 +1,5 @@
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

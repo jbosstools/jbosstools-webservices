@@ -48,6 +48,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
 /** Base class for all elements in the JAX-RS Metamodel.
  * 

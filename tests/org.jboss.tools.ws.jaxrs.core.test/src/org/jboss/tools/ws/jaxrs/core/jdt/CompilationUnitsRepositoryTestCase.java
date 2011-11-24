@@ -23,9 +23,6 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -108,7 +105,6 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	public void shouldRemoveAST() throws CoreException {
 		// pre-conditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getMethod(type, "getCustomer");
 		final ICompilationUnit compilationUnit = type.getCompilationUnit();
 		// record the previous version
 		repository.getAST(compilationUnit);

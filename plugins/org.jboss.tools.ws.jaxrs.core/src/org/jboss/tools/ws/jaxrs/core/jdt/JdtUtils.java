@@ -18,11 +18,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -31,6 +28,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -38,25 +36,20 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IAnnotationBinding;
-import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
-import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.CreateTypeHierarchyOperation;
-import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jdt.internal.core.SourceType;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /** A JDT wrapper that provides utility methods to manipulate the Java Model.
@@ -200,14 +193,22 @@ public final class JdtUtils {
 	 *         once for each type. Returns null if the given member was null.
 	 * @throws JavaModelException
 	 *             in case of exception underneath... */
-	public static CompilationUnit parse(final IMember member, final IProgressMonitor progressMonitor)
+	public static CompilationUnit parse(final ICompilationUnit compilationUnit, final IProgressMonitor progressMonitor)
 			throws JavaModelException {
-		if (member == null) {
+		if (compilationUnit == null || !compilationUnit.exists()) {
 			return null;
 		}
-		return parse(member.getCompilationUnit(), progressMonitor);
-	}
 
+		ASTParser parser = ASTParser.newParser(AST.JLS3);
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
+		parser.setSource(compilationUnit);
+		parser.setResolveBindings(true);
+		parser.setEnvironment(null, null, null, true);
+		parser.setBindingsRecovery(true);
+		final CompilationUnit ast = (CompilationUnit) parser.createAST(progressMonitor);
+		return ast;
+	}
+	
 	/** Parse the DOM of the given member, and resolve bindings. If the given
 	 * member is not a type, then its declaring type is used by the parser.
 	 * 
@@ -219,21 +220,63 @@ public final class JdtUtils {
 	 *         method. This operation is expensive and should be performed only
 	 *         once for each type. Returns null if the given member was null.
 	 * @throws JavaModelException
-	 *             in case of exception underneath... */
-	public static CompilationUnit parse(final ICompilationUnit compilationUnit, final IProgressMonitor progressMonitor)
+	 *             in case of exception underneath... 
+	 */
+	public static CompilationUnit parse(final IMember member, final IProgressMonitor progressMonitor)
 			throws JavaModelException {
-		if (compilationUnit == null || !compilationUnit.exists()) {
+		if (member == null) {
 			return null;
 		}
-
-		ASTParser parser = ASTParser.newParser(AST.JLS3);
-		parser.setSource(compilationUnit);
-		parser.setResolveBindings(true);
-		parser.setBindingsRecovery(true);
-		// FIXME : parser.createAST throws an IllegalStateException on binary
-		// parameterizedType if source code is not available.
-		return (CompilationUnit) parser.createAST(progressMonitor);
+		return parse(member.getCompilationUnit(), progressMonitor);
 	}
+	
+	/**
+     * Parse the DOM of the given member, and resolve bindings. If the given
+     * member is not a type, then its declaring type is used by the parser.
+     * 
+     * @param member
+     *            the type to parse
+     * @param progressMonitor
+     *            the progress monitor
+     * @return compilationUnit the DOM CompilationUnit returned by the parse()
+     *         method. This operation is expensive and should be performed only
+     *         once for each type. Returns null if the given member was null.
+     * @throws JavaModelException
+     *             in case of exception underneath...
+    public static CompilationUnit parse(final IMember member, final IProgressMonitor progressMonitor)
+                    throws JavaModelException {
+            if (member == null) {
+                    return null;
+            }
+            IType type = null;
+            if (member.getElementType() == IMember.TYPE) {
+                    type = (IType) member;
+            } else {
+                    type = member.getDeclaringType();
+            }
+            ASTParser parser = ASTParser.newParser(AST.JLS3);
+            if (type instanceof BinaryType) {
+                    IClassFile classFile = (IClassFile) type.getParent();
+                    if (classFile.getSource() == null) {
+                            Logger.warn("No source attachment is available for type '" + type
+                                            + "'. Unable to resolve type arguments.");
+                            return null;
+                    }
+                    parser.setKind(ASTParser.K_COMPILATION_UNIT);
+                    parser.setSource(classFile);
+            } else if (type instanceof SourceType) {
+                    parser.setSource(type.getCompilationUnit());
+            }
+
+            parser.setResolveBindings(true);
+            parser.setBindingsRecovery(true);
+            // FIXME : parser.createAST throws an IllegalStateException on binary
+            // parameterizedType if source code is not available.
+            CompilationUnit node = (CompilationUnit) parser.createAST(progressMonitor);
+            return node;
+    }
+	 */
+
 
 	/** Resolves the annotation given its type.
 	 * 
@@ -343,246 +386,7 @@ public final class JdtUtils {
 		return annotationElements;
 	}
 
-	/** Return the annotation binding (AST3/DOM) matching the fully qualified
-	 * name (or matching the simple name) on the given element. Checks that the
-	 * annotation really exists (not a fake handle) or returns null
-	 * 
-	 * @param member
-	 *            the element to scan (can be a type or a method)
-	 * @param compilationUnit
-	 *            the DOM CompilationUnit returned by the parse() method. This
-	 *            operation is expensive and should be performed only once for
-	 *            each type.
-	 * @param annotationQualifiedName
-	 *            the fully qualified name of the annotation to retrieve
-	 * @return the annotation if it exists, null otherwise
-	 * @throws JavaModelException
-	 *             the underlying Exception thrown by the manipulated JDT APIs */
-	@Deprecated
-	public static IAnnotationBinding resolveAnnotationBinding(final IMember member,
-			final CompilationUnit compilationUnit, final Class<?> annotationClass) throws JavaModelException {
-		return resolveAnnotationBinding(member, compilationUnit, annotationClass.getName());
-	}
-
-	@Deprecated
-	public static IAnnotationBinding resolveAnnotationBinding(final IMember member,
-			final CompilationUnit compilationUnit, final String annotationName) {
-		if (compilationUnit == null) {
-			return null;
-		}
-		MemberAnnotationBindingVisitor visitor = new MemberAnnotationBindingVisitor(member.getElementName(),
-				member.getElementType(), annotationName);
-		compilationUnit.accept(visitor);
-		return visitor.getAnnotationBinding();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	public static <T> T resolveAnnotationAttributeValue(IAnnotation annotation, CompilationUnit ast,
-			String attributeName) throws JavaModelException {
-		if (annotation == null) {
-			return null;
-		}
-		if (((IMember) annotation.getParent()).isBinary()) {
-			for (IMemberValuePair mvp : annotation.getMemberValuePairs()) {
-				if (mvp.getMemberName().equals(attributeName)) {
-					return (T) mvp.getValue();
-				}
-			}
-			return null;
-		}
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding((IMember) annotation.getParent(), ast,
-				annotation.getElementName());
-		return (T) resolveAnnotationAttributeValue(annotationBinding, attributeName);
-	}
-
-	/** Returns the value set for the given attribute from the given annotation
-	 * binding.
-	 * 
-	 * @param annotationBinding
-	 *            the annotation binding
-	 * @param attributeName
-	 *            the attribute name to look up
-	 * @return
-	 * @return the value of the attribute, or null if the attribute is not
-	 *         defined. The value can also be an Array of objects if the
-	 *         attribute is multi-valued.
-	 * @throws CoreException
-	 *             the underlying CoreException thrown by the manipulated JDT
-	 *             APIs */
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	public static <T> T resolveAnnotationAttributeValue(final IAnnotationBinding annotationBinding,
-			final String attributeName) {
-		if (annotationBinding != null) {
-			for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
-				if (binding.getName().equals(attributeName)) {
-					return (T) binding.getValue();
-				}
-			}
-		}
-		return null;
-	}
-
-	/** Returns the value set for the given attribute from the given annotation
-	 * binding.
-	 * 
-	 * @param annotationBinding
-	 *            the annotation binding
-	 * @param attributeName
-	 *            the attribute name to look up
-	 * @return
-	 * @return the value of the attribute, or null if the attribute is not
-	 *         defined. The value can also be an Array of objects if the
-	 *         attribute is multi-valued.
-	 * @throws JavaModelException
-	 * @throws CoreException
-	 *             the underlying CoreException thrown by the manipulated JDT
-	 *             APIs */
-	@Deprecated
-	public static Object resolveAnnotationAttributeValue(final IMember member, final CompilationUnit compilationUnit,
-			final Class<?> annotationClass, final String attributeName) throws JavaModelException {
-		if (member.isBinary()) {
-			final IMemberValuePair[] memberValuePairs = ((IAnnotatable) member)
-					.getAnnotation(annotationClass.getName()).getMemberValuePairs();
-			for (IMemberValuePair valuePair : memberValuePairs) {
-				if (valuePair.getMemberName().equals(attributeName)) {
-					return valuePair.getValue();
-				}
-			}
-			return null;
-		}
-		CompilationUnit ast = compilationUnit != null ? compilationUnit : parse(member, new NullProgressMonitor());
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding(member, ast, annotationClass);
-		return resolveAnnotationAttributeValue(annotationBinding, attributeName);
-	}
-
-	/** Resolves the fully qualified name of the annotation given its binding.
-	 * 
-	 * @param annotationBinding
-	 *            the annotation binding
-	 * @return the fully qualified name, or null if it could not be resolved
-	 * @throws JavaModelException
-	 *             the exception thrown underneath */
-	@Deprecated
-	public static String resolveAnnotationFullyQualifiedName(final IAnnotationBinding annotationBinding)
-			throws JavaModelException {
-		if (annotationBinding != null) {
-			return annotationBinding.getAnnotationType().getQualifiedName();
-		}
-		return null;
-	}
-
-	/** Resolves the fully qualified name of the annotation given its binding.
-	 * 
-	 * @param annotationBinding
-	 *            the annotation binding
-	 * @return the fully qualified name, or null if it could not be resolved
-	 * @throws JavaModelException
-	 *             the exception thrown underneath */
-	@Deprecated
-	public static String resolveAnnotationFullyQualifiedName(IAnnotation annotation, CompilationUnit ast)
-			throws JavaModelException {
-		IAnnotationBinding annotationBinding = JdtUtils.resolveAnnotationBinding((IMember) annotation.getParent(), ast,
-				annotation.getElementName());
-		return resolveAnnotationFullyQualifiedName(annotationBinding);
-	}
-
-	/** Resolves the parameters of the given annotation on the given method.
-	 * 
-	 * @param methodBinding
-	 *            the binding of the method
-	 * @param annotationNameFilter
-	 *            the fully qualified name of the annotation
-	 * @return a map in which each 'key' is the value of an annotation and
-	 *         'value' is the literal of the type ('int', 'long', etc.)
-	 * @throws JavaModelException
-	 *             in case of underlying exception */
-	public static Map<IAnnotationBinding, ITypedRegion> resolveMethodParamBindings(final IMethod javaMethod,
-			CompilationUnit compilationUnit, final Class<?> annotationTypeFilter) throws JavaModelException {
-		MemberAnnotationBindingsVisitor visitor = new MemberAnnotationBindingsVisitor(javaMethod,
-				annotationTypeFilter.getName());
-		compilationUnit.accept(visitor);
-		return visitor.getAnnotationBindings();
-	}
-
-	/** Resolves the bindings for the given method in the given Compilation Unit
-	 * (AST3/DOM).
-	 * 
-	 * @param method
-	 *            the method
-	 * @param compilationUnit
-	 *            the compilation unit
-	 * @return the method binding or null if not found. */
-	public static IMethodBinding resolveMethodBinding(final IMethod method, final CompilationUnit compilationUnit) {
-		MethodBindingVisitor visitor = new MethodBindingVisitor(method);
-		compilationUnit.accept(visitor);
-		return visitor.getMethodBinding();
-	}
-
-	/** Retrieve error problems from the given source member in the given
-	 * compilation unit.
-	 * 
-	 * @param member
-	 *            the member
-	 * @param compilationUnit
-	 *            the compilation unit
-	 * @return the compilation errors
-	 * @throws JavaModelException
-	 *             in case of underlying exception */
-	public static Set<IProblem> resolveErrors(final ISourceReference member, final CompilationUnit compilationUnit)
-			throws JavaModelException {
-		Set<IProblem> problems = new HashSet<IProblem>();
-		ISourceRange sourceRange = member.getSourceRange();
-		int typeSourceStart = sourceRange.getOffset();
-		int typeSourceEnd = typeSourceStart + sourceRange.getLength();
-		for (IProblem problem : compilationUnit.getProblems()) {
-			if (problem.isError() && typeSourceStart < problem.getSourceStart()
-					&& problem.getSourceStart() < typeSourceEnd) {
-				problems.add(problem);
-			}
-		}
-		return problems;
-	}
-
-	/** Resolves the method parameters.
-	 * 
-	 * @param javaMethod
-	 * @param compilationUnit
-	 * @param annotationType
-	 * @return the method parameters
-	 * @throws JavaModelException */
-	@Deprecated
-	public static List<JavaMethodParameter> resolveMethodParameters(IMethod javaMethod,
-			CompilationUnit compilationUnit, Class<?> annotationType) throws JavaModelException {
-		List<JavaMethodParameter> parameters = new ArrayList<JavaMethodParameter>();
-		Map<IAnnotationBinding, ITypedRegion> bindings = JdtUtils.resolveMethodParamBindings(javaMethod,
-				compilationUnit, annotationType);
-		for (Entry<IAnnotationBinding, ITypedRegion> entry : bindings.entrySet()) {
-			IAnnotationBinding binding = entry.getKey();
-			ITypedRegion region = entry.getValue();
-			IMemberValuePairBinding[] allMemberValuePairs = binding.getAllMemberValuePairs();
-			IMemberValuePairBinding memberValuePair = allMemberValuePairs[0];
-			String annotationValue = (String) memberValuePair.getValue();
-			int lineNumber = compilationUnit.getLineNumber(region.getOffset());
-			/*
-			 * parameters.add(new JavaMethodParameter(region.getType(),
-			 * annotationType.getName(), annotationValue, region.getOffset(),
-			 * region.getOffset() + region.getLength(), lineNumber));
-			 */
-		}
-		// Collections.sort(parameters);
-		return parameters;
-	}
-
-	@Deprecated
-	public static List<MethodParameter> resolveMethodParameters(IMethod javaMethod, CompilationUnit ast)
-			throws JavaModelException {
-		MethodParametersVisitor visitor = new MethodParametersVisitor(javaMethod);
-		ast.accept(visitor);
-		return visitor.getMethodParameters();
-	}
-
+	
 	/** Return the first IType that matches the QualifiedName in the javaProject
 	 * (anyway, there shouldn't be more than one, unless there are duplicate
 	 * jars in the classpath, should it ?).
