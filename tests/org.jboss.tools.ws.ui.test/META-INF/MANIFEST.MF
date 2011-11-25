@@ -6,7 +6,7 @@ Bundle-Version: 1.2.2.qualifier
 Bundle-Activator: org.jboss.tools.ws.ui.test.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.junit,
+ org.junit4,
  org.jboss.tools.tests,
  org.jboss.tools.ws.ui,
  org.jboss.tools.ws.core,
