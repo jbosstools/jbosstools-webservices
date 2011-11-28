@@ -614,6 +614,7 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 				model.setWebProjectName(projects.getText());
 			}
 
+			setErrorMessage(null);
 			// no project selected
 			if (((JBossWSAnnotatedClassWizard) this.getWizard()).getProject() == null) {
 				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
@@ -623,15 +624,17 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 			// project not a dynamic web project
 			IFile web = ((JBossWSAnnotatedClassWizard) this.getWizard()).getWebFile();
 			if (web == null || !web.exists()) {
-				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
-				return false;
+				if (updateWebXML.getSelection()) {
+					setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
+					return false;
+				}
 			}
 			
 			IStatus reInstalledStatus =
 				RestEasyLibUtils.doesRuntimeSupportRestEasy(((JBossWSAnnotatedClassWizard) this.getWizard()).getProject());
 			if (reInstalledStatus.getSeverity() != IStatus.OK){
-				setErrorMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime);
-				return false;
+				setMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime, DialogPage.WARNING);
+				return true;
 			}
 
 			// no source folder in web project

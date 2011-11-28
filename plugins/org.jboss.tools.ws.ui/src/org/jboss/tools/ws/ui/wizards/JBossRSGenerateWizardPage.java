@@ -333,6 +333,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 			model.setWebProjectName(projects.getText());
 		}
 
+		setErrorMessage(null);
 		// no project selected
 		if (((JBossRSGenerateWizard) this.getWizard()).getProject() == null) {
 			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
@@ -351,8 +352,8 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		IStatus reInstalledStatus =
 			RestEasyLibUtils.doesRuntimeSupportRestEasy(((JBossRSGenerateWizard) this.getWizard()).getProject());
 		if (reInstalledStatus.getSeverity() != IStatus.OK){
-			setErrorMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime);
-			return false;
+			setMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime, DialogPage.WARNING);
+			return true;
 		}
 
 		// no source folder in web project

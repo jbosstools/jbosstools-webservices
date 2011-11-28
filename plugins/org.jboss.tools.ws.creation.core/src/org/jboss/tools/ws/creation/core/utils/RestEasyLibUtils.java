@@ -21,13 +21,13 @@
  */
 package org.jboss.tools.ws.creation.core.utils;
 
-import java.io.File;
-import java.io.FilenameFilter;
-
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.jboss.tools.common.util.EclipseJavaUtil;
 import org.jboss.tools.ws.core.utils.StatusUtils;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 
@@ -37,12 +37,6 @@ import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
  */
 public class RestEasyLibUtils {
 
-	private static final String REST_EASY = "RestEasy"; //$NON-NLS-1$
-	private static final String JAXRS_API_POSTFIX = ".jar"; //$NON-NLS-1$
-	private static final String LIB = "lib"; //$NON-NLS-1$
-	private static final String MODULES = "modules"; //$NON-NLS-1$
-
-	
 	/**
 	 * Simple check to see if the JBoss WS runtime associated with a project
 	 * actually includes the RESTEasy jars. If so, returns Status.OK_STATUS.
@@ -52,97 +46,28 @@ public class RestEasyLibUtils {
 	 * @return
 	 */
 	public static IStatus doesRuntimeSupportRestEasy ( IProject project ) {
+		
 		try {
-			String path =
-				JBossWSCreationUtils.getJBossWSRuntimeLocation(project);
-			File runtime = new File(path);
-			if (runtime.exists()) {
-				File findJar = findLibDir(runtime);
-				if (findJar == null) {
-					File parent = runtime.getParentFile();
-					if (parent.exists() && parent.isDirectory()) {
-						File[] restEasyDir = parent.listFiles(new FilenameFilter() {
-							public boolean accept(File dir, String name) {
-								if (name.equalsIgnoreCase(REST_EASY)) {
-									return true;
-								}
-								return false;
-							}
-						});
-						if (restEasyDir != null && restEasyDir.length > 0) {
-							findJar = findLibDir(restEasyDir[0]);
-						}
+			IJavaProject javaProject = JavaCore.create(project);
+			if (javaProject != null) {
+				String[] classesToValidate = 
+					{ "javax.ws.rs.GET",  //$NON-NLS-1$
+					  "javax.ws.rs.Path",  //$NON-NLS-1$
+					  "javax.ws.rs.core.Application"}; //$NON-NLS-1$
+				for (int i = 0; i < classesToValidate.length; i++) {
+					String classToTest = classesToValidate[i];
+					IType rtnType1 = EclipseJavaUtil.findType(
+							javaProject, classToTest);
+					if (rtnType1 == null) {
+						return StatusUtils.warningStatus(
+								JBossWSCreationCoreMessages.AddRestEasyJarsCommand_RestEasy_JARS_Not_Found);
 					}
 				}
-				if (findJar == null) { 
-					// if it's still null, resteasy's not installed
-					return StatusUtils.errorStatus(JBossWSCreationCoreMessages.AddRestEasyJarsCommand_RestEasy_JARS_Not_Found);
-				}
 			}
-		} catch (CoreException ce) {
-			return StatusUtils.errorStatus(JBossWSCreationCoreMessages.RestEasyLibUtils_Error_UnableToFindRuntimeForProject);
+		} catch (Exception e) {
+			return StatusUtils.warningStatus(JBossWSCreationCoreMessages.RestEasyLibUtils_Error_UnableToFindRuntimeForProject);
 		}
 		return Status.OK_STATUS;
-	}
-	
-	/*
-	 * Finds the RESTEasy lib in the runtime path
-	 * @param in
-	 * @return
-	 */
-	private static File findLibDir ( File in ) {
-		File[] children = 
-			in.listFiles(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				if (dir.isDirectory() && name.equals(LIB)) {
-					return true;
-				}
-				else if (dir.isDirectory() && name.equals(MODULES)) {
-					return true;
-				}
-				return false;
-			}
-		});
-		if (children != null ) {
-			for (int i = 0; i < children.length; i++) {
-				File libDir = (File) children[i];
-				if (libDir.exists() && libDir.isDirectory()) {
-					File temp = recursiveRESearch(libDir);
-					if (temp != null)
-						return libDir;
-				}
-			}
-		}
-		return null;
-	}
-
-	
-	/*
-	 * Recursive file search
-	 * @param input (file)
-	 * @return RestEasy jar indicating RE is installed
-	 */
-	private static File recursiveRESearch(File input) {
-		if( input.isDirectory() == true ){
-			for(int i=0; i<input.list().length; i++){
-				File temp = new File( input + "\\" + input.list()[i]); //$NON-NLS-1$
-				File temp2 = recursiveRESearch(temp);
-				if (temp2 != null)
-					return temp2;
-			}
-		}
-		else{
-			if (input.getName().length() > 0) {
-				String name = input.getName().toUpperCase();
-				boolean starts = name.startsWith(REST_EASY.toUpperCase());
-				boolean ends = name.endsWith(JAXRS_API_POSTFIX.toUpperCase());
-				if (starts && ends) {
-					return input;
-				}
-			}
-		}
-				
-		return null;
 	}
 	
 }
