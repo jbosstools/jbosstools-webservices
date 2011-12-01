@@ -39,6 +39,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String Endorsed;
 	
 	public static String JBossRSGenerateWizard_RS_Wizard_Window_Title;
+	public static String JBossRSGenerateWizardPage_AddJarsIfFoundCheckbox;
 	public static String JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime;
 	public static String JBossRSGenerateWizardPage_Label_Application_Class_Name;
 	public static String JBossRSGenerateWizardPage_Page_title;
@@ -102,6 +103,8 @@ public class JBossWSUIMessages extends NLS {
 	public static String Error_JBossWS_Runtime_List_Field_Editor_Name_Cannot_Be_Empty;
 	public static String Error_JBossWS_Runtime_List_Field_Editor_Inputelement_Must_Be_An_Instance_Of_List;
 	public static String Error_JBossWS_GenerateWizard_NotDynamicWebProject;
+	public static String Error_JBossWS_GenerateWizard_NotDynamicWebProject2;
+	public static String Error_JBossWS_GenerateWizard_NoWebXML;
 	public static String Error_JBossWS_GenerateWizard_ClassName_Same;
 	public static String Error_JBossWS_GenerateWizard_PackageName_Cannot_Be_Empty;
 	public static String Error_JBossWS_GenerateWizard_ClassName_Cannot_Be_Empty;

@@ -69,6 +69,7 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 	private boolean useDefaultClassName = true;
 	private boolean updateWebXML = true;
 	private boolean isJAXWS = true;
+	private boolean addJarsFromRootRuntime = false;
 
 	private IStructuredSelection selection;
 	private IProject project;
@@ -131,7 +132,8 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 			AbstractDataModelOperation addJarsCommand = null;
 			AbstractDataModelOperation addClassesCommand = null;
 			if (!isJAXWS()) {
-				addJarsCommand = new AddRestEasyJarsCommand(model);
+				if (getAddJarsFromRootRuntime())
+					addJarsCommand = new AddRestEasyJarsCommand(model);
 				addClassesCommand = new RSServiceCreationCommand(model);
 			} else {
 				addClassesCommand = new ServiceCreationCommand(model);
@@ -257,6 +259,14 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 
 	public boolean getUpdateWebXML() {
 		return updateWebXML;
+	}
+
+	public boolean getAddJarsFromRootRuntime() {
+		return addJarsFromRootRuntime;
+	}
+
+	public void setAddJarsFromRootRuntime(boolean addJarsFromRootRuntime) {
+		this.addJarsFromRootRuntime = addJarsFromRootRuntime;
 	}
 
 	public void setJAXWS(boolean isJAXWS) {

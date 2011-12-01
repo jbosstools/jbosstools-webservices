@@ -21,6 +21,9 @@
  */
 package org.jboss.tools.ws.creation.core.utils;
 
+import java.io.File;
+import java.io.FilenameFilter;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -36,6 +39,8 @@ import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
  *
  */
 public class RestEasyLibUtils {
+
+	private static final String REST_EASY = "RestEasy"; //$NON-NLS-1$
 
 	/**
 	 * Simple check to see if the JBoss WS runtime associated with a project
@@ -70,4 +75,36 @@ public class RestEasyLibUtils {
 		return Status.OK_STATUS;
 	}
 	
+	public static IStatus doesRuntimeHaveRootLevelRestEasyDir ( IProject project ) {
+		try {
+			IJavaProject javaProject = JavaCore.create(project);
+			if (javaProject != null) {
+				String path =
+						JBossWSCreationUtils.getJBossWSRuntimeLocation(project.getProject());
+				File runtime = new File(path);
+				if (runtime.exists()) {
+					File parent = runtime.getParentFile();
+					if (parent.exists() && parent.isDirectory()) {
+						File[] restEasyDir = parent.listFiles(new FilenameFilter() {
+							public boolean accept(File dir, String name) {
+								if (name.equalsIgnoreCase(REST_EASY)) {
+									return true;
+								}
+								return false;
+							}
+						});
+						if (restEasyDir != null && restEasyDir.length > 0) {
+							return Status.OK_STATUS;
+						} else {
+							return StatusUtils.warningStatus("Root-level RESTeasy directory not found in runtime location");
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			return StatusUtils.warningStatus("Root-level RESTeasy directory not found in runtime location");
+		}
+		return Status.OK_STATUS;
+	}
+
 }

@@ -22,6 +22,7 @@ import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
+import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -35,6 +36,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.wst.common.project.facet.core.IFacetedProject;
+import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
+import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.creation.core.utils.RestEasyLibUtils;
@@ -50,6 +54,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 	private Text className;
 	private Text appClassName;
 	private Button updateWebXML;
+	private Button addJarsIfFound;
 
 	protected JBossRSGenerateWizardPage(String pageName) {
 		super(pageName);
@@ -84,6 +89,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 				wizard.setProject(projects.getText());
 				name.setText(updateDefaultName());
 				className.setText(updateDefaultClassName());
+				setWebXMLSelectionValueBasedOnProjectFacet();
 				bHasChanged = true;
 				setPageComplete(isPageComplete());
 			}
@@ -133,6 +139,23 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 				widgetSelected(e);
 			}
 		});
+
+		addJarsIfFound = new Button(group2, SWT.CHECK);
+		addJarsIfFound.setText(JBossWSUIMessages.JBossRSGenerateWizardPage_AddJarsIfFoundCheckbox);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 2;
+		addJarsIfFound.setLayoutData(gd);
+		addJarsIfFound.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				wizard.setAddJarsFromRootRuntime(updateWebXML.getSelection());
+				setPageComplete(isPageComplete());
+			}
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+		});
+		
+		setWebXMLSelectionValueBasedOnProjectFacet();
 
 		Group group3 = new Group(composite, SWT.NONE);
 		group3.setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Class_Group);
@@ -325,6 +348,30 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		return testName;
 	}
 
+	private void setWebXMLSelectionValueBasedOnProjectFacet () {
+		try {
+			IFacetedProject facetProject =
+					ProjectFacetsManager.create(((JBossRSGenerateWizard)this.getWizard()).getProject());
+			IProjectFacetVersion version = 
+					facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET);
+			if (version == null) {
+				// then we're not a dynamic web project, do nothing
+				return;
+			}
+			Double versionDouble = Double.valueOf(version.getVersionString());
+			if (versionDouble.doubleValue() == 3 || versionDouble.doubleValue() > 3) {
+				// dynamic web project 3.0, web.xml not needed
+				updateWebXML.setSelection(false);
+			} else if (versionDouble.doubleValue() < 3){
+				// dynamic web project < 3.0 
+				updateWebXML.setSelection(true);
+			}
+		} catch (CoreException e1) {
+			// ignore
+		} catch (NumberFormatException nfe) {
+			// ignore
+		}
+	}
 
 	private boolean validate() {
 		ServiceModel model = wizard.getServiceModel();
@@ -340,22 +387,42 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 			return false;
 		}
 
+		try {
+			IFacetedProject facetProject =
+					ProjectFacetsManager.create(((JBossRSGenerateWizard)this.getWizard()).getProject());
+			IProjectFacetVersion version = 
+					facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET);
+			if (version == null) {
+				// then we're not a dynamic web project
+				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
+				return false;
+			}
+		} catch (CoreException e1) {
+			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
+			return false;
+		}
+		
 		// project not a dynamic web project
 		IFile web = ((JBossRSGenerateWizard) this.getWizard()).getWebFile();
 		if (web == null || !web.exists()) {
 			if (updateWebXML.getSelection()) {
-				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject);
-				return false;
+				setMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoWebXML, 
+						DialogPage.WARNING);
+				return true;
 			}
 		}
 		
+		IStatus reNoREDirectoryInRuntimeRoot = RestEasyLibUtils.doesRuntimeHaveRootLevelRestEasyDir(((JBossRSGenerateWizard) this.getWizard()).getProject());
+		addJarsIfFound.setEnabled(reNoREDirectoryInRuntimeRoot.getSeverity() == IStatus.OK);
+
 		IStatus reInstalledStatus =
 			RestEasyLibUtils.doesRuntimeSupportRestEasy(((JBossRSGenerateWizard) this.getWizard()).getProject());
-		if (reInstalledStatus.getSeverity() != IStatus.OK){
-			setMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime, DialogPage.WARNING);
+		if (reInstalledStatus.getSeverity() != IStatus.OK && !addJarsIfFound.getSelection()){
+			setMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime, 
+					DialogPage.WARNING);
 			return true;
 		}
-
+		
 		// no source folder in web project
 		try {
 			if ("".equals(JBossWSCreationUtils.getJavaProjectSrcLocation(((JBossRSGenerateWizard) this.getWizard()).getProject()))) { //$NON-NLS-1$

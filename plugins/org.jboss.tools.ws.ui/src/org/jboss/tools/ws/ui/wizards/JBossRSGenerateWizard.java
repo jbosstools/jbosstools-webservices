@@ -62,6 +62,7 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
 	private boolean updateWebXML = true;
+	private boolean addJarsFromRootRuntime = false;
 
 	private IStructuredSelection selection;
 	private IProject project;
@@ -125,7 +126,9 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 				}
 			}
 			try {
-				new AddRestEasyJarsCommand(model).execute(null, null);
+				if (getAddJarsFromRootRuntime())
+					new AddRestEasyJarsCommand(model).execute(null, null);
+				
 				RSServiceSampleCreationCommand createCommand =
 					new RSServiceSampleCreationCommand(model);
 				createCommand.execute(null, null);
@@ -224,6 +227,14 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 
 	public boolean getUpdateWebXML() {
 		return updateWebXML;
+	}
+
+	public boolean getAddJarsFromRootRuntime() {
+		return addJarsFromRootRuntime;
+	}
+
+	public void setAddJarsFromRootRuntime(boolean addJarsFromRootRuntime) {
+		this.addJarsFromRootRuntime = addJarsFromRootRuntime;
 	}
 
 	public IProject getProject() {
