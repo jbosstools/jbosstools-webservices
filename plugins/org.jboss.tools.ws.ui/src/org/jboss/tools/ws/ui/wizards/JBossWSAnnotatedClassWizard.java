@@ -14,6 +14,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -139,8 +140,10 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 				addClassesCommand = new ServiceCreationCommand(model);
 			}
 			try {
+				boolean addedJars = false;
 				if (addJarsCommand != null) {
 					addJarsCommand.execute(null, null);
+					addedJars = true;
 				}
 				if (addClassesCommand != null) {
 					addClassesCommand.execute(null, null);
@@ -154,6 +157,8 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 						openFile1 = (IFile) cmd.getResource();
 					}
 				} else if (addClassesCommand instanceof RSServiceCreationCommand) {
+					if (addedJars)
+						getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 					RSServiceCreationCommand cmd = (RSServiceCreationCommand) addClassesCommand;
 					if (cmd.getAnnotatedClassResource() != null && cmd.getAnnotatedClassResource() instanceof IFile) {
 						openFile1 = (IFile) cmd.getAnnotatedClassResource();

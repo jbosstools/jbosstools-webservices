@@ -16,6 +16,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -126,13 +127,18 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 				}
 			}
 			try {
-				if (getAddJarsFromRootRuntime())
+				boolean addedJars = false;
+				if (getAddJarsFromRootRuntime()) {
 					new AddRestEasyJarsCommand(model).execute(null, null);
+					addedJars = true;
+				}
 				
 				RSServiceSampleCreationCommand createCommand =
 					new RSServiceSampleCreationCommand(model);
 				createCommand.execute(null, null);
 				getProject().refreshLocal(IProject.DEPTH_INFINITE, new NullProgressMonitor());
+				if (addedJars)
+					getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 				if (createCommand.getResource() != null && createCommand.getResource() instanceof IFile) {
 					openResource((IFile) createCommand.getResource());
 				}
