@@ -37,23 +37,12 @@ public class CopyToClipboardActionProvider extends CommonActionProvider {
 	 */
 	@Override
 	public void init(ICommonActionExtensionSite aSite) {
-
-		/*
-		 * ICompilationUnit cu = member.getCompilationUnit(); IEditorPart
-		 * javaEditor = JavaUI.openInEditor(cu);
-		 * JavaUI.revealInEditor(javaEditor, (IJavaElement)member);
-		 */
-		
 		ICommonViewerSite viewSite = aSite.getViewSite();
 		if (viewSite instanceof ICommonViewerWorkbenchSite) {
-			//ICommonViewerWorkbenchSite commonViewerWorkbenchSite = (ICommonViewerWorkbenchSite) viewSite;
-			//JavaUI.revealInEditor(JavaUI.openInEditor(element), element)
-			//JavaUI.openInEditor(null)
 			copyToClipboardAction = new CopyToClipboardAction();
 			copyToClipboardAction.setSelection(aSite.getStructuredViewer().getSelection());
 			aSite.getStructuredViewer().addSelectionChangedListener(copyToClipboardAction);
 		}
-
 	}
 
 	/*
