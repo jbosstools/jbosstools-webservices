@@ -74,9 +74,13 @@ public class JaxrsMetamodelBuildJob extends Job {
 					events, progressMonitor);
 			final List<JaxrsEndpointChangedEvent> jaxrsEndpointChanges = jaxrsElementChangedProcessor.processEvents(
 					jaxrsElementChanges, progressMonitor);
+			if(jaxrsEndpointChanges == null || jaxrsEndpointChanges.isEmpty()) {
+				Logger.debug("No JAX-RS change to publish to the UI");
+			} else {
 			for (JaxrsEndpointChangedEvent change : jaxrsEndpointChanges) {
 				Logger.debug(change.toString());
 				EventService.getInstance().publish(change);
+			}
 			}
 		} catch (Throwable e) {
 			Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
