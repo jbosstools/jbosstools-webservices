@@ -92,14 +92,17 @@ public class ElementChangedEventScanner {
 				&& (delta.getFlags() & IResourceDelta.MARKERS) != 0;
 		final boolean javaFileRemoved = isJavaFile && delta.getKind() == REMOVED;
 		if ((javaFileAdded || javaFileRemoved)) {
-			Logger.debug("File {} {}", resource,
+			Logger.debug("File {}  {}", resource,
 					ConstantUtils.getStaticFieldName(IResourceDelta.class, delta.getKind()));
 			ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(delta.getResource());
 			CompilationUnit compilationUnitAST = compilationUnitsRepository.getAST(compilationUnit);
 			JavaElementChangedEvent event = new JavaElementChangedEvent(compilationUnit, delta.getKind(),
 					compilationUnitAST, new int[0]);
+			
 			if (filter.apply(event)) {
 				events.add(event);
+			} else {
+				Logger.debug("Event {} **rejected** ", event);
 			}
 		} else if (javaFileWithMarkers) {
 			ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(delta.getResource());

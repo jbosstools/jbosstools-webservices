@@ -46,7 +46,7 @@ public class JavaElementChangedEventFilter {
 
 		addRule(COMPILATION_UNIT, ADDED, PRIMARY_COPY);
 		addRule(COMPILATION_UNIT, CHANGED, PRIMARY_COPY, F_CONTENT, F_PRIMARY_RESOURCE);
-		addRule(COMPILATION_UNIT, REMOVED, PRIMARY_COPY);
+		addRule(COMPILATION_UNIT, REMOVED, PRIMARY_COPY +WORKING_COPY);
 
 		addRule(TYPE, ADDED, PRIMARY_COPY + WORKING_COPY);
 		// Supertypes changes. Renaming a type ends up with
