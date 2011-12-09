@@ -11,6 +11,10 @@
 
 package org.jboss.tools.ws.jaxrs.ui.internal.utils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
@@ -26,6 +30,13 @@ public final class Logger {
 	/** The debug name, matching the .options file. */
 	private static final String DEBUG = JBossJaxrsUIPlugin.PLUGIN_ID + "/debug";
 
+	private static final ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("HH:mm:ss.SSS");
+		}
+	};
+	
 	/**
 	 * The private constructor of the static class.
 	 */
@@ -85,9 +96,30 @@ public final class Logger {
 	 *            the message to trace.
 	 */
 	public static void debug(final String message) {
+		debug(message, (Object[])null);
+
+	}
+
+	/**
+	 * Outputs a debug message in the trace file (not the error view of the
+	 * runtime workbench). Traces must be activated for this plugin in order to
+	 * see the output messages.
+	 * 
+	 * @param message
+	 *            the message to trace.
+	 */
+	public static void debug(final String message, Object... items) {
 		String debugOption = Platform.getDebugOption(DEBUG);
-		if (JBossJaxrsUIPlugin.getDefault().isDebugging() && "true".equalsIgnoreCase(debugOption)) {
-			System.out.println("[" + Thread.currentThread().getName() + "] " + message);
+		String valuedMessage = message;
+		if (JBossJaxrsUIPlugin.getDefault() != null && JBossJaxrsUIPlugin.getDefault().isDebugging()
+				&& "true".equalsIgnoreCase(debugOption)) {
+			if (items != null) {
+				for (Object item : items) {
+					valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString() : "null"));
+				}
+			}
+			System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName() + "] "
+					+ valuedMessage);
 		}
 
 	}

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -16,6 +17,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 public class CompilationUnitsRepository {
 
@@ -23,7 +25,7 @@ public class CompilationUnitsRepository {
 
 	private final Map<ICompilationUnit, List<JavaMethodSignature>> methodDeclarationsMap = new HashMap<ICompilationUnit, List<JavaMethodSignature>>();
 
-	private final Map<IResource, CompilationUnit> astMap = new HashMap<IResource, CompilationUnit>();
+	private final Map<IPath, CompilationUnit> astMap = new HashMap<IPath, CompilationUnit>();
 
 	private final Map<ICompilationUnit, Map<Integer, Problem>> problemsMap = new HashMap<ICompilationUnit, Map<Integer, Problem>>();
 
@@ -47,15 +49,19 @@ public class CompilationUnitsRepository {
 	 * @return
 	 * @throws JavaModelException */
 	public CompilationUnit getAST(final ICompilationUnit compilationUnit) throws JavaModelException {
-		if(compilationUnit == null) {
+		if(compilationUnit == null || compilationUnit.getResource() == null) {
 			return null;
 		}
 		final IResource resource = compilationUnit.getResource();
-		if (!astMap.containsKey(resource)) {
+		final IPath resourcePath = resource.getFullPath();
+		if (!astMap.containsKey(resourcePath)) {
+			Logger.debug("Adding {}'s AST in CompilationUnitsRepository cache.", compilationUnit.getElementName());
 			recordUnit(compilationUnit);
+		} else {
+			Logger.debug("CompilationUnitsRepository cache contains {}'s AST.", compilationUnit.getElementName());
 		}
-
-		return astMap.get(resource);
+		
+		return astMap.get(resourcePath);
 
 	}
 
@@ -77,7 +83,7 @@ public class CompilationUnitsRepository {
 			return null;
 		}
 		CompilationUnit compilationUnitAST = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
-		astMap.put(compilationUnit.getResource(), compilationUnitAST);
+		astMap.put(compilationUnit.getResource().getFullPath(), compilationUnitAST);
 		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(compilationUnit);
 		compilationUnitAST.accept(methodsVisitor);
 		methodDeclarationsMap.put(compilationUnit, methodsVisitor.getMethodSignatures());
@@ -97,7 +103,7 @@ public class CompilationUnitsRepository {
 			diffs = new ArrayList<JavaMethodSignature>();
 		}
 		// replace old values in "cache"
-		astMap.put(compilationUnit.getResource(), compilationUnitAST);
+		astMap.put(compilationUnit.getResource().getFullPath(), compilationUnitAST);
 		// TODO : improve performances here : do not override all method
 		// declaration, but only those that changed, because reparsing method
 		// signatures (annotated parameters, etc.) may be expensive.
@@ -119,8 +125,10 @@ public class CompilationUnitsRepository {
 	}
 
 	public void removeAST(final ICompilationUnit compilationUnit) {
+		final IPath fullPath = compilationUnit.getResource().getFullPath();
+		Logger.debug("Removing {}'s AST from CompilationUnitsRepository (path={})", compilationUnit, fullPath);
 		methodDeclarationsMap.remove(compilationUnit);
-		astMap.remove(compilationUnit);
+		astMap.remove(fullPath);
 		problemsMap.remove(compilationUnit);
 	}
 

@@ -246,6 +246,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/** @param jaxrsElement */
 	protected void unindexElement(final IJaxrsElement<?> jaxrsElement) {
+		// if the given element is a JAX-RS Resource, also unindex its children ResourceMethod
+		if(jaxrsElement.getElementKind() == EnumElementKind.RESOURCE) {
+			for(IJaxrsResourceMethod resourceMethod : ((IJaxrsResource)jaxrsElement).getAllMethods()) {
+				unindexElement(resourceMethod);
+			}
+		}
+		// unindex the given element, whatever its kind
 		for (Iterator<Entry<String, Set<IJaxrsElement<?>>>> iterator = elementsIndex.entrySet().iterator(); iterator
 				.hasNext();) {
 			final Entry<String, Set<IJaxrsElement<?>>> entry = iterator.next();
@@ -385,6 +392,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		this.providers.clear();
 		this.resources.clear();
 		this.elementsIndex.clear();
+		this.endpoints.clear();
 	}
 
 	/**

@@ -38,6 +38,7 @@ public class JaxrsElementChangedProcessor {
 			IProgressMonitor progressMonitor) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
 		try {
+			Logger.debug("Processing {} Jaxrs change(s)...", jaxrsElementChanges.size());
 			for (JaxrsElementChangedEvent jaxrsElementChange : jaxrsElementChanges) {
 				Logger.debug("Processing {}", jaxrsElementChange);
 				final List<JaxrsEndpointChangedEvent> endpointChanges = processEvent(jaxrsElementChange);
@@ -46,15 +47,15 @@ public class JaxrsElementChangedProcessor {
 				}
 				changes.addAll(endpointChanges);
 			}
-			Logger.debug("Done processing JAX-RS change(s).");
 		} catch (CoreException e) {
 			Logger.error("Failed to process JAX-RS element changes", e);
+		} finally {
+		Logger.debug("Done processing JAX-RS change(s).");
 		}
 		return changes;
 	}
 
 	private List<JaxrsEndpointChangedEvent> processEvent(final JaxrsElementChangedEvent event) throws CoreException {
-		Logger.debug("Processing JAX-RS change {}", event);
 		final IJaxrsElement<?> element = event.getElement();
 		final EnumElementKind elementKind = element.getElementKind();
 		final int flags = event.getFlags();

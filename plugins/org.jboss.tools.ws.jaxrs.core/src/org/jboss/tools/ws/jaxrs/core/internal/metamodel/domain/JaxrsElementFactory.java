@@ -220,7 +220,7 @@ public class JaxrsElementFactory {
 			}
 		}
 		if (httpMethod == null && pathAnnotation == null) {
-			Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on that method !");
+			Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on method {}.{}()", javaMethod.getParent().getElementName(), javaMethod.getElementName());
 		} else {
 			final Annotation producesAnnotation = annotations.get(Produces.class.getName());
 			final Annotation consumesAnnotation = annotations.get(Consumes.class.getName());

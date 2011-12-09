@@ -90,7 +90,9 @@ public class JaxrsElementChangedEvent extends EventObject {
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		s.append("JaxrsElementChange: [").append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind))
+		s.append("JaxrsElementChange: [")
+				.append(ConstantUtils.toCamelCase(element.getElementKind().toString()))
+				.append(" ").append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind))
 				.append("] ").append(element.getJavaElement().getElementName());
 
 		try {

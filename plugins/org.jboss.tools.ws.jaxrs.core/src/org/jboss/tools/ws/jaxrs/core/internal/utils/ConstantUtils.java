@@ -52,7 +52,7 @@ public class ConstantUtils {
 		return result;
 	}
 
-	static String toCamelCase(String s) {
+	public static String toCamelCase(String s) {
 		String[] parts = s.split("_");
 		String camelCaseString = "";
 		for (String part : parts) {

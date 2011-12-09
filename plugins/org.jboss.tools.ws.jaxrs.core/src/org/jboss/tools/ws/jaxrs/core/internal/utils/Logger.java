@@ -119,10 +119,7 @@ public final class Logger {
 	 *            the message to trace.
 	 */
 	public static void debug(final String message) {
-		String debugOption = Platform.getDebugOption(DEBUG);
-		if (JBossJaxrsCorePlugin.getDefault().isDebugging() && "true".equalsIgnoreCase(debugOption)) {
-			System.out.println("[" + Thread.currentThread().getName() + "] " + message);
-		}
+		debug(message, (Object[])null);
 
 	}
 
@@ -139,10 +136,11 @@ public final class Logger {
 		String valuedMessage = message;
 		if (JBossJaxrsCorePlugin.getDefault() != null && JBossJaxrsCorePlugin.getDefault().isDebugging()
 				&& "true".equalsIgnoreCase(debugOption)) {
-			for (Object item : items) {
-				valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString() : "null"));
+			if (items != null) {
+				for (Object item : items) {
+					valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString() : "null"));
+				}
 			}
-
 			System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName() + "] "
 					+ valuedMessage);
 		}

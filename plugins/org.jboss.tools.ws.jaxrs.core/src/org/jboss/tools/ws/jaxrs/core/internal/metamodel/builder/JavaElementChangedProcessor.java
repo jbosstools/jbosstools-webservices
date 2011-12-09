@@ -53,7 +53,8 @@ public class JavaElementChangedProcessor {
 			IProgressMonitor progressMonitor) {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
 		try {
-			progressMonitor.beginTask("Processing Java changes...", events.size());
+			progressMonitor.beginTask("Processing {} Java change(s)...", events.size());
+			Logger.debug("Processing {} Java change(s)...", events.size());
 			for (JavaElementChangedEvent event : events) {
 				impacts.addAll(processEvent(event, progressMonitor));
 				progressMonitor.worked(1);
@@ -63,6 +64,8 @@ public class JavaElementChangedProcessor {
 			impacts.clear();
 		} finally {
 			progressMonitor.done();
+			Logger.debug("Done processing Java changes.");
+
 		}
 		return impacts;
 	}
@@ -146,23 +149,26 @@ public class JavaElementChangedProcessor {
 	private List<JaxrsElementChangedEvent> processAddition(final IJavaElement scope, final JaxrsMetamodel metamodel,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementChangedEvent> impacts = new ArrayList<JaxrsElementChangedEvent>();
-		// let's see if the given project contains JAX-RS HTTP Methods
-		final List<IType> matchingHttpMethodTypes = JaxrsAnnotationsScanner.findHTTPMethodTypes(scope, progressMonitor);
-		for (IType type : matchingHttpMethodTypes) {
-			final CompilationUnit ast = JdtUtils.parse(type, progressMonitor);
-			final Annotation annotation = JdtUtils.resolveAnnotation(type, ast, HttpMethod.class);
-			final JaxrsHttpMethod httpMethod = factory.createHttpMethod(annotation, ast, metamodel);
-			if (httpMethod != null) {
-				impacts.add(new JaxrsElementChangedEvent(httpMethod, ADDED));
+		if(metamodel.getElement(scope) == null) {
+			// process this type as it is not already known from the metamodel
+			// let's see if the given project contains JAX-RS HTTP Methods
+			final List<IType> matchingHttpMethodTypes = JaxrsAnnotationsScanner.findHTTPMethodTypes(scope, progressMonitor);
+			for (IType type : matchingHttpMethodTypes) {
+				final CompilationUnit ast = JdtUtils.parse(type, progressMonitor);
+				final Annotation annotation = JdtUtils.resolveAnnotation(type, ast, HttpMethod.class);
+				final JaxrsHttpMethod httpMethod = factory.createHttpMethod(annotation, ast, metamodel);
+				if (httpMethod != null) {
+					impacts.add(new JaxrsElementChangedEvent(httpMethod, ADDED));
+				}
 			}
-		}
-		// let's see if the given project contains JAX-RS HTTP Resources
-		final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResources(scope, progressMonitor);
-		for (IType type : matchingResourceTypes) {
-			final CompilationUnit ast = JdtUtils.parse(type, progressMonitor);
-			final JaxrsResource resource = factory.createResource(type, ast, metamodel);
-			if (resource != null) {
-				impacts.add(new JaxrsElementChangedEvent(resource, ADDED));
+			// let's see if the given project contains JAX-RS HTTP Resources
+			final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResources(scope, progressMonitor);
+			for (IType type : matchingResourceTypes) {
+				final CompilationUnit ast = JdtUtils.parse(type, progressMonitor);
+				final JaxrsResource resource = factory.createResource(type, ast, metamodel);
+				if (resource != null) {
+					impacts.add(new JaxrsElementChangedEvent(resource, ADDED));
+				}
 			}
 		}
 
@@ -328,6 +334,7 @@ public class JavaElementChangedProcessor {
 		final List<IJaxrsElement<?>> elements = metamodel.getElements(compilationUnit);
 		for (IJaxrsElement<?> element : elements) {
 			metamodel.remove(element);
+			CompilationUnitsRepository.getInstance().removeAST(compilationUnit);
 			impacts.add(new JaxrsElementChangedEvent(element, REMOVED));
 		}
 		return impacts;
