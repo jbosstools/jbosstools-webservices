@@ -571,6 +571,9 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 
 	private void setWebXMLSelectionValueBasedOnProjectFacet () {
 		try {
+			if (((JBossWSAnnotatedClassWizard)this.getWizard()).getProject() == null) {
+				return;
+			}
 			IFacetedProject facetProject =
 					ProjectFacetsManager.create(((JBossWSAnnotatedClassWizard)this.getWizard()).getProject());
 			IProjectFacetVersion version = 

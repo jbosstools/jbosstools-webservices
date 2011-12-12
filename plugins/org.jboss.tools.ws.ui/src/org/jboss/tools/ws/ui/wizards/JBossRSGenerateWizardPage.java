@@ -350,6 +350,9 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 
 	private void setWebXMLSelectionValueBasedOnProjectFacet () {
 		try {
+			if (((JBossRSGenerateWizard)this.getWizard()).getProject() == null) {
+				return;
+			}
 			IFacetedProject facetProject =
 					ProjectFacetsManager.create(((JBossRSGenerateWizard)this.getWizard()).getProject());
 			IProjectFacetVersion version = 
