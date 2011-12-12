@@ -21,7 +21,7 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.7.0";visibility:=reex
  org.eclipse.core.commands;bundle-version="3.6.0";visibility:=reexport,
  org.eclipse.ui;bundle-version="3.7.0";visibility:=reexport,
  org.eclipse.ltk.core.refactoring;bundle-version="3.5.200";visibility:=reexport,
- org.eclipse.wst.validation;bundle-version="1.2.302";visibility:=reexport
+ org.eclipse.wst.validation;bundle-version="1.2.300";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: javax.ws.rs,
