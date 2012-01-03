@@ -1,85 +1,123 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/** Collections utility class.
+/**
+ * Collections utility class.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class CollectionUtils {
 
 	/** Private constructor of the utility class. */
 	private CollectionUtils() {
-
 	}
 
-	/** Compares two lists and returns the elements of the given 'test' list that
-	 * are not equal to their counterpart (ie, same index) in the 'control'
-	 * list. <b>Warning</b> : This method does not return diffs for elements of
-	 * the 'control' list that are not in the 'test' list.
+	/**
+	 * Compute the difference of elements between the 2 given maps
 	 * 
-	 * @param source
-	 * @param target */
-	public static <T extends Comparable<T>> List<T> compare(List<T> test, List<T> control) {
-
-		ArrayList<T> diffs = new ArrayList<T>();
-		if (test == null && control == null) {
-			// do nothing
-		} else if (test == null && control != null) {
-			diffs.addAll(control);
-		} else if (test != null && control == null) {
-			diffs.addAll(test);
-		} else {
-			// Collections.sort(test);
-			// Collections.sort(control);
-			int min = Math.min(test.size(), control.size());
-			for (int i = 0; i < min; i++) {
-				if (!test.get(i).equals(control.get(i))) {
-					diffs.add(test.get(i));
-				}
-			}
-			if (test.size() > control.size()) {
-				diffs.addAll(test.subList(min, test.size()));
-			} else {
-				diffs.addAll(control.subList(min, control.size()));
-			}
-		}
-
-		return diffs;
-	}
-
-	/** Converts a list of elements into an array of java.lang.String, using the
-	 * toString() method of the given elements.
-	 * 
-	 * @param list
-	 * @return */
-	public static String[] toArray(List<? extends Object> list) {
-		String[] values = new String[list.size()];
-		for (int i = 0; i < list.size(); i++) {
-			values[i] = list.get(i).toString();
-		}
-		return values;
-	}
-
-	/** Convert the given value(s) into a list of java.lang.String objects.
-	 * 
-	 * @param values
-	 *            the value(s) to convert. The value can be a single string of
-	 *            an array of strings.
-	 * @return the list of strings */
-	public static List<String> asStringList(final Object values) {
-		if (values == null) {
+	 * @param control
+	 *            the control collection
+	 * @param test
+	 *            the test collection
+	 * @return the elements of the control map that are not part of the test
+	 *         map. The process works with keys and does not compare the values.
+	 */
+	public static <K, V> Map<K, V> difference(Map<K, V> control, Map<K, V> test) {
+		if (control == null) {
 			return null;
 		}
-		if (values instanceof String) {
-			return Arrays.asList((String) values);
+		if (test == null) {
+			return control;
 		}
-		List<String> list = new ArrayList<String>();
-		for (Object value : (Object[]) values) {
-			list.add((String) value);
+		List<K> keys = difference(control.keySet(), test.keySet());
+		Map<K, V> result = new HashMap<K, V>();
+		for (K key : keys) {
+			result.put(key, control.get(key));
 		}
-		return list;
+		return result;
+	}
+
+	/**
+	 * Compute the difference of elements between the 2 given collections
+	 * 
+	 * @param control
+	 *            the control collection
+	 * @param test
+	 *            the test collection
+	 * @return the elements of the control collection that are not part of the
+	 *         test collection.
+	 */
+	public static <T> List<T> difference(Collection<T> control, Collection<T> test) {
+		if (control == null) {
+			return null;
+		}
+		List<T> result = new ArrayList<T>(control);
+		if (test != null) {
+			result.removeAll(test);
+		}
+		return result;
+	}
+
+	/**
+	 * Compute the intersection of elements between the 2 given maps
+	 * 
+	 * @param control
+	 *            the control collection
+	 * @param test
+	 *            the test collection
+	 * @return the elements of the control map that whose keys are part of the
+	 *         test map. The process works with keys and does not compare the
+	 *         values.
+	 */
+	public static <K, V> Map<K, V> intersection(Map<K, V> control, Map<K, V> test) {
+		if (control == null) {
+			return null;
+		}
+		if (test == null) {
+			return control;
+		}
+		Collection<K> keys = intersection(control.keySet(), test.keySet());
+		Map<K, V> result = new HashMap<K, V>();
+		for (K key : keys) {
+			result.put(key, control.get(key));
+		}
+		return result;
+	}
+
+	/**
+	 * Compute the intersection of elements between the 2 given collections
+	 * 
+	 * @param control
+	 *            the control collection
+	 * @param test
+	 *            the test collection
+	 * @return the elements of the control collection that are not part of the
+	 *         test collection.
+	 */
+	public static <T> Collection<T> intersection(Collection<T> control, Collection<T> test) {
+		if (control == null) {
+			return null;
+		}
+		List<T> result = new ArrayList<T>(control);
+		if (test != null) {
+			result.retainAll(test);
+		}
+		return result;
 	}
 
 }

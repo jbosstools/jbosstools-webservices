@@ -23,8 +23,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
@@ -32,15 +30,12 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
@@ -73,29 +68,29 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although
 	 * there should be only one.
 	 */
-	private final List<IJaxrsApplication> applications = new ArrayList<IJaxrsApplication>();
+	private final List<JaxrsApplication> applications = new ArrayList<JaxrsApplication>();
 
 	/**
 	 * All the resources (both rootresources and subresources) available in the
 	 * service , indexed by their associated java type fully qualified name.
 	 */
-	private final List<IJaxrsResource> resources = new ArrayList<IJaxrsResource>();
+	private final List<JaxrsResource> resources = new ArrayList<JaxrsResource>();
 
 	/**
 	 * The available providers (classes which implement MessageBodyWriter<T>,
 	 * MessageBodyReader<T> or ExceptionMapper<T>), , indexed by their
 	 * associated java type fully qualified name.
 	 */
-	private final List<IJaxrsProvider> providers = new ArrayList<IJaxrsProvider>();
+	private final List<JaxrsProvider> providers = new ArrayList<JaxrsProvider>();
 
 	/** The HTTP ResourceMethod elements container. */
-	private final List<IJaxrsHttpMethod> httpMethods = new ArrayList<IJaxrsHttpMethod>();
+	private final List<JaxrsHttpMethod> httpMethods = new ArrayList<JaxrsHttpMethod>();
 
 	/** Internal index of all the elements of this metamodel. */
-	private final Map<String, Set<IJaxrsElement<?>>> elementsIndex = new HashMap<String, Set<IJaxrsElement<?>>>();
+	private final Map<String, Set<JaxrsElement<?>>> elementsIndex = new HashMap<String, Set<JaxrsElement<?>>>();
 
 	/** the endpoints, built from the resource methods. */
-	private final List<IJaxrsEndpoint> endpoints = new ArrayList<IJaxrsEndpoint>();
+	private final List<JaxrsEndpoint> endpoints = new ArrayList<JaxrsEndpoint>();
 
 	/**
 	 * Full constructor.
@@ -140,38 +135,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Accessor to the metamodel from the given project's session properties.
-	 * 
-	 * @param javaProject
-	 *            the java project
-	 * @return the metamodel or null if none was found
-	 * @throws CoreException
-	 *             in case of underlying exception
-	 */
-	public static JaxrsMetamodel get(final IJavaProject javaProject) throws CoreException {
-		if (javaProject == null || javaProject.getProject() == null) {
-			return null;
-		}
-		JaxrsMetamodel metamodel = (JaxrsMetamodel) javaProject.getProject().getSessionProperty(
-				METAMODEL_QUALIFIED_NAME);
-
-		return metamodel;
-	}
-
-	/**
-	 * Accessor to the metamodel from the given project's session properties.
-	 * 
-	 * @param project
-	 *            the project
-	 * @return the metamodel or null if none was found
-	 * @throws CoreException
-	 *             in case of underlying exception
-	 */
-	public static JaxrsMetamodel get(final IProject project) throws CoreException {
-		return get(JavaCore.create(project));
-	}
-
-	/**
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
@@ -180,48 +143,69 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
 	}
 
-	public void add(IJaxrsElement<?> element) {
+	public void add(JaxrsElement<?> element) {
 		switch (element.getElementKind()) {
 		case APPLICATION:
 			break;
 		case HTTP_METHOD:
-			this.httpMethods.add((IJaxrsHttpMethod) element);
+			this.httpMethods.add((JaxrsHttpMethod) element);
 			break;
 		case PROVIDER:
 			// this.providers.add(element);
 			break;
 		case RESOURCE:
-			this.resources.add((IJaxrsResource) element);
+			final JaxrsResource resource = (JaxrsResource) element;
+			this.resources.add(resource);
 			break;
-		/*
-		 * case RESOURCE_FIELD: final JaxrsResource fieldParent =
-		 * findResource((IType) element.getJavaElement().getParent()); if
-		 * (fieldParent != null) { fieldParent.addField((JaxrsParamField)
-		 * element); } break; case RESOURCE_METHOD: final JaxrsResource
-		 * methodParent = findResource((IType)
-		 * element.getJavaElement().getParent()); if (methodParent != null) {
-		 * methodParent.addMethod((IJaxrsResourceMethod) element); } break;
-		 */
+
+		// case RESOURCE_FIELD:
+		// final JaxrsResource fieldParent = findResource((IType)
+		// element.getJavaElement().getParent());
+		// if (fieldParent != null) {
+		// fieldParent.addField((JaxrsParamField) element);
+		// }
+		// break;
+		// case RESOURCE_METHOD:
+		// final JaxrsResource methodParent = findResource((IType)
+		// element.getJavaElement().getParent());
+		// if (methodParent != null) {
+		// methodParent.addMethod((IJaxrsResourceMethod) element);
+		// }
+		// break;
+		//
 		}
 		indexElement(element);
 	}
 
-	/** @param element */
-	protected void indexElement(final IJaxrsElement<?> element) {
-		final IJavaElement javaElement = element.getJavaElement();
-		indexElement(element, javaElement);
+	/** @param jaxrsElement */
+	protected void indexElement(final JaxrsElement<?> jaxrsElement) {
+		final IJavaElement javaElement = jaxrsElement.getJavaElement();
+		// first, unindex element to clear previous state
+		unindexElement(jaxrsElement);
+		// then, index for good
+		indexElement(jaxrsElement, javaElement);
 		// index element that are bound to a java type, not a field or a method
-		if (element.getJavaElement().getElementType() == IJavaElement.TYPE) {
-			indexElement(element, JdtUtils.getCompilationUnit(javaElement));
-			indexElement(element, JdtUtils.getPackageFragmentRoot(javaElement));
-			indexElement(element, javaElement.getJavaProject());
+		// if (element.getJavaElement().getElementType() == IJavaElement.TYPE) {
+		indexElement(jaxrsElement, JdtUtils.getCompilationUnit(javaElement));
+		indexElement(jaxrsElement, JdtUtils.getPackageFragmentRoot(javaElement));
+		indexElement(jaxrsElement, javaElement.getJavaProject());
+		// }
+		for (Entry<String, Annotation> entry : jaxrsElement.getAnnotations().entrySet()) {
+			indexElement(jaxrsElement, entry.getValue());
 		}
-		for (Annotation annotation : element.getAnnotations()) {
-			indexElement(element, annotation);
+		if (jaxrsElement.getElementKind() == EnumElementKind.RESOURCE) {
+			JaxrsResource resource = (JaxrsResource) jaxrsElement;
+			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
+				indexElement(resourceMethod);
+			}
+			for (JaxrsResourceField resourceField : resource.getFields().values()) {
+				indexElement(resourceField);
+			}
 		}
+
 	}
 
-	protected void indexElement(final IJaxrsElement<?> element, final Annotation annotation) {
+	protected void indexElement(final JaxrsElement<?> element, final Annotation annotation) {
 		if (annotation != null) {
 			indexElement(element, annotation.getJavaAnnotation());
 		}
@@ -232,43 +216,62 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @param javaElement
 	 */
 	@SuppressWarnings("unchecked")
-	private void indexElement(final IJaxrsElement<?> jaxrsElement, final IJavaElement javaElement) {
+	private void indexElement(final JaxrsElement<?> jaxrsElement, final IJavaElement javaElement) {
 		if (javaElement == null) {
 			return;
 		}
 		final String key = javaElement.getHandleIdentifier();
 		if (!elementsIndex.containsKey(key)) {
-			elementsIndex.put(key, new HashSet<IJaxrsElement<?>>(Arrays.asList(jaxrsElement)));
+			elementsIndex.put(key, new HashSet<JaxrsElement<?>>(Arrays.asList(jaxrsElement)));
 		} else {
 			elementsIndex.get(key).add(jaxrsElement);
 		}
 	}
 
 	/** @param jaxrsElement */
-	protected void unindexElement(final IJaxrsElement<?> jaxrsElement) {
-		// if the given element is a JAX-RS Resource, also unindex its children ResourceMethod
-		if(jaxrsElement.getElementKind() == EnumElementKind.RESOURCE) {
-			for(IJaxrsResourceMethod resourceMethod : ((IJaxrsResource)jaxrsElement).getAllMethods()) {
+	protected void unindexElement(final JaxrsElement<?> jaxrsElement) {
+		// if the given element is a JAX-RS Resource, also unindex its children
+		// ResourceMethod
+		if (jaxrsElement.getElementKind() == EnumElementKind.RESOURCE) {
+			final JaxrsResource resource = (JaxrsResource) jaxrsElement;
+			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 				unindexElement(resourceMethod);
+			}
+			for (JaxrsResourceField resourceField : ((JaxrsResource) jaxrsElement).getFields().values()) {
+				unindexElement(resourceField);
 			}
 		}
 		// unindex the given element, whatever its kind
-		for (Iterator<Entry<String, Set<IJaxrsElement<?>>>> iterator = elementsIndex.entrySet().iterator(); iterator
+		for (Iterator<Entry<String, Set<JaxrsElement<?>>>> iterator = elementsIndex.entrySet().iterator(); iterator
 				.hasNext();) {
-			final Entry<String, Set<IJaxrsElement<?>>> entry = iterator.next();
-			final Set<IJaxrsElement<?>> elements = entry.getValue();
-			if (elements.contains(jaxrsElement)) {
-				elements.remove(jaxrsElement);
-				if (elements.isEmpty()) {
-					iterator.remove();
+			final Entry<String, Set<JaxrsElement<?>>> entry = iterator.next();
+			final Set<JaxrsElement<?>> elements = entry.getValue();
+			// because the elements.remove(jaxrsElement); does not work here
+			// (hashcode has changed between the time the jaxrsElement was added
+			// and now !)
+			for (Iterator<JaxrsElement<?>> elementIterator = elements.iterator(); elementIterator.hasNext();) {
+				JaxrsElement<?> element = elementIterator.next();
+				if (element.equals(jaxrsElement)) {
+					elementIterator.remove();
 				}
+			}
+
+			if (elements.isEmpty()) {
+				iterator.remove();
 			}
 		}
 	}
 
-	/** @param jaxrsElement */
-	protected void unindexElement(final IJaxrsElement<?> jaxrsElement, final String handleIdentifier) {
-		Set<IJaxrsElement<?>> jaxrsElements = elementsIndex.get(handleIdentifier);
+	/**
+	 * Unindex the given JAX-RS Element so that it cannot be retrieved when
+	 * searching for elements with the given handleIdentifier. This does not
+	 * mean that the given JAX-RS Element won't be findable anymore.
+	 * 
+	 * @param jaxrsElement
+	 * @param handleIdentifier
+	 */
+	protected void unindexElement(final JaxrsElement<?> jaxrsElement, final String handleIdentifier) {
+		Set<JaxrsElement<?>> jaxrsElements = elementsIndex.get(handleIdentifier);
 		if (jaxrsElements != null) {
 			jaxrsElements.remove(jaxrsElement);
 		}
@@ -281,9 +284,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IMetamodel#getProviders
 	 * ()
 	 */
-	@Override
 	public final List<IJaxrsProvider> getAllProviders() {
-		return Collections.unmodifiableList(providers);
+		return Collections.unmodifiableList(new ArrayList<IJaxrsProvider>(providers));
 	}
 
 	/**
@@ -298,16 +300,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         (JaxrsResource) resource; } } return null; }
 	 */
 
-	@Override
 	public final List<IJaxrsHttpMethod> getAllHttpMethods() {
-		return Collections.unmodifiableList(httpMethods);
+		return Collections.unmodifiableList(new ArrayList<IJaxrsHttpMethod>(httpMethods));
 	}
 
 	public final List<IJaxrsResource> getAllResources() {
-		return Collections.unmodifiableList(resources);
+		return Collections.unmodifiableList(new ArrayList<IJaxrsResource>(resources));
 	}
 
-	@Override
 	public final String getServiceUri() {
 		return serviceUri;
 	}
@@ -336,7 +336,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws JavaModelException
 	 *             in case of underlying exception
 	 */
-	public final IJaxrsElement<?> find(final IJavaElement element) throws JavaModelException {
+	public final JaxrsElement<?> find(final IJavaElement element) throws JavaModelException {
 		switch (element.getElementType()) {
 		case IJavaElement.TYPE:
 			// return findElement((IType) element);
@@ -397,6 +397,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/**
 	 * @param annotation
+	 *            (GET, POST, etc..)
 	 * @param metamodel
 	 * @param annotationName
 	 * @return
@@ -405,7 +406,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public IJaxrsHttpMethod getHttpMethod(final String annotationName) throws CoreException {
 		IType annotationType = JdtUtils.resolveType(annotationName, javaProject, new NullProgressMonitor());
 		if (annotationType != null) {
-			final IJaxrsElement<?> element = getElement(annotationType);
+			final JaxrsElement<?> element = getElement(annotationType);
 			if (element != null && element.getElementKind() == EnumElementKind.HTTP_METHOD) {
 				return (IJaxrsHttpMethod) element;
 			}
@@ -413,33 +414,47 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return null;
 	}
 
-	@Override
-	public IJaxrsElement<?> getElement(IJavaElement element) {
+	/**
+	 * returns true if this metamodel already contains the given element.
+	 * 
+	 * @param element
+	 * @return
+	 */
+	public boolean containsElement(JaxrsElement<?> element) {
+		return (getElement(element.getJavaElement()) != null);
+	}
+
+	public JaxrsElement<?> getElement(IJavaElement element) {
 		if (element == null) {
 			return null;
 		}
 		final String handleIdentifier = element.getHandleIdentifier();
-		final Set<IJaxrsElement<?>> elements = elementsIndex.get(handleIdentifier);
+		final Set<JaxrsElement<?>> elements = elementsIndex.get(handleIdentifier);
 		if (elements == null || elements.isEmpty()) {
 			return null;
 		}
 		return elements.iterator().next();
 	}
 
-	public IJaxrsElement<?> getElement(Annotation annotation) {
+	public JaxrsElement<?> getElement(Annotation annotation) {
 		return getElement(annotation.getJavaAnnotation());
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getElement(IJavaElement element, Class<T> clazz) {
-		return (T) getElement(element);
+		final JaxrsElement<?> jaxrsElement = getElement(element);
+		if (jaxrsElement != null && clazz.isAssignableFrom(jaxrsElement.getClass())) {
+			return (T) jaxrsElement;
+		}
+		return null;
 	}
 
-	public List<IJaxrsElement<?>> getElements(final IJavaElement javaElement) {
+	public List<JaxrsElement<?>> getElements(final IJavaElement javaElement) {
 		final String key = javaElement.getHandleIdentifier();
-		final List<IJaxrsElement<?>> elements = new ArrayList<IJaxrsElement<?>>();
+		final List<JaxrsElement<?>> elements = new ArrayList<JaxrsElement<?>>();
 		if (elementsIndex.containsKey(key)) {
-			for (IJaxrsElement<?> element : elementsIndex.get(key)) {
+			for (JaxrsElement<?> element : elementsIndex.get(key)) {
 				elements.add(element);
 			}
 		}
@@ -447,13 +462,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends IJaxrsElement<?>> List<T> getElements(final IJavaElement javaElement, Class<?> T) {
+	public <T extends JaxrsElement<?>> List<T> getElements(final IJavaElement javaElement,
+			Class<? extends JaxrsElement<?>> T) {
 		final String key = javaElement.getHandleIdentifier();
 		final List<T> elements = new ArrayList<T>();
 		if (elementsIndex.containsKey(key)) {
-			for (IJaxrsElement<?> element : elementsIndex.get(key)) {
-				// TODO avoid classcast exceptions
-				elements.add((T) element);
+			for (JaxrsElement<?> element : elementsIndex.get(key)) {
+				if (element.getClass().isAssignableFrom(T)) {
+					elements.add((T) element);
+				}
 			}
 		}
 		return elements;
@@ -465,7 +482,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @param resource
 	 * @return true if the resource was actually removed, false otherwise.
 	 */
-	public void remove(IJaxrsElement<?> element) {
+	public void remove(JaxrsElement<?> element) {
 		if (element == null) {
 			return;
 		}
@@ -481,32 +498,27 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			parentResource.removeMethod((IJaxrsResourceMethod) element);
 			break;
 		case RESOURCE_FIELD:
-			final JaxrsResource fieldResourceParent = ((JaxrsParamField) element).getParentResource();
-			fieldResourceParent.removeField((JaxrsParamField) element);
+			final JaxrsResource fieldResourceParent = ((JaxrsResourceField) element).getParentResource();
+			fieldResourceParent.removeField((JaxrsResourceField) element);
 			break;
 		}
 		unindexElement(element);
 	}
 
-	@Override
-	public List<IJaxrsEndpoint> getAllEndpoints() {
-		return endpoints;
-	}
-
-	public IJaxrsHttpMethod getHttpMethod(Annotation httpMethodAnnotation) {
+	public JaxrsHttpMethod getHttpMethod(Annotation httpMethodAnnotation) {
 		if (httpMethodAnnotation != null) {
 			for (IJaxrsHttpMethod httpMethod : httpMethods) {
 				final String handleIdentifier1 = httpMethod.getJavaElement().getFullyQualifiedName();
 				final String handleIdentifier2 = httpMethodAnnotation.getName();
 				if (handleIdentifier1.equals(handleIdentifier2)) {
-					return httpMethod;
+					return (JaxrsHttpMethod) httpMethod;
 				}
 			}
 		}
 		return null;
 	}
 
-	public boolean add(IJaxrsEndpoint endpoint) {
+	public boolean add(JaxrsEndpoint endpoint) {
 		if (this.endpoints.contains(endpoint)) {
 			return false;
 		}
@@ -514,9 +526,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return true;
 	}
 
-	public IJaxrsElement<?> getElement(IResource resource) {
+	public List<JaxrsEndpoint> getEndpoints() {
+		return this.endpoints;
+	}
 
-		return null;
+	@Override
+	public List<IJaxrsEndpoint> getAllEndpoints() {
+		return Collections.unmodifiableList(new ArrayList<IJaxrsEndpoint>(endpoints));
 	}
 
 }

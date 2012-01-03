@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.ArrayList;
@@ -44,40 +54,50 @@ public class CompilationUnitsRepository {
 		problemsMap.clear();
 	}
 
-	/** @param compilationUnit
+	/**
+	 * @param compilationUnit
 	 * @param methodsVisitor
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public CompilationUnit getAST(final ICompilationUnit compilationUnit) throws JavaModelException {
-		if(compilationUnit == null || compilationUnit.getResource() == null) {
+		if (compilationUnit == null || compilationUnit.getResource() == null) {
 			return null;
 		}
 		final IResource resource = compilationUnit.getResource();
 		final IPath resourcePath = resource.getFullPath();
 		if (!astMap.containsKey(resourcePath)) {
-			Logger.debug("Adding {}'s AST in CompilationUnitsRepository cache.", compilationUnit.getElementName());
-			recordUnit(compilationUnit);
+			Logger.trace("Adding {}'s AST in CompilationUnitsRepository cache.", compilationUnit.getElementName());
+			recordAST(compilationUnit);
 		} else {
-			Logger.debug("CompilationUnitsRepository cache contains {}'s AST.", compilationUnit.getElementName());
+			Logger.trace("CompilationUnitsRepository cache contains {}'s AST.", compilationUnit.getElementName());
 		}
-		
+
 		return astMap.get(resourcePath);
 
 	}
 
-	/** @param compilationUnit
+	/**
+	 * @param compilationUnit
 	 * @param methodsVisitor
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public CompilationUnit getAST(final IResource resource) throws JavaModelException {
 		final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(resource);
 		return getAST(compilationUnit);
 	}
 
-	/** @param compilationUnit
+	/**
+	 * Parse and stores the AST associated with the given compilation unit. If
+	 * an AST already existed in the repository for the given Compilation Unit,
+	 * it is overridden.
+	 * 
+	 * @param compilationUnit
 	 * @return
-	 * @throws JavaModelException */
-	private CompilationUnit recordUnit(final ICompilationUnit compilationUnit) throws JavaModelException {
+	 * @throws JavaModelException
+	 */
+	public CompilationUnit recordAST(final ICompilationUnit compilationUnit) throws JavaModelException {
 		// compute the AST by parsing the compilation unit...
 		if (compilationUnit == null || !compilationUnit.exists()) {
 			return null;
@@ -95,10 +115,15 @@ public class CompilationUnitsRepository {
 		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(compilationUnit);
 		compilationUnitAST.accept(methodsVisitor);
 		List<JavaMethodSignature> diffs = null;
+		// FIXME: must make sure that the methodDeclarationsMap remains in sync
+		// with the working copy after each change.
 		if (computeDiffs) {
 			List<JavaMethodSignature> workingCopyDeclarations = methodsVisitor.getMethodSignatures();
 			List<JavaMethodSignature> controlDeclarations = methodDeclarationsMap.get(compilationUnit);
-			diffs = CollectionUtils.compare(workingCopyDeclarations, controlDeclarations);
+			diffs = CollectionUtils.difference(workingCopyDeclarations, controlDeclarations);
+			if (diffs.size() > 0) {
+				Logger.trace("Found diffs in method signatures:", diffs);
+			}
 		} else {
 			diffs = new ArrayList<JavaMethodSignature>();
 		}
@@ -114,7 +139,7 @@ public class CompilationUnitsRepository {
 	public JavaMethodSignature getMethodSignature(final IMethod javaMethod) throws JavaModelException {
 		final ICompilationUnit compilationUnit = javaMethod.getCompilationUnit();
 		if (!methodDeclarationsMap.containsKey(compilationUnit)) {
-			recordUnit(compilationUnit);
+			recordAST(compilationUnit);
 		}
 		for (JavaMethodSignature signature : methodDeclarationsMap.get(compilationUnit)) {
 			if (signature.getJavaMethod().getHandleIdentifier().equals(javaMethod.getHandleIdentifier())) {
@@ -126,13 +151,14 @@ public class CompilationUnitsRepository {
 
 	public void removeAST(final ICompilationUnit compilationUnit) {
 		final IPath fullPath = compilationUnit.getResource().getFullPath();
-		Logger.debug("Removing {}'s AST from CompilationUnitsRepository (path={})", compilationUnit, fullPath);
+		Logger.trace("Removing {}'s AST from CompilationUnitsRepository (path={})", compilationUnit, fullPath);
 		methodDeclarationsMap.remove(compilationUnit);
 		astMap.remove(fullPath);
 		problemsMap.remove(compilationUnit);
 	}
 
-	/** Stores the given new/current problems for the given compilationUnit and
+	/**
+	 * Stores the given new/current problems for the given compilationUnit and
 	 * returns the ones that were fixed, ie, the ones that were previously
 	 * stored by not currently reported. This method assumes that a given
 	 * problem has the same Id between two successive calls.
@@ -142,7 +168,8 @@ public class CompilationUnitsRepository {
 	 * @param problems
 	 *            the new/current problems
 	 * @return the problems that were fixed
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public Map<IProblem, IJavaElement> mergeProblems(final ICompilationUnit compilationUnit, final IProblem[] problems)
 			throws JavaModelException {
 		final Map<Integer, Problem> lastProblems = problemsMap.get(compilationUnit);

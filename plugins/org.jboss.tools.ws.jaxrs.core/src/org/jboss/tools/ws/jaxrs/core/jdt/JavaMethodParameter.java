@@ -53,23 +53,30 @@ public class JavaMethodParameter implements IValidable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
-		JavaMethodParameter other = (JavaMethodParameter) obj;
+		}
+		final JavaMethodParameter other = (JavaMethodParameter) obj;
 		if (annotations == null) {
-			if (other.annotations != null)
+			if (other.annotations != null) {
 				return false;
-		} else if (!annotations.equals(other.annotations))
+			}
+		} else if (!annotations.equals(other.annotations)) {
 			return false;
+		}
 		if (typeName == null) {
-			if (other.typeName != null)
+			if (other.typeName != null) {
 				return false;
-		} else if (!typeName.equals(other.typeName))
+			}
+		} else if (!typeName.equals(other.typeName)) {
 			return false;
+		}
 		return true;
 	}
 

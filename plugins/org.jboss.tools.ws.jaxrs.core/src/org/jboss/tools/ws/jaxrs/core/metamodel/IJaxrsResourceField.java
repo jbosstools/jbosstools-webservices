@@ -8,9 +8,12 @@
  * Contributors: 
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
+package org.jboss.tools.ws.jaxrs.core.metamodel;
 
-/**
- * JDT/Java Editor content assist support package.
- * 
- */
-package org.jboss.tools.ws.jaxrs.core.internal.contentassist;
+import org.eclipse.jdt.core.IField;
+
+public interface IJaxrsResourceField {
+
+	IField getJavaElement();
+
+}

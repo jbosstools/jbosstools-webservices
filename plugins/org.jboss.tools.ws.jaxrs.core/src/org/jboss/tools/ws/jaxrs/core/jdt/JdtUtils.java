@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -47,14 +46,14 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.CreateTypeHierarchyOperation;
-import org.eclipse.jdt.internal.core.SourceType;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
-/** A JDT wrapper that provides utility methods to manipulate the Java Model.
+/**
+ * A JDT wrapper that provides utility methods to manipulate the Java Model.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 @SuppressWarnings("restriction")
 public final class JdtUtils {
 
@@ -63,12 +62,14 @@ public final class JdtUtils {
 		super();
 	}
 
-	/** Returns the compilation unit associated with the given resource.
+	/**
+	 * Returns the compilation unit associated with the given resource.
 	 * 
 	 * @param resource
 	 *            the resource
 	 * @return the compilation unit or null if the resource is not a compilation
-	 *         unit. */
+	 *         unit.
+	 */
 	public static ICompilationUnit getCompilationUnit(final IResource resource) {
 		IJavaElement element = JavaCore.create(resource);
 		if (element instanceof ICompilationUnit) {
@@ -77,12 +78,14 @@ public final class JdtUtils {
 		return null;
 	}
 
-	/** Returns the compilation unit associated with the given resource.
+	/**
+	 * Returns the compilation unit associated with the given resource.
 	 * 
 	 * @param resource
 	 *            the resource
 	 * @return the compilation unit or null if the resource is not a compilation
-	 *         unit. */
+	 *         unit.
+	 */
 	public static ICompilationUnit getCompilationUnit(final IJavaElement element) {
 		if (element instanceof IMember) {
 			return ((IMember) element).getCompilationUnit();
@@ -94,19 +97,22 @@ public final class JdtUtils {
 		return null;
 	}
 
-	/** Checks whether the given type is abstract or not.
+	/**
+	 * Checks whether the given type is abstract or not.
 	 * 
 	 * @param type
 	 *            the type to check
 	 * @return true if the type is abstract, false otherwise
 	 * @throws JavaModelException
 	 *             the underlying JavaModelException thrown by the manipulated
-	 *             JDT APIs */
+	 *             JDT APIs
+	 */
 	public static boolean isAbstractType(final IType type) throws JavaModelException {
 		return Flags.isAbstract(type.getFlags());
 	}
 
-	/** Returns the toplevel type of the given compilation unit.
+	/**
+	 * Returns the toplevel type of the given compilation unit.
 	 * 
 	 * @param compilationUnit
 	 *            the DOM CompilationUnit returned by the parse() method. This
@@ -114,7 +120,8 @@ public final class JdtUtils {
 	 *            each type.
 	 * @return the top level type
 	 * @throws JavaModelException
-	 *             in case of exception */
+	 *             in case of exception
+	 */
 	public static IType resolveTopLevelType(final ICompilationUnit compilationUnit) throws JavaModelException {
 
 		if (compilationUnit != null && compilationUnit.exists() && compilationUnit.getTypes() != null
@@ -127,21 +134,25 @@ public final class JdtUtils {
 		return null;
 	}
 
-	/** Checks if the given type is a top-level type in its own compilation unit.
+	/**
+	 * Checks if the given type is a top-level type in its own compilation unit.
 	 * 
 	 * @param type
 	 *            the given type
-	 * @return if the given type is a top-level type, false otherwise */
+	 * @return if the given type is a top-level type, false otherwise
+	 */
 	public static boolean isTopLevelType(final IType type) {
 		return (type.equals(type.getTypeRoot().findPrimaryType()));
 	}
 
-	/** Returns true if the given Java Element is a ICompilationUnit element or
+	/**
+	 * Returns true if the given Java Element is a ICompilationUnit element or
 	 * an IMember, and is in working copy state.
 	 * 
 	 * @param element
 	 * @return true if the enclosing compilation unit is a working copy, false
-	 *         otherwise */
+	 *         otherwise
+	 */
 	public static boolean isWorkingCopy(IJavaElement element) {
 		ICompilationUnit compilationUnit = getCompilationUnit(element);
 		if (compilationUnit != null) {
@@ -159,14 +170,16 @@ public final class JdtUtils {
 
 	}
 
-	/** Returns the closest Java Element that surrounds the given location in the
+	/**
+	 * Returns the closest Java Element that surrounds the given location in the
 	 * given compilationUnit. This method can return SimpleAnnotation, which the
 	 * default JDT ICompilationUnit implementation does not support.
 	 * 
 	 * @param sourceRange
 	 * @param location
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static IJavaElement getElementAt(ICompilationUnit compilationUnit, int location) throws JavaModelException {
 		final IJavaElement element = compilationUnit.getElementAt(location);
 		if (element instanceof IAnnotatable) {
@@ -181,7 +194,8 @@ public final class JdtUtils {
 		return element;
 	}
 
-	/** Parse the DOM of the given member, and resolve bindings. If the given
+	/**
+	 * Parse the DOM of the given member, and resolve bindings. If the given
 	 * member is not a type, then its declaring type is used by the parser.
 	 * 
 	 * @param member
@@ -192,7 +206,8 @@ public final class JdtUtils {
 	 *         method. This operation is expensive and should be performed only
 	 *         once for each type. Returns null if the given member was null.
 	 * @throws JavaModelException
-	 *             in case of exception underneath... */
+	 *             in case of exception underneath...
+	 */
 	public static CompilationUnit parse(final ICompilationUnit compilationUnit, final IProgressMonitor progressMonitor)
 			throws JavaModelException {
 		if (compilationUnit == null || !compilationUnit.exists()) {
@@ -208,8 +223,9 @@ public final class JdtUtils {
 		final CompilationUnit ast = (CompilationUnit) parser.createAST(progressMonitor);
 		return ast;
 	}
-	
-	/** Parse the DOM of the given member, and resolve bindings. If the given
+
+	/**
+	 * Parse the DOM of the given member, and resolve bindings. If the given
 	 * member is not a type, then its declaring type is used by the parser.
 	 * 
 	 * @param member
@@ -220,7 +236,7 @@ public final class JdtUtils {
 	 *         method. This operation is expensive and should be performed only
 	 *         once for each type. Returns null if the given member was null.
 	 * @throws JavaModelException
-	 *             in case of exception underneath... 
+	 *             in case of exception underneath...
 	 */
 	public static CompilationUnit parse(final IMember member, final IProgressMonitor progressMonitor)
 			throws JavaModelException {
@@ -229,69 +245,59 @@ public final class JdtUtils {
 		}
 		return parse(member.getCompilationUnit(), progressMonitor);
 	}
-	
-	/**
-     * Parse the DOM of the given member, and resolve bindings. If the given
-     * member is not a type, then its declaring type is used by the parser.
-     * 
-     * @param member
-     *            the type to parse
-     * @param progressMonitor
-     *            the progress monitor
-     * @return compilationUnit the DOM CompilationUnit returned by the parse()
-     *         method. This operation is expensive and should be performed only
-     *         once for each type. Returns null if the given member was null.
-     * @throws JavaModelException
-     *             in case of exception underneath...
-    public static CompilationUnit parse(final IMember member, final IProgressMonitor progressMonitor)
-                    throws JavaModelException {
-            if (member == null) {
-                    return null;
-            }
-            IType type = null;
-            if (member.getElementType() == IMember.TYPE) {
-                    type = (IType) member;
-            } else {
-                    type = member.getDeclaringType();
-            }
-            ASTParser parser = ASTParser.newParser(AST.JLS3);
-            if (type instanceof BinaryType) {
-                    IClassFile classFile = (IClassFile) type.getParent();
-                    if (classFile.getSource() == null) {
-                            Logger.warn("No source attachment is available for type '" + type
-                                            + "'. Unable to resolve type arguments.");
-                            return null;
-                    }
-                    parser.setKind(ASTParser.K_COMPILATION_UNIT);
-                    parser.setSource(classFile);
-            } else if (type instanceof SourceType) {
-                    parser.setSource(type.getCompilationUnit());
-            }
 
-            parser.setResolveBindings(true);
-            parser.setBindingsRecovery(true);
-            // FIXME : parser.createAST throws an IllegalStateException on binary
-            // parameterizedType if source code is not available.
-            CompilationUnit node = (CompilationUnit) parser.createAST(progressMonitor);
-            return node;
-    }
+	/**
+	 * Parse the DOM of the given member, and resolve bindings. If the given
+	 * member is not a type, then its declaring type is used by the parser.
+	 * 
+	 * @param member
+	 *            the type to parse
+	 * @param progressMonitor
+	 *            the progress monitor
+	 * @return compilationUnit the DOM CompilationUnit returned by the parse()
+	 *         method. This operation is expensive and should be performed only
+	 *         once for each type. Returns null if the given member was null.
+	 * @throws JavaModelException
+	 *             in case of exception underneath... public static
+	 *             CompilationUnit parse(final IMember member, final
+	 *             IProgressMonitor progressMonitor) throws JavaModelException {
+	 *             if (member == null) { return null; } IType type = null; if
+	 *             (member.getElementType() == IMember.TYPE) { type = (IType)
+	 *             member; } else { type = member.getDeclaringType(); }
+	 *             ASTParser parser = ASTParser.newParser(AST.JLS3); if (type
+	 *             instanceof BinaryType) { IClassFile classFile = (IClassFile)
+	 *             type.getParent(); if (classFile.getSource() == null) {
+	 *             Logger.warn("No source attachment is available for type '" +
+	 *             type + "'. Unable to resolve type arguments."); return null;
+	 *             } parser.setKind(ASTParser.K_COMPILATION_UNIT);
+	 *             parser.setSource(classFile); } else if (type instanceof
+	 *             SourceType) { parser.setSource(type.getCompilationUnit()); }
+	 * 
+	 *             parser.setResolveBindings(true);
+	 *             parser.setBindingsRecovery(true); // FIXME : parser.createAST
+	 *             throws an IllegalStateException on binary //
+	 *             parameterizedType if source code is not available.
+	 *             CompilationUnit node = (CompilationUnit)
+	 *             parser.createAST(progressMonitor); return node; }
 	 */
 
-
-	/** Resolves the annotation given its type.
+	/**
+	 * Resolves the annotation given its type.
 	 * 
 	 * @param type
 	 * @param ast
 	 * @param annotationClass
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static Annotation resolveAnnotation(IMember member, CompilationUnit ast, String annotationName)
 			throws JavaModelException {
 		if (member.isBinary()) {
 			IAnnotatable javaElement = (IAnnotatable) member;
 			final IAnnotation annotation = javaElement.getAnnotation(annotationName);
 			if (annotation != null && annotation.exists()) {
-				return new Annotation(annotation, annotation.getElementName(), resolveAnnotationElements(annotation), null);
+				return new Annotation(annotation, annotation.getElementName(), resolveAnnotationElements(annotation),
+						null);
 			}
 			return null;
 		}
@@ -305,26 +311,30 @@ public final class JdtUtils {
 		return visitor.getResolvedAnnotation();
 	}
 
-	/** Resolves the annotation given its type.
+	/**
+	 * Resolves the annotation given its type.
 	 * 
 	 * @param type
 	 * @param ast
 	 * @param annotationClass
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static Map<String, Annotation> resolveAnnotations(IMember member, CompilationUnit ast,
 			String... annotationNames) throws JavaModelException {
 		return resolveAnnotations(member, ast, Arrays.asList(annotationNames));
 
 	}
 
-	/** Resolves the annotation given its type.
+	/**
+	 * Resolves the annotation given its type.
 	 * 
 	 * @param type
 	 * @param ast
 	 * @param annotationClass
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static Map<String, Annotation> resolveAnnotations(IMember member, CompilationUnit ast,
 			List<String> annotationNames) throws JavaModelException {
 		if (member.isBinary()) {
@@ -345,25 +355,29 @@ public final class JdtUtils {
 		return visitor.getResolvedAnnotations();
 	}
 
-	/** Resolves the annotation given its type.
+	/**
+	 * Resolves the annotation given its type.
 	 * 
 	 * @param type
 	 * @param ast
 	 * @param annotationClass
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static Annotation resolveAnnotation(IMember member, CompilationUnit ast, Class<?> annotationClass)
 			throws JavaModelException {
 		return resolveAnnotation(member, ast, annotationClass.getName());
 	}
 
-	/** Resolves the annotation given its type.
+	/**
+	 * Resolves the annotation given its type.
 	 * 
 	 * @param type
 	 * @param ast
 	 * @param annotationClass
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static Annotation resolveAnnotation(IAnnotation javaAnnotation, CompilationUnit ast)
 			throws JavaModelException {
 		return resolveAnnotation((IMember) javaAnnotation.getParent(), ast, javaAnnotation.getElementName());
@@ -386,8 +400,8 @@ public final class JdtUtils {
 		return annotationElements;
 	}
 
-	
-	/** Return the first IType that matches the QualifiedName in the javaProject
+	/**
+	 * Return the first IType that matches the QualifiedName in the javaProject
 	 * (anyway, there shouldn't be more than one, unless there are duplicate
 	 * jars in the classpath, should it ?).
 	 * 
@@ -400,7 +414,8 @@ public final class JdtUtils {
 	 * @return the first IType found
 	 * @throws CoreException
 	 *             the underlying CoreException thrown by the manipulated JDT
-	 *             APIs */
+	 *             APIs
+	 */
 	public static IType resolveType(final String qName, final IJavaProject javaProject,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		if (qName == null) {
@@ -414,7 +429,8 @@ public final class JdtUtils {
 		return findType;
 	}
 
-	/** Returns the hierarchy for the given type.
+	/**
+	 * Returns the hierarchy for the given type.
 	 * 
 	 * @param baseType
 	 *            the base type for the hierarchy
@@ -425,7 +441,8 @@ public final class JdtUtils {
 	 * @return the Type Hierarchy for the base type
 	 * @throws CoreException
 	 *             the underlying CoreException thrown by the manipulated JDT
-	 *             APIs */
+	 *             APIs
+	 */
 	public static ITypeHierarchy resolveTypeHierarchy(final IType baseType, final boolean includeLibraries,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		// create type hierarchy
@@ -448,7 +465,8 @@ public final class JdtUtils {
 		return null;
 	}
 
-	/** Resolves the Type Argument for the given parameterizedType against the
+	/**
+	 * Resolves the Type Argument for the given parameterizedType against the
 	 * given matchGenericType that is part of the parameterizedTypeHierarchy.
 	 * Binding information is obtained from the Java model. This means that the
 	 * compilation unit must be located relative to the Java model. This happens
@@ -478,7 +496,8 @@ public final class JdtUtils {
 	 * @return a list of fully qualified type names
 	 * @throws CoreException
 	 *             the underlying CoreException thrown by the manipulated JDT
-	 *             APIs */
+	 *             APIs
+	 */
 	@SuppressWarnings("unchecked")
 	public static List<IType> resolveTypeArguments(final IType parameterizedType,
 			final CompilationUnit compilationUnit, final IType matchGenericType,
@@ -563,7 +582,8 @@ public final class JdtUtils {
 		return methodsVisitor.getMethodSignature();
 	}
 
-	/** Return true if the given superType parameter is actually a super type of
+	/**
+	 * Return true if the given superType parameter is actually a super type of
 	 * the given subType parameter, ie, the superType belongs to the supertypes
 	 * in the subtype's hierarchy.
 	 * 
@@ -572,7 +592,8 @@ public final class JdtUtils {
 	 * @param subType
 	 *            the suspected sub type
 	 * @return true or false
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	public static boolean isTypeOrSuperType(IType superType, IType subType) throws CoreException {
 		if (subType == null || superType == null) {
 			return false;

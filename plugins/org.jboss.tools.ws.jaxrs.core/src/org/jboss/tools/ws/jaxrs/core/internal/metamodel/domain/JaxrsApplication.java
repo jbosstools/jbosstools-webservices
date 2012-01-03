@@ -21,38 +21,44 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
-/** The optional '@Application' annotation, used to designate the base context
+/**
+ * The optional '@Application' annotation, used to designate the base context
  * URI of the root resources.
  * 
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class JaxrsApplication extends JaxrsElement<IType> implements IJaxrsApplication {
 
-	/** Internal 'HttpMethod' element builder.
+	/**
+	 * Internal 'HttpMethod' element builder.
 	 * 
-	 * @author xcoulon */
+	 * @author xcoulon
+	 */
 	public static class Builder {
 
 		private final JaxrsMetamodel metamodel;
 		private final IType javaType;
 
-		/** Mandatory attributes of the enclosing 'HttpMethod' element.
+		/**
+		 * Mandatory attributes of the enclosing 'HttpMethod' element.
 		 * 
 		 * @param javaType
-		 * @param metamodel */
+		 * @param metamodel
+		 */
 		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
 			this.javaType = javaType;
 			this.metamodel = metamodel;
 		}
 
-		/** Builds and returns the elements. Internally calls the merge() method.
+		/**
+		 * Builds and returns the elements. Internally calls the merge() method.
 		 * 
 		 * @param progressMonitor
 		 * @return
-		 * @throws InvalidModelElementException
-		 * @throws CoreException */
+		 * @throws CoreException
+		 */
 		public JaxrsApplication build(IProgressMonitor progressMonitor) throws CoreException {
 			JaxrsApplication app = new JaxrsApplication(this);
 			// app.merge(javaType, progressMonitor);
@@ -60,10 +66,11 @@ public class JaxrsApplication extends JaxrsElement<IType> implements IJaxrsAppli
 		}
 	}
 
-	/** Full constructor using the inner 'Builder' static
-	 * class.
+	/**
+	 * Full constructor using the inner 'Builder' static class.
 	 * 
-	 * @param builder */
+	 * @param builder
+	 */
 	private JaxrsApplication(Builder builder) {
 		super(builder.javaType, (Annotation) null, builder.metamodel);
 	}

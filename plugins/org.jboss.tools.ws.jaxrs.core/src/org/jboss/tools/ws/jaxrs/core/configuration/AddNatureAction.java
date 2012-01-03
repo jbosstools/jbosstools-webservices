@@ -42,7 +42,8 @@ public class AddNatureAction implements IObjectActionDelegate {
 	public final void run(final IAction action) {
 		try {
 			if (selection instanceof IStructuredSelection) {
-				ProjectNatureUtils.installProjectNature((IProject) ((IStructuredSelection) selection).getFirstElement(),
+				ProjectNatureUtils.installProjectNature(
+						(IProject) ((IStructuredSelection) selection).getFirstElement(),
 						ProjectNatureUtils.JAXRS_NATURE_ID);
 			} else {
 				Logger.error("Can't 'Add JAX-RS 1.1 support' on selection of type " + selection.getClass().getName());

@@ -20,7 +20,6 @@ import javax.ws.rs.ext.Provider;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -32,8 +31,10 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
-/** Class that scan the projec's classpath to find JAX-RS Resources and
- * Providers. */
+/**
+ * Class that scan the projec's classpath to find JAX-RS Resources and
+ * Providers.
+ */
 public final class JaxrsAnnotationsScanner {
 
 	/** Private constructor of the utility class. */
@@ -41,7 +42,8 @@ public final class JaxrsAnnotationsScanner {
 
 	}
 
-	/** Returns all JAX-RS providers in the given scope (ex : javaProject), ie,
+	/**
+	 * Returns all JAX-RS providers in the given scope (ex : javaProject), ie,
 	 * types annotated with <code>javax.ws.rs.ext.Provider</code> annotation.
 	 * 
 	 * 
@@ -53,7 +55,8 @@ public final class JaxrsAnnotationsScanner {
 	 *            the progress monitor
 	 * @return providers the JAX-RS provider types
 	 * @throws CoreException
-	 *             in case of exception */
+	 *             in case of exception
+	 */
 	public static List<IType> findProviderTypes(final IJavaElement scope, final boolean includeLibraries,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		IJavaSearchScope searchScope = null;
@@ -67,7 +70,8 @@ public final class JaxrsAnnotationsScanner {
 		return searchForAnnotatedTypes(Provider.class, searchScope, progressMonitor);
 	}
 
-	/** Returns all JAX-RS resources resourceMethods (ie, class resourceMethods
+	/**
+	 * Returns all JAX-RS resources resourceMethods (ie, class resourceMethods
 	 * annotated with an @HttpMethod annotation) in the given scope (ex :
 	 * javaProject).
 	 * 
@@ -80,7 +84,8 @@ public final class JaxrsAnnotationsScanner {
 	 * @return JAX-RS resource resourceMethods in a map, indexed by the
 	 *         declaring type of the resourceMethods
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public static List<IType> findResources(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
@@ -96,22 +101,8 @@ public final class JaxrsAnnotationsScanner {
 		return searchForAnnotatedTypes(Path.class, searchScope, progressMonitor);
 	}
 
-	public static List<IType> findResources(final IJavaElement scope, final List<IType> httpMethodTypes,
-			NullProgressMonitor progressMonitor) throws CoreException {
-		// TODO Auto-generated method stub
-		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
-				IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
-		List<String> annotations = new ArrayList<String>(httpMethodTypes.size() + 1);
-		annotations.add(Path.class.getName());
-		for (IType httpMethod : httpMethodTypes) {
-			annotations.add(httpMethod.getFullyQualifiedName());
-		}
-		// look for type with @Path annotations, as looking for types with
-		// annotated resourceMethods may return incomplete results
-		return searchForAnnotatedTypes(Path.class, searchScope, progressMonitor);
-	}
-
-	/** Returns all HTTP Methods (ie, annotation meta-annotated with the
+	/**
+	 * Returns all HTTP Methods (ie, annotation meta-annotated with the
 	 * <code>javax.ws.rs.HttpMethod</code> annotation) in the given scope (ex :
 	 * javaProject).
 	 * 
@@ -121,7 +112,8 @@ public final class JaxrsAnnotationsScanner {
 	 *            the progress monitor
 	 * @return The found types
 	 * @throws CoreException
-	 *             in case of underlying exceptions. */
+	 *             in case of underlying exceptions.
+	 */
 	public static List<IType> findHTTPMethodTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		IJavaSearchScope searchScope = null;
@@ -134,7 +126,8 @@ public final class JaxrsAnnotationsScanner {
 		return searchForAnnotatedTypes(HttpMethod.class, searchScope, progressMonitor);
 	}
 
-	/** Search for types that are annotated with the given annotation name, in
+	/**
+	 * Search for types that are annotated with the given annotation name, in
 	 * the given search scope.
 	 * 
 	 * @param annotationName
@@ -145,7 +138,8 @@ public final class JaxrsAnnotationsScanner {
 	 *            the progress monitor
 	 * @return the found types
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	private static List<IType> searchForAnnotatedTypes(final Class<?> annotation, final IJavaSearchScope searchScope,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.TYPE, searchScope);
@@ -159,7 +153,8 @@ public final class JaxrsAnnotationsScanner {
 		return collector.getResult(IType.class);
 	}
 
-	/** Returns all JAX-RS resources resourceMethods (ie, class resourceMethods
+	/**
+	 * Returns all JAX-RS resources resourceMethods (ie, class resourceMethods
 	 * annotated with an @HttpMethod annotation) in the given scope (ex :
 	 * javaProject).
 	 * 
@@ -173,7 +168,8 @@ public final class JaxrsAnnotationsScanner {
 	 * @return JAX-RS resource resourceMethods in a map, indexed by the
 	 *         declaring type of the resourceMethods
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	public static List<IMethod> findResourceMethods(final IJavaElement scope, final List<IJaxrsHttpMethod> httpMethods,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
@@ -186,19 +182,8 @@ public final class JaxrsAnnotationsScanner {
 		return searchForAnnotatedMethods(annotations, searchScope, progressMonitor);
 	}
 
-	public static List<IMethod> findResourceMethods(final IJavaElement scope, final List<IType> httpMethodTypes,
-			NullProgressMonitor progressMonitor) throws CoreException {
-		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
-				IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
-		List<String> annotations = new ArrayList<String>(httpMethodTypes.size() + 1);
-		annotations.add(Path.class.getName());
-		for (IType type : httpMethodTypes) {
-			annotations.add(type.getFullyQualifiedName());
-		}
-		return searchForAnnotatedMethods(annotations, searchScope, progressMonitor);
-	}
-
-	/** Search for methods annotated with one of the given annotations, in the
+	/**
+	 * Search for methods annotated with one of the given annotations, in the
 	 * search scope.
 	 * 
 	 * @param annotationNames
@@ -209,7 +194,8 @@ public final class JaxrsAnnotationsScanner {
 	 *            the progress monitor
 	 * @return the matching methods
 	 * @throws CoreException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	private static List<IMethod> searchForAnnotatedMethods(final List<String> annotationNames,
 			final IJavaSearchScope searchScope, final IProgressMonitor progressMonitor) throws CoreException {
 		JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.METHOD,
@@ -233,39 +219,6 @@ public final class JaxrsAnnotationsScanner {
 		// FIXME : wrong scope : returns all the annotated resourceMethods of
 		// the enclosing type
 		return collector.getResult(IMethod.class);
-	}
-
-	/** Converts the type signature to a human-readable literal.
-	 * 
-	 * @param typeSignature
-	 *            the type signature
-	 * @return the human readable literal */
-	public static String getTypeSignatureLiteral(final String typeSignature) {
-		if ("B".equals(typeSignature)) {
-			return "byte";
-		}
-		if ("C".equals(typeSignature)) {
-			return "char";
-		}
-		if ("D".equals(typeSignature)) {
-			return "double";
-		}
-		if ("F".equals(typeSignature)) {
-			return "float";
-		}
-		if ("I".equals(typeSignature)) {
-			return "int";
-		}
-		if ("J".equals(typeSignature)) {
-			return "long";
-		}
-		if ("S".equals(typeSignature)) {
-			return "short";
-		}
-		if ("Z".equals(typeSignature)) {
-			return "boolean";
-		}
-		return typeSignature;
 	}
 
 }

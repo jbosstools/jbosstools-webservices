@@ -1,23 +1,41 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import static org.eclipse.core.resources.IResourceDelta.CONTENT;
+import static org.eclipse.core.resources.IResourceDelta.MARKERS;
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_CHANGE;
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_RECONCILE;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
-import static org.eclipse.jdt.core.IJavaElementDelta.F_PRIMARY_RESOURCE;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_SUPER_TYPES;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_ADDED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent.NO_FLAG;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.EventObject;
 import java.util.List;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -35,6 +53,8 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.ui.IEditorPart;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
@@ -44,6 +64,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
@@ -54,14 +75,32 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElementChangedEventScannerTestCase.class);
 
+	private final CompilationUnitsRepository astRepository = CompilationUnitsRepository.getInstance();
+
+	private static final boolean PRIMARY_COPY = false;
+
+	private static final boolean WORKING_COPY = true;
+
+	private final ElementChangeListener elementChangeListener = new ElementChangeListener();
+
+	private final ResourceChangeListener resourceChangeListener = new ResourceChangeListener();
+
+	private List<JavaElementChangedEvent> javaElementEvents = null;
+
+	private List<ResourceChangedEvent> resourceEvents = null;
+
 	private final class ElementChangeListener implements IElementChangedListener {
 		@Override
 		public void elementChanged(ElementChangedEvent event) {
 			try {
-				final List<JavaElementChangedEvent> events = scanner.scanAndFilterEvent(event,
-						new NullProgressMonitor());
-				for (JavaElementChangedEvent e : events) {
-					mockEvents.add(e);
+				final JavaElementChangedEventScanner scanner = new JavaElementChangedEventScanner();
+				final List<? extends EventObject> events = scanner.scanAndFilterEvent(event, new NullProgressMonitor());
+				for (EventObject e : events) {
+					if (e instanceof JavaElementChangedEvent) {
+						javaElementEvents.add((JavaElementChangedEvent) e);
+					} else {
+						fail("Unexpected event type:" + e);
+					}
 				}
 			} catch (CoreException e) {
 				LOGGER.error("Failed to scan event {}", event, e);
@@ -74,30 +113,21 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		@Override
 		public void resourceChanged(IResourceChangeEvent event) {
 			try {
-				final List<JavaElementChangedEvent> events = scanner.scanAndFilterEvent(event,
+				final ResourceChangedEventScanner scanner = new ResourceChangedEventScanner();
+				final List<? extends EventObject> events = scanner.scanAndFilterEvent(event.getDelta(),
 						new NullProgressMonitor());
-				for (JavaElementChangedEvent e : events) {
-					mockEvents.add(e);
+				for (EventObject e : events) {
+					if (e instanceof ResourceChangedEvent) {
+						resourceEvents.add((ResourceChangedEvent) e);
+					} else {
+						fail("Unexpected event type:" + e);
+					}
 				}
 			} catch (CoreException e) {
 				LOGGER.error("Failed to scan event {}", event, e);
 			}
 		}
 	}
-
-	private final ElementChangedEventScanner scanner = new ElementChangedEventScanner();
-
-	private final CompilationUnitsRepository astRepository = CompilationUnitsRepository.getInstance();
-
-	private static final boolean PRIMARY_COPY = false;
-
-	private static final boolean WORKING_COPY = true;
-
-	private final ElementChangeListener elementChangeListener = new ElementChangeListener();
-
-	private final ResourceChangeListener resourceChangeListener = new ResourceChangeListener();
-
-	private List<JavaElementChangedEvent> mockEvents = null;
 
 	@SuppressWarnings("unchecked")
 	@Before
@@ -110,7 +140,8 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// JBossJaxrsCorePlugin.getDefault().unregisterListeners();
 		JavaCore.addElementChangedListener(elementChangeListener);
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener);
-		mockEvents = Mockito.mock(List.class);
+		javaElementEvents = Mockito.mock(List.class);
+		resourceEvents = Mockito.mock(List.class);
 	}
 
 	@After
@@ -120,7 +151,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// JBossJaxrsCorePlugin.getDefault().registerListeners();
 	}
 
-	private void verifyEventNotification(IJavaElement element, int deltaKind, int[] flags,
+	private void verifyEventNotification(IJavaElement element, int deltaKind, int eventType, int flags,
 			VerificationMode numberOfTimes) throws JavaModelException {
 		LOGGER.info("Verifying method calls..");
 		// verify(scanner,
@@ -129,7 +160,18 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// any(CompilationUnit.class), eq(flags));
 		ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(element);
 		CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
-		verify(mockEvents, numberOfTimes).add(new JavaElementChangedEvent(element, deltaKind, ast, flags));
+		verify(javaElementEvents, numberOfTimes).add(
+				new JavaElementChangedEvent(element, deltaKind, eventType, ast, flags));
+	}
+
+	private void verifyEventNotification(IResource resource, int deltaKind, int eventType, int flags,
+			VerificationMode numberOfTimes) throws JavaModelException {
+		LOGGER.info("Verifying method calls..");
+		// verify(scanner,
+		// numberOfTimes).notifyJavaElementChanged(eq(element),
+		// eq(elementKind), eq(deltaKind),
+		// any(CompilationUnit.class), eq(flags));
+		verify(resourceEvents, numberOfTimes).add(new ResourceChangedEvent(resource, deltaKind, flags));
 	}
 
 	@Test
@@ -137,8 +179,8 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
 				"EmptyCompilationUnit.txt", "org.jboss.tools.ws.jaxrs.sample.services", "FOO2.java", bundle);
-		// verifications: 1 times (JavaElementChange, 1 ResourceChange)
-		verifyEventNotification(compilationUnit, ADDED, NO_FLAG, times(2));
+		// verifications:
+		verifyEventNotification(compilationUnit.getResource(), ADDED, POST_CHANGE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -149,7 +191,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", bundle, WORKING_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit, CHANGED, NO_FLAG, never());
+		verifyEventNotification(compilationUnit, CHANGED, POST_RECONCILE, NO_FLAG, never());
 	}
 
 	@Test
@@ -160,7 +202,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", bundle, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit, CHANGED, NO_FLAG, never());
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, NO_FLAG, never());
 	}
 
 	@Test
@@ -168,8 +210,8 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "FooResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java", bundle);
-		// verifications: 1 times (JavaElementChange, 1 ResourceChange)
-		verifyEventNotification(compilationUnit, ADDED, NO_FLAG, times(2));
+		// verifications: 1 times
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -179,19 +221,37 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject, null).getCompilationUnit();
 		// operation
 		WorkbenchUtils.delete(compilationUnit);
-		// verifications: 1 times (JavaElementChange, 1 ResourceChange)
-		verifyEventNotification(compilationUnit, REMOVED, NO_FLAG, times(2));
+		// verifications:
+		verifyEventNotification(compilationUnit.getResource(), REMOVED, POST_CHANGE, MARKERS, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenResourceRemoved() throws CoreException {
+	@Ignore("can't produce the right test conditions here")
+	public void shouldNotifyWhenResourceRemovedInWorkingCopy() throws CoreException {
+		// pre-condition
+		ICompilationUnit compilationUnit = JdtUtils
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject, null)
+				.getCompilationUnit().getWorkingCopy(null);
+		compilationUnit.open(null);
+		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
+		assertThat(ast, notNullValue());
+		IEditorPart editorPart = JavaUI.openInEditor(compilationUnit);
+		JavaUI.revealInEditor(editorPart, (IJavaElement) compilationUnit);
+		// operation
+		compilationUnit.getResource().delete(true, null);
+		// verifications: 1 time
+		verifyEventNotification(compilationUnit, REMOVED, POST_RECONCILE, NO_FLAG, times(2));
+	}
+
+	@Test
+	public void shouldNotifyWhenResourceRemovedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = JdtUtils.resolveType(
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject, null).getCompilationUnit();
 		// operation
 		compilationUnit.getResource().delete(true, null);
-		// verifications: 1 times (JavaElementChange, 1 ResourceChange)
-		verifyEventNotification(compilationUnit, REMOVED, NO_FLAG, times(2));
+		// verifications: 1 time
+		verifyEventNotification(compilationUnit.getResource(), REMOVED, POST_CHANGE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -203,8 +263,8 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operations
 		IType addedType = WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooResourceMember.txt", bundle,
 				WORKING_COPY);
-		// verifications: one call PostReconcile + one call on PostChange
-		verifyEventNotification(addedType, ADDED, NO_FLAG, times(2));
+		// verifications:
+		verifyEventNotification(addedType, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -217,8 +277,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		IType addedType = WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooResourceMember.txt", bundle,
 				PRIMARY_COPY);
 		// verifications: one call PostReconcile + one call on PostChange
-		verifyEventNotification(addedType.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(addedType.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -229,7 +288,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeType(type, WORKING_COPY);
 		// verifications
-		verifyEventNotification(type, REMOVED, NO_FLAG, times(2));
+		verifyEventNotification(type, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -240,7 +299,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeType(type, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type, REMOVED, NO_FLAG, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -254,7 +313,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", WORKING_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, new int[] { F_SUPER_TYPES }, atLeastOnce());
+		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
 
 	@Test
@@ -268,7 +327,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit, CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE }, times(1));
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -280,7 +339,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
 				WORKING_COPY);
 		// verifications
-		verifyEventNotification(type, CHANGED, new int[] { F_SUPER_TYPES }, times(1));
+		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
 
 	@Test
@@ -292,8 +351,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -305,7 +363,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
 				"", WORKING_COPY);
 		// verifications
-		verifyEventNotification(type, CHANGED, new int[] { F_SUPER_TYPES }, times(1));
+		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
 
 	@Test
@@ -317,8 +375,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
 				"", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -330,7 +387,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
 				WORKING_COPY);
 		// verifications
-		verifyEventNotification(type, CHANGED, new int[] { F_SUPER_TYPES }, times(1));
+		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
 
 	@Test
@@ -342,18 +399,27 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeSuperclassRemoved() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeSuperclassRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game", javaProject, null);
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Product", "", true);
+		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Product", "", WORKING_COPY);
 		// verifications
-		verifyEventNotification(type, CHANGED, new int[] { F_SUPER_TYPES }, times(1));
+		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenTypeSuperclassRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game", javaProject, null);
+		// operation
+		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Product", "", PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -367,7 +433,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				WORKING_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, new int[] { F_SUPER_TYPES }, times(1));
+		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
 
 	@Test
@@ -381,7 +447,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit, CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE }, times(1));
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -394,7 +460,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		LOGGER.info("Performing Test Operation(s)...");
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", WORKING_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, new int[] { F_SUPER_TYPES }, times(1));
+		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
 
 	@Test
@@ -407,7 +473,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		LOGGER.info("Performing Test Operation(s)...");
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit, CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE }, times(1));
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -419,7 +485,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		IAnnotation addedAnnotation = WorkbenchUtils.addTypeAnnotation(type,
 				"import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedAnnotation, ADDED, NO_FLAG, times(1));
+		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -430,8 +496,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.addTypeAnnotation(type, "import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -444,7 +509,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 				WORKING_COPY);
 		IAnnotation annotation = type.getAnnotation("Path");
 		// verifications
-		verifyEventNotification(annotation, CHANGED, new int[] { F_CONTENT }, times(1));
+		verifyEventNotification(annotation, CHANGED, POST_RECONCILE, F_CONTENT, times(1));
 	}
 
 	@Test
@@ -456,8 +521,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", "@Path(\"/foo\")",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -469,7 +533,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		IAnnotation annotation = type.getAnnotation("Path");
 		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", WORKING_COPY);
 		// verifications
-		verifyEventNotification(annotation, REMOVED, NO_FLAG, times(1));
+		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -480,17 +544,16 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenLibraryAddeClasspath() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenLibraryAddedInClasspath() throws CoreException, InterruptedException {
 		// operation
 		IPackageFragmentRoot addedEntry = WorkbenchTasks.addClasspathEntry(javaProject, "slf4j-api-1.5.2.jar",
 				new NullProgressMonitor());
 		// verifications
-		verifyEventNotification(addedEntry, ADDED, NO_FLAG, times(1));
+		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -500,7 +563,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 				"jaxrs-api-2.0.1.GA.jar", null);
 		// verifications
 		for (IPackageFragmentRoot removedEntry : removedEntries) {
-			verifyEventNotification(removedEntry, REMOVED, new int[] { F_REMOVED_FROM_CLASSPATH }, times(1));
+			verifyEventNotification(removedEntry, REMOVED, POST_CHANGE, F_REMOVED_FROM_CLASSPATH, times(1));
 		}
 	}
 
@@ -512,7 +575,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IField addedField = WorkbenchUtils.createField(type, "private int i", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedField, ADDED, new int[0], times(2));
+		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -523,8 +586,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.createField(type, "private int i", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -535,7 +597,18 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IField addedField = WorkbenchUtils.createField(type, "@PathParam() private int i", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedField, ADDED, new int[0], times(2));
+		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenAnnotatedFieldAddedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		// operation
+		IField addedField = WorkbenchUtils.createField(type, "@PathParam() private int i", PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(addedField.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -548,8 +621,8 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", WORKING_COPY);
 		IField newField = type.getField("em");
 		// verifications
-		verifyEventNotification(oldField, REMOVED, NO_FLAG, times(2));
-		verifyEventNotification(newField, ADDED, NO_FLAG, times(2));
+		verifyEventNotification(oldField, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(newField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -560,8 +633,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -574,7 +646,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
 				"private HibernateEntityManager", WORKING_COPY);
 		// verifications
-		verifyEventNotification(field, CHANGED, new int[] { F_CONTENT }, times(2));
+		verifyEventNotification(field, CHANGED, POST_RECONCILE, F_CONTENT, times(1));
 	}
 
 	@Test
@@ -586,8 +658,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
 				"private HibernateEntityManager", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -599,7 +670,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeField(field, WORKING_COPY);
 		// verifications
-		verifyEventNotification(field, REMOVED, NO_FLAG, times(2));
+		verifyEventNotification(field, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -611,8 +682,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeField(field, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -624,7 +694,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IAnnotation addedAnnotation = WorkbenchUtils.addFieldAnnotation(field, "@PathParam()", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedAnnotation, ADDED, NO_FLAG, times(1));
+		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -636,8 +706,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.addFieldAnnotation(field, "@PathParam()", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -651,7 +720,21 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 				"@PersistenceContext(value=\"foo\")", WORKING_COPY);
 		// verifications
 		IAnnotation annotation = field.getAnnotation("PersistenceContext");
-		verifyEventNotification(annotation, CHANGED, new int[] { F_CONTENT }, times(1));
+		verifyEventNotification(annotation, CHANGED, POST_RECONCILE, F_CONTENT, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenFieldAnnotationChangedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IField field = type.getField("entityManager");
+		// operation
+		field = WorkbenchUtils.replaceFirstOccurrenceOfCode(field, "@PersistenceContext",
+				"@PersistenceContext(value=\"foo\")", PRIMARY_COPY);
+		// verifications
+		IAnnotation annotation = field.getAnnotation("PersistenceContext");
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -664,20 +747,20 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeFieldAnnotation(field, "@PersistenceContext", WORKING_COPY);
 		// verifications
-		verifyEventNotification(annotation, REMOVED, NO_FLAG, times(1));
+		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenMethodAddedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenFieldAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
+		IField field = type.getField("entityManager");
+		IAnnotation annotation = field.getAnnotation("PersistenceContext");
 		// operation
-		IMethod addedMethod = WorkbenchUtils.createMethod(type, "public Object fooLocator() { return null; }",
-				PRIMARY_COPY);
+		WorkbenchUtils.removeFieldAnnotation(field, "@PersistenceContext", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(addedMethod.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -689,19 +772,19 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		IMethod addedMethod = WorkbenchUtils.createMethod(type, "public Object fooLocator() { return null; }",
 				WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedMethod, ADDED, NO_FLAG, times(2));
+		verifyEventNotification(addedMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenMethodRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenMethodAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 		// operation
-		IMethod method = WorkbenchUtils.removeMethod(type.getCompilationUnit(), "createCustomer", PRIMARY_COPY);
+		IMethod addedMethod = WorkbenchUtils.createMethod(type, "public Object fooLocator() { return null; }",
+				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(addedMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -712,7 +795,32 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IMethod method = WorkbenchUtils.removeMethod(type.getCompilationUnit(), "createCustomer", WORKING_COPY);
 		// verifications
-		verifyEventNotification(method, REMOVED, NO_FLAG, times(2));
+		verifyEventNotification(method, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenMethodRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		// operation
+		IMethod method = WorkbenchUtils.removeMethod(type.getCompilationUnit(), "createCustomer", PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenMethodRenamedInWorkingCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IMethod oldMethod = WorkbenchUtils.getMethod(type, "getEntityManager");
+		// operation
+		WorkbenchUtils.renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM", WORKING_COPY);
+		// verifications
+		IMethod newMethod = WorkbenchUtils.getMethod(type, "getEM");
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -725,22 +833,8 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 				PRIMARY_COPY);
 		// verifications
 		IMethod newMethod = WorkbenchUtils.getMethod(type, "getEM");
-		verifyEventNotification(oldMethod, REMOVED, NO_FLAG, times(1));
-		verifyEventNotification(newMethod, ADDED, NO_FLAG, times(1));
-	}
-
-	@Test
-	public void shouldNotifyWhenMethodRenamedInWorkingCopy() throws CoreException, InterruptedException {
-		// pre-condition
-		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				null);
-		IMethod oldMethod = WorkbenchUtils.getMethod(type, "getEntityManager");
-		// operation
-		oldMethod.rename("getEM", true, new NullProgressMonitor());
-		// verifications
-		IMethod newMethod = WorkbenchUtils.getMethod(type, "getEM");
-		verifyEventNotification(oldMethod, REMOVED, NO_FLAG, times(1));
-		verifyEventNotification(newMethod, ADDED, NO_FLAG, times(1));
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(newMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -752,8 +846,8 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IMethod newMethod = WorkbenchUtils.addMethodParameter(oldMethod, "int i", WORKING_COPY);
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, NO_FLAG, times(2));
-		verifyEventNotification(newMethod, ADDED, NO_FLAG, times(2));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
@@ -765,8 +859,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.addMethodParameter(oldMethod, "int i", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -779,22 +872,50 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod, "Customer customer",
 				"String customer", WORKING_COPY);
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, NO_FLAG, times(2));
-		verifyEventNotification(newMethod, ADDED, NO_FLAG, times(2));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenMethodParameterNameChangedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenMethodParameterTypeChangedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IMethod oldMethod = WorkbenchUtils.getMethod(type, "createCustomer");
+		// operation
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod, "Customer customer", "String customer", PRIMARY_COPY);
+		// verifications
+		// 1 invocation for both the old method removal and the new method
+		// addition
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+	}
+
+	@Test
+	public void shouldNotNotifyWhenMethodParameterNameChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 
 		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer customer",
-				WORKING_COPY);
+		method = WorkbenchUtils
+				.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", WORKING_COPY);
 		// verifications
-		verifyEventNotification(method, CHANGED, new int[] { F_SIGNATURE }, times(7));
+		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(0));
+	}
+
+	@Test
+	public void shouldNotNotifyWhenMethodParameterNameChangedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+
+		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
+		// operation
+		method = WorkbenchUtils
+				.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(0));
 	}
 
 	@Test
@@ -808,8 +929,22 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
 				"@Context UriInfo uriInfo, @PathParam(\"id\") Integer id", WORKING_COPY);
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, NO_FLAG, times(2));
-		verifyEventNotification(newMethod, ADDED, NO_FLAG, times(2));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenMethodParametersReversedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IMethod oldMethod = WorkbenchUtils.getMethod(type, "getCustomer");
+		// operation
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
+				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
+				"@Context UriInfo uriInfo, @PathParam(\"id\") Integer id", PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -825,8 +960,24 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 				WORKING_COPY);
 		LOGGER.info("Method signature: " + newMethod.getSignature());
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, NO_FLAG, times(2));
-		verifyEventNotification(newMethod, ADDED, NO_FLAG, times(2));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenMethodParameterRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IMethod oldMethod = WorkbenchUtils.getMethod(type, "getCustomer");
+		LOGGER.info("Method signature: " + oldMethod.getSignature());
+		// operation
+		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
+				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo", "@PathParam(\"id\") Integer id",
+				PRIMARY_COPY);
+		LOGGER.info("Method signature: " + newMethod.getSignature());
+		// verifications
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -840,7 +991,21 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer",
 				"@PathParam(\"id\") Customer customer", WORKING_COPY);
 		// verifications
-		verifyEventNotification(method, CHANGED, new int[] { F_SIGNATURE }, times(7));
+		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenMethodParameterAnnotationAddedInPrimaryCopy() throws CoreException,
+			InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
+		// operation
+		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer",
+				"@PathParam(\"id\") Customer customer", PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -854,7 +1019,21 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
 				WORKING_COPY);
 		// verifications
-		verifyEventNotification(method, CHANGED, new int[] { F_SIGNATURE }, times(7));
+		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenMethodParameterAnnotationChangedInPrimaryCopy() throws CoreException,
+			InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IMethod method = WorkbenchUtils.getMethod(type, "getCustomer");
+		// operation
+		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
+				PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -868,20 +1047,21 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
 				WORKING_COPY);
 		// verifications
-		verifyEventNotification(method, CHANGED, new int[] { F_SIGNATURE }, times(7));
+		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenMethodAnnotationAddedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenMethodParameterAnnotationRemovedInPrimaryCopy() throws CoreException,
+			InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
-		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
+		IMethod method = WorkbenchUtils.getMethod(type, "getCustomer");
 		// operation
-		WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", PRIMARY_COPY);
+		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
+				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -893,20 +1073,19 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IAnnotation addedAnnotation = WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedAnnotation, ADDED, NO_FLAG, times(1));
+		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenMethodAnnotationChangedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenMethodAnnotationAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
-		IMethod method = WorkbenchUtils.getMethod(type, "getCustomer");
-		IAnnotation annotation = method.getAnnotation("Path");
+		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"/{bar}\")", true);
+		WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(annotation, CHANGED, new int[] { F_CONTENT }, times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -917,23 +1096,24 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")", true);
+		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
+				WORKING_COPY);
 		// verifications
-		verifyEventNotification(annotation, CHANGED, new int[] { F_CONTENT }, times(1));
+		verifyEventNotification(annotation, CHANGED, POST_RECONCILE, F_CONTENT, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenMethodAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenMethodAnnotationChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
-		IAnnotation annotation = method.getAnnotation("POST");
+		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
-		WorkbenchUtils.removeMethodAnnotation(method, annotation, PRIMARY_COPY);
+		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
+				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getCompilationUnit(), CHANGED, new int[] { F_CONTENT, F_PRIMARY_RESOURCE },
-				times(1));
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
 
 	@Test
@@ -946,37 +1126,49 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeMethodAnnotation(method, annotation, WORKING_COPY);
 		// verifications
-		verifyEventNotification(annotation, REMOVED, NO_FLAG, times(1));
+		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
 
 	@Test
-	public void shouldNotifyWhenResourceMarkerAdded() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenMethodAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				null);
+		IMethod method = WorkbenchUtils.getMethod(type, "createCustomer");
+		IAnnotation annotation = method.getAnnotation("POST");
+		// operation
+		WorkbenchUtils.removeMethodAnnotation(method, annotation, PRIMARY_COPY);
+		// verifications
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+	}
+
+	@Test
+	public void shouldNotifyWhenResourceMarkerAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 		IField field = type.getField("entityManager");
 		// operation
-		WorkbenchUtils.removeField(field, WORKING_COPY);
+		WorkbenchUtils.removeField(field, PRIMARY_COPY);
 		// verifications
-		for (IMethod method : type.getMethods()) {
-			verifyEventNotification(method, CHANGED, new int[] { F_MARKER_ADDED }, atLeastOnce());
-		}
+		final IMethod method = WorkbenchUtils.getMethod(type, "deleteCustomer");
+		verifyEventNotification(method.getResource(), CHANGED, POST_RECONCILE, F_MARKER_ADDED, atLeastOnce());
 	}
 
 	@Test
-	public void shouldNotifyWhenResourceMarkerRemoved() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenResourceMarkerRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		// ResourcesPlugin.getWorkspace().addResourceChangeListener(listener);
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 		// operations
 		IField field = type.getField("entityManager");
-		WorkbenchUtils.removeField(field, WORKING_COPY);
-		WorkbenchUtils.createField(type, "private EntityManager entityManager;", WORKING_COPY);
+		WorkbenchUtils.removeField(field, PRIMARY_COPY);
+		WorkbenchUtils.createField(type, "private EntityManager entityManager;", PRIMARY_COPY);
 		// verifications
 		for (IMethod method : type.getMethods()) {
-			verifyEventNotification(method, CHANGED, new int[] { F_MARKER_ADDED }, atLeastOnce());
-			verifyEventNotification(method, CHANGED, new int[] { F_MARKER_REMOVED }, atLeastOnce());
+			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_MARKER_ADDED, atLeastOnce());
+			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_MARKER_REMOVED, atLeastOnce());
 		}
 	}
 }

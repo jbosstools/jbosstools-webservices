@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
@@ -18,17 +28,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpointChangedEvent;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
@@ -38,80 +47,86 @@ public class JaxrsElementChangedProcessor {
 			IProgressMonitor progressMonitor) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
 		try {
-			Logger.debug("Processing {} Jaxrs change(s)...", jaxrsElementChanges.size());
-			for (JaxrsElementChangedEvent jaxrsElementChange : jaxrsElementChanges) {
-				Logger.debug("Processing {}", jaxrsElementChange);
-				final List<JaxrsEndpointChangedEvent> endpointChanges = processEvent(jaxrsElementChange);
-				for (IJaxrsEndpointChangedEvent endpointChange : endpointChanges) {
-					Logger.debug("--> {}", endpointChange);
+			Logger.debug("Processing {} JAX-RS element change(s)...", jaxrsElementChanges.size());
+			boolean loopAgain = true;
+			while (loopAgain) {
+				loopAgain = false;
+				for (Iterator<JaxrsElementChangedEvent> iterator = jaxrsElementChanges.iterator(); iterator.hasNext();) {
+					JaxrsElementChangedEvent jaxrsElementChange = iterator.next();
+					Logger.debug("Processing {}", jaxrsElementChange);
+					final List<JaxrsEndpointChangedEvent> endpointChanges = processEvent(jaxrsElementChange);
+					for (JaxrsEndpointChangedEvent endpointChange : endpointChanges) {
+						Logger.debug("--> {}", endpointChange);
+					}
+					if (!endpointChanges.isEmpty()) {
+						changes.addAll(endpointChanges);
+						iterator.remove();
+						loopAgain = true;
+					}
 				}
-				changes.addAll(endpointChanges);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to process JAX-RS element changes", e);
 		} finally {
-		Logger.debug("Done processing JAX-RS change(s).");
+			Logger.debug("Done processing JAX-RS element change(s).");
 		}
 		return changes;
 	}
 
 	private List<JaxrsEndpointChangedEvent> processEvent(final JaxrsElementChangedEvent event) throws CoreException {
-		final IJaxrsElement<?> element = event.getElement();
+		final JaxrsElement<?> element = event.getElement();
 		final EnumElementKind elementKind = element.getElementKind();
 		final int flags = event.getFlags();
 		switch (event.getDeltaKind()) {
 		case ADDED:
 			switch (elementKind) {
 			case HTTP_METHOD:
-				return processAddition((IJaxrsHttpMethod) element);
+				return processAddition((JaxrsHttpMethod) element);
 			case RESOURCE:
-				return processAddition((IJaxrsResource) element);
+				return processAddition((JaxrsResource) element);
 			case RESOURCE_METHOD:
-				return processAddition((IJaxrsResourceMethod) element);
+				return processAddition((JaxrsResourceMethod) element);
 			}
-			break;
 		case CHANGED:
 			switch (elementKind) {
 			case HTTP_METHOD:
-				return processChange((IJaxrsHttpMethod) element, flags);
+				return processChange((JaxrsHttpMethod) element, flags);
 			case RESOURCE:
-				return processChange((IJaxrsResource) element, flags);
+				return processChange((JaxrsResource) element, flags);
 			case RESOURCE_METHOD:
-				return processChange((IJaxrsResourceMethod) element, flags);
+				return processChange((JaxrsResourceMethod) element, flags);
 			}
-			break;
 		case REMOVED:
 			switch (elementKind) {
 			case HTTP_METHOD:
-				return processRemoval((IJaxrsHttpMethod) element);
+				return processRemoval((JaxrsHttpMethod) element);
 			case RESOURCE:
-				return processRemoval((IJaxrsResource) element);
+				return processRemoval((JaxrsResource) element);
 			case RESOURCE_METHOD:
-				return processRemoval((IJaxrsResourceMethod) element);
+				return processRemoval((JaxrsResourceMethod) element);
 			}
-			break;
 		}
 		return Collections.emptyList();
 	}
 
-	private List<JaxrsEndpointChangedEvent> processAddition(final IJaxrsHttpMethod httpMethod) {
+	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsHttpMethod httpMethod) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processAddition(final IJaxrsResource resource) throws CoreException {
+	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsResource resource) throws CoreException {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+		for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 			changes.addAll(processAddition(resourceMethod));
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processAddition(final IJaxrsResourceMethod resourceMethod)
+	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsResourceMethod resourceMethod)
 			throws CoreException {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) resourceMethod.getMetamodel();
-		final IJaxrsResource resource = resourceMethod.getParentResource();
+		final JaxrsResource resource = resourceMethod.getParentResource();
 		if (resource == null) {
 			Logger.warn("Found an orphan resource method: " + resourceMethod);
 		} else {
@@ -141,25 +156,26 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processSubresourceMethodAddition(final IJaxrsResourceMethod resourceMethod,
+	private List<JaxrsEndpointChangedEvent> processSubresourceMethodAddition(final JaxrsResourceMethod resourceMethod,
 			final JaxrsMetamodel metamodel) throws CoreException {
-		final IJaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod.getHttpMethodAnnotation());
+		final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) metamodel.getHttpMethod(resourceMethod
+				.getHttpMethodAnnotation());
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		final IJaxrsResource resource = resourceMethod.getParentResource();
+		final JaxrsResource resource = resourceMethod.getParentResource();
 		final IProgressMonitor progressMonitor = new NullProgressMonitor();
 		final IType resourceType = resource.getJavaElement();
 		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(resourceType, false, progressMonitor);
 		final List<String> supertypesHandlers = extractHandlers(returnTypeHierarchy.getAllSupertypes(resourceType));
 		for (IJaxrsResource otherResource : metamodel.getAllResources()) {
-			if (otherResource.isRootResource()) {
-				for (IJaxrsResourceMethod otherResourceMethod : otherResource.getAllMethods()) {
+			if (((JaxrsResource) otherResource).isRootResource()) {
+				for (JaxrsResourceMethod otherResourceMethod : ((JaxrsResource) otherResource).getMethods().values()) {
 					if (otherResourceMethod.getKind() == EnumKind.SUBRESOURCE_LOCATOR) {
 						final String returnTypeHandler = (otherResourceMethod.getReturnType() != null) ? otherResourceMethod
 								.getReturnType().getHandleIdentifier() : null;
 						if (returnTypeHandler != null && supertypesHandlers.contains(returnTypeHandler)) {
-							final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>(
+							final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
 									Arrays.asList(otherResourceMethod, resourceMethod));
-							final IJaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethods);
+							final JaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethods);
 							if (metamodel.add(endpoint)) {
 								changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
 							}
@@ -171,11 +187,11 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRootResourceMethodAddition(
-			final IJaxrsResourceMethod resourceMethod, final JaxrsMetamodel metamodel) {
-		final IJaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod.getHttpMethodAnnotation());
+	private List<JaxrsEndpointChangedEvent> processRootResourceMethodAddition(final JaxrsResourceMethod resourceMethod,
+			final JaxrsMetamodel metamodel) {
+		final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod.getHttpMethodAnnotation());
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		final IJaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethod);
+		final JaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethod);
 		if (metamodel.add(endpoint)) {
 			changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
 		}
@@ -184,7 +200,7 @@ public class JaxrsElementChangedProcessor {
 
 	// FIXME: support chain of subresource locators
 	private List<JaxrsEndpointChangedEvent> processSubresourceLocatorAddition(
-			final IJaxrsResourceMethod subresourceLocator, final JaxrsMetamodel metamodel) throws CoreException {
+			final JaxrsResourceMethod subresourceLocator, final JaxrsMetamodel metamodel) throws CoreException {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
 		final IProgressMonitor progressMonitor = new NullProgressMonitor();
 		final IType returnType = subresourceLocator.getReturnType();
@@ -192,20 +208,21 @@ public class JaxrsElementChangedProcessor {
 			final ITypeHierarchy returnTypeHierarchy = JdtUtils
 					.resolveTypeHierarchy(returnType, false, progressMonitor);
 			final List<String> subtypesHandlers = extractHandlers(returnTypeHierarchy.getAllSubtypes(returnType));
-			for (IJaxrsResource resource : metamodel.getAllResources()) {
+			for (Iterator<IJaxrsResource> iterator = metamodel.getAllResources().iterator(); iterator.hasNext();) {
+				JaxrsResource resource = (JaxrsResource) iterator.next();
 				if (resource.isSubresource()) {
 					final String resourceHandleIdentifier = resource.getJavaElement().getHandleIdentifier();
 					if (resourceHandleIdentifier.equals(returnType.getHandleIdentifier())
 							|| subtypesHandlers.contains(resourceHandleIdentifier)) {
-						for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+						for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 							switch (resourceMethod.getKind()) {
 							case RESOURCE_METHOD:
 							case SUBRESOURCE_METHOD:
-								final IJaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod
+								final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod
 										.getHttpMethodAnnotation());
-								final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>(
+								final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
 										Arrays.asList(subresourceLocator, resourceMethod));
-								final IJaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethods);
+								final JaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethods);
 								if (metamodel.add(endpoint)) {
 									changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
 								}
@@ -227,11 +244,10 @@ public class JaxrsElementChangedProcessor {
 		return supertypesHandlers;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processChange(final IJaxrsHttpMethod httpMethod, int flags) {
+	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsHttpMethod httpMethod, int flags) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		for (Iterator<IJaxrsEndpoint> iterator = httpMethod.getMetamodel().getAllEndpoints().iterator(); iterator
-				.hasNext();) {
-			JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
+		for (Iterator<JaxrsEndpoint> iterator = httpMethod.getMetamodel().getEndpoints().iterator(); iterator.hasNext();) {
+			JaxrsEndpoint endpoint = iterator.next();
 			if (endpoint.match(httpMethod)) {
 				// just notify changes to the UI, no refresh required
 				changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
@@ -240,19 +256,18 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processChange(final IJaxrsResource resource, int flags)
-			throws CoreException {
+	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsResource resource, int flags) throws CoreException {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
 		// no structural change in the resource: refresh its methods
 		if ((flags & F_ELEMENT_KIND) == 0) {
-			for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 				changes.addAll(processChange(resourceMethod, flags));
 			}
 		}
 		// structural change : remove all endpoints associated with its methods
 		// and creat new ones
 		else {
-			for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 				changes.addAll(processRemoval(resourceMethod));
 				changes.addAll(processAddition(resourceMethod));
 			}
@@ -261,14 +276,14 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processChange(final IJaxrsResourceMethod changedResourceMethod, int flags)
+	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsResourceMethod changedResourceMethod, int flags)
 			throws CoreException {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
 		if ((flags & F_ELEMENT_KIND) > 0) {
 			// remove endpoints using this resoureMethod:
-			for (Iterator<IJaxrsEndpoint> iterator = changedResourceMethod.getMetamodel().getAllEndpoints().iterator(); iterator
+			for (Iterator<JaxrsEndpoint> iterator = changedResourceMethod.getMetamodel().getEndpoints().iterator(); iterator
 					.hasNext();) {
-				JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
+				JaxrsEndpoint endpoint = iterator.next();
 				if (endpoint.match(changedResourceMethod)) {
 					iterator.remove();
 					changes.add(new JaxrsEndpointChangedEvent(endpoint, REMOVED));
@@ -279,9 +294,9 @@ public class JaxrsElementChangedProcessor {
 		} else if (changedResourceMethod.getKind() == EnumKind.SUBRESOURCE_LOCATOR
 				&& (flags & F_METHOD_RETURN_TYPE) > 0) {
 
-			for (Iterator<IJaxrsEndpoint> endpointIterator = changedResourceMethod.getMetamodel().getAllEndpoints()
+			for (Iterator<JaxrsEndpoint> endpointIterator = changedResourceMethod.getMetamodel().getEndpoints()
 					.iterator(); endpointIterator.hasNext();) {
-				JaxrsEndpoint endpoint = (JaxrsEndpoint) endpointIterator.next();
+				JaxrsEndpoint endpoint = endpointIterator.next();
 				if (endpoint.match(changedResourceMethod)) {
 					for (Iterator<IJaxrsResourceMethod> resourceMethodIterator = endpoint.getResourceMethods()
 							.iterator(); resourceMethodIterator.hasNext();) {
@@ -311,9 +326,9 @@ public class JaxrsElementChangedProcessor {
 		}
 		// simply refresh all endpoints using this resourceMethod
 		else {
-			for (Iterator<IJaxrsEndpoint> iterator = changedResourceMethod.getMetamodel().getAllEndpoints().iterator(); iterator
+			for (Iterator<JaxrsEndpoint> iterator = changedResourceMethod.getMetamodel().getEndpoints().iterator(); iterator
 					.hasNext();) {
-				JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
+				JaxrsEndpoint endpoint = iterator.next();
 				if (endpoint.match(changedResourceMethod)) {
 					// refresh the endpoint after the changes
 					endpoint.refresh(changedResourceMethod, flags);
@@ -325,11 +340,10 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRemoval(final IJaxrsHttpMethod httpMethod) {
+	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsHttpMethod httpMethod) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		for (Iterator<IJaxrsEndpoint> iterator = httpMethod.getMetamodel().getAllEndpoints().iterator(); iterator
-				.hasNext();) {
-			JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
+		for (Iterator<JaxrsEndpoint> iterator = httpMethod.getMetamodel().getEndpoints().iterator(); iterator.hasNext();) {
+			JaxrsEndpoint endpoint = iterator.next();
 			if (endpoint.match(httpMethod)) {
 				iterator.remove();
 				changes.add(new JaxrsEndpointChangedEvent(endpoint, REMOVED));
@@ -338,17 +352,17 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRemoval(final IJaxrsResource resource) {
+	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsResource resource) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+		for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 			changes.addAll(processRemoval(resourceMethod));
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRemoval(final IJaxrsResourceMethod resourceMethod) {
+	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsResourceMethod resourceMethod) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		for (Iterator<IJaxrsEndpoint> iterator = resourceMethod.getMetamodel().getAllEndpoints().iterator(); iterator
+		for (Iterator<JaxrsEndpoint> iterator = resourceMethod.getMetamodel().getEndpoints().iterator(); iterator
 				.hasNext();) {
 			JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
 			if (endpoint.match(resourceMethod)) {

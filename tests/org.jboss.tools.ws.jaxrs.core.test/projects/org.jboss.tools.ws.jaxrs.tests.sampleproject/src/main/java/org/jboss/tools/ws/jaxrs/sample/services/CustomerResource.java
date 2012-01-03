@@ -27,6 +27,7 @@ import org.jboss.tools.ws.jaxrs.sample.domain.Customer;
 @Path(CustomerResource.URI_BASE)
 @Consumes(MediaType.APPLICATION_XML)
 @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+@SuppressWarnings("foo") // keep this for tests
 public class CustomerResource {
 
 	@PersistenceContext
@@ -70,6 +71,7 @@ public class CustomerResource {
 	@DELETE
 	@Path("{id}")
 	public void deleteCustomer(@PathParam("id") Integer id) {
+		// keep that code to get error markers when field 'entityManager' is deleted
 		Customer customer = entityManager.find(Customer.class, id);
 		entityManager.remove(customer);
 	}

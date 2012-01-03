@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core;
 
 import org.jboss.tools.ws.jaxrs.core.internal.configuration.ProjectBuilderUtilsTestCase;
@@ -6,7 +16,9 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ElementChangedEv
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEventFilterTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedProcessorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuildJobTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilderTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedListenerTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedProcessorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactoryTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodelTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidatorTestCase;
@@ -22,9 +34,10 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({ ProjectBuilderUtilsTestCase.class, ProjectNatureUtilsTestCase.class, JdtUtilsTestCase.class,
 		CompilationUnitsRepositoryTestCase.class, ElementChangedEventScannerTestCase.class,
 		JavaElementChangedEventFilterTestCase.class, JavaElementChangedProcessorTestCase.class,
-		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelBuildJobTestCase.class,
-		JaxrsElementFactoryTestCase.class, JaxrsMetamodelTestCase.class, CollectionUtilsTestCase.class,
-		PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class })
+		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelTestCase.class,
+		JaxrsElementFactoryTestCase.class, JaxrsMetamodelBuilderTestCase.class, CollectionUtilsTestCase.class,
+		PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class,
+		ResourceChangedProcessorTestCase.class, ResourceChangedListenerTestCase.class})
 public class AllTests {
 
 }

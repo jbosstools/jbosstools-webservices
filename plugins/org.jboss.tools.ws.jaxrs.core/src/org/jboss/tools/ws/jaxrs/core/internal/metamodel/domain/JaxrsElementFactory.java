@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElement.FIELD;
@@ -37,55 +47,59 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
 public class JaxrsElementFactory {
 
-	/** Attempts to create a new JAX-RS element from the given Java annotation.
+	/**
+	 * Attempts to create a new JAX-RS element from the given Java annotation,
+	 * <b>without adding it to the given JAX-RS Metamodel</b>
 	 * 
 	 * @param element
 	 * @param ast
 	 * @param metamodel
-	 * @return
-	 * @throws CoreException */
-	public List<IJaxrsElement<?>> createElement(IAnnotation javaAnnotation, CompilationUnit ast,
-			JaxrsMetamodel metamodel) throws CoreException {
-		final List<IJaxrsElement<?>> elements = new ArrayList<IJaxrsElement<?>>();
+	 * @return the created JAX-RS element or null if the given Java annotation
+	 *         is not a valid one.
+	 * @throws CoreException
+	 */
+	public JaxrsElement<?> createElement(IAnnotation javaAnnotation, CompilationUnit ast, JaxrsMetamodel metamodel)
+			throws CoreException {
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
 		final String annotationName = annotation.getName();
 		if (annotationName.equals(HttpMethod.class.getName())) {
-			elements.add(createHttpMethod(annotation, ast, metamodel));
+			final JaxrsHttpMethod httpMethod = createHttpMethod(annotation, ast, metamodel);
+			return httpMethod;
 		} else {
 			switch (javaAnnotation.getParent().getElementType()) {
 			case TYPE:
 				if (annotationName.equals(Path.class.getName())) {
-					elements.add(createResource(annotation, ast, metamodel));
+					return createResource(annotation, ast, metamodel);
 				}
 				break;
 			case METHOD:
 				final IJaxrsHttpMethod httpMethod = metamodel.getHttpMethod(annotationName);
 				if (annotationName.equals(Path.class.getName())) {
-					elements.add(createResourceMethod(annotation, ast, metamodel));
+					return createResourceMethod(annotation, ast, metamodel);
 				} else if (httpMethod != null) {
-					elements.add(createResourceMethod(annotation, ast, metamodel));
+					return createResourceMethod(annotation, ast, metamodel);
 				}
 				break;
 			case FIELD:
 				if (annotationName.equals(PathParam.class.getName())
 						|| annotationName.equals(QueryParam.class.getName())
 						|| annotationName.equals(MatrixParam.class.getName())) {
-					elements.add(createField(annotation, ast, metamodel));
+					return createField(annotation, ast, metamodel);
 				}
 				break;
 			}
 		}
-		return elements;
+		return null;
 	}
 
-	/** Creates a JAX-RS Root Resource from the given path annotation and its
-	 * AST, and adds it to the given JAX-RS Metamodel.
+	/**
+	 * Creates a JAX-RS Root Resource (including its methods and its fields)
+	 * from the given path annotation and its AST, <b>without adding it to the
+	 * given JAX-RS Metamodel</b>
 	 * 
 	 * @param pathAnnotation
 	 *            the @Path annotation found on the Java Type
@@ -95,16 +109,18 @@ public class JaxrsElementFactory {
 	 *            the current metamodel, in which the Root Resource should be
 	 *            added
 	 * @return the created Root Resource
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	public JaxrsResource createResource(final Annotation pathAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		// create the resource:
 		return createResource((IType) pathAnnotation.getJavaParent(), ast, metamodel);
 	}
 
-	/** Creates a JAX-RS Resource (and its methods) from the given type and its
-	 * AST, and adds it
-	 * to the given JAX-RS Metamodel.
+	/**
+	 * Creates a JAX-RS Resource (including its methods and its fields) from the
+	 * given type and its AST, <b>without adding it to the given JAX-RS
+	 * Metamodel</b>
 	 * 
 	 * @param javaType
 	 *            the Java Type
@@ -114,7 +130,8 @@ public class JaxrsElementFactory {
 	 *            the current metamodel, in which the JAX-RS Resource should be
 	 *            added
 	 * @return the created resource
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	public JaxrsResource createResource(IType javaType, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws CoreException {
 		// create the resource:
@@ -124,11 +141,7 @@ public class JaxrsElementFactory {
 		final List<IMethod> javaMethods = JaxrsAnnotationsScanner.findResourceMethods(javaType,
 				metamodel.getAllHttpMethods(), new NullProgressMonitor());
 		for (IMethod javaMethod : javaMethods) {
-			final IJaxrsResourceMethod resourceMethod = internalCreateResourceMethod(javaMethod, ast, metamodel,
-					resource);
-			if (resourceMethod != null) {
-				metamodel.add(resourceMethod);
-			}
+			internalCreateResourceMethod(javaMethod, ast, metamodel, resource);
 		}
 		// find the available type fields
 		for (IField javaField : javaType.getFields()) {
@@ -138,7 +151,6 @@ public class JaxrsElementFactory {
 		if (resource.getKind() == EnumKind.UNDEFINED) {
 			return null;
 		}
-		metamodel.add(resource);
 		return resource;
 	}
 
@@ -154,54 +166,49 @@ public class JaxrsElementFactory {
 		return resource;
 	}
 
-	/** Creates a JAX-RS resource method from the given annotation (@Path or an
-	 * HttpMethod) and its AST, and finally adds it to the given JAX-RS
-	 * Metamodel.
+	/**
+	 * Creates a JAX-RS resource method from the given annotation (@Path or an
+	 * HttpMethod) and its AST, <b>without adding it to the given JAX-RS
+	 * Metamodel</b>. If the parent resource did not exist before, its is also
+	 * created.
 	 * 
 	 * @param annotation
 	 * @param ast
 	 * @param metamodel
 	 * @return
-	 * @throws CoreException */
-	public IJaxrsResourceMethod createResourceMethod(Annotation annotation, CompilationUnit ast,
-			JaxrsMetamodel metamodel) throws CoreException {
+	 * @throws CoreException
+	 */
+	public JaxrsResourceMethod createResourceMethod(Annotation annotation, CompilationUnit ast, JaxrsMetamodel metamodel)
+			throws CoreException {
 		final IMethod method = (IMethod) annotation.getJavaParent();
 		return createResourceMethod(method, ast, metamodel);
 	}
 
-	/** Creates a JAX-RS resource method from the given annotation (@Path or an
-	 * HttpMethod) and its AST, and finally adds it to the given JAX-RS
-	 * Metamodel.
+	/**
+	 * Creates a JAX-RS resource method from the given annotation (@Path or an
+	 * HttpMethod) and its AST, <b>without adding it to the given JAX-RS
+	 * Metamodel</b>
 	 * 
 	 * @param annotation
 	 * @param ast
 	 * @param metamodel
 	 * @return
-	 * @throws CoreException */
-	public IJaxrsResourceMethod createResourceMethod(IMethod method, CompilationUnit ast, JaxrsMetamodel metamodel)
+	 * @throws CoreException
+	 */
+	public JaxrsResourceMethod createResourceMethod(IMethod method, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws CoreException {
 
 		final IType parentType = (IType) method.getParent();
 		JaxrsResource parentResource = (JaxrsResource) metamodel.getElement(parentType);
-		boolean parentResourceCreated = false;
 		if (parentResource == null) {
 			// create parentResource on-the-fly
 			parentResource = internalCreateResource(parentType, ast, metamodel);
-			parentResourceCreated = true;
 		}
-		final IJaxrsResourceMethod resourceMethod = internalCreateResourceMethod(method, ast, metamodel, parentResource);
-		if (resourceMethod != null) {
-			metamodel.add(resourceMethod);
-			// now, the parent resource can be surely added to the metamodel
-			if (parentResourceCreated) {
-				metamodel.add(parentResource);
-			}
-			return resourceMethod;
-		}
-		return null;
+		final JaxrsResourceMethod resourceMethod = internalCreateResourceMethod(method, ast, metamodel, parentResource);
+		return resourceMethod;
 	}
 
-	private IJaxrsResourceMethod internalCreateResourceMethod(IMethod javaMethod, CompilationUnit ast,
+	private JaxrsResourceMethod internalCreateResourceMethod(IMethod javaMethod, CompilationUnit ast,
 			JaxrsMetamodel metamodel, JaxrsResource parentResource) throws JavaModelException {
 		final List<String> httpMethodAnnotationNames = new ArrayList<String>();
 		for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
@@ -220,7 +227,8 @@ public class JaxrsElementFactory {
 			}
 		}
 		if (httpMethod == null && pathAnnotation == null) {
-			Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on method {}.{}()", javaMethod.getParent().getElementName(), javaMethod.getElementName());
+			Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on method {}.{}()",
+					javaMethod.getParent().getElementName(), javaMethod.getElementName());
 		} else {
 			final Annotation producesAnnotation = annotations.get(Produces.class.getName());
 			final Annotation consumesAnnotation = annotations.get(Consumes.class.getName());
@@ -231,7 +239,7 @@ public class JaxrsElementFactory {
 			for (JavaMethodParameter methodParam : methodSignature.getMethodParameters()) {
 				builder.methodParameter(methodParam);
 			}
-			final IJaxrsResourceMethod resourceMethod = builder.build();
+			final JaxrsResourceMethod resourceMethod = builder.build();
 
 			return resourceMethod;
 		}
@@ -239,14 +247,16 @@ public class JaxrsElementFactory {
 
 	}
 
-	/** Creates a JAX-RS HTTP Method from the given pathAnnotation and its AST,
-	 * and adds it to the given JAX-RS Metamodel.
+	/**
+	 * Creates a JAX-RS HTTP Method from the given pathAnnotation and its AST,
+	 * <b>without adding it to the given JAX-RS Metamodel</b>
 	 * 
 	 * @param ast
 	 * @param metamodel
 	 * @param annotation
 	 * @return
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	public JaxrsHttpMethod createHttpMethod(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		Annotation httpMethodAnnotation = JdtUtils.resolveAnnotation(javaType, ast, HttpMethod.class);
@@ -254,67 +264,61 @@ public class JaxrsElementFactory {
 			return null;
 		}
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(javaType, httpMethodAnnotation, metamodel);
-		metamodel.add(httpMethod);
 		return httpMethod;
 	}
 
-	/** Creates a JAX-RS HTTP Method from the given pathAnnotation and its AST,
-	 * and adds it to the given JAX-RS Metamodel.
+	/**
+	 * Creates a JAX-RS HTTP Method from the given pathAnnotation and its AST,
+	 * <b>without adding it to the given JAX-RS Metamodel</b>.
 	 * 
 	 * @param ast
 	 * @param metamodel
 	 * @param annotation
 	 * @return
-	 * @throws CoreException */
+	 * @throws CoreException
+	 */
 	public JaxrsHttpMethod createHttpMethod(final Annotation annotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod((IType) annotation.getJavaParent(), annotation,
 				metamodel);
-		metamodel.add(httpMethod);
 		return httpMethod;
 	}
 
-	/** Create a JAX-RS Resource field from the given annotation.
+	/**
+	 * Create a JAX-RS Resource field from the given annotation, <b>without
+	 * adding it to the given JAX-RS Metamodel</b>
 	 * 
 	 * @param pathParamannotation
 	 * @param ast
 	 * @param metamodel
 	 * @return
 	 * @throws JavaModelException
-	 * @throws CoreException */
-	public JaxrsParamField createField(Annotation annotation, CompilationUnit ast, JaxrsMetamodel metamodel)
+	 * @throws CoreException
+	 */
+	public JaxrsResourceField createField(Annotation annotation, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws JavaModelException {
 		final IField javaField = (IField) annotation.getJavaParent();
 		return createField(javaField, ast, metamodel);
 	}
 
-	public JaxrsParamField createField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel)
+	public JaxrsResourceField createField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws JavaModelException {
 		final IType parentType = (IType) javaField.getParent();
-		IJaxrsElement<?> parentResource = metamodel.getElement(parentType);
-		boolean parentResourceCreated = false;
+		JaxrsElement<?> parentResource = metamodel.getElement(parentType);
 		if (parentResource == null) {
-			parentResourceCreated = true;
 			// creating the parent resource but not adding it to the metamodel
 			// yet..
 			parentResource = internalCreateResource(parentType, ast, metamodel);
 		}
 		if (parentResource != null && parentResource.getElementKind() == EnumElementKind.RESOURCE) {
-			final JaxrsParamField field = internalCreateField(javaField, ast, metamodel, (JaxrsResource) parentResource);
-			if (field != null) {
-				metamodel.add(field);
-				// now, the parent resource can be surely added to the metamodel
-				if (parentResourceCreated) {
-					metamodel.add(parentResource);
-				}
-			}
+			final JaxrsResourceField field = internalCreateField(javaField, ast, metamodel,
+					(JaxrsResource) parentResource);
 			return field;
-
 		}
 		return null;
 	}
 
-	private JaxrsParamField internalCreateField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel,
+	private JaxrsResourceField internalCreateField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel,
 			final JaxrsResource parentResource) throws JavaModelException {
 		final List<String> supportedFieldAnnotations = Arrays.asList(MatrixParam.class.getName(),
 				QueryParam.class.getName(), PathParam.class.getName(), CookieParam.class.getName(),
@@ -323,8 +327,8 @@ public class JaxrsElementFactory {
 				supportedFieldAnnotations);
 		if ((annotations.size() == 1 && !annotations.containsKey(DefaultValue.class.getName()))
 				|| (annotations.size() == 2 && annotations.containsKey(DefaultValue.class.getName()))) {
-			final JaxrsParamField field = new JaxrsParamField(javaField,
-					new ArrayList<Annotation>(annotations.values()), parentResource, metamodel);
+			final JaxrsResourceField field = new JaxrsResourceField(javaField, new ArrayList<Annotation>(
+					annotations.values()), parentResource, metamodel);
 			return field;
 		}
 		return null;

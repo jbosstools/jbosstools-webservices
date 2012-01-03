@@ -62,14 +62,12 @@ public class JavaMemberSearchResultCollector extends SearchRequestor {
 		}
 		// check that the element matches the expected kind, and avoid duplicate
 		// results
-		/*IMember member = null;
-		while (member != null && member.getElementType() != kind) {
-			if (member.getParent() instanceof IMember) {
-				member = (IMember) member.getParent();
-			} else {
-				member = null;
-			}
-		}*/
+		/*
+		 * IMember member = null; while (member != null &&
+		 * member.getElementType() != kind) { if (member.getParent() instanceof
+		 * IMember) { member = (IMember) member.getParent(); } else { member =
+		 * null; } }
+		 */
 		IMember member = (IMember) element.getAncestor(kind);
 		if (member != null && !resultMembers.contains(member)) {
 			resultMembers.add(member);
@@ -77,8 +75,11 @@ public class JavaMemberSearchResultCollector extends SearchRequestor {
 	}
 
 	/**
-	 * @param clazz the expected class type of the returned elements (used for strong result typing)
-	 * @param <T> the type of the return elements
+	 * @param clazz
+	 *            the expected class type of the returned elements (used for
+	 *            strong result typing)
+	 * @param <T>
+	 *            the type of the return elements
 	 * @return the resultMembers
 	 */
 	@SuppressWarnings("unchecked")

@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.HashMap;
@@ -84,16 +94,6 @@ public class Annotation {
 		return null;
 	}
 
-	public boolean match(IAnnotation annotation) {
-		if (this.javaAnnotation == null && annotation != null) {
-			return false;
-		}
-		if (this.javaAnnotation != null && annotation == null) {
-			return false;
-		}
-		return this.javaAnnotation.getHandleIdentifier().equals(annotation.getHandleIdentifier());
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -113,7 +113,7 @@ public class Annotation {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((javaAnnotation == null) ? 0 : javaAnnotation.hashCode());
+		result = prime * result + ((javaAnnotation == null) ? 0 : javaAnnotation.getHandleIdentifier().hashCode());
 		result = prime * result + ((javaAnnotationElements == null) ? 0 : javaAnnotationElements.hashCode());
 		result = prime * result + ((javaAnnotationName == null) ? 0 : javaAnnotationName.hashCode());
 		return result;

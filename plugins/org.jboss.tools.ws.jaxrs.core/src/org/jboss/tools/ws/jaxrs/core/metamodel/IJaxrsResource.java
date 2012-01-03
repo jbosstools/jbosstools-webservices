@@ -1,42 +1,24 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.List;
 
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-
-public interface IJaxrsResource extends IJaxrsElement<IType> {
-
-	boolean isRootResource();
-
-	boolean isSubresource();
-
-	String getName();
-
-	IJaxrsResourceMethod getByJavaMethod(final IMethod javaMethod) throws JavaModelException;
-
-	IJaxrsApplication getApplication();
-
-	List<IJaxrsResourceMethod> getAllMethods();
-
-	List<IJaxrsResourceMethod> getResourceMethods();
-
-	List<IJaxrsResourceMethod> getSubresourceMethods();
-
-	List<IJaxrsResourceMethod> getSubresourceLocators();
+public interface IJaxrsResource {
 
 	String getPathTemplate();
 
-	Annotation getPathAnnotation();
-
 	List<String> getConsumedMediaTypes();
-
-	Annotation getConsumesAnnotation();
 
 	List<String> getProducedMediaTypes();
 
-	Annotation getProducesAnnotation();
-
+	List<IJaxrsResourceMethod> getAllMethods();
 }

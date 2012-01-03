@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_CONSUMED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_DEFAULT_VALUE_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_HTTP_METHOD_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_MATRIX_PARAM_VALUE;
@@ -21,9 +22,7 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_PRODUCED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_QUERY_PARAM_VALUE;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.MatrixParam;
 import javax.ws.rs.Path;
@@ -43,20 +43,23 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.wst.validation.ValidatorMessage;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
-/** Base class for all elements in the JAX-RS Metamodel.
+/**
+ * Base class for all elements in the JAX-RS Metamodel.
  * 
  * @author xcoulon
  * 
  * @param <T>
- *            the underlying Java type managed by the JAX-RS ElementKind. */
-public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T> {
+ *            the underlying Java type managed by the JAX-RS ElementKind.
+ */
+public abstract class JaxrsElement<T extends IMember> {
 
 	/** The associated metamodel. */
 	private final JaxrsMetamodel metamodel;
@@ -67,28 +70,32 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 	/** Indicates if the underlying java element has compiltation errors. */
 	private boolean hasErrors;
 
-	/** Map of Annotations on the associated Java Element, indexed by the
-	 * annotation class name. */
+	/**
+	 * Map of Annotations on the associated Java Element, indexed by the
+	 * annotation class name.
+	 */
 	private final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
 
-	/** Full constructor.
+	/**
+	 * Full constructor.
 	 * 
 	 * @param model
 	 *            the associated metamodel
 	 * @param element
 	 *            the underlying java element
-	 * @throws InvalidModelElementException */
+	 */
 	public JaxrsElement(final T element, final Annotation annotation, final JaxrsMetamodel metamodel) {
 		this(element, Arrays.asList(annotation), metamodel);
 	}
 
-	/** Full constructor.
+	/**
+	 * Full constructor.
 	 * 
 	 * @param model
 	 *            the associated metamodel
 	 * @param element
 	 *            the underlying java element
-	 * @throws InvalidModelElementException */
+	 **/
 	public JaxrsElement(final T element, final List<Annotation> annotations, final JaxrsMetamodel metamodel) {
 		this.metamodel = metamodel;
 		this.javaElement = element;
@@ -99,32 +106,37 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 		}
 	}
 
+	public abstract EnumElementKind getElementKind();
+
+	public abstract EnumKind getKind();
+
 	Annotation getAnnotation(String className) {
 		return annotations.get(className);
 	}
 
 	/** @return the underlying java element */
-	@Override
 	public final T getJavaElement() {
 		return javaElement;
 	}
 
-	/** Sets a flag of whether the underlying java element has compilation errors
+	/**
+	 * Sets a flag of whether the underlying java element has compilation errors
 	 * or not.
 	 * 
 	 * @param h
-	 *            : true if the java element has errors, false otherwise */
+	 *            : true if the java element has errors, false otherwise
+	 */
 	public void hasErrors(final boolean h) {
 		this.hasErrors = h;
 	}
 
 	/** @return true if the java element has errors, false otherwise. */
-	@Override
 	public final boolean hasErrors() {
 		return hasErrors;
 	}
 
-	/** Returns the CompilationUnit (AST3/DOM) of the given java element.
+	/**
+	 * Returns the CompilationUnit (AST3/DOM) of the given java element.
 	 * 
 	 * @param element
 	 *            the java element
@@ -132,29 +144,29 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 	 *            the progress monitor
 	 * @return the compilation unit or null
 	 * @throws JavaModelException
-	 *             in case of underlying exception */
+	 *             in case of underlying exception
+	 */
 	final CompilationUnit getCompilationUnit(final IProgressMonitor progressMonitor) throws JavaModelException {
 		return JdtUtils.parse(javaElement, progressMonitor);
 	}
 
 	/** @return the metamodel */
-	@Override
 	public final JaxrsMetamodel getMetamodel() {
 		return metamodel;
 	}
 
-	@Override
-	public List<Annotation> getAnnotations() {
-		return Collections.unmodifiableList(new ArrayList<Annotation>(annotations.values()));
+	public Map<String, Annotation> getAnnotations() {
+		return annotations;
 	}
-	
+
 	IResource getResource() {
 		return this.javaElement.getResource();
 	}
 
-	@Override
 	public int addOrUpdateAnnotation(final Annotation annotation) {
-		assert annotation != null;
+		if (annotation == null) {
+			return 0;
+		}
 		boolean changed = false;
 		final EnumKind previousKind = getKind();
 		final String annotationName = annotation.getName();
@@ -171,6 +183,29 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 		return F_NONE;
 	}
 
+	public int mergeAnnotations(Map<String, Annotation> otherAnnotations) {
+		int flags = 0;
+		// keep values in the 'otherAnnotations' map
+		final Map<String, Annotation> addedAnnotations = CollectionUtils.difference(otherAnnotations, this.annotations);
+		// keep values in the 'this.annotations' map
+		final Map<String, Annotation> removedAnnotations = CollectionUtils.difference(this.annotations,
+				otherAnnotations);
+		// keep values in the 'otherAnnotations' map
+		final Map<String, Annotation> changedAnnotations = CollectionUtils.intersection(otherAnnotations,
+				this.annotations);
+
+		for (Entry<String, Annotation> entry : addedAnnotations.entrySet()) {
+			flags += this.addOrUpdateAnnotation(entry.getValue());
+		}
+		for (Entry<String, Annotation> entry : changedAnnotations.entrySet()) {
+			flags += this.addOrUpdateAnnotation(entry.getValue());
+		}
+		for (Entry<String, Annotation> entry : removedAnnotations.entrySet()) {
+			flags += this.removeAnnotation(entry.getValue());
+		}
+		return flags;
+	}
+
 	private int qualifyChange(final String annotationName, EnumKind previousKind) {
 		int flag = F_NONE;
 		final EnumKind currentKind = getKind();
@@ -184,6 +219,8 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 			flag = F_QUERY_PARAM_VALUE;
 		} else if (annotationName.equals(MatrixParam.class.getName())) {
 			flag = F_MATRIX_PARAM_VALUE;
+		} else if (annotationName.equals(DefaultValue.class.getName())) {
+			flag = F_DEFAULT_VALUE_VALUE;
 		} else if (annotationName.equals(Consumes.class.getName())) {
 			flag = F_CONSUMED_MEDIATYPES_VALUE;
 		} else if (annotationName.equals(Produces.class.getName())) {
@@ -203,7 +240,10 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 		return flag;
 	}
 
-	@Override
+	public int removeAnnotation(Annotation annotation) {
+		return removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
+	}
+
 	public int removeAnnotation(final String handleIdentifier) {
 		int flag = F_NONE;
 		for (Iterator<Entry<String, Annotation>> iterator = annotations.entrySet().iterator(); iterator.hasNext();) {
@@ -236,16 +276,56 @@ public abstract class JaxrsElement<T extends IMember> implements IJaxrsElement<T
 						}
 					}
 				}
-
 				final EnumKind currentKind = getKind();
 				if (currentKind != previousKind) {
 					flag += F_ELEMENT_KIND;
 				}
 				break;
 			}
-
 		}
 		return flag;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((javaElement == null) ? 0 : javaElement.getHandleIdentifier().hashCode());
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		JaxrsElement<?> other = (JaxrsElement<?>) obj;
+		if (javaElement == null) {
+			if (other.javaElement != null) {
+				return false;
+			}
+		} else if (!javaElement.getHandleIdentifier().equals(other.javaElement.getHandleIdentifier())) {
+			return false;
+		}
+		return true;
+	}
+
+	public abstract List<ValidatorMessage> validate();
 
 }

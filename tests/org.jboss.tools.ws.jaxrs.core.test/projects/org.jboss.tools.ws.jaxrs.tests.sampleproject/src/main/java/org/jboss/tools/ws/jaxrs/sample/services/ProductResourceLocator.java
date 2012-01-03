@@ -17,6 +17,7 @@ public class ProductResourceLocator {
 	private String foo;
 	
 	// no real usage, just for junit tests
+	@SuppressWarnings("unused")
 	@MatrixParam("bar") 
 	private String bar;
 	

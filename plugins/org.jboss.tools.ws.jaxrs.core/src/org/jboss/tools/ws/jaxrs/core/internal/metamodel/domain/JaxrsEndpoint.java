@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_CONSUMED_MEDIATYPES_VALUE;
@@ -19,14 +29,13 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
 public class JaxrsEndpoint implements IJaxrsEndpoint {
 
-	private final IJaxrsHttpMethod httpMethod;
+	private final JaxrsHttpMethod httpMethod;
 
-	private final LinkedList<IJaxrsResourceMethod> resourceMethods;
+	private final LinkedList<JaxrsResourceMethod> resourceMethods;
 
 	private String uriPathTemplate = null;
 
@@ -34,11 +43,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	private List<String> producedMediaTypes = null;
 
-	public JaxrsEndpoint(IJaxrsHttpMethod httpMethod, IJaxrsResourceMethod resourceMethod) {
-		this(httpMethod, new LinkedList<IJaxrsResourceMethod>(Arrays.asList(resourceMethod)));
+	public JaxrsEndpoint(JaxrsHttpMethod httpMethod, JaxrsResourceMethod resourceMethod) {
+		this(httpMethod, new LinkedList<JaxrsResourceMethod>(Arrays.asList(resourceMethod)));
 	}
 
-	public JaxrsEndpoint(IJaxrsHttpMethod httpMethod, LinkedList<IJaxrsResourceMethod> resourceMethods) {
+	public JaxrsEndpoint(JaxrsHttpMethod httpMethod, LinkedList<JaxrsResourceMethod> resourceMethods) {
 		this.httpMethod = httpMethod;
 		this.resourceMethods = resourceMethods;
 		refreshUriPathTemplate();
@@ -131,18 +140,18 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		return true;
 	}
 
-	/** Triggers a refresh when changes occurred on one or more elements
+	/**
+	 * Triggers a refresh when changes occurred on one or more elements
 	 * (HttpMethod and/or ResourcMethods) of the endpoint.
 	 * 
 	 * @return true if the endpoint is still valid, false otherwise (it should
-	 *         be removed from the metamodel) */
+	 *         be removed from the metamodel)
+	 */
 	public boolean refresh(IJaxrsResourceMethod changedResourceMethod, int flags) {
 		// check if the chain of resource methods still match
 		/*
 		 * if ((flags & F_ELEMENT_KIND) > 0 && changedResourceMethod.getKind()
-		 * == EnumKind.SUBRESOURCE_LOCATOR) {
-		 * return false;
-		 * }
+		 * == EnumKind.SUBRESOURCE_LOCATOR) { return false; }
 		 */
 		if ((flags & F_PATH_VALUE) > 0) {
 			refreshUriPathTemplate();
@@ -162,8 +171,8 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	}
 
 	private void refreshProducedMediaTypes() {
-		final IJaxrsResourceMethod resourceMethod = resourceMethods.getLast();
-		final IJaxrsResource resource = resourceMethod.getParentResource();
+		final JaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+		final JaxrsResource resource = resourceMethod.getParentResource();
 		if (resourceMethod.getProducedMediaTypes() != null) {
 			this.producedMediaTypes = resourceMethod.getProducedMediaTypes();
 		} else if (resourceMethod.getParentResource().getProducedMediaTypes() != null) {
@@ -174,8 +183,8 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	}
 
 	private void refreshConsumedMediaTypes() {
-		final IJaxrsResourceMethod resourceMethod = resourceMethods.getLast();
-		final IJaxrsResource resource = resourceMethod.getParentResource();
+		final JaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+		final JaxrsResource resource = resourceMethod.getParentResource();
 		if (resourceMethod.getConsumedMediaTypes() != null) {
 			this.consumedMediaTypes = resourceMethod.getConsumedMediaTypes();
 		} else if (resourceMethod.getParentResource().getConsumedMediaTypes() != null) {
@@ -188,7 +197,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	private void refreshUriPathTemplate() {
 		// compute the URI Path Template from the chain of Methods/Resources
 		StringBuilder uriPathTemplateBuilder = new StringBuilder();
-		for (IJaxrsResourceMethod resourceMethod : resourceMethods) {
+		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
 			if (resourceMethod.getParentResource().getPathTemplate() != null) {
 				uriPathTemplateBuilder.append("/").append(resourceMethod.getParentResource().getPathTemplate());
 			}
@@ -252,9 +261,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		return httpMethod;
 	}
 
-	/** Convenient method to check if this endpoint uses this HttpMethod.
+	/**
+	 * Convenient method to check if this endpoint uses this HttpMethod.
 	 * 
-	 * @return true if this endpoint's HttpMethod is the one given in parameter */
+	 * @return true if this endpoint's HttpMethod is the one given in parameter
+	 */
 	public boolean match(IJaxrsHttpMethod httpMethod) {
 		return this.httpMethod.equals(httpMethod);
 	}
@@ -262,13 +273,15 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	/** @return the resourceMethods */
 	@Override
 	public LinkedList<IJaxrsResourceMethod> getResourceMethods() {
-		return resourceMethods;
+		return new LinkedList<IJaxrsResourceMethod>(resourceMethods);
 	}
 
-	/** Convenient method to check if this endpoint uses this ResourceMethod.
+	/**
+	 * Convenient method to check if this endpoint uses this ResourceMethod.
 	 * 
 	 * @return true if this endpoint's ResourceMethod is the one given in
-	 *         parameter */
+	 *         parameter
+	 */
 	public boolean match(IJaxrsResourceMethod resourceMethod) {
 		return this.resourceMethods.contains(resourceMethod);
 	}

@@ -38,15 +38,16 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
 /** @author xcoulon */
-public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrsResourceMethod {
+public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implements IJaxrsResourceMethod {
 
 	private final JaxrsResource parentResource;
 
-	/** return type of the java javaMethod. Null if this is not a subresource
-	 * locator. */
+	/**
+	 * return type of the java javaMethod. Null if this is not a subresource
+	 * locator.
+	 */
 	private IType returnedJavaType = null;
 
 	private final List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
@@ -126,7 +127,8 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 
 	}
 
-	/** Full constructor.
+	/**
+	 * Full constructor.
 	 * 
 	 * @param annotations
 	 * @param returnedJavaType
@@ -135,11 +137,11 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 	 * @param javaMethodSignature
 	 * 
 	 * @throws CoreException
-	 * @throws InvalidModelElementException */
+	 */
 	private JaxrsResourceMethod(final IMethod javaMethod, final JaxrsResource parentResource,
 			List<JavaMethodParameter> javaMethodParameters, IType returnedJavaType, List<Annotation> annotations,
 			final JaxrsMetamodel metamodel) {
-		super(javaMethod, annotations, metamodel);
+		super(javaMethod, annotations, parentResource, metamodel);
 		this.parentResource = parentResource;
 		this.returnedJavaType = returnedJavaType;
 		if (javaMethodParameters != null) {
@@ -170,7 +172,6 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		return flag;
 	}
 
-	@Override
 	public IType getReturnType() {
 		return this.returnedJavaType;
 	}
@@ -186,14 +187,16 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		final List<String> pathParamValueProposals = getPathParamValueProposals();
 		for (JavaMethodParameter parameter : this.javaMethodParameters) {
 			final Annotation annotation = parameter.getAnnotation(PathParam.class.getName());
-			if(annotation != null) {
+			if (annotation != null) {
 				final String value = annotation.getValue("value");
-				if(!pathParamValueProposals.contains(value)) {
-					final ValidatorMessage message = ValidatorMessage.create("Invalid @PathParam value: expected " + pathParamValueProposals, this.getResource());
+				if (!pathParamValueProposals.contains(value)) {
+					final ValidatorMessage message = ValidatorMessage.create("Invalid @PathParam value: expected "
+							+ pathParamValueProposals, this.getResource());
 					message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
 					message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 					message.setAttribute(IMarker.CHAR_START, annotation.getRegion().getOffset());
-					message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset() + annotation.getRegion().getLength());
+					message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset()
+							+ annotation.getRegion().getLength());
 					messages.add(message);
 					Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(), message);
 				}
@@ -249,7 +252,6 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		return parentResource;
 	}
 
-	@Override
 	public Annotation getPathAnnotation() {
 		return getAnnotation(Path.class.getName());
 	}
@@ -263,7 +265,6 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		return pathAnnotation.getValue("value");
 	}
 
-	@Override
 	public Annotation getHttpMethodAnnotation() {
 		for (IJaxrsHttpMethod httpMethod : getMetamodel().getAllHttpMethods()) {
 			final Annotation annotation = getAnnotation(httpMethod.getJavaElement().getFullyQualifiedName());
@@ -283,7 +284,6 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		return httpMethodAnnotation.getValue("value");
 	}
 
-	@Override
 	public Annotation getConsumesAnnotation() {
 		return getAnnotation(Consumes.class.getName());
 	}
@@ -297,7 +297,6 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		return consumesAnnotation.getValues("value");
 	}
 
-	@Override
 	public Annotation getProducesAnnotation() {
 		return getAnnotation(Produces.class.getName());
 	}
@@ -328,48 +327,28 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 				+ getJavaElement().getElementName();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return getJavaElement().hashCode();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof JaxrsResourceMethod) {
-			return getJavaElement().equals(((JaxrsResourceMethod) obj).getJavaElement());
-		}
-		return false;
-	}
-
 	@Override
 	public List<String> getPathParamValueProposals() {
 		List<String> proposals = new ArrayList<String>();
 		final Annotation methodPathAnnotation = getPathAnnotation();
-		if(methodPathAnnotation != null) {
+		if (methodPathAnnotation != null) {
 			final String value = methodPathAnnotation.getValue("value");
 			proposals.addAll(extractParamsFromUriTemplateFragment(value));
 		}
 		final Annotation typePathAnnotation = getParentResource().getPathAnnotation();
-		if(typePathAnnotation != null) {
+		if (typePathAnnotation != null) {
 			final String value = typePathAnnotation.getValue("value");
 			proposals.addAll(extractParamsFromUriTemplateFragment(value));
 		}
 		return proposals;
 	}
-	
+
 	/**
-	 * Extracts all the character sequences inside of curly braces ('{' and '}') and returns them as a list of strings
-	 * @param value the given value
+	 * Extracts all the character sequences inside of curly braces ('{' and '}')
+	 * and returns them as a list of strings
+	 * 
+	 * @param value
+	 *            the given value
 	 * @return the list of character sequences, or an empty list
 	 */
 	private static List<String> extractParamsFromUriTemplateFragment(String value) {
@@ -383,6 +362,5 @@ public class JaxrsResourceMethod extends JaxrsElement<IMethod> implements IJaxrs
 		}
 		return params;
 	}
-
 
 }

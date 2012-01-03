@@ -16,10 +16,11 @@ import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
-/** Class to configure (add/remove) the JAX-RS Metamodel Builder on a
- * project.
+/**
+ * Class to configure (add/remove) the JAX-RS Metamodel Builder on a project.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class ProjectBuilderConfigurer implements IProjectNature {
 
 	/** the selected project. */

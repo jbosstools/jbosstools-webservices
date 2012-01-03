@@ -12,7 +12,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -23,38 +22,33 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
-/** From the spec : A resource class is a Java class that uses JAX-RS annotations
+/**
+ * From the spec : A resource class is a Java class that uses JAX-RS annotations
  * to implement a corresponding Web resource. Resource classes are POJOs that
  * have at least one method annotated with @Path or a request method designator.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource {
 
 	/** Optional Application. */
 	private final JaxrsApplication application = null;
 
-	// private Annotation pathAnnotation = null;
-
-	// private Annotation consumesAnnotation = null;
-
-	// private Annotation producesAnnotation = null;
-
-	private final Map<String, JaxrsParamField> paramFields = new HashMap<String, JaxrsParamField>();
+	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 
 	private final Map<String, JaxrsParamBeanProperty> paramBeanProperties = new HashMap<String, JaxrsParamBeanProperty>();
 
-	private final Map<String, IJaxrsResourceMethod> resourceMethods = new HashMap<String, IJaxrsResourceMethod>();
+	private final Map<String, JaxrsResourceMethod> resourceMethods = new HashMap<String, JaxrsResourceMethod>();
 
 	public static class Builder {
 		final IType javaType;
@@ -108,33 +102,20 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		return EnumElementKind.RESOURCE;
 	}
 
-	@Override
 	public final boolean isRootResource() {
 		return getKind() == EnumKind.ROOT_RESOURCE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource#isSubresource()
-	 */
-	@Override
 	public boolean isSubresource() {
 		return getKind() == EnumKind.SUBRESOURCE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#getKind()
-	 */
 	@Override
 	public final EnumKind getKind() {
 		final Annotation pathAnnotation = getAnnotation(Path.class.getName());
 		if (pathAnnotation != null) {
 			return EnumKind.ROOT_RESOURCE;
-		} else if (resourceMethods.size() > 0 || paramFields.size() > 0 || paramBeanProperties.size() > 0) {
+		} else if (resourceMethods.size() > 0 || resourceFields.size() > 0 || paramBeanProperties.size() > 0) {
 			return EnumKind.SUBRESOURCE;
 		}
 		return EnumKind.UNDEFINED;
@@ -150,20 +131,6 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		}
 	}
 
-	private static String computeKey(final IMethod method) throws JavaModelException {
-		StringBuffer key = new StringBuffer(method.getElementName()).append('(');
-		for (String parameterType : method.getParameterTypes()) {
-			key.append(parameterType);
-		}
-		return key.append(')').toString();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#getName()
-	 */
-	@Override
 	public final String getName() {
 		return getJavaElement().getElementName();
 	}
@@ -177,7 +144,6 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		return pathAnnotation.getValue("value");
 	}
 
-	@Override
 	public Annotation getPathAnnotation() {
 		final Annotation pathAnnotation = getAnnotation(Path.class.getName());
 		return pathAnnotation;
@@ -192,7 +158,6 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		return null;
 	}
 
-	@Override
 	public Annotation getConsumesAnnotation() {
 		final Annotation consumesAnnotation = getAnnotation(Consumes.class.getName());
 		return consumesAnnotation;
@@ -207,90 +172,22 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		return null;
 	}
 
-	@Override
 	public Annotation getProducesAnnotation() {
 		final Annotation producesAnnotation = getAnnotation(Produces.class.getName());
 		return producesAnnotation;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#getByJavaMethod
-	 * (org.eclipse.jdt.core.IMethod)
-	 */
-	@Override
-	public final IJaxrsResourceMethod getByJavaMethod(final IMethod javaMethod) throws JavaModelException {
-		return resourceMethods.get(computeKey(javaMethod));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#getApplication
-	 * ()
-	 */
-	@Override
 	public final IJaxrsApplication getApplication() {
 		return application;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#getResourceMethods
-	 * ()
-	 * 
-	 * @Override public final List<IJaxrsResourceMethod> getResourceMethods() {
-	 * return filterElementsByKind(EnumKind.RESOURCE_METHOD); }
-	 */
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#
-	 * getSubresourceMethods()
-	 */
-	@Override
-	public final List<IJaxrsResourceMethod> getSubresourceMethods() {
-		return filterElementsByKind(EnumKind.SUBRESOURCE_METHOD);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#
-	 * getSubresourceLocators()
-	 */
-	@Override
-	public final List<IJaxrsResourceMethod> getSubresourceLocators() {
-		return filterElementsByKind(EnumKind.SUBRESOURCE_LOCATOR);
-	}
-
-	private final List<IJaxrsResourceMethod> filterElementsByKind(EnumKind kind) {
-		List<IJaxrsResourceMethod> matches = new ArrayList<IJaxrsResourceMethod>();
-		for (Entry<String, IJaxrsResourceMethod> entry : this.resourceMethods.entrySet()) {
-			IJaxrsResourceMethod resource = entry.getValue();
-			if (resource.getKind() == kind) {
-				matches.add(resource);
-			}
-		}
-		return matches;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResource#getAllMethods
-	 * ()
-	 */
 	@Override
 	public final List<IJaxrsResourceMethod> getAllMethods() {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsResourceMethod>(resourceMethods.values()));
+	}
+
+	public final List<IJaxrsResourceField> getAllFields() {
+		return Collections.unmodifiableList(new ArrayList<IJaxrsResourceField>(resourceFields.values()));
 	}
 
 	@Override
@@ -298,15 +195,24 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		return new StringBuffer().append(getName()).append(" (root:").append(isRootResource()).append(") ").toString();
 	}
 
-	public void addField(JaxrsParamField field) {
-		this.paramFields.put(field.getJavaElement().getHandleIdentifier(), field);
+	public void addElement(JaxrsResourceElement<?> element) {
+		switch (element.getElementKind()) {
+		case RESOURCE_FIELD:
+			this.resourceFields.put(element.getJavaElement().getHandleIdentifier(), (JaxrsResourceField) element);
+			break;
+		case RESOURCE_METHOD:
+			this.resourceMethods.put(element.getJavaElement().getHandleIdentifier(), (JaxrsResourceMethod) element);
+			break;
+		default:
+			break;
+		}
 	}
 
-	public boolean removeField(JaxrsParamField field) {
-		return (this.paramFields.remove(field.getJavaElement().getHandleIdentifier()) != null);
+	public boolean removeField(IJaxrsResourceField resourceField) {
+		return (this.resourceFields.remove(resourceField.getJavaElement().getHandleIdentifier()) != null);
 	}
 
-	public void addMethod(IJaxrsResourceMethod method) {
+	public void addMethod(JaxrsResourceMethod method) {
 		this.resourceMethods.put(method.getJavaElement().getHandleIdentifier(), method);
 	}
 
@@ -314,21 +220,20 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 		return (this.resourceMethods.remove(method.getJavaElement().getHandleIdentifier()) != null);
 	}
 
-	public Collection<JaxrsParamField> getFields() {
-		return paramFields.values();
+	public Map<String, JaxrsResourceField> getFields() {
+		return resourceFields;
 	}
 
-	@Override
-	public List<IJaxrsResourceMethod> getResourceMethods() {
-		return new ArrayList<IJaxrsResourceMethod>(resourceMethods.values());
+	public Map<String, JaxrsResourceMethod> getMethods() {
+		return resourceMethods;
 	}
 
 	@Override
 	public List<ValidatorMessage> validate() {
 		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		// delegating the validation to the undelying resource methods 
-		for(Entry<String, IJaxrsResourceMethod> entry : resourceMethods.entrySet()) {
-			final IJaxrsResourceMethod resourceMethod = entry.getValue();
+		// delegating the validation to the undelying resource methods
+		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {
+			final JaxrsResourceMethod resourceMethod = entry.getValue();
 			messages.addAll(resourceMethod.validate());
 		}
 		return messages;

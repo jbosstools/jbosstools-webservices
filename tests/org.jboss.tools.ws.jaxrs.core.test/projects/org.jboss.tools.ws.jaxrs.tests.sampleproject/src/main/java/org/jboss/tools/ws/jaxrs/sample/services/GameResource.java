@@ -1,3 +1,4 @@
+
 package org.jboss.tools.ws.jaxrs.sample.services;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;

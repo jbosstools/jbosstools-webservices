@@ -11,6 +11,8 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_HTTP_METHOD_VALUE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -106,23 +108,23 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 	public List<ValidatorMessage> validate() {
 		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		final Annotation annotation = getHttpMethodAnnotation();
-		if(annotation == null) {
-			
+		if (annotation == null) {
+
 		} else {
 			final String httpValue = annotation.getValue("value");
-			if(httpValue == null || httpValue.isEmpty()) {
-				final ValidatorMessage message = ValidatorMessage.create("HTTP Verb should not be empty", getResource());
+			if (httpValue == null || httpValue.isEmpty()) {
+				final ValidatorMessage message = ValidatorMessage
+						.create("HTTP Verb should not be empty", getResource());
 				message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
 				message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 				message.setAttribute(IMarker.CHAR_START, annotation.getRegion().getOffset());
-				message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset() + annotation.getRegion().getLength());
+				message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset()
+						+ annotation.getRegion().getLength());
 				messages.add(message);
 			}
 		}
 		return messages;
 	}
-
-	
 
 	/*
 	 * (non-Javadoc)
@@ -138,15 +140,6 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 			return httpVerbAnnotation.getValue("value");
 		}
 		return null;
-	}
-
-	/**
-	 * @param httpVerb
-	 *            the httpVerb to set
-	 * @return
-	 */
-	public boolean setHttpMethodAnnotation(final Annotation httpVerbAnnotation) {
-		return getHttpMethodAnnotation().update(httpVerbAnnotation);
 	}
 
 	/** @return the httpVerbAnnotation */
@@ -177,46 +170,6 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 		return "HttpMethod [@" + getSimpleName() + ":" + getHttpMethodAnnotation() + "]";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public final int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((getJavaElement() == null) ? 0 : getJavaElement().hashCode());
-		return result;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public final boolean equals(final Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		JaxrsHttpMethod other = (JaxrsHttpMethod) obj;
-		if (getJavaElement() == null) {
-			if (other.getJavaElement() != null) {
-				return false;
-			}
-		} else if (!getJavaElement().equals(other.getJavaElement())) {
-			return false;
-		}
-		return true;
-	}
-
 	@Override
 	public final int compareTo(final IJaxrsHttpMethod other) {
 		if (this.getHttpVerb().equals(other.getHttpVerb())) {
@@ -233,6 +186,24 @@ public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMe
 			return EnumKind.HTTP_METHOD;
 		}
 		return EnumKind.UNDEFINED;
+	}
+
+	/**
+	 * Update this HttpMethod with the elements of the given httpMethod
+	 * 
+	 * @param httpMethod
+	 * @return the flags indicating the kind of changes that occurred during the
+	 *         update.
+	 */
+	public int update(JaxrsHttpMethod httpMethod) {
+		int flags = 0;
+		final Annotation annotation = this.getAnnotation(HttpMethod.class.getName());
+		final Annotation otherAnnotation = httpMethod.getAnnotation(HttpMethod.class.getName());
+		if (annotation != null && otherAnnotation != null && !annotation.equals(otherAnnotation)
+				&& annotation.update(otherAnnotation)) {
+			flags += F_HTTP_METHOD_VALUE;
+		}
+		return flags;
 	}
 
 }

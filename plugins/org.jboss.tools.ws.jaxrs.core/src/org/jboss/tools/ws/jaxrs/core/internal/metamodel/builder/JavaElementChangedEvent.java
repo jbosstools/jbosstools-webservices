@@ -1,8 +1,19 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
+
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
-import java.util.Arrays;
 import java.util.EventObject;
 
+import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IMember;
@@ -21,19 +32,25 @@ public class JavaElementChangedEvent extends EventObject {
 	/** generated serial version UID */
 	private static final long serialVersionUID = 8821221398378359798L;
 
-	public static final int[] NO_FLAG = new int[0];
+	public static final int NO_FLAG = 0;
+
+	/**
+	 * The original event type.
+	 * 
+	 * @see ElementChangedEvent.POST_CHANGE
+	 * @see ElementChangedEvent.POST_RECONCILE
+	 * 
+	 */
+	private final int eventType;
 
 	/** The java element that changed. */
 	private final IJavaElement element;
-
-	/** The (detailed) Java Element kind. */
-	private final int elementType;
 
 	/** The kind of change. */
 	private final int deltaKind;
 
 	/** Some flags to describe more precisely the kind of change. */
-	private final int[] flags;
+	private final int flags;
 
 	/**
 	 * the compilation unit AST retrieved from the change event, or null if the
@@ -59,11 +76,12 @@ public class JavaElementChangedEvent extends EventObject {
 	 *            the detailed kind of change.
 	 * @see IJavaElementDelta for element change kind values.
 	 */
-	public JavaElementChangedEvent(IJavaElement element, int deltaKind, CompilationUnit compilationUnitAST, int[] flags) {
+	public JavaElementChangedEvent(final IJavaElement element, final int deltaKind, final int eventType,
+			final CompilationUnit compilationUnitAST, final int flags) {
 		super(element);
 		this.element = element;
-		this.elementType = element.getElementType();
 		this.deltaKind = deltaKind;
+		this.eventType = eventType;
 		if (element instanceof IMember && deltaKind != IJavaElementDelta.REMOVED) {
 			assert compilationUnitAST != null;
 		}
@@ -79,17 +97,17 @@ public class JavaElementChangedEvent extends EventObject {
 	}
 
 	/**
-	 * @return the elementType
-	 */
-	public int getElementType() {
-		return elementType;
-	}
-
-	/**
 	 * @return the deltaKind
 	 */
 	public int getDeltaKind() {
 		return deltaKind;
+	}
+
+	/**
+	 * @return the eventType
+	 */
+	public int getEventType() {
+		return eventType;
 	}
 
 	/**
@@ -102,7 +120,7 @@ public class JavaElementChangedEvent extends EventObject {
 	/**
 	 * @return the flags
 	 */
-	public int[] getFlags() {
+	public int getFlags() {
 		return flags;
 	}
 
@@ -113,9 +131,10 @@ public class JavaElementChangedEvent extends EventObject {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder("JavaElementChangedEvent [").append(ConstantUtils.getStaticFieldName(
-				IJavaElement.class, elementType));
-		result.append(" '").append(element.getElementName()).append("' ");
+		StringBuilder result = new StringBuilder("JavaElementChangedEvent ").append("[")
+				.append(ConstantUtils.getStaticFieldName(ElementChangedEvent.class, eventType)).append("] ")
+				.append(ConstantUtils.getStaticFieldName(IJavaElement.class, element.getElementType())).append(" '")
+				.append(element.getElementName()).append("' ");
 		if (JdtUtils.isWorkingCopy(element)) {
 			result.append(" [*working copy*]");
 		}
@@ -125,15 +144,19 @@ public class JavaElementChangedEvent extends EventObject {
 			result.append("[*without* AST] ");
 		}
 		result.append(ConstantUtils.getStaticFieldName(IJavaElementDeltaFlag.class, deltaKind).toLowerCase());
-		if (flags.length > 0) {
+		if (flags > 0) {
+			int[] f = ConstantUtils.splitConstants(IJavaElementDeltaFlag.class, flags, "F_"); //$NON-NLS-1$
 			result.append(":{");
-			for (int i = 0; i < flags.length; i++) {
-				result.append(ConstantUtils.getStaticFieldName(IJavaElementDeltaFlag.class, flags[i], "F_"));
-				if (i < flags.length - 1) {
+
+			for (int i = 0; i < f.length; i++) {
+				result.append(ConstantUtils.getStaticFieldName(IJavaElementDeltaFlag.class, f[i], "F_"));
+				if (i < f.length - 1) {
 					result.append("+");
 				}
 			}
 			result.append("}");
+		} else {
+			result.append(":{no flag}");
 		}
 		result.append("]");
 		return result.toString();
@@ -149,9 +172,9 @@ public class JavaElementChangedEvent extends EventObject {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + deltaKind;
-		result = prime * result + ((element == null) ? 0 : element.hashCode());
-		result = prime * result + elementType;
-		result = prime * result + Arrays.hashCode(flags);
+		result = prime * result + eventType;
+		result = prime * result + ((element == null) ? 0 : element.getHandleIdentifier().hashCode());
+		result = prime * result + flags;
 		return result;
 	}
 
@@ -162,29 +185,33 @@ public class JavaElementChangedEvent extends EventObject {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
-		JavaElementChangedEvent other = (JavaElementChangedEvent) obj;
-		if (deltaKind != other.deltaKind)
+		}
+		final JavaElementChangedEvent other = (JavaElementChangedEvent) obj;
+		if (deltaKind != other.deltaKind) {
 			return false;
-		if (element == null)
-			if (other.element != null)
-				return false;
-			else if (element.getElementType() != other.element.getElementType()
-					|| !element.getElementName().equals(other.element.getElementName()))
-				return false;
-		if (elementType != other.elementType)
+		}
+		if (eventType != other.eventType) {
 			return false;
-		/*
-		 * if (compilationUnitAST == null) if (other.compilationUnitAST != null)
-		 * return false;
-		 */
-		if (!Arrays.equals(flags, other.flags))
+		}
+		if (this.element == null) {
 			return false;
+		} else if (this.element != null && other.element == null) {
+			return false;
+		} else if (this.element != null && other.element != null
+				&& !element.getHandleIdentifier().equals(other.element.getHandleIdentifier())) {
+			return false;
+		}
+		if (flags != other.flags) {
+			return false;
+		}
 		return true;
 	}
 }

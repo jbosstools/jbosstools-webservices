@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
@@ -29,10 +28,9 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpointChangedEvent;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.core.pubsub.EventService;
 import org.jboss.tools.ws.jaxrs.core.pubsub.Subscriber;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
@@ -61,9 +59,8 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 			IProject project = (IProject) parentElement;
 			try {
 				if (!uriPathTemplateCategories.containsKey(project)) {
-					IJaxrsMetamodel jaxrsMetamodel = JaxrsMetamodel.get(project);
-					if (jaxrsMetamodel == null) {
-						Logger.debug("Metamodel needs to be built for project '" + project.getName() + "'");
+					if (JaxrsMetamodelLocator.get(project) == null) {
+						Logger.debug("JAX-RS Metamodel needs to be built for project '" + project.getName() + "'");
 						Job buildJob = CoreUtility.getBuildJob(project);
 						buildJob.setRule(ResourcesPlugin.getWorkspace().getRoot());
 						// be notified when job is done to refresh navigator
@@ -77,8 +74,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 						buildJob.schedule();
 						return new Object[] { new WaitWhileBuildingElement() };
 					}
-					UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, jaxrsMetamodel,
-							project);
+					UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
 					uriPathTemplateCategories.put(project, uriPathTemplateCategory);
 				}
 				return new Object[] { uriPathTemplateCategories.get(project) };
@@ -125,10 +121,8 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 	}
 
 	/*
-	 * @Override
-	 * public void resourceChanged(IResourceChangeEvent event) {
-	 * refreshChangedProjects(event.getDelta());
-	 * }
+	 * @Override public void resourceChanged(IResourceChangeEvent event) {
+	 * refreshChangedProjects(event.getDelta()); }
 	 */
 
 	@Override
@@ -137,19 +131,6 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 			final IJaxrsEndpointChangedEvent change = (IJaxrsEndpointChangedEvent) event;
 			final IJaxrsEndpoint endpoint = change.getEndpoint();
 			refreshContent(endpoint.getJavaProject().getProject());
-		}
-	}
-
-	// TODO : register custom listener/event to metamodel to avoid refreshes for
-	// any kind of changes
-	private void refreshChangedProjects(IResourceDelta delta) {
-		if (delta.getResource() instanceof IProject) {
-			Logger.debug("Refreshing after project change");
-			refreshContent((IProject) delta.getResource());
-			return;
-		}
-		for (IResourceDelta childDelta : delta.getAffectedChildren()) {
-			refreshChangedProjects(childDelta);
 		}
 	}
 

@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import java.util.List;
@@ -13,11 +23,12 @@ import org.eclipse.wst.validation.ValidationResult;
 import org.eclipse.wst.validation.ValidationState;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
 public class JaxrsMetamodelValidator extends AbstractValidator {
 
@@ -37,13 +48,14 @@ public class JaxrsMetamodelValidator extends AbstractValidator {
 			subMonitor.beginTask("Validating the JAX-RS Metamodel", 1);
 			if (resource.getType() == IResource.FILE && "java".equals(resource.getFileExtension())) {
 				clearMarkers((IFile) resource);
-				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodel.get(resource.getProject());
+				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(resource.getProject());
 				if (jaxrsMetamodel == null) {
 					return validationResult;
 				}
-				IJaxrsElement<?> element = jaxrsMetamodel.getElement(JdtUtils.getCompilationUnit(resource));
+				JaxrsElement<?> element = jaxrsMetamodel.getElement(JdtUtils.getCompilationUnit(resource));
 				if (element != null) {
-					Logger.debug("Validating the JAX-RS Metamodel after {} was {}", resource.getName(), ConstantUtils.getStaticFieldName(IResourceDelta.class, kind));
+					Logger.debug("Validating the JAX-RS Metamodel after {} was {}", resource.getName(),
+							ConstantUtils.getStaticFieldName(IResourceDelta.class, kind));
 					List<ValidatorMessage> validationMessages = element.validate();
 					for (ValidatorMessage validationMessage : validationMessages) {
 						validationResult.add(validationMessage);

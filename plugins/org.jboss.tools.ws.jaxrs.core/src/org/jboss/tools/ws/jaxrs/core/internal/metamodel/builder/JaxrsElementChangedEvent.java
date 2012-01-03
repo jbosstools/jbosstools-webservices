@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
@@ -9,57 +19,67 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 
 public class JaxrsElementChangedEvent extends EventObject {
 
 	/** serialVersionUID */
 	private static final long serialVersionUID = -1674380823340833954L;
 
-	private final IJaxrsElement<?> element;
+	private final JaxrsElement<?> element;
 
 	private final int deltaKind;
 
 	private final int flags;
 
+	/** No change. */
 	public static final int F_NONE = 0;
 
-	public static final int F_ELEMENT_KIND = 1;
+	/** Meaning that the change occurred at a finer level. */
+	public static final int F_FINE_GRAINED = 1;
 
-	public static final int F_PATH_VALUE = 2;
+	public static final int F_ELEMENT_KIND = 2;
 
-	public static final int F_HTTP_METHOD_VALUE = 4;
+	public static final int F_PATH_VALUE = 4;
 
-	public static final int F_PATH_PARAM_VALUE = 8;
+	public static final int F_HTTP_METHOD_VALUE = 8;
 
-	public static final int F_QUERY_PARAM_VALUE = 16;
+	public static final int F_PATH_PARAM_VALUE = 16;
 
-	public static final int F_MATRIX_PARAM_VALUE = 32;
+	public static final int F_QUERY_PARAM_VALUE = 32;
 
-	public static final int F_CONSUMED_MEDIATYPES_VALUE = 64;
+	public static final int F_MATRIX_PARAM_VALUE = 64;
 
-	public static final int F_PRODUCED_MEDIATYPES_VALUE = 128;
+	public static final int F_DEFAULT_VALUE_VALUE = 128;
 
-	public static final int F_METHOD_PARAMETERS = 256;
+	public static final int F_CONSUMED_MEDIATYPES_VALUE = 256;
 
-	public static final int F_METHOD_RETURN_TYPE = 512;
+	public static final int F_PRODUCED_MEDIATYPES_VALUE = 512;
 
-	/** Full constructor.
-	 * 
-	 * @param element
-	 * @param deltaKind */
-	public JaxrsElementChangedEvent(IJaxrsElement<?> element, int deltaKind) {
-		this(element, deltaKind, 0);
-	}
+	public static final int F_METHOD_PARAMETERS = 1024;
 
-	/** Full constructor.
+	public static final int F_METHOD_RETURN_TYPE = 2048;
+
+	/**
+	 * Full constructor.
 	 * 
 	 * @param element
 	 * @param deltaKind
-	 * @param flags */
-	public JaxrsElementChangedEvent(IJaxrsElement<?> element, int deltaKind, int flags) {
+	 */
+	public JaxrsElementChangedEvent(JaxrsElement<?> element, int deltaKind) {
+		this(element, deltaKind, 0);
+	}
+
+	/**
+	 * Full constructor.
+	 * 
+	 * @param element
+	 * @param deltaKind
+	 * @param flags
+	 */
+	public JaxrsElementChangedEvent(JaxrsElement<?> element, int deltaKind, int flags) {
 		super(element);
 		this.element = element;
 		this.deltaKind = deltaKind;
@@ -70,7 +90,7 @@ public class JaxrsElementChangedEvent extends EventObject {
 	}
 
 	/** @return the element */
-	public IJaxrsElement<?> getElement() {
+	public JaxrsElement<?> getElement() {
 		return element;
 	}
 
@@ -84,16 +104,17 @@ public class JaxrsElementChangedEvent extends EventObject {
 		return flags;
 	}
 
-	/** {@inheritDoc} (non-Javadoc)
+	/**
+	 * {@inheritDoc} (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString() */
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		s.append("JaxrsElementChange: [")
-				.append(ConstantUtils.toCamelCase(element.getElementKind().toString()))
-				.append(" ").append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind))
-				.append("] ").append(element.getJavaElement().getElementName());
+		s.append("JaxrsElementChange: [").append(ConstantUtils.toCamelCase(element.getElementKind().toString()))
+				.append(" ").append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind)).append("] ")
+				.append(element.getJavaElement().getElementName());
 
 		try {
 			if (flags != F_NONE) {
@@ -120,4 +141,5 @@ public class JaxrsElementChangedEvent extends EventObject {
 
 		return s.toString();
 	}
+
 }

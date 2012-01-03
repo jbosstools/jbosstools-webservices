@@ -21,6 +21,7 @@ import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,10 +40,10 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 		// "2.5" as it triggers NPE (see Bugzilla 317766 at eclipse.org)
 		// ProjectFacetUtils.installFacet(project, "jst.jaxrs");
 		ProjectNatureUtils.installProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
-		WorkbenchUtils.setAutoBuild(ResourcesPlugin.getWorkspace(), false);
+		// WorkbenchUtils.setAutoBuild(ResourcesPlugin.getWorkspace(), false);
 		// project.build(FULL_BUILD, new NullProgressMonitor());
 		WorkbenchTasks.buildProject(project, new NullProgressMonitor());
-		metamodel = JaxrsMetamodel.get(project);
+		metamodel = JaxrsMetamodelLocator.get(project);
 	}
 
 	@After
@@ -55,7 +56,7 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 	protected IJaxrsMetamodel buildMetamodel(int mode) throws CoreException {
 		LOGGER.info("Building metamodel (mode=" + mode + ")");
 		javaProject.getProject().build(mode, new NullProgressMonitor());
-		JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodel.get(javaProject.getProject());
+		JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(javaProject.getProject());
 		Assert.assertNotNull("Metamodel not built", jaxrsMetamodel);
 		return jaxrsMetamodel;
 	}

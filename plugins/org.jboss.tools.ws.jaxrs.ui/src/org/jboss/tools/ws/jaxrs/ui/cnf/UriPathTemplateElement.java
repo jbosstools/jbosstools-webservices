@@ -43,6 +43,10 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 		return elements.toArray();
 	}
 
+	public void refresh(IJaxrsEndpoint endpoint2) {
+		// TODO Auto-generated method stub
+		
+	}
 	@Override
 	public Object getParent(Object element) {
 		return uriPathTemplateCategory;
@@ -119,6 +123,14 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 		} else if (!endpoint.equals(other.endpoint))
 			return false;
 		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "UriPathTemplateElement [endpoint=" + endpoint + "]";
 	}
 
 }

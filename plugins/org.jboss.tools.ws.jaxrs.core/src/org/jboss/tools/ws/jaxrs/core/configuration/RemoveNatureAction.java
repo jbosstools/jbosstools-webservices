@@ -22,8 +22,9 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
  * Action to remove the JAXRS Nature from a selected project.
+ * 
  * @author xcoulon
- *
+ * 
  */
 public class RemoveNatureAction implements IObjectActionDelegate {
 
@@ -37,8 +38,9 @@ public class RemoveNatureAction implements IObjectActionDelegate {
 	public final void run(final IAction action) {
 		try {
 			if (selection instanceof IStructuredSelection) {
-				ProjectNatureUtils.uninstallProjectNature((IProject) ((IStructuredSelection) selection).getFirstElement(),
-					ProjectNatureUtils.JAXRS_NATURE_ID);
+				ProjectNatureUtils.uninstallProjectNature(
+						(IProject) ((IStructuredSelection) selection).getFirstElement(),
+						ProjectNatureUtils.JAXRS_NATURE_ID);
 			} else {
 				Logger.error("Can't 'Remove JAX-RS 1.1 support' on selection of type " + selection.getClass().getName());
 			}

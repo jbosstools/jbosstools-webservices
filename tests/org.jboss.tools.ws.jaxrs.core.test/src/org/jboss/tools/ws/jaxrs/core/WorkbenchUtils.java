@@ -595,7 +595,7 @@ public class WorkbenchUtils {
 
 					@Override
 					public void acceptProblem(IProblem problem) {
-						LOGGER.debug("Reporting problem: {}", problem);
+						//LOGGER.debug("Reporting problem: {} on {}", problem, new String(problem.getOriginatingFileName()));
 
 					}
 				};
@@ -657,6 +657,14 @@ public class WorkbenchUtils {
 		// saveAndClose(compilationUnit);
 	}
 
+	public static void delete(IAnnotation annotation, boolean useWorkingCopy) throws CoreException {
+		final IMember parent = (IMember) annotation.getParent();
+		ICompilationUnit unit = getCompilationUnit(parent.getCompilationUnit(), useWorkingCopy);
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		final ISourceRange sourceRange = annotation.getSourceRange();
+		buffer.replace(sourceRange.getOffset(), sourceRange.getLength(), ""); 
+		saveAndClose(unit);
+	}
 	/*
 	 * public static CompilationUnitEditor getCompilationUnitEditor(IFile file)
 	 * throws PartInitException { IEditorPart editorPart = null;
@@ -668,9 +676,9 @@ public class WorkbenchUtils {
 	 * editorPart; }
 	 */
 
-	public static void delete(IType type) throws JavaModelException {
-		ICompilationUnit compilationUnit = type.getCompilationUnit();
-		type.delete(true, new NullProgressMonitor());
+	public static void delete(IMember element) throws JavaModelException {
+		ICompilationUnit compilationUnit = element.getCompilationUnit();
+		element.delete(true, new NullProgressMonitor());
 		saveAndClose(compilationUnit);
 	}
 
@@ -838,5 +846,6 @@ public class WorkbenchUtils {
 	public static IType getType(String typeName, IJavaProject javaProject) throws CoreException {
 		return JdtUtils.resolveType(typeName, javaProject, null);
 	}
+
 
 }

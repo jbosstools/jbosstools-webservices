@@ -1,24 +1,33 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import static org.eclipse.core.resources.IResourceDelta.REMOVED;
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_CHANGE;
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_RECONCILE;
+import static org.eclipse.jdt.core.IJavaElement.ANNOTATION;
 import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
-import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
 import static org.eclipse.jdt.core.IJavaElement.METHOD;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_PRIMARY_RESOURCE;
-import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import junit.framework.Assert;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -27,22 +36,17 @@ import org.junit.Test;
 
 public class JavaElementChangedEventFilterTestCase {
 
-	private static final int[] NO_FLAG = new int[0];
+	private final int NO_FLAG = 0;
 	private final JavaElementChangedEventFilter filter = new JavaElementChangedEventFilter();
 	private ICompilationUnit workingCopy;
 	private ICompilationUnit primaryCopy;
 
-	private static JavaElementChangedEvent createEvent(IJavaElement element, int deltaKind) {
-		return new JavaElementChangedEvent(element, deltaKind, null, NO_FLAG);
+	private static JavaElementChangedEvent createEvent(IJavaElement element, int deltaKind, int eventType, int flags) {
+		return new JavaElementChangedEvent(element, deltaKind, eventType, null, flags);
 	}
 
-	private static JavaElementChangedEvent createEvent(IJavaElement element, int deltaKind, int... flags) {
-		return new JavaElementChangedEvent(element, deltaKind, null, flags);
-	}
-
-	private static <T extends IMember> T createMock(Class<T> type, int elementType, ICompilationUnit compilationUnit) {
+	private static <T extends IJavaElement> T createMock(Class<T> type, int elementType, ICompilationUnit compilationUnit) {
 		final T mock = mock(type);
-		when(mock.getCompilationUnit()).thenReturn(compilationUnit);
 		when(mock.getElementType()).thenReturn(elementType);
 		return mock;
 	}
@@ -60,71 +64,41 @@ public class JavaElementChangedEventFilterTestCase {
 	}
 
 	@Test
-	public void shouldAcceptInAnyCompilationUnitCopyContext() throws JavaModelException {
+	public void shouldAcceptAnyChangeEvent() throws JavaModelException {
+		assertTrue("Wrong result", filter.apply(createEvent(workingCopy, REMOVED, POST_RECONCILE, NO_FLAG)));
+		assertTrue("Wrong result", filter.apply(createEvent(primaryCopy, REMOVED, POST_RECONCILE, NO_FLAG)));
+	}
+	
+	@Test
+	public void shouldAcceptPostChangeEventOnly() throws JavaModelException {
 		IJavaElement element = createMock(IType.class, TYPE, workingCopy);
-		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
+		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
 	}
 
 	@Test
-	public void shouldNotAcceptInAnyCompilationUnitCopyContext() throws JavaModelException {
-		IJavaElement element = createMock(IType.class, TYPE, workingCopy);
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED)));
-	}
-
-	@Test
-	public void shouldAcceptInCompilationUnitWorkingCopyContext() throws JavaModelException {
-		IJavaElement element = createMock(IMethod.class, METHOD, workingCopy);
-		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED)));
-	}
-
-	@Test
-	public void shouldNotAcceptInCompilationUnitWorkingCopyContext() throws JavaModelException {
-		IJavaElement element = createMock(IMethod.class, METHOD);
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED)));
-	}
-
-	@Test
-	public void shouldAcceptInCompilationUnitPrimaryCopyContext() throws JavaModelException {
-		IJavaElement element = primaryCopy; // , COMPILATION_UNIT
-		assertTrue("Wrong result", filter.apply(createEvent(element, REMOVED)));
-	}
-
-	@Test
-	public void shouldNotAcceptInCompilationUnitPrimaryCopyContext() throws JavaModelException {
-		IJavaElement element = workingCopy;// , COMPILATION_UNIT
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED)));
-	}
-
-	@Test
-	public void shouldNotAcceptUnsupportedElementKind() throws JavaModelException {
-		IJavaElement element = createMock(IJavaProject.class, JAVA_PROJECT);
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED)));
+	public void shouldAcceptPostReconcileEventOnly() throws JavaModelException {
+		IJavaElement element = createMock(IType.class, ANNOTATION, workingCopy);
+		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
 	}
 
 	@Test
 	public void shouldAcceptWithValidFlags() throws JavaModelException {
 		IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
-		assertTrue("Wrong result", filter.apply(createEvent(element, CHANGED, F_CONTENT, F_PRIMARY_RESOURCE)));
+		assertTrue("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, F_PRIMARY_RESOURCE + F_CONTENT)));
 	}
 
 	@Test
 	public void shouldNotAcceptWithIncompleteFlags() throws JavaModelException {
 		IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, F_CONTENT)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, F_CONTENT)));
 	}
 
 	@Test
 	public void shouldNotAcceptWithMissingFlags() throws JavaModelException {
 		IJavaElement element = createMock(IMethod.class, METHOD);
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED)));
-	}
-
-	@Test
-	public void shouldMatchHashCodesAndEquals() {
-		JavaElementChangedEventFilter filter1 = new JavaElementChangedEventFilter();
-		JavaElementChangedEventFilter filter2 = new JavaElementChangedEventFilter();
-		Assert.assertEquals(filter1, filter2);
-		Assert.assertEquals(filter1.hashCode(), filter2.hashCode());
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
 	}
 
 }

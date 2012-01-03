@@ -11,32 +11,40 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
-import java.lang.reflect.Field;
+import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
-import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
-/** The JAX-RS Metamodel builder. Invoked when a full build or an incremental
+/**
+ * The JAX-RS Metamodel builder. Invoked when a full build or an incremental
  * build is triggered on a project on which the JAX-RS nature is installed.
  * 
  * This builder is responsible of the creation and update of the JAX-RS
  * Metamodel which is kept in the project's session properties.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 
-	/** The number of steps to fully build the JAX-RS Metamodel. */
-	private static final int FULL_BUILD_STEPS = 100;
+	public static final int SCALE = 10;
 
 	/** The standard 'Java type' marker type. */
 	public static final String JAVA_PROBLEM = "org.eclipse.jdt.core.problem";
@@ -55,33 +63,31 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	protected final IProject[] build(final int kind, @SuppressWarnings("rawtypes") final Map args,
 			final IProgressMonitor monitor) throws CoreException {
 		IProject project = getProject();
-		if (!ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID)) {
-			Logger.warn("Project '" + project.getName() + "' is not a JAX-RS project.");
-			return null;
-		}
+		// if (!ProjectNatureUtils.isProjectNatureInstalled(project,
+		// ProjectNatureUtils.JAXRS_NATURE_ID)) {
+		// Logger.warn("Project '" + project.getName() +
+		// "' is not a JAX-RS project.");
+		// return null;
+		// }
 		logBuild(kind, args, project);
 		switch (kind) {
 		case CLEAN_BUILD:
 		case FULL_BUILD:
-			build(project, true, monitor);
-			break;
 		case AUTO_BUILD:
 		case INCREMENTAL_BUILD:
-			//if (JaxrsMetamodel.get(getProject()) == null) {
-				build(getProject(), false, monitor);
-			//}
-			break;
-		default:
+			build(kind, project, monitor);
 			break;
 		}
-		return null;
+		return new IProject[] { project };
 	}
 
-	/** Checks if the running operation was cancelled by the user, as reported by
+	/**
+	 * Checks if the running operation was cancelled by the user, as reported by
 	 * the progress monitor.
 	 * 
 	 * @param monitor
-	 *            the progress monitor. */
+	 *            the progress monitor.
+	 */
 	// @see http://www.eclipse.org/articles/Article-Builders/builders.html
 	protected final void checkCancel(final IProgressMonitor monitor) {
 		if (monitor.isCanceled()) {
@@ -90,70 +96,80 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	
-
-	/** Performs a full build of the project's JAX-RS Metamodel. This method has
+	/**
+	 * Performs a full build of the project's JAX-RS Metamodel. This method has
 	 * a public visibility so that it can be called from other components
 	 * 
 	 * @param project
 	 *            the project
-	 * @param monitor
-	 *            the progress monitor */
-	private void build(final IProject project, final boolean requiresReset, final IProgressMonitor monitor) {
+	 * @param progressMonitor
+	 *            the progress monitor
+	 */
+	private void build(final int kind, final IProject project, final IProgressMonitor progressMonitor) {
 		long startTime = new Date().getTime();
 		try {
-			monitor.beginTask("Building JAX-RS metamodel...", FULL_BUILD_STEPS);
-			JaxrsMetamodelBuildJob buildJob = new JaxrsMetamodelBuildJob(project, requiresReset);
-			buildJob.schedule();
-			// wait until the job is finished
-			buildJob.join();
-		} catch (InterruptedException e) {
-			Logger.error("Error while building the JAX-RS Metamodel for project " + project.getName(), e);
+			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE + 1);
+			Logger.debug("Building JAX-RS Metamodel for project {}...", project.getName());
+			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			// if necessary (ie, the first time), initialize a new JAX-RS
+			// Metamodel for the given project
+			if (metamodel == null) {
+				JaxrsMetamodel.create(JavaCore.create(project));
+			} else if (kind == FULL_BUILD || kind == CLEAN_BUILD) {
+				metamodel.reset();
+			}
+			progressMonitor.worked(1);
+			final IResourceDelta delta = getDelta(project);
+			final List<ResourceChangedEvent> events = new ArrayList<ResourceChangedEvent>();
+			if (delta != null && metamodel != null) {
+				events.addAll(new ResourceChangedEventScanner().scanAndFilterEvent(delta, new SubProgressMonitor(
+						progressMonitor, SCALE)));
+			} else {
+				events.add(new ResourceChangedEvent(project, CHANGED, 0));
+			}
+			progressMonitor.worked(SCALE);
+			final List<JaxrsElementChangedEvent> jaxrsElementChanges = new ResourceChangedProcessor().processEvents(
+					events, new SubProgressMonitor(progressMonitor, SCALE));
+			progressMonitor.worked(SCALE);
+			final List<JaxrsEndpointChangedEvent> jaxrsEndpointChanges = new JaxrsElementChangedProcessor()
+					.processEvents(jaxrsElementChanges, new SubProgressMonitor(progressMonitor, SCALE));
+			progressMonitor.worked(SCALE);
+			new JaxrsElementChangedPublisher().publish(jaxrsEndpointChanges, new SubProgressMonitor(progressMonitor,
+					SCALE));
+			progressMonitor.worked(SCALE);
 		} catch (CoreException e) {
 			Logger.error("Error while building the JAX-RS Metamodel for project " + project.getName(), e);
 		} finally {
 			long endTime = new Date().getTime();
-			Logger.debug("JAX-RS Metamodel for project '" + project.getName() + "' fully built in "
-					+ (endTime - startTime) + "ms.");
-			monitor.done();
+			Logger.debug("JAX-RS Metamodel for project '{}' fully built in {} ms.", project.getName(),
+					(endTime - startTime));
+			try {
+				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+				Logger.debug(
+						"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
+						project.getName(), metamodel.getAllHttpMethods().size(), metamodel.getAllResources().size(),
+						metamodel.getAllEndpoints().size());
+			} catch (Throwable e) {
+				// debug level since the purpose was to display a debug message
+				Logger.debug("Error occurred: {}", e);
+			}
+			progressMonitor.done();
 		}
 	}
 
-	/** Trace the kind of build in the log.
+	/**
+	 * Trace the kind of build in the log.
 	 * 
 	 * @param kind
 	 *            the build kind
 	 * @param args
 	 * @param project
-	 *            the project being built */
+	 *            the project being built
+	 */
 	private void logBuild(final int kind, @SuppressWarnings("rawtypes") final Map args, final IProject project) {
-		StringBuilder sb = new StringBuilder("'");
-		for (Field field : IncrementalProjectBuilder.class.getDeclaredFields()) {
-			String name = field.getName();
-			int value;
-			try {
-				value = field.getInt(this);
-				if (value == kind) {
-					sb.append(name.toLowerCase().replace('_', ' '));
-				}
-			} catch (IllegalArgumentException e) {
-				sb.append("*Unknow build*");
-			} catch (IllegalAccessException e) {
-				sb.append("*Unknow build*");
-			}
-		}
+		StringBuilder sb = new StringBuilder("JAX-RS Builder called after '");
+		sb.append(ConstantUtils.getStaticFieldName(IncrementalProjectBuilder.class, kind));
 		sb.append("' on project ").append(project.getName());
-		if (args != null && !args.isEmpty()) {
-			sb.append(" (");
-			for (Iterator<?> iterator = args.keySet().iterator(); iterator.hasNext();) {
-				Object key = iterator.next();
-				sb.append(key).append("=").append(args.get(key));
-				if (iterator.hasNext()) {
-					sb.append(", ");
-				}
-			}
-			sb.append(")");
-		}
 		Logger.debug(sb.toString());
 	}
 

@@ -13,21 +13,19 @@ package org.jboss.tools.ws.jaxrs.ui.cnf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 public class UriPathTemplateCategory implements ITreeContentProvider {
-
-	private final IJaxrsMetamodel metamodel;
 
 	private final IProject project;
 
@@ -35,35 +33,37 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 
 	private final Map<IJaxrsEndpoint, UriPathTemplateElement> wrapperCache = new HashMap<IJaxrsEndpoint, UriPathTemplateElement>();
 
-	public UriPathTemplateCategory(UriMappingsContentProvider parent, IJaxrsMetamodel metamodel, IProject project) {
+	public UriPathTemplateCategory(UriMappingsContentProvider parent, IProject project) {
 		super();
 		this.parent = parent;
-		this.metamodel = metamodel;
 		this.project = project;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public Object[] getChildren(Object parentElement) {
-		if (metamodel == null) {
-			return new Object[0];
-		}
-		List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
-		List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
-		// Collections.sort(uriMappings);
-		for (IJaxrsEndpoint endpoint : endpoints) {
-			UriPathTemplateElement element = wrapperCache.get(endpoint);
-			LinkedList<IJaxrsResourceMethod> resourceMethods = endpoint.getResourceMethods();
-			if (element == null || !element.getLastMethod().equals(resourceMethods.getLast())) {
-				element = new UriPathTemplateElement(endpoint, this);
-				wrapperCache.put(endpoint, element);
+		try {
+			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			if (metamodel != null) {
+				List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
+				List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
+				// Collections.sort(uriMappings);
+				for (IJaxrsEndpoint endpoint : endpoints) {
+					UriPathTemplateElement element = wrapperCache.get(endpoint);
+					// LinkedList<IJaxrsResourceMethod> resourceMethods =
+					// endpoint.getResourceMethods();
+					if (element == null) {
+						element = new UriPathTemplateElement(endpoint, this);
+						wrapperCache.put(endpoint, element);
+					}
+					uriPathTemplateElements.add(element);
+				}
+				return uriPathTemplateElements.toArray();
 			}
-			if (element != null) {
-				uriPathTemplateElements.add(element);
-			} // else ignore the entry
-
+		} catch (CoreException e) {
+			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
 		}
-		return uriPathTemplateElements.toArray();
+		return new Object[0];
 	}
 
 	@Override
@@ -73,10 +73,15 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 
 	@Override
 	public boolean hasChildren(Object element) {
-		if (metamodel == null) {
-			return false;
+		try {
+			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			if (metamodel != null) {
+				return (metamodel.getAllEndpoints().size() > 0);
+			}
+		} catch (CoreException e) {
+			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
 		}
-		return (metamodel.getAllEndpoints().size() > 0);
+		return false;
 	}
 
 	@Override

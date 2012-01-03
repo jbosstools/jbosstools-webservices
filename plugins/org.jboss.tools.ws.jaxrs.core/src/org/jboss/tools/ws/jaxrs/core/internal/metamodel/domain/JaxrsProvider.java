@@ -22,38 +22,44 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.metamodel.InvalidModelElementException;
 
-/** JAX-RS Provider class Providers *must* implement MessageBodyReader,
+/**
+ * JAX-RS Provider class Providers *must* implement MessageBodyReader,
  * MessageBodyWriter or ExceptionMapper Providers *may* be annotated with
  * <code>javax.ws.rs.ext.Provider</code> annotation.
  * 
- * @author xcoulon */
+ * @author xcoulon
+ */
 public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider {
 
-	/** Internal 'Provider' element builder.
+	/**
+	 * Internal 'Provider' element builder.
 	 * 
-	 * @author xcoulon */
+	 * @author xcoulon
+	 */
 	public static class Builder {
 
 		private final JaxrsMetamodel metamodel;
 		private final IType javaType;
 
-		/** Mandatory attributes of the enclosing 'Provider' element.
+		/**
+		 * Mandatory attributes of the enclosing 'Provider' element.
 		 * 
 		 * @param javaType
-		 * @param metamodel */
+		 * @param metamodel
+		 */
 		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
 			this.javaType = javaType;
 			this.metamodel = metamodel;
 		}
 
-		/** Builds and returns the elements. Internally calls the merge() method.
+		/**
+		 * Builds and returns the elements. Internally calls the merge() method.
 		 * 
 		 * @param progressMonitor
 		 * @return
-		 * @throws InvalidModelElementException
-		 * @throws CoreException */
+		 * @throws CoreException
+		 */
 		public JaxrsProvider build(IProgressMonitor progressMonitor) throws CoreException {
 			JaxrsProvider provider = new JaxrsProvider(this);
 			// provider.merge(javaType, progressMonitor);
@@ -61,10 +67,12 @@ public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider
 		}
 	}
 
-	/** Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
+	/**
+	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
 	 * class.
 	 * 
-	 * @param builder */
+	 * @param builder
+	 */
 	private JaxrsProvider(Builder builder) {
 		super(builder.javaType, (Annotation) null, builder.metamodel);
 	}
@@ -74,9 +82,9 @@ public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider
 		return EnumElementKind.PROVIDER;
 	}
 
-	/** @param javaType
+	/**
+	 * @param javaType
 	 * @return
-	 * @throws InvalidModelElementException
 	 * @throws CoreException
 	 * @Override public final Set<EnumElementChange> merge(final IType javaType,
 	 *           final IProgressMonitor progressMonitor) throws
@@ -95,8 +103,7 @@ public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider
 	 *           JdtUtils.resolveAnnotationBinding(javaType, compilationUnit,
 	 *           javax.ws.rs.ext.Provider.class); // annotation was removed, or
 	 *           import was removed if (annotationBinding == null) { throw new
-	 *           InvalidModelElementException
-	 *           (
+	 *           InvalidModelElementException (
 	 *           "SimpleAnnotation binding not found : missing 'import' statement ?"
 	 *           ); } ITypeHierarchy providerTypeHierarchy =
 	 *           JdtUtils.resolveTypeHierarchy(javaType, false,
@@ -104,14 +111,12 @@ public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider
 	 *           providerTypeHierarchy.getSubtypes(javaType); // assert that the
 	 *           class is not abstract and has no // sub-type, or continue; if
 	 *           (JdtUtils.isAbstractType(javaType) || (subtypes != null &&
-	 *           subtypes.length > 0)) { throw new
-	 *           InvalidModelElementException(
-	 *           "Type is an abstract type or has subtypes"
-	 *           ); } Map<EnumKind, IType> providerKinds =
-	 *           getProviderKinds(javaType, compilationUnit,
-	 *           providerTypeHierarchy, container.getProviderInterfaces(),
-	 *           null); // removes previous kinds and capabilities for
-	 *           (Iterator<EnumKind> iterator =
+	 *           subtypes.length > 0)) { throw new InvalidModelElementException(
+	 *           "Type is an abstract type or has subtypes" ); } Map<EnumKind,
+	 *           IType> providerKinds = getProviderKinds(javaType,
+	 *           compilationUnit, providerTypeHierarchy,
+	 *           container.getProviderInterfaces(), null); // removes previous
+	 *           kinds and capabilities for (Iterator<EnumKind> iterator =
 	 *           this.getProvidedKinds().keySet().iterator();
 	 *           iterator.hasNext();) { EnumKind kind = iterator.next(); if
 	 *           (providerKinds == null || !providerKinds.containsKey(kind)) {
@@ -121,14 +126,14 @@ public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider
 	 *           { JaxrsMediaTypeCapabilities mediaTypes =
 	 *           resolveMediaTypeCapabilities(getJavaElement(), compilationUnit,
 	 *           entry.getKey()); addProviderKind(entry.getKey(),
-	 *           entry.getValue(), mediaTypes); } } return changes; } */
+	 *           entry.getValue(), mediaTypes); } } return changes; }
+	 */
 
 	@Override
 	public List<ValidatorMessage> validate() {
 		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		return messages;
 	}
-
 
 	@Override
 	public EnumKind getKind() {

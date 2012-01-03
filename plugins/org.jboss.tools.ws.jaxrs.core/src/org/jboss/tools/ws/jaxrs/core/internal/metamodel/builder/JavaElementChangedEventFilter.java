@@ -1,5 +1,17 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_CHANGE;
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_RECONCILE;
 import static org.eclipse.jdt.core.IJavaElement.ANNOTATION;
 import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
 import static org.eclipse.jdt.core.IJavaElement.FIELD;
@@ -9,8 +21,12 @@ import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_AST_AFFECTED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_PRIMARY_RESOURCE;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_SUPER_TYPES;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_ADDED;
@@ -18,10 +34,10 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
@@ -33,82 +49,62 @@ public class JavaElementChangedEventFilter {
 	private final static int WORKING_COPY = 0x1;
 	private final static int PRIMARY_COPY = 0x2;
 
-	/** The 'table' of rules for which the metamodel should be notified of Java
-	 * elements changes events. */
+	/**
+	 * The 'table' of rules for which the metamodel should be notified of Java
+	 * elements changes events.
+	 */
 	private final List<Rule> rules = new ArrayList<Rule>();
 
 	public JavaElementChangedEventFilter() {
-		addRule(JAVA_PROJECT, ADDED, PRIMARY_COPY);
-		addRule(JAVA_PROJECT, REMOVED, PRIMARY_COPY);
+		accept().when(JAVA_PROJECT).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY);
+		accept().when(JAVA_PROJECT).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY);
 
-		addRule(PACKAGE_FRAGMENT_ROOT, ADDED, PRIMARY_COPY);
-		addRule(PACKAGE_FRAGMENT_ROOT, REMOVED, PRIMARY_COPY);
+		accept().when(PACKAGE_FRAGMENT_ROOT).is(ADDED).after(POST_CHANGE).in(PRIMARY_COPY);
+		accept().when(PACKAGE_FRAGMENT_ROOT).is(ADDED).withFlags(F_ADDED_TO_CLASSPATH).after(POST_CHANGE)
+				.in(PRIMARY_COPY);
+		accept().when(PACKAGE_FRAGMENT_ROOT).is(REMOVED).withFlags(F_REMOVED_FROM_CLASSPATH).after(POST_CHANGE)
+				.in(PRIMARY_COPY);
 
-		addRule(COMPILATION_UNIT, ADDED, PRIMARY_COPY);
-		addRule(COMPILATION_UNIT, CHANGED, PRIMARY_COPY, F_CONTENT, F_PRIMARY_RESOURCE);
-		addRule(COMPILATION_UNIT, REMOVED, PRIMARY_COPY +WORKING_COPY);
+		accept().when(COMPILATION_UNIT).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY);
+		accept().when(COMPILATION_UNIT).is(CHANGED).withFlags(F_CONTENT + F_PRIMARY_RESOURCE).after(POST_RECONCILE)
+				.in(PRIMARY_COPY);
+		accept().when(COMPILATION_UNIT).is(CHANGED).withFlags(F_CONTENT + F_FINE_GRAINED + F_AST_AFFECTED)
+				.after(POST_RECONCILE).in(WORKING_COPY);
+		accept().when(COMPILATION_UNIT).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
 
-		addRule(TYPE, ADDED, PRIMARY_COPY + WORKING_COPY);
+		accept().when(TYPE).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
 		// Supertypes changes. Renaming a type ends up with
 		// remove+add operations
-		addRule(TYPE, CHANGED, WORKING_COPY, F_SUPER_TYPES);
-		// addRule(TYPE, CHANGED, WORKING_COPY, F_PROBLEM_SOLVED);
-		addRule(TYPE, REMOVED, PRIMARY_COPY + WORKING_COPY);
+		accept().when(TYPE).is(CHANGED).withFlags(F_SUPER_TYPES).after(POST_RECONCILE).in(WORKING_COPY);
+		accept().when(TYPE).is(CHANGED).withFlags(F_MARKER_ADDED).after(POST_RECONCILE).in(WORKING_COPY);
+		accept().when(TYPE).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
 
-		addRule(METHOD, ADDED, PRIMARY_COPY + WORKING_COPY);
-		addRule(METHOD, CHANGED, PRIMARY_COPY + WORKING_COPY, F_SIGNATURE); // signature
-		addRule(METHOD, CHANGED, PRIMARY_COPY + WORKING_COPY, F_CONTENT); // signature,
-																			// too..
-																			// :-/
-		addRule(METHOD, CHANGED, PRIMARY_COPY + WORKING_COPY, F_MARKER_ADDED);
-		addRule(METHOD, CHANGED, PRIMARY_COPY + WORKING_COPY, F_MARKER_REMOVED);
-		// addRule(METHOD, CHANGED, PRIMARY_COPY + WORKING_COPY,
-		// F_PROBLEM_SOLVED);
-		addRule(METHOD, REMOVED, PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(CHANGED).withFlags(F_SIGNATURE).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(CHANGED).withFlags(F_MARKER_ADDED).after(POST_RECONCILE)
+				.in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(CHANGED).withFlags(F_MARKER_REMOVED).after(POST_RECONCILE)
+				.in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(REMOVED).withFlags(F_CONTENT).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
 
-		addRule(FIELD, ADDED, PRIMARY_COPY + WORKING_COPY);
-		addRule(FIELD, CHANGED, PRIMARY_COPY + WORKING_COPY);
-		addRule(FIELD, REMOVED, PRIMARY_COPY + WORKING_COPY);
+		accept().when(FIELD).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(FIELD).is(CHANGED).withFlags(F_CONTENT).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(FIELD).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
 
-		addRule(ANNOTATION, ADDED, WORKING_COPY);
-		addRule(ANNOTATION, CHANGED, WORKING_COPY);
-		addRule(ANNOTATION, REMOVED, WORKING_COPY);
+		accept().when(ANNOTATION).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(ANNOTATION).is(CHANGED).withFlags(F_CONTENT).after(POST_RECONCILE)
+				.in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(ANNOTATION).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
 
 	}
 
-	/** Add a scope for an element kind/delta kind, meaning that when this given
-	 * kind of element has this given kind of change and already belongs or not
-	 * to the metamodel, this later one will be notified of the change.
-	 * 
-	 * @param elementKind
-	 *            the kind of element that change
-	 * @param deltaKind
-	 *            the kind of change that occurred (added/changed/removed)
-	 * @param compilationUnitContext
-	 *            should this element instance be already part of the metamodel,
-	 *            or not ?
-	 * @see IJavaElementDelta, IJavaElementKind */
-	private void addRule(int elementKind, int deltaKind, int compilationUnitContext) {
-		addRule(elementKind, deltaKind, compilationUnitContext, null);
+	private RuleBuilder accept() {
+		return new RuleBuilder();
 	}
 
-	/** Add a scope for an element kind/delta kind, meaning that when this given
-	 * kind of element has this given kind of change and already belongs or not
-	 * to the metamodel, this later one will be notified of the change.
-	 * 
-	 * @param elementKind
-	 *            the kind of element that change
-	 * @param deltaKind
-	 *            the kind of change that occurred (added/changed/removed)
-	 * @param compilationUnitContext
-	 *            should this element instance be already part of the metamodel,
-	 *            or not ?
-	 * @see IJavaElementDelta, IJavaElementKind */
-	private void addRule(int elementKind, int deltaKind, int compilationUnitContext, int... flags) {
-		rules.add(new Rule(elementKind, deltaKind, compilationUnitContext, flags));
-	}
-
-	/** Attempts to retrieve the CompilationUnitContext value matching the given
+	/**
+	 * Attempts to retrieve the CompilationUnitContext value matching the given
 	 * parameters.
 	 * 
 	 * @param elementKind
@@ -118,12 +114,33 @@ public class JavaElementChangedEventFilter {
 	 * @param workingCopy
 	 * @return the scope defined by the rules, or PRIMARY_COPY if nothing was
 	 *         set.
-	 * @see IJavaElementDelta, IJavaElementKind */
-	protected boolean applyRules(int elementKind, int deltaKind, int[] flags, boolean workingCopy) {
-		Rule matcher = new Rule(elementKind, deltaKind, workingCopy ? WORKING_COPY : PRIMARY_COPY, flags);
+	 * @see IJavaElementDelta, IJavaElementKind
+	 */
+
+	public boolean apply(JavaElementChangedEvent event) {
+		int elementKind = event.getElement().getElementType();
+		int deltaKind = event.getDeltaKind();
+		IJavaElement element = event.getElement();
+		int flags = event.getFlags();
+		if (flags == IJavaElementDelta.F_ANNOTATIONS) {
+			return false;
+		}
+		boolean workingCopy = JdtUtils.isWorkingCopy(element);
+		final boolean match = apply(elementKind, deltaKind, event.getEventType(), flags, workingCopy);
+		if (match) {
+			Logger.trace("**accepted** {}", event);
+		} else {
+			Logger.trace("**rejected** {}", event);
+		}
+		return match;
+	}
+
+	protected boolean apply(int elementKind, int deltaKind, int eventType, int flags, boolean workingCopy) {
+		Rule matcher = new Rule(elementKind, deltaKind, eventType, workingCopy ? WORKING_COPY : PRIMARY_COPY, flags);
 		for (Iterator<Rule> iterator = rules.iterator(); iterator.hasNext();) {
 			Rule rule = iterator.next();
 			if (rule.match(matcher)) {
+				Logger.trace("Rule {} matched", rule);
 				return true;
 			}
 
@@ -132,125 +149,81 @@ public class JavaElementChangedEventFilter {
 
 	}
 
-	public boolean apply(JavaElementChangedEvent event) {
-		int elementKind = event.getElementType();
-		int deltaKind = event.getDeltaKind();
-		IJavaElement element = event.getElement();
-		int[] flags = event.getFlags();
-		if (flags.length == 1 && (flags[0] & IJavaElementDelta.F_ANNOTATIONS) != 0) {
-			return false;
+	/**
+	 * Fluent API (FTW)
+	 * 
+	 * @author Xavier Coulon
+	 * 
+	 */
+	class RuleBuilder {
+
+		private int elementKind;
+		private int deltaKind;
+		private int eventType;
+		private int unitContext;
+		private int flags;
+
+		private RuleBuilder() {
 		}
-		boolean workingCopy = JdtUtils.isWorkingCopy(element);
-		final boolean match = applyRules(elementKind, deltaKind, flags, workingCopy);
-		if (match) {
-			Logger.debug("Applied filters on event {} -> {}", event, match);
+
+		public RuleBuilder when(int elementKind) {
+			this.elementKind = elementKind;
+			return this;
 		}
-		return match;
+
+		public RuleBuilder withFlags(int flags) {
+			this.flags = flags;
+			return this;
+		}
+
+		public RuleBuilder is(int deltaKind) {
+			this.deltaKind = deltaKind;
+			return this;
+		}
+
+		public RuleBuilder after(int eventType) {
+			this.eventType = eventType;
+			return this;
+		}
+
+		public void in(int unitContext) {
+			this.unitContext = unitContext;
+			Rule rule = new Rule(this.elementKind, this.deltaKind, this.eventType, this.unitContext, this.flags);
+			rules.add(rule);
+		}
 	}
 
 	static class Rule {
 
 		private final int elementKind;
 		private final int deltaKind;
+		private final int eventType;
 		private final int unitContext;
-		private final int[] flags;
+		private final int flags;
 
-		Rule(int elementKind, int deltaKind, int unitContext, int[] flags) {
+		Rule(int elementKind, int deltaKind, int eventType, int unitContext, int flags) {
 			this.elementKind = elementKind;
 			this.deltaKind = deltaKind;
+			this.eventType = eventType;
 			this.unitContext = unitContext;
 			this.flags = flags;
 		}
 
 		public boolean match(Rule matcher) {
 			return this.elementKind == matcher.elementKind && this.deltaKind == matcher.deltaKind
-					&& ((this.unitContext & matcher.unitContext) != 0)
-					&& (this.flags == null || this.flags.length == 0 || Arrays.equals(this.flags, matcher.flags));
+					&& this.eventType == matcher.eventType && ((this.unitContext & matcher.unitContext) != 0)
+					&& (this.flags == matcher.flags);
 		}
 
 		@Override
 		public String toString() {
-			return new StringBuilder(ConstantUtils.getStaticFieldName(IJavaElement.class, elementKind)).append(" [")
+			return new StringBuilder().append("[")
+					.append(ConstantUtils.getStaticFieldName(ElementChangedEvent.class, eventType)).append("] ")
+					.append(ConstantUtils.getStaticFieldName(IJavaElement.class, elementKind)).append(" ").append("[")
 					.append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind)).append("]: ")
-					.append(ConstantUtils.getStaticFieldName(JavaElementChangedEventFilter.class, this.unitContext))
 					.toString();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + deltaKind;
-			result = prime * result + elementKind;
-			result = prime * result + Arrays.hashCode(flags);
-			result = prime * result + unitContext;
-			return result;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Rule other = (Rule) obj;
-			if (deltaKind != other.deltaKind)
-				return false;
-			if (elementKind != other.elementKind)
-				return false;
-			if (!Arrays.equals(flags, other.flags))
-				return false;
-			if (unitContext != other.unitContext)
-				return false;
-			return true;
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((rules == null) ? 0 : rules.hashCode());
-		return result;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		JavaElementChangedEventFilter other = (JavaElementChangedEventFilter) obj;
-		if (rules == null) {
-			if (other.rules != null)
-				return false;
-		} else if (!Arrays.equals(rules.toArray(), other.rules.toArray()))
-			return false;
-		return true;
 	}
 
 }

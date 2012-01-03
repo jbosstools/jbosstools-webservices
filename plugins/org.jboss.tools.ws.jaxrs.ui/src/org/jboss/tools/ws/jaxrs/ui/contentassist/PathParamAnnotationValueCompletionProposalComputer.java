@@ -80,7 +80,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
 					context.getInvocationOffset());
 			if (invocationElement.getElementType() == IJavaElement.METHOD) {
-				IJaxrsResourceMethod resourceMethod = (IJaxrsResourceMethod) metamodel.getElement(invocationElement);
+				IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement, IJaxrsResourceMethod.class);
 				for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
 					for (Annotation annotation : methodParameter.getAnnotations()) {
 						final TypedRegion region = annotation.getRegion();

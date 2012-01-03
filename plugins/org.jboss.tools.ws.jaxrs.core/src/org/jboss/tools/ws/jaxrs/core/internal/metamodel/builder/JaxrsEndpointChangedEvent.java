@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import java.util.EventObject;
@@ -16,10 +26,12 @@ public class JaxrsEndpointChangedEvent extends EventObject implements IJaxrsEndp
 
 	private final int deltaKind;
 
-	/** Full constructor.
+	/**
+	 * Full constructor.
 	 * 
 	 * @param element
-	 * @param deltaKind */
+	 * @param deltaKind
+	 */
 	public JaxrsEndpointChangedEvent(IJaxrsEndpoint endpoint, int deltaKind) {
 		super(endpoint);
 		this.endpoint = endpoint;
@@ -48,9 +60,11 @@ public class JaxrsEndpointChangedEvent extends EventObject implements IJaxrsEndp
 		return deltaKind;
 	}
 
-	/** {@inheritDoc} (non-Javadoc)
+	/**
+	 * {@inheritDoc} (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString() */
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "JaxrsEndpointChange: [" + ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind) + "] "

@@ -1,3 +1,13 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.List;
@@ -6,18 +16,9 @@ import org.eclipse.jdt.core.IJavaElement;
 
 public interface IJaxrsMetamodel {
 
-	/** @return the JAX-RS Providers */
-	public abstract List<IJaxrsProvider> getAllProviders();
-
-	/** @return the JAX-RS HTTP Methods */
-	public abstract List<IJaxrsHttpMethod> getAllHttpMethods();
-
-	/** @return the serviceUri */
-	public abstract String getServiceUri();
-
 	/** @return the JAX-RS Ednpoints */
 	public abstract List<IJaxrsEndpoint> getAllEndpoints();
 
-	IJaxrsElement<?> getElement(IJavaElement element);
+	public abstract <T> T getElement(IJavaElement invocationElement, Class<T> clazz);
 
 }

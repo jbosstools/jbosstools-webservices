@@ -1,6 +1,13 @@
-/**
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
  * 
- */
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import java.util.ArrayList;
@@ -16,24 +23,19 @@ import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsParamField;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceField;
 
 /** @author xcoulon */
-public class JaxrsParamField extends JaxrsElement<IField> implements IJaxrsParamField {
+public class JaxrsResourceField extends JaxrsResourceElement<IField> implements IJaxrsResourceField {
 
-	private final JaxrsResource parentResource;
-
-	public JaxrsParamField(IField javaField, Annotation annotation, JaxrsResource parentResource,
+	public JaxrsResourceField(IField javaField, Annotation annotation, JaxrsResource parentResource,
 			JaxrsMetamodel metamodel) {
-		super(javaField, annotation, metamodel);
-		this.parentResource = parentResource;
+		super(javaField, annotation, parentResource, metamodel);
 	}
 
-	public JaxrsParamField(IField javaField, List<Annotation> annotations, JaxrsResource parentResource,
+	public JaxrsResourceField(IField javaField, List<Annotation> annotations, JaxrsResource parentResource,
 			JaxrsMetamodel metamodel) {
-		super(javaField, annotations, metamodel);
-		this.parentResource = parentResource;
-		this.parentResource.addField(this);
+		super(javaField, annotations, parentResource, metamodel);
 	}
 
 	@Override
@@ -63,7 +65,6 @@ public class JaxrsParamField extends JaxrsElement<IField> implements IJaxrsParam
 		return messages;
 	}
 
-
 	@Override
 	public EnumKind getKind() {
 		if (getPathParamAnnotation() != null) {
@@ -78,8 +79,9 @@ public class JaxrsParamField extends JaxrsElement<IField> implements IJaxrsParam
 		return EnumKind.UNDEFINED;
 	}
 
-	public JaxrsResource getParentResource() {
-		return parentResource;
+	@Override
+	public String toString() {
+		return "JaxrsResourceField " + getJavaElement().getElementName() + " | annotations=" + getAnnotations();
 	}
 
 }

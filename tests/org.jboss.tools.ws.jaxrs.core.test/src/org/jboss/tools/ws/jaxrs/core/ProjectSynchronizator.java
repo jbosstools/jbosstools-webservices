@@ -36,7 +36,9 @@ public class ProjectSynchronizator implements IResourceChangeListener, IResource
 	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
 		try {
-			event.getDelta().accept(this);
+			if (event.getDelta() != null) {
+				event.getDelta().accept(this);
+			}
 		} catch (CoreException e) {
 			LOGGER.error("Failed to visit delta", e);
 		}

@@ -11,10 +11,12 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
+import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedListener;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedListener;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -22,34 +24,40 @@ import org.osgi.framework.BundleContext;
  */
 public class JBossJaxrsCorePlugin extends Plugin {
 
-	// The plug-in ID
+	/** The plug-in ID. */
 	public static final String PLUGIN_ID = "org.jboss.tools.ws.jaxrs.core"; //$NON-NLS-1$
 
-	// The shared instance
+	/** The shared instance. */
 	private static JBossJaxrsCorePlugin plugin;
 
-	private final JavaElementChangedListener listener = new JavaElementChangedListener();
+	/** The Java changes listener. */
+	private final JavaElementChangedListener javaElementChangedListener = new JavaElementChangedListener();
+
+	/** The resource changes listener. */
+	private final ResourceChangedListener resourceChangedListener = new ResourceChangedListener();
 
 	/**
-	 * The constructor
+	 * The constructor.
 	 */
 	public JBossJaxrsCorePlugin() {
 	}
 
 	/**
-	 * 
+	 * Register the listeners.
 	 */
 	public void registerListeners() {
-		JavaCore.addElementChangedListener(listener);
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(listener);
+		// the java changes are only captured during POST_RECONCILE (ie, during
+		// live coding)
+		JavaCore.addElementChangedListener(javaElementChangedListener);
+		// the resource changes are only captured during POST_CHANGE (ie, when
+		// the resource is saved, whatever the mean of changes in the file -
+		// editor, refactoring, etc.)
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangedListener,
+				IResourceChangeEvent.PRE_CLOSE);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
-	 * )
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
@@ -58,12 +66,8 @@ public class JBossJaxrsCorePlugin extends Plugin {
 		super.stop(context);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
-	 * )
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void start(BundleContext context) throws Exception {
@@ -73,15 +77,15 @@ public class JBossJaxrsCorePlugin extends Plugin {
 	}
 
 	/**
-	 * 
+	 * Unregister the listeners.
 	 */
 	public void unregisterListeners() {
-		JavaCore.removeElementChangedListener(listener);
-		ResourcesPlugin.getWorkspace().removeResourceChangeListener(listener);
+		JavaCore.removeElementChangedListener(javaElementChangedListener);
+		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangedListener);
 	}
 
 	/**
-	 * Returns the shared instance
+	 * Returns the shared instance.
 	 * 
 	 * @return the shared instance
 	 */

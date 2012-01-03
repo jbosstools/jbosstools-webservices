@@ -17,12 +17,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public interface IValidable {
 
 	/**
-	 * Validates the element against JAX-RS business/technical rules. 
-	 * In case of errors or warning, creates appropriate markers on the underlying resource.
-	 * @param progressMonitor the progress monitor
-	 * @throws CoreException 
+	 * Validates the element against JAX-RS business/technical rules. In case of
+	 * errors or warning, creates appropriate markers on the underlying
+	 * resource.
+	 * 
+	 * @param progressMonitor
+	 *            the progress monitor
+	 * @throws CoreException
 	 */
 	abstract void validate(IProgressMonitor progressMonitor) throws CoreException;
-	
-	
+
 }

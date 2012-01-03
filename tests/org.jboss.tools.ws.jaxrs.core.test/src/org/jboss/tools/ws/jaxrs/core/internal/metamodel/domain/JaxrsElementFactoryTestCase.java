@@ -1,12 +1,21 @@
+/******************************************************************************* 
+ * Copyright (c) 2008 Red Hat, Inc. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
-
-import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
@@ -25,10 +34,8 @@ import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -63,14 +70,14 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(type, Path.class);
 		// operation
-		final List<IJaxrsElement<?>> elements = factory.createElement(annotation.getJavaAnnotation(),
+		final JaxrsElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
-		assertThat(elements.size(), equalTo(1));
-		final IJaxrsResource element = (IJaxrsResource) elements.get(0);
+		assertNotNull(element);
+		final IJaxrsResource resource = (IJaxrsResource) element;
 		// only @Path annotation is known by the metamodel, so pure resource
 		// methods with @GET, etc. are not created here.
-		assertThat(element.getAllMethods().size(), equalTo(4));
+		assertThat(resource.getAllMethods().size(), equalTo(4));
 	}
 
 	@Test
@@ -99,12 +106,12 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = getAnnotation(type, HttpMethod.class);
 		// operation
-		final List<IJaxrsElement<?>> elements = factory.createElement(annotation.getJavaAnnotation(),
+		final JaxrsElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
-		assertThat(elements.size(), equalTo(1));
-		final IJaxrsHttpMethod element = (IJaxrsHttpMethod) elements.get(0);
-		assertThat(element.getHttpVerb(), equalTo("FOO"));
+		assertNotNull(element);
+		final IJaxrsHttpMethod httpMethod = (IJaxrsHttpMethod)element ;
+		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 	}
 
 	@Test
@@ -122,13 +129,13 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType httpType = getType(GET.class.getName());
 		final Annotation httpAnnotation = getAnnotation(httpType, HttpMethod.class);
-		IJaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
+		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = getMethod(type, "getCustomerAsVCard");
 		final Annotation annotation = getAnnotation(method, Path.class);
 		// operation
-		IJaxrsResourceMethod element = factory.createResourceMethod(annotation,
+		JaxrsResourceMethod element = factory.createResourceMethod(annotation,
 				JdtUtils.parse(method, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -140,13 +147,13 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType httpType = getType(GET.class.getName());
 		final Annotation httpAnnotation = getAnnotation(httpType, HttpMethod.class);
-		IJaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
+		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final IMethod method = getMethod(type, "getProduct");
 		final Annotation annotation = getAnnotation(method, Path.class);
 		// operation
-		IJaxrsResourceMethod element = factory.createResourceMethod(annotation,
+		JaxrsResourceMethod element = factory.createResourceMethod(annotation,
 				JdtUtils.parse(method, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -158,14 +165,14 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType httpType = getType(GET.class.getName());
 		final Annotation httpAnnotation = getAnnotation(httpType, HttpMethod.class);
-		IJaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
+		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		IField field = type.getField("foo");
 
 		final Annotation annotation = getAnnotation(field, QueryParam.class);
 		// operation
-		JaxrsParamField element = factory.createField(annotation, JdtUtils.parse(field, progressMonitor), metamodel);
+		JaxrsResourceField element = factory.createField(annotation, JdtUtils.parse(field, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());

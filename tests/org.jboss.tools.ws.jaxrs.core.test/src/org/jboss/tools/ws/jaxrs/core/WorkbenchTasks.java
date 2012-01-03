@@ -158,16 +158,21 @@ public class WorkbenchTasks {
 		return project;
 	}
 
-	public static void buildWorkspace(IProgressMonitor progressMonitor) throws CoreException,
+	public static void buildWorkspace(final IProgressMonitor progressMonitor) throws CoreException,
 			OperationCanceledException, InterruptedException {
 		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, progressMonitor);
 		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
 	}
 
-	public static void buildProject(IProject project, IProgressMonitor progressMonitor) throws CoreException,
-			OperationCanceledException, InterruptedException {
+	public static void buildProject(final IProject project, final IProgressMonitor progressMonitor)
+			throws CoreException, OperationCanceledException, InterruptedException {
+		buildProject(project, IncrementalProjectBuilder.FULL_BUILD, progressMonitor);
+	}
+
+	public static void buildProject(final IProject project, final int buildKind, final IProgressMonitor progressMonitor)
+			throws CoreException, OperationCanceledException, InterruptedException {
 		project.refreshLocal(IResource.DEPTH_INFINITE, progressMonitor);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, progressMonitor);
+		project.build(buildKind, progressMonitor);
 		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
 	}
 
