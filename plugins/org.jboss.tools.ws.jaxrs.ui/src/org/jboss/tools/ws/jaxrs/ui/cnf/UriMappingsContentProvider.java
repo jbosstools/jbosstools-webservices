@@ -19,9 +19,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jdt.internal.ui.util.CoreUtility;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreePath;
@@ -56,21 +54,13 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 
 		if (parentElement instanceof IProject) {
 			long startTime = new Date().getTime();
-			IProject project = (IProject) parentElement;
+			final IProject project = (IProject) parentElement;
 			try {
 				if (!uriPathTemplateCategories.containsKey(project)) {
 					if (JaxrsMetamodelLocator.get(project) == null) {
 						Logger.debug("JAX-RS Metamodel needs to be built for project '" + project.getName() + "'");
 						Job buildJob = CoreUtility.getBuildJob(project);
 						buildJob.setRule(ResourcesPlugin.getWorkspace().getRoot());
-						// be notified when job is done to refresh navigator
-						// content.
-						buildJob.addJobChangeListener(new JobChangeAdapter() {
-							@Override
-							public void done(IJobChangeEvent event) {
-								refreshContent((IProject) parentElement);
-							}
-						});
 						buildJob.schedule();
 						return new Object[] { new WaitWhileBuildingElement() };
 					}
@@ -138,26 +128,18 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 		Logger.debug("Refreshing navigator view");
 		final Object target = uriPathTemplateCategories.containsKey(project) ? uriPathTemplateCategories.get(project)
 				: project;
-		if (Display.getCurrent() != null) {
-			if (viewer != null) {
-				TreePath[] treePaths = viewer.getExpandedTreePaths();
-				viewer.refresh(target);
-				viewer.setExpandedTreePaths(treePaths);
-			}
-		} else {
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override
-				public void run() {
-					if (viewer != null) {
-						TreePath[] treePaths = viewer.getExpandedTreePaths();
-						viewer.refresh(target);
-						viewer.setExpandedTreePaths(treePaths);
-					}
+		// this piece of code must run in an async manner to avoid reentrant call while viewer is busy.
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				if (viewer != null) {
+					TreePath[] treePaths = viewer.getExpandedTreePaths();
+					viewer.refresh(target);
+					viewer.setExpandedTreePaths(treePaths);
 				}
-			});
-		}
+			}
+		});
 	}
-
 	@Override
 	/**
 	 * Subscriber ID
