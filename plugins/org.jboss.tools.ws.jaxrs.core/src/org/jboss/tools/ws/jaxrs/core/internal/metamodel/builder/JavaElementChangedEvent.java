@@ -173,7 +173,8 @@ public class JavaElementChangedEvent extends EventObject {
 		int result = 1;
 		result = prime * result + deltaKind;
 		result = prime * result + eventType;
-		result = prime * result + ((element == null) ? 0 : element.getHandleIdentifier().hashCode());
+		result = prime * result + ((element == null) ? 0 : element.getElementType());
+		result = prime * result + ((element == null) ? 0 : element.getElementName().hashCode());
 		result = prime * result + flags;
 		return result;
 	}
@@ -206,7 +207,8 @@ public class JavaElementChangedEvent extends EventObject {
 		} else if (this.element != null && other.element == null) {
 			return false;
 		} else if (this.element != null && other.element != null
-				&& !element.getHandleIdentifier().equals(other.element.getHandleIdentifier())) {
+				&& (!element.getElementName().equals(other.element.getElementName())
+						|| element.getElementType() != other.element.getElementType())) {
 			return false;
 		}
 		if (flags != other.flags) {
