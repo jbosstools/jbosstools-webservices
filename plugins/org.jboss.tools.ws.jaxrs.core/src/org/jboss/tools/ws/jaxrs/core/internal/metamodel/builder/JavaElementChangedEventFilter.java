@@ -121,6 +121,10 @@ public class JavaElementChangedEventFilter {
 		int elementKind = event.getElement().getElementType();
 		int deltaKind = event.getDeltaKind();
 		IJavaElement element = event.getElement();
+		// prevent processing java elements in a closed java project
+		if (element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen()) {
+			return false;
+		}
 		int flags = event.getFlags();
 		if (flags == IJavaElementDelta.F_ANNOTATIONS) {
 			return false;

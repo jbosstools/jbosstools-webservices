@@ -151,7 +151,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(impacts.size(), equalTo(6));
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
 		// all HttpMethods, Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(25));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(26));
 	}
 
 	@Test
@@ -356,7 +356,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(impacts.size(), equalTo(1)); // 1 resource
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(14));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(15));
 	}
 
 	@Test
@@ -378,7 +378,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(((JaxrsResource) impacts.get(0).getElement()), equalTo(resource));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(14));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(15));
 	}
 
 	@Test
@@ -399,7 +399,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(7));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(8));
 	}
 
 	@Test
@@ -424,11 +424,13 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final ResourceChangedEvent event = createEvent(bookResource.getJavaElement().getResource(), CHANGED);
 		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
 		// verifications
-		assertThat(impacts.size(), equalTo(1)); // 1 resource method
+		assertThat(impacts.size(), equalTo(2)); // 2 resource methods
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
+		assertThat(impacts.get(1).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(1).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(7));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(8));
 	}
 
 	@Test
@@ -453,8 +455,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(impacts.size(), equalTo(1)); // 1 resource method
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
-		// 4 HttpMethods + 2 resources (including their methods and fields)
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(6));
+		// 4 HttpMethods + 1 resource (including their remaining methods and fields)
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(7));
 	}
 
 	@Test

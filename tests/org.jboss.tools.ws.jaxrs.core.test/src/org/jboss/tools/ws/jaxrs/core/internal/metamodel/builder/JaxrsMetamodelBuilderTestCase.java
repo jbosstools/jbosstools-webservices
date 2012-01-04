@@ -61,7 +61,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(11));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(11));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(11));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
 	}
 
 	@Test
@@ -112,7 +112,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(11));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
 	}
 	
 	@Test
@@ -128,8 +128,8 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		// 11 usual endpoints + 2 newly created
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(13));
+		// 12 usual endpoints + 2 newly created
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
 	}
 
 	@Test
@@ -146,7 +146,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		// 11 usual endpoints + 2 newly created
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(13));
+		// 12 usual endpoints + 2 newly created
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
 	}
 }

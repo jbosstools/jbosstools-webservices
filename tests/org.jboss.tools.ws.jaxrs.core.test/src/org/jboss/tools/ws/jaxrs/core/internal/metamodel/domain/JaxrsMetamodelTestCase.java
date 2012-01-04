@@ -141,7 +141,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	@Test
 	public void shouldAssertResolvedEndpoints() throws CoreException {
 		List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
-		Assert.assertEquals("Wrong result", 11, endpoints.size());
+		Assert.assertEquals("Wrong result", 12, endpoints.size());
 		for (IJaxrsEndpoint endpoint : endpoints) {
 			Assert.assertFalse("Empty list of resourceMethods", endpoint.getResourceMethods().isEmpty());
 			Assert.assertNotNull("No URI Path template", endpoint.getUriPathTemplate());

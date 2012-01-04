@@ -37,6 +37,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.lang.annotation.Target;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -91,9 +92,9 @@ import org.junit.Test;
 public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase {
 
 	private final static int ANY_EVENT_TYPE = 0;
-	
+
 	private final static int NO_FLAG = 0;
-	
+
 	private JaxrsMetamodel metamodel;
 
 	private final JavaElementChangedProcessor processor = new JavaElementChangedProcessor();
@@ -112,9 +113,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		javaProject.getProject().setSessionProperty(JaxrsMetamodel.METAMODEL_QUALIFIED_NAME, metamodel);
 	}
 
-	/** @return
+	/**
+	 * @return
 	 * @throws CoreException
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	private JaxrsHttpMethod createHttpMethod(Class<?> httpClass) throws CoreException, JavaModelException {
 		final IType httpMethodType = JdtUtils.resolveType(httpClass.getName(), javaProject, progressMonitor);
 		final Annotation httpMethodAnnotation = getAnnotation(httpMethodType, HttpMethod.class);
@@ -122,22 +125,22 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		return httpMethod;
 	}
 
-	
 	private Annotation createAnnotation(Class<?> clazz, String value) {
 		return createAnnotation(null, clazz.getName(), value);
 	}
-	
+
 	private Annotation createAnnotation(IAnnotation annotation, String name, String value) {
 		Map<String, List<String>> values = new HashMap<String, List<String>>();
 		values.put("value", Arrays.asList(value));
 		return new Annotation(annotation, name, values, null);
 	}
+
 	private List<JaxrsElementChangedEvent> processEvent(JavaElementChangedEvent event, IProgressMonitor progressmonitor) {
 		return processor.processEvents(Arrays.asList(event), progressmonitor);
 	}
 
 	private static JavaElementChangedEvent createEvent(Annotation annotation, int deltaKind) throws JavaModelException {
-		return new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, ANY_EVENT_TYPE , JdtUtils.parse(
+		return new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(
 				((IMember) annotation.getJavaParent()), progressMonitor), NO_FLAG);
 	}
 
@@ -147,12 +150,14 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 
 	private static JavaElementChangedEvent createEvent(IMember element, int deltaKind, int flags)
 			throws JavaModelException {
-		return new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element, progressMonitor), flags);
+		return new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE,
+				JdtUtils.parse(element, progressMonitor), flags);
 	}
 
 	private static JavaElementChangedEvent createEvent(ICompilationUnit element, int deltaKind)
 			throws JavaModelException {
-		return new JavaElementChangedEvent(element, deltaKind,ANY_EVENT_TYPE, JdtUtils.parse(element, progressMonitor), NO_FLAG);
+		return new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE,
+				JdtUtils.parse(element, progressMonitor), NO_FLAG);
 	}
 
 	private static JavaElementChangedEvent createEvent(IPackageFragmentRoot element, int deltaKind)
@@ -160,13 +165,13 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		return new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, null, NO_FLAG);
 	}
 
-	/** Because sometimes, generics are painful...
+	/**
+	 * Because sometimes, generics are painful...
 	 * 
 	 * @param elements
-	 * @return private List<JaxrsElement<?>> asList(JaxrsElement<?>...
-	 *         elements) { final List<JaxrsElement<?>> result = new
-	 *         ArrayList<JaxrsElement<?>>();
-	 *         result.addAll(Arrays.asList(elements)); return result; } */
+	 * @return private List<JaxrsElement<?>> asList(JaxrsElement<?>... elements) { final List<JaxrsElement<?>> result =
+	 *         new ArrayList<JaxrsElement<?>>(); result.addAll(Arrays.asList(elements)); return result; }
+	 */
 
 	@Test
 	public void shouldAdd1HttpMethodAnd3ResourcesWhenAddingSourceFolder() throws CoreException {
@@ -181,9 +186,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JavaElementChangedEvent event = createEvent(sourceFolder, ADDED);
 		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
 		// verifications
-		// 1 HttpMethod + 3 RootResources + 2 Subresources + all their methods and fields (total of 15)..
-		assertThat(impacts.size(), equalTo(21));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(25)); // 5 previous HttpMethods + 21 added items
+		// 1 HttpMethod + 3 RootResources + 2 Subresources + all their methods and fields (total of 16)..
+		assertThat(impacts.size(), equalTo(22));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(26)); // 4 previous HttpMethods + 22 added items
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
 	}
 
@@ -467,10 +472,10 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsResource) impacts.get(0).getElement()).getAllMethods().size(), equalTo(2));
+		assertThat(((JaxrsResource) impacts.get(0).getElement()).getAllMethods().size(), equalTo(3));
 		assertThat(((JaxrsResource) impacts.get(0).getElement()).getPathTemplate(), nullValue());
 		// includes Resource, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(4));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(5));
 	}
 
 	@Test
@@ -719,15 +724,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	public void shouldAddResourceFieldWhenAddingImportPathParam() throws CoreException {
 		/*
 		 * // pre-conditions final IType type =
-		 * getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator"
-		 * ); final JaxrsResource resource = new JaxrsResource.Builder(type,
-		 * metamodel).build(); //metamodel.add(resource); final
-		 * IImportDeclaration importDeclaration = getImportDeclaration(type,
-		 * PathParam.class.getName()); // operation final
-		 * JavaElementChangedEvent event = createEvent(importDeclaration,
-		 * ADDED); final List<JaxrsElementChangedEvent> impacts =
-		 * processEvent(event, progressMonitor); // verifications
-		 * assertThat(impacts.size(), equalTo(1));
+		 * getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator" ); final JaxrsResource resource =
+		 * new JaxrsResource.Builder(type, metamodel).build(); //metamodel.add(resource); final IImportDeclaration
+		 * importDeclaration = getImportDeclaration(type, PathParam.class.getName()); // operation final
+		 * JavaElementChangedEvent event = createEvent(importDeclaration, ADDED); final List<JaxrsElementChangedEvent>
+		 * impacts = processEvent(event, progressMonitor); // verifications assertThat(impacts.size(), equalTo(1));
 		 * assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		 */
 	}
@@ -1172,7 +1173,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications : resource removed, since it has no field nor method
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // @POST  + customerResource
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // @POST + customerResource
 	}
 
 	@Test
@@ -1199,7 +1200,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_ELEMENT_KIND + F_PATH_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1261,7 +1262,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1281,7 +1282,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1300,7 +1301,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // resource + resourceMethod
 	}
 
 	@Test
@@ -1327,7 +1328,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		verify(metamodel, times(1)).remove(any(JaxrsResourceMethod.class));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // @HTTP + resource 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // @HTTP + resource
 	}
 
 	@Test
@@ -1353,7 +1354,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_VALUE + F_ELEMENT_KIND));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1381,7 +1382,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_VALUE + F_ELEMENT_KIND));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1409,7 +1410,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_HTTP_METHOD_VALUE + F_ELEMENT_KIND));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1460,7 +1461,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1488,7 +1489,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1516,7 +1517,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1544,7 +1545,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1572,7 +1573,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1600,7 +1601,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1628,7 +1629,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1654,8 +1655,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JavaMethodParameter contextParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
 				Arrays.asList(createAnnotation(Context.class, null)));
 		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName(), javaProject))
-				.methodParameter(pathParameter).methodParameter(contextParameter).build();
+				.httpMethod(getAnnotation(method, GET.class))
+				.returnType(getType(Response.class.getName(), javaProject)).methodParameter(pathParameter)
+				.methodParameter(contextParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
 		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
@@ -1664,7 +1666,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1686,8 +1688,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JavaMethodParameter contextParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
 				Arrays.asList(createAnnotation(Context.class, null)));
 		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName(), javaProject))
-				.methodParameter(pathParameter).methodParameter(contextParameter).build();
+				.httpMethod(getAnnotation(method, GET.class))
+				.returnType(getType(Response.class.getName(), javaProject)).methodParameter(pathParameter)
+				.methodParameter(contextParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
 		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
@@ -1696,7 +1699,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1729,7 +1732,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1762,7 +1765,38 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
+	}
+
+	@Test
+	public void shouldUpdateResourceMethodWhenAddingParameterWithMatrixParamAnnotation() throws CoreException {
+		// the method signature is changed
+		// pre-conditions
+		// JAX-RS HttpMethod
+		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
+		metamodel.add(httpMethod);
+		// Parent JAX-RS Resource
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		final Annotation pathAnnotation = getAnnotation(type, Path.class);
+		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
+		metamodel.add(resource);
+		// JAX-RS Resource Method (color param is not declared)
+		final IMethod method = getMethod(type, "getPicture");
+		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", String.class.getName(),
+				Arrays.asList(createAnnotation(PathParam.class, null)));
+		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
+				.pathTemplate(getAnnotation(method, Path.class)).methodParameter(pathParameter)
+				.returnType(getType("java.lang.Object", javaProject)).build();
+		metamodel.add(jaxrsMethod);
+		// operation
+		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1781,8 +1815,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
 				Arrays.asList(createAnnotation(QueryParam.class, "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
-				DefaultValue.class, "2")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int",
+				Arrays.asList(createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
 				Arrays.asList(createAnnotation(Context.class, null)));
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
@@ -1797,7 +1831,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1817,8 +1851,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
 				Arrays.asList(createAnnotation(QueryParam.class, "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
-				QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
+				createAnnotation(QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
 				Arrays.asList(createAnnotation(Context.class, null)));
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
@@ -1833,7 +1867,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1848,15 +1882,14 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
-		// JAX-RS Resource Method (an extra annotation on 'start' param)
+		// JAX-RS Resource Method (with an extra @Queryparam annotation on 'uriInfo' param)
 		final IMethod method = getMethod(type, "getCustomers");
-		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int", Arrays.asList(
-				createAnnotation(QueryParam.class, "start"),
-				createAnnotation(DefaultValue.class, "0")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
-				QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
+		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
+				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
+				createAnnotation(QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(QueryParam.class, "foo"), createAnnotation(Context.class, null)));
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
@@ -1869,25 +1902,103 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
-	@Ignore("deferred for now")
 	public void shouldUpdateResourceMethodWhenAddingMatrixParamAnnotationOnParameter() throws CoreException {
-		fail("Not implemented yet");
+		// the method signature is changed
+		// pre-conditions
+		// JAX-RS HttpMethod
+		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
+		metamodel.add(httpMethod);
+		// Parent JAX-RS Resource
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		final Annotation pathAnnotation = getAnnotation(type, Path.class);
+		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
+		metamodel.add(resource);
+		// JAX-RS Resource Method (MatrixParam annotation on second parameter is not declared)
+		final IMethod method = getMethod(type, "getPicture");
+		final JavaMethodParameter startParameter = new JavaMethodParameter("id", Integer.class.getName(),
+				Arrays.asList(createAnnotation(PathParam.class, "id")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(), new ArrayList<Annotation>());
+		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.lang.Object", javaProject))
+				.methodParameter(startParameter).methodParameter(sizeParameter)
+				.build();
+		metamodel.add(jaxrsMethod);
+		// operation
+		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
-	@Ignore("deferred for now")
 	public void shouldUpdateResourceMethodWhenChangingMatrixParamAnnotationOnParameter() throws CoreException {
-		fail("Not implemented yet");
+		// the method signature is changed
+		// pre-conditions
+		// JAX-RS HttpMethod
+		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
+		metamodel.add(httpMethod);
+		// Parent JAX-RS Resource
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		final Annotation pathAnnotation = getAnnotation(type, Path.class);
+		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
+		metamodel.add(resource);
+		// JAX-RS Resource Method (MatrixParam value is different: "foo" vs "color" on second param)
+		final IMethod method = getMethod(type, "getPicture");
+		final JavaMethodParameter startParameter = new JavaMethodParameter("id", Integer.class.getName(),
+				Arrays.asList(createAnnotation(PathParam.class, "id")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(), Arrays.asList(
+				createAnnotation(MatrixParam.class, "foo")));
+		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
+				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.lang.Object", javaProject))
+				.methodParameter(startParameter).methodParameter(sizeParameter)
+				.build();
+		metamodel.add(jaxrsMethod);
+		// operation
+		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
-	@Ignore("deferred for now")
 	public void shouldUpdateResourceMethodWhenRemovingMatrixParamAnnotationOnParameter() throws CoreException {
-		fail("Not implemented yet");
+		// the method signature is changed
+		// pre-conditions
+		// JAX-RS HttpMethod
+		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
+		metamodel.add(httpMethod);
+		// Parent JAX-RS Resource
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		final Annotation pathAnnotation = getAnnotation(type, Path.class);
+		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
+		metamodel.add(resource);
+		// JAX-RS Resource Method (an extra MatrixParam annotation on 'id' param)
+		final IMethod method = getMethod(type, "getProduct");
+		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(), Arrays.asList(
+				createAnnotation(MatrixParam.class, "foo"), createAnnotation(PathParam.class, "id")));
+		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
+				.httpMethod(getAnnotation(method, GET.class))
+				.returnType(getType("org.jboss.tools.ws.jaxrs.sample.domain.Book", javaProject))
+				.methodParameter(pathParameter).build();
+		metamodel.add(jaxrsMethod);
+		// operation
+		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1907,14 +2018,14 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
 				Arrays.asList(createAnnotation(QueryParam.class, "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
-				QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
+				createAnnotation(QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
 				Arrays.asList(createAnnotation(Context.class, null)));
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
-				.httpMethod(getAnnotation(method, GET.class)).returnType(getType(Response.class.getName(), javaProject))
-				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
-				.build();
+				.httpMethod(getAnnotation(method, GET.class))
+				.returnType(getType(Response.class.getName(), javaProject)).methodParameter(startParameter)
+				.methodParameter(sizeParameter).methodParameter(uriInfoParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
 		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
@@ -1922,9 +2033,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		// annotations were not provided but are retrieved... 
+		// annotations were not provided but are retrieved...
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_RETURN_TYPE + F_METHOD_PARAMETERS));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP  + resource + resourceMethod 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
 	@Test
@@ -1946,8 +2057,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
 				Arrays.asList(createAnnotation(QueryParam.class, "start")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(createAnnotation(
-				QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
+				createAnnotation(QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)

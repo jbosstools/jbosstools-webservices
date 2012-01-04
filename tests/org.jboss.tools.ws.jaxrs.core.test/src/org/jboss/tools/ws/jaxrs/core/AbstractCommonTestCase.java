@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -116,7 +117,9 @@ public abstract class AbstractCommonTestCase {
 
 			projectName = WorkbenchUtils.retrieveSampleProjectName(this.getClass());
 			project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+			project.open(new NullProgressMonitor());
 			javaProject = JavaCore.create(project);
+			javaProject.open(new NullProgressMonitor());
 			Assert.assertNotNull("JavaProject not found", javaProject.exists());
 			Assert.assertNotNull("Project not found", javaProject.getProject().exists());
 			Assert.assertTrue("Project is not a JavaProject", JavaProject.hasJavaNature(javaProject.getProject()));

@@ -22,6 +22,11 @@ public class ResourceChangedEventFilter {
 
 	public boolean applyRules(ResourceChangedEvent event) throws JavaModelException {
 		final IResource resource = event.getResource();
+		// prevent processing resources in a closed project
+		if (!resource.getProject().isOpen()) {
+			return false;
+		}
+
 		final IJavaProject javaProject = JavaCore.create(resource.getProject());
 		// check if the resource if a .java file in an existing Package Fragment
 		// Root
