@@ -42,24 +42,32 @@ public class JaxrsMetamodelBuildJob extends Job {
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
 			progressMonitor.worked(SCALE);
-			Logger.debug("Building JAX-RS Metamodel...", event);
+			Logger.debug("Building JAX-RS Metamodel...");
+			if (progressMonitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
 			// create fake event at the JavaProject level:
 			// scan and filter delta, retrieve a list of java changes
 			final List<JavaElementChangedEvent> events = new JavaElementChangedEventScanner().scanAndFilterEvent(event,
 					new SubProgressMonitor(progressMonitor, SCALE));
-			if (events == null || events.isEmpty()) {
-				Logger.debug("** No Java change to apply on the JAX-RS Metamodel **");
+			if (progressMonitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
+			final List<JaxrsElementChangedEvent> jaxrsElementChanges = javaElementChangedProcessor.processEvents(
+					events, new SubProgressMonitor(progressMonitor, SCALE));
+			if (progressMonitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
+			final List<JaxrsEndpointChangedEvent> jaxrsEndpointChanges = jaxrsElementChangedProcessor.processEvents(
+					jaxrsElementChanges, new SubProgressMonitor(progressMonitor, SCALE));
+			if (progressMonitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
+			if (jaxrsEndpointChanges == null || jaxrsEndpointChanges.isEmpty()) {
+				Logger.debug("*** No JAX-RS change to publish to the UI ***");
 			} else {
-				final List<JaxrsElementChangedEvent> jaxrsElementChanges = javaElementChangedProcessor.processEvents(
-						events, new SubProgressMonitor(progressMonitor, SCALE));
-				final List<JaxrsEndpointChangedEvent> jaxrsEndpointChanges = jaxrsElementChangedProcessor
-						.processEvents(jaxrsElementChanges, new SubProgressMonitor(progressMonitor, SCALE));
-				if (jaxrsEndpointChanges == null || jaxrsEndpointChanges.isEmpty()) {
-					Logger.debug("*** No JAX-RS change to publish to the UI ***");
-				} else {
-					for (JaxrsEndpointChangedEvent change : jaxrsEndpointChanges) {
-						EventService.getInstance().publish(change);
-					}
+				for (JaxrsEndpointChangedEvent change : jaxrsEndpointChanges) {
+					EventService.getInstance().publish(change);
 				}
 			}
 		} catch (Throwable e) {

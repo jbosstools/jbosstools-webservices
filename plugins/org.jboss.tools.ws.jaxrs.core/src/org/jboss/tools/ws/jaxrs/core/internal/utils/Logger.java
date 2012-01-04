@@ -63,8 +63,13 @@ public final class Logger {
 	 *            the throwable cause
 	 */
 	public static void error(final String message, final Throwable t) {
+		if(JBossJaxrsCorePlugin.getDefault() != null) {
 		JBossJaxrsCorePlugin.getDefault().getLog()
 				.log(new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message, t));
+		} else {
+			// at least write in the .log file
+			t.printStackTrace();
+		}
 	}
 
 	/**
