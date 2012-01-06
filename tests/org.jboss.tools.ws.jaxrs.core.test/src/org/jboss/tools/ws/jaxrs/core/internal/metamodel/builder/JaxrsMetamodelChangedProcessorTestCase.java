@@ -19,12 +19,11 @@ import static org.hamcrest.Matchers.isOneOf;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_ELEMENT_KIND;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,15 +59,17 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase {
+public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCase {
 
 	private JaxrsMetamodel metamodel;
 
-	private final JaxrsElementChangedProcessor delegate = new JaxrsElementChangedProcessor();
+	private final JaxrsMetamodelChangedProcessor delegate = new JaxrsMetamodelChangedProcessor();
 
 	private static final IProgressMonitor progressMonitor = new NullProgressMonitor();
 
@@ -134,11 +135,12 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		return endpoint;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processEvent(JaxrsElementChangedEvent event,
+	private List<JaxrsEndpointDelta> processEvent(JaxrsElementDelta affectedElement,
 			IProgressMonitor progressMonitor) {
-		List<JaxrsElementChangedEvent> events = new ArrayList<JaxrsElementChangedEvent>();
-		events.add(event);
-		return delegate.processEvents(events, progressMonitor);
+		JaxrsMetamodelDelta affectedMetamodel = new JaxrsMetamodelDelta(metamodel, CHANGED);
+		affectedMetamodel.add(affectedElement);
+		delegate.processAffectedMetamodel(affectedMetamodel, progressMonitor);
+		return affectedMetamodel.getAffectedEndpoints();
 	}
 
 	@Test
@@ -204,8 +206,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
 				GET.class);
 		// operation
-		JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, ADDED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, ADDED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -219,8 +221,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResourceMethod customerSubresourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET.class);
 		// operation
-		JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerSubresourceMethod, ADDED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		JaxrsElementDelta event = new JaxrsElementDelta(customerSubresourceMethod, ADDED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -242,8 +244,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
 				productResourceLocator, null);
 		// operation
-		JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(productResourceLocatorMethod, ADDED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, ADDED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -259,8 +261,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getAllProducts", bookResource, GET.class);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(bookResourceMethod, ADDED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, ADDED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -278,8 +280,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		Annotation httpAnnotation = getAnnotation(customerSubresourceMethod.getJavaElement(), GET.class);
 		final int flags = customerSubresourceMethod.addOrUpdateAnnotation(httpAnnotation);
-		JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerSubresourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		JaxrsElementDelta event = new JaxrsElementDelta(customerSubresourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -295,8 +297,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.class);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(bookResourceMethod, ADDED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, ADDED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -319,8 +321,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
 		final JaxrsApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(application, ADDED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(application, ADDED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -338,9 +340,9 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 				GET.class);
 		final JaxrsEndpoint fakeEndpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, CHANGED, F_ELEMENT_KIND
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, F_ELEMENT_KIND
 				+ F_PATH_VALUE);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -361,12 +363,12 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers"));
 		// operation
 		customerResourceMethod.addOrUpdateAnnotation(annotation);
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED,
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED,
 				F_PATH_VALUE);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
@@ -386,11 +388,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final Annotation annotation = getAnnotation(application.getJavaElement(), ApplicationPath.class, "/foo");
 		int flags = application.addOrUpdateAnnotation(annotation);
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(application, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(application, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
@@ -409,11 +411,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), Path.class, "/foo");
 		customerResource.addOrUpdateAnnotation(annotation);
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, CHANGED, F_PATH_VALUE);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, F_PATH_VALUE);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
@@ -432,11 +434,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), Path.class, "{foo}");
 		final int flags = customerResourceMethod.addOrUpdateAnnotation(annotation);
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
@@ -461,14 +463,14 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), Path.class);
 		final int flags = customerResource.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
-		final JaxrsEndpointChangedEvent change1 = changes.get(0);
+		final JaxrsEndpointDelta change1 = changes.get(0);
 		assertThat(change1.getDeltaKind(), equalTo(REMOVED));
 		assertThat(change1.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
-		final JaxrsEndpointChangedEvent change2 = changes.get(1);
+		final JaxrsEndpointDelta change2 = changes.get(1);
 		assertThat(change2.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
 		assertThat(change2.getEndpoint().getUriPathTemplate(), equalTo("/products/{productType}/{id}"));
 	}
@@ -485,8 +487,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		int flags = httpMethod
 				.addOrUpdateAnnotation(getAnnotation(httpMethod.getJavaElement(), HttpMethod.class, "BAR"));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(httpMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(httpMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -506,8 +508,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation : no 'application' left in the metamodel
 		metamodel.remove(application);
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(application, REMOVED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(application, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -529,8 +531,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), Path.class);
 		final int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -552,11 +554,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final int flags = customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(),
 				Consumes.class));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -575,11 +577,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final int flags = customerResourceMethod.addOrUpdateAnnotation(getAnnotation(
 				customerResourceMethod.getJavaElement(), Consumes.class));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -601,11 +603,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		int flags = customerResourceMethod.addOrUpdateAnnotation(getAnnotation(customerResourceMethod.getJavaElement(),
 				Consumes.class));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -626,11 +628,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		int flags = customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(),
 				Consumes.class));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -653,11 +655,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
 		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -678,11 +680,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
 		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
@@ -700,11 +702,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final int flags = customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(),
 				Produces.class, "application/xml"));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -723,11 +725,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final int flags = customerResourceMethod.addOrUpdateAnnotation(getAnnotation(
 				customerResourceMethod.getJavaElement(), Produces.class));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("text/x-vcard")));
@@ -748,11 +750,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		int flags = customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(),
 				Produces.class, "application/xml"));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -774,11 +776,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		int flags = customerResourceMethod.addOrUpdateAnnotation(getAnnotation(customerResourceMethod.getJavaElement(),
 				Produces.class));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("text/x-vcard")));
@@ -801,11 +803,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
 		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml")));
@@ -826,11 +828,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
 		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("*/*")));
@@ -846,11 +848,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(httpMethod, REMOVED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(httpMethod, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(REMOVED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 	}
@@ -869,11 +871,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), Path.class);
 		final int flags = customerResource.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(REMOVED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 	}
@@ -890,11 +892,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 				GET.class);
 		final JaxrsEndpoint endpoint2 = createEndpoint(httpMethod, customerResourceMethod2);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResource, REMOVED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
-		for (JaxrsEndpointChangedEvent change : changes) {
+		for (JaxrsEndpointDelta change : changes) {
 			assertThat(change.getDeltaKind(), equalTo(REMOVED));
 			assertThat(change.getEndpoint(), isOneOf((IJaxrsEndpoint) endpoint1, (IJaxrsEndpoint) endpoint2));
 		}
@@ -915,8 +917,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.class);
 		createEndpoint(httpMethod, gameResourceMethod);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(bookResource, REMOVED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(bookResource, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -939,8 +941,8 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final Annotation httpAnnotation = bookResourceMethod.getHttpMethodAnnotation();
 		final int flags = bookResourceMethod.removeAnnotation(httpAnnotation.getJavaAnnotation().getHandleIdentifier());
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(bookResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -967,9 +969,9 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final IType objectType = JdtUtils.resolveType(Object.class.getName(), javaProject, progressMonitor);
 		int flags = productResourceLocatorMethod.update(new JavaMethodSignature(productResourceLocatorMethod
 				.getJavaElement(), objectType, productResourceLocatorMethod.getJavaMethodParameters()));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(productResourceLocatorMethod, CHANGED,
+		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, CHANGED,
 				flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -996,9 +998,9 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final IType bookResourceType = bookResource.getJavaElement();
 		int flags = productResourceLocatorMethod.update(new JavaMethodSignature(productResourceLocatorMethod
 				.getJavaElement(), bookResourceType, productResourceLocatorMethod.getJavaMethodParameters()));
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(productResourceLocatorMethod, CHANGED,
+		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, CHANGED,
 				flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1021,11 +1023,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.class);
 		final JaxrsEndpoint gameEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, gameResourceMethod);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(productResourceLocator, REMOVED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocator, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
-		for (JaxrsEndpointChangedEvent change : changes) {
+		for (JaxrsEndpointDelta change : changes) {
 			assertThat(change.getDeltaKind(), equalTo(REMOVED));
 			assertThat(change.getEndpoint(), isOneOf((IJaxrsEndpoint) bookEndpoint, (IJaxrsEndpoint) gameEndpoint));
 		}
@@ -1040,11 +1042,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 				GET.class);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, REMOVED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(REMOVED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 	}
@@ -1061,11 +1063,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		// operation
 		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), Path.class);
 		final int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(customerResourceMethod, REMOVED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, REMOVED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
-		final JaxrsEndpointChangedEvent change = changes.get(0);
+		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(REMOVED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 	}
@@ -1084,11 +1086,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.class);
 		final JaxrsEndpoint gameEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, gameResourceMethod);
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(productResourceLocatorMethod, REMOVED);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
-		for (JaxrsEndpointChangedEvent change : changes) {
+		for (JaxrsEndpointDelta change : changes) {
 			assertThat(change.getDeltaKind(), equalTo(REMOVED));
 			assertThat(change.getEndpoint(), isOneOf((IJaxrsEndpoint) bookEndpoint, (IJaxrsEndpoint) gameEndpoint));
 		}
@@ -1113,11 +1115,11 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		final int flags = productResourceLocator.removeAnnotation(productResourceLocatorPathAnnotation
 				.getJavaAnnotation().getHandleIdentifier());
 		// operation
-		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(productResourceLocator, CHANGED, flags);
-		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocator, CHANGED, flags);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
-		for (JaxrsEndpointChangedEvent change : changes) {
+		for (JaxrsEndpointDelta change : changes) {
 			assertThat(change.getDeltaKind(), equalTo(REMOVED));
 			assertThat(change.getEndpoint(), isOneOf((IJaxrsEndpoint) bookEndpoint, (IJaxrsEndpoint) gameEndpoint));
 		}

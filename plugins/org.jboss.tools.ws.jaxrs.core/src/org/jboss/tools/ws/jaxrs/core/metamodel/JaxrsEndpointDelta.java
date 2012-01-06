@@ -8,19 +8,12 @@
  * Contributors: 
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
-
-import java.util.EventObject;
+package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpointChangedEvent;
 
-public class JaxrsEndpointChangedEvent extends EventObject implements IJaxrsEndpointChangedEvent {
-
-	/** serialVersionUID */
-	private static final long serialVersionUID = -1329818584745613481L;
+public class JaxrsEndpointDelta {
 
 	private final IJaxrsEndpoint endpoint;
 
@@ -32,30 +25,15 @@ public class JaxrsEndpointChangedEvent extends EventObject implements IJaxrsEndp
 	 * @param element
 	 * @param deltaKind
 	 */
-	public JaxrsEndpointChangedEvent(IJaxrsEndpoint endpoint, int deltaKind) {
-		super(endpoint);
+	public JaxrsEndpointDelta(IJaxrsEndpoint endpoint, int deltaKind) {
 		this.endpoint = endpoint;
 		this.deltaKind = deltaKind;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.
-	 * IJaxrsEndpointChangedEvent#getEndpoint()
-	 */
-	@Override
 	public IJaxrsEndpoint getEndpoint() {
 		return endpoint;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.
-	 * IJaxrsEndpointChangedEvent#getDeltaKind()
-	 */
-	@Override
 	public int getDeltaKind() {
 		return deltaKind;
 	}

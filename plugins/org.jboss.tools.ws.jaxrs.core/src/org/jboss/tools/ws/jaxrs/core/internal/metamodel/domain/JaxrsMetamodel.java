@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
@@ -507,6 +508,52 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	@Override
 	public List<IJaxrsEndpoint> getAllEndpoints() {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsEndpoint>(endpoints));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((javaProject == null) ? 0 : javaProject.getHandleIdentifier().hashCode());
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		JaxrsMetamodel other = (JaxrsMetamodel) obj;
+		if (javaProject == null && other.javaProject != null) {
+			return false;
+		} else if (javaProject != null && other.javaProject == null) {
+			return false;
+		} else if (!javaProject.getHandleIdentifier().equals(other.javaProject.getHandleIdentifier())) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public IProject getProject() {
+		if(javaProject == null) {
+			return null;
+		}
+		return javaProject.getProject();
 	}
 
 }

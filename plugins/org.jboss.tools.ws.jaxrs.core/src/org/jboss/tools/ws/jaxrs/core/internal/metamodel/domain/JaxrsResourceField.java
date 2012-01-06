@@ -81,7 +81,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 
 	@Override
 	public String toString() {
-		return "JaxrsResourceField " + getJavaElement().getElementName() + " | annotations=" + getAnnotations();
+		return "ResourceField '" + getJavaElement().getParent().getElementName() + "." + getJavaElement().getElementName() + "' | annotations=" + getAnnotations();
 	}
 
 }

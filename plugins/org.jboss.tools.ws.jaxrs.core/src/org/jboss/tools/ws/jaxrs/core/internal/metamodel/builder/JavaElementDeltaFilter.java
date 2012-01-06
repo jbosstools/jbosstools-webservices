@@ -44,7 +44,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 
-public class JavaElementChangedEventFilter {
+public class JavaElementDeltaFilter {
 
 	private final static int WORKING_COPY = 0x1;
 	private final static int PRIMARY_COPY = 0x2;
@@ -55,7 +55,7 @@ public class JavaElementChangedEventFilter {
 	 */
 	private final List<Rule> rules = new ArrayList<Rule>();
 
-	public JavaElementChangedEventFilter() {
+	public JavaElementDeltaFilter() {
 		accept().when(JAVA_PROJECT).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY);
 		accept().when(JAVA_PROJECT).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY);
 
@@ -117,7 +117,7 @@ public class JavaElementChangedEventFilter {
 	 * @see IJavaElementDelta, IJavaElementKind
 	 */
 
-	public boolean apply(JavaElementChangedEvent event) {
+	public boolean apply(JavaElementDelta event) {
 		int elementKind = event.getElement().getElementType();
 		int deltaKind = event.getDeltaKind();
 		IJavaElement element = event.getElement();

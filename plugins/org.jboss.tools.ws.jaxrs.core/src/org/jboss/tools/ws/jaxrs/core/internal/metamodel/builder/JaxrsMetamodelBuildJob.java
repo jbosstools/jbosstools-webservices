@@ -21,13 +21,14 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 
 /** @author xcoulon */
 public class JaxrsMetamodelBuildJob extends Job {
 
 	private final JavaElementChangedProcessor javaElementChangedProcessor = new JavaElementChangedProcessor();
 
-	private final JaxrsElementChangedProcessor jaxrsElementChangedProcessor = new JaxrsElementChangedProcessor();
+	private final JaxrsMetamodelChangedProcessor jaxrsElementChangedProcessor = new JaxrsMetamodelChangedProcessor();
 
 	private final ElementChangedEvent event;
 
@@ -47,24 +48,24 @@ public class JaxrsMetamodelBuildJob extends Job {
 				return Status.CANCEL_STATUS;
 			}
 			// scan and filter delta, retrieve a list of java changes
-			final List<JavaElementChangedEvent> events = new JavaElementChangedEventScanner().scanAndFilterEvent(event,
+			final List<JavaElementDelta> affectedJavaElements = new JavaElementDeltaScanner().scanAndFilterEvent(event,
 					new SubProgressMonitor(progressMonitor, SCALE));
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			final List<JaxrsElementChangedEvent> jaxrsElementChanges = javaElementChangedProcessor.processEvents(
-					events, new SubProgressMonitor(progressMonitor, SCALE));
+			final List<JaxrsMetamodelDelta> affectedMetamodels = javaElementChangedProcessor.processAffectedJavaElements(affectedJavaElements,
+					new SubProgressMonitor(progressMonitor, SCALE));
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			final List<JaxrsEndpointChangedEvent> jaxrsEndpointChanges = jaxrsElementChangedProcessor.processEvents(
-					jaxrsElementChanges, new SubProgressMonitor(progressMonitor, SCALE));
+			jaxrsElementChangedProcessor.processAffectedMetamodels(affectedMetamodels, new SubProgressMonitor(
+					progressMonitor, SCALE));
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			new JaxrsElementChangedPublisher().publish(jaxrsEndpointChanges, new SubProgressMonitor(progressMonitor,
+			new JaxrsElementChangedPublisher().publish(affectedMetamodels, new SubProgressMonitor(progressMonitor,
 					SCALE));
-			
+
 		} catch (Throwable e) {
 			Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 		} finally {

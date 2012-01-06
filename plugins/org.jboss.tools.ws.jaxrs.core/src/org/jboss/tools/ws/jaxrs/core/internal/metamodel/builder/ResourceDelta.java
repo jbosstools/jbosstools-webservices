@@ -23,10 +23,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
  * @author xcoulon
  * 
  */
-public class ResourceChangedEvent extends EventObject {
-
-	/** generated serial version UID */
-	private static final long serialVersionUID = 8821221398378359798L;
+public class ResourceDelta {
 
 	public static final int NO_FLAG = 0;
 
@@ -57,8 +54,7 @@ public class ResourceChangedEvent extends EventObject {
 	 *            the detailed kind of change.
 	 * @see IJavaElementDelta for element change kind values.
 	 */
-	public ResourceChangedEvent(final IResource resource, final int deltaKind, final int flags) {
-		super(resource);
+	public ResourceDelta(final IResource resource, final int deltaKind, final int flags) {
 		this.resource = resource;
 		this.deltaKind = deltaKind;
 		this.flags = flags;
@@ -142,7 +138,7 @@ public class ResourceChangedEvent extends EventObject {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final ResourceChangedEvent other = (ResourceChangedEvent) obj;
+		final ResourceDelta other = (ResourceDelta) obj;
 		if (deltaKind != other.deltaKind) {
 			return false;
 		}

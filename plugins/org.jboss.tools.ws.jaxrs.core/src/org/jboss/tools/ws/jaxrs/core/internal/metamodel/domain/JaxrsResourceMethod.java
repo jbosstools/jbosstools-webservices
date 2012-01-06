@@ -11,9 +11,9 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_METHOD_PARAMETERS;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_METHOD_RETURN_TYPE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_NONE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -323,8 +323,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 */
 	@Override
 	public final String toString() {
-		return getKind().toString().toLowerCase() + " " + parentResource.getName() + "."
-				+ getJavaElement().getElementName();
+		return "ResourceMethod '" + parentResource.getName() + "."
+				+ getJavaElement().getElementName() + "' (" + getKind().toString() + ")";
 	}
 
 	@Override

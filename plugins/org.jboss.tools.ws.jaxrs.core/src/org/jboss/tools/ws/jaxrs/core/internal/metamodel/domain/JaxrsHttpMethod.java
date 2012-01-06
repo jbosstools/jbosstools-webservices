@@ -11,7 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_HTTP_METHOD_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
 
 import java.util.ArrayList;
 import java.util.List;

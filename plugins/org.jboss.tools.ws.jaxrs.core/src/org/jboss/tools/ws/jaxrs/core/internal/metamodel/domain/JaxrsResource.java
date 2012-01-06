@@ -192,7 +192,7 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 
 	@Override
 	public String toString() {
-		return new StringBuffer().append(getName()).append(" (root:").append(isRootResource()).append(") ").toString();
+		return new StringBuffer().append("Resource '").append(getName()).append("' (root=").append(isRootResource()).append(") ").toString();
 	}
 
 	public void addElement(JaxrsResourceElement<?> element) {

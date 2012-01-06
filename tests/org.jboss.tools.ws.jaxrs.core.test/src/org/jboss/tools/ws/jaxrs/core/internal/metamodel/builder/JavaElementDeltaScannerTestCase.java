@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_ADDED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent.NO_FLAG;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta.NO_FLAG;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
@@ -71,9 +71,9 @@ import org.mockito.verification.VerificationMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
+public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ElementChangedEventScannerTestCase.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(JavaElementDeltaScannerTestCase.class);
 
 	private final CompilationUnitsRepository astRepository = CompilationUnitsRepository.getInstance();
 
@@ -85,19 +85,19 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 
 	private final ResourceChangeListener resourceChangeListener = new ResourceChangeListener();
 
-	private List<JavaElementChangedEvent> javaElementEvents = null;
+	private List<JavaElementDelta> javaElementEvents = null;
 
-	private List<ResourceChangedEvent> resourceEvents = null;
+	private List<ResourceDelta> resourceEvents = null;
 
 	private final class ElementChangeListener implements IElementChangedListener {
 		@Override
 		public void elementChanged(ElementChangedEvent event) {
 			try {
-				final JavaElementChangedEventScanner scanner = new JavaElementChangedEventScanner();
+				final JavaElementDeltaScanner scanner = new JavaElementDeltaScanner();
 				final List<? extends EventObject> events = scanner.scanAndFilterEvent(event, new NullProgressMonitor());
 				for (EventObject e : events) {
-					if (e instanceof JavaElementChangedEvent) {
-						javaElementEvents.add((JavaElementChangedEvent) e);
+					if (e instanceof JavaElementDelta) {
+						javaElementEvents.add((JavaElementDelta) e);
 					} else {
 						fail("Unexpected event type:" + e);
 					}
@@ -113,15 +113,11 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		@Override
 		public void resourceChanged(IResourceChangeEvent event) {
 			try {
-				final ResourceChangedEventScanner scanner = new ResourceChangedEventScanner();
-				final List<? extends EventObject> events = scanner.scanAndFilterEvent(event.getDelta(),
-						new NullProgressMonitor());
-				for (EventObject e : events) {
-					if (e instanceof ResourceChangedEvent) {
-						resourceEvents.add((ResourceChangedEvent) e);
-					} else {
-						fail("Unexpected event type:" + e);
-					}
+				final ResourceDeltaScanner scanner = new ResourceDeltaScanner();
+				final List<ResourceDelta> affectedResources = scanner.scanAndFilterEvent(event.getDelta(), new NullProgressMonitor());
+				// must explicitly call the add() method to perform verify() on the mocks at the end of the test.
+				for (ResourceDelta resourceDelta : affectedResources) {
+					resourceEvents.add(resourceDelta);
 				}
 			} catch (CoreException e) {
 				LOGGER.error("Failed to scan event {}", event, e);
@@ -160,8 +156,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// any(CompilationUnit.class), eq(flags));
 		ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(element);
 		CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
-		verify(javaElementEvents, numberOfTimes).add(
-				new JavaElementChangedEvent(element, deltaKind, eventType, ast, flags));
+		verify(javaElementEvents, numberOfTimes).add(new JavaElementDelta(element, deltaKind, eventType, ast, flags));
 	}
 
 	private void verifyEventNotification(IResource resource, int deltaKind, int eventType, int flags,
@@ -171,7 +166,7 @@ public class ElementChangedEventScannerTestCase extends AbstractCommonTestCase {
 		// numberOfTimes).notifyJavaElementChanged(eq(element),
 		// eq(elementKind), eq(deltaKind),
 		// any(CompilationUnit.class), eq(flags));
-		verify(resourceEvents, numberOfTimes).add(new ResourceChangedEvent(resource, deltaKind, flags));
+		verify(resourceEvents, numberOfTimes).add(new ResourceDelta(resource, deltaKind, flags));
 	}
 
 	@Test

@@ -13,8 +13,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_ELEMENT_KIND;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_METHOD_RETURN_TYPE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,29 +41,41 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 
-public class JaxrsElementChangedProcessor {
+public class JaxrsMetamodelChangedProcessor {
 
-	public List<JaxrsEndpointChangedEvent> processEvents(final List<JaxrsElementChangedEvent> jaxrsElementChanges,
+	public List<JaxrsMetamodelDelta> processAffectedMetamodels(List<JaxrsMetamodelDelta> affectedMetamodels,
 			IProgressMonitor progressMonitor) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+		for (JaxrsMetamodelDelta affectedMetamodel : affectedMetamodels) {
+			processAffectedMetamodel(affectedMetamodel, progressMonitor);
+		}
+		return affectedMetamodels;
+	}
+
+	/**
+	 * Processes the affected elements from the given metamodelDelta to enrich that later one with affected endpoints.
+	 * 
+	 * @param metamodelDelta
+	 * @param progressMonitor
+	 * @return the given metamodelDelta completed with affected endpoints.
+	 */
+	public JaxrsMetamodelDelta processAffectedMetamodel(final JaxrsMetamodelDelta metamodelDelta,
+			IProgressMonitor progressMonitor) {
+		final List<JaxrsElementDelta> affectedElements = metamodelDelta.getAffectedElements();
+		Collections.sort(affectedElements);
 		try {
-			Logger.debug("Processing {} JAX-RS element change(s)...", jaxrsElementChanges.size());
-			boolean loopAgain = true;
-			while (loopAgain) {
-				loopAgain = false;
-				for (Iterator<JaxrsElementChangedEvent> iterator = jaxrsElementChanges.iterator(); iterator.hasNext();) {
-					JaxrsElementChangedEvent jaxrsElementChange = iterator.next();
-					Logger.debug("Processing {}", jaxrsElementChange);
-					final List<JaxrsEndpointChangedEvent> endpointChanges = processEvent(jaxrsElementChange);
-					for (JaxrsEndpointChangedEvent endpointChange : endpointChanges) {
-						Logger.debug("--> {}", endpointChange);
-					}
-					if (!endpointChanges.isEmpty()) {
-						changes.addAll(endpointChanges);
-						iterator.remove();
-						loopAgain = true;
-					}
+			Logger.debug("Processing {} JAX-RS element change(s)...", affectedElements.size());
+			for (Iterator<JaxrsElementDelta> iterator = affectedElements.iterator(); iterator.hasNext();) {
+				JaxrsElementDelta jaxrsElementChange = iterator.next();
+				Logger.debug("Processing {}", jaxrsElementChange);
+				final List<JaxrsEndpointDelta> affectedEndpoints = processEvent(jaxrsElementChange);
+				for (JaxrsEndpointDelta endpointDelta : affectedEndpoints) {
+					Logger.debug("--> {}", endpointDelta);
+				}
+				if (!affectedEndpoints.isEmpty()) {
+					metamodelDelta.addAffectedEndpoint(affectedEndpoints);
 				}
 			}
 		} catch (CoreException e) {
@@ -71,10 +83,10 @@ public class JaxrsElementChangedProcessor {
 		} finally {
 			Logger.debug("Done processing JAX-RS element change(s).");
 		}
-		return changes;
+		return metamodelDelta;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processEvent(final JaxrsElementChangedEvent event) throws CoreException {
+	private List<JaxrsEndpointDelta> processEvent(final JaxrsElementDelta event) throws CoreException {
 		final JaxrsElement<?> element = event.getElement();
 		final EnumElementKind elementKind = element.getElementKind();
 		final int flags = event.getFlags();
@@ -123,36 +135,35 @@ public class JaxrsElementChangedProcessor {
 	 * @param application
 	 * @return
 	 */
-	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsApplication application) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processAddition(final JaxrsApplication application) {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final JaxrsMetamodel metamodel = application.getMetamodel();
 		// if the given application becomes the used application in the metamodel
 		if (application.equals(metamodel.getApplication())) {
 			for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
 				JaxrsEndpoint endpoint = iterator.next();
 				if (endpoint.refresh(application)) {
-					changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
+					changes.add(new JaxrsEndpointDelta(endpoint, CHANGED));
 				}
 			}
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsHttpMethod httpMethod) {
+	private List<JaxrsEndpointDelta> processAddition(final JaxrsHttpMethod httpMethod) {
 		return Collections.emptyList();
 	}
 
-	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsResource resource) throws CoreException {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processAddition(final JaxrsResource resource) throws CoreException {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 			changes.addAll(processAddition(resourceMethod));
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsResourceMethod resourceMethod)
-			throws CoreException {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processAddition(final JaxrsResourceMethod resourceMethod) throws CoreException {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) resourceMethod.getMetamodel();
 		final JaxrsResource resource = resourceMethod.getParentResource();
 		if (resource == null) {
@@ -184,11 +195,11 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processSubresourceMethodAddition(final JaxrsResourceMethod resourceMethod,
+	private List<JaxrsEndpointDelta> processSubresourceMethodAddition(final JaxrsResourceMethod resourceMethod,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) metamodel.getHttpMethod(resourceMethod
 				.getHttpMethodAnnotation());
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final JaxrsResource resource = resourceMethod.getParentResource();
 		final IProgressMonitor progressMonitor = new NullProgressMonitor();
 		final IType resourceType = resource.getJavaElement();
@@ -206,7 +217,7 @@ public class JaxrsElementChangedProcessor {
 							final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(), httpMethod,
 									resourceMethods);
 							if (metamodel.add(endpoint)) {
-								changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
+								changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
 							}
 						}
 					}
@@ -216,21 +227,21 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRootResourceMethodAddition(final JaxrsResourceMethod resourceMethod,
+	private List<JaxrsEndpointDelta> processRootResourceMethodAddition(final JaxrsResourceMethod resourceMethod,
 			final JaxrsMetamodel metamodel) {
 		final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod.getHttpMethodAnnotation());
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(), httpMethod, resourceMethod);
 		if (metamodel.add(endpoint)) {
-			changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
+			changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
 		}
 		return changes;
 	}
 
 	// FIXME: support chain of subresource locators
-	private List<JaxrsEndpointChangedEvent> processSubresourceLocatorAddition(
-			final JaxrsResourceMethod subresourceLocator, final JaxrsMetamodel metamodel) throws CoreException {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processSubresourceLocatorAddition(final JaxrsResourceMethod subresourceLocator,
+			final JaxrsMetamodel metamodel) throws CoreException {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final IProgressMonitor progressMonitor = new NullProgressMonitor();
 		final IType returnType = subresourceLocator.getReturnType();
 		if (returnType != null) {
@@ -254,7 +265,7 @@ public class JaxrsElementChangedProcessor {
 								final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(),
 										httpMethod, resourceMethods);
 								if (metamodel.add(endpoint)) {
-									changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
+									changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
 								}
 							}
 							break;
@@ -274,35 +285,35 @@ public class JaxrsElementChangedProcessor {
 		return supertypesHandlers;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsApplication application, int flags) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processChange(final JaxrsApplication application, int flags) {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final JaxrsMetamodel metamodel = application.getMetamodel();
 		if (application.equals(metamodel.getApplication())) {
 			for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
 				JaxrsEndpoint endpoint = iterator.next();
 				if (endpoint.refresh(application)) {
 					// just notify changes to the UI, no refresh required
-					changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
+					changes.add(new JaxrsEndpointDelta(endpoint, CHANGED));
 				}
 			}
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsHttpMethod httpMethod, int flags) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processChange(final JaxrsHttpMethod httpMethod, int flags) {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		for (Iterator<JaxrsEndpoint> iterator = httpMethod.getMetamodel().getEndpoints().iterator(); iterator.hasNext();) {
 			JaxrsEndpoint endpoint = iterator.next();
 			if (endpoint.match(httpMethod)) {
 				// just notify changes to the UI, no refresh required
-				changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
+				changes.add(new JaxrsEndpointDelta(endpoint, CHANGED));
 			}
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsResource resource, int flags) throws CoreException {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processChange(final JaxrsResource resource, int flags) throws CoreException {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		// no structural change in the resource: refresh its methods
 		if ((flags & F_ELEMENT_KIND) == 0) {
 			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
@@ -321,9 +332,9 @@ public class JaxrsElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsResourceMethod changedResourceMethod, int flags)
+	private List<JaxrsEndpointDelta> processChange(final JaxrsResourceMethod changedResourceMethod, int flags)
 			throws CoreException {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		if ((flags & F_ELEMENT_KIND) > 0) {
 			// remove endpoints using this resoureMethod:
 			for (Iterator<JaxrsEndpoint> iterator = changedResourceMethod.getMetamodel().getEndpoints().iterator(); iterator
@@ -331,7 +342,7 @@ public class JaxrsElementChangedProcessor {
 				JaxrsEndpoint endpoint = iterator.next();
 				if (endpoint.match(changedResourceMethod)) {
 					iterator.remove();
-					changes.add(new JaxrsEndpointChangedEvent(endpoint, REMOVED));
+					changes.add(new JaxrsEndpointDelta(endpoint, REMOVED));
 				}
 			}
 			// create endpoints using this resourceMethod:
@@ -356,7 +367,7 @@ public class JaxrsElementChangedProcessor {
 							boolean match = JdtUtils.isTypeOrSuperType(returnType, nextEndpointResourceMethodType);
 							if (!match) {
 								endpointIterator.remove();
-								changes.add(new JaxrsEndpointChangedEvent(endpoint, REMOVED));
+								changes.add(new JaxrsEndpointDelta(endpoint, REMOVED));
 								// stop the iteration over the resourceMethods
 								// of the current endpoint, in order to move to
 								// the next one.
@@ -378,56 +389,56 @@ public class JaxrsElementChangedProcessor {
 					// refresh the endpoint after the changes
 					endpoint.refresh(changedResourceMethod, flags);
 					// check if the endpoint is still valid:
-					changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
+					changes.add(new JaxrsEndpointDelta(endpoint, CHANGED));
 				}
 			}
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsHttpMethod httpMethod) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processRemoval(final JaxrsHttpMethod httpMethod) {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		for (Iterator<JaxrsEndpoint> iterator = httpMethod.getMetamodel().getEndpoints().iterator(); iterator.hasNext();) {
 			JaxrsEndpoint endpoint = iterator.next();
 			if (endpoint.match(httpMethod)) {
 				iterator.remove();
-				changes.add(new JaxrsEndpointChangedEvent(endpoint, REMOVED));
+				changes.add(new JaxrsEndpointDelta(endpoint, REMOVED));
 			}
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsApplication application) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processRemoval(final JaxrsApplication application) {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final JaxrsMetamodel metamodel = application.getMetamodel();
-		for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator
-				.hasNext();) {
+		for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
 			JaxrsEndpoint endpoint = iterator.next();
 			if (endpoint.refresh(metamodel.getApplication())) {
-				changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
+				changes.add(new JaxrsEndpointDelta(endpoint, CHANGED));
 			}
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsResource resource) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processRemoval(final JaxrsResource resource) {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 			changes.addAll(processRemoval(resourceMethod));
 		}
 		return changes;
 	}
 
-	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsResourceMethod resourceMethod) {
-		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+	private List<JaxrsEndpointDelta> processRemoval(final JaxrsResourceMethod resourceMethod) {
+		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		for (Iterator<JaxrsEndpoint> iterator = resourceMethod.getMetamodel().getEndpoints().iterator(); iterator
 				.hasNext();) {
 			JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
 			if (endpoint.match(resourceMethod)) {
 				iterator.remove();
-				changes.add(new JaxrsEndpointChangedEvent(endpoint, REMOVED));
+				changes.add(new JaxrsEndpointDelta(endpoint, REMOVED));
 			}
 		}
 		return changes;
 	}
+
 }

@@ -12,6 +12,7 @@ package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 
 public interface IJaxrsMetamodel {
@@ -20,5 +21,7 @@ public interface IJaxrsMetamodel {
 	public abstract List<IJaxrsEndpoint> getAllEndpoints();
 
 	public abstract <T> T getElement(IJavaElement invocationElement, Class<T> clazz);
+
+	public abstract IProject getProject();
 
 }

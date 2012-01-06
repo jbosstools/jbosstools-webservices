@@ -10,7 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_APPLICATION_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +89,11 @@ public class JaxrsAnnotatedTypeApplication extends JaxrsApplication {
 			flags += F_APPLICATION_PATH_VALUE;
 		}
 		return flags;
+	}
+	
+	@Override
+	public String toString() {
+		return ("Application '" + getJavaElement().getElementName() + "': " + getApplicationPath());
 	}
 
 

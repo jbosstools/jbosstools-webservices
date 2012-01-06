@@ -14,7 +14,6 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,11 +21,9 @@ import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 
-public class JaxrsElementChangedEvent extends EventObject {
-
-	/** serialVersionUID */
-	private static final long serialVersionUID = -1674380823340833954L;
+public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
 	private final JaxrsElement<?> element;
 
@@ -70,7 +67,7 @@ public class JaxrsElementChangedEvent extends EventObject {
 	 * @param element
 	 * @param deltaKind
 	 */
-	public JaxrsElementChangedEvent(JaxrsElement<?> element, int deltaKind) {
+	public JaxrsElementDelta(JaxrsElement<?> element, int deltaKind) {
 		this(element, deltaKind, 0);
 	}
 
@@ -81,8 +78,7 @@ public class JaxrsElementChangedEvent extends EventObject {
 	 * @param deltaKind
 	 * @param flags
 	 */
-	public JaxrsElementChangedEvent(JaxrsElement<?> element, int deltaKind, int flags) {
-		super(element);
+	public JaxrsElementDelta(JaxrsElement<?> element, int deltaKind, int flags) {
 		this.element = element;
 		this.deltaKind = deltaKind;
 		this.flags = flags;
@@ -121,9 +117,9 @@ public class JaxrsElementChangedEvent extends EventObject {
 		try {
 			if (flags != F_NONE) {
 				List<String> matchFlags = new ArrayList<String>();
-				for (Field field : JaxrsElementChangedEvent.class.getFields()) {
+				for (Field field : JaxrsElementDelta.class.getFields()) {
 					if ((flags & field.getInt(field)) > 0) {
-						matchFlags.add(ConstantUtils.getStaticFieldName(JaxrsElementChangedEvent.class,
+						matchFlags.add(ConstantUtils.getStaticFieldName(JaxrsElementDelta.class,
 								field.getInt(field), "F_"));
 					}
 				}
@@ -142,6 +138,13 @@ public class JaxrsElementChangedEvent extends EventObject {
 		}
 
 		return s.toString();
+	}
+
+	@Override
+	public int compareTo(JaxrsElementDelta other) {
+		final EnumKind elementKind = this.element.getKind();
+		final EnumKind otherElementKind = other.getElement().getKind();
+		return elementKind.ordinal() - otherElementKind.ordinal();
 	}
 
 }

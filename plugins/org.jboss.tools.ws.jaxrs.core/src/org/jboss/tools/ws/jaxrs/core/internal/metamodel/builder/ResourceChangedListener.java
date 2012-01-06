@@ -45,7 +45,7 @@ public class ResourceChangedListener implements IResourceChangeListener {
 				}
 			}
 		} catch (CoreException e) {
-			Logger.error("Error while removing JAX-RS Metamodel");
+			Logger.error("Error while removing JAX-RS Metamodel", e);
 		}
 
 	}

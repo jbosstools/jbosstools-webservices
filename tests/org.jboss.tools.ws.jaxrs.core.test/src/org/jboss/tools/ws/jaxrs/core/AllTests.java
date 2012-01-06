@@ -12,10 +12,10 @@ package org.jboss.tools.ws.jaxrs.core;
 
 import org.jboss.tools.ws.jaxrs.core.internal.configuration.ProjectBuilderUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.configuration.ProjectNatureUtilsTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ElementChangedEventScannerTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEventFilterTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDeltaScannerTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDeltaFilterTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedProcessorTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelChangedProcessorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedListenerTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedProcessorTestCase;
@@ -33,9 +33,9 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ ProjectBuilderUtilsTestCase.class, ProjectNatureUtilsTestCase.class, JdtUtilsTestCase.class,
-		CompilationUnitsRepositoryTestCase.class, ElementChangedEventScannerTestCase.class,
-		JavaElementChangedEventFilterTestCase.class, JavaElementChangedProcessorTestCase.class,
-		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelTestCase.class,
+		CompilationUnitsRepositoryTestCase.class, JavaElementDeltaScannerTestCase.class,
+		JavaElementDeltaFilterTestCase.class, JavaElementChangedProcessorTestCase.class,
+		JaxrsMetamodelChangedProcessorTestCase.class, JaxrsMetamodelTestCase.class,
 		JaxrsElementFactoryTestCase.class, JaxrsMetamodelBuilderTestCase.class, CollectionUtilsTestCase.class,
 		PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class,
 		ResourceChangedProcessorTestCase.class, ResourceChangedListenerTestCase.class,

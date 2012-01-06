@@ -56,13 +56,13 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
  * @see @{JavaElementChangedEvent}
  * @see @{JavaElementChangedEventFilter}
  */
-public class JavaElementChangedEventScanner {
+public class JavaElementDeltaScanner {
 
-	private final JavaElementChangedEventFilter javaElementChangedEventFilter = new JavaElementChangedEventFilter();
+	private final JavaElementDeltaFilter javaElementChangedEventFilter = new JavaElementDeltaFilter();
 
 	private final CompilationUnitsRepository compilationUnitsRepository = CompilationUnitsRepository.getInstance();
 
-	public List<JavaElementChangedEvent> scanAndFilterEvent(ElementChangedEvent event, IProgressMonitor progressMonitor)
+	public List<JavaElementDelta> scanAndFilterEvent(ElementChangedEvent event, IProgressMonitor progressMonitor)
 			throws CoreException {
 		try {
 			progressMonitor.beginTask("Analysing changes", 1);
@@ -82,9 +82,9 @@ public class JavaElementChangedEventScanner {
 	 * @throws CoreException
 	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=100267
 	 */
-	private List<JavaElementChangedEvent> scanDelta(final IJavaElementDelta delta, final int eventType)
+	private List<JavaElementDelta> scanDelta(final IJavaElementDelta delta, final int eventType)
 			throws CoreException {
-		final List<JavaElementChangedEvent> events = new ArrayList<JavaElementChangedEvent>();
+		final List<JavaElementDelta> events = new ArrayList<JavaElementDelta>();
 		IJavaElement element = delta.getElement();
 		// skip as the project is closed
 		if (element == null || (element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen())) {
@@ -112,7 +112,7 @@ public class JavaElementChangedEventScanner {
 				List<JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
 						compilationUnitAST, computeDiffs);
 				for (JavaMethodSignature diff : diffs) {
-					final JavaElementChangedEvent event = new JavaElementChangedEvent(diff.getJavaMethod(), CHANGED,
+					final JavaElementDelta event = new JavaElementDelta(diff.getJavaMethod(), CHANGED,
 							eventType, compilationUnitAST, F_SIGNATURE);
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
@@ -125,7 +125,7 @@ public class JavaElementChangedEventScanner {
 						problems);
 				for (Entry<IProblem, IJavaElement> solvedProblem : solvedProblems.entrySet()) {
 					IJavaElement solvedElement = solvedProblem.getValue();
-					final JavaElementChangedEvent event = new JavaElementChangedEvent(solvedElement, CHANGED,
+					final JavaElementDelta event = new JavaElementDelta(solvedElement, CHANGED,
 							eventType, compilationUnitAST, F_PROBLEM_SOLVED);
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
@@ -134,7 +134,7 @@ public class JavaElementChangedEventScanner {
 
 			}
 		} else {
-			final JavaElementChangedEvent event = new JavaElementChangedEvent(element, deltaKind, eventType,
+			final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType,
 					compilationUnitAST, flags);
 			if (javaElementChangedEventFilter.apply(event)) {
 				events.add(event);

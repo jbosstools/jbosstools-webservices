@@ -52,7 +52,7 @@ public class JavaElementChangedListener implements IElementChangedListener {
 		int deltaKind = retrieveDeltaKind(delta);
 		int flags = delta.getFlags();
 		CompilationUnit compilationUnitAST = null;
-		final JavaElementChangedEvent event = new JavaElementChangedEvent(element, deltaKind, eventType,
+		final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType,
 				compilationUnitAST, flags);
 		Logger.trace("Event {}", event);
 		// carry on with children elements.

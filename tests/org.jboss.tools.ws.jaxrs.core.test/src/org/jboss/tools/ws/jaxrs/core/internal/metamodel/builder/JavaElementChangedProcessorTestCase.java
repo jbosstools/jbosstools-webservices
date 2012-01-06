@@ -22,13 +22,13 @@ import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_CONSUMED_MEDIATYPES_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_ELEMENT_KIND;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_HTTP_METHOD_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_METHOD_PARAMETERS;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_METHOD_RETURN_TYPE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_PATH_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_PRODUCED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -39,6 +39,7 @@ import static org.mockito.Mockito.verify;
 import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -138,34 +140,38 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		return new Annotation(annotation, name, values, null);
 	}
 
-	private List<JaxrsElementChangedEvent> processEvent(JavaElementChangedEvent event, IProgressMonitor progressmonitor) {
-		return processor.processEvents(Arrays.asList(event), progressmonitor);
+	private List<JaxrsElementDelta> processEvent(JavaElementDelta event, IProgressMonitor progressmonitor) {
+		final List<JaxrsMetamodelDelta> affectedMetamodels = processor.processAffectedJavaElements(Arrays.asList(event), progressmonitor);
+		if(affectedMetamodels.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return affectedMetamodels.get(0).getAffectedElements();
 	}
 
-	private static JavaElementChangedEvent createEvent(Annotation annotation, int deltaKind) throws JavaModelException {
-		return new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(
+	private static JavaElementDelta createEvent(Annotation annotation, int deltaKind) throws JavaModelException {
+		return new JavaElementDelta(annotation.getJavaAnnotation(), deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(
 				((IMember) annotation.getJavaParent()), progressMonitor), NO_FLAG);
 	}
 
-	private static JavaElementChangedEvent createEvent(IMember element, int deltaKind) throws JavaModelException {
+	private static JavaElementDelta createEvent(IMember element, int deltaKind) throws JavaModelException {
 		return createEvent(element, deltaKind, NO_FLAG);
 	}
 
-	private static JavaElementChangedEvent createEvent(IMember element, int deltaKind, int flags)
+	private static JavaElementDelta createEvent(IMember element, int deltaKind, int flags)
 			throws JavaModelException {
-		return new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE,
+		return new JavaElementDelta(element, deltaKind, ANY_EVENT_TYPE,
 				JdtUtils.parse(element, progressMonitor), flags);
 	}
 
-	private static JavaElementChangedEvent createEvent(ICompilationUnit element, int deltaKind)
+	private static JavaElementDelta createEvent(ICompilationUnit element, int deltaKind)
 			throws JavaModelException {
-		return new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE,
+		return new JavaElementDelta(element, deltaKind, ANY_EVENT_TYPE,
 				JdtUtils.parse(element, progressMonitor), NO_FLAG);
 	}
 
-	private static JavaElementChangedEvent createEvent(IPackageFragmentRoot element, int deltaKind)
+	private static JavaElementDelta createEvent(IPackageFragmentRoot element, int deltaKind)
 			throws JavaModelException {
-		return new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, null, NO_FLAG);
+		return new JavaElementDelta(element, deltaKind, ANY_EVENT_TYPE, null, NO_FLAG);
 	}
 
 	/**
@@ -186,13 +192,13 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(sourceFolder, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(sourceFolder, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		// 1 Application + 1 HttpMethod + 3 RootResources + 2 Subresources + all their methods and fields (total of 16)..
 		assertThat(impacts.size(), equalTo(23));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(27)); // 4 previous HttpMethods + 23 added items
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 	}
 
 	@Test
@@ -201,11 +207,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IPackageFragmentRoot lib = WorkbenchUtils.getPackageFragmentRoot(javaProject,
 				"lib/jaxrs-api-2.0.1.GA.jar", progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(lib, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(lib, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications. Damned : none in the jar...
 		assertThat(impacts.size(), equalTo(6));
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		verify(metamodel, times(6)).add(any(JaxrsHttpMethod.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(6));
 	}
@@ -216,8 +222,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -233,8 +239,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -251,8 +257,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -271,8 +277,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(application);
 		final Annotation annotation = getAnnotation(type, SuppressWarnings.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		verify(metamodel, times(1)).add(any(JaxrsApplication.class)); // one call, during pre-conditions
@@ -288,8 +294,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -307,8 +313,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -324,8 +330,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(application);
 		final Annotation suppressWarningsAnnotation = getAnnotation(type, SuppressWarnings.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(suppressWarningsAnnotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(suppressWarningsAnnotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -340,8 +346,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -359,8 +365,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -378,8 +384,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -397,8 +403,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementChangedEvent event = createEvent(getAnnotation(type, SuppressWarnings.class), REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(getAnnotation(type, SuppressWarnings.class), REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -415,8 +421,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(sourceFolder, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(sourceFolder, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
@@ -431,8 +437,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -448,8 +454,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -466,8 +472,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				progressMonitor);
 		final Annotation annotation = getAnnotation(type, HttpMethod.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -486,8 +492,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(httpMethod);
 		final Annotation annotation = getAnnotation(type, Target.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		verify(metamodel, times(1)).add(any(JaxrsHttpMethod.class)); // one call, during pre-conditions
@@ -503,8 +509,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -522,8 +528,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -539,8 +545,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(httpMethod);
 		final Annotation targetAnnotation = getAnnotation(type, Target.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(targetAnnotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(targetAnnotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -556,8 +562,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -575,8 +581,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -594,8 +600,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -612,8 +618,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, getAnnotation(type, HttpMethod.class), metamodel);
 		metamodel.add(httpMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(getAnnotation(type, Target.class), REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(getAnnotation(type, Target.class), REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -630,8 +636,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		// operation
-		final JavaElementChangedEvent event = createEvent(sourceFolder, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(sourceFolder, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
@@ -651,12 +657,12 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(lib, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(lib, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(REMOVED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(REMOVED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
@@ -669,8 +675,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(createHttpMethod(DELETE.class));
 		// operation
 		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
@@ -685,8 +691,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(createHttpMethod(GET.class));
 		// operation
 		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
@@ -702,8 +708,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(createHttpMethod(GET.class));
 		// operation
 		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
@@ -722,8 +728,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(createHttpMethod(DELETE.class));
 		// operation
 		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
-		final JavaElementChangedEvent event = createEvent(type, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
@@ -742,8 +748,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// operation
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final Annotation annotation = getAnnotation(type, Path.class);
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
@@ -767,8 +773,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final Annotation pathAnnotation = getAnnotation(type, Path.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(pathAnnotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(pathAnnotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -782,8 +788,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.FooResource", javaProject);
 		// operation
 		final Annotation annotation = getAnnotation(type, Consumes.class);
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		verify(metamodel, times(0)).add(any(JaxrsResource.class));
@@ -798,8 +804,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -817,8 +823,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -836,8 +842,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.consumes(consumesAnnotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(consumesAnnotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(consumesAnnotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -855,8 +861,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.consumes(consumesAnnotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(consumesAnnotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(consumesAnnotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -873,8 +879,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final Annotation producesAnnotation = getAnnotation(type, Produces.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(producesAnnotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(producesAnnotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -892,8 +898,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.produces(annotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -911,8 +917,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.produces(annotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -929,11 +935,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final Annotation annotation = getAnnotation(type.getField("productType"), PathParam.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2));
 	}
 
@@ -960,11 +966,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final Annotation annotation = getAnnotation(type.getField("foo"), QueryParam.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2));
 	}
 
@@ -977,11 +983,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final Annotation annotation = getAnnotation(type.getField("bar"), MatrixParam.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2));
 	}
 
@@ -994,11 +1000,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final IField field = type.getField("productType");
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field + only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2));
 	}
 
@@ -1011,11 +1017,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final IField field = type.getField("foo");
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2));
 	}
 
@@ -1028,11 +1034,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final IField field = type.getField("bar");
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2));
 	}
 
@@ -1045,8 +1051,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final IField field = type.getField("entityManager");
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -1061,8 +1067,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final IField field = type.getField("entityManager");
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -1080,8 +1086,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1100,8 +1106,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1120,8 +1126,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1140,8 +1146,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2));
@@ -1159,8 +1165,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1179,8 +1185,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1199,8 +1205,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1219,8 +1225,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1239,8 +1245,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1259,8 +1265,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceField resourceField = new JaxrsResourceField(field, annotation, resource, metamodel);
 		metamodel.add(resourceField);
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1276,8 +1282,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final IField field = type.getField("entityManager");
 		// operation
-		final JavaElementChangedEvent event = createEvent(field, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(field, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -1292,8 +1298,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -1308,8 +1314,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final Annotation annotation = getAnnotation(type, Consumes.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -1322,8 +1328,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type.getCompilationUnit(), REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1339,8 +1345,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(type, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(type, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1360,8 +1366,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 			metamodel.remove(resourceMethod);
 		}
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications : resource removed, since it has no field nor method
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1386,8 +1392,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(annotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications : resource removed, since it has no field nor method
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1412,8 +1418,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpMethodAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(pathAnnotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(pathAnnotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1431,8 +1437,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final Annotation annotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor),
 				Encoded.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -1448,8 +1454,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
 		metamodel.add(resource);
 		// operation
-		final JavaElementChangedEvent event = createEvent(sourceFolder, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(sourceFolder, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		verify(metamodel, times(1)).remove(any(JaxrsResource.class));
@@ -1475,11 +1481,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "createCustomer");
 		final Annotation annotation = getAnnotation(method, POST.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
@@ -1495,8 +1501,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		final IMethod method = getMethod(type, "createCustomer");
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
@@ -1514,11 +1520,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getProductResourceLocator");
 		final Annotation annotation = getAnnotation(method, Path.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1)); // field only
-		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // resource + resourceMethod
 	}
 
@@ -1540,8 +1546,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(annotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1566,8 +1572,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resourceMethod);
 		final Annotation pathAnnotation = getAnnotation(method, Path.class);
 		// operation
-		final JavaElementChangedEvent event = createEvent(pathAnnotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(pathAnnotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1594,8 +1600,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).pathTemplate(pathAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(pathAnnotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(pathAnnotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1622,8 +1628,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).pathTemplate(pathAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(httpAnnotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(httpAnnotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1646,8 +1652,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.pathTemplate(annotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1673,8 +1679,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).pathTemplate(pathAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(pathAnnotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(pathAnnotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1701,8 +1707,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(consumesAnnotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(consumesAnnotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1729,8 +1735,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).consumes(consumesAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(consumesAnnotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(consumesAnnotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1757,8 +1763,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).consumes(consumesAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(consumesAnnotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(consumesAnnotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1785,8 +1791,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(producesAnnotation, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(producesAnnotation, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1813,8 +1819,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).produces(producesAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(producesAnnotation, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(producesAnnotation, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1841,8 +1847,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.httpMethod(httpAnnotation).produces(producesAnnotation).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(producesAnnotation, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(producesAnnotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1878,8 +1884,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(contextParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1911,8 +1917,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(contextParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1944,8 +1950,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(pathParameter).methodParameter(customerParameter).build();
 		metamodel.add(resourceMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1976,8 +1982,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(startParameter).methodParameter(uriInfoParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2007,8 +2013,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.returnType(getType("java.lang.Object", javaProject)).build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2043,8 +2049,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2079,8 +2085,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2114,8 +2120,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2146,8 +2152,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(startParameter).methodParameter(sizeParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2178,8 +2184,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(startParameter).methodParameter(sizeParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2209,8 +2215,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(pathParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2245,8 +2251,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.methodParameter(sizeParameter).methodParameter(uriInfoParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2282,8 +2288,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				.build();
 		metamodel.add(jaxrsMethod);
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -2311,8 +2317,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (an extra annotation on 'start' param)
 		final IMethod method = getMethod(type, "getEntityManager");
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, ADDED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, ADDED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 	}
@@ -2327,8 +2333,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (an extra annotation on 'start' param)
 		final IMethod method = getMethod(type, "getEntityManager");
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, CHANGED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 	}
@@ -2343,8 +2349,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (an extra annotation on 'start' param)
 		final IMethod method = getMethod(type, "getEntityManager");
 		// operation
-		final JavaElementChangedEvent event = createEvent(method, REMOVED);
-		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		final JavaElementDelta event = createEvent(method, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 	}

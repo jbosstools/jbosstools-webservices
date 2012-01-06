@@ -46,6 +46,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 			if (metamodel != null) {
 				List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
+				Logger.debug("UriPathTemplateCatrogory contains {} endpoints", endpoints.size());
 				List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
 				// Collections.sort(uriMappings);
 				for (IJaxrsEndpoint endpoint : endpoints) {

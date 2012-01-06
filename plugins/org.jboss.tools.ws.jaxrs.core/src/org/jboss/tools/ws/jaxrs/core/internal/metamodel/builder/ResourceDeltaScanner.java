@@ -39,11 +39,11 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
  * @see @{JavaElementChangedEvent}
  * @see @{JavaElementChangedEventFilter}
  */
-public class ResourceChangedEventScanner {
+public class ResourceDeltaScanner {
 
-	private final ResourceChangedEventFilter filter = new ResourceChangedEventFilter();
+	private final ResourceDeltaFilter filter = new ResourceDeltaFilter();
 
-	public List<ResourceChangedEvent> scanAndFilterEvent(final IResourceDelta delta,
+	public List<ResourceDelta> scanAndFilterEvent(final IResourceDelta delta,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		try {
 			progressMonitor.beginTask("Analysing changes", 1);
@@ -57,7 +57,7 @@ public class ResourceChangedEventScanner {
 	/**
 	 * Analyses the given ResourceDelta and its children and returns a list of
 	 * relevant events for further processing. These events may be
-	 * {@link JavaElementChangedEvent} or {@link ResourceChangedEvent} depending
+	 * {@link JavaElementDelta} or {@link ResourceDelta} depending
 	 * on the nature of the affected resource (ie: a resource of a compilation
 	 * unit or a web deployement descriptor/web fragment, respectively).
 	 * 
@@ -67,8 +67,8 @@ public class ResourceChangedEventScanner {
 	 * @throws CoreException
 	 *             in case of underlying exception.
 	 */
-	private List<ResourceChangedEvent> scanDelta(final IResourceDelta delta) throws CoreException {
-		final List<ResourceChangedEvent> events = new ArrayList<ResourceChangedEvent>();
+	private List<ResourceDelta> scanDelta(final IResourceDelta delta) throws CoreException {
+		final List<ResourceDelta> events = new ArrayList<ResourceDelta>();
 		final IResource resource = delta.getResource();
 		// skip as the project is closed
 		if (resource.getType() == IResource.PROJECT && !((IProject) resource).isOpen()) {
@@ -85,14 +85,14 @@ public class ResourceChangedEventScanner {
 		if ((javaFileAdded || javaFileRemoved)) {
 			Logger.debug("File {}  {}", resource,
 					ConstantUtils.getStaticFieldName(IResourceDelta.class, delta.getKind()));
-			ResourceChangedEvent event = new ResourceChangedEvent(resource, delta.getKind(), flags);
+			ResourceDelta event = new ResourceDelta(resource, delta.getKind(), flags);
 			if (filter.applyRules(event)) {
 				events.add(event);
 			}
 		} else if (javaFileChanged && !javaFileMarkersChanged) {
 			Logger.debug("File {}  {}", resource,
 					ConstantUtils.getStaticFieldName(IResourceDelta.class, delta.getKind()));
-			ResourceChangedEvent event = new ResourceChangedEvent(resource, delta.getKind(), flags);
+			ResourceDelta event = new ResourceDelta(resource, delta.getKind(), flags);
 			if (filter.applyRules(event)) {
 				events.add(event);
 			}
@@ -109,7 +109,7 @@ public class ResourceChangedEventScanner {
 							markerDelta.getAttribute(IMarker.LINE_NUMBER), markerDelta.getId());
 					int flag = markerDelta.getKind() == IResourceDelta.ADDED ? IJavaElementDeltaFlag.F_MARKER_ADDED
 							: IJavaElementDeltaFlag.F_MARKER_REMOVED;
-					ResourceChangedEvent event = new ResourceChangedEvent(resource, CHANGED, flag);
+					ResourceDelta event = new ResourceDelta(resource, CHANGED, flag);
 					if (filter.applyRules(event)) {
 						events.add(event);
 					}

@@ -27,7 +27,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
  * @author xcoulon
  * 
  */
-public class JavaElementChangedEvent extends EventObject {
+public class JavaElementDelta extends EventObject {
 
 	/** generated serial version UID */
 	private static final long serialVersionUID = 8821221398378359798L;
@@ -76,7 +76,7 @@ public class JavaElementChangedEvent extends EventObject {
 	 *            the detailed kind of change.
 	 * @see IJavaElementDelta for element change kind values.
 	 */
-	public JavaElementChangedEvent(final IJavaElement element, final int deltaKind, final int eventType,
+	public JavaElementDelta(final IJavaElement element, final int deltaKind, final int eventType,
 			final CompilationUnit compilationUnitAST, final int flags) {
 		super(element);
 		this.element = element;
@@ -131,7 +131,7 @@ public class JavaElementChangedEvent extends EventObject {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder("JavaElementChangedEvent ").append("[")
+		StringBuilder result = new StringBuilder("JavaElementDelta ").append("[")
 				.append(ConstantUtils.getStaticFieldName(ElementChangedEvent.class, eventType)).append("] ")
 				.append(ConstantUtils.getStaticFieldName(IJavaElement.class, element.getElementType())).append(" '")
 				.append(element.getElementName()).append("' ");
@@ -195,7 +195,7 @@ public class JavaElementChangedEvent extends EventObject {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final JavaElementChangedEvent other = (JavaElementChangedEvent) obj;
+		final JavaElementDelta other = (JavaElementDelta) obj;
 		if (deltaKind != other.deltaKind) {
 			return false;
 		}

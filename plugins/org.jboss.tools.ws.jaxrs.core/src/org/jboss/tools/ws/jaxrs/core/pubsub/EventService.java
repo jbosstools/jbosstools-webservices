@@ -46,11 +46,11 @@ public class EventService {
 	public void publish(EventObject event) {
 		if (subscribers.size() > 0) {
 			for (Subscriber subscriber : subscribers) {
-				Logger.debug("Informing subscriber '{}' of {}", subscriber.getId(), event);
+				Logger.debug("Informing subscriber '{}' of {}", subscriber.getId(), event.getSource());
 				subscriber.inform(event);
 			}
 		} else {
-			Logger.debug("*** No subscriber to informing about {} ***", event);
+			Logger.debug("*** No subscriber to informing about {} ***", event.getSource());
 		}
 	}
 

@@ -10,23 +10,29 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import java.util.EventObject;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaElementDelta;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.pubsub.EventService;
 
 public class JaxrsElementChangedPublisher {
 
-	public void publish(List<JaxrsEndpointChangedEvent> jaxrsEndpointChanges, IProgressMonitor progressMonitor) {
-		if (jaxrsEndpointChanges == null || jaxrsEndpointChanges.isEmpty()) {
-			Logger.debug("No JAX-RS change to publish to the UI");
-		} else {
-			Logger.debug("*** Notifying JAX-RS {} changes to publish to the UI ***", jaxrsEndpointChanges.size());
-			for (JaxrsEndpointChangedEvent change : jaxrsEndpointChanges) {
-				Logger.debug(change.toString());
-				EventService.getInstance().publish(change);
-			}
+	public void publish(List<JaxrsMetamodelDelta> affectedMetamodel, IProgressMonitor progressMonitor) {
+		for (JaxrsMetamodelDelta metamodelDelta : affectedMetamodel) {
+			publish(metamodelDelta, progressMonitor);
 		}
+	}
+	
+	public void publish(JaxrsMetamodelDelta metamodelDelta, IProgressMonitor progressMonitor) {
+		Logger.debug("*** Notifying the UI that JAX-RS metamodel was {} (including {} endpoint changes) ***",
+				ConstantUtils.getStaticFieldName(IJavaElementDelta.class, metamodelDelta.getDeltaKind()),
+				metamodelDelta.getAffectedEndpoints().size());
+		EventService.getInstance().publish(new EventObject(metamodelDelta));
+		progressMonitor.worked(1);
 	}
 }

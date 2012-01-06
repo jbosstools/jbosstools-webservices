@@ -34,15 +34,15 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JavaElementChangedEventFilterTestCase {
+public class JavaElementDeltaFilterTestCase {
 
 	private final int NO_FLAG = 0;
-	private final JavaElementChangedEventFilter filter = new JavaElementChangedEventFilter();
+	private final JavaElementDeltaFilter filter = new JavaElementDeltaFilter();
 	private ICompilationUnit workingCopy;
 	private ICompilationUnit primaryCopy;
 
-	private static JavaElementChangedEvent createEvent(IJavaElement element, int deltaKind, int eventType, int flags) {
-		return new JavaElementChangedEvent(element, deltaKind, eventType, null, flags);
+	private static JavaElementDelta createEvent(IJavaElement element, int deltaKind, int eventType, int flags) {
+		return new JavaElementDelta(element, deltaKind, eventType, null, flags);
 	}
 
 	private static <T extends IJavaElement> T createMock(Class<T> type, int elementType, ICompilationUnit compilationUnit) {

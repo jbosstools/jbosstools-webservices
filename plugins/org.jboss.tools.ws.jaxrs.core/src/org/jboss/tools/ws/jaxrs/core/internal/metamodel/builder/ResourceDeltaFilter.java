@@ -18,9 +18,9 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
-public class ResourceChangedEventFilter {
+public class ResourceDeltaFilter {
 
-	public boolean applyRules(ResourceChangedEvent event) throws JavaModelException {
+	public boolean applyRules(ResourceDelta event) throws JavaModelException {
 		final IResource resource = event.getResource();
 		// prevent processing resources in a closed project
 		if (!resource.getProject().isOpen()) {
