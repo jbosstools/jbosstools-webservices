@@ -42,7 +42,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource {
 
 	/** Optional Application. */
-	private final JaxrsApplication application = null;
+	private final JaxrsAnnotatedTypeApplication application = null;
 
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 
@@ -62,17 +62,17 @@ public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource
 			this.metamodel = metamodel;
 		}
 
-		public Builder pathTemplate(Annotation pathAnnotation) {
+		public Builder pathTemplate(final Annotation pathAnnotation) {
 			this.pathAnnotation = pathAnnotation;
 			return this;
 		}
 
-		public Builder consumes(Annotation consumesAnnotation) {
+		public Builder consumes(final Annotation consumesAnnotation) {
 			this.consumesAnnotation = consumesAnnotation;
 			return this;
 		}
 
-		public Builder produces(Annotation producesAnnotation) {
+		public Builder produces(final Annotation producesAnnotation) {
 			this.producesAnnotation = producesAnnotation;
 			return this;
 		}

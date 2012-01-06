@@ -30,6 +30,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -81,11 +82,13 @@ public class ResourceChangedProcessor {
 			switch (deltaKind) {
 			case ADDED:
 			case CHANGED:
+				results.addAll(processApplicationChangesOnScopeAdditionOrChange(scope, metamodel, progressMonitor));
 				results.addAll(processHttpMethodChangesOnScopeAdditionOrChange(scope, metamodel, progressMonitor));
 				results.addAll(processResourceChangesOnScopeAdditionOrChange(scope, metamodel, deltaKind,
 						progressMonitor));
 				break;
 			case REMOVED:
+				results.addAll(processApplicationChangesOnScopeRemoval(scope, metamodel, progressMonitor));
 				results.addAll(processHttpMethodChangesOnScopeRemoval(scope, metamodel, progressMonitor));
 				results.addAll(processResourceChangesOnScopeRemoval(scope, metamodel, progressMonitor));
 				break;
@@ -95,6 +98,129 @@ public class ResourceChangedProcessor {
 		return results;
 	}
 
+	private List<JaxrsElementChangedEvent> processApplicationChangesOnScopeAdditionOrChange(IJavaElement scope,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		final List<JaxrsElementChangedEvent> changes = preprocessApplicationChangesOnScopeAdditionOrChange(scope,
+				metamodel, progressMonitor);
+		for (JaxrsElementChangedEvent change : changes) {
+			results.addAll(postProcessApplication(change, progressMonitor));
+		}
+		return results;
+	}
+
+	/**
+	 * See if Applications exist in the given scope. The exact kind of the
+	 * {@link JaxrsElementChangedEvent} event is not determined at this stage,
+	 * it's the responsibility of the
+	 * {@link ResourceChangedProcessor#postProcessApplication(JaxrsElementChangedEvent, IProgressMonitor)}
+	 * method.
+	 * 
+	 * @param scope
+	 * @param metamodel
+	 * @param progressMonitor
+	 * @return events containing the new Applications (already added to the
+	 *         metamodel)
+	 * @throws CoreException
+	 * @throws JavaModelException
+	 */
+	private List<JaxrsElementChangedEvent> preprocessApplicationChangesOnScopeAdditionOrChange(final IJavaElement scope,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException,
+			JavaModelException {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		// see if there may be elements to add/change from the given scope
+		final List<JaxrsApplication> matchingApplications = new ArrayList<JaxrsApplication>();
+		final List<IType> matchingApplicationTypes = JaxrsAnnotationsScanner.findApplicationTypes(scope, progressMonitor);
+		for (IType matchingApplicationType : matchingApplicationTypes) {
+			final CompilationUnit ast = JdtUtils.parse(matchingApplicationType, progressMonitor);
+			final JaxrsApplication matchingApplication = factory.createApplication(matchingApplicationType, ast, metamodel);
+			if (matchingApplication != null) {
+				matchingApplications.add(matchingApplication);
+			}
+		}
+		// retrieve the existing elements from the Metamodel
+		final List<JaxrsApplication> existingApplications = metamodel.getElements(scope, JaxrsApplication.class);
+		// compute the differences, with a 'fuzzy' case when the kind is
+		// 'changed'
+		final Collection<JaxrsApplication> addedApplications = CollectionUtils.difference(matchingApplications,
+				existingApplications);
+		for (JaxrsApplication application : addedApplications) {
+			results.add(new JaxrsElementChangedEvent(application, ADDED));
+		}
+		final Collection<JaxrsApplication> changedApplications = CollectionUtils.intersection(matchingApplications,
+				existingApplications);
+		for (JaxrsApplication application : changedApplications) {
+			results.add(new JaxrsElementChangedEvent(application, CHANGED, F_FINE_GRAINED));
+		}
+		final Collection<JaxrsApplication> removedApplications = CollectionUtils.difference(existingApplications,
+				matchingApplications);
+		for (JaxrsApplication application : removedApplications) {
+			results.add(new JaxrsElementChangedEvent(application, REMOVED));
+		}
+		return results;
+	}
+
+	private List<JaxrsElementChangedEvent> processApplicationChangesOnScopeRemoval(IJavaElement scope,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		final List<JaxrsElementChangedEvent> changes = preprocessApplicationChangesOnScopeRemoval(scope, metamodel,
+				progressMonitor);
+		for (JaxrsElementChangedEvent change : changes) {
+			results.addAll(postProcessApplication(change, progressMonitor));
+		}
+		return results;
+	}
+
+	/**
+	 * See if Applications existed in the given scope. These elements can only be
+	 * marked as removed.
+	 * 
+	 * @param scope
+	 * @param metamodel
+	 * @param progressMonitor
+	 * @return events containing the new Applications (already added to the
+	 *         metamodel)
+	 * @throws CoreException
+	 * @throws JavaModelException
+	 */
+	private List<JaxrsElementChangedEvent> preprocessApplicationChangesOnScopeRemoval(final IJavaElement scope,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException,
+			JavaModelException {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		// retrieve the existing elements from the Metamodel
+		final List<JaxrsApplication> existingApplications = metamodel.getElements(scope, JaxrsApplication.class);
+		for (JaxrsApplication application : existingApplications) {
+			results.add(new JaxrsElementChangedEvent(application, REMOVED));
+		}
+		return results;
+	}
+
+	private List<JaxrsElementChangedEvent> postProcessApplication(JaxrsElementChangedEvent event,
+			IProgressMonitor progressMonitor) {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		final JaxrsApplication eventApplication = (JaxrsApplication) event.getElement();
+		final JaxrsMetamodel metamodel = eventApplication.getMetamodel();
+		switch (event.getDeltaKind()) {
+		case ADDED:
+			metamodel.add(eventApplication);
+			results.add(event);
+			break;
+		case REMOVED:
+			metamodel.remove(eventApplication);
+			results.add(event);
+			break;
+		case CHANGED:
+			final JaxrsApplication existingApplication = metamodel.getElement(eventApplication.getJavaElement(),
+					JaxrsApplication.class);
+			final int flags = existingApplication.update(eventApplication);
+			if (flags != 0) {
+				results.add(new JaxrsElementChangedEvent(existingApplication, CHANGED, flags));
+			}
+			break;
+		}
+		return results;
+	}
+	
 	private List<JaxrsElementChangedEvent> processHttpMethodChangesOnScopeAdditionOrChange(IJavaElement scope,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
 		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
@@ -102,40 +228,6 @@ public class ResourceChangedProcessor {
 				metamodel, progressMonitor);
 		for (JaxrsElementChangedEvent change : changes) {
 			results.addAll(postProcessHttpMethod(change, progressMonitor));
-		}
-		return results;
-	}
-
-	private List<JaxrsElementChangedEvent> processResourceChangesOnScopeAdditionOrChange(IJavaElement scope,
-			JaxrsMetamodel metamodel, int deltaKind, IProgressMonitor progressMonitor) throws JavaModelException,
-			CoreException {
-		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
-		final List<JaxrsElementChangedEvent> changes = preprocessResourceChangesOnScopeAdditionOrChange(scope,
-				metamodel, progressMonitor);
-		for (JaxrsElementChangedEvent change : changes) {
-			results.addAll(postProcessResource(change, progressMonitor));
-		}
-		return results;
-	}
-
-	private List<JaxrsElementChangedEvent> processResourceChangesOnScopeRemoval(IJavaElement scope,
-			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
-		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
-		final List<JaxrsElementChangedEvent> changes = preprocessHttpMethodChangesOnScopeRemoval(scope, metamodel,
-				progressMonitor);
-		for (JaxrsElementChangedEvent change : changes) {
-			results.addAll(postProcessHttpMethod(change, progressMonitor));
-		}
-		return results;
-	}
-
-	private List<JaxrsElementChangedEvent> processHttpMethodChangesOnScopeRemoval(IJavaElement scope,
-			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
-		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
-		final List<JaxrsElementChangedEvent> changes = preprocessResourceChangesOnScopeRemoval(scope, metamodel,
-				progressMonitor);
-		for (JaxrsElementChangedEvent change : changes) {
-			results.addAll(postProcessResource(change, progressMonitor));
 		}
 		return results;
 	}
@@ -161,7 +253,7 @@ public class ResourceChangedProcessor {
 		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
 		// see if there may be elements to add/change from the given scope
 		final List<JaxrsHttpMethod> matchingHttpMethods = new ArrayList<JaxrsHttpMethod>();
-		final List<IType> matchingHttpMethodTypes = JaxrsAnnotationsScanner.findHTTPMethodTypes(scope, progressMonitor);
+		final List<IType> matchingHttpMethodTypes = JaxrsAnnotationsScanner.findHttpMethodTypes(scope, progressMonitor);
 		for (IType matchingHttpMethodType : matchingHttpMethodTypes) {
 			final CompilationUnit ast = JdtUtils.parse(matchingHttpMethodType, progressMonitor);
 			final JaxrsHttpMethod matchingHttpMethod = factory.createHttpMethod(matchingHttpMethodType, ast, metamodel);
@@ -191,6 +283,16 @@ public class ResourceChangedProcessor {
 		return results;
 	}
 
+	private List<JaxrsElementChangedEvent> processHttpMethodChangesOnScopeRemoval(IJavaElement scope,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		final List<JaxrsElementChangedEvent> changes = preprocessHttpMethodChangesOnScopeRemoval(scope, metamodel, progressMonitor);
+		for (JaxrsElementChangedEvent change : changes) {
+			results.addAll(postProcessHttpMethod(change, progressMonitor));
+		}
+		return results;
+	}
+
 	/**
 	 * See if HttpMethods existed in the given scope. These elements can only be
 	 * marked as removed.
@@ -215,6 +317,44 @@ public class ResourceChangedProcessor {
 		return results;
 	}
 
+	private List<JaxrsElementChangedEvent> postProcessHttpMethod(JaxrsElementChangedEvent event,
+			IProgressMonitor progressMonitor) {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		final JaxrsHttpMethod eventHttpMethod = (JaxrsHttpMethod) event.getElement();
+		final JaxrsMetamodel metamodel = eventHttpMethod.getMetamodel();
+		switch (event.getDeltaKind()) {
+		case ADDED:
+			metamodel.add(eventHttpMethod);
+			results.add(event);
+			break;
+		case REMOVED:
+			metamodel.remove(eventHttpMethod);
+			results.add(event);
+			break;
+		case CHANGED:
+			final JaxrsHttpMethod existingHttpMethod = metamodel.getElement(eventHttpMethod.getJavaElement(),
+					JaxrsHttpMethod.class);
+			final int flags = existingHttpMethod.update(eventHttpMethod);
+			if (flags != 0) {
+				results.add(new JaxrsElementChangedEvent(existingHttpMethod, CHANGED, flags));
+			}
+			break;
+		}
+		return results;
+	}
+
+	private List<JaxrsElementChangedEvent> processResourceChangesOnScopeAdditionOrChange(IJavaElement scope,
+			JaxrsMetamodel metamodel, int deltaKind, IProgressMonitor progressMonitor) throws JavaModelException,
+			CoreException {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		final List<JaxrsElementChangedEvent> changes = preprocessResourceChangesOnScopeAdditionOrChange(scope,
+				metamodel, progressMonitor);
+		for (JaxrsElementChangedEvent change : changes) {
+			results.addAll(postProcessResource(change, progressMonitor));
+		}
+		return results;
+	}
+
 	/**
 	 * See if new JAX-RS Resources exist in the given scope. The exact kind of
 	 * the {@link JaxrsElementChangedEvent} event is not determined at this
@@ -235,7 +375,7 @@ public class ResourceChangedProcessor {
 		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
 		// see if there may be elements to add/change from the given scope
 		final List<JaxrsResource> matchingResources = new ArrayList<JaxrsResource>();
-		final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResources(scope, progressMonitor);
+		final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResourceTypes(scope, progressMonitor);
 		for (IType matchingResourceType : matchingResourceTypes) {
 			final CompilationUnit ast = JdtUtils.parse(matchingResourceType, progressMonitor);
 			final JaxrsResource matchingResource = factory.createResource(matchingResourceType, ast, metamodel);
@@ -262,7 +402,18 @@ public class ResourceChangedProcessor {
 		for (JaxrsResource resource : removedResources) {
 			results.add(new JaxrsElementChangedEvent(resource, REMOVED));
 		}
+	
+		return results;
+	}
 
+	private List<JaxrsElementChangedEvent> processResourceChangesOnScopeRemoval(IJavaElement scope,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
+		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
+		final List<JaxrsElementChangedEvent> changes = preprocessResourceChangesOnScopeRemoval(scope, metamodel,
+				progressMonitor);
+		for (JaxrsElementChangedEvent change : changes) {
+			results.addAll(postProcessResource(change, progressMonitor));
+		}
 		return results;
 	}
 
@@ -407,33 +558,5 @@ public class ResourceChangedProcessor {
 			changes.add(new JaxrsElementChangedEvent(removedMethod, REMOVED));
 		}
 		return changes;
-	}
-
-	private List<JaxrsElementChangedEvent> postProcessHttpMethod(JaxrsElementChangedEvent event,
-			IProgressMonitor progressMonitor) {
-		final List<JaxrsElementChangedEvent> results = new ArrayList<JaxrsElementChangedEvent>();
-		final JaxrsHttpMethod eventHttpMethod = (JaxrsHttpMethod) event.getElement();
-		final JaxrsMetamodel metamodel = eventHttpMethod.getMetamodel();
-		switch (event.getDeltaKind()) {
-		case ADDED:
-			metamodel.add(eventHttpMethod);
-			results.add(event);
-			break;
-		case REMOVED:
-			metamodel.remove(eventHttpMethod);
-			results.add(event);
-			// FIXME: also remove all resourceMethods / update all subresource
-			// methods using this HttpMethod
-			break;
-		case CHANGED:
-			final JaxrsHttpMethod existingHttpMethod = metamodel.getElement(eventHttpMethod.getJavaElement(),
-					JaxrsHttpMethod.class);
-			final int flags = existingHttpMethod.update(eventHttpMethod);
-			if (flags != 0) {
-				results.add(new JaxrsElementChangedEvent(existingHttpMethod, CHANGED, flags));
-			}
-			break;
-		}
-		return results;
 	}
 }

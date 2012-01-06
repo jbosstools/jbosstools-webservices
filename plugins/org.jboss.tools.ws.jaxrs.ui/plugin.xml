@@ -12,6 +12,7 @@
             </contentExtension>
          </includes>
       </viewerContentBinding>
+      
       <viewerContentBinding
             viewerId="org.eclipse.ui.navigator.ProjectExplorer">
          <includes>
@@ -21,6 +22,7 @@
             </contentExtension>
          </includes>
       </viewerContentBinding>
+      
       <!-- Viewer content binding for our Custom implementation of o.e.ui.navigator.CommonNavigator : keep for later-->
       <!--viewer 
             viewerId="org.jboss.tools.ws.jaxrs.ui.viewpart.OutlineView">

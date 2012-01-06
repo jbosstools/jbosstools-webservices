@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
@@ -32,8 +33,7 @@ import org.eclipse.jdt.core.search.SearchPattern;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
 /**
- * Class that scan the projec's classpath to find JAX-RS Resources and
- * Providers.
+ * Class that scan the projec's classpath to find JAX-RS Resources and Providers.
  */
 public final class JaxrsAnnotationsScanner {
 
@@ -43,8 +43,33 @@ public final class JaxrsAnnotationsScanner {
 	}
 
 	/**
-	 * Returns all JAX-RS providers in the given scope (ex : javaProject), ie,
-	 * types annotated with <code>javax.ws.rs.ext.Provider</code> annotation.
+	 * Returns all JAX-RS Applications in the given scope (ex : javaProject), ie, types annotated with
+	 * <code>javax.ws.rs.ApplicationPath</code> annotation. Those types should be subtypes of
+	 * {@link javax.ws.rs.Application}, but this will be verified at validation time, eventually reporting the
+	 * missing/wrong super type (hierarchy).
+	 * 
+	 * 
+	 * @param scope
+	 *            the search scope (project, compilation unit, type, etc.)
+	 * @param includeLibraries
+	 *            include project libraries in search scope or not
+	 * @param progressMonitor
+	 *            the progress monitor
+	 * @return providers the JAX-RS provider types
+	 * @throws CoreException
+	 *             in case of exception
+	 */
+	public static List<IType> findApplicationTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
+			throws CoreException {
+		IJavaSearchScope searchScope = null;
+		searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope }, IJavaSearchScope.SOURCES
+				| IJavaSearchScope.REFERENCED_PROJECTS);
+		return searchForAnnotatedTypes(ApplicationPath.class, searchScope, progressMonitor);
+	}
+
+	/**
+	 * Returns all JAX-RS providers in the given scope (ex : javaProject), ie, types annotated with
+	 * <code>javax.ws.rs.ext.Provider</code> annotation.
 	 * 
 	 * 
 	 * @param scope
@@ -71,9 +96,8 @@ public final class JaxrsAnnotationsScanner {
 	}
 
 	/**
-	 * Returns all JAX-RS resources resourceMethods (ie, class resourceMethods
-	 * annotated with an @HttpMethod annotation) in the given scope (ex :
-	 * javaProject).
+	 * Returns all JAX-RS resources resourceMethods (ie, class resourceMethods annotated with an @HttpMethod annotation)
+	 * in the given scope (ex : javaProject).
 	 * 
 	 * @param scope
 	 *            the search scope (project, compilation unit, type, etc.)
@@ -81,12 +105,11 @@ public final class JaxrsAnnotationsScanner {
 	 *            the fully qualified names of the HttpMethod java types.
 	 * @param progressMonitor
 	 *            the progress monitor
-	 * @return JAX-RS resource resourceMethods in a map, indexed by the
-	 *         declaring type of the resourceMethods
+	 * @return JAX-RS resource resourceMethods in a map, indexed by the declaring type of the resourceMethods
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
-	public static List<IType> findResources(final IJavaElement scope, final IProgressMonitor progressMonitor)
+	public static List<IType> findResourceTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
 				IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
@@ -102,9 +125,8 @@ public final class JaxrsAnnotationsScanner {
 	}
 
 	/**
-	 * Returns all HTTP Methods (ie, annotation meta-annotated with the
-	 * <code>javax.ws.rs.HttpMethod</code> annotation) in the given scope (ex :
-	 * javaProject).
+	 * Returns all HTTP Methods (ie, annotation meta-annotated with the <code>javax.ws.rs.HttpMethod</code> annotation)
+	 * in the given scope (ex : javaProject).
 	 * 
 	 * @param scope
 	 *            the search scope (project, compilation unit, type, etc.)
@@ -114,7 +136,7 @@ public final class JaxrsAnnotationsScanner {
 	 * @throws CoreException
 	 *             in case of underlying exceptions.
 	 */
-	public static List<IType> findHTTPMethodTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
+	public static List<IType> findHttpMethodTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		IJavaSearchScope searchScope = null;
 		if (scope instanceof IJavaProject) {
@@ -127,8 +149,7 @@ public final class JaxrsAnnotationsScanner {
 	}
 
 	/**
-	 * Search for types that are annotated with the given annotation name, in
-	 * the given search scope.
+	 * Search for types that are annotated with the given annotation name, in the given search scope.
 	 * 
 	 * @param annotationName
 	 *            the annotation type name
@@ -154,19 +175,16 @@ public final class JaxrsAnnotationsScanner {
 	}
 
 	/**
-	 * Returns all JAX-RS resources resourceMethods (ie, class resourceMethods
-	 * annotated with an @HttpMethod annotation) in the given scope (ex :
-	 * javaProject).
+	 * Returns all JAX-RS resources resourceMethods (ie, class resourceMethods annotated with an @HttpMethod annotation)
+	 * in the given scope (ex : javaProject).
 	 * 
 	 * @param scope
 	 *            the search scope
 	 * @param list
-	 *            the types annotated with <code>javax.ws.rs.HttpMethod</code>
-	 *            annotation
+	 *            the types annotated with <code>javax.ws.rs.HttpMethod</code> annotation
 	 * @param progressMonitor
 	 *            the progress monitor
-	 * @return JAX-RS resource resourceMethods in a map, indexed by the
-	 *         declaring type of the resourceMethods
+	 * @return JAX-RS resource resourceMethods in a map, indexed by the declaring type of the resourceMethods
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
@@ -183,8 +201,7 @@ public final class JaxrsAnnotationsScanner {
 	}
 
 	/**
-	 * Search for methods annotated with one of the given annotations, in the
-	 * search scope.
+	 * Search for methods annotated with one of the given annotations, in the search scope.
 	 * 
 	 * @param annotationNames
 	 *            the annotations fully qualified names

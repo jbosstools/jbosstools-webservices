@@ -44,16 +44,14 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
 /**
- * Manages all the JAX-RS domain classes of the JAX-RS Metamodel. Not only a
- * POJO, but also provides business services.
+ * Manages all the JAX-RS domain classes of the JAX-RS Metamodel. Not only a POJO, but also provides business services.
  * 
  * @author xcoulon
  */
 public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/**
-	 * The qualified name of the metamodel when stored in the project session
-	 * properties.
+	 * The qualified name of the metamodel when stored in the project session properties.
 	 */
 	public static final QualifiedName METAMODEL_QUALIFIED_NAME = new QualifiedName(JBossJaxrsCorePlugin.PLUGIN_ID,
 			"metamodel");
@@ -65,21 +63,19 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	private String serviceUri = "/";
 
 	/**
-	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although
-	 * there should be only one.
+	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although there should be only one.
 	 */
 	private final List<JaxrsApplication> applications = new ArrayList<JaxrsApplication>();
 
 	/**
-	 * All the resources (both rootresources and subresources) available in the
-	 * service , indexed by their associated java type fully qualified name.
+	 * All the resources (both rootresources and subresources) available in the service , indexed by their associated
+	 * java type fully qualified name.
 	 */
 	private final List<JaxrsResource> resources = new ArrayList<JaxrsResource>();
 
 	/**
-	 * The available providers (classes which implement MessageBodyWriter<T>,
-	 * MessageBodyReader<T> or ExceptionMapper<T>), , indexed by their
-	 * associated java type fully qualified name.
+	 * The available providers (classes which implement MessageBodyWriter<T>, MessageBodyReader<T> or
+	 * ExceptionMapper<T>), , indexed by their associated java type fully qualified name.
 	 */
 	private final List<JaxrsProvider> providers = new ArrayList<JaxrsProvider>();
 
@@ -106,10 +102,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IMetamodel#getJavaProject
-	 * ()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IMetamodel#getJavaProject ()
 	 */
 	public IJavaProject getJavaProject() {
 		return javaProject;
@@ -146,6 +139,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void add(JaxrsElement<?> element) {
 		switch (element.getElementKind()) {
 		case APPLICATION:
+			this.applications.add((JaxrsApplication) element);
 			break;
 		case HTTP_METHOD:
 			this.httpMethods.add((JaxrsHttpMethod) element);
@@ -157,22 +151,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			final JaxrsResource resource = (JaxrsResource) element;
 			this.resources.add(resource);
 			break;
-
-		// case RESOURCE_FIELD:
-		// final JaxrsResource fieldParent = findResource((IType)
-		// element.getJavaElement().getParent());
-		// if (fieldParent != null) {
-		// fieldParent.addField((JaxrsParamField) element);
-		// }
-		// break;
-		// case RESOURCE_METHOD:
-		// final JaxrsResource methodParent = findResource((IType)
-		// element.getJavaElement().getParent());
-		// if (methodParent != null) {
-		// methodParent.addMethod((IJaxrsResourceMethod) element);
-		// }
-		// break;
-		//
 		}
 		indexElement(element);
 	}
@@ -263,9 +241,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Unindex the given JAX-RS Element so that it cannot be retrieved when
-	 * searching for elements with the given handleIdentifier. This does not
-	 * mean that the given JAX-RS Element won't be findable anymore.
+	 * Unindex the given JAX-RS Element so that it cannot be retrieved when searching for elements with the given
+	 * handleIdentifier. This does not mean that the given JAX-RS Element won't be findable anymore.
 	 * 
 	 * @param jaxrsElement
 	 * @param handleIdentifier
@@ -277,28 +254,25 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IMetamodel#getProviders
-	 * ()
+	/**
+	 * @return the application that is used to compute the Endpoint's URI Path Templates, or null if no application was
+	 *         specified in the code. An invalid application may be returned, though (ie, a Type annotated with
+	 *         {@link javax.ws.rs.ApplicationPath} but not extending the {@link javax.ws.rs.Application} type).
 	 */
+	public final JaxrsApplication getApplication() {
+		if (applications.isEmpty()) {
+			return null;
+		}
+		return applications.get(0);
+	}
+
+	public final List<JaxrsApplication> getAllApplications() {
+		return Collections.unmodifiableList(new ArrayList<JaxrsApplication>(applications));
+	}
+
 	public final List<IJaxrsProvider> getAllProviders() {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsProvider>(providers));
 	}
-
-	/**
-	 * @param field
-	 * @param iJavaElement
-	 * @return private JaxrsResource findResource(final IType javaElement) {
-	 *         final String targetIdentifier =
-	 *         javaElement.getHandleIdentifier(); for (IJaxrsResource resource :
-	 *         resources) { final String resourceIdentifier =
-	 *         resource.getJavaElement().getHandleIdentifier(); if
-	 *         (resourceIdentifier.equals(targetIdentifier)) { return
-	 *         (JaxrsResource) resource; } } return null; }
-	 */
 
 	public final List<IJaxrsHttpMethod> getAllHttpMethods() {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsHttpMethod>(httpMethods));
@@ -349,8 +323,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Report errors from the given markers into the JAX-RS element(s)
-	 * associated with the given compiltation unit.
+	 * Report errors from the given markers into the JAX-RS element(s) associated with the given compiltation unit.
 	 * 
 	 * @param compilationUnit
 	 *            the compilation unit
@@ -379,11 +352,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Resets this metamodel for further re-use (ie, before a new 'full/clean'
-	 * build). Keeping the same instance of Metamodel in the project's session
-	 * properties is a convenient thing, especially on the UI side, where some
-	 * caching system is use to maintain the state of nodes in the Common
-	 * Navigator (framework).
+	 * Resets this metamodel for further re-use (ie, before a new 'full/clean' build). Keeping the same instance of
+	 * Metamodel in the project's session properties is a convenient thing, especially on the UI side, where some
+	 * caching system is use to maintain the state of nodes in the Common Navigator (framework).
 	 */
 	public void reset() {
 		Logger.debug("Reseting the JAX-RS Metamodel fpr project {}", this.javaProject.getElementName());
@@ -468,7 +439,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		final List<T> elements = new ArrayList<T>();
 		if (elementsIndex.containsKey(key)) {
 			for (JaxrsElement<?> element : elementsIndex.get(key)) {
-				if (element.getClass().isAssignableFrom(T)) {
+				if (element.getClass().isAssignableFrom(T) || T.isAssignableFrom(element.getClass())) {
 					elements.add((T) element);
 				}
 			}
@@ -487,6 +458,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return;
 		}
 		switch (element.getElementKind()) {
+		case APPLICATION:
+			this.applications.remove(element);
+			break;
 		case HTTP_METHOD:
 			this.httpMethods.remove(element);
 			break;

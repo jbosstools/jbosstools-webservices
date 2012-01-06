@@ -38,6 +38,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
@@ -143,8 +144,7 @@ public class JavaElementChangedProcessor {
 	}
 
 	/**
-	 * Process the addition of a Java Element (can be a JavaProject or a Java
-	 * Package Fragment root).
+	 * Process the addition of a Java Element (can be a JavaProject or a Java Package Fragment root).
 	 * 
 	 * @param scope
 	 *            the java element that may contain JAX-RS items
@@ -162,7 +162,7 @@ public class JavaElementChangedProcessor {
 		if (metamodel.getElement(scope) == null) {
 			// process this type as it is not already known from the metamodel
 			// let's see if the given project contains JAX-RS HTTP Methods
-			final List<IType> matchingHttpMethodTypes = JaxrsAnnotationsScanner.findHTTPMethodTypes(scope,
+			final List<IType> matchingHttpMethodTypes = JaxrsAnnotationsScanner.findHttpMethodTypes(scope,
 					progressMonitor);
 			for (IType type : matchingHttpMethodTypes) {
 				final CompilationUnit ast = JdtUtils.parse(type, progressMonitor);
@@ -174,7 +174,7 @@ public class JavaElementChangedProcessor {
 				}
 			}
 			// let's see if the given project contains JAX-RS HTTP Resources
-			final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResources(scope, progressMonitor);
+			final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResourceTypes(scope, progressMonitor);
 			for (IType matchingType : matchingResourceTypes) {
 				final CompilationUnit ast = JdtUtils.parse(matchingType, progressMonitor);
 				final JaxrsResource createdResource = factory.createResource(matchingType, ast, metamodel);
@@ -189,6 +189,17 @@ public class JavaElementChangedProcessor {
 						metamodel.add(resourceField);
 						changes.add(new JaxrsElementChangedEvent(resourceField, ADDED));
 					}
+				}
+			}
+			// let's see if the given project contains JAX-RS Application
+			final List<IType> matchingApplicationTypes = JaxrsAnnotationsScanner.findApplicationTypes(scope,
+					progressMonitor);
+			for (IType matchingType : matchingApplicationTypes) {
+				final CompilationUnit ast = JdtUtils.parse(matchingType, progressMonitor);
+				final JaxrsApplication createdApplication = factory.createApplication(matchingType, ast, metamodel);
+				if (createdApplication != null) {
+					metamodel.add(createdApplication);
+					changes.add(new JaxrsElementChangedEvent(createdApplication, ADDED));
 				}
 			}
 		}
@@ -226,6 +237,12 @@ public class JavaElementChangedProcessor {
 		if (resource != null) {
 			metamodel.add(resource);
 			changes.add(new JaxrsElementChangedEvent(resource, ADDED));
+		}
+		// now,let's see if the given type can be an Application
+		final JaxrsApplication application = factory.createApplication(javaType, ast, metamodel);
+		if (application != null) {
+			metamodel.add(application);
+			changes.add(new JaxrsElementChangedEvent(application, ADDED));
 		}
 		// TODO: now,let's see if the given type can be a Provider
 

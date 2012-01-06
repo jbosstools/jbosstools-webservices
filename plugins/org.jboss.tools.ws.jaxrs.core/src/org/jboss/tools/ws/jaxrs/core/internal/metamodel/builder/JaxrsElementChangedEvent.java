@@ -44,23 +44,25 @@ public class JaxrsElementChangedEvent extends EventObject {
 
 	public static final int F_PATH_VALUE = 4;
 
-	public static final int F_HTTP_METHOD_VALUE = 8;
+	public static final int F_APPLICATION_PATH_VALUE = 8;
 
-	public static final int F_PATH_PARAM_VALUE = 16;
+	public static final int F_HTTP_METHOD_VALUE = 16;
 
-	public static final int F_QUERY_PARAM_VALUE = 32;
+	public static final int F_PATH_PARAM_VALUE = 32;
 
-	public static final int F_MATRIX_PARAM_VALUE = 64;
+	public static final int F_QUERY_PARAM_VALUE = 64;
 
-	public static final int F_DEFAULT_VALUE_VALUE = 128;
+	public static final int F_MATRIX_PARAM_VALUE = 128;
 
-	public static final int F_CONSUMED_MEDIATYPES_VALUE = 256;
+	public static final int F_DEFAULT_VALUE_VALUE = 256;
 
-	public static final int F_PRODUCED_MEDIATYPES_VALUE = 512;
+	public static final int F_CONSUMED_MEDIATYPES_VALUE = 512;
 
-	public static final int F_METHOD_PARAMETERS = 1024;
+	public static final int F_PRODUCED_MEDIATYPES_VALUE = 1024;
 
-	public static final int F_METHOD_RETURN_TYPE = 2048;
+	public static final int F_METHOD_PARAMETERS = 2048;
+
+	public static final int F_METHOD_RETURN_TYPE = 4096;
 
 	/**
 	 * Full constructor.

@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.ui.cnf;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
@@ -28,6 +29,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpointChangedEvent;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.core.pubsub.EventService;
 import org.jboss.tools.ws.jaxrs.core.pubsub.Subscriber;
@@ -59,13 +61,17 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 				if (!uriPathTemplateCategories.containsKey(project)) {
 					if (JaxrsMetamodelLocator.get(project) == null) {
 						Logger.debug("JAX-RS Metamodel needs to be built for project '" + project.getName() + "'");
-						Job buildJob = CoreUtility.getBuildJob(project);
-						buildJob.setRule(ResourcesPlugin.getWorkspace().getRoot());
-						buildJob.schedule();
+						// this piece of code must run in an async manner to avoid reentrant call while viewer is busy.
+						Display.getDefault().asyncExec(new Runnable() {
+							@Override
+							public void run() {
+								Job buildJob = CoreUtility.getBuildJob(project);
+								buildJob.setRule(ResourcesPlugin.getWorkspace().getRoot());
+								buildJob.schedule();
+							}
+						});
 						return new Object[] { new WaitWhileBuildingElement() };
 					}
-					UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
-					uriPathTemplateCategories.put(project, uriPathTemplateCategory);
 				}
 				return new Object[] { uriPathTemplateCategories.get(project) };
 			} catch (CoreException e) {
@@ -111,13 +117,16 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 	}
 
 	/*
-	 * @Override public void resourceChanged(IResourceChangeEvent event) {
-	 * refreshChangedProjects(event.getDelta()); }
+	 * @Override public void resourceChanged(IResourceChangeEvent event) { refreshChangedProjects(event.getDelta()); }
 	 */
 
 	@Override
 	public void inform(EventObject event) {
-		if (event instanceof IJaxrsEndpointChangedEvent) {
+		//FIXME: should receive a single JaxrsMetamodelChangedEvent containing 0 or more IJaxrsEndpointChangedEvent(s) 
+		if (event instanceof JaxrsMetamodelChangedEvent) {
+			final JaxrsMetamodelChangedEvent metamodelChangedEvent = (JaxrsMetamodelChangedEvent) event;
+			final List<IJaxrsEndpointChangedEvent> endpointChangedEvents = metamodelChangedEvent.getEndpointChangedEvents();
+			
 			final IJaxrsEndpointChangedEvent change = (IJaxrsEndpointChangedEvent) event;
 			final IJaxrsEndpoint endpoint = change.getEndpoint();
 			refreshContent(endpoint.getJavaProject().getProject());
@@ -128,6 +137,8 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 		Logger.debug("Refreshing navigator view");
 		final Object target = uriPathTemplateCategories.containsKey(project) ? uriPathTemplateCategories.get(project)
 				: project;
+		UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
+		uriPathTemplateCategories.put(project, uriPathTemplateCategory);
 		// this piece of code must run in an async manner to avoid reentrant call while viewer is busy.
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
@@ -140,6 +151,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 			}
 		});
 	}
+
 	@Override
 	/**
 	 * Subscriber ID

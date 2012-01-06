@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
@@ -80,6 +81,8 @@ public class JaxrsElementChangedProcessor {
 		switch (event.getDeltaKind()) {
 		case ADDED:
 			switch (elementKind) {
+			case APPLICATION:
+				return processAddition((JaxrsApplication) element);
 			case HTTP_METHOD:
 				return processAddition((JaxrsHttpMethod) element);
 			case RESOURCE:
@@ -89,6 +92,8 @@ public class JaxrsElementChangedProcessor {
 			}
 		case CHANGED:
 			switch (elementKind) {
+			case APPLICATION:
+				return processChange((JaxrsApplication) element, flags);
 			case HTTP_METHOD:
 				return processChange((JaxrsHttpMethod) element, flags);
 			case RESOURCE:
@@ -98,6 +103,8 @@ public class JaxrsElementChangedProcessor {
 			}
 		case REMOVED:
 			switch (elementKind) {
+			case APPLICATION:
+				return processRemoval((JaxrsApplication) element);
 			case HTTP_METHOD:
 				return processRemoval((JaxrsHttpMethod) element);
 			case RESOURCE:
@@ -109,9 +116,30 @@ public class JaxrsElementChangedProcessor {
 		return Collections.emptyList();
 	}
 
-	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsHttpMethod httpMethod) {
+	/**
+	 * Process changes in the JAX-RS Metamodel when a new Application element is added. There should be only one,
+	 * though...
+	 * 
+	 * @param application
+	 * @return
+	 */
+	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsApplication application) {
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+		final JaxrsMetamodel metamodel = application.getMetamodel();
+		// if the given application becomes the used application in the metamodel
+		if (application.equals(metamodel.getApplication())) {
+			for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
+				JaxrsEndpoint endpoint = iterator.next();
+				if (endpoint.refresh(application)) {
+					changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
+				}
+			}
+		}
 		return changes;
+	}
+
+	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsHttpMethod httpMethod) {
+		return Collections.emptyList();
 	}
 
 	private List<JaxrsEndpointChangedEvent> processAddition(final JaxrsResource resource) throws CoreException {
@@ -175,7 +203,8 @@ public class JaxrsElementChangedProcessor {
 						if (returnTypeHandler != null && supertypesHandlers.contains(returnTypeHandler)) {
 							final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
 									Arrays.asList(otherResourceMethod, resourceMethod));
-							final JaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethods);
+							final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(), httpMethod,
+									resourceMethods);
 							if (metamodel.add(endpoint)) {
 								changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
 							}
@@ -191,7 +220,7 @@ public class JaxrsElementChangedProcessor {
 			final JaxrsMetamodel metamodel) {
 		final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod.getHttpMethodAnnotation());
 		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
-		final JaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethod);
+		final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(), httpMethod, resourceMethod);
 		if (metamodel.add(endpoint)) {
 			changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
 		}
@@ -222,7 +251,8 @@ public class JaxrsElementChangedProcessor {
 										.getHttpMethodAnnotation());
 								final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
 										Arrays.asList(subresourceLocator, resourceMethod));
-								final JaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, resourceMethods);
+								final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(),
+										httpMethod, resourceMethods);
 								if (metamodel.add(endpoint)) {
 									changes.add(new JaxrsEndpointChangedEvent(endpoint, ADDED));
 								}
@@ -242,6 +272,21 @@ public class JaxrsElementChangedProcessor {
 			supertypesHandlers.add(supertype.getHandleIdentifier());
 		}
 		return supertypesHandlers;
+	}
+
+	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsApplication application, int flags) {
+		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+		final JaxrsMetamodel metamodel = application.getMetamodel();
+		if (application.equals(metamodel.getApplication())) {
+			for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
+				JaxrsEndpoint endpoint = iterator.next();
+				if (endpoint.refresh(application)) {
+					// just notify changes to the UI, no refresh required
+					changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
+				}
+			}
+		}
+		return changes;
 	}
 
 	private List<JaxrsEndpointChangedEvent> processChange(final JaxrsHttpMethod httpMethod, int flags) {
@@ -347,6 +392,19 @@ public class JaxrsElementChangedProcessor {
 			if (endpoint.match(httpMethod)) {
 				iterator.remove();
 				changes.add(new JaxrsEndpointChangedEvent(endpoint, REMOVED));
+			}
+		}
+		return changes;
+	}
+
+	private List<JaxrsEndpointChangedEvent> processRemoval(final JaxrsApplication application) {
+		final List<JaxrsEndpointChangedEvent> changes = new ArrayList<JaxrsEndpointChangedEvent>();
+		final JaxrsMetamodel metamodel = application.getMetamodel();
+		for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator
+				.hasNext();) {
+			JaxrsEndpoint endpoint = iterator.next();
+			if (endpoint.refresh(metamodel.getApplication())) {
+				changes.add(new JaxrsEndpointChangedEvent(endpoint, CHANGED));
 			}
 		}
 		return changes;

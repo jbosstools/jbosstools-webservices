@@ -134,6 +134,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 			final List<JaxrsEndpointChangedEvent> jaxrsEndpointChanges = new JaxrsElementChangedProcessor()
 					.processEvents(jaxrsElementChanges, new SubProgressMonitor(progressMonitor, SCALE));
 			progressMonitor.worked(SCALE);
+								
 			new JaxrsElementChangedPublisher().publish(jaxrsEndpointChanges, new SubProgressMonitor(progressMonitor,
 					SCALE));
 			progressMonitor.worked(SCALE);

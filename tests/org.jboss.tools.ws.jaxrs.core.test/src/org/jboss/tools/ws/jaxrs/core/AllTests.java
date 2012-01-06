@@ -24,6 +24,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodelTes
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidatorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepositoryTestCase;
+import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationScannerTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.pubsub.PubSubServiceTestCase;
 import org.junit.runner.RunWith;
@@ -37,7 +38,8 @@ import org.junit.runners.Suite.SuiteClasses;
 		JaxrsElementChangedProcessorTestCase.class, JaxrsMetamodelTestCase.class,
 		JaxrsElementFactoryTestCase.class, JaxrsMetamodelBuilderTestCase.class, CollectionUtilsTestCase.class,
 		PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class,
-		ResourceChangedProcessorTestCase.class, ResourceChangedListenerTestCase.class})
+		ResourceChangedProcessorTestCase.class, ResourceChangedListenerTestCase.class,
+		JaxrsAnnotationScannerTestCase.class})
 public class AllTests {
 
 }

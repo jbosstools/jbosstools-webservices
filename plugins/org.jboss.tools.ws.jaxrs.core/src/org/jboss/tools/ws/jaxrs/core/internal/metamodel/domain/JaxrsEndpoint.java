@@ -38,17 +38,20 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	private final LinkedList<JaxrsResourceMethod> resourceMethods;
 
+	private JaxrsApplication application = null;
+	
 	private String uriPathTemplate = null;
 
 	private List<String> consumedMediaTypes = null;
 
 	private List<String> producedMediaTypes = null;
 
-	public JaxrsEndpoint(JaxrsHttpMethod httpMethod, JaxrsResourceMethod resourceMethod) {
-		this(httpMethod, new LinkedList<JaxrsResourceMethod>(Arrays.asList(resourceMethod)));
+	public JaxrsEndpoint(final JaxrsApplication application, final JaxrsHttpMethod httpMethod, final JaxrsResourceMethod resourceMethod) {
+		this(application, httpMethod, new LinkedList<JaxrsResourceMethod>(Arrays.asList(resourceMethod)));
 	}
 
-	public JaxrsEndpoint(JaxrsHttpMethod httpMethod, LinkedList<JaxrsResourceMethod> resourceMethods) {
+	public JaxrsEndpoint(final JaxrsApplication application, final JaxrsHttpMethod httpMethod, final LinkedList<JaxrsResourceMethod> resourceMethods) {
+		this.application = application;
 		this.httpMethod = httpMethod;
 		this.resourceMethods = resourceMethods;
 		refreshUriPathTemplate();
@@ -142,6 +145,18 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	}
 
 	/**
+	 * Triggers a refresh when changes occurred on the application element (whatever operation).
+	 * 
+	 * @return true if the endpoint is still valid, false otherwise (it should
+	 *         be removed from the metamodel)
+	 */
+	public boolean refresh(JaxrsApplication application) {
+		this.application = application;
+		refreshUriPathTemplate();
+		return true;
+	}
+	
+	/**
 	 * Triggers a refresh when changes occurred on one or more elements
 	 * (HttpMethod and/or ResourcMethods) of the endpoint.
 	 * 
@@ -198,6 +213,9 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	private void refreshUriPathTemplate() {
 		// compute the URI Path Template from the chain of Methods/Resources
 		StringBuilder uriPathTemplateBuilder = new StringBuilder();
+		if(application != null) {
+			uriPathTemplateBuilder.append(application.getApplicationPath());
+		}
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
 			if (resourceMethod.getParentResource().getPathTemplate() != null) {
 				uriPathTemplateBuilder.append("/").append(resourceMethod.getParentResource().getPathTemplate());

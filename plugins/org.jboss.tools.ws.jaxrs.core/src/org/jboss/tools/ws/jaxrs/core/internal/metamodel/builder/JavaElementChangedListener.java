@@ -41,12 +41,12 @@ public class JavaElementChangedListener implements IElementChangedListener {
 	 */
 	@Override
 	public void elementChanged(ElementChangedEvent event) {
-		scanDelta(event.getDelta(), event.getType());
+		logDelta(event.getDelta(), event.getType());
 		Job job = new JaxrsMetamodelBuildJob(event);
 		job.schedule();
 	}
 
-	private void scanDelta(final IJavaElementDelta delta, final int eventType) {
+	private void logDelta(final IJavaElementDelta delta, final int eventType) {
 		IJavaElement element = delta.getElement();
 		// skip as the project is closed
 		int deltaKind = retrieveDeltaKind(delta);
@@ -57,10 +57,10 @@ public class JavaElementChangedListener implements IElementChangedListener {
 		Logger.trace("Event {}", event);
 		// carry on with children elements.
 		for (IJavaElementDelta affectedChild : delta.getAffectedChildren()) {
-			scanDelta(affectedChild, eventType);
+			logDelta(affectedChild, eventType);
 		}
 		for (IJavaElementDelta annotation : delta.getAnnotationDeltas()) {
-			scanDelta(annotation, eventType);
+			logDelta(annotation, eventType);
 		}
 	}
 

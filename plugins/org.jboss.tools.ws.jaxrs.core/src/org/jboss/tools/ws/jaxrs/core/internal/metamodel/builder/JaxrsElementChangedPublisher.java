@@ -22,6 +22,7 @@ public class JaxrsElementChangedPublisher {
 		if (jaxrsEndpointChanges == null || jaxrsEndpointChanges.isEmpty()) {
 			Logger.debug("No JAX-RS change to publish to the UI");
 		} else {
+			Logger.debug("*** Notifying JAX-RS {} changes to publish to the UI ***", jaxrsEndpointChanges.size());
 			for (JaxrsEndpointChangedEvent change : jaxrsEndpointChanges) {
 				Logger.debug(change.toString());
 				EventService.getInstance().publish(change);

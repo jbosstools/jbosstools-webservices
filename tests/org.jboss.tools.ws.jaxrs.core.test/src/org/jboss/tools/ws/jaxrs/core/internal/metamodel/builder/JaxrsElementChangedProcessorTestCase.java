@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
@@ -44,6 +45,8 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsAnnotatedTypeApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -74,12 +77,20 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		metamodel = spy(JaxrsMetamodel.create(javaProject));
 	}
 
+	private JaxrsApplication createApplication(String typeName) throws CoreException, JavaModelException {
+		final IType applicationType = getType(typeName, javaProject);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(applicationType,
+				getAnnotation(applicationType, ApplicationPath.class), metamodel);
+		metamodel.add(application);
+		return application;
+	}
+	
 	private JaxrsResource createResource(String typeName) throws CoreException, JavaModelException {
 		final IType resourceType = getType(typeName, javaProject);
-		final JaxrsResource customerResource = new JaxrsResource.Builder(resourceType, metamodel).pathTemplate(
+		final JaxrsResource resource = new JaxrsResource.Builder(resourceType, metamodel).pathTemplate(
 				getAnnotation(resourceType, Path.class)).build();
-		metamodel.add(customerResource);
-		return customerResource;
+		metamodel.add(resource);
+		return resource;
 	}
 
 	private JaxrsResourceMethod createResourceMethod(String methodName, JaxrsResource parentResource,
@@ -109,8 +120,15 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		return httpMethod;
 	}
 
+	private JaxrsEndpoint createEndpoint(JaxrsApplication application, JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
+		JaxrsEndpoint endpoint = new JaxrsEndpoint(application, httpMethod, new LinkedList<JaxrsResourceMethod>(
+				Arrays.asList(resourceMethods)));
+		metamodel.add(endpoint);
+		return endpoint;
+	}
+
 	private JaxrsEndpoint createEndpoint(JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
-		JaxrsEndpoint endpoint = new JaxrsEndpoint(httpMethod, new LinkedList<JaxrsResourceMethod>(
+		JaxrsEndpoint endpoint = new JaxrsEndpoint(null, httpMethod, new LinkedList<JaxrsResourceMethod>(
 				Arrays.asList(resourceMethods)));
 		metamodel.add(endpoint);
 		return endpoint;
@@ -290,6 +308,27 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 	}
 
 	@Test
+	public void shoudChangeUriPathTemplateWhenAddingApplication() throws JavaModelException, CoreException {
+		// the subresource becomes a root resource !
+		// pre-conditions
+		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET.class);
+		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
+		// operation
+		final JaxrsApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(application, ADDED);
+		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(changes.get(0).getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(changes.get(0).getEndpoint().getUriPathTemplate(), equalTo("/app/customers/{id}"));
+	}
+	
+	@Test
 	public void shoudChangeUriPathTemplateWhenAddingResourcePathAnnotation() throws JavaModelException, CoreException {
 		// the subresource becomes a root resource !
 		// pre-conditions
@@ -332,6 +371,30 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
 		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/customers/{id}"));
+	}
+
+	@Test
+	public void shoudChangeUriPathTemplateWhenChangingApplicationPathAnnotation() throws JavaModelException, CoreException {
+		// pre-conditions
+		final JaxrsApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET.class);
+		final JaxrsEndpoint endpoint = createEndpoint(application, httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		// operation
+		final Annotation annotation = getAnnotation(application.getJavaElement(), ApplicationPath.class, "/foo");
+		int flags = application.addOrUpdateAnnotation(annotation);
+		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(application, CHANGED, flags);
+		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		final JaxrsEndpointChangedEvent change = changes.get(0);
+		assertThat(change.getDeltaKind(), equalTo(CHANGED));
+		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
+		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/foo/customers/{id}"));
 	}
 
 	@Test
@@ -429,6 +492,29 @@ public class JaxrsElementChangedProcessorTestCase extends AbstractCommonTestCase
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(changes.get(0).getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(changes.get(0).getEndpoint().getHttpMethod().getHttpVerb(), equalTo("BAR"));
+	}
+
+	@Test
+	public void shoudChangeUriPathTemplateWhenRemovingMetamodelApplication() throws JavaModelException, CoreException {
+		// pre-conditions
+		final JaxrsApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET.class);
+		final JaxrsEndpoint endpoint = createEndpoint(application, httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		// operation : no 'application' left in the metamodel
+		metamodel.remove(application);
+		final JaxrsElementChangedEvent event = new JaxrsElementChangedEvent(application, REMOVED);
+		final List<JaxrsEndpointChangedEvent> changes = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(changes.get(0).getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(changes.get(0).getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
+		assertThat(changes.get(0).getEndpoint().getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(metamodel.getAllApplications().size(), equalTo(0));
 	}
 
 	@Test

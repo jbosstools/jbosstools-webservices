@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_APPLICATION_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_CONSUMED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_DEFAULT_VALUE_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedEvent.F_ELEMENT_KIND;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HttpMethod;
@@ -211,6 +213,8 @@ public abstract class JaxrsElement<T extends IMember> {
 		final EnumKind currentKind = getKind();
 		if (annotationName.equals(Path.class.getName())) {
 			flag = F_PATH_VALUE;
+		} else if (annotationName.equals(ApplicationPath.class.getName())) {
+			flag = F_APPLICATION_PATH_VALUE;
 		} else if (annotationName.equals(HttpMethod.class.getName())) {
 			flag = F_HTTP_METHOD_VALUE;
 		} else if (annotationName.equals(PathParam.class.getName())) {
@@ -256,6 +260,8 @@ public abstract class JaxrsElement<T extends IMember> {
 				iterator.remove();
 				if (annotationName.equals(Path.class.getName())) {
 					flag = F_PATH_VALUE;
+				}else if (annotationName.equals(ApplicationPath.class.getName())) {
+					flag = F_APPLICATION_PATH_VALUE;
 				} else if (annotationName.equals(HttpMethod.class.getName())) {
 					flag = F_HTTP_METHOD_VALUE;
 				} else if (annotationName.equals(PathParam.class.getName())) {

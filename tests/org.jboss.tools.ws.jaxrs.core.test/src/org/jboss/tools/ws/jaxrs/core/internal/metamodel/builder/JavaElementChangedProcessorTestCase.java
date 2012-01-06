@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -76,6 +77,8 @@ import org.hamcrest.Matchers;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsAnnotatedTypeApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
@@ -186,9 +189,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JavaElementChangedEvent event = createEvent(sourceFolder, ADDED);
 		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
 		// verifications
-		// 1 HttpMethod + 3 RootResources + 2 Subresources + all their methods and fields (total of 16)..
-		assertThat(impacts.size(), equalTo(22));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(26)); // 4 previous HttpMethods + 22 added items
+		// 1 Application + 1 HttpMethod + 3 RootResources + 2 Subresources + all their methods and fields (total of 16)..
+		assertThat(impacts.size(), equalTo(23));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(27)); // 4 previous HttpMethods + 23 added items
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
 	}
 
@@ -205,6 +208,221 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementChangedEvent> hasProperty("deltaKind", equalTo(ADDED))));
 		verify(metamodel, times(6)).add(any(JaxrsHttpMethod.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(6));
+	}
+
+	@Test
+	public void shouldAddApplicationWhenAddingSourceCompilationUnit() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		// operation
+		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), ADDED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldAddApplicationWhenAddingSourceType() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		// operation
+		final JavaElementChangedEvent event = createEvent(type, ADDED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldAddApplicationWhenAddingApplicationPathAnnotation() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		// operation
+		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldDoNothingWhenAddingUnrelatedAnnotationOnApplication() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, getAnnotation(type, ApplicationPath.class), metamodel);
+		metamodel.add(application);
+		final Annotation annotation = getAnnotation(type, SuppressWarnings.class);
+		// operation
+		final JavaElementChangedEvent event = createEvent(annotation, ADDED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(0));
+		verify(metamodel, times(1)).add(any(JaxrsApplication.class)); // one call, during pre-conditions
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldUpdateApplicationWhenChangingAnnotationValue() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class, "/bar");
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldDoNothingWhenAnnotationValueRemainsSameOnApplication() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementChangedEvent event = createEvent(annotation, CHANGED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(0));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldDoNothingWhenChangingUnrelatedApplicationAnnotationValue() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		final Annotation suppressWarningsAnnotation = getAnnotation(type, SuppressWarnings.class);
+		// operation
+		final JavaElementChangedEvent event = createEvent(suppressWarningsAnnotation, CHANGED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(0));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldRemoveApplicationWhenRemovingCompilationUnit() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementChangedEvent event = createEvent(type.getCompilationUnit(), REMOVED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsApplication) impacts.get(0).getElement()), equalTo(application));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldRemoveApplicationWhenRemovingSourceType() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementChangedEvent event = createEvent(type, REMOVED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldRemoveApplicationWhenRemovingAnnotation() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementChangedEvent event = createEvent(annotation, REMOVED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(impacts.get(0).getElement(), is(notNullValue()));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldDoNothingWhenRemovingUnrelatedAnnotationOnApplication() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementChangedEvent event = createEvent(getAnnotation(type, SuppressWarnings.class), REMOVED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(0));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldRemoveApplicationWhenRemovingSourceFolder() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		metamodel.add(application);
+		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
+				progressMonitor);
+		// operation
+		final JavaElementChangedEvent event = createEvent(sourceFolder, REMOVED);
+		final List<JaxrsElementChangedEvent> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement(), is(notNullValue()));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
 	@Test
@@ -260,7 +478,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	}
 
 	@Test
-	public void shouldDoNothingWhenAddingUnrelatedAnnotation() throws CoreException {
+	public void shouldDoNothingWhenAddingUnrelatedAnnotationOnHttpMethod() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
@@ -1921,11 +2139,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getPicture");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("id", Integer.class.getName(),
 				Arrays.asList(createAnnotation(PathParam.class, "id")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(), new ArrayList<Annotation>());
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(),
+				new ArrayList<Annotation>());
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.lang.Object", javaProject))
-				.methodParameter(startParameter).methodParameter(sizeParameter)
-				.build();
+				.methodParameter(startParameter).methodParameter(sizeParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
 		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);
@@ -1953,12 +2171,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IMethod method = getMethod(type, "getPicture");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("id", Integer.class.getName(),
 				Arrays.asList(createAnnotation(PathParam.class, "id")));
-		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(), Arrays.asList(
-				createAnnotation(MatrixParam.class, "foo")));
+		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(),
+				Arrays.asList(createAnnotation(MatrixParam.class, "foo")));
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.lang.Object", javaProject))
-				.methodParameter(startParameter).methodParameter(sizeParameter)
-				.build();
+				.methodParameter(startParameter).methodParameter(sizeParameter).build();
 		metamodel.add(jaxrsMethod);
 		// operation
 		final JavaElementChangedEvent event = createEvent(method, CHANGED, F_SIGNATURE);

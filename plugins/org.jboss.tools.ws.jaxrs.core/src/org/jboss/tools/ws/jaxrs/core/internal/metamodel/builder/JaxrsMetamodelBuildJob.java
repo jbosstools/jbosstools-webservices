@@ -10,6 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder.SCALE;
+
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -19,8 +21,6 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.pubsub.EventService;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder.SCALE;
 
 /** @author xcoulon */
 public class JaxrsMetamodelBuildJob extends Job {
@@ -38,7 +38,7 @@ public class JaxrsMetamodelBuildJob extends Job {
 	}
 
 	@Override
-	protected IStatus run(IProgressMonitor progressMonitor) {
+	protected IStatus run(final IProgressMonitor progressMonitor) {
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
 			progressMonitor.worked(SCALE);
@@ -46,7 +46,6 @@ public class JaxrsMetamodelBuildJob extends Job {
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			// create fake event at the JavaProject level:
 			// scan and filter delta, retrieve a list of java changes
 			final List<JavaElementChangedEvent> events = new JavaElementChangedEventScanner().scanAndFilterEvent(event,
 					new SubProgressMonitor(progressMonitor, SCALE));
@@ -63,13 +62,9 @@ public class JaxrsMetamodelBuildJob extends Job {
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			if (jaxrsEndpointChanges == null || jaxrsEndpointChanges.isEmpty()) {
-				Logger.debug("*** No JAX-RS change to publish to the UI ***");
-			} else {
-				for (JaxrsEndpointChangedEvent change : jaxrsEndpointChanges) {
-					EventService.getInstance().publish(change);
-				}
-			}
+			new JaxrsElementChangedPublisher().publish(jaxrsEndpointChanges, new SubProgressMonitor(progressMonitor,
+					SCALE));
+			
 		} catch (Throwable e) {
 			Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 		} finally {
