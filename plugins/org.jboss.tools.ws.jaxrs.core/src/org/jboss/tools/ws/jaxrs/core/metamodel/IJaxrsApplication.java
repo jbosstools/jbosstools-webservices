@@ -10,6 +10,10 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
-public interface IJaxrsApplication {
+public interface IJaxrsApplication extends IJaxrsElement {
+
+	public abstract String getApplicationPath();
+
+	public abstract EnumKind getKind();
 
 }

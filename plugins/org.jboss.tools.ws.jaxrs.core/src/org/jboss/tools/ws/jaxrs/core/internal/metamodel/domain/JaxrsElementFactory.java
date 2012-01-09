@@ -31,6 +31,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
@@ -63,7 +64,7 @@ public class JaxrsElementFactory {
 	 * @return the created JAX-RS element or null if the given Java annotation is not a valid one.
 	 * @throws CoreException
 	 */
-	public JaxrsElement<?> createElement(IAnnotation javaAnnotation, CompilationUnit ast, JaxrsMetamodel metamodel)
+	public JaxrsJavaElement<?> createElement(IAnnotation javaAnnotation, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws CoreException {
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
 		final String annotationName = annotation.getName();
@@ -71,7 +72,7 @@ public class JaxrsElementFactory {
 			final JaxrsHttpMethod httpMethod = createHttpMethod(annotation, ast, metamodel);
 			return httpMethod;
 		} else if (annotationName.equals(ApplicationPath.class.getName())) {
-			final JaxrsApplication application = createApplication(annotation, ast, metamodel);
+			final JaxrsJavaApplication application = createApplication(annotation, ast, metamodel);
 			return application;
 		} else {
 			switch (javaAnnotation.getParent().getElementType()) {
@@ -81,7 +82,7 @@ public class JaxrsElementFactory {
 				}
 				break;
 			case METHOD:
-				final IJaxrsHttpMethod httpMethod = metamodel.getHttpMethod(annotationName);
+				final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) metamodel.getHttpMethod(annotationName);
 				if (annotationName.equals(Path.class.getName())) {
 					return createResourceMethod(annotation, ast, metamodel);
 				} else if (httpMethod != null) {
@@ -293,13 +294,13 @@ public class JaxrsElementFactory {
 	 * @return
 	 * @throws CoreException
 	 */
-	public JaxrsApplication createApplication(final IType javaType, final CompilationUnit ast,
+	public JaxrsJavaApplication createApplication(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, ast, ApplicationPath.class);
 		if (applicationPathAnnotation == null) {
 			return null;
 		}
-		return new JaxrsAnnotatedTypeApplication(javaType, applicationPathAnnotation, metamodel);
+		return new JaxrsJavaApplication(javaType, applicationPathAnnotation, metamodel);
 	}
 
 	/**
@@ -312,11 +313,11 @@ public class JaxrsElementFactory {
 	 * @return
 	 * @throws CoreException
 	 */
-	public JaxrsApplication createApplication(final Annotation annotation, final CompilationUnit ast,
+	public JaxrsJavaApplication createApplication(final Annotation annotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		if (annotation.getJavaParent() != null && annotation.getJavaParent().getElementType() == IJavaElement.TYPE
 				&& annotation.getName().equals(ApplicationPath.class.getName())) {
-			return new JaxrsAnnotatedTypeApplication((IType) annotation.getJavaParent(), annotation, metamodel);
+			return new JaxrsJavaApplication((IType) annotation.getJavaParent(), annotation, metamodel);
 		}
 		return null;
 	}
@@ -340,7 +341,7 @@ public class JaxrsElementFactory {
 	public JaxrsResourceField createField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws JavaModelException {
 		final IType parentType = (IType) javaField.getParent();
-		JaxrsElement<?> parentResource = metamodel.getElement(parentType);
+		JaxrsBaseElement parentResource = metamodel.getElement(parentType);
 		if (parentResource == null) {
 			// creating the parent resource but not adding it to the metamodel
 			// yet..
@@ -370,4 +371,7 @@ public class JaxrsElementFactory {
 		return null;
 	}
 
+	public JaxrsWebxmlApplication createApplication(String applicationPath, IResource resource, JaxrsMetamodel metamodel) {
+		return new JaxrsWebxmlApplication(applicationPath, resource, metamodel);
+	}
 }

@@ -36,6 +36,7 @@ import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
@@ -154,7 +155,12 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 			Assert.assertFalse("No produced media types", endpoint.getProducedMediaTypes().isEmpty());
 		}
 	}
-
+	@Test
+	public void shouldRetrieveApplicationPath() throws CoreException {
+		assertThat(metamodel.getApplication().getKind(), equalTo(EnumKind.APPLICATION_WEBXML));
+		assertThat(metamodel.getApplication().getApplicationPath(), equalTo("/hello"));
+	}
+	
 	@Test
 	public void shouldRetrieveCustomerResource() throws CoreException {
 		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
@@ -191,7 +197,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	}
 
 	@Test
-	public void shouldRetrieveBooksubresourceMethodProposals() throws CoreException {
+	public void shouldRetrieveBookSubresourceMethodProposals() throws CoreException {
 		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
 		IMethod customerMethod = getMethod(customerType, "getProduct");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);

@@ -78,9 +78,8 @@ import org.hamcrest.Matchers;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsAnnotatedTypeApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
@@ -228,8 +227,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -245,8 +244,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -263,8 +262,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -273,7 +272,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, getAnnotation(type, ApplicationPath.class), metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, getAnnotation(type, ApplicationPath.class), metamodel);
 		metamodel.add(application);
 		final Annotation annotation = getAnnotation(type, SuppressWarnings.class);
 		// operation
@@ -281,7 +280,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
-		verify(metamodel, times(1)).add(any(JaxrsApplication.class)); // one call, during pre-conditions
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class)); // one call, during pre-conditions
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -291,7 +290,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class, "/bar");
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(annotation, CHANGED);
@@ -300,7 +299,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -310,7 +309,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(annotation, CHANGED);
@@ -326,7 +325,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		final Annotation suppressWarningsAnnotation = getAnnotation(type, SuppressWarnings.class);
 		// operation
@@ -343,7 +342,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(type.getCompilationUnit(), REMOVED);
@@ -352,7 +351,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsApplication) impacts.get(0).getElement()), equalTo(application));
+		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()), equalTo(application));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
@@ -362,7 +361,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(type, REMOVED);
@@ -371,7 +370,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
@@ -381,7 +380,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(annotation, REMOVED);
@@ -400,7 +399,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(getAnnotation(type, SuppressWarnings.class), REMOVED);
@@ -416,7 +415,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
 		metamodel.add(application);
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
@@ -430,7 +429,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
-
+ 
 	@Test
 	public void shouldAddHttpMethodWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions

@@ -28,8 +28,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -39,6 +38,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsEndpointDelta;
@@ -87,14 +87,14 @@ public class JaxrsMetamodelChangedProcessor {
 	}
 
 	private List<JaxrsEndpointDelta> processEvent(final JaxrsElementDelta event) throws CoreException {
-		final JaxrsElement<?> element = event.getElement();
+		final JaxrsBaseElement element = event.getElement();
 		final EnumElementKind elementKind = element.getElementKind();
 		final int flags = event.getFlags();
 		switch (event.getDeltaKind()) {
 		case ADDED:
 			switch (elementKind) {
 			case APPLICATION:
-				return processAddition((JaxrsApplication) element);
+				return processAddition((IJaxrsApplication) element);
 			case HTTP_METHOD:
 				return processAddition((JaxrsHttpMethod) element);
 			case RESOURCE:
@@ -105,7 +105,7 @@ public class JaxrsMetamodelChangedProcessor {
 		case CHANGED:
 			switch (elementKind) {
 			case APPLICATION:
-				return processChange((JaxrsApplication) element, flags);
+				return processChange((IJaxrsApplication) element, flags);
 			case HTTP_METHOD:
 				return processChange((JaxrsHttpMethod) element, flags);
 			case RESOURCE:
@@ -116,7 +116,7 @@ public class JaxrsMetamodelChangedProcessor {
 		case REMOVED:
 			switch (elementKind) {
 			case APPLICATION:
-				return processRemoval((JaxrsApplication) element);
+				return processRemoval((IJaxrsApplication) element);
 			case HTTP_METHOD:
 				return processRemoval((JaxrsHttpMethod) element);
 			case RESOURCE:
@@ -135,9 +135,9 @@ public class JaxrsMetamodelChangedProcessor {
 	 * @param application
 	 * @return
 	 */
-	private List<JaxrsEndpointDelta> processAddition(final JaxrsApplication application) {
+	private List<JaxrsEndpointDelta> processAddition(final IJaxrsApplication application) {
 		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
-		final JaxrsMetamodel metamodel = application.getMetamodel();
+		final JaxrsMetamodel metamodel = (JaxrsMetamodel) application.getMetamodel();
 		// if the given application becomes the used application in the metamodel
 		if (application.equals(metamodel.getApplication())) {
 			for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
@@ -285,9 +285,9 @@ public class JaxrsMetamodelChangedProcessor {
 		return supertypesHandlers;
 	}
 
-	private List<JaxrsEndpointDelta> processChange(final JaxrsApplication application, int flags) {
+	private List<JaxrsEndpointDelta> processChange(final IJaxrsApplication application, int flags) {
 		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
-		final JaxrsMetamodel metamodel = application.getMetamodel();
+		final JaxrsMetamodel metamodel = (JaxrsMetamodel) application.getMetamodel();
 		if (application.equals(metamodel.getApplication())) {
 			for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
 				JaxrsEndpoint endpoint = iterator.next();
@@ -408,9 +408,9 @@ public class JaxrsMetamodelChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsEndpointDelta> processRemoval(final JaxrsApplication application) {
+	private List<JaxrsEndpointDelta> processRemoval(final IJaxrsApplication application) {
 		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
-		final JaxrsMetamodel metamodel = application.getMetamodel();
+		final JaxrsMetamodel metamodel = (JaxrsMetamodel) application.getMetamodel();
 		for (Iterator<JaxrsEndpoint> iterator = metamodel.getEndpoints().iterator(); iterator.hasNext();) {
 			JaxrsEndpoint endpoint = iterator.next();
 			if (endpoint.refresh(metamodel.getApplication())) {

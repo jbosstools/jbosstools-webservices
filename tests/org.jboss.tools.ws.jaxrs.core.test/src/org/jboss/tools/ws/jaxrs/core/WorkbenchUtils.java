@@ -11,6 +11,8 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
@@ -18,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -65,6 +69,7 @@ import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Assert;
@@ -113,8 +118,10 @@ public class WorkbenchUtils {
 
 	}
 
-	/** @return
-	 * @throws JavaModelException */
+	/**
+	 * @return
+	 * @throws JavaModelException
+	 */
 	public static IPackageFragment createPackage(IJavaProject javaProject, String pkgName) throws JavaModelException {
 		IFolder folder = javaProject.getProject().getFolder("src/main/java");
 		IPackageFragmentRoot packageFragmentRoot = javaProject.getPackageFragmentRoot(folder);
@@ -178,19 +185,19 @@ public class WorkbenchUtils {
 		return null;
 	}
 
-	/** Create a compilation unit from the given filename content, in the given
-	 * package, with the given name
+	/**
+	 * Create a compilation unit from the given filename content, in the given package, with the given name
 	 * 
 	 * @param fileName
-	 *            the filename containing the source code, in the /resources
-	 *            folder of the test bundle, or null if the created compilation
-	 *            unit must remain empty after its creation
+	 *            the filename containing the source code, in the /resources folder of the test bundle, or null if the
+	 *            created compilation unit must remain empty after its creation
 	 * @param pkg
 	 *            the target package
 	 * @param unitName
 	 *            the target compilation unit name
 	 * @return the created compilation unit
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static ICompilationUnit createCompilationUnit(IJavaProject javaProject, String fileName, String pkg,
 			String unitName, Bundle bundle) throws JavaModelException {
 		String contents = "";
@@ -237,11 +244,13 @@ public class WorkbenchUtils {
 		Assert.assertEquals("Content was not inserted", content, subSource);
 	}
 
-	/** Removes the first occurrence of the given content (not a regexp)
+	/**
+	 * Removes the first occurrence of the given content (not a regexp)
 	 * 
 	 * @param type
 	 * @param content
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static void removeFirstOccurrenceOfCode(IType type, String content, boolean useWorkingCopy)
 			throws JavaModelException {
 		replaceFirstOccurrenceOfCode(type, content, "", useWorkingCopy);
@@ -257,10 +266,12 @@ public class WorkbenchUtils {
 		saveAndClose(unit);
 	}
 
-	/** @param compilationUnit
+	/**
+	 * @param compilationUnit
 	 * @param useWorkingCopy
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static ICompilationUnit getCompilationUnit(ICompilationUnit compilationUnit, boolean useWorkingCopy)
 			throws JavaModelException {
 		return useWorkingCopy ? createWorkingCopy(compilationUnit) : compilationUnit;
@@ -420,9 +431,11 @@ public class WorkbenchUtils {
 
 	}
 
-	/** @param type
+	/**
+	 * @param type
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static IMethod getMethod(IType type, String name) throws JavaModelException {
 		for (IMethod method : type.getMethods()) {
 			if (method.getElementName().equals(name)) {
@@ -554,9 +567,11 @@ public class WorkbenchUtils {
 		return (IMethod) method.getCompilationUnit().getElementAt(sourceRange.getOffset());
 	}
 
-	/** @param compilationUnit
+	/**
+	 * @param compilationUnit
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static ICompilationUnit createWorkingCopy(ICompilationUnit compilationUnit) throws JavaModelException {
 		LOGGER.debug("Creating working copy...");
 		// ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new
@@ -565,10 +580,7 @@ public class WorkbenchUtils {
 
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see
-			 * org.eclipse.jdt.core.WorkingCopyOwner#getProblemRequestor(org
-			 * .eclipse.jdt.core.ICompilationUnit)
+			 * @see org.eclipse.jdt.core.WorkingCopyOwner#getProblemRequestor(org .eclipse.jdt.core.ICompilationUnit)
 			 */
 			@Override
 			public IProblemRequestor getProblemRequestor(ICompilationUnit workingCopy) {
@@ -595,7 +607,8 @@ public class WorkbenchUtils {
 
 					@Override
 					public void acceptProblem(IProblem problem) {
-						//LOGGER.debug("Reporting problem: {} on {}", problem, new String(problem.getOriginatingFileName()));
+						// LOGGER.debug("Reporting problem: {} on {}", problem, new
+						// String(problem.getOriginatingFileName()));
 
 					}
 				};
@@ -608,8 +621,10 @@ public class WorkbenchUtils {
 		return workingCopy;
 	}
 
-	/** @param unit
-	 * @throws JavaModelException */
+	/**
+	 * @param unit
+	 * @throws JavaModelException
+	 */
 	public static void saveAndClose(ICompilationUnit unit) throws JavaModelException {
 		try {
 			if (unit.isWorkingCopy()) {
@@ -637,12 +652,10 @@ public class WorkbenchUtils {
 	public static void move(ICompilationUnit compilationUnit, String targetPackageName, Bundle bundle)
 			throws CoreException {
 		/*
-		 * ICompilationUnit destContainer =
-		 * createCompilationUnit(compilationUnit.getJavaProject(), null,
-		 * targetPackageName, compilationUnit.getElementName(), bundle);
-		 * MoveElementsOperation operation = new MoveElementsOperation( new
-		 * IJavaElement[] { compilationUnit }, new IJavaElement[] {
-		 * destContainer }, true); operation.run(new NullProgressMonitor());
+		 * ICompilationUnit destContainer = createCompilationUnit(compilationUnit.getJavaProject(), null,
+		 * targetPackageName, compilationUnit.getElementName(), bundle); MoveElementsOperation operation = new
+		 * MoveElementsOperation( new IJavaElement[] { compilationUnit }, new IJavaElement[] { destContainer }, true);
+		 * operation.run(new NullProgressMonitor());
 		 */
 		IPackageFragment packageFragment = WorkbenchUtils.createPackage(compilationUnit.getJavaProject(),
 				"org.jboss.tools.ws.jaxrs.sample");
@@ -662,18 +675,15 @@ public class WorkbenchUtils {
 		ICompilationUnit unit = getCompilationUnit(parent.getCompilationUnit(), useWorkingCopy);
 		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		final ISourceRange sourceRange = annotation.getSourceRange();
-		buffer.replace(sourceRange.getOffset(), sourceRange.getLength(), ""); 
+		buffer.replace(sourceRange.getOffset(), sourceRange.getLength(), "");
 		saveAndClose(unit);
 	}
+
 	/*
-	 * public static CompilationUnitEditor getCompilationUnitEditor(IFile file)
-	 * throws PartInitException { IEditorPart editorPart = null;
-	 * PlatformUI.isWorkbenchRunning(); PlatformUI.getWorkbench().isStarting();
-	 * IWorkbenchPage page =
-	 * PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-	 * editorPart = page.openEditor(new FileEditorInput(file),
-	 * IDE.getEditorDescriptor(file).getId()); return (CompilationUnitEditor)
-	 * editorPart; }
+	 * public static CompilationUnitEditor getCompilationUnitEditor(IFile file) throws PartInitException { IEditorPart
+	 * editorPart = null; PlatformUI.isWorkbenchRunning(); PlatformUI.getWorkbench().isStarting(); IWorkbenchPage page =
+	 * PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(); editorPart = page.openEditor(new
+	 * FileEditorInput(file), IDE.getEditorDescriptor(file).getId()); return (CompilationUnitEditor) editorPart; }
 	 */
 
 	public static void delete(IMember element) throws JavaModelException {
@@ -715,14 +725,16 @@ public class WorkbenchUtils {
 		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), progressMonitor);
 	}
 
-	/** Iterates through the project's package fragment roots and returns the one
-	 * (source or binary) which project relative path matches the given path.
+	/**
+	 * Iterates through the project's package fragment roots and returns the one (source or binary) which project
+	 * relative path matches the given path.
 	 * 
 	 * @param project
 	 * @param path
 	 * @param progressMonitor
 	 * @return
-	 * @throws JavaModelException */
+	 * @throws JavaModelException
+	 */
 	public static IPackageFragmentRoot getPackageFragmentRoot(IJavaProject project, String path,
 			IProgressMonitor progressMonitor) throws JavaModelException {
 		for (IPackageFragmentRoot packageFragmentRoot : project.getAllPackageFragmentRoots()) {
@@ -736,12 +748,14 @@ public class WorkbenchUtils {
 		return null;
 	}
 
-	/** @param monitor
+	/**
+	 * @param monitor
 	 * @param description
 	 * @param projectName
 	 * @param workspace
 	 * @param project
-	 * @throws InvocationTargetException */
+	 * @throws InvocationTargetException
+	 */
 	static void createProject(IProgressMonitor monitor, IProjectDescription description, String projectName,
 			IWorkspace workspace, IProject project) throws InvocationTargetException {
 		// import from file system
@@ -769,15 +783,16 @@ public class WorkbenchUtils {
 		}
 	}
 
-	/** Remove the first referenced library those absolute path contains the
-	 * given name.
+	/**
+	 * Remove the first referenced library those absolute path contains the given name.
 	 * 
 	 * @param javaProject
 	 * @param name
 	 * @param progressMonitor
 	 * @throws CoreException
 	 * @throws InterruptedException
-	 * @throws OperationCanceledException */
+	 * @throws OperationCanceledException
+	 */
 	public static List<IPackageFragmentRoot> removeClasspathEntry(IJavaProject javaProject, String name,
 			IProgressMonitor progressMonitor) throws CoreException, OperationCanceledException, InterruptedException {
 		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
@@ -825,8 +840,9 @@ public class WorkbenchUtils {
 		return found;
 	}
 
-	public static Annotation getAnnotation(final IMember member, final Class<?> annotationClass) throws JavaModelException {
-		if(annotationClass == null) {
+	public static Annotation getAnnotation(final IMember member, final Class<?> annotationClass)
+			throws JavaModelException {
+		if (annotationClass == null) {
 			return null;
 		}
 		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationClass);
@@ -834,9 +850,8 @@ public class WorkbenchUtils {
 
 	public static Annotation getAnnotation(final IMember member, final Class<?> annotationClass, String... values)
 			throws JavaModelException {
-		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null),
-				annotationClass);
-		
+		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationClass);
+
 		Map<String, List<String>> elements = new HashMap<String, List<String>>();
 		elements.put("value", Arrays.asList(values));
 		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getName(), elements, null));
@@ -847,5 +862,96 @@ public class WorkbenchUtils {
 		return JdtUtils.resolveType(typeName, javaProject, null);
 	}
 
+	/**
+	 * Creates a file with the given name and the given content in the given folder.
+	 * 
+	 * @param folder
+	 * @param fileName
+	 * @param stream
+	 * @throws CoreException
+	 * @throws IOException
+	 */
+	public static IResource createContent(IFolder folder, String fileName, InputStream stream) throws CoreException,
+			IOException {
+		if (!folder.exists()) {
+			folder.create(true, true, new NullProgressMonitor());
+		}
+		folder.getFile(fileName).create(stream, true, null);
+		LOGGER.debug("Content of {}", folder.getFile(fileName).getProjectRelativePath().toPortableString());
+		final InputStream contents = folder.getFile(fileName).getContents();
+		final char[] buffer = new char[0x10000];
+		StringBuilder out = new StringBuilder();
+		Reader in = new InputStreamReader(contents, "UTF-8");
+		int read;
+		do {
+			read = in.read(buffer, 0, buffer.length);
+			if (read > 0) {
+				out.append(buffer, 0, read);
+			}
+		} while (read >= 0);
+		LOGGER.debug(out.toString());
+		return folder.findMember(fileName);
+	}
+
+	/**
+	 * Replaces the content of the given resource with the given stream.
+	 * 
+	 * @param webxmlResource
+	 * @param stream
+	 * @throws CoreException
+	 * @throws IOException
+	 */
+	public static void replaceContent(IResource resource, InputStream stream) throws CoreException, IOException {
+		final IProject project = resource.getProject();
+		final IFile file = project.getFile(resource.getProjectRelativePath());
+		if (file.exists()) {
+			file.delete(true, new NullProgressMonitor());
+		}
+		file.create(stream, true, null);
+		LOGGER.debug("Content:");
+		final InputStream contents = file.getContents();
+		final char[] buffer = new char[0x10000];
+		StringBuilder out = new StringBuilder();
+		Reader in = new InputStreamReader(contents, "UTF-8");
+		int read;
+		do {
+			read = in.read(buffer, 0, buffer.length);
+			if (read > 0) {
+				out.append(buffer, 0, read);
+			}
+		} while (read >= 0);
+		LOGGER.debug(out.toString());
+	}
+
+	/**
+	 * @return
+	 * @throws CoreException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws OperationCanceledException
+	 * @throws InvocationTargetException
+	 */
+	public static IResource replaceDeploymentDescriptorWith(IJavaProject javaProject, String webxmlReplacementName,
+			Bundle bundle) throws Exception {
+		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
+		IResource webxmlResource = webInfFolder.findMember("web.xml");
+		if (webxmlResource != null && webxmlReplacementName == null) {
+			webxmlResource.delete(true, new NullProgressMonitor());
+		} else if (webxmlResource == null && webxmlReplacementName == null) {
+			// nothing to do: file does not exist and should be removed ;-)
+			return null;
+		}
+		if (webxmlReplacementName == null) {
+			return null;
+		}
+		InputStream stream = FileLocator.openStream(bundle, new Path("resources").append(webxmlReplacementName), false);
+		assertThat(stream, notNullValue());
+		if (webxmlResource != null) {
+			replaceContent(webxmlResource, stream);
+			return webxmlResource;
+		} else {
+			return createContent(webInfFolder, "web.xml", stream);
+		}
+	}
 
 }

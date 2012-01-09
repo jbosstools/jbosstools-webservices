@@ -30,7 +30,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
  * 
  * @author xcoulon
  */
-public class JaxrsProvider extends JaxrsElement<IType> implements IJaxrsProvider {
+public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProvider {
 
 	/**
 	 * Internal 'Provider' element builder.

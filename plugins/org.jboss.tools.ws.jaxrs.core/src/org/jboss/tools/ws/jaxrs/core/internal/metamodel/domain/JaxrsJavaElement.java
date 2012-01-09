@@ -45,11 +45,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
@@ -61,16 +59,10 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
  * @param <T>
  *            the underlying Java type managed by the JAX-RS ElementKind.
  */
-public abstract class JaxrsElement<T extends IMember> {
-
-	/** The associated metamodel. */
-	private final JaxrsMetamodel metamodel;
+public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseElement {
 
 	/** The underlying java element. */
 	private final T javaElement;
-
-	/** Indicates if the underlying java element has compiltation errors. */
-	private boolean hasErrors;
 
 	/**
 	 * Map of Annotations on the associated Java Element, indexed by the
@@ -86,7 +78,7 @@ public abstract class JaxrsElement<T extends IMember> {
 	 * @param element
 	 *            the underlying java element
 	 */
-	public JaxrsElement(final T element, final Annotation annotation, final JaxrsMetamodel metamodel) {
+	public JaxrsJavaElement(final T element, final Annotation annotation, final JaxrsMetamodel metamodel) {
 		this(element, Arrays.asList(annotation), metamodel);
 	}
 
@@ -98,8 +90,8 @@ public abstract class JaxrsElement<T extends IMember> {
 	 * @param element
 	 *            the underlying java element
 	 **/
-	public JaxrsElement(final T element, final List<Annotation> annotations, final JaxrsMetamodel metamodel) {
-		this.metamodel = metamodel;
+	public JaxrsJavaElement(final T element, final List<Annotation> annotations, final JaxrsMetamodel metamodel) {
+		super(metamodel);
 		this.javaElement = element;
 		if (annotations != null) {
 			for (Annotation annotation : annotations) {
@@ -107,10 +99,6 @@ public abstract class JaxrsElement<T extends IMember> {
 			}
 		}
 	}
-
-	public abstract EnumElementKind getElementKind();
-
-	public abstract EnumKind getKind();
 
 	Annotation getAnnotation(String className) {
 		return annotations.get(className);
@@ -120,21 +108,10 @@ public abstract class JaxrsElement<T extends IMember> {
 	public final T getJavaElement() {
 		return javaElement;
 	}
-
-	/**
-	 * Sets a flag of whether the underlying java element has compilation errors
-	 * or not.
-	 * 
-	 * @param h
-	 *            : true if the java element has errors, false otherwise
-	 */
-	public void hasErrors(final boolean h) {
-		this.hasErrors = h;
-	}
-
-	/** @return true if the java element has errors, false otherwise. */
-	public final boolean hasErrors() {
-		return hasErrors;
+	
+	@Override
+	public String getName() {
+		return javaElement != null ? javaElement.getElementName() : "*unknown java element*";
 	}
 
 	/**
@@ -152,17 +129,8 @@ public abstract class JaxrsElement<T extends IMember> {
 		return JdtUtils.parse(javaElement, progressMonitor);
 	}
 
-	/** @return the metamodel */
-	public final JaxrsMetamodel getMetamodel() {
-		return metamodel;
-	}
-
 	public Map<String, Annotation> getAnnotations() {
 		return annotations;
-	}
-
-	IResource getResource() {
-		return this.javaElement.getResource();
 	}
 
 	public int addOrUpdateAnnotation(final Annotation annotation) {
@@ -291,6 +259,10 @@ public abstract class JaxrsElement<T extends IMember> {
 		}
 		return flag;
 	}
+	
+	public IResource getResource() {
+		return this.javaElement.getResource();
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -321,7 +293,7 @@ public abstract class JaxrsElement<T extends IMember> {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		JaxrsElement<?> other = (JaxrsElement<?>) obj;
+		JaxrsJavaElement<?> other = (JaxrsJavaElement<?>) obj;
 		if (javaElement == null) {
 			if (other.javaElement != null) {
 				return false;
@@ -331,7 +303,5 @@ public abstract class JaxrsElement<T extends IMember> {
 		}
 		return true;
 	}
-
-	public abstract List<ValidatorMessage> validate();
 
 }

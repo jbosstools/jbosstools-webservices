@@ -37,6 +37,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -49,18 +50,19 @@ import org.hamcrest.Matchers;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsAnnotatedTypeApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
@@ -90,16 +92,39 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		javaProject.getProject().setSessionProperty(JaxrsMetamodel.METAMODEL_QUALIFIED_NAME, metamodel);
 	}
 
-	private JaxrsApplication createApplication(IType type) throws JavaModelException {
+	/**
+	 * Creates a java annotated type based JAX-RS Application element
+	 * @param type
+	 * @return
+	 * @throws JavaModelException
+	 */
+	private JaxrsJavaApplication createApplication(IType type) throws JavaModelException {
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
-		return new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		return new JaxrsJavaApplication(type, annotation, metamodel);
 	}
 
-	private JaxrsApplication createApplication(IType type, String applicationPath) throws JavaModelException {
+	/**
+	 * Creates a java annotated type based JAX-RS Application element
+	 * @param type
+	 * @param applicationPath
+	 * @return
+	 * @throws JavaModelException
+	 */
+	private JaxrsJavaApplication createApplication(IType type, String applicationPath) throws JavaModelException {
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class, applicationPath);
-		return new JaxrsAnnotatedTypeApplication(type, annotation, metamodel);
+		return new JaxrsJavaApplication(type, annotation, metamodel);
 	}
 
+	/**
+	 * Creates a web.xml based JAX-RS Application element
+	 * 
+	 * @param applicationPath
+	 * @return
+	 * @throws JavaModelException
+	 */
+	private JaxrsWebxmlApplication createApplication(String applicationPath) throws JavaModelException {
+		return new JaxrsWebxmlApplication(applicationPath, null, metamodel);
+	}
 
 	/**
 	 * @return
@@ -136,8 +161,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		return new ResourceDelta(resource, deltaKind, NO_FLAG);
 	}
 
-	private List<JaxrsElementDelta> processResourceChanges(ResourceDelta event, IProgressMonitor progressmonitor) throws CoreException {
-		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, false, Arrays.asList(event), progressmonitor);
+	private List<JaxrsElementDelta> processResourceChanges(ResourceDelta event, IProgressMonitor progressmonitor)
+			throws CoreException {
+		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, false,
+				Arrays.asList(event), progressmonitor);
 		return affectedMetamodel.getAffectedElements();
 	}
 
@@ -145,10 +172,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * Because sometimes, generics are painful...
 	 * 
 	 * @param elements
-	 * @return private List<IJaxrsElement<?>> asList(IJaxrsElement<?>...
-	 *         elements) { final List<IJaxrsElement<?>> result = new
-	 *         ArrayList<IJaxrsElement<?>>();
-	 *         result.addAll(Arrays.asList(elements)); return result; }
+	 * @return private List<IJaxrsElement<?>> asList(IJaxrsElement<?>... elements) { final List<IJaxrsElement<?>> result
+	 *         = new ArrayList<IJaxrsElement<?>>(); result.addAll(Arrays.asList(elements)); return result; }
 	 */
 
 	@Test
@@ -162,10 +187,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		final ResourceDelta event = createEvent(sourceFolder.getResource(), ADDED);
-		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, false, Arrays.asList(event), progressMonitor);
+		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, false,
+				Arrays.asList(event), progressMonitor);
 		// verifications
 		assertThat(affectedMetamodel.getDeltaKind(), equalTo(CHANGED));
-		assertThat(affectedMetamodel.getMetamodel(), equalTo((IJaxrsMetamodel)metamodel));
+		assertThat(affectedMetamodel.getMetamodel(), equalTo((IJaxrsMetamodel) metamodel));
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
 		// 1 application + 1 HttpMethod + 3 RootResources + 2 Subresources
 		assertThat(affectedElements.size(), equalTo(7));
@@ -175,7 +201,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithExistingMetamodelWithReset() throws CoreException {
+	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithExistingMetamodelWithReset()
+			throws CoreException {
 		// pre-conditions
 		metamodel.add(createHttpMethod(GET.class));
 		metamodel.add(createHttpMethod(POST.class));
@@ -185,26 +212,26 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		final ResourceDelta event = createEvent(sourceFolder.getResource(), ADDED);
-		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, true, Arrays.asList(event), progressMonitor);
+		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, true,
+				Arrays.asList(event), progressMonitor);
 		// verifications
 		assertThat(affectedMetamodel.getDeltaKind(), equalTo(CHANGED));
 		metamodel = (JaxrsMetamodel) affectedMetamodel.getMetamodel();
-		assertThat(metamodel, equalTo((IJaxrsMetamodel)metamodel));
+		assertThat(metamodel, equalTo((IJaxrsMetamodel) metamodel));
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
 		// 1 application + 1 HttpMethod + 3 RootResources + 2 Subresources
 		assertThat(affectedElements.size(), equalTo(13));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
-		// all HttpMethods (including @OPTIONS and @HEAD), Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(29));
+		// all Applications, HttpMethods (including @OPTIONS and @HEAD), Resources, ResourceMethods and ResourceFields
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(30));
 	}
+
 	/**
 	 * Because sometimes, generics are painful...
 	 * 
 	 * @param elements
-	 * @return private List<IJaxrsElement<?>> asList(IJaxrsElement<?>...
-	 *         elements) { final List<IJaxrsElement<?>> result = new
-	 *         ArrayList<IJaxrsElement<?>>();
-	 *         result.addAll(Arrays.asList(elements)); return result; }
+	 * @return private List<IJaxrsElement<?>> asList(IJaxrsElement<?>... elements) { final List<IJaxrsElement<?>> result
+	 *         = new ArrayList<IJaxrsElement<?>>(); result.addAll(Arrays.asList(elements)); return result; }
 	 */
 
 	@Test
@@ -212,12 +239,13 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		// remove the metamodel
 		this.metamodel.remove();
-		this.metamodel = null; 
+		this.metamodel = null;
 		// operation
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		final ResourceDelta event = createEvent(sourceFolder.getResource(), ADDED);
-		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, false, Arrays.asList(event), progressMonitor);
+		final JaxrsMetamodelDelta affectedMetamodel = processor.processAffectedResources(project, false,
+				Arrays.asList(event), progressMonitor);
 		// verifications
 		// 1 application + 1 HttpMethod + 3 RootResources + 2 Subresources
 		assertThat(affectedMetamodel.getDeltaKind(), equalTo(ADDED));
@@ -225,9 +253,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(metamodel, notNullValue());
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
 		assertThat(affectedElements.size(), equalTo(13));
-		// all HttpMethods (including @OPTIONS and @HEAD), project Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(29));
-		
+		// all Applications, HttpMethods (including @OPTIONS and @HEAD), project Resources, ResourceMethods and ResourceFields
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(30));
+
 	}
 
 	@Test
@@ -263,8 +291,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddApplicationWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
-				progressMonitor);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
 		// operation
 		final ResourceDelta event = createEvent(annotation.getJavaParent().getResource(), CHANGED);
@@ -273,16 +301,16 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(((IJaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
 	@Test
 	public void shouldChangeApplicationWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
-				progressMonitor);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
 		metamodel.add(createApplication(type, "/bar"));
 		// operation
 		final ResourceDelta event = createEvent(type.getResource(), CHANGED);
@@ -291,16 +319,16 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((JaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsApplication.class));
+		assertThat(((IJaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
 	@Test
 	public void shouldRemoveApplicationWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
-				progressMonitor);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
 		metamodel.add(createApplication(type));
 		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
 		// operation
@@ -311,7 +339,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(((IJaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		verify(metamodel, times(1)).add(any(JaxrsHttpMethod.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
@@ -320,9 +348,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	public void shouldRemoveApplicationWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
 		// JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
-				progressMonitor);
-		final JaxrsApplication application = createApplication(type);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsJavaApplication application = createApplication(type);
 		metamodel.add(application);
 		// operation
 		final ResourceDelta event = createEvent(type.getResource(), REMOVED);
@@ -331,7 +359,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsApplication) affectedElements.get(0).getElement()), equalTo(application));
+		assertThat(((JaxrsJavaApplication) affectedElements.get(0).getElement()), equalTo(application));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
@@ -358,14 +386,164 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveApplicationWhenRemovingSourceFolder() throws CoreException {
 		// pre-conditions
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
-				progressMonitor);
-		final JaxrsApplication application = createApplication(type);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsJavaApplication application = createApplication(type);
 		metamodel.add(application);
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		// operation
 		final ResourceDelta event = createEvent(sourceFolder.getResource(), REMOVED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(affectedElements.get(0).getElement(), is(notNullValue()));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldAddApplicationWhenAddingWebxml() throws Exception {
+		// pre-conditions
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-servlet-mapping.xml", bundle);
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, ADDED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldNotAddApplicationWhenAddingEmptyWebxml() throws Exception {
+		// pre-conditions
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-without-servlet-mapping.xml", bundle);
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, ADDED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(0));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldAddApplicationWhenChangingWebxml() throws Exception {
+		// pre-conditions
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-servlet-mapping.xml", bundle);
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldOverrideApplicationWhenChangingWebxml() throws Exception {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsJavaApplication application = createApplication(type);
+		metamodel.add(application);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-servlet-mapping.xml", bundle);
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) affectedElements.get(0).getElement();
+		assertThat(webxmlApplication.getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
+		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (java) + new one (web.xml)
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)webxmlApplication)); // web.xml based application precedes any other java based JAX-RS Application element
+		
+	}
+
+	@Test
+	public void shouldChangeApplicationWhenChangingWebxml() throws Exception {
+		// pre-conditions
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-servlet-mapping.xml", bundle);
+		metamodel.add(createApplication("/foo"));
+		// operation
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldRemoveApplicationWhenChangingWebxml() throws Exception {
+		// pre-conditions
+		metamodel.add(createApplication("/hello"));
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-without-servlet-mapping.xml", bundle);
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		verify(metamodel, times(1)).remove(any(JaxrsWebxmlApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldRemoveApplicationWhenRemovingWebxml() throws Exception {
+		// pre-conditions
+		// JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
+		final JaxrsWebxmlApplication application = createApplication("/hello");
+		metamodel.add(application);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-servlet-mapping.xml", bundle);
+		// operation
+		webxmlResource.delete(true, progressMonitor);
+		final ResourceDelta event = createEvent(webxmlResource, REMOVED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()), equalTo(application));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	@Ignore()
+	public void shouldRemoveApplicationWhenRemovingWebInfFolder() throws Exception {
+		// pre-conditions
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-servlet-mapping.xml", bundle);
+		final JaxrsWebxmlApplication application = createApplication("/hello");
+		metamodel.add(application);
+		
+		// operation
+		final IContainer webInfFolder = webxmlResource.getParent();
+		webInfFolder.delete(IResource.FORCE, progressMonitor);
+		final ResourceDelta event = createEvent(webInfFolder, REMOVED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1));
@@ -511,7 +689,6 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
-
 
 	@Test
 	public void shouldAddResourceWhenAddingSourceCompilationUnit() throws CoreException {

@@ -18,14 +18,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 
 public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
-	private final JaxrsElement<?> element;
+	private final JaxrsBaseElement element;
 
 	private final int deltaKind;
 
@@ -67,7 +67,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	 * @param element
 	 * @param deltaKind
 	 */
-	public JaxrsElementDelta(JaxrsElement<?> element, int deltaKind) {
+	public JaxrsElementDelta(JaxrsBaseElement element, int deltaKind) {
 		this(element, deltaKind, 0);
 	}
 
@@ -78,7 +78,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	 * @param deltaKind
 	 * @param flags
 	 */
-	public JaxrsElementDelta(JaxrsElement<?> element, int deltaKind, int flags) {
+	public JaxrsElementDelta(JaxrsBaseElement element, int deltaKind, int flags) {
 		this.element = element;
 		this.deltaKind = deltaKind;
 		this.flags = flags;
@@ -88,7 +88,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	}
 
 	/** @return the element */
-	public JaxrsElement<?> getElement() {
+	public JaxrsBaseElement getElement() {
 		return element;
 	}
 
@@ -112,7 +112,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 		StringBuilder s = new StringBuilder();
 		s.append("JaxrsElementChange: [").append(ConstantUtils.toCamelCase(element.getElementKind().toString()))
 				.append(" ").append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind)).append("] ")
-				.append(element.getJavaElement().getElementName());
+				.append(element.getName());
 
 		try {
 			if (flags != F_NONE) {

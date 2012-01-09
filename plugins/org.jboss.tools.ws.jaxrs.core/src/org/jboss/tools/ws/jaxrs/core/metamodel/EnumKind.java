@@ -20,8 +20,11 @@ public enum EnumKind {
 	 * UNDEFINED KIND (when no annotation nor any other java element can define precisely what the element is.
 	 */
 	UNDEFINED,
-	/** An application */
-	APPLICATION,
+	/** A JAX-RS Application declared in the web deployment descriptor.*/
+	// must be declared *before* APPLICATION_JAVA constant to enable comparison ! 
+	APPLICATION_WEBXML,
+	/** A java annotated type based JAX-RS Application */
+	APPLICATION_JAVA,
 	/** An HTTP method. */
 	HTTP_METHOD,
 	/** A message producer. */

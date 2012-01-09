@@ -44,10 +44,9 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsAnnotatedTypeApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
@@ -78,9 +77,9 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		metamodel = spy(JaxrsMetamodel.create(javaProject));
 	}
 
-	private JaxrsApplication createApplication(String typeName) throws CoreException, JavaModelException {
+	private JaxrsJavaApplication createApplication(String typeName) throws CoreException, JavaModelException {
 		final IType applicationType = getType(typeName, javaProject);
-		final JaxrsApplication application = new JaxrsAnnotatedTypeApplication(applicationType,
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(applicationType,
 				getAnnotation(applicationType, ApplicationPath.class), metamodel);
 		metamodel.add(application);
 		return application;
@@ -121,7 +120,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		return httpMethod;
 	}
 
-	private JaxrsEndpoint createEndpoint(JaxrsApplication application, JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
+	private JaxrsEndpoint createEndpoint(JaxrsJavaApplication application, JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
 		JaxrsEndpoint endpoint = new JaxrsEndpoint(application, httpMethod, new LinkedList<JaxrsResourceMethod>(
 				Arrays.asList(resourceMethods)));
 		metamodel.add(endpoint);
@@ -320,7 +319,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
-		final JaxrsApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsElementDelta event = new JaxrsElementDelta(application, ADDED);
 		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
@@ -378,7 +377,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenChangingApplicationPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
@@ -499,7 +498,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenRemovingMetamodelApplication() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = createHttpMethod(GET.class);
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,

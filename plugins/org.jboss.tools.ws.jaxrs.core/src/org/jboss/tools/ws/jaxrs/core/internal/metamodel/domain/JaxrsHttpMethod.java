@@ -37,7 +37,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
  * 
  * @author xcoulon
  */
-public class JaxrsHttpMethod extends JaxrsElement<IType> implements IJaxrsHttpMethod {
+public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHttpMethod {
 
 	/**
 	 * A Simple sorter for HTTP Verbs: the preferred order is

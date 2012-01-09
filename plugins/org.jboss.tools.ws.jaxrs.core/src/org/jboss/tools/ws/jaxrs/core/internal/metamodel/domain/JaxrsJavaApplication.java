@@ -22,6 +22,7 @@ import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 
 /**
  * This domain element describes a subtype of {@link jvax.ws.rs.Application} annotated with
@@ -29,7 +30,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
  * 
  * @author xcoulon
  */
-public class JaxrsAnnotatedTypeApplication extends JaxrsApplication {
+public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJaxrsApplication {
 
 	/**
 	 * Full constructor.
@@ -38,7 +39,7 @@ public class JaxrsAnnotatedTypeApplication extends JaxrsApplication {
 	 * @param applicationPathAnnocation
 	 * @param metamodel
 	 */
-	public JaxrsAnnotatedTypeApplication(IType javaType, Annotation applicationPathAnnocation, JaxrsMetamodel metamodel) {
+	public JaxrsJavaApplication(IType javaType, Annotation applicationPathAnnocation, JaxrsMetamodel metamodel) {
 		super(javaType, applicationPathAnnocation, metamodel);
 	}
 
@@ -50,7 +51,7 @@ public class JaxrsAnnotatedTypeApplication extends JaxrsApplication {
 	@Override
 	public EnumKind getKind() {
 		if (getAnnotation(ApplicationPath.class.getName()) != null) {
-			return EnumKind.APPLICATION;
+			return EnumKind.APPLICATION_JAVA;
 		}
 		return EnumKind.UNDEFINED;
 	}
@@ -79,8 +80,7 @@ public class JaxrsAnnotatedTypeApplication extends JaxrsApplication {
 	 * @return the flags indicating the kind of changes that occurred during the
 	 *         update.
 	 */
-	@Override
-	public int update(JaxrsApplication application) {
+	public int update(JaxrsJavaApplication application) {
 		int flags = 0;
 		final Annotation annotation = this.getAnnotation(ApplicationPath.class.getName());
 		final Annotation otherAnnotation = application.getAnnotation(ApplicationPath.class.getName());

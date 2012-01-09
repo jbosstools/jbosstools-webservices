@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
@@ -38,7 +39,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	private final LinkedList<JaxrsResourceMethod> resourceMethods;
 
-	private JaxrsApplication application = null;
+	private IJaxrsApplication application = null;
 	
 	private String uriPathTemplate = null;
 
@@ -46,11 +47,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	private List<String> producedMediaTypes = null;
 
-	public JaxrsEndpoint(final JaxrsApplication application, final JaxrsHttpMethod httpMethod, final JaxrsResourceMethod resourceMethod) {
+	public JaxrsEndpoint(final IJaxrsApplication application, final JaxrsHttpMethod httpMethod, final JaxrsResourceMethod resourceMethod) {
 		this(application, httpMethod, new LinkedList<JaxrsResourceMethod>(Arrays.asList(resourceMethod)));
 	}
 
-	public JaxrsEndpoint(final JaxrsApplication application, final JaxrsHttpMethod httpMethod, final LinkedList<JaxrsResourceMethod> resourceMethods) {
+	public JaxrsEndpoint(final IJaxrsApplication application, final JaxrsHttpMethod httpMethod, final LinkedList<JaxrsResourceMethod> resourceMethods) {
 		this.application = application;
 		this.httpMethod = httpMethod;
 		this.resourceMethods = resourceMethods;
@@ -150,7 +151,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * @return true if the endpoint is still valid, false otherwise (it should
 	 *         be removed from the metamodel)
 	 */
-	public boolean refresh(JaxrsApplication application) {
+	public boolean refresh(IJaxrsApplication application) {
 		this.application = application;
 		refreshUriPathTemplate();
 		return true;

@@ -23,7 +23,7 @@ import org.eclipse.wst.validation.ValidationResult;
 import org.eclipse.wst.validation.ValidationState;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
@@ -52,7 +52,7 @@ public class JaxrsMetamodelValidator extends AbstractValidator {
 				if (jaxrsMetamodel == null) {
 					return validationResult;
 				}
-				JaxrsElement<?> element = jaxrsMetamodel.getElement(JdtUtils.getCompilationUnit(resource));
+				JaxrsBaseElement element = jaxrsMetamodel.getElement(JdtUtils.getCompilationUnit(resource));
 				if (element != null) {
 					Logger.debug("Validating the JAX-RS Metamodel after {} was {}", resource.getName(),
 							ConstantUtils.getStaticFieldName(IResourceDelta.class, kind));

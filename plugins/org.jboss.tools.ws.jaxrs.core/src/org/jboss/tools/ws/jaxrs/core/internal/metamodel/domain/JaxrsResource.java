@@ -39,10 +39,10 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
  * 
  * @author xcoulon
  */
-public class JaxrsResource extends JaxrsElement<IType> implements IJaxrsResource {
+public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
 
 	/** Optional Application. */
-	private final JaxrsAnnotatedTypeApplication application = null;
+	private final JaxrsJavaApplication application = null;
 
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 

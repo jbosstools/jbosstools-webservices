@@ -19,7 +19,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
  * @author Xavier Coulon
  * 
  */
-public abstract class JaxrsResourceElement<T extends IMember> extends JaxrsElement<T> {
+public abstract class JaxrsResourceElement<T extends IMember> extends JaxrsJavaElement<T> {
 
 	private final JaxrsResource parentResource;
 

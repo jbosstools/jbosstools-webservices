@@ -70,7 +70,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(type, Path.class);
 		// operation
-		final JaxrsElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
+		final JaxrsJavaElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);
@@ -106,7 +106,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = getAnnotation(type, HttpMethod.class);
 		// operation
-		final JaxrsElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
+		final JaxrsJavaElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);

@@ -24,7 +24,9 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.junit.Test;
 
@@ -38,7 +40,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 	public void shouldValidateHttpMethod() throws CoreException {
 		// preconditions
 		IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
-		final JaxrsElement<?> httpMethod = metamodel.getElement(fooType);
+		final JaxrsBaseElement httpMethod = metamodel.getElement(fooType);
 		// operation
 		final List<ValidatorMessage> validationMessages = httpMethod.validate();
 		// validation
@@ -49,7 +51,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 	public void shouldNotValidateHttpMethod() throws CoreException {
 		// preconditions
 		IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
-		final JaxrsElement<?> httpMethod = metamodel.getElement(fooType);
+		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		Annotation httpAnnotation = WorkbenchUtils.getAnnotation(fooType, HttpMethod.class, new String[0]);
 		httpMethod.addOrUpdateAnnotation(httpAnnotation);
 		// operation
@@ -62,7 +64,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 	public void shouldValidateResourceMethod() throws CoreException {
 		// preconditions
 		IType customerJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
-		final JaxrsElement<?> customerResource = metamodel.getElement(customerJavaType);
+		final JaxrsBaseElement customerResource = metamodel.getElement(customerJavaType);
 		// operation
 		final List<ValidatorMessage> validationMessages = customerResource.validate();
 		// validation
@@ -73,9 +75,9 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 	public void shouldNotValidateResourceMethod() throws CoreException {
 		// preconditions
 		IType customerJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
-		final JaxrsElement<?> customerResource = metamodel.getElement(customerJavaType);
+		final JaxrsBaseElement customerResource = metamodel.getElement(customerJavaType);
 		IMethod customerJavaMethod = WorkbenchUtils.getMethod(customerJavaType, "getCustomer");
-		final JaxrsElement<?> customerResourceMethod = metamodel.getElement(customerJavaMethod);
+		final JaxrsResourceMethod customerResourceMethod = metamodel.getElement(customerJavaMethod, JaxrsResourceMethod.class);
 		Annotation pathAnnotation = WorkbenchUtils.getAnnotation(customerJavaMethod, Path.class, "/{foo}");
 		customerResourceMethod.addOrUpdateAnnotation(pathAnnotation);
 		// operation
