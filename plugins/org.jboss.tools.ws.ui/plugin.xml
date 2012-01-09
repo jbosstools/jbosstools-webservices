@@ -241,5 +241,20 @@
             class="javax.ws.rs.ext.Provider"
             name="Provider">
       </annotation>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="org.jboss.tools.ws.tester.enablement"
+            nameFilter="*.wsdl"
+            objectClass="org.eclipse.core.resources.IFile">
+         <action
+               class="org.jboss.tools.ws.ui.actions.RunWSTesterAction"
+               id="org.jboss.tools.ws.tester.enablement.action"
+               label="%RunWSTesterAction.label"
+               menubarPath="org.eclipse.wst.ws.ui.webservice.category.popupMenu/popupActions">
+         </action>
+      </objectContribution>
    </extension>   
 </plugin>

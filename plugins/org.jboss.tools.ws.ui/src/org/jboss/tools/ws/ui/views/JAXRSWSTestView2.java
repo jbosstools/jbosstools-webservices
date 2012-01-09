@@ -193,6 +193,32 @@ public class JAXRSWSTestView2 extends ViewPart {
 	 */
 	public JAXRSWSTestView2() {
 	}
+	
+	public void setWSDLURL( String url ) {
+		this.urlCombo.setText(url);
+		this.methodCombo.setText(JAX_WS);
+		setControlsForWSType(JAX_WS);
+		setControlsForMethodType(methodCombo.getText());
+		setControlsForSelectedURL();
+	}
+	
+	public void setJAXRS ( String url, String method ) {
+		this.urlCombo.setText(url);
+		String uCaseMethod = method.toUpperCase();
+		if (uCaseMethod.equalsIgnoreCase(GET))
+			this.methodCombo.setText(GET);
+		else if (uCaseMethod.equalsIgnoreCase(POST))
+			this.methodCombo.setText(POST);
+		else if (uCaseMethod.equalsIgnoreCase(PUT))
+			this.methodCombo.setText(PUT);
+		else if (uCaseMethod.equalsIgnoreCase(DELETE))
+			this.methodCombo.setText(DELETE);
+		else if (uCaseMethod.equalsIgnoreCase(OPTIONS))
+			this.methodCombo.setText(OPTIONS);
+		setControlsForWSType(JAX_RS);
+		setControlsForMethodType(methodCombo.getText());
+		setControlsForSelectedURL();
+	}
 
 	private void getImages() {
 		mImageRegistry = new ImageRegistry();
