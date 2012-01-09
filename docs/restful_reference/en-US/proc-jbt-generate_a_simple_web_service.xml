@@ -121,6 +121,14 @@
 		   <entry>Checkbox is checked by default, but is not mandatory.</entry>
 		   <entry>Leaving this checked will add your new service to the <filename>web.xml</filename> in your project.</entry>
 		</row>
+		<row>
+		<entry>
+		</entry>
+		<entry>Add RESTEasy Jars from root runtime directory</entry>
+		<entry>no</entry>
+		<entry>Check this box to add RESTEasy JARs to the project.</entry>
+		<entry>This option allows you to add RESTEasy JARs to the project if they appear in the root runtime directory but are not installed in the runtime. While this is not required, it will assist when working with JBoss Application Server 5 and JBoss Enterprse Application Platform 5 web service projects.</entry>
+		</row>
                 <row>
                   <entry>Service implementation</entry>
                   <entry>Package</entry>
