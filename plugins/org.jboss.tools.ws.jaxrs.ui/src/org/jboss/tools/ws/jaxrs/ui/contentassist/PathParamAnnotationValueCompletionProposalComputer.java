@@ -45,8 +45,7 @@ import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
- * Computes proposals for <code>java.ws.rs.PathParam</code> annotation values in
- * the compilation unit context.
+ * Computes proposals for <code>java.ws.rs.PathParam</code> annotation values in the compilation unit context.
  * 
  * @author xcoulon
  */
@@ -80,18 +79,22 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
 					context.getInvocationOffset());
 			if (invocationElement.getElementType() == IJavaElement.METHOD) {
-				IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement, IJaxrsResourceMethod.class);
-				for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
-					for (Annotation annotation : methodParameter.getAnnotations()) {
-						final TypedRegion region = annotation.getRegion();
-						if (annotation.getName().equals(PathParam.class.getName()) && region != null
-								&& context.getInvocationOffset() >= region.getOffset()
-								&& context.getInvocationOffset() < (region.getOffset() + region.getLength())) {
-							// completion proposal on @PathParam method
-							// annotation
-							return internalComputePathParamProposals(javaContext, annotation, resourceMethod);
-						}
+				IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement,
+						IJaxrsResourceMethod.class);
+				// the java method must be associated with a JAX-RS Resource Method. 
+				if (resourceMethod != null) {
+					for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
+						for (Annotation annotation : methodParameter.getAnnotations()) {
+							final TypedRegion region = annotation.getRegion();
+							if (annotation.getName().equals(PathParam.class.getName()) && region != null
+									&& context.getInvocationOffset() >= region.getOffset()
+									&& context.getInvocationOffset() < (region.getOffset() + region.getLength())) {
+								// completion proposal on @PathParam method
+								// annotation
+								return internalComputePathParamProposals(javaContext, annotation, resourceMethod);
+							}
 
+						}
 					}
 				}
 			}
@@ -102,13 +105,12 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	}
 
 	/**
-	 * Computes the valid proposals for the <code>javax.ws.rs.PathParam</code>
-	 * annotation value. The proposals are based on:
+	 * Computes the valid proposals for the <code>javax.ws.rs.PathParam</code> annotation value. The proposals are based
+	 * on:
 	 * <ul>
-	 * <li>The values of the <code>javax.ws.rs.Path</code> annotations, both at
-	 * the method and at the type level (inclusion),</li>
-	 * <li>The values of the sibling <code>javax.ws.rs.PathParam</code>
-	 * annotations (exclusion).
+	 * <li>The values of the <code>javax.ws.rs.Path</code> annotations, both at the method and at the type level
+	 * (inclusion),</li>
+	 * <li>The values of the sibling <code>javax.ws.rs.PathParam</code> annotations (exclusion).
 	 * </ul>
 	 * 
 	 * @param javaContext
@@ -130,7 +132,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		final ITypedRegion region = getRegion(javaContext);
 		String matchValue = javaContext.getDocument().get(region.getOffset(),
 				javaContext.getInvocationOffset() - region.getOffset());
-		if(matchValue.charAt(0) == '\"') {
+		if (matchValue.charAt(0) == '\"') {
 			matchValue = matchValue.substring(1);
 		}
 		List<String> proposals = resourceMethod.getPathParamValueProposals();
@@ -154,8 +156,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	}
 
 	/**
-	 * Resolves the typed region for the given java content assist invocation
-	 * context.
+	 * Resolves the typed region for the given java content assist invocation context.
 	 * 
 	 * @param javaContext
 	 *            the java content assist invocation context
