@@ -46,6 +46,8 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplic
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
@@ -583,7 +585,7 @@ public class ResourceChangedProcessor {
 	}
 
 	private List<JaxrsElementDelta> postProcessResource(final JaxrsElementDelta event,
-			final IProgressMonitor progressMonitor) {
+			final IProgressMonitor progressMonitor) throws JavaModelException {
 		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
 		final JaxrsResource eventResource = (JaxrsResource) event.getElement();
 		final JaxrsMetamodel metamodel = eventResource.getMetamodel();
@@ -666,7 +668,7 @@ public class ResourceChangedProcessor {
 	}
 
 	private List<JaxrsElementDelta> mergeResourceMethods(final JaxrsResource existingResource,
-			final JaxrsResource matchingResource, final JaxrsMetamodel metamodel) {
+			final JaxrsResource matchingResource, final JaxrsMetamodel metamodel) throws JavaModelException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final Map<String, JaxrsResourceMethod> addedMethods = CollectionUtils.difference(matchingResource.getMethods(),
 				existingResource.getMethods());
@@ -685,6 +687,9 @@ public class ResourceChangedProcessor {
 			final JaxrsResourceMethod existingMethod = entry.getValue();
 			final JaxrsResourceMethod matchingMethod = matchingResource.getMethods().get(entry.getKey());
 			int flags = existingMethod.mergeAnnotations(matchingMethod.getAnnotations());
+			final CompilationUnit matchingResourceAST = CompilationUnitsRepository.getInstance().getAST(matchingResource.getResource());
+			final JavaMethodSignature matchingResourceMethodSignature = JdtUtils.resolveMethodSignature(matchingMethod.getJavaElement(), matchingResourceAST);
+			flags += existingMethod.update(matchingResourceMethodSignature);
 			if ((flags & F_ELEMENT_KIND) > 0 && existingMethod.getKind() == EnumKind.UNDEFINED) {
 				metamodel.remove(existingMethod);
 				changes.add(new JaxrsElementDelta(existingMethod, REMOVED));

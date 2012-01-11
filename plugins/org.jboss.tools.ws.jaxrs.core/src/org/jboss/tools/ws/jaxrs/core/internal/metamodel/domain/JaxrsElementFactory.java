@@ -231,7 +231,7 @@ public class JaxrsElementFactory {
 			final Annotation producesAnnotation = annotations.get(Produces.class.getName());
 			final Annotation consumesAnnotation = annotations.get(Consumes.class.getName());
 			final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
-			// avoid creating Resource Method when the Java Method cannot be parsed (ie, syntax/compilation error)
+			// avoid creating Resource Method when the Java Method cannot be parsed (ie, syntax/compilation error)P
 			if (methodSignature != null) {
 				final Builder builder = new JaxrsResourceMethod.Builder(javaMethod, parentResource, metamodel)
 						.pathTemplate(pathAnnotation).consumes(consumesAnnotation).produces(producesAnnotation)

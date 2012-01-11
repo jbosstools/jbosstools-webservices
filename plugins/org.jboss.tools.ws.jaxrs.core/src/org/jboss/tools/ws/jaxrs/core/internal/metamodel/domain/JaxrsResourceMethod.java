@@ -198,7 +198,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 					message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset()
 							+ annotation.getRegion().getLength());
 					messages.add(message);
-					Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(), message);
+					Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(), message.getAttribute(IMarker.MESSAGE));
 				}
 			}
 		}

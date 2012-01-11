@@ -139,6 +139,7 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	/** @return the methodDeclarations */
 	public JavaMethodSignature getMethodSignature() {
 		if (this.methodSignatures.size() == 0) {
+			Logger.debug("*** no method signature found ?!? ***");
 			return null;
 		}
 		return this.methodSignatures.get(0);
