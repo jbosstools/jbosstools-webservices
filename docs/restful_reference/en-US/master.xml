@@ -6,6 +6,7 @@
 <!ENTITY samplewizard SYSTEM "sample_web_service_wizards.xml">
 <!ENTITY resteasyexample SYSTEM "resteasy_simple_project_example.xml">
 <!ENTITY testview SYSTEM "web_service_test_view.xml">
+<!ENTITY validation SYSTEM "JAX-RS_Validation.xml">
 ]>
 
 <book>
@@ -31,11 +32,7 @@
 	 <author>
 	    <firstname>Brian </firstname>
 	    <surname>Fitzpatrick</surname>
-	 </author>
-	<author>
-		<firstname>Ben</firstname>
-		<surname>Clare</surname>
-	</author>           
+	</author>
       	<editor>
 		<firstname>Isaac</firstname>
 		<surname>Rooskov</surname>
@@ -62,4 +59,5 @@
     &samplewizard;
     &resteasyexample;
     &testview;
+	&validation;
 </book> 
