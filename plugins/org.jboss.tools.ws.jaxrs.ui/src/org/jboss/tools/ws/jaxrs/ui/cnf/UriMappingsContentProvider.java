@@ -36,8 +36,6 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 @SuppressWarnings("restriction")
 public class UriMappingsContentProvider implements ITreeContentProvider, Subscriber { // ,
-	// IResourceChangeListener
-	// {
 
 	private TreeViewer viewer;
 
@@ -64,8 +62,8 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 						buildJob.schedule();
 						Logger.debug("Displaying a temporary node in the viewer while the metamodel is being built...");
 						//return new Object[] { new WaitWhileBuildingElement() };
-					//} 
-					//else {
+					} 
+					else {
 						// edge case: if the metamodel was built but no category was initialized yet.
 						Logger.debug("Adding a UriPathTemplateCategory for project {} (case #2)", project.getName());
 						UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
