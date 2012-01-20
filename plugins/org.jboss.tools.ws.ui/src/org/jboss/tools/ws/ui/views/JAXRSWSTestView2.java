@@ -215,6 +215,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			this.methodCombo.setText(DELETE);
 		else if (uCaseMethod.equalsIgnoreCase(OPTIONS))
 			this.methodCombo.setText(OPTIONS);
+		getCurrentHistoryEntry().setMethod(methodCombo.getText());
 		setControlsForWSType(JAX_RS);
 		setControlsForMethodType(methodCombo.getText());
 		setControlsForSelectedURL();
@@ -1481,6 +1482,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 
 		} catch (Exception e) {
 			String result = tester.getResultBody();
+			if (result.isEmpty()) 
+				result = e.getLocalizedMessage();
 
 			// put the results in the result text field
 			String cleanedUp = WSTestUtils.addNLsToXML(result);
