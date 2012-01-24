@@ -18,6 +18,7 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -199,9 +200,13 @@ public class ResourceChangedProcessor {
 
 	private List<JaxrsElementDelta> processApplicationChangesOnWebxmlAdditionOrChange(IResource resource,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
-		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
 		final IType applicationType = JdtUtils.resolveType(Application.class.getName(), metamodel.getJavaProject(),
 				progressMonitor);
+		// occurs when the project has the jax-rs nature (the builder is called), but no jaxrs library is in the classpath
+		if(applicationType == null) {
+			return Collections.emptyList();
+		}
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
 		final ITypeHierarchy applicationTypeHierarchy = JdtUtils.resolveTypeHierarchy(applicationType, false,
 				progressMonitor);
 		final IType[] applicationSubclasses = applicationTypeHierarchy.getSubclasses(applicationType);

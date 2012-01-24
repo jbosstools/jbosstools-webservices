@@ -114,7 +114,8 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		public void resourceChanged(IResourceChangeEvent event) {
 			try {
 				final ResourceDeltaScanner scanner = new ResourceDeltaScanner();
-				final List<ResourceDelta> affectedResources = scanner.scanAndFilterEvent(event.getDelta(), new NullProgressMonitor());
+				final List<ResourceDelta> affectedResources = scanner.scanAndFilterEvent(event.getDelta(),
+						new NullProgressMonitor());
 				// must explicitly call the add() method to perform verify() on the mocks at the end of the test.
 				for (ResourceDelta resourceDelta : affectedResources) {
 					resourceEvents.add(resourceDelta);
@@ -150,13 +151,18 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	private void verifyEventNotification(IJavaElement element, int deltaKind, int eventType, int flags,
 			VerificationMode numberOfTimes) throws JavaModelException {
 		LOGGER.info("Verifying method calls..");
-		// verify(scanner,
-		// numberOfTimes).notifyJavaElementChanged(eq(element),
-		// eq(elementKind), eq(deltaKind),
-		// any(CompilationUnit.class), eq(flags));
-		ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(element);
-		CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
-		verify(javaElementEvents, numberOfTimes).add(new JavaElementDelta(element, deltaKind, eventType, ast, flags));
+		if (element == null) {
+			verify(javaElementEvents, numberOfTimes).add(null);
+		} else {
+			// verify(scanner,
+			// numberOfTimes).notifyJavaElementChanged(eq(element),
+			// eq(elementKind), eq(deltaKind),
+			// any(CompilationUnit.class), eq(flags));
+			ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(element);
+			CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
+			verify(javaElementEvents, numberOfTimes).add(
+					new JavaElementDelta(element, deltaKind, eventType, ast, flags));
+		}
 	}
 
 	private void verifyEventNotification(IResource resource, int deltaKind, int eventType, int flags,
@@ -549,6 +555,15 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 				new NullProgressMonitor());
 		// verifications
 		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(1));
+	}
+
+	@Test
+	public void shouldNotNotifyWhenUnexistingLibraryAddedInClasspath() throws CoreException, InterruptedException {
+		// operation
+		IPackageFragmentRoot addedEntry = WorkbenchTasks.addClasspathEntry(javaProject, "slf4j-api-1.5.xyz.jar",
+				new NullProgressMonitor());
+		// verifications
+		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(0));
 	}
 
 	@Test

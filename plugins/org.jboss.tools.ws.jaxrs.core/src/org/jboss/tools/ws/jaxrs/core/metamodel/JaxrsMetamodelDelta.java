@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 
 /**
  * @author Xavier Coulon
@@ -22,10 +24,10 @@ public class JaxrsMetamodelDelta {
 	private final int deltaKind;
 
 	/** List of underlying JarxEndpoints change events carried by this event. */
-	private final List<JaxrsEndpointDelta> affectedEndpointd;
+	private final List<JaxrsEndpointDelta> affectedEndpoints;
 
 	private final List<JaxrsElementDelta> affectedElements;
-
+	
 	/**
 	 * Full constructor.
 	 * 
@@ -34,19 +36,19 @@ public class JaxrsMetamodelDelta {
 		this.metamodel = metamodel;
 		this.deltaKind = deltaKind;
 		this.affectedElements = new ArrayList<JaxrsElementDelta>();
-		this.affectedEndpointd = new ArrayList<JaxrsEndpointDelta>();
+		this.affectedEndpoints = new ArrayList<JaxrsEndpointDelta>();
 	}
 
 	/**
 	 * Full constructor.
 	 * 
-	 * @param affectedEndpointd
+	 * @param affectedEndpoints
 	 */
 	public JaxrsMetamodelDelta(IJaxrsMetamodel metamodel, int deltaKind, List<JaxrsElementDelta> affectedElements) {
 		this.metamodel = metamodel;
 		this.deltaKind = deltaKind;
 		this.affectedElements = affectedElements;
-		this.affectedEndpointd = new ArrayList<JaxrsEndpointDelta>();
+		this.affectedEndpoints = new ArrayList<JaxrsEndpointDelta>();
 	}
 
 	/**
@@ -67,7 +69,7 @@ public class JaxrsMetamodelDelta {
 	 * @return the endpointDeltas
 	 */
 	public final List<JaxrsEndpointDelta> getAffectedEndpoints() {
-		return Collections.unmodifiableList(affectedEndpointd);
+		return Collections.unmodifiableList(affectedEndpoints);
 	}
 
 	/**
@@ -80,7 +82,7 @@ public class JaxrsMetamodelDelta {
 
 	public void addAffectedEndpoint(List<JaxrsEndpointDelta> affectedEndpoints) {
 		if (affectedEndpoints != null) {
-			this.affectedEndpointd.addAll(affectedEndpoints);
+			this.affectedEndpoints.addAll(affectedEndpoints);
 		}
 
 	}
@@ -101,5 +103,16 @@ public class JaxrsMetamodelDelta {
 			this.affectedElements.addAll(affectedElements);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "JaxrsMetamodelDelta [metamodel=" + metamodel + ", deltaKind=" + ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind) + "\n\taffectedEndpoints:"
+				+ affectedEndpoints + "\n\taffectedElements=" + affectedElements + "]";
+	}
+	
+
 
 }

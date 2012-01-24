@@ -36,6 +36,8 @@ import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.eclipse.jdt.core.IOpenable;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -46,9 +48,8 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 
 /**
- * Scans and filters the IJavaElementDelta and IResourceDelta (including their
- * children and annotations) and returns a list of JavaElementChangedEvents that
- * match with the JavaElementChangedEventFilter rules.
+ * Scans and filters the IJavaElementDelta and IResourceDelta (including their children and annotations) and returns a
+ * list of JavaElementChangedEvents that match with the JavaElementChangedEventFilter rules.
  * 
  * @author xcoulon
  * @see @{IJavaElementDelta}
@@ -82,19 +83,25 @@ public class JavaElementDeltaScanner {
 	 * @throws CoreException
 	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=100267
 	 */
-	private List<JavaElementDelta> scanDelta(final IJavaElementDelta delta, final int eventType)
-			throws CoreException {
+	private List<JavaElementDelta> scanDelta(final IJavaElementDelta delta, final int eventType) throws CoreException {
 		final List<JavaElementDelta> events = new ArrayList<JavaElementDelta>();
 		IJavaElement element = delta.getElement();
 		// skip as the project is closed
 		if (element == null || (element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen())) {
+			return Collections.emptyList();
+		} else if ((element.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT)) {
+			final IPackageFragmentRoot packageFragmentRoot = (IPackageFragmentRoot) element;
+			if (!packageFragmentRoot.isExternal()
+					&& (packageFragmentRoot.getResource() == null || !packageFragmentRoot.getResource().exists())) {
+				return Collections.emptyList();
+			}
+		} else if (element.getResource() == null || !element.getResource().exists()) {
 			return Collections.emptyList();
 		}
 		int elementKind = element.getElementType();
 		int deltaKind = retrieveDeltaKind(delta);
 		int flags = delta.getFlags();
 		CompilationUnit compilationUnitAST = getCompilationUnitAST(delta);
-
 		if (elementKind == COMPILATION_UNIT) {
 			ICompilationUnit compilationUnit = (ICompilationUnit) element;
 			// compilationUnitAST is null when the given compilation unit'w
@@ -112,8 +119,8 @@ public class JavaElementDeltaScanner {
 				List<JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
 						compilationUnitAST, computeDiffs);
 				for (JavaMethodSignature diff : diffs) {
-					final JavaElementDelta event = new JavaElementDelta(diff.getJavaMethod(), CHANGED,
-							eventType, compilationUnitAST, F_SIGNATURE);
+					final JavaElementDelta event = new JavaElementDelta(diff.getJavaMethod(), CHANGED, eventType,
+							compilationUnitAST, F_SIGNATURE);
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
 					}
@@ -125,8 +132,8 @@ public class JavaElementDeltaScanner {
 						problems);
 				for (Entry<IProblem, IJavaElement> solvedProblem : solvedProblems.entrySet()) {
 					IJavaElement solvedElement = solvedProblem.getValue();
-					final JavaElementDelta event = new JavaElementDelta(solvedElement, CHANGED,
-							eventType, compilationUnitAST, F_PROBLEM_SOLVED);
+					final JavaElementDelta event = new JavaElementDelta(solvedElement, CHANGED, eventType,
+							compilationUnitAST, F_PROBLEM_SOLVED);
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
 					}
@@ -134,8 +141,8 @@ public class JavaElementDeltaScanner {
 
 			}
 		} else {
-			final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType,
-					compilationUnitAST, flags);
+			final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType, compilationUnitAST,
+					flags);
 			if (javaElementChangedEventFilter.apply(event)) {
 				events.add(event);
 			}
@@ -193,8 +200,7 @@ public class JavaElementDeltaScanner {
 	}
 
 	/**
-	 * Retrieves the appropriate kind of the given delta, with some specific
-	 * adaptations for some element types.
+	 * Retrieves the appropriate kind of the given delta, with some specific adaptations for some element types.
 	 * 
 	 * @param delta
 	 *            the delta.

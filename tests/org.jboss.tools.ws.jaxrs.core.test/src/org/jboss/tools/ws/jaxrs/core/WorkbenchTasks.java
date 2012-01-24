@@ -51,8 +51,7 @@ public class WorkbenchTasks {
 	 * 
 	 * @param sourcePath
 	 * @param monitor
-	 * @return true if ImportOperation to synchronize was performed (ie, was
-	 *         required), false otherwise.
+	 * @return true if ImportOperation to synchronize was performed (ie, was required), false otherwise.
 	 * @throws InvocationTargetException
 	 * @throws InterruptedException
 	 * @throws CoreException
@@ -179,8 +178,9 @@ public class WorkbenchTasks {
 	public static IPackageFragmentRoot addClasspathEntry(IJavaProject javaProject, String name,
 			IProgressMonitor progressMonitor) throws CoreException, OperationCanceledException, InterruptedException {
 		IPath path = javaProject.getProject().getLocation().append("lib").addTrailingSeparator().append(name);
-		Assert.assertTrue("Following library does not exist or is not readable: " + path.toFile(), path.toFile()
-				.exists() && path.toFile().canRead());
+		if (!path.toFile().exists() || !path.toFile().canRead()) {
+			LOGGER.warn("Following library does not exist or is not readable: {} ", path.toFile());
+		}
 		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
 		IClasspathEntry newLibraryEntry = JavaCore.newLibraryEntry(path, null, null);
 		classpathEntries = (IClasspathEntry[]) ArrayUtils.add(classpathEntries, newLibraryEntry);
@@ -195,8 +195,7 @@ public class WorkbenchTasks {
 	}
 
 	/**
-	 * Called by subclasses to setup the workspace with project and files (xml,
-	 * java, etc.)
+	 * Called by subclasses to setup the workspace with project and files (xml, java, etc.)
 	 * 
 	 * @param projectName
 	 * 

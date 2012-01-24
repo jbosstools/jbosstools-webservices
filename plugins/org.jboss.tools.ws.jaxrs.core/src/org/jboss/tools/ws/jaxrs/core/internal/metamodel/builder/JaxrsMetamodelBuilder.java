@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
+import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
@@ -69,12 +70,10 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	protected final IProject[] build(final int kind, @SuppressWarnings("rawtypes") final Map args,
 			final IProgressMonitor monitor) throws CoreException {
 		IProject project = getProject();
-		// if (!ProjectNatureUtils.isProjectNatureInstalled(project,
-		// ProjectNatureUtils.JAXRS_NATURE_ID)) {
-		// Logger.warn("Project '" + project.getName() +
-		// "' is not a JAX-RS project.");
-		// return null;
-		// }
+		if (!ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID)) {
+			Logger.warn("Project '" + project.getName() + "' is not a JAX-RS project.");
+			return null;
+		}
 		logBuild(kind, args, project);
 		switch (kind) {
 		case CLEAN_BUILD:

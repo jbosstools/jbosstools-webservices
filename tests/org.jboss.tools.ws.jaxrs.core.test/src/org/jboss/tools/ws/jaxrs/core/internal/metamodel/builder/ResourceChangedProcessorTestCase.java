@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.spy;
@@ -493,6 +494,23 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldNotFailWhenWebxmlWithUnknownServletClass() throws Exception {
+		// pre-conditions
+		List<IPackageFragmentRoot> removedEntries = WorkbenchUtils.removeClasspathEntry(javaProject,
+				"jaxrs-api-2.0.1.GA.jar", null);
+		assertFalse(removedEntries.isEmpty());
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-invalid-servlet-mapping.xml", bundle);
+		//metamodel.add(createApplication("/foo"));
+		// operation
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(0));
 	}
 
 	@Test

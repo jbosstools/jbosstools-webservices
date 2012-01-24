@@ -71,7 +71,7 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	public boolean visit(MethodDeclaration declaration) {
 		try {
 			final IJavaElement element = compilationUnit.getElementAt(declaration.getStartPosition());
-			if (element.getElementType() != IJavaElement.METHOD) {
+			if (element == null || element.getElementType() != IJavaElement.METHOD) {
 				return true;
 			}
 			IMethod method = (IMethod) element;

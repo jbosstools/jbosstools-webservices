@@ -247,28 +247,30 @@ public class JaxrsMetamodelChangedProcessor {
 		if (returnType != null) {
 			final ITypeHierarchy returnTypeHierarchy = JdtUtils
 					.resolveTypeHierarchy(returnType, false, progressMonitor);
-			final List<String> subtypesHandlers = extractHandlers(returnTypeHierarchy.getAllSubtypes(returnType));
-			for (Iterator<IJaxrsResource> iterator = metamodel.getAllResources().iterator(); iterator.hasNext();) {
-				JaxrsResource resource = (JaxrsResource) iterator.next();
-				if (resource.isSubresource()) {
-					final String resourceHandleIdentifier = resource.getJavaElement().getHandleIdentifier();
-					if (resourceHandleIdentifier.equals(returnType.getHandleIdentifier())
-							|| subtypesHandlers.contains(resourceHandleIdentifier)) {
-						for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
-							switch (resourceMethod.getKind()) {
-							case RESOURCE_METHOD:
-							case SUBRESOURCE_METHOD:
-								final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod
-										.getHttpMethodAnnotation());
-								final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
-										Arrays.asList(subresourceLocator, resourceMethod));
-								final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(),
-										httpMethod, resourceMethods);
-								if (metamodel.add(endpoint)) {
-									changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
+			if (returnTypeHierarchy != null) {
+				final List<String> subtypesHandlers = extractHandlers(returnTypeHierarchy.getAllSubtypes(returnType));
+				for (Iterator<IJaxrsResource> iterator = metamodel.getAllResources().iterator(); iterator.hasNext();) {
+					JaxrsResource resource = (JaxrsResource) iterator.next();
+					if (resource.isSubresource()) {
+						final String resourceHandleIdentifier = resource.getJavaElement().getHandleIdentifier();
+						if (resourceHandleIdentifier.equals(returnType.getHandleIdentifier())
+								|| subtypesHandlers.contains(resourceHandleIdentifier)) {
+							for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
+								switch (resourceMethod.getKind()) {
+								case RESOURCE_METHOD:
+								case SUBRESOURCE_METHOD:
+									final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod
+											.getHttpMethodAnnotation());
+									final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
+											Arrays.asList(subresourceLocator, resourceMethod));
+									final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(),
+											httpMethod, resourceMethods);
+									if (metamodel.add(endpoint)) {
+										changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
+									}
 								}
+								break;
 							}
-							break;
 						}
 					}
 				}
