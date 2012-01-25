@@ -22,6 +22,7 @@ import org.eclipse.swt.graphics.Image;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /** @author xcoulon */
 public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelProvider {
@@ -125,6 +126,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 			sb.append(uriTemplate);
 			StyledString styledString = new StyledString(sb.toString());
 			styledString.setStyle(0, httpVerb.length(), StyledString.QUALIFIER_STYLER);
+			Logger.debug("URI Path Template: {}", styledString.getString());
 			return styledString;
 		}
 
