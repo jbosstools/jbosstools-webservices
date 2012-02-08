@@ -203,6 +203,24 @@
                </or>
             </enablement>
          </actionProvider>
+         <actionProvider
+               class="org.jboss.tools.ws.jaxrs.ui.cnf.action.OpenInWSTesterActionProvider"
+               id="org.jboss.tools.ws.jaxrs.ui.cnf.openWSTesterActionProvider"
+               priority="normal">
+            <enablement>
+               <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement">
+                  </instanceof>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMethodMappingElement">
+                  </instanceof>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement">
+                  </instanceof>
+               </or>
+            </enablement>
+         </actionProvider>
       </navigatorContent>
    </extension>
    
