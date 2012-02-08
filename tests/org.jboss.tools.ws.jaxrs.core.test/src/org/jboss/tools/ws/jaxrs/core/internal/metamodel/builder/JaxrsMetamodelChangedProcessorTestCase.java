@@ -120,8 +120,8 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		return httpMethod;
 	}
 
-	private JaxrsEndpoint createEndpoint(JaxrsJavaApplication application, JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
-		JaxrsEndpoint endpoint = new JaxrsEndpoint(application, httpMethod, new LinkedList<JaxrsResourceMethod>(
+	private JaxrsEndpoint createEndpoint(JaxrsMetamodel metamodel, JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
+		JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, new LinkedList<JaxrsResourceMethod>(
 				Arrays.asList(resourceMethods)));
 		metamodel.add(endpoint);
 		return endpoint;
@@ -382,7 +382,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET.class);
-		final JaxrsEndpoint endpoint = createEndpoint(application, httpMethod, customerResourceMethod);
+		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation
 		final Annotation annotation = getAnnotation(application.getJavaElement(), ApplicationPath.class, "/foo");
@@ -503,7 +503,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET.class);
-		final JaxrsEndpoint endpoint = createEndpoint(application, httpMethod, customerResourceMethod);
+		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation : no 'application' left in the metamodel
 		metamodel.remove(application);

@@ -44,7 +44,11 @@ public class JavaMethodSignature {
 	@Override
 	public String toString() {
 		StringBuilder stb = new StringBuilder("JavaMethodSignature ");
-		stb.append(returnedType.getElementName()).append(" ");
+		if (returnedType != null) {
+			stb.append(returnedType.getElementName()).append(" ");
+		} else {
+			stb.append("void ");
+		}
 		stb.append(javaMethod.getElementName()).append("(");
 		for (Iterator<JavaMethodParameter> paramIterator = methodParameters.iterator(); paramIterator.hasNext();) {
 			JavaMethodParameter methodParam = (JavaMethodParameter) paramIterator.next();
@@ -96,7 +100,7 @@ public class JavaMethodSignature {
 		} else if (!methodParameters.equals(other.methodParameters)) {
 			return false;
 		}
-		
+
 		if (returnedType == null) {
 			if (other.returnedType != null)
 				return false;

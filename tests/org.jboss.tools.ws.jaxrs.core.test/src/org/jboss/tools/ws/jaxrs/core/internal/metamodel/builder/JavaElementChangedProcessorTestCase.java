@@ -1874,9 +1874,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		metamodel.add(resource);
 		// JAX-RS Resource Method
 		final IMethod method = getMethod(type, "getCustomer");
-		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(), null);
+		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(), null, null);
 		final JavaMethodParameter contextParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(Context.class, null)), null);
 		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class))
 				.returnType(getType(Response.class.getName(), javaProject)).methodParameter(pathParameter)
@@ -1907,9 +1907,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method
 		final IMethod method = getMethod(type, "getCustomer");
 		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(),
-				Arrays.asList(createAnnotation(PathParam.class, "foo!")));
+				Arrays.asList(createAnnotation(PathParam.class, "foo!")), null);
 		final JavaMethodParameter contextParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(Context.class, null)), null);
 		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class))
 				.returnType(getType(Response.class.getName(), javaProject)).methodParameter(pathParameter)
@@ -1940,10 +1940,10 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method
 		final IMethod method = getMethod(type, "updateCustomer");
 		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(),
-				Arrays.asList(createAnnotation(PathParam.class, "id")));
+				Arrays.asList(createAnnotation(PathParam.class, "id")), null);
 		final JavaMethodParameter customerParameter = new JavaMethodParameter("update",
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", Arrays.asList(createAnnotation(
-						PathParam.class, "foo")));
+						PathParam.class, "foo")), null);
 		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, PUT.class)).returnType(getType("void", javaProject))
 				.methodParameter(pathParameter).methodParameter(customerParameter).build();
@@ -1973,9 +1973,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (size param is not declared)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")), null);
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(Context.class, null)), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(uriInfoParameter).build();
@@ -2006,7 +2006,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (color param is not declared)
 		final IMethod method = getMethod(type, "getPicture");
 		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", String.class.getName(),
-				Arrays.asList(createAnnotation(PathParam.class, null)));
+				Arrays.asList(createAnnotation(PathParam.class, null)), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.pathTemplate(getAnnotation(method, Path.class)).methodParameter(pathParameter)
 				.returnType(getType("java.lang.Object", javaProject)).build();
@@ -2037,11 +2037,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (@QueryParam on 'size' param is not declared)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")), null);
 		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int",
-				Arrays.asList(createAnnotation(DefaultValue.class, "2")));
+				Arrays.asList(createAnnotation(DefaultValue.class, "2")), null);
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(Context.class, null)), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
@@ -2073,11 +2073,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// "size" on second param)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")), null);
 		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
-				createAnnotation(QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
+				createAnnotation(QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")), null);
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(Context.class, null)), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
@@ -2108,11 +2108,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (with an extra @Queryparam annotation on 'uriInfo' param)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")), null);
 		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
-				createAnnotation(QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
+				createAnnotation(QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")), null);
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(QueryParam.class, "foo"), createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(QueryParam.class, "foo"), createAnnotation(Context.class, null)), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.util.List", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
@@ -2143,9 +2143,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (MatrixParam annotation on second parameter is not declared)
 		final IMethod method = getMethod(type, "getPicture");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("id", Integer.class.getName(),
-				Arrays.asList(createAnnotation(PathParam.class, "id")));
+				Arrays.asList(createAnnotation(PathParam.class, "id")), null);
 		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(),
-				new ArrayList<Annotation>());
+				new ArrayList<Annotation>(), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.lang.Object", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).build();
@@ -2175,9 +2175,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (MatrixParam value is different: "foo" vs "color" on second param)
 		final IMethod method = getMethod(type, "getPicture");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("id", Integer.class.getName(),
-				Arrays.asList(createAnnotation(PathParam.class, "id")));
+				Arrays.asList(createAnnotation(PathParam.class, "id")), null);
 		final JavaMethodParameter sizeParameter = new JavaMethodParameter("color", String.class.getName(),
-				Arrays.asList(createAnnotation(MatrixParam.class, "foo")));
+				Arrays.asList(createAnnotation(MatrixParam.class, "foo")), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class)).returnType(getType("java.lang.Object", javaProject))
 				.methodParameter(startParameter).methodParameter(sizeParameter).build();
@@ -2207,7 +2207,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (an extra MatrixParam annotation on 'id' param)
 		final IMethod method = getMethod(type, "getProduct");
 		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", Integer.class.getName(), Arrays.asList(
-				createAnnotation(MatrixParam.class, "foo"), createAnnotation(PathParam.class, "id")));
+				createAnnotation(MatrixParam.class, "foo"), createAnnotation(PathParam.class, "id")), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class))
 				.returnType(getType("org.jboss.tools.ws.jaxrs.sample.domain.Book", javaProject))
@@ -2239,11 +2239,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// 'javax.ws.rs.Response')
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")), null);
 		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
-				createAnnotation(QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")));
+				createAnnotation(QueryParam.class, "size"), createAnnotation(DefaultValue.class, "2")), null);
 		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(),
-				Arrays.asList(createAnnotation(Context.class, null)));
+				Arrays.asList(createAnnotation(Context.class, null)), null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.httpMethod(getAnnotation(method, GET.class))
 				.returnType(getType(Response.class.getName(), javaProject)).methodParameter(startParameter)
@@ -2278,10 +2278,10 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// JAX-RS Resource Method (@Context is not declared on 'uriInfo' param)
 		final IMethod method = getMethod(type, "getCustomers");
 		final JavaMethodParameter startParameter = new JavaMethodParameter("start", "int",
-				Arrays.asList(createAnnotation(QueryParam.class, "start")));
+				Arrays.asList(createAnnotation(QueryParam.class, "start")), null);
 		final JavaMethodParameter sizeParameter = new JavaMethodParameter("size", "int", Arrays.asList(
-				createAnnotation(QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")));
-		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(), null);
+				createAnnotation(QueryParam.class, "length"), createAnnotation(DefaultValue.class, "2")), null);
+		final JavaMethodParameter uriInfoParameter = new JavaMethodParameter("uriInfo", UriInfo.class.getName(), null, null);
 		final JaxrsResourceMethod jaxrsMethod = new JaxrsResourceMethod.Builder(method, resource, metamodel)
 				.methodParameter(startParameter).methodParameter(sizeParameter).methodParameter(uriInfoParameter)
 				.build();

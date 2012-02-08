@@ -159,7 +159,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 				if (viewer != null) {
 					TreePath[] treePaths = viewer.getExpandedTreePaths();
 					Logger.debug("*** Refreshing the viewer at target level: {} (viewer busy: {}) ***", target, viewer.isBusy());
-					viewer.refresh(target);
+					viewer.refresh();
 					viewer.setExpandedTreePaths(treePaths);
 					Logger.debug("*** Refreshing the viewer... done ***");
 				} else {

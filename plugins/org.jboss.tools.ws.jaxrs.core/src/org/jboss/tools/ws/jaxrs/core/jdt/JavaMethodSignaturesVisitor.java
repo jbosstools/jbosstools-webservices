@@ -108,7 +108,9 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 									annotationElements, typedRegion));
 						}
 					}
-					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations));
+					final TypedRegion typedRegion = new TypedRegion(parameter.getStartPosition(),
+							parameter.getLength(), IDocument.DEFAULT_CONTENT_TYPE);
+					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations, typedRegion));
 				}
 
 				// TODO : add support for thrown exceptions

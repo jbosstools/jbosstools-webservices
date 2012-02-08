@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jst.j2ee.web.componentcore.util.WebArtifactEdit;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -26,7 +27,7 @@ public class WtpUtils {
 
 	public static IFolder getWebInfFolder(IProject project) {
 		IVirtualComponent component = ComponentCore.createComponent(project);
-		if(component == null) {
+		if (component == null) {
 			return null;
 		}
 		IVirtualFolder contentFolder = component.getRootFolder();
@@ -57,7 +58,7 @@ public class WtpUtils {
 	 */
 	public static String getApplicationPath(IProject project, String applicationTypeName) throws CoreException {
 		IFolder webInfFolder = getWebInfFolder(project);
-		if(webInfFolder == null) {
+		if (webInfFolder == null) {
 			return null;
 		}
 		IResource webxmlResource = webInfFolder.findMember("web.xml");
@@ -65,34 +66,44 @@ public class WtpUtils {
 			Logger.debug("No deployment descriptor found in project '{}'", project.getName());
 			return null;
 		}
-		/*if (webxmlResource.isSynchronized(IResource.DEPTH_INFINITE)) {
+		if (!webxmlResource.isSynchronized(IResource.DEPTH_INFINITE)) {
 			Logger.debug("Resource is not in sync'");
 			webxmlResource.refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
-		}*/
-		// cannot use the WebTools WebArtifact Edit APIs because the web.xml configuration does not require a servlet,
-		// but just a servlet-mapping element.
+		}
+
 		/*
-		 * WebArtifactEdit webArtifactEdit = WebArtifactEdit.getWebArtifactEditForRead(javaProject.getProject()); //
-		 * webArtifactEdit.getDeploymentDescriptorRoot().eResource().unload(); if (!webArtifactEdit.isValid()) { return
-		 * null; } webArtifactEdit.getDeploymentDescriptorRoot(); WebApp webApp = webArtifactEdit.getWebApp();
-		 * EList<ServletMapping> servletMappings = webApp.getServletMappings(); for (ServletMapping servletMapping :
-		 * servletMappings) { if (servletMapping.getName().equals(applicationTypeName)) { return
-		 * servletMapping.getUrlPattern(); } }
+		 * WebArtifactEdit webArtifactEdit = WebArtifactEdit.getWebArtifactEditForRead(project); // if
+		 * (!webArtifactEdit.isValid()) { return null; } WebPackageImpl.eINSTANCE.getWebApp(); IModelProvider provider =
+		 * ModelProviderManager.getModelProvider(project); Object mObj = provider.getModelObject(); if (mObj instanceof
+		 * org.eclipse.jst.j2ee.webapplication.WebApp) { org.eclipse.jst.j2ee.webapplication.WebApp webApp =
+		 * (org.eclipse.jst.j2ee.webapplication.WebApp) mObj; } else if (mObj instanceof
+		 * org.eclipse.jst.javaee.web.WebApp) { org.eclipse.jst.javaee.web.WebApp webApp =
+		 * (org.eclipse.jst.javaee.web.WebApp) mObj; }
+		 */
+		// final List<Servlet> servlets = webApp.getServlets();
+		/*
+		 * webArtifactEdit.getDeploymentDescriptorRoot().eResource().unload();
+		 * webArtifactEdit.getDeploymentDescriptorRoot(); WebApp webApp = webArtifactEdit.getWebApp();
+		 * @SuppressWarnings("unchecked") EList<ServletMapping> servletMappings = webApp.getServletMappings(); for
+		 * (ServletMapping servletMapping : servletMappings) { if (servletMapping.getName().equals(applicationTypeName))
+		 * { return servletMapping.getUrlPattern(); } }
 		 */
 		// using a good old xpath expression to scan the file.
-		
+
 		try {
-			DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-			domFactory.setNamespaceAware(false); // never forget this!
-			domFactory.setValidating(false);
-			DocumentBuilder builder = domFactory.newDocumentBuilder();
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setNamespaceAware(false); // never forget this!
+			dbf.setValidating(false);
+			dbf.setFeature("http://xml.org/sax/features/namespaces", false);
+			dbf.setFeature("http://xml.org/sax/features/validation", false);
+			dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+			dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			DocumentBuilder builder = dbf.newDocumentBuilder();
 			final FileInputStream fileInputStream = new FileInputStream(webxmlResource.getLocation().toFile());
 			InputSource inputSource = new InputSource(fileInputStream);
 			Document doc = builder.parse(inputSource);
-
 			XPath xpath = XPathFactory.newInstance().newXPath();
 			String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName + "\"]/url-pattern/text()";
-
 			XPathExpression expr = xpath.compile(expression);
 			Node urlPattern = (Node) expr.evaluate(doc, XPathConstants.NODE);
 			if (urlPattern != null) {
@@ -117,7 +128,7 @@ public class WtpUtils {
 	 */
 	public static boolean isWebDeploymentDescriptor(IResource resource) {
 		final IFolder webinfFolder = getWebInfFolder(resource.getProject());
-		if(webinfFolder == null) {
+		if (webinfFolder == null) {
 			return false;
 		}
 		final IFile file = webinfFolder.getFile("web.xml");
@@ -135,7 +146,7 @@ public class WtpUtils {
 	 */
 	public static boolean hasWebDeploymentDescriptor(IProject project) {
 		final IFolder webinfFolder = getWebInfFolder(project);
-		if(webinfFolder == null) {
+		if (webinfFolder == null) {
 			return false;
 		}
 		final IFile file = webinfFolder.getFile("web.xml");
@@ -145,7 +156,7 @@ public class WtpUtils {
 	public static IResource getWebDeploymentDescriptor(IProject project) {
 		final IFolder webinfFolder = getWebInfFolder(project);
 		final IFile file = webinfFolder.getFile("web.xml");
-		if(file != null && file.exists()) {
+		if (file != null && file.exists()) {
 			return project.findMember(file.getProjectRelativePath());
 		}
 		return null;

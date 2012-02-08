@@ -19,6 +19,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement.EnumCapabilityType;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 public class UriPathTemplateElement implements ITreeContentProvider {
 
@@ -43,10 +44,6 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 		return elements.toArray();
 	}
 
-	public void refresh(IJaxrsEndpoint endpoint2) {
-		// TODO Auto-generated method stub
-		
-	}
 	@Override
 	public Object getParent(Object element) {
 		return uriPathTemplateCategory;
@@ -69,7 +66,7 @@ public class UriPathTemplateElement implements ITreeContentProvider {
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		// TODO Auto-generated method stub
-
+		Logger.trace("Input changed: {} -> {}", oldInput, newInput);
 	}
 
 	public boolean hasErrors() {

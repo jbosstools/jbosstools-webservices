@@ -30,6 +30,9 @@ public final class Logger {
 	/** The debug name, matching the .options file. */
 	private static final String DEBUG = JBossJaxrsUIPlugin.PLUGIN_ID + "/debug";
 
+	/** The trace name, matching the .options file. */
+	private static final String TRACE = JBossJaxrsUIPlugin.PLUGIN_ID + "/trace";
+
 	private static final ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
 		@Override
 		protected DateFormat initialValue() {
@@ -101,27 +104,50 @@ public final class Logger {
 	}
 
 	/**
-	 * Outputs a debug message in the trace file (not the error view of the
-	 * runtime workbench). Traces must be activated for this plugin in order to
-	 * see the output messages.
+	 * Outputs a 'debug' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
 	 * 
 	 * @param message
 	 *            the message to trace.
 	 */
 	public static void debug(final String message, Object... items) {
-		String debugOption = Platform.getDebugOption(DEBUG);
-		String valuedMessage = message;
-		if (JBossJaxrsUIPlugin.getDefault() != null && JBossJaxrsUIPlugin.getDefault().isDebugging()
-				&& "true".equalsIgnoreCase(debugOption)) {
-			if (items != null) {
-				for (Object item : items) {
-					valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString() : "null"));
-				}
-			}
-			System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName() + "] "
-					+ valuedMessage);
-		}
+		log(DEBUG, message, items);
+	}
 
+	/**
+	 * Outputs a 'trace' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
+	 * 
+	 * @param message
+	 *            the message to trace.
+	 */
+	public static void trace(final String message, final Object... items) {
+		log(TRACE, message, items);
+	}
+
+	private static void log(final String level, final String message, final Object... items) {
+		try {
+			String debugOption = Platform.getDebugOption(level);
+			String valuedMessage = message;
+			if (JBossJaxrsUIPlugin.getDefault() != null && JBossJaxrsUIPlugin.getDefault().isDebugging()
+					&& "true".equalsIgnoreCase(debugOption)) {
+				if (items != null) {
+					for (Object item : items) {
+						valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString()
+								.replaceAll("\\$", ".") : "null"));
+					}
+				}
+				System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName()
+						+ "] " + valuedMessage);
+			}
+		} catch (RuntimeException e) {
+			System.err.println("Failed to write proper debug message with template:\n " + message + "\n and items:");
+			for (Object item : items) {
+				System.err.println(" " + item);
+			}
+		}
 	}
 
 }

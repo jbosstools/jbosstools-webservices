@@ -23,6 +23,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -229,7 +230,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	}
 
 	@Override
-	public List<ValidatorMessage> validate() {
+	public List<ValidatorMessage> validate() throws JavaModelException {
 		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		// delegating the validation to the undelying resource methods
 		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {

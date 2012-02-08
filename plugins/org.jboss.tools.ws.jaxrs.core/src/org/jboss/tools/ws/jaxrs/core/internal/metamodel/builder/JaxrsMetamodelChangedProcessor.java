@@ -214,8 +214,7 @@ public class JaxrsMetamodelChangedProcessor {
 						if (returnTypeHandler != null && supertypesHandlers.contains(returnTypeHandler)) {
 							final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
 									Arrays.asList(otherResourceMethod, resourceMethod));
-							final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(), httpMethod,
-									resourceMethods);
+							final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, resourceMethods);
 							if (metamodel.add(endpoint)) {
 								changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
 							}
@@ -231,7 +230,7 @@ public class JaxrsMetamodelChangedProcessor {
 			final JaxrsMetamodel metamodel) {
 		final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod.getHttpMethodAnnotation());
 		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
-		final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(), httpMethod, resourceMethod);
+		final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, resourceMethod);
 		if (metamodel.add(endpoint)) {
 			changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
 		}
@@ -263,8 +262,8 @@ public class JaxrsMetamodelChangedProcessor {
 											.getHttpMethodAnnotation());
 									final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
 											Arrays.asList(subresourceLocator, resourceMethod));
-									final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel.getApplication(),
-											httpMethod, resourceMethods);
+									final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod,
+											resourceMethods);
 									if (metamodel.add(endpoint)) {
 										changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
 									}

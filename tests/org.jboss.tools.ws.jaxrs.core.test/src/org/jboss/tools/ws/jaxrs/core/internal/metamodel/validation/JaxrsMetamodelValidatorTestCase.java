@@ -83,7 +83,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 		// operation
 		final List<ValidatorMessage> validationMessages = customerResource.validate();
 		// validation
-		assertThat(validationMessages.size(), equalTo(1));
+		assertThat(validationMessages.size(), equalTo(2));
 	}
 
 }

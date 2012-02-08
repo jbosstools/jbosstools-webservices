@@ -54,9 +54,11 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 					// LinkedList<IJaxrsResourceMethod> resourceMethods =
 					// endpoint.getResourceMethods();
 					if (element == null) {
+						Logger.trace("Creating element for endpoint {} ('cause not found in wrapperCache)", endpoint);
 						element = new UriPathTemplateElement(endpoint, this);
 						wrapperCache.put(endpoint, element);
 					}
+					Logger.trace("Adding element for endpoint {}", endpoint);
 					uriPathTemplateElements.add(element);
 				}
 				return uriPathTemplateElements.toArray();

@@ -16,16 +16,23 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.validation.ValidatorMessage;
@@ -42,11 +49,16 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 /** @author xcoulon */
 public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implements IJaxrsResourceMethod {
 
+	/** The parameter type names that can be annotated with {@link Context}. */
+	private final static List<String> CONTEXT_TYPE_NAMES = new ArrayList<String>(Arrays.asList(
+			"javax.ws.rs.core.HttpHeaders", "javax.ws.rs.core.UriInfo", "javax.ws.rs.core.Request",
+			"javax.servlet.HttpServletRequest", "javax.servlet.HttpServletResponse", "javax.servlet.ServletConfig",
+			"javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext"));
+
 	private final JaxrsResource parentResource;
 
 	/**
-	 * return type of the java javaMethod. Null if this is not a subresource
-	 * locator.
+	 * return type of the java javaMethod. Null if this is not a subresource locator.
 	 */
 	private IType returnedJavaType = null;
 
@@ -182,8 +194,91 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	}
 
 	@Override
-	public List<ValidatorMessage> validate() {
-		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+	public List<ValidatorMessage> validate() throws JavaModelException {
+		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		messages.addAll(validateMissingPathValueInPathParamAnnotations());
+		messages.addAll(validateMissingPathParamAnnotations());
+		messages.addAll(validateParamsWithContextAnnotation());
+		messages.addAll(validateSingleParamWithoutAnnotation());
+		return messages;
+	}
+
+	/**
+	 * Validate that only one method parameter is not annotated with a JAX-RS annotation. This non-annotated parameter
+	 * is the "Entity parameter", coming from the client's request body, unmarshalled by the appropriate
+	 * {@link MesssageBodyReader}.
+	 * 
+	 * @return
+	 */
+	private List<ValidatorMessage> validateSingleParamWithoutAnnotation() {
+		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		return messages;
+	}
+
+	/**
+	 * Validates that the method parameters annotated with {@link Context} are of the supported types in the spec:
+	 * {@link UriInfo}, {@link HttpHeaders}, {@link ServletConfig}, {@link ServletContext}, {@link HttpServletRequest},
+	 * {@link Request}, {@link HttpServletResponse} and {@link Response}.
+	 * 
+	 * @return
+	 */
+	private List<ValidatorMessage> validateParamsWithContextAnnotation() {
+		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		for (JavaMethodParameter parameter : this.javaMethodParameters) {
+			final Annotation annotation = parameter.getAnnotation(Context.class.getName());
+			final String typeName = parameter.getTypeName();
+			if (annotation != null && typeName != null && !CONTEXT_TYPE_NAMES.contains(typeName)) {
+				final ValidatorMessage message = ValidatorMessage.create("This parameter type (" + typeName
+						+ ") cannot be annotated with @Context", this.getResource());
+				message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
+				message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+				message.setAttribute(IMarker.CHAR_START, parameter.getRegion().getOffset());
+				message.setAttribute(IMarker.CHAR_END, parameter.getRegion().getOffset()
+						+ parameter.getRegion().getLength());
+				messages.add(message);
+				Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(),
+						message.getAttribute(IMarker.MESSAGE));
+			}
+		}
+		return messages;
+	}
+
+	private List<ValidatorMessage> validateMissingPathParamAnnotations() throws JavaModelException {
+		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
+		final List<String> pathParamValueProposals = getPathParamValueProposals();
+		for (String proposal : pathParamValueProposals) {
+			boolean matching = false;
+			for (JavaMethodParameter parameter : this.javaMethodParameters) {
+				final Annotation annotation = parameter.getAnnotation(PathParam.class.getName());
+				if (annotation != null && annotation.getValue("value").equals(proposal)) {
+					matching = true;
+					break;
+				}
+			}
+			if (!matching) {
+				final ValidatorMessage message = ValidatorMessage.create("Missing @PathParam value: expected "
+						+ proposal, this.getResource());
+				message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
+				message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+				final ISourceRange nameRange = getJavaElement().getNameRange();
+				message.setAttribute(IMarker.CHAR_START, nameRange.getOffset());
+				message.setAttribute(IMarker.CHAR_END, nameRange.getOffset() + nameRange.getLength());
+				messages.add(message);
+				Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(),
+						message.getAttribute(IMarker.MESSAGE));
+			}
+		}
+		return messages;
+	}
+
+	/**
+	 * Checks that the {@link PathParam} annotation values match the params in the {@link Path} annotations at the
+	 * method and the parent type levels.
+	 * 
+	 * @return errors in case of mismatch, empty list otherwise.
+	 */
+	private List<ValidatorMessage> validateMissingPathValueInPathParamAnnotations() {
+		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		final List<String> pathParamValueProposals = getPathParamValueProposals();
 		for (JavaMethodParameter parameter : this.javaMethodParameters) {
 			final Annotation annotation = parameter.getAnnotation(PathParam.class.getName());
@@ -198,7 +293,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 					message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset()
 							+ annotation.getRegion().getLength());
 					messages.add(message);
-					Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(), message.getAttribute(IMarker.MESSAGE));
+					Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(),
+							message.getAttribute(IMarker.MESSAGE));
 				}
 			}
 		}
@@ -207,10 +303,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResourceMethod#hasErrors
-	 * (boolean)
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResourceMethod#hasErrors (boolean)
 	 */
 	@Override
 	public void hasErrors(final boolean h) {
@@ -222,10 +315,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResourceMethod#getKind
-	 * ()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResourceMethod#getKind ()
 	 */
 	@Override
 	public final EnumKind getKind() {
@@ -243,9 +333,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResourceMethod#
-	 * getParentResource()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResourceMethod# getParentResource()
 	 */
 	@Override
 	public final JaxrsResource getParentResource() {
@@ -315,16 +403,15 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	public List<JavaMethodParameter> getJavaMethodParameters() {
 		return javaMethodParameters;
 	}
-
+	
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public final String toString() {
-		return "ResourceMethod '" + parentResource.getName() + "."
-				+ getJavaElement().getElementName() + "' (" + getKind().toString() + ")";
+		return "ResourceMethod '" + parentResource.getName() + "." + getJavaElement().getElementName() + "' ("
+				+ getKind().toString() + ")";
 	}
 
 	@Override
@@ -344,8 +431,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	}
 
 	/**
-	 * Extracts all the character sequences inside of curly braces ('{' and '}')
-	 * and returns them as a list of strings
+	 * Extracts all the character sequences inside of curly braces ('{' and '}') and returns them as a list of strings
 	 * 
 	 * @param value
 	 *            the given value

@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
 
@@ -35,24 +36,29 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
 public class JaxrsEndpoint implements IJaxrsEndpoint {
 
-	private final JaxrsHttpMethod httpMethod;
+	private final JaxrsMetamodel metamodel;
+
+	private JaxrsHttpMethod httpMethod;
 
 	private final LinkedList<JaxrsResourceMethod> resourceMethods;
 
 	private IJaxrsApplication application = null;
-	
+
 	private String uriPathTemplate = null;
 
 	private List<String> consumedMediaTypes = null;
 
 	private List<String> producedMediaTypes = null;
 
-	public JaxrsEndpoint(final IJaxrsApplication application, final JaxrsHttpMethod httpMethod, final JaxrsResourceMethod resourceMethod) {
-		this(application, httpMethod, new LinkedList<JaxrsResourceMethod>(Arrays.asList(resourceMethod)));
+	public JaxrsEndpoint(final JaxrsMetamodel metamodel, final JaxrsHttpMethod httpMethod,
+			final JaxrsResourceMethod resourceMethod) {
+		this(metamodel, httpMethod, new LinkedList<JaxrsResourceMethod>(Arrays.asList(resourceMethod)));
 	}
 
-	public JaxrsEndpoint(final IJaxrsApplication application, final JaxrsHttpMethod httpMethod, final LinkedList<JaxrsResourceMethod> resourceMethods) {
-		this.application = application;
+	public JaxrsEndpoint(final JaxrsMetamodel metamodel, final JaxrsHttpMethod httpMethod,
+			final LinkedList<JaxrsResourceMethod> resourceMethods) {
+		this.metamodel = metamodel;
+		this.application = (metamodel != null ? metamodel.getApplication() : null);
 		this.httpMethod = httpMethod;
 		this.resourceMethods = resourceMethods;
 		refreshUriPathTemplate();
@@ -62,7 +68,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -75,7 +80,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -92,7 +96,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -148,28 +151,31 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	/**
 	 * Triggers a refresh when changes occurred on the application element (whatever operation).
 	 * 
-	 * @return true if the endpoint is still valid, false otherwise (it should
-	 *         be removed from the metamodel)
+	 * @return true if the endpoint is still valid, false otherwise (it should be removed from the metamodel)
 	 */
 	public boolean refresh(IJaxrsApplication application) {
 		this.application = application;
 		refreshUriPathTemplate();
 		return true;
 	}
-	
+
 	/**
-	 * Triggers a refresh when changes occurred on one or more elements
-	 * (HttpMethod and/or ResourcMethods) of the endpoint.
+	 * Triggers a refresh when changes occurred on one or more elements (HttpMethod and/or ResourcMethods) of the
+	 * endpoint.
 	 * 
-	 * @return true if the endpoint is still valid, false otherwise (it should
-	 *         be removed from the metamodel)
+	 * @return true if the endpoint is still valid, false otherwise (it should be removed from the metamodel)
 	 */
 	public boolean refresh(IJaxrsResourceMethod changedResourceMethod, int flags) {
 		// check if the chain of resource methods still match
 		/*
-		 * if ((flags & F_ELEMENT_KIND) > 0 && changedResourceMethod.getKind()
-		 * == EnumKind.SUBRESOURCE_LOCATOR) { return false; }
+		 * if ((flags & F_ELEMENT_KIND) > 0 && changedResourceMethod.getKind() == EnumKind.SUBRESOURCE_LOCATOR) { return
+		 * false; }
 		 */
+
+		if ((flags & F_HTTP_METHOD_VALUE) > 0) {
+			refreshHttpMethod();
+		}
+
 		if ((flags & F_PATH_VALUE) > 0) {
 			refreshUriPathTemplate();
 		}
@@ -185,6 +191,14 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			}
 		}
 		return true;
+	}
+
+	private void refreshHttpMethod() {
+		final JaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+		final Annotation httpMethodAnnotation = resourceMethod.getHttpMethodAnnotation();
+		if (httpMethodAnnotation != null) {
+			this.httpMethod = metamodel.getHttpMethod(httpMethodAnnotation);
+		}
 	}
 
 	private void refreshProducedMediaTypes() {
@@ -214,7 +228,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	private void refreshUriPathTemplate() {
 		// compute the URI Path Template from the chain of Methods/Resources
 		StringBuilder uriPathTemplateBuilder = new StringBuilder();
-		if(application != null) {
+		if (application != null) {
 			uriPathTemplateBuilder.append(application.getApplicationPath());
 		}
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
@@ -293,10 +307,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
-	 * #getHttpMethod()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getHttpMethod()
 	 */
 	@Override
 	public IJaxrsHttpMethod getHttpMethod() {
@@ -321,8 +332,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	/**
 	 * Convenient method to check if this endpoint uses this ResourceMethod.
 	 * 
-	 * @return true if this endpoint's ResourceMethod is the one given in
-	 *         parameter
+	 * @return true if this endpoint's ResourceMethod is the one given in parameter
 	 */
 	public boolean match(IJaxrsResourceMethod resourceMethod) {
 		return this.resourceMethods.contains(resourceMethod);
@@ -330,10 +340,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
-	 * #getUriPathTemplate()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getUriPathTemplate()
 	 */
 	@Override
 	public String getUriPathTemplate() {
@@ -342,10 +349,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
-	 * #getConsumedMediaTypes()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getConsumedMediaTypes()
 	 */
 	@Override
 	public List<String> getConsumedMediaTypes() {
@@ -354,10 +358,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint
-	 * #getProducedMediaTypes()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getProducedMediaTypes()
 	 */
 	@Override
 	public List<String> getProducedMediaTypes() {
