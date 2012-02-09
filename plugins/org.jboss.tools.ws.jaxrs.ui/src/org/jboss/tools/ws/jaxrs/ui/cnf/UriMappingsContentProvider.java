@@ -19,10 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.internal.ui.util.CoreUtility;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -34,7 +35,6 @@ import org.jboss.tools.ws.jaxrs.core.pubsub.EventService;
 import org.jboss.tools.ws.jaxrs.core.pubsub.Subscriber;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
-@SuppressWarnings("restriction")
 public class UriMappingsContentProvider implements ITreeContentProvider, Subscriber { // ,
 
 	private TreeViewer viewer;
@@ -49,32 +49,36 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 	}
 
 	@Override
+	public Object[] getElements(Object inputElement) {
+		return getChildren(inputElement);
+	}
+
+	@Override
 	public Object[] getChildren(final Object parentElement) {
 		if (parentElement instanceof IProject) {
-			long startTime = new Date().getTime();
 			final IProject project = (IProject) parentElement;
+			if(!uriPathTemplateCategories.containsKey(project)) {
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
+				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
+			}
+			Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
+			return new Object[] { uriPathTemplateCategories.get(project) };
+		}
+		if (parentElement instanceof UriPathTemplateCategory) {
+
+			long startTime = new Date().getTime();
+			final UriPathTemplateCategory uriPathTemplateCategory = (UriPathTemplateCategory) parentElement;
+			final IProject project = uriPathTemplateCategory.getProject();
 			try {
-				if (!uriPathTemplateCategories.containsKey(project)) {
-					if (JaxrsMetamodelLocator.get(project) == null) {
-						Logger.debug("JAX-RS Metamodel needs to be built for project '" + project.getName() + "'");
-						Job buildJob = CoreUtility.getBuildJob(project);
-						buildJob.setRule(ResourcesPlugin.getWorkspace().getRoot());
-						buildJob.schedule();
-						Logger.debug("Displaying a temporary node in the viewer while the metamodel is being built...");
-						//return new Object[] { new WaitWhileBuildingElement() };
-					} 
-					else {
-						// edge case: if the metamodel was built but no category was initialized yet.
-						Logger.debug("Adding a UriPathTemplateCategory for project {} (case #2)", project.getName());
-						UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
-						uriPathTemplateCategories.put(project, uriPathTemplateCategory);
-					}
+				if (JaxrsMetamodelLocator.get(project) == null) {
+					launchLoadingMetamodelJob(uriPathTemplateCategory);
+					// return a stub object that says loading...
+					Logger.debug("Displaying the 'Loading...' stub for project '{}'", project.getName());
+					return new Object[]{new LoadingStub()};
 				}
-				
-				Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
-				return new Object[] { uriPathTemplateCategories.get(project) };
-			} catch (CoreException e) {
-				Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
+				return uriPathTemplateCategory.getChildren();
+			} catch(CoreException e) {
+				Logger.error("Failed to retrieve JAX-RS Metamodel for project '" + project.getName() + "'", e);
 			} finally {
 				long endTime = new Date().getTime();
 				Logger.debug("JAX-RS Metamodel UI for project '" + project.getName() + "' refreshed in "
@@ -85,8 +89,35 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 			return ((ITreeContentProvider) parentElement).getChildren(parentElement);
 		}
 		Logger.debug("*** No children for parent of type '{}' ***", parentElement.getClass().getName());
-		
+
 		return null;
+	}
+
+	private void launchLoadingMetamodelJob(final UriPathTemplateCategory uriPathTemplateCategory) {
+		final IProject project = uriPathTemplateCategory.getProject();
+		Job job = new Job("Loading JAX-RS metamodel for project '" + project.getName() + "'...") {
+
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				monitor.beginTask("Loading JAX-RS metamodel for project '" + project.getName() + "'...",
+						IProgressMonitor.UNKNOWN);
+				monitor.worked(1);
+
+				refreshViewerObject(uriPathTemplateCategory);
+				monitor.done();
+				return Status.OK_STATUS;
+			}
+		};
+		job.setPriority(Job.LONG);
+		job.schedule();
+	}
+
+	private void refreshViewerObject(final Object object) {
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				viewer.refresh(object);
+			}
+		});
 	}
 
 	@Override
@@ -96,19 +127,13 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 
 	@Override
 	public boolean hasChildren(Object element) {
-		if(element instanceof IProject) {
+		if (element instanceof IProject) {
 			return true;
-		} else 
-		if (element instanceof ITreeContentProvider) {
+		} else if (element instanceof ITreeContentProvider) {
 			return ((ITreeContentProvider) element).hasChildren(element);
 		}
 		Logger.debug("Element {} has not children", element.getClass().getName());
 		return false;
-	}
-
-	@Override
-	public Object[] getElements(Object inputElement) {
-		return getChildren(inputElement);
 	}
 
 	@Override
@@ -158,7 +183,8 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 			public void run() {
 				if (viewer != null) {
 					TreePath[] treePaths = viewer.getExpandedTreePaths();
-					Logger.debug("*** Refreshing the viewer at target level: {} (viewer busy: {}) ***", target, viewer.isBusy());
+					Logger.debug("*** Refreshing the viewer at target level: {} (viewer busy: {}) ***", target,
+							viewer.isBusy());
 					viewer.refresh();
 					viewer.setExpandedTreePaths(treePaths);
 					Logger.debug("*** Refreshing the viewer... done ***");
@@ -175,6 +201,11 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 	 */
 	public String getId() {
 		return "UI";
+	}
+	
+	public static class LoadingStub {
+		public LoadingStub() {
+		}
 	}
 
 }

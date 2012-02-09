@@ -74,6 +74,13 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		return project;
 	}
 
+	/**
+	 * @return the project
+	 */
+	public final IProject getProject() {
+		return project;
+	}
+
 	@Override
 	public boolean hasChildren(Object element) {
 		try {
@@ -118,6 +125,10 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 
 	public void refreshContent() {
 		parent.refreshContent(project);
+	}
+
+	public Object[] getChildren() {
+		return getChildren(this);
 	}
 
 }

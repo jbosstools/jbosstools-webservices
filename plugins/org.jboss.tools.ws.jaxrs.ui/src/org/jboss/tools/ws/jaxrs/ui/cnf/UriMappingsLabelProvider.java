@@ -22,6 +22,7 @@ import org.eclipse.swt.graphics.Image;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
+import org.jboss.tools.ws.jaxrs.ui.cnf.UriMappingsContentProvider.LoadingStub;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /** @author xcoulon */
@@ -53,9 +54,9 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 			}
 		} else if (element instanceof UriPathTemplateMethodMappingElement) {
 			return JBossJaxrsUIPlugin.getDefault().createImage("servlet_mapping.gif");
-		} else if (element instanceof WaitWhileBuildingElement) {
+		} else if (element instanceof LoadingStub) {
 			return JBossJaxrsUIPlugin.getDefault().createImage("systemprocess.gif");
-		}
+		} 
 
 		return null;
 	}
@@ -163,8 +164,8 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 					.append("(...)");
 			return new StyledString(sb.toString());
 		}
-		if (element instanceof WaitWhileBuildingElement) {
-			String message = "Building RESTful Web Services...";
+		if (element instanceof LoadingStub) {
+			String message = "Loading...";
 			StyledString styledString = new StyledString(message);
 			styledString.setStyle(0, message.length(), StyledString.DECORATIONS_STYLER);
 			return new StyledString(message);
