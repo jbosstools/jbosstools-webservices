@@ -317,4 +317,15 @@
    </extension-->
    <!-- see https://bugs.eclipse.org/bugs/show_bug.cgi?id=338898 -->
 
+  <extension point="org.eclipse.wst.server.core.moduleArtifactAdapters">
+	<moduleArtifactAdapter
+			id="org.jboss.tools.ws.jaxrs.ui.jaxrsartifactadapter"
+            class="org.jboss.tools.ws.jaxrs.ui.internal.utils.JaxrsPathModuleArtifactAdapter">
+	  <enablement>
+		<with variable="selection">
+		  <adapt type="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement"/>
+		</with>
+	  </enablement>
+	</moduleArtifactAdapter>
+  </extension>
 </plugin>
