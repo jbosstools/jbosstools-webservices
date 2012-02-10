@@ -320,12 +320,28 @@
   <extension point="org.eclipse.wst.server.core.moduleArtifactAdapters">
 	<moduleArtifactAdapter
 			id="org.jboss.tools.ws.jaxrs.ui.jaxrsartifactadapter"
-            class="org.jboss.tools.ws.jaxrs.ui.internal.utils.JaxrsPathModuleArtifactAdapter">
+            class="org.jboss.tools.ws.jaxrs.ui.internal.launcher.JaxrsPathModuleArtifactAdapter">
 	  <enablement>
 		<with variable="selection">
 		  <adapt type="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement"/>
 		</with>
 	  </enablement>
 	</moduleArtifactAdapter>
+  </extension>
+  <extension
+        point="org.eclipse.wst.server.core.clients">
+     <client
+           class="org.jboss.tools.ws.jaxrs.ui.internal.launcher.WSTesterClientDelegate"
+           id="org.jboss.tools.ws.jaxrs.ui.wsTesterClient">
+     </client>
+  </extension>
+  <extension
+        point="org.eclipse.wst.server.core.launchableAdapters">
+     <launchableAdapter
+           class="org.jboss.tools.ws.jaxrs.ui.internal.launcher.WSTesterLaunchableAdapterDelegate"
+           id="org.jboss.tools.ws.jaxrs.ui.wsTesterLaunchableAdapter"
+           priority="20"
+           typeIds="*">
+     </launchableAdapter>
   </extension>
 </plugin>
