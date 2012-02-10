@@ -344,4 +344,14 @@
            typeIds="*">
      </launchableAdapter>
   </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement"
+            class="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElementAdapterFactory">
+         <adapter
+               type="org.eclipse.debug.ui.actions.ILaunchable">
+         </adapter>
+      </factory>
+   </extension>
 </plugin>

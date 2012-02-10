@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.ui.cnf;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.debug.ui.actions.ILaunchable;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
@@ -21,7 +22,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement.EnumCapabilityType;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
-public class UriPathTemplateElement implements ITreeContentProvider {
+public class UriPathTemplateElement implements ITreeContentProvider, ILaunchable {
 
 	private final IJaxrsEndpoint endpoint;
 
