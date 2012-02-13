@@ -203,7 +203,7 @@
                </or>
             </enablement>
          </actionProvider>
-         <actionProvider
+<!--         <actionProvider
                class="org.jboss.tools.ws.jaxrs.ui.cnf.action.OpenInWSTesterActionProvider"
                id="org.jboss.tools.ws.jaxrs.ui.cnf.openWSTesterActionProvider"
                priority="normal">
@@ -220,7 +220,7 @@
                   </instanceof>
                </or>
             </enablement>
-         </actionProvider>
+         </actionProvider> -->
       </navigatorContent>
    </extension>
    
