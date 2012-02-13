@@ -281,11 +281,13 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			for (Iterator<JavaMethodParameter> iterator = queryParameters.iterator(); iterator.hasNext();) {
 				JavaMethodParameter queryParam = iterator.next();
 				final Annotation queryParamAnnotation = queryParam.getAnnotation(QueryParam.class.getName());
-				uriPathTemplateBuilder.append(queryParamAnnotation.getValue("value")).append("={");
-				uriPathTemplateBuilder.append(queryParam.getTypeName());
+				final String paramName = queryParamAnnotation.getValue("value");
+				final String paramType = queryParam.getTypeName();
+				uriPathTemplateBuilder.append(paramName).append("={");
+				uriPathTemplateBuilder.append(paramName).append(":").append(paramType);
 				final Annotation defaultValueAnnotation = queryParam.getAnnotation(DefaultValue.class.getName());
 				if (defaultValueAnnotation != null) {
-					uriPathTemplateBuilder.append(':').append(defaultValueAnnotation.getValue("value"));
+					uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
 				}
 				uriPathTemplateBuilder.append('}');
 

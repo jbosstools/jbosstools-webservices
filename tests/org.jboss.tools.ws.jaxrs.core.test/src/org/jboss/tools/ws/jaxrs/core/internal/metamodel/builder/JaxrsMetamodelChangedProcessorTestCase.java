@@ -194,7 +194,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// verifications
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers?start={int}&size={int:2}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers?start={start:int}&size={size:int=2}"));
 	}
 
 	@Test
