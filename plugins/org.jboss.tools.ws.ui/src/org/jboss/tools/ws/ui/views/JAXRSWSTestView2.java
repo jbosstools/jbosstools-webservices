@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2011 Red Hat, Inc. 
+ * Copyright (c) 2011-2012 Red Hat, Inc. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -187,6 +187,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private TestHistory history = new TestHistory();
 	private TestHistoryEntry currentHistoryEntry = null;
 	private Button useBasicAuthCB;
+	private boolean restoringFromHistoryEntry = false;
 
 	/**
 	 * The constructor.
@@ -560,9 +561,20 @@ public class JAXRSWSTestView2 extends ViewPart {
 
 		urlCombo.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				setControlsForSelectedURL();
-				getCurrentHistoryEntry().setUrl(urlCombo.getText());
-				getCurrentHistoryEntry().setAction(null);
+				if (e.getSource().equals(urlCombo)) {
+					String newURL = urlCombo.getText();
+					String oldURL = null;
+					if (getCurrentHistoryEntry() != null && getCurrentHistoryEntry().getUrl() != null && getCurrentHistoryEntry().getUrl().trim().length() > 0) {
+						oldURL = getCurrentHistoryEntry().getUrl();
+					}
+					if (newURL != null && oldURL != null && newURL.contentEquals(oldURL)) {
+						// ignore it - they're the same
+					} else if (newURL != null && oldURL == null) {
+						setControlsForSelectedURL();
+						getCurrentHistoryEntry().setUrl(newURL);
+						getCurrentHistoryEntry().setAction(null);
+					}
+				}
 			}
 		});
 		urlCombo.addKeyListener(new KeyListener() {
@@ -583,9 +595,24 @@ public class JAXRSWSTestView2 extends ViewPart {
 				widgetSelected(e);
 			}
 			public void widgetSelected(SelectionEvent e) {
-				getCurrentHistoryEntry().setUrl(urlCombo.getText());
-				getCurrentHistoryEntry().setAction(null);
-				setControlsForSelectedURL();
+				String testURL = urlCombo.getText();
+				TestHistoryEntry entry = history.findEntryByURL(testURL);
+//				System.out.println(new Timestamp(System.currentTimeMillis()));
+//				System.out.println(history.toString());
+				if (entry != null) {
+					try {
+						currentHistoryEntry = (TestHistoryEntry) entry.clone();
+//						currentHistoryEntry = entry;
+						getCurrentHistoryEntry().setAction(null);
+						setControlsForSelectedEntry(entry);
+					} catch (CloneNotSupportedException e1) {
+						e1.printStackTrace();
+					}
+				} else {
+					getCurrentHistoryEntry().setUrl(urlCombo.getText());
+					getCurrentHistoryEntry().setAction(null);
+					setControlsForSelectedURL();
+				}
 			}
 		});
 
@@ -713,7 +740,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 		bodyText = toolkit.createText(ec5, EMPTY_STRING, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 		bodyText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				getCurrentHistoryEntry().setBody(bodyText.getText());
+				if (!restoringFromHistoryEntry)
+					getCurrentHistoryEntry().setBody(bodyText.getText());
 //				getCurrentHistoryEntry().setAction(null);
 			}
 		});
@@ -1080,6 +1108,56 @@ public class JAXRSWSTestView2 extends ViewPart {
 		}
 	}
 
+	private void setControlsForSelectedEntry ( TestHistoryEntry entry ) {
+		if (entry != null) {
+			restoringFromHistoryEntry = true;
+			if (entry.getWsTech() != null) {
+				setControlsForWSType(entry.getWsTech());
+				if (entry.getWsTech().equalsIgnoreCase(JAX_WS))
+					methodCombo.setText(JAX_WS);
+			}
+			if (entry.getMethod() != null && entry.getWsTech().equalsIgnoreCase(JAX_RS)) {
+				methodCombo.setText(entry.getMethod());
+				setControlsForMethodType(entry.getMethod());
+			}
+			if (bodyText.isEnabled()) {
+				bodyText.setText(entry.getBody());
+			}
+			if (dlsList.isEnabled()) {
+				dlsList.setSelection(entry.getHeaders());
+			}
+			if (parmsList.isEnabled()) {
+				parmsList.setSelection(entry.getParms());
+			}
+			if (resultHeadersList.isEnabled()) {
+				resultHeadersList.removeAll();
+				String[] headers = entry.getResultHeadersList();
+				if (headers != null && headers.length > 0) {
+					for (int i = 0; i < headers.length; i++) { 
+						resultHeadersList.add(headers[i]);
+					}
+				}
+			}
+			if (resultsText.isEnabled() && resultsBrowser.isEnabled()) {
+				resultsText.setText(entry.getResultText());
+				resultsBrowser.setText(entry.getResultText());
+			}
+			if (entry.getUrl().trim().length() > 0) {
+				String urlText = entry.getUrl();
+				try {
+					new URL(urlText);
+					startToolItem.setEnabled(true);
+				} catch (MalformedURLException mue) {
+					startToolItem.setEnabled(false);
+					return;
+				}
+			} else {
+				startToolItem.setEnabled(false);
+			}
+			restoringFromHistoryEntry = false;
+		}
+	}
+	
 	private void setControlsForSelectedURL() {
 		if (urlCombo.getText().trim().length() > 0) {
 			String urlText = urlCombo.getText();
@@ -1280,12 +1358,24 @@ public class JAXRSWSTestView2 extends ViewPart {
 							getCurrentHistoryEntry().setResultHeadersList(headers);
 							if (JAXRSWSTestView2.this.resultsText.getText().trim().length() == 0) {
 								if (headers != null && headers.length > 0) {
+									getCurrentHistoryEntry().setResultText(
+											JBossWSUIMessages.JAXRSWSTestView2_Msg_No_Results_Check_Headers);
 									JAXRSWSTestView2.this.resultsText.setText(
 											JBossWSUIMessages.JAXRSWSTestView2_Msg_No_Results_Check_Headers);
 									JAXRSWSTestView2.this.form.reflow(true);
 								}
 							}
-							history.getEntries().add(getCurrentHistoryEntry());
+							TestHistoryEntry oldEntry = history.findEntryByURL(getCurrentHistoryEntry().getUrl());
+							if (oldEntry != null) {
+								history.replaceEntry(oldEntry, getCurrentHistoryEntry());
+							} else {
+								try {
+									history.addEntry((TestHistoryEntry) getCurrentHistoryEntry().clone());
+								} catch (CloneNotSupportedException e) {
+									e.printStackTrace();
+								}
+							}
+//							System.out.println("Replaced or added entry\n" + history.toString());
 						}
 					});
 				}
