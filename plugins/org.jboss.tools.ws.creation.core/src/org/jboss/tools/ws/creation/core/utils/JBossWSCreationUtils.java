@@ -418,6 +418,9 @@ public class JBossWSCreationUtils {
 			throws JavaModelException {
 		IJavaProject javaProject = JavaCore.create(project);
 		IResource[] rs = getJavaSourceRoots(javaProject);
+		if (rs == null || rs.length == 0) {
+			rs = getJavaSourceRoots(javaProject, false);
+		}
 		String src = ""; //$NON-NLS-1$
 		if (rs == null || rs.length == 0)
 			return src;
@@ -447,7 +450,11 @@ public class JBossWSCreationUtils {
 		return null;
 	}
 
-	public static IResource[] getJavaSourceRoots(IJavaProject javaProject)
+	public static IResource[] getJavaSourceRoots(IJavaProject javaProject) throws JavaModelException {
+		return getJavaSourceRoots(javaProject, true);
+	}
+
+	public static IResource[] getJavaSourceRoots(IJavaProject javaProject, boolean outputLocationIsNull)
 			throws JavaModelException {
 		if (javaProject == null)
 			return null;
@@ -460,7 +467,9 @@ public class JBossWSCreationUtils {
 						.findMember(es[i].getPath());
 				if (findMember != null && findMember.exists()) {
 					// JBIDE-8642: if the output location is null, this is the default source path
-					if (outputLocation == null) {
+					if (outputLocationIsNull && outputLocation == null) {
+						resources.add(findMember);
+					} else {
 						resources.add(findMember);
 					}
 				}
