@@ -24,7 +24,7 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 public class UriPathTemplateElement implements ITreeContentProvider, ILaunchable {
 
-	private final IJaxrsEndpoint endpoint;
+	private IJaxrsEndpoint endpoint;
 
 	private final UriPathTemplateCategory uriPathTemplateCategory;
 
@@ -77,6 +77,10 @@ public class UriPathTemplateElement implements ITreeContentProvider, ILaunchable
 			}
 		}
 		return false;
+	}
+
+	public void setEndpoint(IJaxrsEndpoint endpoint) {
+		this.endpoint = endpoint;
 	}
 
 	/** @return the uriMapping */

@@ -195,11 +195,15 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 
 	@Override
 	public List<ValidatorMessage> validate() throws JavaModelException {
+		this.hasErrors(false);
 		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		messages.addAll(validateMissingPathValueInPathParamAnnotations());
 		messages.addAll(validateMissingPathParamAnnotations());
 		messages.addAll(validateParamsWithContextAnnotation());
 		messages.addAll(validateSingleParamWithoutAnnotation());
+		if(messages.size() > 0) {
+			this.hasErrors(true);
+		}
 		return messages;
 	}
 

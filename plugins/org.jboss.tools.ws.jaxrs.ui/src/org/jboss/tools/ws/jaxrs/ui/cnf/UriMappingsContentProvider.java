@@ -102,7 +102,6 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 				monitor.beginTask("Loading JAX-RS metamodel for project '" + project.getName() + "'...",
 						IProgressMonitor.UNKNOWN);
 				monitor.worked(1);
-
 				refreshViewerObject(uriPathTemplateCategory);
 				monitor.done();
 				return Status.OK_STATUS;

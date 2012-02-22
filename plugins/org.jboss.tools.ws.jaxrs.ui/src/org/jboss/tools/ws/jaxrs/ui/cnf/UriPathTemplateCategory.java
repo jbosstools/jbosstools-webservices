@@ -33,7 +33,8 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 
 	private final Map<IJaxrsEndpoint, UriPathTemplateElement> wrapperCache = new HashMap<IJaxrsEndpoint, UriPathTemplateElement>();
 
-	public UriPathTemplateCategory(UriMappingsContentProvider parent, IProject project) {
+	public UriPathTemplateCategory(UriMappingsContentProvider parent,
+			IProject project) {
 		super();
 		this.parent = parent;
 		this.project = project;
@@ -43,10 +44,12 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		try {
-			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator
+					.get(project);
 			if (metamodel != null) {
 				List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
-				Logger.debug("UriPathTemplateCatrogory contains {} endpoints", endpoints.size());
+				Logger.debug("UriPathTemplateCatrogory contains {} endpoints",
+						endpoints.size());
 				List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
 				// Collections.sort(uriMappings);
 				for (IJaxrsEndpoint endpoint : endpoints) {
@@ -54,9 +57,16 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 					// LinkedList<IJaxrsResourceMethod> resourceMethods =
 					// endpoint.getResourceMethods();
 					if (element == null) {
-						Logger.trace("Creating element for endpoint {} ('cause not found in wrapperCache)", endpoint);
+						Logger.trace(
+								"Creating element for endpoint {} ('cause not found in wrapperCache)",
+								endpoint);
 						element = new UriPathTemplateElement(endpoint, this);
 						wrapperCache.put(endpoint, element);
+					} 
+					// after a clean build, the 'endpoint' reference should be updated
+					else if (element.getEndpoint() != endpoint) {
+						element.setEndpoint(endpoint);
+
 					}
 					Logger.trace("Adding element for endpoint {}", endpoint);
 					uriPathTemplateElements.add(element);
@@ -64,7 +74,8 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 				return uriPathTemplateElements.toArray();
 			}
 		} catch (CoreException e) {
-			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
+			Logger.error("Failed to retrieve JAX-RS Metamodel in project '"
+					+ project.getName() + "'", e);
 		}
 		return new Object[0];
 	}
@@ -84,12 +95,14 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	@Override
 	public boolean hasChildren(Object element) {
 		try {
-			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator
+					.get(project);
 			if (metamodel != null) {
 				return (metamodel.getAllEndpoints().size() > 0);
 			}
 		} catch (CoreException e) {
-			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
+			Logger.error("Failed to retrieve JAX-RS Metamodel in project '"
+					+ project.getName() + "'", e);
 		}
 		return false;
 	}
