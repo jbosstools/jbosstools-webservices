@@ -35,6 +35,9 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
  */
 public final class Logger {
 
+	/** The 'info' level name, matching the .options file. */
+	private static final String INFO = JBossJaxrsCorePlugin.PLUGIN_ID + "/info";
+
 	/** The 'debug' level name, matching the .options file. */
 	private static final String DEBUG = JBossJaxrsCorePlugin.PLUGIN_ID + "/debug";
 
@@ -63,9 +66,9 @@ public final class Logger {
 	 *            the throwable cause
 	 */
 	public static void error(final String message, final Throwable t) {
-		if(JBossJaxrsCorePlugin.getDefault() != null) {
-		JBossJaxrsCorePlugin.getDefault().getLog()
-				.log(new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message, t));
+		if (JBossJaxrsCorePlugin.getDefault() != null) {
+			JBossJaxrsCorePlugin.getDefault().getLog()
+					.log(new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message, t));
 		} else {
 			// at least write in the .log file
 			t.printStackTrace();
@@ -108,20 +111,22 @@ public final class Logger {
 	}
 
 	/**
-	 * Logs a message with an 'info' severity.
+	 * Logs a message with an 'info' severity, if the 'INFO' tracing option is enabled, to avoid unwanted extra
+	 * messages in the error log.
 	 * 
 	 * @param message
 	 *            the message to log
 	 */
 	public static void info(String message) {
-		JBossJaxrsCorePlugin.getDefault().getLog()
-				.log(new Status(Status.INFO, JBossJaxrsCorePlugin.PLUGIN_ID, message));
+		if (isOptionEnabled(INFO)) {
+			JBossJaxrsCorePlugin.getDefault().getLog()
+					.log(new Status(Status.INFO, JBossJaxrsCorePlugin.PLUGIN_ID, message));
+		}
 	}
 
 	/**
-	 * Outputs a debug message in the trace file (not the error view of the
-	 * runtime workbench). Traces must be activated for this plugin in order to
-	 * see the output messages.
+	 * Outputs a debug message in the trace file (not the error view of the runtime workbench). Traces must be activated
+	 * for this plugin in order to see the output messages.
 	 * 
 	 * @param message
 	 *            the message to trace.
@@ -132,9 +137,8 @@ public final class Logger {
 	}
 
 	/**
-	 * Outputs a 'debug' level message in the .log file (not the error view of
-	 * the runtime workbench). Traces must be activated for this plugin in order
-	 * to see the output messages.
+	 * Outputs a 'debug' level message in the .log file (not the error view of the runtime workbench). Traces must be
+	 * activated for this plugin in order to see the output messages.
 	 * 
 	 * @param message
 	 *            the message to trace.
@@ -144,9 +148,8 @@ public final class Logger {
 	}
 
 	/**
-	 * Outputs a 'trace' level message in the .log file (not the error view of
-	 * the runtime workbench). Traces must be activated for this plugin in order
-	 * to see the output messages.
+	 * Outputs a 'trace' level message in the .log file (not the error view of the runtime workbench). Traces must be
+	 * activated for this plugin in order to see the output messages.
 	 * 
 	 * @param message
 	 *            the message to trace.
@@ -157,10 +160,8 @@ public final class Logger {
 
 	private static void log(final String level, final String message, final Object... items) {
 		try {
-			String debugOption = Platform.getDebugOption(level);
-			String valuedMessage = message;
-			if (JBossJaxrsCorePlugin.getDefault() != null && JBossJaxrsCorePlugin.getDefault().isDebugging()
-					&& "true".equalsIgnoreCase(debugOption)) {
+			if (isOptionEnabled(level)) {
+				String valuedMessage = message;
 				if (items != null) {
 					for (Object item : items) {
 						valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString()
@@ -176,5 +177,11 @@ public final class Logger {
 				System.err.println(" " + item);
 			}
 		}
+	}
+
+	private static boolean isOptionEnabled(String level) {
+		final String debugOption = Platform.getDebugOption(level);
+		return JBossJaxrsCorePlugin.getDefault() != null && JBossJaxrsCorePlugin.getDefault().isDebugging()
+				&& "true".equalsIgnoreCase(debugOption);
 	}
 }
