@@ -31,10 +31,12 @@ import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jface.text.TypedRegion;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.validation.ValidatorMessage;
@@ -42,6 +44,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBu
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ValidationMessages;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -235,8 +238,9 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	 * , {@link Request}, {@link HttpServletResponse} and {@link Response}.
 	 * 
 	 * @return
+	 * @throws JavaModelException 
 	 */
-	private List<ValidatorMessage> validateParamsWithContextAnnotation() {
+	private List<ValidatorMessage> validateParamsWithContextAnnotation() throws JavaModelException {
 		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		for (JavaMethodParameter parameter : this.javaMethodParameters) {
 			final Annotation annotation = parameter.getAnnotation(Context.class
@@ -295,8 +299,9 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	 * the {@link Path} annotations at the method and the parent type levels.
 	 * 
 	 * @return errors in case of mismatch, empty list otherwise.
+	 * @throws JavaModelException 
 	 */
-	private List<ValidatorMessage> validateMissingPathValueInPathParamAnnotations() {
+	private List<ValidatorMessage> validateMissingPathValueInPathParamAnnotations() throws JavaModelException {
 		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		final List<String> pathParamValueProposals = getPathParamValueProposals();
 		for (JavaMethodParameter parameter : this.javaMethodParameters) {
@@ -324,11 +329,16 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	 * @param severity the severity of the marker
 	 * @param region the region that the validation marker points to
 	 * @return the created validation message.
+	 * @throws JavaModelException 
 	 */
 	private ValidatorMessage createValidationMessage(final String msg,
-			int severity, final int offset, int length) {
+			int severity, final int offset, int length) throws JavaModelException {
 		final ValidatorMessage validationMsg = ValidatorMessage.create(msg,
 				this.getResource());
+		validationMsg.setType(JaxrsMetamodelBuilder.JAXRS_PROBLEM);
+		final ICompilationUnit compilationUnit = this.getJavaElement().getCompilationUnit();
+		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
+		validationMsg.setAttribute(IMarker.LOCATION, NLS.bind(ValidationMessages.LINE_NUMBER, ast.getLineNumber(offset)));
 		validationMsg.setAttribute(IMarker.MARKER,
 				JaxrsMetamodelBuilder.JAXRS_PROBLEM);
 		validationMsg.setAttribute(IMarker.SEVERITY, severity);
