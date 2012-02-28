@@ -16,7 +16,9 @@ import org.eclipse.osgi.util.NLS;
 public class ValidationMessages extends NLS {
 	private static final String BUNDLE_NAME = ValidationMessages.class.getName(); //$NON-NLS-1$
 
-	public static String unbound_parameter;
+	public static String INVALID_CONTEXT_ANNOTATION;
+	
+	public static String INVALID_PATHPARAM_VALUE;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, ValidationMessages.class);
