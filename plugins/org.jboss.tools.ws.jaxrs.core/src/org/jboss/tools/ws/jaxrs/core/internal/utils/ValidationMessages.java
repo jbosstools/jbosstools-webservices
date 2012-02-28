@@ -19,6 +19,8 @@ public class ValidationMessages extends NLS {
 	public static String INVALID_CONTEXT_ANNOTATION;
 	
 	public static String INVALID_PATHPARAM_VALUE;
+	
+	public static String LINE_NUMBER;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, ValidationMessages.class);
