@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Stack;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -54,6 +55,14 @@ import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ICellModifier;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -71,6 +80,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -90,6 +100,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -109,8 +121,10 @@ import org.jboss.tools.ws.ui.utils.JAXRSTester;
 import org.jboss.tools.ws.ui.utils.JAXWSTester2;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorage;
 import org.jboss.tools.ws.ui.utils.ResultsXMLStorageInput;
+import org.jboss.tools.ws.ui.utils.SOAPDOMParser;
 import org.jboss.tools.ws.ui.utils.SchemaUtils;
 import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
+import org.jboss.tools.ws.ui.utils.TreeParent;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -137,7 +151,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private static final String EMPTY_STRING = ""; //$NON-NLS-1$
 	private static final String RESULT_HEADER_DELIMITER = "%";//$NON-NLS-1$
 	private static final String HTTPS_STRING = "https";//$NON-NLS-1$
-
+	private static final String[] TREE_COLUMNS = new String[] { "name", "value" }; //$NON-NLS-1$ //$NON-NLS-2$
+	
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
@@ -151,6 +166,11 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private Combo methodCombo;
 	private Text bodyText;
 	private List resultHeadersList;
+
+	private TreeViewer treeRequestBody;
+	private ScrolledPageBook requestPageBook;
+	private ShowInTreeAction treeAction;
+	private ShowRawRequestAction rawRequestAction;
 
 	private DelimitedStringList parmsList;
 
@@ -174,6 +194,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private static final String IMG_DESC_START = "icons/obj16/run.gif"; //$NON-NLS-1$
 
 	private static final String IMG_DESC_SHOWRAW = "icons/obj16/binary.gif"; //$NON-NLS-1$
+	private static final String IMG_DESC_SHOWTREE = "icons/obj16/hierarchicalLayout.gif"; //$NON-NLS-1$
 	private static final String IMG_DESC_SHOWWEB = "icons/obj16/web.gif"; //$NON-NLS-1$
 	private static final String IMG_DESC_SHOWEDITOR = "icons/obj16/properties.gif"; //$NON-NLS-1$
 	private static final String IMG_DESC_SAVE = "icons/obj16/save_edit.gif"; //$NON-NLS-1$
@@ -205,6 +226,11 @@ public class JAXRSWSTestView2 extends ViewPart {
 	
 	public void setJAXRS ( String url, String method ) {
 		this.urlCombo.setText(url);
+		this.bodyText.setText(EMPTY_STRING);
+		this.treeRequestBody.setInput(null);
+		this.resultsText.setText(EMPTY_STRING);
+		this.resultsBrowser.setText(EMPTY_STRING);
+//		getCurrentHistoryEntry().setUrl(url);
 		String uCaseMethod = method.toUpperCase();
 		if (uCaseMethod.equalsIgnoreCase(GET))
 			this.methodCombo.setText(GET);
@@ -242,8 +268,29 @@ public class JAXRSWSTestView2 extends ViewPart {
 		mImageRegistry.put(IMG_DESC_SAVE, ImageDescriptor
 				.createFromURL(JBossWSUIPlugin.getDefault().getBundle()
 						.getEntry(IMG_DESC_SAVE)));
+		mImageRegistry.put(IMG_DESC_SHOWTREE, ImageDescriptor
+				.createFromURL(JBossWSUIPlugin.getDefault().getBundle()
+						.getEntry(IMG_DESC_SHOWTREE)));
 	}
 
+	private void createRequestToolbar ( ExpandableComposite parent ) {
+
+		// create a couple of actions for toggling views
+		rawRequestAction = new ShowRawRequestAction();
+		rawRequestAction.setChecked(true);
+		treeAction = new ShowInTreeAction();
+
+		ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
+		ToolBar toolbar = toolBarManager.createControl(parent);
+
+		toolBarManager.add(rawRequestAction);
+		toolBarManager.add(treeAction);
+
+		toolBarManager.update(true);
+
+		parent.setTextClient(toolbar);
+	}
+	
 	private void createResponseToolbar ( ExpandableComposite parent ) {
 
 		// create a couple of actions for toggling views
@@ -346,6 +393,43 @@ public class JAXRSWSTestView2 extends ViewPart {
 		@Override
 		public ImageDescriptor getImageDescriptor() {
 			return mImageRegistry.getDescriptor(IMG_DESC_SHOWRAW);
+		}
+	}
+
+	class ShowRawRequestAction extends ToggleAction {
+		public void run() {
+			if (treeAction.isChecked()) treeAction.setChecked(false);
+			
+			JAXRSWSTestView2.this.requestPageBook.showPage(PAGE1_KEY);
+		}
+		@Override
+		public String getToolTipText() {
+			return JBossWSUIMessages.JAXRSWSTestView2_ShowRequestXML_toolbar_btn;
+		}
+		@Override
+		public ImageDescriptor getImageDescriptor() {
+			return mImageRegistry.getDescriptor(IMG_DESC_SHOWRAW);
+		}
+	}
+
+	class ShowInTreeAction extends ToggleAction {
+		public void run() {
+			if (rawRequestAction.isChecked()) rawRequestAction.setChecked(false);
+			if (JAXRSWSTestView2.this.bodyText.getText().length() > 0 ) {
+				JAXRSWSTestView2.this.treeRequestBody.setInput
+				(JAXRSWSTestView2.this.bodyText.getText());
+			} else {
+				JAXRSWSTestView2.this.treeRequestBody.setInput(null);
+			}
+			JAXRSWSTestView2.this.requestPageBook.showPage(PAGE2_KEY);
+		}
+		@Override
+		public String getToolTipText() {
+			return JBossWSUIMessages.JAXRSWSTestView2_ShowRequestTree_toolbar_btn;
+		}
+		@Override
+		public ImageDescriptor getImageDescriptor() {
+			return mImageRegistry.getDescriptor(IMG_DESC_SHOWTREE);
 		}
 	}
 
@@ -505,6 +589,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 					String opNameInBody = getOpNameFromRequestBody();
 					if (opNameInBody == null) {
 						bodyText.setText(soapIn);
+						treeRequestBody.setInput(soapIn);
 						getCurrentHistoryEntry().setBody(soapIn);
 						getCurrentHistoryEntry().setAction(actionURL);
 					} else if (opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())) {
@@ -515,6 +600,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 								JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
 								
 									bodyText.setText(soapIn);
+									treeRequestBody.setInput(soapIn);
 									getCurrentHistoryEntry().setBody(soapIn);
 									getCurrentHistoryEntry().setAction(actionURL);
 									
@@ -528,6 +614,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 				
 				if (opNameInBody == null || isSOAP12 != isRequestSOAP12 ) {
 					bodyText.setText(soapIn);
+					treeRequestBody.setInput(soapIn);
 					getCurrentHistoryEntry().setBody(soapIn);
 					getCurrentHistoryEntry().setAction(actionURL);
 				} else if (opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())) {
@@ -538,6 +625,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 							JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
 							
 								bodyText.setText(soapIn);
+								treeRequestBody.setInput(soapIn);
 								getCurrentHistoryEntry().setBody(soapIn);
 								getCurrentHistoryEntry().setAction(actionURL);
 								
@@ -603,7 +691,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 					try {
 						currentHistoryEntry = (TestHistoryEntry) entry.clone();
 //						currentHistoryEntry = entry;
-						getCurrentHistoryEntry().setAction(null);
+//						getCurrentHistoryEntry().setAction(null);
 						setControlsForSelectedEntry(entry);
 					} catch (CloneNotSupportedException e1) {
 						e1.printStackTrace();
@@ -737,7 +825,235 @@ public class JAXRSWSTestView2 extends ViewPart {
 				ExpandableComposite.CLIENT_INDENT |
 				ExpandableComposite.EXPANDED);
 		ec5.setText(JBossWSUIMessages.JAXRSWSTestView2_BodyText_Section);
-		bodyText = toolkit.createText(ec5, EMPTY_STRING, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		requestPageBook = toolkit.createPageBook(ec5, SWT.NONE);
+
+		createRequestToolbar(ec5);
+
+		Composite page1 = requestPageBook.createPage(PAGE1_KEY);
+		page1.setLayout(new GridLayout());
+		bodyText = toolkit.createText(page1, EMPTY_STRING, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		GridData gd7 = new GridData(SWT.FILL, SWT.FILL, true, true);
+		//		gd7.minimumHeight = 100;
+		gd7.heightHint = 1;
+		bodyText.setLayoutData(gd7);
+
+		requestPageBook.showPage(PAGE1_KEY);
+
+		Composite page2 = requestPageBook.createPage(PAGE2_KEY);
+		page2.setLayout(new GridLayout());
+		treeRequestBody = new TreeViewer(page2, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL | SWT.FULL_SELECTION );
+		JAXRSWSTestView2.this.treeRequestBody.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
+		GridData gd11 = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gd11.heightHint = 1;
+		//		gd10.minimumHeight = 100;
+		toolkit.adapt(treeRequestBody.getTree());
+		treeRequestBody.getTree().setLayoutData(gd11);
+		treeRequestBody.getTree().setHeaderVisible(true);
+		TreeColumn nameColumn = new TreeColumn(treeRequestBody.getTree(), SWT.LEFT);
+		nameColumn.setText(JBossWSUIMessages.JAXRSWSTestView2_Name_column);
+		nameColumn.setWidth(200);
+		TreeColumn valueColumn = new TreeColumn(treeRequestBody.getTree(), SWT.LEFT);
+		valueColumn.setText(JBossWSUIMessages.JAXRSWSTestView2_Value_column);
+		valueColumn.setWidth(200);
+		
+		treeRequestBody.setColumnProperties(TREE_COLUMNS);
+		
+		treeRequestBody.setLabelProvider(new ITableLabelProvider() {
+
+			@Override
+			public void addListener(ILabelProviderListener listener) {
+			}
+
+			@Override
+			public void dispose() {
+			}
+
+			@Override
+			public boolean isLabelProperty(Object element, String property) {
+				if (element instanceof TreeParent && property.equalsIgnoreCase("name")) { //$NON-NLS-1$
+					return true;
+				} else if (element instanceof TreeParent && property.equalsIgnoreCase("value")) { //$NON-NLS-1$
+					return true;
+				}
+				return false;
+			}
+
+			@Override
+			public void removeListener(ILabelProviderListener listener) {
+			}
+
+			@Override
+			public Image getColumnImage(Object element, int columnIndex) {
+				return null;
+			}
+
+			@Override
+			public String getColumnText(Object element, int columnIndex) {
+				if (element instanceof TreeParent && columnIndex == 0) {
+					return ((TreeParent)element).getName();
+				} else if (element instanceof TreeParent && columnIndex == 1) {
+					TreeParent tp = (TreeParent) element;
+					if (tp.getData() != null && tp.getData() instanceof Element) {
+						Element tpelement = (Element) tp.getData();
+						if (tpelement.getChildNodes() != null && tpelement.getChildNodes().getLength() > 0) {
+							Node node = tpelement.getChildNodes().item(0);
+							if (node.getNodeType() == Node.TEXT_NODE) {
+								return node.getTextContent();
+							}
+						}
+					}
+				}
+				return null;
+			}
+		});
+		
+		treeRequestBody.setContentProvider(new ITreeContentProvider(){
+			
+			String text;
+			TreeParent tree;
+
+			@Override
+			public void dispose() {
+			}
+
+			@Override
+			public void inputChanged(Viewer viewer, Object oldInput,
+					Object newInput) {
+				if (newInput instanceof String) {
+					text = (String) newInput;
+					SOAPDOMParser parser = new SOAPDOMParser();
+					parser.parseXmlFile(text);
+					if (parser.getRoot().getChildren().length > 0)
+						tree = (TreeParent) parser.getRoot().getChildren()[0];
+					else 
+						tree = null;
+				}
+			}
+
+			@Override
+			public Object[] getElements(Object inputElement) {
+				if (inputElement instanceof String && tree != null) {
+					return new Object[] {this.tree};
+				} else if (inputElement instanceof TreeParent) {
+					return ((TreeParent)inputElement).getChildren();
+				}
+				return null;
+			}
+
+			@Override
+			public Object[] getChildren(Object parentElement) {
+				if (parentElement == null && tree != null) {
+					return new Object[] {this.tree};
+				} else if (parentElement instanceof TreeParent && ((TreeParent)parentElement).hasChildren()) {
+					return ((TreeParent)parentElement).getChildren();
+				}
+				return null;
+			}
+
+			@Override
+			public Object getParent(Object element) {
+				if (element instanceof TreeParent) {
+					return ((TreeParent)element).getParent();
+				}
+				return null;
+			}
+
+			@Override
+			public boolean hasChildren(Object element) {
+				if (element instanceof TreeParent) {
+					return ((TreeParent)element).hasChildren();
+				}
+				return false;
+			}
+		});
+		
+		treeRequestBody.setCellModifier(new ICellModifier() {
+
+			/* (non-Javadoc)
+			 * @see org.eclipse.jface.viewers.ICellModifier#canModify(java.lang.Object, java.lang.String)
+			 */
+			public boolean canModify(Object element, String property) {
+				if (element instanceof TreeParent && property.equalsIgnoreCase("value")) {//$NON-NLS-1$
+					TreeParent tp = (TreeParent) element;
+					if (tp.getData() != null && tp.getData() instanceof Element) {
+						Element tpelement = (Element) tp.getData();
+						if (tpelement.getChildNodes() != null && tpelement.getChildNodes().getLength() > 0) {
+							Node node = tpelement.getChildNodes().item(0);
+							if (node.getNodeType() == Node.TEXT_NODE && node.getNodeValue().trim().length() > 0) {
+								return true;
+							}
+						}
+					}
+				}
+				return false;
+			}
+
+			/* (non-Javadoc)
+			 * @see org.eclipse.jface.viewers.ICellModifier#getValue(java.lang.Object, java.lang.String)
+			 */
+			public Object getValue(Object element, String property) {
+				TreeParent tp = (TreeParent) element;
+				if (tp.getData() != null && tp.getData() instanceof Element) {
+					Element tpelement = (Element) tp.getData();
+					if (tpelement.getChildNodes() != null && tpelement.getChildNodes().getLength() > 0) {
+						Node node = tpelement.getChildNodes().item(0);
+						return node.getTextContent();
+					}
+				}
+				return null;
+			}
+
+			/* (non-Javadoc)
+			 * @see org.eclipse.jface.viewers.ICellModifier#modify(java.lang.Object, java.lang.String, java.lang.Object)
+			 */
+			public void modify(Object element, String property, Object value) {
+				TreeItem ti = (TreeItem) element;
+				TreeParent tp = (TreeParent) ti.getData();
+				if (tp.getData() != null && tp.getData() instanceof Element) {
+					Element tpelement = (Element) tp.getData();
+					if (tpelement.getChildNodes() != null && tpelement.getChildNodes().getLength() > 0) {
+						Node node = tpelement.getChildNodes().item(0);
+						if (node.getNodeType() == Node.TEXT_NODE) {
+							node.setTextContent((String)value);
+							treeRequestBody.update(tp, null);
+							SOAPDOMParser parser = new SOAPDOMParser();
+							String updatedOut =
+									parser.updateValue((String) treeRequestBody.getInput(), tp, (String)value);
+							if (updatedOut != null && updatedOut.trim().length() > 0) {
+								Stack<String> pathStack = new Stack<String>();
+								pathStack.push(ti.getText());
+								TreeItem tiPath = ti;
+								while (tiPath.getParentItem() != null ) {
+									tiPath = tiPath.getParentItem();
+									pathStack.push(tiPath.getText());
+								}
+								bodyText.setText(updatedOut);
+								getCurrentHistoryEntry().setBody(bodyText.getText());
+								treeRequestBody.setInput(updatedOut);
+								treeRequestBody.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
+								while (!pathStack.isEmpty()) {
+									TreeItem[] items = treeRequestBody.getTree().getItems();
+									String find = pathStack.pop();
+									/*boolean found =*/ findTreeItem(find, items);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+		});
+		treeRequestBody.setCellEditors(new CellEditor[] { null, new TextCellEditor(treeRequestBody.getTree()) });
+
+		requestPageBook.showPage(PAGE1_KEY);
+
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true); //GridData.FILL_HORIZONTAL);
+		gd.heightHint = 1;
+		gd.minimumHeight = 100;
+		requestPageBook.setLayoutData(gd);
+
+		requestPageBook.showPage(PAGE1_KEY);
+
 		bodyText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				if (!restoringFromHistoryEntry)
@@ -756,7 +1072,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 				}
 			}
 		});
-		ec5.setClient(bodyText);
+		ec5.setClient(requestPageBook);
 		GridData gd9 = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gd9.minimumHeight = 200;
 		ec5.setLayoutData(gd9);
@@ -764,6 +1080,36 @@ public class JAXRSWSTestView2 extends ViewPart {
 		
 		section.addExpansionListener(new FormExpansionAdapter());
 		section.setClient(sectionClient);  	    
+	}
+	
+//	private boolean findString(String searchString, TreeItem[] treeItems) {
+//		for (TreeItem treeItem : treeItems) {
+//			for (int i = 0; i < tree.getColumnCount(); i++) {
+//				String text = treeItem.getText(i);
+//				if ((text.toUpperCase().contains(searchString.toUpperCase()))) {
+//					tree.setSelection(treeItem);
+//					return true;
+//				}
+//			}
+//		}
+//
+//		return false;
+//	}
+	
+	private boolean findTreeItem ( String name, TreeItem[] treeItems ) {
+		for (TreeItem treeItem : treeItems) {
+			for (int i = 0; i < treeRequestBody.getTree().getColumnCount(); i++) {
+				String text = treeItem.getText(i);
+				if ((text.toUpperCase().contains(name.toUpperCase()))) {
+					treeRequestBody.getTree().setSelection(treeItem);
+					return true;
+				}
+				if (treeItem.getItemCount() > 0) {
+					return findTreeItem (name, treeItem.getItems());
+				}
+			}
+		}
+		return false;
 	}
 	
 	private TestHistoryEntry getCurrentHistoryEntry() {
@@ -858,8 +1204,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 		page2.setLayout(new GridLayout());
 		resultsBrowser = new Browser(page2, SWT.BORDER | SWT.WRAP );// | SWT.V_SCROLL);
 		GridData gd10 = new GridData(SWT.FILL, SWT.FILL, true, true);
-		gd7.heightHint = 1;
-		//		gd10.minimumHeight = 100;
+		gd10.heightHint = 1;
 		toolkit.adapt(resultsBrowser);
 		resultsBrowser.setLayoutData(gd10);
 
@@ -1123,6 +1468,16 @@ public class JAXRSWSTestView2 extends ViewPart {
 			if (bodyText.isEnabled()) {
 				bodyText.setText(entry.getBody());
 			}
+			if (!treeRequestBody.getTree().isDisposed()) {
+				if (entry.getBody().trim().length() > 0) {
+					if (SOAPDOMParser.isXMLLike(entry.getBody()))
+						treeRequestBody.setInput(entry.getBody());
+					else
+						treeRequestBody.setInput(null);
+				} else {
+					treeRequestBody.setInput(null);
+				}
+			}
 			if (dlsList.isEnabled()) {
 				dlsList.setSelection(entry.getHeaders());
 			}
@@ -1184,8 +1539,10 @@ public class JAXRSWSTestView2 extends ViewPart {
 				(methodType.equalsIgnoreCase(GET) ||
 				 methodType.equalsIgnoreCase(OPTIONS))) {
 			bodyText.setEnabled(false);
+			treeRequestBody.getTree().setEnabled(false);
 		} else {
 			bodyText.setEnabled(true);
+			treeRequestBody.getTree().setEnabled(true);
 		}
 	}
 
@@ -1196,6 +1553,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private void setControlsForWSType ( String wsType ) {
 		if (wsType.equalsIgnoreCase(JAX_WS)) {
 			bodyText.setEnabled(true);
+			treeRequestBody.getTree().setEnabled(true);
 			parmsList.setEnabled(false);
 			parmsList.removeAll();
 			dlsList.setEnabled(false);
@@ -1206,17 +1564,21 @@ public class JAXRSWSTestView2 extends ViewPart {
 
 			if (bodyText.getText().trim().length() == 0) {
 				bodyText.setText(emptySOAP);
+				treeRequestBody.setInput(emptySOAP);
 			}
 			openWSDLToolItem.setEnabled(true);
 		}
 		else if (wsType.equalsIgnoreCase(JAX_RS)) {
 			bodyText.setEnabled(true);
+			treeRequestBody.getTree().setEnabled(true);
 			parmsList.setEnabled(true);
 			dlsList.setEnabled(true);
 			openWSDLToolItem.setEnabled(false);
 
 			if (bodyText.getText().trim().length() > 0) {
 				bodyText.setText(EMPTY_STRING);
+				treeRequestBody.setInput(null);
+//				getCurrentHistoryEntry().setBody(EMPTY_STRING);
 			}
 		}
 		setMenusForCurrentState();
@@ -1281,7 +1643,13 @@ public class JAXRSWSTestView2 extends ViewPart {
 		
 		final String url = getCurrentHistoryEntry().getUrl();
 		final String action = getCurrentHistoryEntry().getAction();
-		final String body = getCurrentHistoryEntry().getBody();
+		String tempBody = getCurrentHistoryEntry().getBody();
+
+		// if it's XML, clean up the empty space and crlf between tags
+		if (SOAPDOMParser.isXMLLike(tempBody)) {
+			tempBody = tempBody.replaceAll(">\\s+<", "><");  //$NON-NLS-1$//$NON-NLS-2$
+		}
+		final String body = tempBody;
 		final String method = getCurrentHistoryEntry().getMethod();
 		final String headers = getCurrentHistoryEntry().getHeaders();
 		final String parms = getCurrentHistoryEntry().getParms();
@@ -1336,13 +1704,21 @@ public class JAXRSWSTestView2 extends ViewPart {
 					PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
 						public void run() {
 							if (status.getResultsText() != null) {
-								getCurrentHistoryEntry().setResultText(status.getResultsText());
-								JAXRSWSTestView2.this.resultsText.setText(status.getResultsText());
-								JAXRSWSTestView2.this.resultsBrowser.setText(status.getResultsText());
+								String results = status.getResultsText();
+								if (SOAPDOMParser.isXMLLike(results)) {
+									results = SOAPDOMParser.prettyPrint(results);
+								} else {
+									results = SOAPDOMParser.prettyPrintJSON(results);
+								}
+								getCurrentHistoryEntry().setResultText(results);
+								getCurrentHistoryEntry().setUrl(urlCombo.getText());
+								JAXRSWSTestView2.this.resultsText.setText(results);
+								JAXRSWSTestView2.this.resultsBrowser.setText(results);
 								JAXRSWSTestView2.this.form.reflow(true);
 							}
 							else if (status.getMessage() != null) { 
 								getCurrentHistoryEntry().setResultText(status.getMessage());
+								getCurrentHistoryEntry().setUrl(urlCombo.getText());
 								JAXRSWSTestView2.this.resultsText.setText(status.getMessage());
 								JAXRSWSTestView2.this.resultsBrowser.setText(status.getMessage());
 								JAXRSWSTestView2.this.form.reflow(true);

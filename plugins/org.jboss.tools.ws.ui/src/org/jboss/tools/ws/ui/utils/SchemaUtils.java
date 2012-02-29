@@ -988,7 +988,12 @@ public class SchemaUtils {
 			}
 			if (element.getAttribute("type") != null) {//$NON-NLS-1$
 				elemType = element.getAttributeValue("type");//$NON-NLS-1$
-				String nsprefix = elemType.substring(0, elemType.indexOf(':'));
+				String nsprefix = ""; //$NON-NLS-1$
+				try {
+					nsprefix = elemType.substring(0, elemType.indexOf(':'));
+				} catch (StringIndexOutOfBoundsException e) {
+					// ignore
+				}
 				String testUri = getURIfromSchemaPrefix(element, nsprefix);
 				if (elemType.indexOf(':') > -1) {
 					if (!(elemType.startsWith("xs:") || elemType.startsWith("xsd:"))){ //$NON-NLS-1$ //$NON-NLS-2$

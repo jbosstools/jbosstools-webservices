@@ -171,6 +171,7 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView2_Go_Tooltip;
 	public static String JAXRSWSTestView2_Headers_Section;
 	public static String JAXRSWSTestView2_Msg_No_Results_Check_Headers;
+	public static String JAXRSWSTestView2_Name_column;
 	public static String JAXRSWSTestView2_OpenInEditor_Action;
 	public static String JAXRSWSTestView2_Parameters_Section;
 	public static String JAXRSWSTestView2_RequestDetails_Section;
@@ -181,8 +182,11 @@ public class JBossWSUIMessages extends NLS {
 	public static String JAXRSWSTestView2_SaveResponseText_tooltip;
 	public static String JAXRSWSTestView2_ShowInBrowser_Tooltip;
 	public static String JAXRSWSTestView2_ShowRaw_Tooltip;
+	public static String JAXRSWSTestView2_ShowRequestTree_toolbar_btn;
+	public static String JAXRSWSTestView2_ShowRequestXML_toolbar_btn;
 	public static String JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date;
 	public static String JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date;
+	public static String JAXRSWSTestView2_Value_column;
 	public static String ResultsXMLStorageInput_WS_Invocation_Results_Prefix;
 	public static String TesterWSDLUtils_WSDL_HTTPS_Secured_Inaccessible;
 	public static String TesterWSDLUtils_WSDL_Inaccessible;
