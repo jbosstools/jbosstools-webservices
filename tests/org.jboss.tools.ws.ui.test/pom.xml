@@ -13,7 +13,7 @@
 	<packaging>eclipse-test-plugin</packaging>
 
 	<properties>
-		<coverage.filter>org.jboss.tools.ws.core*,org.jboss.tools.ws.ui*</coverage.filter>
+		<coverage.filter>org.jboss.tools.ws.*</coverage.filter>
 		<emma.instrument.bundles>org.jboss.tools.ws.core,org.jboss.tools.ws.ui</emma.instrument.bundles>
 	</properties>
 </project>
