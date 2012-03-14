@@ -11,5 +11,5 @@
 	<artifactId>ws.site</artifactId>
 	<name>ws.site</name>
 	
-	<packaging>eclipse-update-site</packaging>
+	<packaging>eclipse-repository</packaging>
 </project>
