@@ -14,5 +14,14 @@
 	<feature url="features/org.jboss.tools.ws.test.feature_0.0.0.jar" id="org.jboss.tools.ws.test.feature" version="0.0.0">
 		<category name="JBoss Tools ws Nightly Build Update Site"/>
 	</feature>
-
+	<!-- Sources -->
+	<feature url="features/org.jboss.tools.ws.feature.source_0.0.0.jar" id="org.jboss.tools.ws.feature.source" version="0.0.0">
+		<category name="JBoss Tools ws Nightly Build Update Site"/>
+	</feature>
+	<feature url="features/org.jboss.tools.ws.jaxrs.feature.source_0.0.0.jar" id="org.jboss.tools.ws.jaxrs.feature.source" version="0.0.0">
+		<category name="JBoss Tools ws Nightly Build Update Site"/>
+	</feature>
+	<feature url="features/org.jboss.tools.ws.test.feature.source_0.0.0.jar" id="org.jboss.tools.ws.test.feature.source" version="0.0.0">
+		<category name="JBoss Tools ws Nightly Build Update Site"/>
+	</feature>
 </site>
