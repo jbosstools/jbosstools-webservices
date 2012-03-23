@@ -89,8 +89,10 @@ public final class JdtUtils {
 	public static ICompilationUnit getCompilationUnit(final IJavaElement element) {
 		if (element instanceof IMember) {
 			return ((IMember) element).getCompilationUnit();
-		} else if (element instanceof IAnnotation) {
-			return ((IMember) ((IAnnotation) element).getParent()).getCompilationUnit();
+		} else if (element instanceof IAnnotation 
+				// ignore annotations on PackageDeclaration, such as in package-info.java
+				&& element.getParent() instanceof IMember) { 
+			return ((IMember) (element.getParent())).getCompilationUnit();
 		} else if (element instanceof ICompilationUnit) {
 			return (ICompilationUnit) element;
 		}
@@ -380,7 +382,11 @@ public final class JdtUtils {
 	 */
 	public static Annotation resolveAnnotation(IAnnotation javaAnnotation, CompilationUnit ast)
 			throws JavaModelException {
-		return resolveAnnotation((IMember) javaAnnotation.getParent(), ast, javaAnnotation.getElementName());
+		if (javaAnnotation.getParent() instanceof IMember) {
+			return resolveAnnotation((IMember) javaAnnotation.getParent(), ast,
+					javaAnnotation.getElementName());
+		}
+		return null;
 	}
 
 	private static Map<String, List<String>> resolveAnnotationElements(IAnnotation annotation)

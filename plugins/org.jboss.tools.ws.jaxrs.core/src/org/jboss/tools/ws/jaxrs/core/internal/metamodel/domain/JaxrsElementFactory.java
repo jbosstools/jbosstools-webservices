@@ -67,6 +67,9 @@ public class JaxrsElementFactory {
 	public JaxrsJavaElement<?> createElement(IAnnotation javaAnnotation, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws CoreException {
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
+		if(annotation == null) { // annotation on package declaration are ignored
+			return null;
+		}
 		final String annotationName = annotation.getName();
 		if (annotationName.equals(HttpMethod.class.getName())) {
 			final JaxrsHttpMethod httpMethod = createHttpMethod(annotation, ast, metamodel);
