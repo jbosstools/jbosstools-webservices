@@ -78,7 +78,8 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			}
 			IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
 					context.getInvocationOffset());
-			if (invocationElement.getElementType() == IJavaElement.METHOD) {
+			// ICompilationUnit.getElementAt(int) method may return null
+			if (invocationElement != null && invocationElement.getElementType() == IJavaElement.METHOD) {
 				IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement,
 						IJaxrsResourceMethod.class);
 				// the java method must be associated with a JAX-RS Resource Method. 
