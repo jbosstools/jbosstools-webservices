@@ -16,7 +16,7 @@
 		</mediaobject>
 	</figure>
 	<para>
-		Each element in the navigator displays the resolved HTTP method (for example: GET and POST) followed by the Uniform Resource Identifier (URI) path template (for example: /customers/{id}). <property>@Path</property> annotations are available for resources and subresources, at the method level. Optional <property>@ApplicationPath</property> annotation is available only any subclass of <classname>javax.ws.rs.core.Application</classname>.
+		Each element in the navigator displays the resolved HTTP method (for example: GET and POST) followed by the Uniform Resource Identifier (URI) path template (for example: /customers/{id}). <property>@Path</property> annotations are available for resources and subresources, at the method level. Optional <property>@ApplicationPath</property> annotation is available on any subclass of <classname>javax.ws.rs.core.Application</classname>.
 	</para>
 	<para>
 		Under each element are the resolved, consumed and produced media types (based on the annotations you have supplied for the method or type) and the associated Java method.
@@ -24,4 +24,61 @@
 	<para>
 		To navigate to the related source code for a JAX-RS resource, double click the elements of the resource explorer and the related source code will be opened and highlighted. You can also copy the URI path template for later use.
 	</para>
+	<para>
+		The tooling can include the <property>@ApplicationPath</property> annotation value in the endpoints URI Path Template for <classname>javax.ws.rs.core.Application</classname> subclases. To achieve this the JAX-RS application class must be provided. An example of this is:
+	</para>
+<programlisting>
+@ApplicationPath("/mypath")
+public class MyApplication extends Application {
+...
+}
+</programlisting>
+	<para>
+		You could also define the root path to the applications JAX-RS endpoint in the <filename>web.xml</filename> file. An example of this is:
+	</para>
+	<programlisting><![CDATA[
+<servlet-mapping>
+	<servlet-name>javax.ws.rs.core.Application</servlet-name>
+	<url-pattern>/hello/*</url-pattern>
+</servlet-mapping>]]>
+</programlisting>
+	<note>
+		<para>
+			The <filename>web.xml</filename> approach takes precedence over the annotation approach due to the JAX-RS 1.1 specification.
+		</para>
+	</note>
+	<section id="running_REST_methods">
+		<title>Running REST methods on the server</title>
+		<para>
+			You can run a particular method of your RESTful project by right-clicking on the <guilabel>JAX-RS REST Web Services</guilabel> method that exists for your project, viewable in the <guilabel>Project Explorer</guilabel> and selecting <menuchoice><guimenuitem>Run As</guimenuitem><guimenuitem>Run on Server</guimenuitem></menuchoice>.
+		</para>
+		<figure id="working_with_RESTful_02">
+			<title>Running a REST method on the server</title>
+			<mediaobject>
+				<imageobject>
+					<imagedata fileref="images/working_with_RESTful_02.png" format="PNG"/>
+				</imageobject>
+				<textobject>
+					<para>Running a REST method on the server</para>
+				</textobject>
+			</mediaobject>
+		</figure>
+		<para>
+			If the server is not in a started state when this action is executed, or the application the method belongs to is not deployed to the server, these actions will be performed as a result of choosing to running the method on the server.
+		</para>
+		<para>
+			Once the method has successfully run on the server, the <guilabel>Web Service Tester</guilabel> will open within the current workbench perspective  and the URL for the RESTful operation will have automatically been set.
+		</para>
+		<figure id="working_with_RESTful_03">
+			<title>Web Service Tester</title>
+			<mediaobject>
+				<imageobject>
+					<imagedata fileref="images/working_with_RESTful_03.png" format="PNG"/>
+				</imageobject>
+				<textobject>
+					<para>Web Service Tester</para>
+				</textobject>
+			</mediaobject>
+		</figure>
+	</section>
 </chapter>
