@@ -41,6 +41,11 @@
        <!-- <para>&HORIZ_LINE;</para>-->
       </step>
     </substeps>
+	<note>
+		<para>
+			You can also access this view by right-clicking on a WSDL file of a project in the <guilabel>Project Explorer</guilabel> and selecting <menuchoice><guimenuitem>Web Services</guimenuitem><guimenuitem>Test in JBoss Web Service Tester</guimenuitem></menuchoice> from the context menu. This will open the <guilabel>Web Service Tester</guilabel> with the details of the selected WSDL file.
+		</para>
+	</note>
     <para>
       The main components of the Web Service Tester View are:  
     </para>
