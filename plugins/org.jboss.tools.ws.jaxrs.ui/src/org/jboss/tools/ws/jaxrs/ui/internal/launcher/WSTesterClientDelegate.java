@@ -91,7 +91,7 @@ public class WSTesterClientDelegate extends ClientDelegate {
 	 * @return
 	 */
 	private String computeEndpointURI(final IModule module, final IJaxrsEndpoint endpoint) {
-		String uriPathTemplate = module.getName() + "/" + endpoint.getUriPathTemplate();
+		String uriPathTemplate = module.getName() + endpoint.getUriPathTemplate();
 		// check to see if this project has been deployed...
 		IServer[] servers = ServerUtil.getServersByModule(module, null);
 		if (servers == null || servers.length == 0) {
