@@ -23,12 +23,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
@@ -61,9 +59,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/** The enclosing JavaProject. */
 	private final IJavaProject javaProject;
-
-	/** The Service URI. Default is "/" */
-	private String serviceUri = "/";
 
 	/**
 	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although there should be only one.
@@ -297,25 +292,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsResource>(resources));
 	}
 
-	public final String getServiceUri() {
-		return serviceUri;
-	}
-
-	/**
-	 * Sets the Base URI for the URI mapping templates.
-	 * 
-	 * @param uri
-	 *            the serviceUri to set
-	 */
-	public final void setServiceUri(final String uri) {
-		// remove trailing "*" character, if present.
-		if (uri.endsWith("*")) {
-			this.serviceUri = uri.substring(0, uri.length() - 1);
-		} else {
-			this.serviceUri = uri;
-		}
-	}
-
 	/**
 	 * Returns the JAX-RS ElementKind associated with the given java element.
 	 * 
@@ -335,50 +311,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			break;
 		}
 		return null;
-	}
-
-	/**
-	 * Report errors from the given markers into the JAX-RS element(s) associated with the given compiltation unit.
-	 * 
-	 * @param compilationUnit
-	 *            the compilation unit
-	 * @param markers
-	 *            the markers
-	 * @return true if errors were found and reported, false otherwise
-	 * @throws JavaModelException
-	 *             in case of underlying exception
-	 */
-	public final boolean reportErrors(final ICompilationUnit compilationUnit, final IMarker[] markers)
-			throws JavaModelException {
-		boolean hasErrors = false;
-		for (IMarker marker : markers) {
-			if (marker.getAttribute(IMarker.SEVERITY, 0) != IMarker.SEVERITY_ERROR) {
-				continue;
-			}
-			Logger.debug("Error found: " + marker.getAttribute(IMarker.MESSAGE, ""));
-			JaxrsJavaElement<?> element = (JaxrsJavaElement<?>) find(compilationUnit.getElementAt(marker.getAttribute(
-					IMarker.CHAR_START, 0)));
-			if (element != null) {
-				element.hasErrors(true);
-			}
-			hasErrors = true;
-		}
-		return hasErrors;
-	}
-
-	/**
-	 * Resets this metamodel for further re-use (ie, before a new 'full/clean' build). Keeping the same instance of
-	 * Metamodel in the project's session properties is a convenient thing, especially on the UI side, where some
-	 * caching system is use to maintain the state of nodes in the Common Navigator (framework).
-	 */
-	public void reset() {
-		Logger.debug("Reseting the JAX-RS Metamodel fpr project {}", this.javaProject.getElementName());
-		this.applications.clear();
-		this.httpMethods.clear();
-		this.providers.clear();
-		this.resources.clear();
-		this.elementsIndex.clear();
-		this.endpoints.clear();
 	}
 
 	/**

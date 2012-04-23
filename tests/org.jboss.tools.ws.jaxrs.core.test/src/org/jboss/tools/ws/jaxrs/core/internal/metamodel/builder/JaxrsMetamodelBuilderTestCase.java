@@ -11,8 +11,10 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -23,6 +25,7 @@ import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
@@ -48,7 +51,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldFullBuildProjectWithExistingMetamodel() throws CoreException, OperationCanceledException,
+	public void shouldFullBuildJaxrsProjectWithExistingMetamodel() throws CoreException, OperationCanceledException,
 			InterruptedException {
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) == null) {
@@ -56,16 +59,16 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		}
 		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
 		// operation
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
 		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-		project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
 	}
 
 	@Test
-	public void shouldFullBuildProjectWithoutExistingMetamodel() throws CoreException, OperationCanceledException,
+	public void shouldFullBuildJaxrsProjectWithoutExistingMetamodel() throws CoreException, OperationCanceledException,
 			InterruptedException {
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
@@ -73,50 +76,49 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		}
 		assertThat(JaxrsMetamodelLocator.get(javaProject), nullValue());
 		// operation
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
 		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-		project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
 	}
 
 	@Test
-	public void shouldCleanBuildProjectWithExistingMetamodel() throws CoreException, OperationCanceledException,
-			InterruptedException {
-		// pre-conditions
-		if (JaxrsMetamodelLocator.get(javaProject) == null) {
-			JaxrsMetamodel.create(javaProject);
-		}
-		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
-		// operation
-		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-		project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
-		// verification
-		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
-		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
-	}
-
-	@Test
-	public void shouldCleanBuildProjectWithoutExistingMetamodel() throws CoreException, OperationCanceledException,
+	public void shouldNotFullBuildNonJaxrsProject() throws CoreException, OperationCanceledException,
 			InterruptedException {
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
 			JaxrsMetamodelLocator.get(javaProject).remove();
 		}
 		assertThat(JaxrsMetamodelLocator.get(javaProject), nullValue());
+		ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
+		assertFalse(ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID));
 		// operation
 		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-		project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
-		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(12));
+		assertThat(metamodel, nullValue());
 	}
 	
 	@Test
-	public void shouldIncrementalBuildProjectAfterResourceCreationWithExistingMetamodel() throws CoreException,
+	public void shouldNotCleanBuildNonJaxrsProject() throws CoreException, OperationCanceledException,
+			InterruptedException {
+		// pre-conditions
+		if (JaxrsMetamodelLocator.get(javaProject) != null) {
+			JaxrsMetamodelLocator.get(javaProject).remove();
+		}
+		assertThat(JaxrsMetamodelLocator.get(javaProject), nullValue());
+		ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
+		assertFalse(ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID));
+		// operation
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
+		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+		assertThat(metamodel, nullValue());
+	}
+	
+	@Test
+	public void shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithExistingMetamodel() throws CoreException,
 			OperationCanceledException, InterruptedException {
 		// pre-conditions: trigger an initial build to have a delta later (when another build is triggered after the resource creation)
 		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
@@ -128,12 +130,12 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		// 12 usual endpoints + 2 newly created
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
+		// 13 usual endpoints + 2 newly created
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(16));
 	}
 
 	@Test
-	public void shouldIncrementalBuildProjectAfterResourceCreationWithoutExistingMetamodel() throws CoreException,
+	public void shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithoutExistingMetamodel() throws CoreException,
 			OperationCanceledException, InterruptedException {
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
@@ -146,7 +148,9 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		// 12 usual endpoints + 2 newly created
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
+		// 13 usual endpoints + 2 newly created
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(16));
 	}
+	
+	
 }

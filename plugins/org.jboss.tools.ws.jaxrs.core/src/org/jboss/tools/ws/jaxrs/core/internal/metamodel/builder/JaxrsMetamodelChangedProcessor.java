@@ -47,7 +47,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 public class JaxrsMetamodelChangedProcessor {
 
 	public List<JaxrsMetamodelDelta> processAffectedMetamodels(List<JaxrsMetamodelDelta> affectedMetamodels,
-			IProgressMonitor progressMonitor) {
+			IProgressMonitor progressMonitor) throws CoreException {
 		for (JaxrsMetamodelDelta affectedMetamodel : affectedMetamodels) {
 			processAffectedMetamodel(affectedMetamodel, progressMonitor);
 		}
@@ -62,7 +62,7 @@ public class JaxrsMetamodelChangedProcessor {
 	 * @return the given metamodelDelta completed with affected endpoints.
 	 */
 	public JaxrsMetamodelDelta processAffectedMetamodel(final JaxrsMetamodelDelta metamodelDelta,
-			IProgressMonitor progressMonitor) {
+			IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> affectedElements = metamodelDelta.getAffectedElements();
 		Collections.sort(affectedElements);
 		try {
@@ -78,8 +78,6 @@ public class JaxrsMetamodelChangedProcessor {
 					metamodelDelta.addAffectedEndpoint(affectedEndpoints);
 				}
 			}
-		} catch (CoreException e) {
-			Logger.error("Failed to process JAX-RS element changes", e);
 		} finally {
 			Logger.debug("Done processing JAX-RS element change(s).");
 		}

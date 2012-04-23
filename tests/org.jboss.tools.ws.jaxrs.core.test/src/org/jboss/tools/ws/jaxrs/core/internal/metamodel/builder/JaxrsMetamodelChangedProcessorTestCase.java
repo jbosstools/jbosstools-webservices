@@ -135,7 +135,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	}
 
 	private List<JaxrsEndpointDelta> processEvent(JaxrsElementDelta affectedElement,
-			IProgressMonitor progressMonitor) {
+			IProgressMonitor progressMonitor) throws CoreException {
 		JaxrsMetamodelDelta affectedMetamodel = new JaxrsMetamodelDelta(metamodel, CHANGED);
 		affectedMetamodel.add(affectedElement);
 		delegate.processAffectedMetamodel(affectedMetamodel, progressMonitor);

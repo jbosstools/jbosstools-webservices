@@ -76,8 +76,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 		}
 		logBuild(kind, args, project);
 		switch (kind) {
-		case CLEAN_BUILD:
-		case FULL_BUILD:
+		case FULL_BUILD: // also called after a CLEAN_BUILD
 		case AUTO_BUILD:
 		case INCREMENTAL_BUILD:
 			build(kind, project, monitor);

@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -32,8 +33,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TypedRegion;
 
 /**
- * A visitor for a single annotation on a java member (can be a method or a
- * type).
+ * A visitor for a single annotation on a java member (can be a method or a type).
  * 
  * @author xcoulon
  */
@@ -45,6 +45,12 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	/** the annotated member type. */
 	private final int memberType;
 
+	/** the annotated member start position, to distinguish between overloaded methods. */
+	private final int memberStartPosition;
+
+	/** the annotated member end position, to distinguish between overloaded methods. */
+	private final int memberEndPosition;
+
 	/** the name of the annotation. */
 	private final List<String> annotationNames = new ArrayList<String>();
 
@@ -52,8 +58,7 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	private final List<Annotation> annotations = new ArrayList<Annotation>();
 
 	/**
-	 * Full Constructor to resolve a single annotation from its fully qualified
-	 * name.
+	 * Full Constructor to resolve a single annotation from its fully qualified name.
 	 * 
 	 * @param name
 	 *            the member name
@@ -61,17 +66,19 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	 *            the member type
 	 * @param name
 	 *            the annotation name
+	 * @throws JavaModelException
 	 */
-	public JavaAnnotationsVisitor(final IMember member, final String annotationName) {
+	public JavaAnnotationsVisitor(final IMember member, final String annotationName) throws JavaModelException {
 		super();
 		this.memberName = member.getElementName();
 		this.memberType = member.getElementType();
+		this.memberStartPosition = member.getSourceRange().getOffset();
+		this.memberEndPosition = member.getSourceRange().getOffset() + member.getSourceRange().getLength();
 		this.annotationNames.add(annotationName);
 	}
 
 	/**
-	 * Full Constructor to resolve a multiple annotations from their fully
-	 * qualified name.
+	 * Full Constructor to resolve a multiple annotations from their fully qualified name.
 	 * 
 	 * @param name
 	 *            the member name
@@ -79,11 +86,14 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	 *            the member type
 	 * @param name
 	 *            the annotation name
+	 * @throws JavaModelException
 	 */
-	public JavaAnnotationsVisitor(final IMember member, final List<String> annotationNames) {
+	public JavaAnnotationsVisitor(final IMember member, final List<String> annotationNames) throws JavaModelException {
 		super();
 		this.memberName = member.getElementName();
 		this.memberType = member.getElementType();
+		this.memberStartPosition = member.getSourceRange().getOffset();
+		this.memberEndPosition = member.getSourceRange().getOffset() + member.getSourceRange().getLength();
 		this.annotationNames.addAll(annotationNames);
 	}
 
@@ -94,7 +104,8 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	 */
 	@Override
 	public final boolean visit(final AnnotationTypeDeclaration node) {
-		if (memberType == IJavaElement.TYPE && node.getName().getFullyQualifiedName().equals(memberName)) {
+		if (memberType == IJavaElement.TYPE && node.getName().getFullyQualifiedName().equals(memberName)
+				&& matchesLocation(node)) {
 			visitExtendedModifiers((List<?>) node.getStructuralProperty(AnnotationTypeDeclaration.MODIFIERS2_PROPERTY));
 			return false;
 		}
@@ -104,12 +115,12 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.
-	 *      TypeDeclaration)
+	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom. TypeDeclaration)
 	 */
 	@Override
 	public final boolean visit(final TypeDeclaration node) {
-		if (memberType == IJavaElement.TYPE && node.getName().getFullyQualifiedName().equals(memberName)) {
+		if (memberType == IJavaElement.TYPE && node.getName().getFullyQualifiedName().equals(memberName)
+				&& matchesLocation(node)) {
 			visitExtendedModifiers((List<?>) node.getStructuralProperty(TypeDeclaration.MODIFIERS2_PROPERTY));
 			return false;
 		}
@@ -119,12 +130,12 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.
-	 *      MethodDeclaration)
+	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom. MethodDeclaration)
 	 */
 	@Override
 	public final boolean visit(final MethodDeclaration node) {
-		if (memberType == IJavaElement.METHOD && node.getName().getFullyQualifiedName().equals(memberName)) {
+		if (memberType == IJavaElement.METHOD && node.getName().getFullyQualifiedName().equals(memberName)
+				&& matchesLocation(node)) {
 			visitExtendedModifiers((List<?>) node.getStructuralProperty(MethodDeclaration.MODIFIERS2_PROPERTY));
 			return false;
 		}
@@ -134,19 +145,29 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.
-	 *      MethodDeclaration)
+	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom. MethodDeclaration)
 	 */
 	@Override
 	public final boolean visit(final FieldDeclaration node) {
 		if (memberType == IJavaElement.FIELD) {
 			VariableDeclarationFragment fragment = (VariableDeclarationFragment) (node.fragments().get(0));
-			if (fragment.getName().toString().equals(memberName)) {
+			if (fragment.getName().toString().equals(memberName) && matchesLocation(node)) {
 				visitExtendedModifiers((List<?>) node.getStructuralProperty(FieldDeclaration.MODIFIERS2_PROPERTY));
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Checks if the given node matches the expected member location by comparing start and end positions.
+	 * 
+	 * @param node
+	 * @return
+	 */
+	private boolean matchesLocation(final ASTNode node) {
+		return node.getStartPosition() >= this.memberStartPosition
+				&& (node.getStartPosition() + node.getLength()) <= this.memberEndPosition;
 	}
 
 	/**
@@ -179,9 +200,8 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	}
 
 	/**
-	 * Returns the Annotation element matching the annotation name given in the
-	 * visitor constructor. This method should only be called when the
-	 * constructor with a single annotation name was used.
+	 * Returns the Annotation element matching the annotation name given in the visitor constructor. This method should
+	 * only be called when the constructor with a single annotation name was used.
 	 * 
 	 * @return the annotation found on the target java element
 	 * @throws JavaModelException
@@ -196,10 +216,9 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	}
 
 	/**
-	 * Returns the Annotation elements matching the annotations name given in
-	 * the visitor constructor. The matching annotations are indexed by their
-	 * associated Java type's fully qualified names. This method should only be
-	 * called when the constructor with multiple annotation names was used.
+	 * Returns the Annotation elements matching the annotations name given in the visitor constructor. The matching
+	 * annotations are indexed by their associated Java type's fully qualified names. This method should only be called
+	 * when the constructor with multiple annotation names was used.
 	 * 
 	 * @return the annotation found on the target java element
 	 * @throws JavaModelException

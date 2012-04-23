@@ -11,6 +11,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/persistence-api-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/jboss-servlet-api_3.0_spec-1.0.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/jaxrs-api-2.0.1.GA.jar"/>
 	<classpathentry kind="lib" path="lib/resteasy-jaxrs-2.0.1.GA.jar"/>
 	<classpathentry kind="lib" path="lib/resteasy-jaxb-provider-2.0.1.GA.jar"/>

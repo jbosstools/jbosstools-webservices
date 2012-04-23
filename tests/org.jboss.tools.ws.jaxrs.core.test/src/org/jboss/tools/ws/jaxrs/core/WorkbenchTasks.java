@@ -172,7 +172,7 @@ public class WorkbenchTasks {
 			throws CoreException, OperationCanceledException, InterruptedException {
 		project.refreshLocal(IResource.DEPTH_INFINITE, progressMonitor);
 		project.build(buildKind, progressMonitor);
-		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+		Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
 	}
 
 	public static IPackageFragmentRoot addClasspathEntry(IJavaProject javaProject, String name,

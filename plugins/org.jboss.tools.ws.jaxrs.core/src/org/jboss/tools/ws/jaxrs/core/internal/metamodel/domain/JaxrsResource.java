@@ -122,16 +122,6 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 		return EnumKind.UNDEFINED;
 	}
 
-	@Override
-	public final void hasErrors(final boolean hasErrors) {
-		super.hasErrors(hasErrors);
-		if (!hasErrors) {
-			for (IJaxrsResourceMethod resourceMethod : resourceMethods.values()) {
-				resourceMethod.hasErrors(hasErrors);
-			}
-		}
-	}
-
 	public final String getName() {
 		return getJavaElement().getElementName();
 	}
@@ -159,11 +149,6 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 		return null;
 	}
 
-	public Annotation getConsumesAnnotation() {
-		final Annotation consumesAnnotation = getAnnotation(Consumes.class.getName());
-		return consumesAnnotation;
-	}
-
 	@Override
 	public List<String> getProducedMediaTypes() {
 		final Annotation producesAnnotation = getAnnotation(Produces.class.getName());
@@ -176,10 +161,6 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	public Annotation getProducesAnnotation() {
 		final Annotation producesAnnotation = getAnnotation(Produces.class.getName());
 		return producesAnnotation;
-	}
-
-	public final IJaxrsApplication getApplication() {
-		return application;
 	}
 
 	@Override

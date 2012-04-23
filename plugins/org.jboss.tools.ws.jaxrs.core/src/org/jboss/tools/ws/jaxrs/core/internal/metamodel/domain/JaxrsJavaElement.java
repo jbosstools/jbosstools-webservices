@@ -114,21 +114,6 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		return javaElement != null ? javaElement.getElementName() : "*unknown java element*";
 	}
 
-	/**
-	 * Returns the CompilationUnit (AST3/DOM) of the given java element.
-	 * 
-	 * @param element
-	 *            the java element
-	 * @param progressMonitor
-	 *            the progress monitor
-	 * @return the compilation unit or null
-	 * @throws JavaModelException
-	 *             in case of underlying exception
-	 */
-	final CompilationUnit getCompilationUnit(final IProgressMonitor progressMonitor) throws JavaModelException {
-		return JdtUtils.parse(javaElement, progressMonitor);
-	}
-
 	public Map<String, Annotation> getAnnotations() {
 		return annotations;
 	}

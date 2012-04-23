@@ -24,7 +24,7 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		final List<IType> resources = JaxrsAnnotationsScanner.findResourceTypes(javaProject, new NullProgressMonitor());
 		// verifications
-		assertThat(resources.size(), equalTo(5));
+		assertThat(resources.size(), equalTo(7));
 	}
 
 	@Test
@@ -60,7 +60,7 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 		final List<IMethod> resourceMethods = JaxrsAnnotationsScanner.findResourceMethods(javaProject,new ArrayList<IJaxrsHttpMethod>(),
 				new NullProgressMonitor());
 		// verifications
-		assertThat(resourceMethods.size(), equalTo(9)); // just sub resource methods with @Path annotation
+		assertThat(resourceMethods.size(), equalTo(14)); // just sub resource methods with @Path annotation
 	}
 
 	@Test

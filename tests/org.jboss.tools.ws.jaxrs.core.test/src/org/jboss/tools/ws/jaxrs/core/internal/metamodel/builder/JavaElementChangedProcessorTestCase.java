@@ -194,9 +194,9 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JavaElementDelta event = createEvent(sourceFolder, ADDED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
-		// 1 Application + 1 HttpMethod + 3 RootResources + 2 Subresources + all their methods and fields (total of 16)..
-		assertThat(impacts.size(), equalTo(23));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(27)); // 4 previous HttpMethods + 23 added items
+		// 1 Application + 1 HttpMethod + 6 RootResources + 2 Subresources + all their methods and fields (total of 16)..
+		assertThat(impacts.size(), equalTo(30));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(34)); // 4 previous HttpMethods + 29 added items
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 	}
 

@@ -61,12 +61,35 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 	}
 	
 	@Test
-	public void shouldValidateResourceMethod() throws CoreException {
+	public void shouldValidateCustomerResourceMethod() throws CoreException {
 		// preconditions
 		IType customerJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final JaxrsBaseElement customerResource = metamodel.getElement(customerJavaType);
 		// operation
 		final List<ValidatorMessage> validationMessages = customerResource.validate();
+		// validation
+		assertThat(validationMessages.size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldValidateBarResourceMethod() throws CoreException {
+		// preconditions
+		IType barJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.BarResource", javaProject);
+		final JaxrsBaseElement barResource = metamodel.getElement(barJavaType);
+		// operation
+		final List<ValidatorMessage> validationMessages = barResource.validate();
+		// validation
+		// 3 errors because of curly brackets + 4 warnings because of missing (correct) parameters
+		assertThat(validationMessages.size(), equalTo(7));
+	}
+
+	@Test
+	public void shouldValidateBazResourceMethod() throws CoreException {
+		// preconditions
+		IType bazJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource", javaProject);
+		final JaxrsBaseElement barResource = metamodel.getElement(bazJavaType);
+		// operation
+		final List<ValidatorMessage> validationMessages = barResource.validate();
 		// validation
 		assertThat(validationMessages.size(), equalTo(0));
 	}

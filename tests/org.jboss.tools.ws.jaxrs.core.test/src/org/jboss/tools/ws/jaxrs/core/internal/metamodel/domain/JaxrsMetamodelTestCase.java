@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
@@ -131,7 +132,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	public void shouldAssertResourcesAndMethods() throws CoreException {
 		// for now, the result excludes the (binary) AsynchronousDispatcher, and
 		// hence, its (sub)resources
-		Assert.assertEquals(5, metamodel.getAllResources().size());
+		Assert.assertEquals(7, metamodel.getAllResources().size());
 		for (IJaxrsResource jaxrsResource : metamodel.getAllResources()) {
 			assertThat(((JaxrsResource) jaxrsResource).getJavaElement(), notNullValue());
 			assertThat(((JaxrsResource) jaxrsResource).getKind(), notNullValue());
@@ -142,7 +143,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	@Test
 	public void shouldAssertResolvedEndpoints() throws CoreException {
 		List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
-		Assert.assertEquals("Wrong result", 12, endpoints.size());
+		Assert.assertEquals("Wrong result", 14, endpoints.size());
 		for (IJaxrsEndpoint endpoint : endpoints) {
 			Assert.assertFalse("Empty list of resourceMethods", endpoint.getResourceMethods().isEmpty());
 			Assert.assertNotNull("No URI Path template", endpoint.getUriPathTemplate());
@@ -203,6 +204,17 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
 		Assert.assertThat(customerResourceMethod.getPathParamValueProposals(), containsInAnyOrder("id"));
+	}
+	
+	@Test
+	public void shouldRetrieveBarResourceMethodProposals() throws CoreException {
+		IType bazType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource", javaProject);
+		IMethod bazMethod = getMethod(bazType, "getContent2");
+		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(bazMethod);
+		Assert.assertThat(customerResourceMethod, notNullValue());
+		final List<String> pathParamValueProposals = customerResourceMethod.getPathParamValueProposals();
+		Assert.assertThat(pathParamValueProposals, hasSize(3));
+		Assert.assertThat(pathParamValueProposals, containsInAnyOrder("id", "format", "encoding"));
 	}
 	
 	@Test

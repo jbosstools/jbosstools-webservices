@@ -476,7 +476,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 
 	@Override
 	public List<String> getPathParamValueProposals() {
-		List<String> proposals = new ArrayList<String>();
+		final List<String> proposals = new ArrayList<String>();
 		final Annotation methodPathAnnotation = getPathAnnotation();
 		if (methodPathAnnotation != null) {
 			final String value = methodPathAnnotation.getValue("value");
@@ -506,7 +506,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 		while ((beginIndex = value.indexOf("{", beginIndex + 1)) != -1) {
 			int semicolonIndex = value.indexOf(":", beginIndex);
 			int closingCurlyBraketIndex = value.indexOf("}", beginIndex);
-			int endIndex = semicolonIndex != -1 ? semicolonIndex
+			int endIndex = (semicolonIndex != -1)? Math.min(semicolonIndex, closingCurlyBraketIndex)
 					: closingCurlyBraketIndex;
 			params.add(value.substring(beginIndex + 1, endIndex).trim());
 		}

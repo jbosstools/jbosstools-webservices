@@ -196,11 +196,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedMetamodel.getDeltaKind(), equalTo(CHANGED));
 		assertThat(affectedMetamodel.getMetamodel(), equalTo((IJaxrsMetamodel) metamodel));
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
-		// 1 application + 1 HttpMethod + 3 RootResources + 2 Subresources
-		assertThat(affectedElements.size(), equalTo(7));
+		// 1 application + 1 HttpMethod + 4 RootResources + 2 Subresources
+		assertThat(affectedElements.size(), equalTo(9));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all HttpMethods, Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(27));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(34));
 	}
 
 	@Test
@@ -222,11 +222,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		metamodel = (JaxrsMetamodel) affectedMetamodel.getMetamodel();
 		assertThat(metamodel, equalTo((IJaxrsMetamodel) metamodel));
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
-		// 1 application + 1 HttpMethod + 3 RootResources + 2 Subresources
-		assertThat(affectedElements.size(), equalTo(13));
+		// 1 application + 1 HttpMethod + 4 RootResources + 2 Subresources
+		assertThat(affectedElements.size(), equalTo(15));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all Applications, HttpMethods (including @OPTIONS and @HEAD), Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(30));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(37));
 	}
 
 	/**
@@ -255,9 +255,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		metamodel = (JaxrsMetamodel) affectedMetamodel.getMetamodel();
 		assertThat(metamodel, notNullValue());
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
-		assertThat(affectedElements.size(), equalTo(13));
+		assertThat(affectedElements.size(), equalTo(15));
 		// all Applications, HttpMethods (including @OPTIONS and @HEAD), project Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(30));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(37));
 
 	}
 
