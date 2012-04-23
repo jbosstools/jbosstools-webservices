@@ -103,7 +103,7 @@ public class WSTesterClientDelegate extends ClientDelegate {
 		// if it's been deployed, we can grab the domain and web port
 		String domain = servers[0].getHost();
 		String webport = servers[0].getAttribute("org.jboss.ide.eclipse.as.core.server.webPort", "8080");//$NON-NLS-1$ //$NON-NLS-2$
-		return "http://" + domain + ':' + webport + "/" + path.toPortableString(); //$NON-NLS-1$
+		return "http://" + domain + ':' + webport + "/" + path.toString(); //$NON-NLS-1$
 
 	}
 }

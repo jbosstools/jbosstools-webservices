@@ -33,11 +33,12 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.ServerUtil;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement;
+import org.jboss.tools.ws.jaxrs.ui.internal.launcher.WSTesterClientDelegate;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
  * @author bfitzpat
- * 
+ * @deprecated replaced by {@link WSTesterClientDelegate}
  */
 public class OpenInWSTesterAction extends Action implements ISelectionChangedListener {
 
