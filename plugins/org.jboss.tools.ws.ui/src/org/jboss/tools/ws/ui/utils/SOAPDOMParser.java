@@ -286,6 +286,15 @@ public class SOAPDOMParser {
 				}
 			}
 			return output;
+		} else if (inJSON.startsWith("[") && inJSON.endsWith("]")) { //$NON-NLS-1$ //$NON-NLS-2$
+			String output = "[\r\n"; //$NON-NLS-1$
+			inJSON = inJSON.substring(1, inJSON.length() - 1);
+			String innerParts = prettyPrintJSON(inJSON);
+			output = output + innerParts;
+			output = output + "\r\n]"; //$NON-NLS-1$
+			return output;
 		}
 		return inJSON;
-	}}
+	}
+
+}
