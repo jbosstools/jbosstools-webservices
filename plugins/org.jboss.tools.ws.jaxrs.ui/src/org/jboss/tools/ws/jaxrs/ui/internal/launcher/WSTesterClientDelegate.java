@@ -10,9 +10,7 @@ package org.jboss.tools.ws.jaxrs.ui.internal.launcher;
 
 import java.lang.reflect.Method;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.ui.IViewPart;
@@ -93,17 +91,16 @@ public class WSTesterClientDelegate extends ClientDelegate {
 	 * @return
 	 */
 	private String computeEndpointURI(final IModule module, final IJaxrsEndpoint endpoint) {
-		String uriPathTemplate = endpoint.getUriPathTemplate();
-		IPath path = new Path(module.getName()).append(uriPathTemplate);
+		String uriPathTemplate = module.getName() + "/" + endpoint.getUriPathTemplate();
 		// check to see if this project has been deployed...
 		IServer[] servers = ServerUtil.getServersByModule(module, null);
 		if (servers == null || servers.length == 0) {
-			return "http://[domain]:[port]/" + path.toPortableString(); //$NON-NLS-1$
+			return "http://[domain]:[port]/" + uriPathTemplate; //$NON-NLS-1$
 		}
 		// if it's been deployed, we can grab the domain and web port
 		String domain = servers[0].getHost();
 		String webport = servers[0].getAttribute("org.jboss.ide.eclipse.as.core.server.webPort", "8080");//$NON-NLS-1$ //$NON-NLS-2$
-		return "http://" + domain + ':' + webport + "/" + path.toString(); //$NON-NLS-1$
+		return "http://" + domain + ':' + webport + "/" + uriPathTemplate; //$NON-NLS-1$
 
 	}
 }
