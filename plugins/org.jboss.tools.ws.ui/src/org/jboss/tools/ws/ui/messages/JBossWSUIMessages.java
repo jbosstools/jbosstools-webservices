@@ -220,6 +220,11 @@ public class JBossWSUIMessages extends NLS {
 	public static String WSDLBrowseDialog_WSDL_URL_Dialog_Title;
 	public static String WSDLBrowseDialog_WSDL_URL_Prompt;
 
+	public static String WSTesterURLInputsDialog_DialogMessage;
+	public static String WSTesterURLInputsDialog_DialogTitle;
+	public static String WSTesterURLInputsDialog_URLParms_Label;
+	public static String WSTesterURLInputsDialog_Validation_Error_String;
+	public static String WSTesterURLInputsDialog_Window_Title;
 	public static String WSTestUtils_SaveResponseText_Error_Msg;
 	public static String WSTestUtils_SaveResponseText_Title;
 

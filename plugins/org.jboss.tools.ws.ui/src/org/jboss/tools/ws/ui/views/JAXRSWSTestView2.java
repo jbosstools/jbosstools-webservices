@@ -116,6 +116,7 @@ import org.eclipse.ui.forms.widgets.ScrolledPageBook;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.part.ViewPart;
 import org.jboss.tools.ws.ui.JBossWSUIPlugin;
+import org.jboss.tools.ws.ui.dialogs.WSTesterURLInputsDialog;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.jboss.tools.ws.ui.utils.JAXRSTester;
 import org.jboss.tools.ws.ui.utils.JAXWSTester2;
@@ -1610,6 +1611,19 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private void handleTest(final String wsTech) {
 
 		String urlText = urlCombo.getText();
+		
+		// if we need to configure incoming parameters in the URL (i.e. from JAX-RS tooling) 
+		if (urlText.endsWith("}")) { //$NON-NLS-1$
+			WSTesterURLInputsDialog dialog = new WSTesterURLInputsDialog(this.getSite().getShell(), urlText);
+			int rtn_code = dialog.open();
+			if (rtn_code == Window.OK) {
+				urlText = dialog.getURL();
+				urlCombo.setText(urlText);
+			} else {
+				return;
+			}
+		}
+		
 		try {
 			new URL(urlText);
 		} catch (MalformedURLException mue) {
