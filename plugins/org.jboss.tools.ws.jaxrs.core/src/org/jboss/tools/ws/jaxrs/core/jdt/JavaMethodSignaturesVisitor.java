@@ -85,7 +85,7 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 				Logger.warn("Could not resolve bindings form method " + method.getElementName());
 			} else {
 				final IType returnedType = methodBinding.getReturnType() != null ? (IType) methodBinding
-						.getReturnType().getJavaElement() : null;
+						.getReturnType().getJavaElement().getAdapter(IType.class) : null;
 				List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
 				@SuppressWarnings("unchecked")
 				List<SingleVariableDeclaration> parameters = declaration.parameters();
