@@ -222,6 +222,9 @@ public class JBossWSUIMessages extends NLS {
 
 	public static String WSTesterURLInputsDialog_DialogMessage;
 	public static String WSTesterURLInputsDialog_DialogTitle;
+	public static String WSTesterURLInputsDialog_Int_Validation_Error_String;
+	public static String WSTesterURLInputsDialog_Required_Parm_Value_Validation_String;
+	public static String WSTesterURLInputsDialog_Type_Column;
 	public static String WSTesterURLInputsDialog_URLParms_Label;
 	public static String WSTesterURLInputsDialog_Validation_Error_String;
 	public static String WSTesterURLInputsDialog_Window_Title;

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.ui.dialogs;
 
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -49,11 +50,17 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 	private TreeViewer treeRequestBody;
 	private static final String NAME_COLUMN = "name";//$NON-NLS-1$
 	private static final String VALUE_COLUMN = "value";//$NON-NLS-1$
-	private static final String[] TREE_COLUMNS = new String[] { NAME_COLUMN, VALUE_COLUMN };
+	private static final String TYPE_COLUMN = "type";//$NON-NLS-1$
+	private static final String[] TREE_COLUMNS = new String[] { NAME_COLUMN, VALUE_COLUMN, TYPE_COLUMN };
 	private String stashedURL;
 	private Parameter[] parms;
 	private Button mOKButton = null;
-
+	private ArrayList<String> supportedTypes = null;
+	private static final String INT_TYPE = "int";//$NON-NLS-1$
+	private static final String STRING_TYPE = "java.lang.String";//$NON-NLS-1$
+	private static final String STRING_LIST_TYPE = "java.util.List<java.lang.String>";//$NON-NLS-1$
+	private static final String STRING_SET_TYPE = "java.util.Set<java.lang.String>";//$NON-NLS-1$
+	
 	/**
 	 * Constructor
 	 * @param parentShell
@@ -62,6 +69,11 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 	public WSTesterURLInputsDialog(Shell parentShell, String url) {
 		super(parentShell);
 		stashedURL = url;
+		supportedTypes = new ArrayList<String>();
+		supportedTypes.add(INT_TYPE);
+		supportedTypes.add(STRING_TYPE);
+		supportedTypes.add(STRING_LIST_TYPE);
+		supportedTypes.add(STRING_SET_TYPE);
 		parms = parseURLParms(stashedURL);
 	}
 	
@@ -82,10 +94,11 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 			String modified = stashedURL;
 			for (int i = 0; i < parms.length; i++) {
 				Parameter parm = parms[i];
-				if (parm.value != null && parm.value.trim().length() > 0) {
+				if (parm.value != null) {
 					modified = modified.replace(parm.originalString, parm.value);
 				}
 			}
+			modified = modified.replace("//", "/"); //$NON-NLS-1$ //$NON-NLS-2$
 			return modified;
 		}
 		return stashedURL;
@@ -128,6 +141,9 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 		TreeColumn valueColumn = new TreeColumn(treeRequestBody.getTree(), SWT.LEFT);
 		valueColumn.setText(JBossWSUIMessages.JAXRSWSTestView2_Value_column);
 		valueColumn.setWidth(200);
+		TreeColumn typeColumn = new TreeColumn(treeRequestBody.getTree(), SWT.LEFT);
+		typeColumn.setText(JBossWSUIMessages.WSTesterURLInputsDialog_Type_Column);
+		typeColumn.setWidth(200);
 		
 		treeRequestBody.setColumnProperties(TREE_COLUMNS);
 		
@@ -146,6 +162,8 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 				if (element instanceof Parameter && property.equalsIgnoreCase(NAME_COLUMN)) {
 					return true;
 				} else if (element instanceof Parameter && property.equalsIgnoreCase(VALUE_COLUMN)) {
+					return true;
+				} else if (element instanceof Parameter && property.equalsIgnoreCase(TYPE_COLUMN)) {
 					return true;
 				}
 				return false;
@@ -167,6 +185,12 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 				} else if (element instanceof Parameter && columnIndex == 1) {
 					Parameter tp = (Parameter) element;
 					return tp.value;
+				} else if (element instanceof Parameter && columnIndex == 2) {
+					Parameter tp = (Parameter) element;
+					if (tp.regEx != null && !tp.regEx.trim().isEmpty())
+						return tp.regEx;
+					else if (tp.datatype != null && !tp.datatype.trim().isEmpty())
+						return tp.datatype;
 				}
 				return null;
 			}
@@ -257,7 +281,7 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 			}
 			
 		});
-		treeRequestBody.setCellEditors(new CellEditor[] { null, new TextCellEditor(treeRequestBody.getTree()) });
+		treeRequestBody.setCellEditors(new CellEditor[] { null, new TextCellEditor(treeRequestBody.getTree()), null });
 		treeRequestBody.setInput(parms);
 
 		return area;
@@ -271,6 +295,7 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 		String value = ""; //$NON-NLS-1$
 		String regEx;
 		String originalString;
+		String datatype;
 	}
 	
 	/*
@@ -279,8 +304,50 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 	 * @return
 	 */
 	private Parameter[] parseURLParms ( String url ) {
+		// Need to handle three types of parms:
+		// /rest/members/{id}
+		// /rest/members?start={int}&size={int}
+		// /rest/members/{id:[0-9][0-9]*}
+		//
+		// plus Set and List
+		// /rest/members/query?from={from:int}&to={to:int}&orderBy={orderBy:java.util.List<java.lang.String>}
+		// parsing a url like:
+		// http://localhost:8080/jboss-as-kitchensink/rest/members/user/{id}/
+		//	{encoding:(/encoding/[^/]+?)?};matrix={java.lang.String}?start={start:int}
+		// would look something like this at resolution time
+		// http://localhost:8080/jboss-as-kitchensink/rest/members/user/3/format/pdf/encoding/utf8
+		
 		if (url != null && url.trim().length() > 0 && url.endsWith("}")) { //$NON-NLS-1$
-			String[] parsed = parseString(url.substring(url.indexOf('{')), "{"); //$NON-NLS-1$
+			
+			CharSequence parmsPortion = url.substring(url.indexOf('{'));
+			int curlyBracketCount = 0;
+			int count = 0;
+			int lastFirstBracketPosition = -1;
+			int lastLastBracketPosition = -1;
+			ArrayList<Integer> parmPositions = new ArrayList<Integer>();
+			ArrayList<String> parmStrings = new ArrayList<String>();
+			while (count < parmsPortion.length()) {
+				char charToCheck = parmsPortion.charAt(count);
+				if (charToCheck == '{') { 
+					curlyBracketCount++;
+					if (lastFirstBracketPosition == -1) {
+						parmPositions.add(new Integer(0));
+						lastFirstBracketPosition = 0;
+					} else {
+						lastFirstBracketPosition = count;
+						parmPositions.add(new Integer(lastFirstBracketPosition));
+					}
+				} else if (charToCheck == '}') {
+					lastLastBracketPosition = count;
+					curlyBracketCount--;
+					if (curlyBracketCount == 0) {
+						parmStrings.add((String) parmsPortion.subSequence(lastFirstBracketPosition, lastLastBracketPosition) + '}');
+					}
+				}
+				count++;
+			}
+			
+			String[] parsed = parmStrings.toArray(new String[parmStrings.size()]);
 			if (parsed != null && parsed.length > 0) {
 				Parameter[] parms = new Parameter[parsed.length];
 				for (int i = 0; i < parsed.length; i++) {
@@ -295,10 +362,76 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 					} else {
 						parmName = temp;
 					}
+					if (parmName.startsWith("{")) { //$NON-NLS-1$
+						parmName = parmName.substring(1);
+					}
 					parms[i] = new Parameter();
 					parms[i].name = parmName;
-					parms[i].regEx = regEx;
-					parms[i].originalString = '{' + parsed[i];
+					if (supportedTypes.contains(regEx)) {
+						parms[i].datatype = regEx;
+					} else {
+						parms[i].regEx = regEx;
+					}
+					
+//					if (regEx != null && !regEx.trim().isEmpty()) {
+//				        try {
+//				            Pattern.compile(regEx);
+//				        	parms[i].value = regEx;
+//				        } catch (PatternSyntaxException exception) {
+//				        	// ignore exception - means not a regEx, set as value
+//				        	parms[i].value = regEx;
+//				        }
+//					}
+			 					
+					parms[i].originalString = parsed[i];
+				}
+				
+				int oldpos = 0;
+			
+				// now handle the parm={type} cases
+				for (int i = 0; i < parms.length; i++) {
+					String name = parms[i].name;
+					String regEx = parms[i].regEx;
+					String datatype = parms[i].datatype;
+
+					if (datatype != null && !datatype.trim().isEmpty() && 
+							supportedTypes.contains(datatype) && name != null && !name.trim().isEmpty()) {
+						if (parms[i].regEx != null && !parms[i].regEx.trim().isEmpty()) {
+							parms[i].regEx = null;
+						}
+						continue;
+					} else if (regEx == null  && name != null && !name.trim().isEmpty() ) {
+						if (!supportedTypes.contains(name))
+							continue;
+					} else if (regEx != null && !regEx.trim().isEmpty()  && name != null && !name.trim().isEmpty() ) {
+						continue;
+					}
+					String search = parms[i].originalString;
+					try {
+						int pos = url.indexOf(search, oldpos);
+						if (pos > 0) {
+							oldpos = pos + search.length();
+							char toCheck = url.charAt(pos-1);
+							if (toCheck == '=') {
+								int namePos = pos-2;
+								toCheck = url.charAt(namePos);
+								String buildname = ""; //$NON-NLS-1$
+								while (toCheck != '&' && toCheck != '?' && toCheck != ';') {
+									buildname = toCheck + buildname;
+									namePos--;
+									toCheck = url.charAt(namePos);
+								}
+								parms[i].datatype = parms[i].name;
+								parms[i].name = buildname;
+								parms[i].value = "";//$NON-NLS-1$
+//								parms[i].value = parms[i].datatype;
+							} else {
+								// move on
+							}
+						}
+					} catch (IndexOutOfBoundsException ie) {
+						// ignore, move on
+					}
 				}
 				return parms;
 			}
@@ -345,6 +478,25 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 						errorMessage = JBossWSUIMessages.WSTesterURLInputsDialog_Validation_Error_String;
 						errorMessage = NLS.bind(errorMessage, new String[] 
 								{ parm.name, parm.value, parm.regEx });
+						break;
+					}
+				} else if (parm.datatype != null && !parm.datatype.isEmpty()) {
+					String parmType = parm.datatype;
+					if (parmType.contentEquals(INT_TYPE)) {
+						try {
+							Integer.parseInt(parm.value);
+						} catch (NumberFormatException nfe) {
+							errorMessage = JBossWSUIMessages.WSTesterURLInputsDialog_Int_Validation_Error_String;
+							errorMessage = NLS.bind(errorMessage, new String[] 
+									{ parm.name });
+							break;
+						}
+					}
+				} else if ((parm.regEx == null || parm.regEx.trim().isEmpty()) && (parm.datatype == null || parm.datatype.trim().isEmpty() )) {
+					if (parm.value.trim().isEmpty()) {
+						errorMessage = JBossWSUIMessages.WSTesterURLInputsDialog_Required_Parm_Value_Validation_String;
+						errorMessage = NLS.bind(errorMessage, new String[] 
+								{ parm.name });
 						break;
 					}
 				}
