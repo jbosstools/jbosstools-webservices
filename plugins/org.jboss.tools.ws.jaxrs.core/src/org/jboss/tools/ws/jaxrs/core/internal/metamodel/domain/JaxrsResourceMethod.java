@@ -402,6 +402,12 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	}
 
 	@Override
+	public boolean hasPathTemplate() {
+		final Annotation pathAnnotation = getPathAnnotation();
+		return pathAnnotation != null && pathAnnotation.getValue("value") != null;
+	}
+
+	@Override
 	public String getPathTemplate() {
 		final Annotation pathAnnotation = getPathAnnotation();
 		if (pathAnnotation == null) {

@@ -16,9 +16,12 @@ public interface IJaxrsResource {
 
 	String getPathTemplate();
 
+	boolean hasPathTemplate();
+
 	List<String> getConsumedMediaTypes();
 
 	List<String> getProducedMediaTypes();
 
 	List<IJaxrsResourceMethod> getAllMethods();
+
 }

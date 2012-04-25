@@ -11,9 +11,13 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_DEFAULT_VALUE_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_MATRIX_PARAM_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_VALUE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -176,7 +180,8 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			refreshHttpMethod();
 		}
 
-		if ((flags & F_PATH_VALUE) > 0) {
+		if ((flags & F_PATH_VALUE) > 0 || (flags & F_QUERY_PARAM_VALUE) > 0 || (flags & F_MATRIX_PARAM_VALUE) > 0 || (flags & F_DEFAULT_VALUE_VALUE) > 0
+				|| (flags & F_METHOD_PARAMETERS) > 0) {
 			refreshUriPathTemplate();
 		}
 
@@ -232,17 +237,16 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			uriPathTemplateBuilder.append(application.getApplicationPath());
 		}
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
-			if (resourceMethod.getParentResource().getPathTemplate() != null) {
+			if (resourceMethod.getParentResource().hasPathTemplate()) {
 				uriPathTemplateBuilder.append("/").append(resourceMethod.getParentResource().getPathTemplate());
 			}
-			if (resourceMethod.getPathTemplate() != null) {
+			if (resourceMethod.hasPathTemplate()) {
 				uriPathTemplateBuilder.append("/").append(resourceMethod.getPathTemplate());
 			}
 			if (resourceMethod.getJavaMethodParameters() != null) {
 				refreshUriTemplateMatrixParams(uriPathTemplateBuilder, resourceMethod);
 				refreshUriTemplateQueryParams(uriPathTemplateBuilder, resourceMethod);
 			}
-
 		}
 		this.uriPathTemplate = uriPathTemplateBuilder.toString();
 		while (uriPathTemplate.indexOf("//") > -1) {

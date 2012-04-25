@@ -51,4 +51,6 @@ public interface IJaxrsResourceMethod {
 	 */
 	List<String> getPathParamValueProposals();
 
+	boolean hasPathTemplate();
+
 }

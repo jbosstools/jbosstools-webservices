@@ -28,7 +28,6 @@ import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
@@ -41,9 +40,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
  * @author xcoulon
  */
 public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
-
-	/** Optional Application. */
-	private final JaxrsJavaApplication application = null;
 
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 
@@ -133,6 +129,12 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 			return null;
 		}
 		return pathAnnotation.getValue("value");
+	}
+	
+	@Override
+	public boolean hasPathTemplate() {
+		final Annotation pathAnnotation = getPathAnnotation();
+		return pathAnnotation != null && pathAnnotation.getValue("value") != null;
 	}
 
 	public Annotation getPathAnnotation() {
