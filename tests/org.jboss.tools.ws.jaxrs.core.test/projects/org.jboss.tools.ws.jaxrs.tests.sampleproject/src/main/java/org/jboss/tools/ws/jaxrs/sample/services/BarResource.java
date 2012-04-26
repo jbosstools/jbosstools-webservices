@@ -1,4 +1,4 @@
-package org.bytesparadise.pastebin.service;
+package org.jboss.tools.ws.jaxrs.sample.services;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.PUT;

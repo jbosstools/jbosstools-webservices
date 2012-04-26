@@ -454,6 +454,16 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
+	public void shouldResolveJavaMethodSignaturesForParameterizedType() throws CoreException {
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ParameterizedResource");
+		// operation
+		final List<JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type,
+				JdtUtils.parse(type, progressMonitor));
+		// verification
+		Assert.assertEquals(1, methodSignatures.size());
+	}
+	
+	@Test
 	public void shouldResolveJavaMethodSignature() throws CoreException {
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = getMethod(type, "getCustomers");

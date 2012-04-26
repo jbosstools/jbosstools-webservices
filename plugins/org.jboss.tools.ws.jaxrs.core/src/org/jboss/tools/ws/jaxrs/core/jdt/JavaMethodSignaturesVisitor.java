@@ -84,8 +84,8 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 			if (methodBinding == null) {
 				Logger.warn("Could not resolve bindings form method " + method.getElementName());
 			} else {
-				final IType returnedType = methodBinding.getReturnType() != null ? (IType) methodBinding
-						.getReturnType().getJavaElement().getAdapter(IType.class) : null;
+				final IType returnedType = getReturnType(methodBinding);
+						//.getReturnType().getJavaElement() : null;
 				List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
 				@SuppressWarnings("unchecked")
 				List<SingleVariableDeclaration> parameters = declaration.parameters();
@@ -120,6 +120,18 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 			Logger.error("Failed to analyse compilation unit methods", e);
 		}
 		return true;
+	}
+
+	/**
+	 * Returns the ReturnType for the given method or null of the return type could not be found or is 'void'
+	 * @param methodBinding
+	 * @return
+	 */
+	private IType getReturnType(final IMethodBinding methodBinding) {
+		if (methodBinding.getReturnType() != null && methodBinding.getReturnType().getJavaElement() != null) {
+			return (IType) methodBinding.getReturnType().getJavaElement().getAdapter(IType.class);
+		}
+		return null;
 	}
 
 	private static Map<String, List<String>> resolveAnnotationElements(IAnnotationBinding annotationBinding) {
