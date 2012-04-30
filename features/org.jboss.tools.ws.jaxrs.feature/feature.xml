@@ -17,14 +17,6 @@
       %license
    </license>
 
-   <requires>
-      <import feature="org.eclipse.jst.enterprise_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.jst.web_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.wst.web_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.wst.ws_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.wst.xml_ui.feature" version="3.3.2" match="compatible"/>
-   </requires>
-
    <plugin
          id="org.jboss.tools.ws.jaxrs.core"
          download-size="0"
