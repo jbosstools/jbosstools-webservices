@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
@@ -99,7 +100,7 @@ public class ResourceChangedProcessor {
 	 */
 	private JaxrsMetamodelDelta processEntireProject(IProject project, int deltaKind, IProgressMonitor progressMonitor)
 			throws CoreException {
-
+		// start with a fresh new metamodel
 		final JaxrsMetamodel metamodel = JaxrsMetamodel.create(JavaCore.create(project));
 		final JaxrsMetamodelDelta metamodelDelta = new JaxrsMetamodelDelta(metamodel, deltaKind);
 		try {

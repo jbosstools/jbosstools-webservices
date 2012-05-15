@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertFalse;
@@ -25,7 +24,6 @@ import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
-import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
@@ -58,9 +56,15 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 			JaxrsMetamodel.create(javaProject);
 		}
 		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
-		// operation
 		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
+		JaxrsMetamodelLocator.get(javaProject);
 		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+		JaxrsMetamodelLocator.get(javaProject);
+		// operation: rebuilt the project, including the jaxrs metamodel
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+		JaxrsMetamodelLocator.get(javaProject);
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+		JaxrsMetamodelLocator.get(javaProject);
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());

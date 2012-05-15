@@ -229,23 +229,23 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			}
 		}
 		// unindex the given element, whatever its kind
-		for (Iterator<Entry<String, Set<JaxrsBaseElement>>> iterator = elementsIndex.entrySet().iterator(); iterator
+		for (Iterator<Entry<String, Set<JaxrsBaseElement>>> indexIterator = elementsIndex.entrySet().iterator(); indexIterator
 				.hasNext();) {
-			final Entry<String, Set<JaxrsBaseElement>> entry = iterator.next();
-			final Set<JaxrsBaseElement> elements = entry.getValue();
+			final Entry<String, Set<JaxrsBaseElement>> indexEntry = indexIterator.next();
+			final Set<JaxrsBaseElement> indexEntryElements = indexEntry.getValue();
 			// because the elements.remove(jaxrsElement); does not work here
 			// (hashcode has changed between the time the jaxrsElement was added
 			// and now !)
-			for (Iterator<JaxrsBaseElement> elementIterator = elements.iterator(); elementIterator.hasNext();) {
-				JaxrsBaseElement element = elementIterator.next();
+			for (Iterator<JaxrsBaseElement> indexEntryElementsIterator = indexEntryElements.iterator(); indexEntryElementsIterator.hasNext();) {
+				JaxrsBaseElement element = indexEntryElementsIterator.next();
 				if (element.equals(jaxrsElement)) {
 					Logger.trace(" Removing {} from index", element);
-					elementIterator.remove();
+					indexEntryElementsIterator.remove();
 				}
 			}
 
-			if (elements.isEmpty()) {
-				iterator.remove();
+			if (indexEntryElements.isEmpty()) {
+				indexIterator.remove();
 			}
 		}
 	}
