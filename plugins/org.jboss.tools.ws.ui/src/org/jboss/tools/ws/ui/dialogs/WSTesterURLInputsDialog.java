@@ -95,7 +95,7 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 			for (int i = 0; i < parms.length; i++) {
 				Parameter parm = parms[i];
 				if (parm.value != null) {
-					modified = modified.replace(parm.originalString, parm.value);
+					modified = modified.replaceFirst("\\" + parm.originalString, parm.value);//$NON-NLS-1$ 
 				}
 			}
 			modified = modified.replace("//", "/"); //$NON-NLS-1$ //$NON-NLS-2$
