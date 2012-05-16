@@ -1655,6 +1655,10 @@ public class JAXRSWSTestView2 extends ViewPart {
 		
 		getCurrentHistoryEntry().setWsTech(wsTech);
 		
+		if (!getCurrentHistoryEntry().getUrl().contentEquals(urlText)) {
+			getCurrentHistoryEntry().setUrl(urlText);
+		}
+		
 		final String url = getCurrentHistoryEntry().getUrl();
 		final String action = getCurrentHistoryEntry().getAction();
 		String tempBody = getCurrentHistoryEntry().getBody();

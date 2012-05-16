@@ -160,9 +160,9 @@ public class JAXRSTester {
 
         // build the complete URL
         URL url = null;
-        if (query != null) {
+        if (query != null && query.trim().length() > 0) {
         	// add the ? if there are parameters
-            if (!address.endsWith("?")) {//$NON-NLS-1$
+            if (!address.endsWith("?") && !address.contains("?")) {//$NON-NLS-1$ //$NON-NLS-2$
 
             	// if we're a "GET" - add the ? by default
             	if (methodType.equalsIgnoreCase("GET")) {  //$NON-NLS-1$
@@ -177,6 +177,8 @@ public class JAXRSTester {
             			address = address + "?"; //$NON-NLS-1$
             		}
             	}
+            } else if (address.contains("?")) { //$NON-NLS-1$
+            	address = address + "&"; //$NON-NLS-1$
             }
         	// add parms to the url if we have some
         	url = new URL(address + query);
