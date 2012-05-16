@@ -99,6 +99,10 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 				}
 			}
 			modified = modified.replace("//", "/"); //$NON-NLS-1$ //$NON-NLS-2$
+			
+			// fix JBIDE-11728
+			modified = modified.replace("http:/", "http://"); //$NON-NLS-1$ //$NON-NLS-2$
+			
 			return modified;
 		}
 		return stashedURL;
