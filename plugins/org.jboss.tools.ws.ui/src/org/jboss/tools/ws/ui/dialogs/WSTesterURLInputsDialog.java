@@ -102,6 +102,7 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 			
 			// fix JBIDE-11728
 			modified = modified.replace("http:/", "http://"); //$NON-NLS-1$ //$NON-NLS-2$
+			modified = modified.replace("https:/", "https://"); //$NON-NLS-1$ //$NON-NLS-2$
 			
 			return modified;
 		}
