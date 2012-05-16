@@ -441,6 +441,26 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 						// ignore, move on
 					}
 				}
+				// now handle the default value cases
+				// {from:int=1000}
+				for (int i = 0; i < parms.length; i++) {
+					String regEx = parms[i].regEx;
+					String datatype = parms[i].datatype;
+					
+					if ((datatype == null || datatype.trim().isEmpty()) &&
+							(regEx != null && !regEx.trim().isEmpty())) {
+						String[] values = parseString(regEx, "=");//$NON-NLS-1$
+						if (values != null && values.length > 1) {
+							String left = values[0];
+							String right = values[1];
+							if (supportedTypes.contains(left)) {
+								parms[i].datatype = left;
+								parms[i].value = right;
+								parms[i].regEx = null;
+							}
+						}
+					}
+				}
 				return parms;
 			}
 		}
