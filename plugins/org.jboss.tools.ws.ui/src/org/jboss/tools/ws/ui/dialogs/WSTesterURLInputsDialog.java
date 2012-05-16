@@ -86,6 +86,34 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 	}
 	
 	/*
+	 * See http://munkymorgy.blogspot.com/2010/01/java-string-search-and-replace.html
+	 */
+	private String replaceString(String input, String find, String replace, boolean casesensitive){
+		String input_case_adjusted = input;
+		if (casesensitive == false) {
+			//For Case Insensitive searches
+			//Lowercase everything (but replace in the original string)
+			input_case_adjusted = input.toLowerCase() ;
+			find                = find.toLowerCase() ;
+		}
+
+		int    startPosition = input_case_adjusted.indexOf(find);
+		String start         = ""; //$NON-NLS-1$
+		String end           = ""; //$NON-NLS-1$
+
+		if (startPosition >= 0) {
+			if (startPosition > 0) {
+				start = input.substring(0, startPosition);
+			}
+			end = input.substring(startPosition + find.length());
+
+			return start + replace + end;
+		} else {
+			return input;
+		}
+	}
+	
+	/*
 	 * If we have values for parms, send them back
 	 * @return
 	 */
@@ -95,7 +123,7 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 			for (int i = 0; i < parms.length; i++) {
 				Parameter parm = parms[i];
 				if (parm.value != null) {
-					modified = modified.replaceFirst("\\" + parm.originalString, parm.value);//$NON-NLS-1$ 
+					modified = replaceString(modified, parm.originalString, parm.value, true);
 				}
 			}
 			modified = modified.replace("//", "/"); //$NON-NLS-1$ //$NON-NLS-2$
