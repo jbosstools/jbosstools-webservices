@@ -16,19 +16,21 @@ import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
- * Listens to all change events (Java elements and resources) and triggers a new
- * job for each change.<br>
- * Yet, it avoids trigger new Jobs for high level changes (JavaModel,
- * WorkspaceRoot, etc.)
+ * Listens to all change events (Java elements and resources) and triggers a new job for each change.<br>
+ * Yet, it avoids trigger new Jobs for high level changes (JavaModel, WorkspaceRoot, etc.)
  * 
  * @author xcoulon
  */
@@ -41,9 +43,32 @@ public class JavaElementChangedListener implements IElementChangedListener {
 	 */
 	@Override
 	public void elementChanged(ElementChangedEvent event) {
-		logDelta(event.getDelta(), event.getType());
-		Job job = new JaxrsMetamodelBuildJob(event);
-		job.schedule();
+		try {
+			if (isApplicable(event.getDelta())) {
+				logDelta(event.getDelta(), event.getType());
+				Job job = new JaxrsMetamodelBuildJob(event);
+				job.schedule();
+			}
+		} catch (CoreException e) {
+			Logger.error("Failed to process Java Element change", e);
+		}
+	}
+
+	private boolean isApplicable(IJavaElementDelta delta) throws CoreException {
+		IJavaProject javaProject = delta.getElement().getJavaProject();
+		if (javaProject != null) {
+			IProject project = javaProject.getProject();
+			if (ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID)) {
+				return true;
+			}
+		}
+		// carry on with children elements.
+		for (IJavaElementDelta affectedChild : delta.getAffectedChildren()) {
+			if(isApplicable(affectedChild)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void logDelta(final IJavaElementDelta delta, final int eventType) {
@@ -52,8 +77,7 @@ public class JavaElementChangedListener implements IElementChangedListener {
 		int deltaKind = retrieveDeltaKind(delta);
 		int flags = delta.getFlags();
 		CompilationUnit compilationUnitAST = null;
-		final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType,
-				compilationUnitAST, flags);
+		final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType, compilationUnitAST, flags);
 		Logger.trace("Event {}", event);
 		// carry on with children elements.
 		for (IJavaElementDelta affectedChild : delta.getAffectedChildren()) {
@@ -65,8 +89,7 @@ public class JavaElementChangedListener implements IElementChangedListener {
 	}
 
 	/**
-	 * Retrieves the appropriate kind of the given delta, with some specific
-	 * adaptations for some element types.
+	 * Retrieves the appropriate kind of the given delta, with some specific adaptations for some element types.
 	 * 
 	 * @param delta
 	 *            the delta.
