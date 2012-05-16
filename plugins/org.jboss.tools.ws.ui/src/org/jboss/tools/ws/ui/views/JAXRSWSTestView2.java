@@ -1719,7 +1719,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 						public void run() {
 							if (status.getResultsText() != null) {
 								String results = status.getResultsText();
-								if (SOAPDOMParser.isXMLLike(results)) {
+								if (SOAPDOMParser.isValidXML(results)) {
 									results = SOAPDOMParser.prettyPrint(results);
 								} else {
 									results = SOAPDOMParser.prettyPrintJSON(results);

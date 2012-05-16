@@ -255,6 +255,26 @@ public class SOAPDOMParser {
 
         return retBool;
     }
+	
+	public static boolean isValidXML(String xml) {
+		//get the factory
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		
+		try {
+			
+			//Using factory get an instance of document builder
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			
+			//parse using builder to get DOM representation of the XML file
+			ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes());
+			db.parse(bais);
+			
+			return true;
+			
+		}catch(Exception e) {
+			return false;
+		}
+	}
 
 	/**
 	 * Simple JSON pretty print to format JSON output
