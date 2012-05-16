@@ -1858,7 +1858,11 @@ public class JAXRSWSTestView2 extends ViewPart {
 						JBossWSUIPlugin.PLUGIN_ID, 
 						JBossWSUIMessages.JAXRSWSTestView_Exception_Status + e.getLocalizedMessage());
 				status.setResultsText(e.toString());
-				JBossWSUIPlugin.log(e);
+				// this fix is to address JBIDE-11294 and the fact that we shouldn't actually log this exception from deep 
+				// within the WS API. 
+				if ((!e.getLocalizedMessage().contains("Unsupported endpoint address: REPLACE_WITH_ACTUAL_URL"))) { //$NON-NLS-1$
+					JBossWSUIPlugin.log(e);
+				}
 				return status;
 			}
 			
