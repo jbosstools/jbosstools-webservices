@@ -85,7 +85,7 @@ public abstract class AbstractCommonTestCase {
 
 	@BeforeClass
 	public static void setupWorkspace() throws Exception {
-		org.eclipse.jdt.core.JavaCore.getPlugin().start(bundle.getBundleContext());
+		//org.eclipse.jdt.core.JavaCore.getPlugin().start(bundle.getBundleContext());
 		long startTime = new Date().getTime();
 		try {
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
