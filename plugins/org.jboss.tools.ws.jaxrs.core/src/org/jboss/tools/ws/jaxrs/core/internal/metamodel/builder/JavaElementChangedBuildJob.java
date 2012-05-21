@@ -24,20 +24,20 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 
 /** @author xcoulon */
-public class JaxrsMetamodelBuildJob extends Job {
+public class JavaElementChangedBuildJob extends Job {
 
 	private final JavaElementChangedProcessor javaElementChangedProcessor = new JavaElementChangedProcessor();
 
 	private final JaxrsMetamodelChangedProcessor jaxrsElementChangedProcessor = new JaxrsMetamodelChangedProcessor();
 
 	private final ElementChangedEvent event;
-
-	public JaxrsMetamodelBuildJob(final ElementChangedEvent event) {
+	
+	public JavaElementChangedBuildJob(final ElementChangedEvent event) {
 		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
 		Logger.debug("Initiating an incremental JAX-RS Metamodel build after " + event); //$NON-NLS-1$
 	}
-
+	
 	@Override
 	protected IStatus run(final IProgressMonitor progressMonitor) {
 		try {
@@ -65,7 +65,6 @@ public class JaxrsMetamodelBuildJob extends Job {
 			}
 			new JaxrsElementChangedPublisher().publish(affectedMetamodels, new SubProgressMonitor(progressMonitor,
 					SCALE));
-
 		} catch (Throwable e) {
 			Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 		} finally {

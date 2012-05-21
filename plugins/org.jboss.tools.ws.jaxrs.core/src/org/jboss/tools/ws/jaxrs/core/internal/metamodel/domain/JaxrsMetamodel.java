@@ -503,7 +503,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return false;
 		} else if (javaProject != null && other.javaProject == null) {
 			return false;
-		} else if (!javaProject.getHandleIdentifier().equals(other.javaProject.getHandleIdentifier())) {
+		} else if (javaProject != null && other.javaProject != null && !javaProject.getHandleIdentifier().equals(other.javaProject.getHandleIdentifier())) {
 			return false;
 		}
 		return true;

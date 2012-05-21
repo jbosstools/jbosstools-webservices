@@ -116,7 +116,7 @@ public class ResourceDelta {
 		int result = 1;
 		result = prime * result + deltaKind;
 		result = prime * result + ((resource == null) ? 0 : resource.hashCode());
-		result = prime * result + flags;
+		//result = prime * result + flags;
 		return result;
 	}
 
@@ -153,9 +153,9 @@ public class ResourceDelta {
 		 * if (compilationUnitAST == null) if (other.compilationUnitAST != null)
 		 * return false;
 		 */
-		if (flags != other.flags) {
+		/*if (flags != other.flags) {
 			return false;
-		}
+		}*/
 		return true;
 	}
 }

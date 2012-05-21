@@ -196,14 +196,14 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldNotNotifyWhenCompilationUnitChangedInPrimaryCopy() throws CoreException {
+	public void shouldNotifyWhenCompilationUnitChangedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = JdtUtils.resolveType(
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject, null).getCompilationUnit();
 		// operation
 		WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", bundle, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, NO_FLAG, never());
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, NO_FLAG, atLeastOnce());
 	}
 
 	@Test
@@ -212,7 +212,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "FooResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java", bundle);
 		// verifications: 1 times
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -278,7 +278,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		IType addedType = WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooResourceMember.txt", bundle,
 				PRIMARY_COPY);
 		// verifications: one call PostReconcile + one call on PostChange
-		verifyEventNotification(addedType.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(addedType.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -328,7 +328,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -352,7 +352,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -376,7 +376,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
 				"", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -400,7 +400,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -420,7 +420,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Product", "", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -448,7 +448,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -474,7 +474,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		LOGGER.info("Performing Test Operation(s)...");
 		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -497,7 +497,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.addTypeAnnotation(type, "import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -522,7 +522,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", "@Path(\"/foo\")",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -545,7 +545,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -596,7 +596,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.createField(type, "private int i", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -618,7 +618,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IField addedField = WorkbenchUtils.createField(type, "@PathParam() private int i", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(addedField.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(addedField.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -643,7 +643,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -668,7 +668,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
 				"private HibernateEntityManager", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -692,7 +692,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeField(field, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -716,7 +716,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.addFieldAnnotation(field, "@PathParam()", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -744,7 +744,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 				"@PersistenceContext(value=\"foo\")", PRIMARY_COPY);
 		// verifications
 		IAnnotation annotation = field.getAnnotation("PersistenceContext");
-		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -770,7 +770,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeFieldAnnotation(field, "@PersistenceContext", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -794,7 +794,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		IMethod addedMethod = WorkbenchUtils.createMethod(type, "public Object fooLocator() { return null; }",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(addedMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(addedMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -816,7 +816,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		IMethod method = WorkbenchUtils.removeMethod(type.getCompilationUnit(), "createCustomer", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -843,8 +843,8 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 				PRIMARY_COPY);
 		// verifications
 		IMethod newMethod = WorkbenchUtils.getMethod(type, "getEM");
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
-		verifyEventNotification(newMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(newMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -869,7 +869,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.addMethodParameter(oldMethod, "int i", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -897,7 +897,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// verifications
 		// 1 invocation for both the old method removal and the new method
 		// addition
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -954,7 +954,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
 				"@Context UriInfo uriInfo, @PathParam(\"id\") Integer id", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -987,7 +987,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 				PRIMARY_COPY);
 		LOGGER.info("Method signature: " + newMethod.getSignature());
 		// verifications
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -1015,7 +1015,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer",
 				"@PathParam(\"id\") Customer customer", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -1043,7 +1043,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -1071,7 +1071,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -1095,7 +1095,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -1123,7 +1123,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test
@@ -1149,7 +1149,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeMethodAnnotation(method, annotation, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
 
 	@Test

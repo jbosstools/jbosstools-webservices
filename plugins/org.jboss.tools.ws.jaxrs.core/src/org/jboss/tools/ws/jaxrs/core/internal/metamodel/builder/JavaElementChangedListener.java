@@ -46,7 +46,8 @@ public class JavaElementChangedListener implements IElementChangedListener {
 		try {
 			if (isApplicable(event.getDelta())) {
 				logDelta(event.getDelta(), event.getType());
-				Job job = new JaxrsMetamodelBuildJob(event);
+				Job job = new JavaElementChangedBuildJob(event);
+				job.setRule(MutexJobSchedulingRule.getInstance());
 				job.schedule();
 			}
 		} catch (CoreException e) {

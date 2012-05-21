@@ -11,28 +11,20 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
-import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.internal.events.ResourceChangeEvent;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.QualifiedName;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
 /**
  * The JAX-RS Metamodel builder. Invoked when a full build or an incremental build is triggered on a project on which
@@ -43,6 +35,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
  * 
  * @author xcoulon
  */
+@SuppressWarnings("restriction")
 public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 
 	public static final int SCALE = 10;
@@ -56,12 +49,6 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	/** The Java element change listener name. */
 	public static final QualifiedName JAXRS_ELEMENT_CHANGE_LISTENER_NAME = new QualifiedName(
 			JBossJaxrsCorePlugin.PLUGIN_ID, "jaxrsPostReconcileListener");
-
-	private final JaxrsElementChangedPublisher metamodelChangedPublisher = new JaxrsElementChangedPublisher();
-
-	private final JaxrsMetamodelChangedProcessor metamodelChangedProcessor = new JaxrsMetamodelChangedProcessor();
-
-	private final ResourceChangedProcessor resourceChangedProcessor = new ResourceChangedProcessor();
 
 	// TODO : add support for cancellation
 	// TODO : report build failed
@@ -109,54 +96,33 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	 *            the progress monitor
 	 */
 	private void build(final int buildKind, final IProject project, final IProgressMonitor progressMonitor) {
-		long startTime = new Date().getTime();
+		/*
+		 * progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
+		 * Logger.debug("Building JAX-RS Metamodel for project {}...", project.getName()); // extract the relevant delta
+		 * bound to this built (some resources or entire project) final List<ResourceDelta> affectedResources =
+		 * extractAffectedResources(project, progressMonitor); progressMonitor.worked(SCALE); // compute changes on the
+		 * JAX-RS Application(s), HttpMethods, Resources, etc. final boolean withReset = (buildKind == FULL_BUILD ||
+		 * buildKind == CLEAN_BUILD); final JaxrsMetamodelDelta metamodelDelta = resourceChangedProcessor
+		 * .processAffectedResources(project, withReset, affectedResources, new SubProgressMonitor(progressMonitor,
+		 * SCALE)); progressMonitor.worked(SCALE); new
+		 * JaxrsMetamodelChangedProcessor().processAffectedMetamodel(metamodelDelta, new
+		 * SubProgressMonitor(progressMonitor, SCALE)); progressMonitor.worked(SCALE); new
+		 * JaxrsElementChangedPublisher().publish(metamodelDelta, new SubProgressMonitor(progressMonitor, SCALE));
+		 * progressMonitor.worked(SCALE);
+		 */
+		ResourceChangedBuildJob job = new ResourceChangedBuildJob(project, getResourceChangeEvent(project, buildKind));
+		job.setRule(MutexJobSchedulingRule.getInstance());
+		job.schedule();
 		try {
-			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
-			Logger.debug("Building JAX-RS Metamodel for project {}...", project.getName());
-			// extract the relevant delta bound to this built (some resources or entire project)
-			final List<ResourceDelta> affectedResources = extractAffectedResources(project, progressMonitor);
-			progressMonitor.worked(SCALE);
-			// compute changes on the JAX-RS Application(s), HttpMethods, Resources, etc.
-			final boolean withReset = (buildKind == FULL_BUILD || buildKind == CLEAN_BUILD);
-			final JaxrsMetamodelDelta metamodelDelta = resourceChangedProcessor
-					.processAffectedResources(project, withReset, affectedResources, new SubProgressMonitor(progressMonitor, SCALE));
-			progressMonitor.worked(SCALE);
-			metamodelChangedProcessor.processAffectedMetamodel(metamodelDelta, new SubProgressMonitor(progressMonitor,
-					SCALE));
-			progressMonitor.worked(SCALE);
-			metamodelChangedPublisher.publish(metamodelDelta, new SubProgressMonitor(progressMonitor, SCALE));
-			progressMonitor.worked(SCALE);
-		} catch (CoreException e) {
-			Logger.error("Error while building the JAX-RS Metamodel for project " + project.getName(), e);
-		} finally {
-			long endTime = new Date().getTime();
-			Logger.debug("JAX-RS Metamodel for project '{}' fully built in {} ms.", project.getName(),
-					(endTime - startTime));
-			try {
-				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-				Logger.debug(
-						"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
-						project.getName(), metamodel.getAllHttpMethods().size(), metamodel.getAllResources().size(),
-						metamodel.getAllEndpoints().size());
-			} catch (Throwable e) {
-				// debug level since the purpose was to display a debug message
-				Logger.debug("Error occurred: {}", e);
-			}
-			progressMonitor.done();
+			job.join();
+		} catch (InterruptedException e) {
+			Logger.warn("JAX-RS Metamodel build job was interrupted", e);
 		}
+
 	}
 
-	private List<ResourceDelta> extractAffectedResources(final IProject project, final IProgressMonitor progressMonitor)
-			throws CoreException {
-		final IResourceDelta delta = getDelta(project);
-		final List<ResourceDelta> events = new ArrayList<ResourceDelta>();
-		if (delta != null) {
-			events.addAll(new ResourceDeltaScanner().scanAndFilterEvent(delta, new SubProgressMonitor(
-					progressMonitor, SCALE)));
-		} else {
-			events.add(new ResourceDelta(project, CHANGED, 0));
-		}
-		return events;
+	private ResourceChangeEvent getResourceChangeEvent(final IProject project, final int buildKind) {
+		return new ResourceChangeEvent(project, IResourceChangeEvent.POST_CHANGE, buildKind, getDelta(project));
 	}
 
 	/**

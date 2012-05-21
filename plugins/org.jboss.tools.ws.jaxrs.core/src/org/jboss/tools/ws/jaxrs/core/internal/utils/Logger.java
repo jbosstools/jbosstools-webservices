@@ -184,4 +184,8 @@ public final class Logger {
 		return JBossJaxrsCorePlugin.getDefault() != null && JBossJaxrsCorePlugin.getDefault().isDebugging()
 				&& "true".equalsIgnoreCase(debugOption);
 	}
+
+	public static boolean isDebugEnabled() {
+		return isOptionEnabled(DEBUG);
+	}
 }
