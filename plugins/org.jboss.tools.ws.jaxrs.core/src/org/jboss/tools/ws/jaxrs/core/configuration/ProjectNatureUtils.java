@@ -45,6 +45,9 @@ public final class ProjectNatureUtils {
 	 *             in case of exception
 	 */
 	public static boolean isProjectNatureInstalled(final IProject project, final String natureId) throws CoreException {
+		if(!project.isOpen()) {
+			return false;
+		}
 		String[] natures = project.getDescription().getNatureIds();
 		for (String nature : natures) {
 			if (nature.equals(natureId)) {
