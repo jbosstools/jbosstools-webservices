@@ -174,7 +174,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	@Override
 	public final List<IContextInformation> computeContextInformation(final ContentAssistInvocationContext context,
 			final IProgressMonitor monitor) {
-		return null;
+		return Collections.emptyList();
 	}
 
 	/** {@inheritDoc} */
