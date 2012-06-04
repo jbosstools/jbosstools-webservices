@@ -233,7 +233,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	private void refreshUriPathTemplate() {
 		// compute the URI Path Template from the chain of Methods/Resources
 		StringBuilder uriPathTemplateBuilder = new StringBuilder();
-		if (application != null) {
+		if (application != null && application.getApplicationPath() != null) {
 			uriPathTemplateBuilder.append(application.getApplicationPath());
 		}
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
@@ -266,8 +266,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		for (Iterator<JavaMethodParameter> iterator = matrixParameters.iterator(); iterator.hasNext();) {
 			JavaMethodParameter matrixParam = iterator.next();
 			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(MatrixParam.class.getName());
-			uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue("value")).append("={")
-					.append(matrixParam.getTypeName()).append("}");
+			if(matrixParamAnnotation.getValue("value") != null) {
+				uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue("value")).append("={")
+						.append(matrixParam.getTypeName()).append("}");
+			}
 		}
 	}
 
@@ -286,17 +288,19 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				JavaMethodParameter queryParam = iterator.next();
 				final Annotation queryParamAnnotation = queryParam.getAnnotation(QueryParam.class.getName());
 				final String paramName = queryParamAnnotation.getValue("value");
-				final String paramType = queryParam.getTypeName();
-				uriPathTemplateBuilder.append(paramName).append("={");
-				uriPathTemplateBuilder.append(paramName).append(":").append(paramType);
-				final Annotation defaultValueAnnotation = queryParam.getAnnotation(DefaultValue.class.getName());
-				if (defaultValueAnnotation != null) {
-					uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
-				}
-				uriPathTemplateBuilder.append('}');
-
-				if (iterator.hasNext()) {
-					uriPathTemplateBuilder.append('&');
+				if(paramName != null) {
+					final String paramType = queryParam.getTypeName();
+					uriPathTemplateBuilder.append(paramName).append("={");
+					uriPathTemplateBuilder.append(paramName).append(":").append(paramType);
+					final Annotation defaultValueAnnotation = queryParam.getAnnotation(DefaultValue.class.getName());
+					if (defaultValueAnnotation != null) {
+						uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
+					}
+					uriPathTemplateBuilder.append('}');
+	
+					if (iterator.hasNext()) {
+						uriPathTemplateBuilder.append('&');
+					}
 				}
 			}
 		}
