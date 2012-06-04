@@ -30,6 +30,7 @@ import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
@@ -453,6 +454,22 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Assert.assertEquals(7, methodSignatures.size());
 	}
 
+	@Test
+	public void shouldResolveJavaMethodSignaturesWithNullAnnotationValue() throws CoreException {
+		// pre-condition
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = WorkbenchUtils.getMethod(type, "getCustomer");
+		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "@PathParam() Integer id",
+				false);
+		// operation
+		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
+				JdtUtils.parse(type, progressMonitor));
+		// verification
+		Assert.assertNotNull(methodSignature);
+		Assert.assertEquals(2, methodSignature.getMethodParameters().size());
+		Assert.assertNull(methodSignature.getMethodParameters().get(0).getAnnotation(PathParam.class.getName()).getValue("value"));
+	}
+	
 	@Test
 	public void shouldResolveJavaMethodSignaturesForParameterizedType() throws CoreException {
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ParameterizedResource");

@@ -138,12 +138,14 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 		final Map<String, List<String>> annotationElements = new HashMap<String, List<String>>();
 		for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
 			final List<String> values = new ArrayList<String>();
-			if (binding.getValue() instanceof Object[]) {
-				for (Object v : (Object[]) binding.getValue()) {
-					values.add(v.toString());
+			if(binding.getValue() != null) {
+				if (binding.getValue() instanceof Object[]) {
+					for (Object v : (Object[]) binding.getValue()) {
+						values.add(v.toString());
+					}
+				} else {
+					values.add(binding.getValue().toString());
 				}
-			} else {
-				values.add(binding.getValue().toString());
 			}
 			annotationElements.put(binding.getName(), values);
 		}

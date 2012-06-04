@@ -276,7 +276,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 			for (JavaMethodParameter parameter : this.javaMethodParameters) {
 				final Annotation annotation = parameter
 						.getAnnotation(PathParam.class.getName());
-				if (annotation != null
+				if (annotation != null && annotation.getValue("value") != null
 						&& annotation.getValue("value").equals(proposal)) {
 					matching = true;
 					break;
@@ -309,14 +309,16 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 					.getAnnotation(PathParam.class.getName());
 			if (annotation != null) {
 				final String value = annotation.getValue("value");
-				if (!pathParamValueProposals.contains(value)) {
-					final String msg = NLS
-							.bind(ValidationMessages.INVALID_PATHPARAM_VALUE,
-									pathParamValueProposals);
-					final TypedRegion region = annotation.getRegion();
-					ValidatorMessage validationMsg = createValidationMessage(msg, IMarker.SEVERITY_ERROR, region.getOffset(), region.getLength());
-					hasErrors(true);
-					messages.add(validationMsg);
+				if(value != null) {
+					if (!pathParamValueProposals.contains(value)) {
+						final String msg = NLS
+								.bind(ValidationMessages.INVALID_PATHPARAM_VALUE,
+										pathParamValueProposals);
+						final TypedRegion region = annotation.getRegion();
+						ValidatorMessage validationMsg = createValidationMessage(msg, IMarker.SEVERITY_ERROR, region.getOffset(), region.getLength());
+						hasErrors(true);
+						messages.add(validationMsg);
+					}
 				}
 			}
 		}
@@ -484,7 +486,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	public List<String> getPathParamValueProposals() {
 		final List<String> proposals = new ArrayList<String>();
 		final Annotation methodPathAnnotation = getPathAnnotation();
-		if (methodPathAnnotation != null) {
+		if (methodPathAnnotation != null && methodPathAnnotation.getValue("value") != null) {
 			final String value = methodPathAnnotation.getValue("value");
 			proposals.addAll(extractParamsFromUriTemplateFragment(value));
 		}

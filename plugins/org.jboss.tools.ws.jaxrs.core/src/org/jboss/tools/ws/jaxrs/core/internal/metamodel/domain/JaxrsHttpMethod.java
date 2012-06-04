@@ -172,6 +172,9 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 
 	@Override
 	public final int compareTo(final IJaxrsHttpMethod other) {
+		if(this.getHttpVerb() == null) {
+			return 1;
+		}
 		if (this.getHttpVerb().equals(other.getHttpVerb())) {
 			return 0;
 		}
