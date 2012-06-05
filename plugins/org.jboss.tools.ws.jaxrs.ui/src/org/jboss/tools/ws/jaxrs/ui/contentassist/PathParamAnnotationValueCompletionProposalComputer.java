@@ -133,7 +133,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		final ITypedRegion region = getRegion(javaContext);
 		String matchValue = javaContext.getDocument().get(region.getOffset(),
 				javaContext.getInvocationOffset() - region.getOffset());
-		if (matchValue.charAt(0) == '\"') {
+		if (!matchValue.isEmpty() && matchValue.charAt(0) == '\"') {
 			matchValue = matchValue.substring(1);
 		}
 		List<String> proposals = resourceMethod.getPathParamValueProposals();
