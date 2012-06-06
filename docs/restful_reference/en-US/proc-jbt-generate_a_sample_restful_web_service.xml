@@ -7,7 +7,7 @@
      <title>Generate a sample RESTful web service</title>
        <important><title>Target runtime must have RESTEasy installed</title>
          <para>
-           The sample RESTful web service will not work unless it is deployed to a server with RESTEasy installed. 
+           The sample RESTful web service will not work unless it is deployed to a server with RESTEasy installed, such as JBoss SOA-P. 
          </para>
        </important>
         <step>
@@ -71,7 +71,7 @@
               </mediaobject>
             </figure>
 			<para>
-				Due to the nature in which JBoss Application Server 7 and JBoss Enterprise Application Server 5 handle JAX-RS support, the wizard can now be completed without the need for RESTEasy JARs in the project classpath or associated project runtime.
+				Due to the nature in which JBoss Application Server 7 and JBoss Enterprise Application Server 5 handle JAX-RS support, the wizard can now be completed without the need for RESTEasy JARs in the project classpath or associated project runtime. The JARs are necessary for JBoss SOA-P servers.
 			</para>
         </step>
         <step>

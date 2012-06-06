@@ -8,6 +8,9 @@
   <para>
     This chapter describes how to create a simple web service.
   </para>
+  <para>
+	  You must have a previously created <guilabel>Dynamic Web Project</guilabel> available in your workbench before create a simple web service. For information on how to create a <guilabel>Dynamic Web Project</guilabel> see the <emphasis>Getting Started Guide</emphasis> for this release.
+  </para>
 
   <xi:include href="generation-simple_web_service_wizard.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
   <!-- <xi:include href="deployment-simple_web_service_wizard.xml" xmlns:xi="http://www.w3.org/2001/XInclude" /> -->

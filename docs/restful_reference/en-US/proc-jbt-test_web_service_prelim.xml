@@ -33,19 +33,7 @@
       </step>
       <step>
         <para>
-          A web service has been deployed to the <filename>deploy</filename> directory of the chosen server profile as described in: 
-          <itemizedlist>
-            <listitem>
-              <para>
-				  <xref linkend="proc-jbt-export-war_export"/> for the <application>RestfulSample</application> project; or
-              </para>
-            </listitem>
-            <listitem>
-              <para>
-                <xref linkend="proc-jbt-new_project_example"/> for the <application>RESTEasy</application> sample project.
-              </para>
-            </listitem>
-          </itemizedlist>
+			A web service has been deployed to the <filename>deploy</filename> directory of the chosen server profile. <!-- as described in <xref linkend="proc-jbt-new_project_example"/> for the <application>RESTEasy</application> sample project. -->
         </para> 
       </step>
       <step>
