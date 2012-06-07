@@ -286,9 +286,9 @@
             activate="true"
             categoryId="org.eclipse.jdt.ui.defaultProposalCategory"
             class="org.jboss.tools.ws.jaxrs.ui.contentassist.PathParamAnnotationValueCompletionProposalComputer">
-         <partition
+         <!--partition
                type="__dftl_partition_content_type">
-         </partition>
+         </partition-->
          <partition
                type="__java_string">
          </partition>
