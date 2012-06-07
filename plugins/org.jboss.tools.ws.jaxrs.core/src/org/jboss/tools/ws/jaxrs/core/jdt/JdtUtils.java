@@ -582,7 +582,16 @@ public final class JdtUtils {
 		return methodsVisitor.getMethodSignatures();
 	}
 
+	/**
+	 * Returns the method signature for the given method with the given AST.
+	 * @param method the java method 
+	 * @param ast the associated Compilation Unit AST
+	 * @return the JavaMethodSignature or null if the given AST is null.
+	 */
 	public static JavaMethodSignature resolveMethodSignature(IMethod method, CompilationUnit ast) {
+		if(ast == null) {
+			return null;
+		}
 		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(method);
 		ast.accept(methodsVisitor);
 		return methodsVisitor.getMethodSignature();

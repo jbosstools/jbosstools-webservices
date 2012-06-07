@@ -694,12 +694,14 @@ public class ResourceChangedProcessor {
 			int flags = existingMethod.mergeAnnotations(matchingMethod.getAnnotations());
 			final CompilationUnit matchingResourceAST = CompilationUnitsRepository.getInstance().getAST(matchingResource.getResource());
 			final JavaMethodSignature matchingResourceMethodSignature = JdtUtils.resolveMethodSignature(matchingMethod.getJavaElement(), matchingResourceAST);
-			flags += existingMethod.update(matchingResourceMethodSignature);
-			if ((flags & F_ELEMENT_KIND) > 0 && existingMethod.getKind() == EnumKind.UNDEFINED) {
-				metamodel.remove(existingMethod);
-				changes.add(new JaxrsElementDelta(existingMethod, REMOVED));
-			} else if (flags > 0) {
-				changes.add(new JaxrsElementDelta(existingMethod, CHANGED, flags));
+			if(matchingResourceMethodSignature != null) {
+				flags += existingMethod.update(matchingResourceMethodSignature);
+				if ((flags & F_ELEMENT_KIND) > 0 && existingMethod.getKind() == EnumKind.UNDEFINED) {
+					metamodel.remove(existingMethod);
+					changes.add(new JaxrsElementDelta(existingMethod, REMOVED));
+				} else if (flags > 0) {
+					changes.add(new JaxrsElementDelta(existingMethod, CHANGED, flags));
+				}
 			}
 		}
 		for (Entry<String, JaxrsResourceMethod> entry : removedMethods.entrySet()) {
