@@ -1,0 +1,282 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "JBoss_Web_Services_User_Guide.ent">
+%BOOK_ENTITIES;
+]>-->
+<procedure id="proc-jbt-test_resteasy_JAX-RS">
+  <title>Testing a JAX-RS web service- POST and GET requests</title>   
+  <step>
+  <substeps>
+    <step><title>Query the available options</title>
+    <para>
+      Following the preliminary steps described in <xref linkend="proc-jbt-test_web_service_prelim"/>, select the <guilabel>OPTIONS</guilabel> method from the operations text area.
+    </para>
+    </step>
+    <step>
+    <para>
+       Enter the url of the web service in the editable drop-down list <ulink url="http://localhost:8080/simple/rest-services/customers">http://localhost:8080/simple/rest-services/customers</ulink>.
+    </para>
+    </step>
+    <step>
+    <para>
+      Click the <guilabel>Invoke</guilabel> button
+    </para>  
+    <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Response Headers</guilabel> text area indicates that the allowed options are <code>[POST, OPTIONS]</code> as shown in <xref linkend="figure-jbt-test_resteasy_JAX-RS_02"/>.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_resteasy_JAX-RS_02">
+      <title>JAX-RS RESTEasy project Body Text</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_02.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>JAX-WS RESTEasy project Body Text</para>
+        </textobject>
+      </mediaobject>
+    </figure>
+   <!-- <para>&HORIZ_LINE;</para>-->
+    </step>
+  </substeps>
+  </step>
+  <step><title>Test the POST option</title>
+  <substeps>
+  <step>
+    <para>
+      Select <guilabel>POST</guilabel> method in the the operations drop-down list.
+    </para>
+    </step>
+    <step>
+    <para>
+      We will post xml data to this particular web service. Complete the header details by entering <code>content-type=application/xml</code> in the text area and click <guibutton>Add</guibutton> to add it to the <guilabel>Headers</guilabel> list.
+    </para>
+    <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>content-type</guilabel> is added to the <guilabel>Headers</guilabel> list as shown in <xref linkend="figure-jbt-test_resteasy_JAX-RS_03"/>.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_resteasy_JAX-RS_03">
+      <title>content-type header</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_03.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>JAX-WS RESTEasy project Body Text</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+   <!-- <para>&HORIZ_LINE;</para>-->
+    </step>
+    <step><title>Enter customer details</title>
+    <para>
+      Enter the customer details in the <guilabel>Body Text</guilabel> area as displayed in <xref linkend="figure-jbt-test_resteasy_JAX-RS_04"/>.
+    </para>   
+   <figure id="figure-jbt-test_resteasy_JAX-RS_04">
+      <title>Customer data</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_04.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Customer data</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+    <!--<para>&HORIZ_LINE;</para>-->
+    </step>
+    <step>
+    <para>Click the <guibutton>Invoke</guibutton> button.</para>
+    <formalpara><title>Result:</title>
+      <para>
+	 The <guilabel>Response Headers</guilabel> area indicated that a record was created and lists the location as <ulink url="http://localhost:8080/simple/rest-services/customers/1">http://localhost:8080/simple/rest-services/customers/1</ulink> as shown in <xref linkend="figure-jbt-test_resteasy_JAX-RS_05"/>.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_resteasy_JAX-RS_05">
+      <title>Customer added</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_05.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Customer added</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+      <para>The console also indicates the successful creation of the customer: <code>10:44:33,846 INFO  [STDOUT] Created customer 1</code></para>
+   <!-- <para>&HORIZ_LINE;</para>-->
+    </step>
+    </substeps> 
+  </step>
+  
+  <step id="getStart"><title>Test the GET option</title>
+  <substeps>
+  <step>
+    <para>
+      Select the <guilabel>GET</guilabel> method in the the operations drop-down list.
+    </para>
+    </step>
+    <step>
+    <para>
+       We will retrieve the record created in the previous step. Enter the url for the record returned in the previous step <ulink url="http://localhost:8080/simple/rest-services/customers/1">http://localhost:8080/simple/rest-services/customers/1</ulink>
+    </para>
+    </step>
+    <step id="getFinish">
+      <para>
+      	Click the <guibutton>Invoke</guibutton> button.
+	  </para>
+    <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Response Headers</guilabel> area indicates a <code>[HTTP/1.1 200 OK]</code> response and the customer data is retrieved and displayed in the <guilabel>Response Body</guilabel> area as shown in <xref linkend="figure-jbt-test_resteasy_JAX-RS_06"/>.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_resteasy_JAX-RS_06">
+      <title>GET response</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_06.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>GET response</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+   <!-- <para>&HORIZ_LINE;</para>-->
+    </step>
+    </substeps>
+    </step>
+    
+    
+    <step><title>Test the PUT option</title>
+    <substeps>
+    <step>
+    <para>
+      Editing a record is achieved by using the <guilabel>PUT</guilabel> method.  Select the <guilabel>PUT</guilabel> method in the operations drop-down list.
+    </para>
+    </step>
+    <step>
+      <para>
+	 Enter the url of the record to be edited <ulink url="http://localhost:8080/simple/rest-services/customers/1">http://localhost:8080/simple/rest-services/customers/1</ulink>
+      </para>	
+    </step>
+    <step>
+      <para>
+        Enter the data in the <guilabel>Body Text</guilabel> area. Replace the first-name with a different entry as in <xref linkend="figure-jbt-test_resteasy_JAX-RS_07"/>
+      </para>    
+   <figure id="figure-jbt-test_resteasy_JAX-RS_07">
+      <title>Updated customer data</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_07.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Updated customer data</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+<!--    <para>&HORIZ_LINE;</para>-->
+    </step>
+    <step>
+      <para>
+      Ensure that the <code>content-type=application/xml</code> header is in the <guilabel>Headers</guilabel> list.
+      </para>
+    </step>
+    <step>
+    <para>Click the <guibutton>Invoke</guibutton> button.</para>
+    <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Response Headers</guilabel> area indicates a No Response (<code>[HTTP/1.1 204 No Content]</code>) <xref linkend="figure-jbt-test_resteasy_JAX-RS_08"/>.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_resteasy_JAX-RS_08">
+      <title>Response header following PUT</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_08.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Response header following PUT</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+      <para>In this instance, the console does not indicate an update was performed, however, the console may provide useful information following an operation.</para>
+  <!--  <para>&HORIZ_LINE;</para>-->
+    </step>
+    </substeps> 
+  </step>
+  <step><title>Check the updated data with a GET</title>
+  <para>
+    Perform a GET operation by following the steps in <xref linkend="getStart"/>. 
+  </para>
+  <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Response Body</guilabel> area displays the updated data.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_resteasy_JAX-RS_09">
+      <title>Customer data updated</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_09.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Customer data updated</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+    <!--<para>&HORIZ_LINE;</para>-->
+  </step>
+  
+  <step><title>Test the DELETE option</title>
+    <substeps>
+    <step>
+    <para>
+      Deleting a record is a similar process to posting.  Select the <guilabel>DELETE</guilabel> method in the operations drop-down list.
+    </para>
+    </step>
+    <step>
+      <para>
+	 Enter the url of the record to be deleted <ulink url="http://localhost:8080/simple/rest-services/customers/1">http://localhost:8080/simple/rest-services/customers/1</ulink>
+      </para>	
+    </step>
+    <step>
+    <para>Click the <guibutton>Invoke</guibutton> button.</para>
+    <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Response Headers</guilabel> area indicates a No Response (<code>[HTTP/1.1 204 No Content]</code>) as was the case for the PUT operation in <xref linkend="figure-jbt-test_resteasy_JAX-RS_08"/>.
+      </para>
+    </formalpara>
+      <para>Once again, the console does not indicate an update was performed, however, the console may provide useful information following an operation.</para>
+    <!--<para>&HORIZ_LINE;</para>-->
+    </step>
+    </substeps> 
+  </step>
+  <step><title>Check the DELETE operation with a GET</title>
+  <para>
+    Perform a GET operation by following the steps in <xref linkend="getStart"/>. 
+  </para>
+  <formalpara><title>Result:</title>
+      <para>
+        The <guilabel>Response Body</guilabel> area returns an error report indicating that <code>The requested resource () is not available</code> and the <guilabel>Response Headers</guilabel> area returns a <code>[HTTP/1.1 404 Not Found]</code>.
+      </para>
+    </formalpara>
+   <figure id="figure-jbt-test_resteasy_JAX-RS_10">
+      <title>Customer data deleted</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/image-jbt-test_resteasy_JAX-RS_10.png" format="PNG"/>
+        </imageobject>
+        <textobject>
+          <para>Customer data deleted</para>
+        </textobject>
+      </mediaobject>
+      </figure>
+      <para>The response header and body messages indicate that the data was successfully deleted.</para>
+   <!-- <para>&HORIZ_LINE;</para>-->
+  </step>
+    
+ 
+</procedure>
+

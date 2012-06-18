@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<chapter id="Adding_JAX-RS_support">
+	<title>Adding JAX-RS support to a project</title>
+	<section id="Adding_support_to_a_new_proejct">
+		<title>Adding support to a new project</title>
+	<para>
+		When creating a new <guilabel>Dynamic Web Project</guilabel>, JAX-RS support can be enabled through the JAX-RS facet. To enable the JAX-RS facet during project creation, click the <guibutton>Modify</guibutton> button in the <guilabel>Configuration</guilabel> section.
+	</para>
+	<figure id="Enabling_JAX-RS_config_01">
+		<title>Enabling JAX-RS configuration</title>
+		<mediaobject>
+			<imageobject>
+				<imagedata fileref="images/enabling_JAX-RS_config_01.png" format="PNG"/>
+			</imageobject>
+			<textobject>
+				<para>Enabling JAX-RS configuration</para>
+			</textobject>
+		</mediaobject>
+	</figure>
+	<para>
+		Navigate to <guilabel>Project Facets</guilabel> and click the checkbox next to the <guilabel>JAX-RS (REST Web Services)</guilabel> item. Click the <guibutton>OK</guibutton> button to save the settings and return to the <guilabel>Dynamic Web Project</guilabel> creation wizard.
+	</para>
+	<figure id="Enabling_JAX-RS_config_02">
+		<title>Enabling JAX-RS configuration</title>
+		<mediaobject>
+			<imageobject>
+				<imagedata fileref="images/enabling_JAX-RS_config_02.png" format="PNG"/>
+			</imageobject>
+			<textobject>
+				<para>Enabling JAX-RS configuration</para>
+			</textobject>
+		</mediaobject>
+	</figure>
+	</section>
+	<section>
+		<title>Adding support to an existing project</title>
+		<para>
+			JAX-RS support can be added to any Java project. To add this support, right-click on a project in the <guilabel>Project Explorer</guilabel> to bring up the context menu and navigate to <menuchoice><guimenuitem>Configure</guimenuitem><guimenuitem>Add JAX-RS 1.1 support</guimenuitem></menuchoice>.
+		</para>
+		<figure id="Enabling_JAX-RS_config_03">
+			<title>Adding JAX-RS support</title>
+			<mediaobject>
+				<imageobject>
+					<imagedata fileref="images/enabling_JAX-RS_config_03.png" format="PNG"/>
+				</imageobject>
+				<textobject>
+					<para>Adding JAX-RS support</para>
+				</textobject>
+			</mediaobject>
+		</figure>
+		<para>
+		It is also possible to add RESTful web service support to a project by bringing up the context menu and navigating to <menuchoice>
+                <guimenuitem>Properties</guimenuitem>
+                <guimenuitem>Project Facets</guimenuitem>
+            </menuchoice>. Here you can click the checkbox next to the <guilabel>JAX-RS (REST Web Services)</guilabel> item and click the <guibutton>OK</guibutton> button to save the settings, as you would when creating a new project.
+		</para>
+	</section>
+</chapter>
