@@ -13,7 +13,7 @@
 	<packaging>eclipse-test-plugin</packaging>
 
 	<properties>
-		<systemProperties>-Djbosstools.test.jre.6=${jbosstools.test.jre.6} -Djbosstools.test.jre.5=${jbosstools.test.jre.5} -Djbosstools.test.jboss.home.4.2=${project.build.directory}/requirements/jboss-4.2.3.GA</systemProperties>
+		<systemProperties>-Djbosstools.test.jre.6=${jbosstools.test.jre.6} -Djbosstools.test.jre.5=${jbosstools.test.jre.5} -Djbosstools.test.jboss.home.4.2=${requirementsDirectory}/jboss-4.2.3.GA</systemProperties>
 		<coverage.filter>org.jboss.tools.ws.creation.core*</coverage.filter>
 		<emma.instrument.bundles>org.jboss.tools.ws.creation.core</emma.instrument.bundles>
 	</properties>
@@ -32,7 +32,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.4</version>
 				<executions>
 					<execution>
 						<id>unpack</id>
@@ -41,7 +40,7 @@
 							<goal>unpack</goal>
 						</goals>
 						<configuration>
-							<skip>${maven.test.skip}</skip>
+							<skip>${skipRequirements}</skip>
 							<artifactItems>
 								<artifactItem>
 									<groupId>org.jboss.jbossas</groupId>
@@ -50,7 +49,6 @@
 									<type>zip</type>
 								</artifactItem>
 							</artifactItems>
-							<outputDirectory>${project.build.directory}/requirements</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
