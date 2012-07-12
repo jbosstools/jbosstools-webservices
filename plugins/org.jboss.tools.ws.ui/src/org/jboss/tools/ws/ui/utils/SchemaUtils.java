@@ -872,6 +872,9 @@ public class SchemaUtils {
 		}
 		
 		String tnsprefix = uri.substring(uri.indexOf("://") + 3, uri.length()); //$NON-NLS-1$
+		if (tnsprefix.contains(":")) {//$NON-NLS-1$
+			tnsprefix = uri.substring(0, uri.indexOf(':'));
+		}
 		if (tnsprefix.length() > 4) {
 			if (tnsprefix.endsWith("/")) { //$NON-NLS-1$
 				tnsprefix = tnsprefix.substring(0, tnsprefix.length() - 1);
