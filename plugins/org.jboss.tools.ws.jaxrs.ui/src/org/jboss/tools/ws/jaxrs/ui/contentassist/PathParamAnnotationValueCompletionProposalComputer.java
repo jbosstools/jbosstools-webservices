@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
@@ -31,7 +32,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITypedRegion;
-import org.eclipse.jface.text.TypedRegion;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
@@ -86,10 +86,10 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 				if (resourceMethod != null) {
 					for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
 						for (Annotation annotation : methodParameter.getAnnotations()) {
-							final TypedRegion region = annotation.getRegion();
-							if (annotation.getName().equals(PathParam.class.getName()) && region != null
-									&& context.getInvocationOffset() >= region.getOffset()
-									&& context.getInvocationOffset() < (region.getOffset() + region.getLength())) {
+							final ISourceRange range = annotation.getSourceRange();
+							if (annotation.getName().equals(PathParam.class.getName()) && range != null
+									&& context.getInvocationOffset() >= range.getOffset()
+									&& context.getInvocationOffset() < (range.getOffset() + range.getLength())) {
 								// completion proposal on @PathParam method
 								// annotation
 								return internalComputePathParamProposals(javaContext, annotation, resourceMethod);

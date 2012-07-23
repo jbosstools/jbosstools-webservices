@@ -330,7 +330,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		assertThat(javaAnnotation.getName(), equalTo(Path.class.getName()));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
-		assertThat(javaAnnotation.getRegion(), notNullValue());
+		assertThat(javaAnnotation.getSourceRange(), notNullValue());
 	}
 
 	@Test
@@ -348,7 +348,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		for (Entry<String, Annotation> entry : javaAnnotations.entrySet()) {
 			assertThat(entry.getKey(), equalTo(entry.getValue().getName()));
 			assertThat(entry.getValue().getJavaAnnotation(), notNullValue());
-			assertThat(entry.getValue().getRegion(), notNullValue());
+			assertThat(entry.getValue().getSourceRange(), notNullValue());
 		}
 	}
 
@@ -495,8 +495,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
 			assertThat(parameter.getAnnotations().size(), isOneOf(1, 2));
 			for (Annotation annotation : parameter.getAnnotations()) {
-				assertThat(annotation.getRegion().getOffset(), greaterThan(sourceRange.getOffset()));
-				assertThat(annotation.getRegion().getOffset(),
+				assertThat(annotation.getSourceRange().getOffset(), greaterThan(sourceRange.getOffset()));
+				assertThat(annotation.getSourceRange().getOffset(),
 						lessThan(sourceRange.getOffset() + sourceRange.getLength()));
 			}
 		}

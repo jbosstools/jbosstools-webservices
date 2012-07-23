@@ -18,8 +18,10 @@ import java.util.Map;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
@@ -102,10 +104,10 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 							IAnnotationBinding annotationBinding = annotation.resolveAnnotationBinding();
 							final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
 							final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
-							final TypedRegion typedRegion = new TypedRegion(annotation.getStartPosition(),
-									annotation.getLength(), IDocument.DEFAULT_CONTENT_TYPE);
+							final ISourceRange sourceRange = new SourceRange(annotation.getStartPosition(),
+									annotation.getLength());
 							paramAnnotations.add(new org.jboss.tools.ws.jaxrs.core.jdt.Annotation(null, annotationName,
-									annotationElements, typedRegion));
+									annotationElements, sourceRange));
 						}
 					}
 					final TypedRegion typedRegion = new TypedRegion(parameter.getStartPosition(),

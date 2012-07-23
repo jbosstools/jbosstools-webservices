@@ -19,7 +19,9 @@ import java.util.Map;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
@@ -29,8 +31,6 @@ import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.TypedRegion;
 
 /**
  * A visitor for a single annotation on a java member (can be a method or a type).
@@ -188,11 +188,11 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 					if (annotationNames.contains(qualifiedName) || annotationNames.contains(name)) {
 						final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
 						final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
-						final TypedRegion typedRegion = new TypedRegion(annotation.getStartPosition(),
-								annotation.getLength(), IDocument.DEFAULT_CONTENT_TYPE);
+						final ISourceRange sourceRange = new SourceRange(annotation.getStartPosition(),
+								annotation.getLength());
 						final IAnnotation javaAnnotation = (IAnnotation) annotationBinding.getJavaElement();
 						annotations
-								.add(new Annotation(javaAnnotation, annotationName, annotationElements, typedRegion));
+								.add(new Annotation(javaAnnotation, annotationName, annotationElements, sourceRange));
 					}
 				}
 			}

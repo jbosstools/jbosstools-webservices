@@ -37,7 +37,6 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jface.text.TypedRegion;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
@@ -314,7 +313,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 						final String msg = NLS
 								.bind(ValidationMessages.INVALID_PATHPARAM_VALUE,
 										pathParamValueProposals);
-						final TypedRegion region = annotation.getRegion();
+						final ISourceRange region = annotation.getSourceRange();
 						ValidatorMessage validationMsg = createValidationMessage(msg, IMarker.SEVERITY_ERROR, region.getOffset(), region.getLength());
 						hasErrors(true);
 						messages.add(validationMsg);

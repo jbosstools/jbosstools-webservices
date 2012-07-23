@@ -117,9 +117,9 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 						.create("HTTP Verb should not be empty", getResource());
 				message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
 				message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-				message.setAttribute(IMarker.CHAR_START, annotation.getRegion().getOffset());
-				message.setAttribute(IMarker.CHAR_END, annotation.getRegion().getOffset()
-						+ annotation.getRegion().getLength());
+				message.setAttribute(IMarker.CHAR_START, annotation.getSourceRange().getOffset());
+				message.setAttribute(IMarker.CHAR_END, annotation.getSourceRange().getOffset()
+						+ annotation.getSourceRange().getLength());
 				messages.add(message);
 			}
 		}

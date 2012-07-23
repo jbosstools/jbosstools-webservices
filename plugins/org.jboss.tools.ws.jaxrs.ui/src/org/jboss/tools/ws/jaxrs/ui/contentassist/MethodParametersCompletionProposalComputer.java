@@ -81,6 +81,7 @@ public class MethodParametersCompletionProposalComputer implements IJavaCompleti
 	 *            the java content assist invocation context
 	 * @return the typed region
 	 */
+	@SuppressWarnings("unused")
 	private ITypedRegion getRegion(final JavaContentAssistInvocationContext javaContext) {
 		IDocument document = javaContext.getDocument();
 		IDocumentPartitioner documentPartitioner = ((IDocumentExtension3) document)

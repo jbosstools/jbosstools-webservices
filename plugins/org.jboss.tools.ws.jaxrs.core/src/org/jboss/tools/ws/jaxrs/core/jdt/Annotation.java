@@ -16,7 +16,7 @@ import java.util.Map;
 
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jface.text.TypedRegion;
+import org.eclipse.jdt.core.ISourceRange;
 
 public class Annotation {
 
@@ -26,7 +26,7 @@ public class Annotation {
 
 	private final Map<String, List<String>> javaAnnotationElements;
 
-	private TypedRegion region;
+	private ISourceRange sourceRange;
 
 	/**
 	 * Full constructor
@@ -36,11 +36,11 @@ public class Annotation {
 	 * @param annotationElements
 	 */
 	public Annotation(IAnnotation annotation, String name, Map<String, List<String>> annotationElements,
-			final TypedRegion region) {
+			final ISourceRange sourceRange) {
 		this.javaAnnotation = annotation;
 		this.javaAnnotationName = name;
 		this.javaAnnotationElements = new HashMap<String, List<String>>(annotationElements);
-		this.region = region;
+		this.sourceRange = sourceRange;
 	}
 
 	public boolean update(Annotation annotation) {
@@ -51,8 +51,8 @@ public class Annotation {
 		}
 		this.javaAnnotationElements.clear();
 		this.javaAnnotationElements.putAll(annotation.getJavaAnnotationElements());
-		if (annotation.getRegion() != null) {
-			this.region = annotation.getRegion();
+		if (annotation.getSourceRange() != null) {
+			this.sourceRange = annotation.getSourceRange();
 		}
 		return true;
 	}
@@ -73,8 +73,8 @@ public class Annotation {
 		return javaAnnotationElements;
 	}
 
-	public TypedRegion getRegion() {
-		return region;
+	public ISourceRange getSourceRange() {
+		return sourceRange;
 	}
 
 	/** @return the value */
