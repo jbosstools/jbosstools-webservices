@@ -149,6 +149,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			final JaxrsResource resource = (JaxrsResource) element;
 			this.resources.add(resource);
 			break;
+		case RESOURCE_FIELD:
+			break;
+		case RESOURCE_METHOD:
+			break;
+		default:
+			break;
 		}
 		indexElement(element);
 	}
@@ -431,6 +437,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		case RESOURCE_FIELD:
 			final JaxrsResource fieldResourceParent = ((JaxrsResourceField) element).getParentResource();
 			fieldResourceParent.removeField((JaxrsResourceField) element);
+			break;
+		case PROVIDER:
+			break;
+		default:
 			break;
 		}
 		unindexElement(element);
