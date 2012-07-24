@@ -29,9 +29,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.rules.MethodRule;
-import org.junit.rules.TestWatchman;
-import org.junit.runners.model.FrameworkMethod;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,18 +67,18 @@ public abstract class AbstractCommonTestCase {
 	private ProjectSynchronizator synchronizor;
 
 	@Rule
-	public MethodRule watchman = new TestWatchman() {
+	public TestRule watchman = new TestWatcher() {
 		@Override
-		public void starting(FrameworkMethod method) {
+		public void starting(Description description) {
 			LOGGER.info("**********************************************************************************");
-			LOGGER.info("Starting test '{}'...", method.getName());
+			LOGGER.info("Starting test '{}'...", description.getMethodName());
 			LOGGER.info("**********************************************************************************");
 		}
 
 		@Override
-		public void finished(FrameworkMethod method) {
+		public void finished(Description description) {
 			LOGGER.info("**********************************************************************************");
-			LOGGER.info("Test '{}' finished.", method.getName());
+			LOGGER.info("Test '{}' finished.", description.getMethodName());
 			LOGGER.info("**********************************************************************************");
 		}
 	};
