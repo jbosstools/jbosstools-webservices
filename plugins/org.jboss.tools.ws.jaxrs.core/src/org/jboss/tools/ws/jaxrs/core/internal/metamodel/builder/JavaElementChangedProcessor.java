@@ -21,14 +21,13 @@ import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.ws.rs.HttpMethod;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -183,7 +182,7 @@ public class JavaElementChangedProcessor {
 					progressMonitor);
 			for (IType type : matchingHttpMethodTypes) {
 				final CompilationUnit ast = JdtUtils.parse(type, progressMonitor);
-				final Annotation annotation = JdtUtils.resolveAnnotation(type, ast, HttpMethod.class);
+				final Annotation annotation = JdtUtils.resolveAnnotation(type, ast, HTTP_METHOD.qualifiedName);
 				final JaxrsHttpMethod httpMethod = factory.createHttpMethod(annotation, ast, metamodel);
 				metamodel.add(httpMethod);
 				if (httpMethod != null) {
@@ -306,6 +305,7 @@ public class JavaElementChangedProcessor {
 	 * @param progressMonitor
 	 * @throws CoreException
 	 */
+	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsElementDelta> processAddition(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
@@ -341,6 +341,7 @@ public class JavaElementChangedProcessor {
 	 * @throws CoreException
 	 */
 	// FIXME : same code as method processAddition(annotation, etc..) ?!?
+	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsElementDelta> processChange(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();

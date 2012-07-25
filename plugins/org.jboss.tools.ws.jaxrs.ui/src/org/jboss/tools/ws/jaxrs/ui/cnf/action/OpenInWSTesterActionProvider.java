@@ -19,7 +19,6 @@ import org.eclipse.ui.navigator.ICommonActionExtensionSite;
 import org.eclipse.ui.navigator.ICommonMenuConstants;
 import org.eclipse.ui.navigator.ICommonViewerSite;
 import org.eclipse.ui.navigator.ICommonViewerWorkbenchSite;
-import org.jboss.tools.ws.jaxrs.ui.internal.launcher.WSTesterClientDelegate;
 import org.jboss.tools.ws.jaxrs.ui.internal.launcher.WSTesterLaunchableAdapterDelegate;
 
 /**

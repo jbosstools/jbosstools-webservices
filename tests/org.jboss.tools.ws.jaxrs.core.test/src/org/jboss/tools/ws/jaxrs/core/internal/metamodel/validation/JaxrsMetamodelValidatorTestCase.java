@@ -11,12 +11,12 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Path;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
@@ -52,7 +52,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 		// preconditions
 		IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
-		Annotation httpAnnotation = WorkbenchUtils.getAnnotation(fooType, HttpMethod.class, new String[0]);
+		Annotation httpAnnotation = getAnnotation(fooType, HTTP_METHOD.qualifiedName, new String[0]);
 		httpMethod.addOrUpdateAnnotation(httpAnnotation);
 		// operation
 		final List<ValidatorMessage> validationMessages = httpMethod.validate();
@@ -101,7 +101,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 		final JaxrsBaseElement customerResource = metamodel.getElement(customerJavaType);
 		IMethod customerJavaMethod = WorkbenchUtils.getMethod(customerJavaType, "getCustomer");
 		final JaxrsResourceMethod customerResourceMethod = metamodel.getElement(customerJavaMethod, JaxrsResourceMethod.class);
-		Annotation pathAnnotation = WorkbenchUtils.getAnnotation(customerJavaMethod, Path.class, "/{foo}");
+		Annotation pathAnnotation = getAnnotation(customerJavaMethod, PATH.qualifiedName, "/{foo}");
 		customerResourceMethod.addOrUpdateAnnotation(pathAnnotation);
 		// operation
 		final List<ValidatorMessage> validationMessages = customerResource.validate();

@@ -15,6 +15,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_FINE_GRAINED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,8 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.ws.rs.core.Application;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -200,7 +199,7 @@ public class ResourceChangedProcessor {
 
 	private List<JaxrsElementDelta> processApplicationChangesOnWebxmlAdditionOrChange(IResource resource,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
-		final IType applicationType = JdtUtils.resolveType(Application.class.getName(), metamodel.getJavaProject(),
+		final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, metamodel.getJavaProject(),
 				progressMonitor);
 		// occurs when the project has the jax-rs nature (the builder is called), but no jaxrs library is in the classpath
 		if(applicationType == null) {

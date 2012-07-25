@@ -11,11 +11,11 @@
 
 package org.jboss.tools.ws.jaxrs.ui.contentassist;
 
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import javax.ws.rs.PathParam;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -87,7 +87,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 					for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
 						for (Annotation annotation : methodParameter.getAnnotations()) {
 							final ISourceRange range = annotation.getSourceRange();
-							if (annotation.getName().equals(PathParam.class.getName()) && range != null
+							if (annotation.getName().equals(PATH_PARAM.qualifiedName) && range != null
 									&& context.getInvocationOffset() >= range.getOffset()
 									&& context.getInvocationOffset() < (range.getOffset() + range.getLength())) {
 								// completion proposal on @PathParam method

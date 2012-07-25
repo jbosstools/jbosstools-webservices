@@ -19,6 +19,13 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DELETE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.GET;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.POST;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PUT;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
@@ -29,14 +36,6 @@ import static org.mockito.Mockito.verify;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -61,6 +60,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMeth
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
@@ -102,7 +102,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @throws JavaModelException
 	 */
 	private JaxrsJavaApplication createApplication(IType type) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
 		return new JaxrsJavaApplication(type, annotation, metamodel);
 	}
 
@@ -114,7 +114,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @throws JavaModelException
 	 */
 	private JaxrsJavaApplication createApplication(IType type, String applicationPath) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, ApplicationPath.class, applicationPath);
+		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName, applicationPath);
 		return new JaxrsJavaApplication(type, annotation, metamodel);
 	}
 
@@ -134,21 +134,21 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	private JaxrsHttpMethod createHttpMethod(Class<?> httpClass) throws CoreException, JavaModelException {
-		final IType httpMethodType = JdtUtils.resolveType(httpClass.getName(), javaProject, progressMonitor);
-		final Annotation httpMethodAnnotation = getAnnotation(httpMethodType, HttpMethod.class);
+	private JaxrsHttpMethod createHttpMethod(EnumJaxrsElements httpMethodElement) throws CoreException, JavaModelException {
+		final IType httpMethodType = JdtUtils.resolveType(httpMethodElement.qualifiedName, javaProject, progressMonitor);
+		final Annotation httpMethodAnnotation = getAnnotation(httpMethodType, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpMethodType, httpMethodAnnotation, metamodel);
 		return httpMethod;
 	}
 
 	private JaxrsHttpMethod createHttpMethod(IType type) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		return httpMethod;
 	}
 
 	private JaxrsHttpMethod createHttpMethod(IType type, String httpVerb) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, HttpMethod.class, httpVerb);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName, httpVerb);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		return httpMethod;
 	}
@@ -182,10 +182,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithExistingMetamodel() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		// operation
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
@@ -207,10 +207,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithExistingMetamodelWithReset()
 			throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		// operation
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
@@ -296,7 +296,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
 		// operation
 		final ResourceDelta event = createEvent(annotation.getJavaParent().getResource(), CHANGED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
@@ -333,7 +333,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		metamodel.add(createApplication(type));
-		final Annotation annotation = getAnnotation(type, ApplicationPath.class);
+		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
 		// operation
 		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
 		final ResourceDelta event = createEvent(annotation.getJavaParent().getResource(), CHANGED);
@@ -371,7 +371,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
@@ -580,7 +580,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 				"lib/jaxrs-api-2.0.1.GA.jar", progressMonitor);
 		// let's suppose that this jar only contains 1 HTTP Methods ;-)
 		final IType type = JdtUtils.resolveType("javax.ws.rs.GET", javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
@@ -598,7 +598,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		// operation
 		final ResourceDelta event = createEvent(annotation.getJavaParent().getResource(), CHANGED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
@@ -635,7 +635,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		metamodel.add(createHttpMethod(type));
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		// operation
 		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
 		final ResourceDelta event = createEvent(annotation.getJavaParent().getResource(), CHANGED);
@@ -655,7 +655,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
@@ -674,7 +674,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		// operation
@@ -694,7 +694,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
 		metamodel.add(httpMethod);
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
@@ -713,10 +713,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		// operation
 		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final ResourceDelta event = createEvent(type.getResource(), ADDED);
@@ -732,10 +732,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		metamodel.add(createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource"));
 		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		// operation
@@ -751,10 +751,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeExistingResourceWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		metamodel.add(createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource"));
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodel.add(resource);
@@ -773,10 +773,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		bookResource.removeMethod(bookResource.getAllMethods().get(0));
 		metamodel.add(bookResource);
@@ -794,10 +794,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		metamodel.add(bookResource);
 		// operation
@@ -825,10 +825,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		metamodel.add(bookResource);
 		// operation
@@ -851,10 +851,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		productResourceLocator.removeField(productResourceLocator.getAllFields().get(0));
 		metamodel.add(productResourceLocator);
@@ -872,10 +872,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		metamodel.add(productResourceLocator);
 		// operation
@@ -901,10 +901,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		metamodel.add(productResourceLocator);
 		// operation
@@ -928,10 +928,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveExistingResourceWhenChangingResource() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		metamodel.add(resource);
 		// operation
@@ -951,10 +951,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		metamodel.add(resource);
 		// operation
@@ -972,10 +972,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		metamodel.add(resource);
 		// operation
@@ -997,7 +997,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
-		final Annotation annotation = getAnnotation(type, Consumes.class);
+		final Annotation annotation = getAnnotation(type, CONSUMES.qualifiedName);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(annotation).build();
 		metamodel.add(resource);
 		// operation
@@ -1020,10 +1020,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceWhenRemovingMethodsFieldsAndAnnotations() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET.class));
-		metamodel.add(createHttpMethod(POST.class));
-		metamodel.add(createHttpMethod(PUT.class));
-		metamodel.add(createHttpMethod(DELETE.class));
+		metamodel.add(createHttpMethod(GET));
+		metamodel.add(createHttpMethod(POST));
+		metamodel.add(createHttpMethod(PUT));
+		metamodel.add(createHttpMethod(DELETE));
 		final JaxrsResource resourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		metamodel.add(resourceLocator);
 		// operation

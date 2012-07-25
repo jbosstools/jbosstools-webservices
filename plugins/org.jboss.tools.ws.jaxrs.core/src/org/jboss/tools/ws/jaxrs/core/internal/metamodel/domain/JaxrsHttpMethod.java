@@ -12,11 +12,10 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.ws.rs.HttpMethod;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IType;
@@ -145,7 +144,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	/** @return the httpVerbAnnotation */
 	@Override
 	public Annotation getHttpMethodAnnotation() {
-		return getAnnotation(HttpMethod.class.getName());
+		return getAnnotation(HTTP_METHOD.qualifiedName);
 	}
 
 	/*
@@ -200,8 +199,8 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 */
 	public int update(JaxrsHttpMethod httpMethod) {
 		int flags = 0;
-		final Annotation annotation = this.getAnnotation(HttpMethod.class.getName());
-		final Annotation otherAnnotation = httpMethod.getAnnotation(HttpMethod.class.getName());
+		final Annotation annotation = this.getAnnotation(HTTP_METHOD.qualifiedName);
+		final Annotation otherAnnotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
 		if (annotation != null && otherAnnotation != null && !annotation.equals(otherAnnotation)
 				&& annotation.update(otherAnnotation)) {
 			flags += F_HTTP_METHOD_VALUE;

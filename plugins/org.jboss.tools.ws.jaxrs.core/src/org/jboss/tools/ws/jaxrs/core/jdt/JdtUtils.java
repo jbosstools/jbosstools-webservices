@@ -249,41 +249,6 @@ public final class JdtUtils {
 	}
 
 	/**
-	 * Parse the DOM of the given member, and resolve bindings. If the given
-	 * member is not a type, then its declaring type is used by the parser.
-	 * 
-	 * @param member
-	 *            the type to parse
-	 * @param progressMonitor
-	 *            the progress monitor
-	 * @return compilationUnit the DOM CompilationUnit returned by the parse()
-	 *         method. This operation is expensive and should be performed only
-	 *         once for each type. Returns null if the given member was null.
-	 * @throws JavaModelException
-	 *             in case of exception underneath... public static
-	 *             CompilationUnit parse(final IMember member, final
-	 *             IProgressMonitor progressMonitor) throws JavaModelException {
-	 *             if (member == null) { return null; } IType type = null; if
-	 *             (member.getElementType() == IMember.TYPE) { type = (IType)
-	 *             member; } else { type = member.getDeclaringType(); }
-	 *             ASTParser parser = ASTParser.newParser(AST.JLS3); if (type
-	 *             instanceof BinaryType) { IClassFile classFile = (IClassFile)
-	 *             type.getParent(); if (classFile.getSource() == null) {
-	 *             Logger.warn("No source attachment is available for type '" +
-	 *             type + "'. Unable to resolve type arguments."); return null;
-	 *             } parser.setKind(ASTParser.K_COMPILATION_UNIT);
-	 *             parser.setSource(classFile); } else if (type instanceof
-	 *             SourceType) { parser.setSource(type.getCompilationUnit()); }
-	 * 
-	 *             parser.setResolveBindings(true);
-	 *             parser.setBindingsRecovery(true); // FIXME : parser.createAST
-	 *             throws an IllegalStateException on binary //
-	 *             parameterizedType if source code is not available.
-	 *             CompilationUnit node = (CompilationUnit)
-	 *             parser.createAST(progressMonitor); return node; }
-	 */
-
-	/**
 	 * Resolves the annotation given its type.
 	 * 
 	 * @param type
@@ -569,7 +534,7 @@ public final class JdtUtils {
 				}
 				// FIXME : path for a sample result with the help of
 				// bindings
-				// superClassBinding.getSuperclass().getInterfaces()[0].getInterfaces()[0].getTypeArguments()[0].getQualifiedName();
+				// superClassBinding.getSuperclass().getInterfaces()[0].getInterfaces()[0].getTypeArguments()[0].qualifiedName;
 			}
 		}
 

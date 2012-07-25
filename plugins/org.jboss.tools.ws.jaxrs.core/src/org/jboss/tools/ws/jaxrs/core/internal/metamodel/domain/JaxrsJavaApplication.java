@@ -11,11 +11,10 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.ws.rs.ApplicationPath;
 
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ValidatorMessage;
@@ -50,7 +49,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 
 	@Override
 	public EnumKind getKind() {
-		if (getAnnotation(ApplicationPath.class.getName()) != null) {
+		if (getAnnotation(APPLICATION_PATH.qualifiedName) != null) {
 			return EnumKind.APPLICATION_JAVA;
 		}
 		return EnumKind.UNDEFINED;
@@ -66,7 +65,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	 * {@inheritDoc}
 	 */
 	public String getApplicationPath() {
-		final Annotation applicationPathAnnotation = getAnnotation(ApplicationPath.class.getName());
+		final Annotation applicationPathAnnotation = getAnnotation(APPLICATION_PATH.qualifiedName);
 		if (applicationPathAnnotation != null) {
 			return applicationPathAnnotation.getValue("value");
 		}
@@ -82,8 +81,8 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	 */
 	public int update(JaxrsJavaApplication application) {
 		int flags = 0;
-		final Annotation annotation = this.getAnnotation(ApplicationPath.class.getName());
-		final Annotation otherAnnotation = application.getAnnotation(ApplicationPath.class.getName());
+		final Annotation annotation = this.getAnnotation(APPLICATION_PATH.qualifiedName);
+		final Annotation otherAnnotation = application.getAnnotation(APPLICATION_PATH.qualifiedName);
 		if (annotation != null && otherAnnotation != null && !annotation.equals(otherAnnotation)
 				&& annotation.update(otherAnnotation)) {
 			flags += F_APPLICATION_PATH_VALUE;

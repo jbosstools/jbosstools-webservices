@@ -840,17 +840,17 @@ public class WorkbenchUtils {
 		return found;
 	}
 
-	public static Annotation getAnnotation(final IMember member, final Class<?> annotationClass)
+	public static Annotation getAnnotation(final IMember member, final String annotationName)
 			throws JavaModelException {
-		if (annotationClass == null) {
+		if (annotationName == null) {
 			return null;
 		}
-		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationClass);
+		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
 	}
 
-	public static Annotation getAnnotation(final IMember member, final Class<?> annotationClass, String... values)
+	public static Annotation getAnnotation(final IMember member, final String annotationName, String... values)
 			throws JavaModelException {
-		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationClass);
+		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
 
 		Map<String, List<String>> elements = new HashMap<String, List<String>>();
 		elements.put("value", Arrays.asList(values));

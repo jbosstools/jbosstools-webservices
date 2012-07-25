@@ -11,16 +11,16 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -109,7 +109,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 
 	@Override
 	public final EnumKind getKind() {
-		final Annotation pathAnnotation = getAnnotation(Path.class.getName());
+		final Annotation pathAnnotation = getAnnotation(PATH.qualifiedName);
 		if (pathAnnotation != null) {
 			return EnumKind.ROOT_RESOURCE;
 		} else if (resourceMethods.size() > 0 || resourceFields.size() > 0 || paramBeanProperties.size() > 0) {
@@ -124,7 +124,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 
 	@Override
 	public String getPathTemplate() {
-		final Annotation pathAnnotation = getAnnotation(Path.class.getName());
+		final Annotation pathAnnotation = getAnnotation(PATH.qualifiedName);
 		if (pathAnnotation == null) {
 			return null;
 		}
@@ -138,13 +138,13 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	}
 
 	public Annotation getPathAnnotation() {
-		final Annotation pathAnnotation = getAnnotation(Path.class.getName());
+		final Annotation pathAnnotation = getAnnotation(PATH.qualifiedName);
 		return pathAnnotation;
 	}
 
 	@Override
 	public List<String> getConsumedMediaTypes() {
-		final Annotation consumesAnnotation = getAnnotation(Consumes.class.getName());
+		final Annotation consumesAnnotation = getAnnotation(CONSUMES.qualifiedName);
 		if (consumesAnnotation != null) {
 			return consumesAnnotation.getValues("value");
 		}
@@ -153,7 +153,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 
 	@Override
 	public List<String> getProducedMediaTypes() {
-		final Annotation producesAnnotation = getAnnotation(Produces.class.getName());
+		final Annotation producesAnnotation = getAnnotation(PRODUCES.qualifiedName);
 		if (producesAnnotation != null) {
 			return producesAnnotation.getValues("value");
 		}
@@ -161,7 +161,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	}
 
 	public Annotation getProducesAnnotation() {
-		final Annotation producesAnnotation = getAnnotation(Produces.class.getName());
+		final Annotation producesAnnotation = getAnnotation(PRODUCES.qualifiedName);
 		return producesAnnotation;
 	}
 

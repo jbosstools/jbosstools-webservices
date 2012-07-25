@@ -16,8 +16,10 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
 import static org.junit.Assert.assertThat;
 
 import java.lang.annotation.Target;
@@ -67,8 +69,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	public void shouldGetHttpMethodByAnnotation() throws CoreException {
 		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		final Annotation annotation = JdtUtils.resolveAnnotation(javaType, JdtUtils.parse(javaType, progressMonitor),
-				javax.ws.rs.HttpMethod.class);
+		final Annotation annotation = getAnnotation(javaType, HTTP_METHOD.qualifiedName);
 		assertThat((JaxrsHttpMethod) metamodel.getElement(annotation), notNullValue());
 	}
 
