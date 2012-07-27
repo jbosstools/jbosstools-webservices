@@ -629,7 +629,6 @@ public class WorkbenchUtils {
 		try {
 			if (unit.isWorkingCopy()) {
 				LOGGER.debug("Reconciling unit...");
-
 				unit.reconcile(AST.JLS4, ICompilationUnit.FORCE_PROBLEM_DETECTION, unit.getOwner(),
 						new NullProgressMonitor());
 				// Commit changes
