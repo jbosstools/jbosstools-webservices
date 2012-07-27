@@ -630,7 +630,7 @@ public class WorkbenchUtils {
 			if (unit.isWorkingCopy()) {
 				LOGGER.debug("Reconciling unit...");
 
-				unit.reconcile(AST.JLS3, ICompilationUnit.FORCE_PROBLEM_DETECTION, unit.getOwner(),
+				unit.reconcile(AST.JLS4, ICompilationUnit.FORCE_PROBLEM_DETECTION, unit.getOwner(),
 						new NullProgressMonitor());
 				// Commit changes
 				LOGGER.debug("Commiting working copy...");
