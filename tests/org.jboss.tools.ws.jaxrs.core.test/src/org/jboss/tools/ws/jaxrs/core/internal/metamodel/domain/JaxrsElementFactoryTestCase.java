@@ -62,9 +62,8 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertNotNull(element);
 		final IJaxrsResource resource = (IJaxrsResource) element;
-		// only @Path annotation is known by the metamodel, so pure resource
-		// methods with @GET, etc. are not created here.
-		assertThat(resource.getAllMethods().size(), equalTo(4));
+		// result contains a mix of resource methods and subresource methods since http methods are built-in the metamodel
+		assertThat(resource.getAllMethods().size(), equalTo(6));
 	}
 
 	@Test

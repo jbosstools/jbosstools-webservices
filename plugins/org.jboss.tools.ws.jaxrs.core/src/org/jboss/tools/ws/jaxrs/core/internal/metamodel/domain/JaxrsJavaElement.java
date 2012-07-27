@@ -179,7 +179,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 			flag = F_PRODUCED_MEDIATYPES_VALUE;
 		} else {
 			for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-				if (httpMethod.getJavaElement().getFullyQualifiedName().equals(annotationName)) {
+				if (httpMethod.getFullyQualifiedName().equals(annotationName)) {
 					flag = F_HTTP_METHOD_VALUE;
 					break;
 				}
@@ -224,7 +224,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 					flag = F_PRODUCED_MEDIATYPES_VALUE;
 				} else {
 					for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-						if (httpMethod.getJavaElement().getFullyQualifiedName().equals(annotationName)) {
+						if (httpMethod.getFullyQualifiedName().equals(annotationName)) {
 							flag = F_HTTP_METHOD_VALUE;
 							break;
 						}

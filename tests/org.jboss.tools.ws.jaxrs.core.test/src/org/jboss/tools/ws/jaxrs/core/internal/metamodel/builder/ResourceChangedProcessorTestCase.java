@@ -171,21 +171,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		return affectedMetamodel.getAffectedElements();
 	}
 
-	/**
-	 * Because sometimes, generics are painful...
-	 * 
-	 * @param elements
-	 * @return private List<IJaxrsElement<?>> asList(IJaxrsElement<?>... elements) { final List<IJaxrsElement<?>> result
-	 *         = new ArrayList<IJaxrsElement<?>>(); result.addAll(Arrays.asList(elements)); return result; }
-	 */
-
 	@Test
 	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithExistingMetamodel() throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET));
-		metamodel.add(createHttpMethod(POST));
-		metamodel.add(createHttpMethod(PUT));
-		metamodel.add(createHttpMethod(DELETE));
 		// operation
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
@@ -196,21 +184,17 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedMetamodel.getDeltaKind(), equalTo(CHANGED));
 		assertThat(affectedMetamodel.getMetamodel(), equalTo((IJaxrsMetamodel) metamodel));
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
-		// 1 application + 1 HttpMethod + 4 RootResources + 2 Subresources
+		// 1 application + 1 HttpMethod + 7 Resources
 		assertThat(affectedElements.size(), equalTo(9));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
-		// all HttpMethods, Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(34));
+		// all HttpMethods, Resources, ResourceMethods and ResourceFields. only application is available: the java-based one found in src/main/java
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(30));
 	}
 
 	@Test
 	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithExistingMetamodelWithReset()
 			throws CoreException {
 		// pre-conditions
-		metamodel.add(createHttpMethod(GET));
-		metamodel.add(createHttpMethod(POST));
-		metamodel.add(createHttpMethod(PUT));
-		metamodel.add(createHttpMethod(DELETE));
 		// operation
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
@@ -222,11 +206,12 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		metamodel = (JaxrsMetamodel) affectedMetamodel.getMetamodel();
 		assertThat(metamodel, equalTo((IJaxrsMetamodel) metamodel));
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
-		// 1 application + 1 HttpMethod + 4 RootResources + 2 Subresources
-		assertThat(affectedElements.size(), equalTo(15));
+		// 1 application + 1 HttpMethod + 7 Resources  
+		assertThat(affectedElements.size(), equalTo(9));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
-		// all Applications, HttpMethods (including @OPTIONS and @HEAD), Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(37));
+		// all project-specific Applications, HttpMethods, Resources, ResourceMethods and ResourceFields (built-in HttpMethods are not bound to a project)
+		// 2 applications are available: the java-based and the web.xml since a full build was performed
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(31));
 	}
 
 	/**
@@ -255,25 +240,22 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		metamodel = (JaxrsMetamodel) affectedMetamodel.getMetamodel();
 		assertThat(metamodel, notNullValue());
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
-		assertThat(affectedElements.size(), equalTo(15));
-		// all Applications, HttpMethods (including @OPTIONS and @HEAD), project Resources, ResourceMethods and ResourceFields
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(37));
+		assertThat(affectedElements.size(), equalTo(9));
+		// all Applications, HttpMethods, Resources, ResourceMethods and ResourceFields specific to the project
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(31));
 
 	}
 
 	@Test
-	public void shouldAdd6HttpMethodsAnd0ResourceWhenAddingBinaryLib() throws CoreException {
+	public void shouldNotAddAnythingAddingBinaryLib() throws CoreException {
 		// pre-conditions
 		final IPackageFragmentRoot lib = WorkbenchUtils.getPackageFragmentRoot(javaProject,
 				"lib/jaxrs-api-2.0.1.GA.jar", progressMonitor);
 		// operation
 		final ResourceDelta event = createEvent(lib.getResource(), ADDED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
-		// verifications. Damned : none in the jar...
-		assertThat(affectedElements.size(), equalTo(6));
-		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
-		verify(metamodel, times(6)).add(any(JaxrsHttpMethod.class));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(6));
+		// verifications: jar should not be taken into account, even if if it contains matching elements...
+		assertThat(affectedElements.size(), equalTo(0));
 	}
 
 	@Test
@@ -574,7 +556,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldRemoveHttpMethodWhenRemovingBinaryLib() throws CoreException {
+	public void shouldNotRemoveHttpMethodWhenRemovingBinaryLib() throws CoreException {
 		// pre-conditions
 		final IPackageFragmentRoot lib = WorkbenchUtils.getPackageFragmentRoot(javaProject,
 				"lib/jaxrs-api-2.0.1.GA.jar", progressMonitor);
@@ -587,10 +569,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final ResourceDelta event = createEvent(lib.getResource(), REMOVED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
 		// verifications
-		assertThat(affectedElements.size(), equalTo(1));
-		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
-		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(REMOVED))));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+		assertThat(affectedElements.size(), equalTo(0));
 	}
 
 	@Test

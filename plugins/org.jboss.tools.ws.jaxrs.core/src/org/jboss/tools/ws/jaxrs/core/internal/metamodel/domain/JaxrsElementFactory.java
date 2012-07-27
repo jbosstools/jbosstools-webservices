@@ -213,7 +213,7 @@ public class JaxrsElementFactory {
 			JaxrsMetamodel metamodel, JaxrsResource parentResource) throws JavaModelException {
 		final List<String> httpMethodAnnotationNames = new ArrayList<String>();
 		for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-			httpMethodAnnotationNames.add(httpMethod.getJavaElement().getFullyQualifiedName());
+			httpMethodAnnotationNames.add(httpMethod.getFullyQualifiedName());
 		}
 		final List<String> annotationNames = new ArrayList<String>();
 		annotationNames.addAll(Arrays.asList(PATH.qualifiedName, PRODUCES.qualifiedName, CONSUMES.qualifiedName));

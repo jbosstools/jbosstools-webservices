@@ -96,6 +96,24 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	private JaxrsMetamodel(final IJavaProject javaProject) throws CoreException {
 		this.javaProject = javaProject;
+		preloadHttpMethods();
+	}
+
+	/**
+	 * Preload the HttpMethods collection with 6 items from the specification:
+	 * <ul>
+	 * <li>@GET</li>
+	 * <li>@POST</li>
+	 * <li>@PUT</li>
+	 * <li>@DELETE</li>
+	 * <li>@OPTIONS</li>
+	 * <li>@HEAD</li>
+	 * </ul>
+	 */
+	private void preloadHttpMethods() {
+		httpMethods.addAll(Arrays.asList(JaxrsBuiltinHttpMethod.GET, JaxrsBuiltinHttpMethod.POST,
+				JaxrsBuiltinHttpMethod.PUT, JaxrsBuiltinHttpMethod.DELETE, JaxrsBuiltinHttpMethod.HEAD,
+				JaxrsBuiltinHttpMethod.OPTIONS));
 	}
 
 	/*
@@ -454,7 +472,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public JaxrsHttpMethod getHttpMethod(Annotation httpMethodAnnotation) {
 		if (httpMethodAnnotation != null) {
 			for (IJaxrsHttpMethod httpMethod : httpMethods) {
-				final String handleIdentifier1 = httpMethod.getJavaElement().getFullyQualifiedName();
+				final String handleIdentifier1 = httpMethod.getFullyQualifiedName();
 				final String handleIdentifier2 = httpMethodAnnotation.getName();
 				if (handleIdentifier1.equals(handleIdentifier2)) {
 					return (JaxrsHttpMethod) httpMethod;

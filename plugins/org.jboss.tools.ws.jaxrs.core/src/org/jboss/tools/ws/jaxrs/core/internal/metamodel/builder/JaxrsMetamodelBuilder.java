@@ -96,20 +96,6 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	 *            the progress monitor
 	 */
 	private void build(final int buildKind, final IProject project, final IProgressMonitor progressMonitor) {
-		/*
-		 * progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
-		 * Logger.debug("Building JAX-RS Metamodel for project {}...", project.getName()); // extract the relevant delta
-		 * bound to this built (some resources or entire project) final List<ResourceDelta> affectedResources =
-		 * extractAffectedResources(project, progressMonitor); progressMonitor.worked(SCALE); // compute changes on the
-		 * JAX-RS Application(s), HttpMethods, Resources, etc. final boolean withReset = (buildKind == FULL_BUILD ||
-		 * buildKind == CLEAN_BUILD); final JaxrsMetamodelDelta metamodelDelta = resourceChangedProcessor
-		 * .processAffectedResources(project, withReset, affectedResources, new SubProgressMonitor(progressMonitor,
-		 * SCALE)); progressMonitor.worked(SCALE); new
-		 * JaxrsMetamodelChangedProcessor().processAffectedMetamodel(metamodelDelta, new
-		 * SubProgressMonitor(progressMonitor, SCALE)); progressMonitor.worked(SCALE); new
-		 * JaxrsElementChangedPublisher().publish(metamodelDelta, new SubProgressMonitor(progressMonitor, SCALE));
-		 * progressMonitor.worked(SCALE);
-		 */
 		ResourceChangedBuildJob job = new ResourceChangedBuildJob(project, getResourceChangeEvent(project, buildKind));
 		job.setRule(MutexJobSchedulingRule.getInstance());
 		job.schedule();

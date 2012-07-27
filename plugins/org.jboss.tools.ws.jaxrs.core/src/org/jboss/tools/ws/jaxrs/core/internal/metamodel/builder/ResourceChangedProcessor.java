@@ -30,6 +30,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
@@ -102,18 +103,18 @@ public class ResourceChangedProcessor {
 		final JaxrsMetamodel metamodel = JaxrsMetamodel.create(JavaCore.create(project));
 		final JaxrsMetamodelDelta metamodelDelta = new JaxrsMetamodelDelta(metamodel, deltaKind);
 		try {
-			progressMonitor.beginTask("Processing Project '" + project.getName() + "'...", 1);
-			Logger.debug("Processing Project '" + project.getName() + "'...");
+			progressMonitor.beginTask("Processing project '" + project.getName() + "'...", 1);
+			Logger.debug("Processing project '" + project.getName() + "'...");
 			metamodelDelta.addAll(processEvent(new ResourceDelta(project, ADDED, 0), progressMonitor));
 			if(WtpUtils.hasWebDeploymentDescriptor(project)) {
 				processEvent(new ResourceDelta(WtpUtils.getWebDeploymentDescriptor(project), ADDED, 0), progressMonitor);
 			}
 			progressMonitor.worked(1);
 		} catch (CoreException e) {
-			Logger.error("Failed while processing Resource results", e);
+			Logger.error("Failed while processing resource results", e);
 		} finally {
 			progressMonitor.done();
-			Logger.debug("Done processing Resource results.");
+			Logger.debug("Done processing resource results.");
 
 		}
 
@@ -144,7 +145,6 @@ public class ResourceChangedProcessor {
 				elementChanges.addAll(processEvent(event, progressMonitor));
 				progressMonitor.worked(1);
 			}
-
 		} catch (CoreException e) {
 			Logger.error("Failed while processing Resource results", e);
 			elementChanges.clear();
@@ -167,7 +167,9 @@ public class ResourceChangedProcessor {
 		final IJavaElement scope = JavaCore.create(resource);
 		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(resource.getProject());
 		final int deltaKind = event.getDeltaKind();
-		if (scope != null) {
+		if (scope != null && 
+				// ignore changes on binary files (added/removed/changed jars to improve builder performances)
+				!(scope.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)scope).isArchive())) {
 			switch (deltaKind) {
 			case ADDED:
 			case CHANGED:

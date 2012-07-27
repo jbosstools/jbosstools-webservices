@@ -80,10 +80,10 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 	public void shouldRetrieveAllHttpMethodsInProject() throws CoreException {
 		// pre-conditions
 		// operation
-		final List<IType> resourceMethods = JaxrsAnnotationsScanner.findHttpMethodTypes(javaProject,
+		final List<IType> httpMethods = JaxrsAnnotationsScanner.findHttpMethodTypes(javaProject,
 				new NullProgressMonitor());
 		// verifications
-		assertThat(resourceMethods.size(), equalTo(7));
+		assertThat(httpMethods.size(), equalTo(1));
 	}
 
 	@Test

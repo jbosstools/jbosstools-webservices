@@ -376,7 +376,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	@Override
 	public IJavaProject getJavaProject() {
-		return this.httpMethod.getJavaElement().getJavaProject();
+		return this.metamodel.getJavaProject();
 	}
 
 }

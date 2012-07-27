@@ -43,6 +43,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBuiltinHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
@@ -115,14 +116,14 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		return resourceMethod;
 	}
 
-	private JaxrsHttpMethod createHttpMethod(EnumJaxrsElements element) throws JavaModelException, CoreException {
-		final IType type = getType(element.qualifiedName, javaProject);
+	private JaxrsHttpMethod createHttpMethod(String qualifiedName) throws JavaModelException, CoreException {
+		final IType type = getType(qualifiedName, javaProject);
 		final Annotation httpAnnotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
 		return httpMethod;
 	}
-
+	
 	private JaxrsEndpoint createEndpoint(JaxrsMetamodel metamodel, JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
 		JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, new LinkedList<JaxrsResourceMethod>(
 				Arrays.asList(resourceMethods)));
@@ -148,7 +149,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shouldConstructSimpleEndpoint() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName));
 		customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName));
@@ -169,7 +170,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shouldConstructEndpointFromSubresource() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource producLocatorResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productLocatorMethod = createResourceMethod("getProductResourceLocator",
 				producLocatorResource, GET);
@@ -189,7 +190,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shouldConstructEndpointWithQueryParams() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
 				GET);
@@ -203,7 +204,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingResourceMethodInRootResource() throws CoreException {
 		// pre-conditions
-		createHttpMethod(GET);
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
 				GET);
@@ -218,7 +218,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingSubresourceMethodInRootResource() throws JavaModelException, CoreException {
 		// pre-conditions
-		createHttpMethod(GET);
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerSubresourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -234,7 +233,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudCreateEndpointWhenAddingSubresourceLocatorMethodInRootResource() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		createHttpMethod(GET);
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		createResourceMethod("getProduct", bookResource, GET);
 		// createEndpoint(httpMethod, bookResourceMethod);
@@ -257,7 +255,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingResourceMethodInSubresource() throws JavaModelException, CoreException {
 		// pre-conditions
-		createHttpMethod(GET);
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		createResourceMethod("getProductResourceLocator", productResourceLocator, null);
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
@@ -274,7 +271,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudCreateEndpointWhenChangingSubresourceLocatorMethodIntoSubresourceMethod()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		createHttpMethod(GET);
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerSubresourceMethod = createResourceMethod("getCustomer", customerResource,
 				null);
@@ -293,7 +289,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingSubresourceMethodInSubresource() throws JavaModelException, CoreException {
 		// pre-conditions
-		createHttpMethod(GET);
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		createResourceMethod("getProductResourceLocator", productResourceLocator, null);
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
@@ -315,7 +310,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenAddingApplication() throws JavaModelException, CoreException {
 		// the subresource becomes a root resource !
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -336,7 +331,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenAddingResourcePathAnnotation() throws JavaModelException, CoreException {
 		// the subresource becomes a root resource !
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
 				GET);
@@ -355,7 +350,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenAddingMethodPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -381,7 +376,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenChangingApplicationPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -404,7 +399,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenChangingResourcePathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -427,7 +422,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenChangingMethodPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -451,7 +446,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenRemovingResourcePathAnnotationAndMatchingSubresourceLocatorFound()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		// the subresource locator that will match the resourcemethod when the
 		// rootresource becomes a subresource
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
@@ -480,7 +475,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeHttpVerbWhenChangingHttpMethodAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -502,7 +497,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenRemovingMetamodelApplication() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -524,7 +519,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenRemovingMethodPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -547,7 +542,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeConsumedMediatypesWhenAddingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
 				POST);
@@ -570,7 +565,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeConsumedMediatypesWhenAddingResourceMethodAnnotation() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
 				POST);
@@ -593,7 +588,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeConsumedMediatypesWhenChangingResourceMethodAnnotation() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
 				POST);
@@ -618,7 +613,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeConsumedMediatypesWhenChangingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName,
 				"application/foo");
@@ -644,7 +639,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeConsumedMediatypesWhenRemovingMethodAnnotationWithResourceDefault()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName,
 				"application/xml"));
@@ -671,7 +666,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeConsumedMediatypesWhenRemovingMethodAnnotationWithoutResourceDefault()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
 				POST);
@@ -695,7 +690,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeProducedMediatypesWhenAddingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
 				GET);
@@ -718,7 +713,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeProducedMediatypesWhenAddingResourceMethodAnnotation() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
 				GET);
@@ -740,7 +735,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeProducedMediatypesWhenChangingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName,
 				"application/foo");
@@ -766,7 +761,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeProducedMediatypesWhenChangingResourceMethodAnnotation() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
 				POST);
@@ -792,7 +787,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeProducedMediatypesWhenRemovingMethodAnnotationWithResourceDefault()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		customerResource.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName,
 				"application/xml"));
@@ -819,7 +814,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeProducedMediatypesWhenRemovingMethodAnnotationWithoutResourceDefault()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(POST);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
 				POST);
@@ -843,7 +838,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointWhenRemovingHttpMethodAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -863,7 +858,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointWhenRemovingResourcePathAnnotationAndMatchingSubresourceLocatorNotFound()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -885,7 +880,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointsWhenRemovingRootResource() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod1 = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -907,7 +902,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointsWhenRemovingSubresource() throws JavaModelException, CoreException {
 		// pre-conditions
-		JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
 				productResourceLocator, null);
@@ -930,7 +925,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointsWhenRemovingHttpMethod() throws JavaModelException, CoreException {
 		// pre-conditions
-		JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		createResourceMethod("getProductResourceLocator", productResourceLocator, null);
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
@@ -954,7 +949,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudAddEndpointsWhenChangingSubresourceLocatorReturnType() throws JavaModelException, CoreException {
 		// pre-conditions
-		JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
 				productResourceLocator, null);
@@ -984,7 +979,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointsWhenChangingSubresourceLocatorReturnType() throws JavaModelException, CoreException {
 		// pre-conditions
-		JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
 				productResourceLocator, null);
@@ -1014,7 +1009,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointsWhenRemovingSubresourceLocatorResource() throws JavaModelException, CoreException {
 		// pre-conditions
-		JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
 				productResourceLocator, null);
@@ -1038,7 +1033,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointWhenRemovingResourceMethodInRootResource() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
 				GET);
@@ -1057,7 +1052,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointWhenRemovingSubresourceMethodInRootResource() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
 				GET);
@@ -1077,7 +1072,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudRemoveEndpointWhenRemovingSubresourceLocatorMethod() throws JavaModelException, CoreException {
 		// pre-conditions
-		JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
 				productResourceLocator, null);
@@ -1102,7 +1097,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointWhenSubresourceLocatorRootResourceBecomesSubresource() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		JaxrsHttpMethod httpMethod = createHttpMethod(GET);
+		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
 				productResourceLocator, null);

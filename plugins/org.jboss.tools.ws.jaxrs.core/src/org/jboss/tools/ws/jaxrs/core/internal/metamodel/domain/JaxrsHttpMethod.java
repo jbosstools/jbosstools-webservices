@@ -93,9 +93,9 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 			return OTHER;
 		}
 	}
-
-	public JaxrsHttpMethod(IType javaType, Annotation httpMehodAnnotation, JaxrsMetamodel metamodel) {
-		super(javaType, httpMehodAnnotation, metamodel);
+	
+	public JaxrsHttpMethod(IType javaType, Annotation httpMethodAnnotation, JaxrsMetamodel metamodel) {
+		super(javaType, httpMethodAnnotation, metamodel);
 	}
 
 	@Override
@@ -133,7 +133,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * ()
 	 */
 	@Override
-	public final String getHttpVerb() {
+	public String getHttpVerb() {
 		final Annotation httpVerbAnnotation = getHttpMethodAnnotation();
 		if (httpVerbAnnotation != null) {
 			return httpVerbAnnotation.getValue("value");
@@ -155,8 +155,8 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * ()
 	 */
 	@Override
-	public final String getSimpleName() {
-		return getJavaElement().getElementName();
+	public String getFullyQualifiedName() {
+		return getJavaElement().getFullyQualifiedName();
 	}
 
 	/*
@@ -166,7 +166,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 */
 	@Override
 	public final String toString() {
-		return "HttpMethod [@" + getSimpleName() + ":" + getHttpMethodAnnotation() + "]";
+		return "HttpMethod [@" + getFullyQualifiedName() + ":" + getHttpMethodAnnotation() + "]";
 	}
 
 	@Override

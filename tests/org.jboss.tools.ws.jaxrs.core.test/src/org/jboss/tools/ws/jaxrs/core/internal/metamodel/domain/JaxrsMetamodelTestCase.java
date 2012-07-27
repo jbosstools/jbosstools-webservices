@@ -118,7 +118,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	
 	@Test
 	public void shouldAssertHTTPMethods() throws CoreException {
-		// 6 HttpMethods in the jax-rs API (@GET, etc.) + 1 in the project
+		// 6 fixed HttpMethods as part of the jax-rs API (@GET, etc.) + 1 in the project
 		// (@FOO)
 		Assert.assertEquals(1 * 7, metamodel.getAllHttpMethods().size());
 		Set<IJaxrsHttpMethod> jaxrsHttpMethods = new HashSet<IJaxrsHttpMethod>();
@@ -224,6 +224,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		Collections.sort(httpMethods);
 		assertThat(httpMethods.get(0).getHttpVerb(), equalTo("GET"));
 		assertThat(httpMethods.get(5).getHttpVerb(), equalTo("OPTIONS"));
+		assertThat(httpMethods.get(6).getHttpVerb(), equalTo("FOO"));
 		
 	}
 	

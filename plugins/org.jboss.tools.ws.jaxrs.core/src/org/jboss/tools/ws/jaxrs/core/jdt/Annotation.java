@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,14 +33,32 @@ public class Annotation {
 	 * Full constructor
 	 * 
 	 * @param annotation
-	 * @param name
+	 * @param annotationName
 	 * @param annotationElements
+	 * @param sourceRange
 	 */
-	public Annotation(IAnnotation annotation, String name, Map<String, List<String>> annotationElements,
+	public Annotation(final IAnnotation annotation, final String annotationName, final Map<String, List<String>> annotationElements,
 			final ISourceRange sourceRange) {
 		this.javaAnnotation = annotation;
-		this.javaAnnotationName = name;
+		this.javaAnnotationName = annotationName;
 		this.javaAnnotationElements = new HashMap<String, List<String>>(annotationElements);
+		this.sourceRange = sourceRange;
+	}
+	
+	/**
+	 * Full constructor with a single unnamed 'value'
+	 * 
+	 * @param annotation
+	 * @param annotationName
+	 * @param annotationValue
+	 * @param sourceRange
+	 */
+	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue,
+			final ISourceRange sourceRange) {
+		this.javaAnnotation = annotation;
+		this.javaAnnotationName = annotationName;
+		this.javaAnnotationElements = new HashMap<String, List<String>>();
+		this.javaAnnotationElements.put("value", Arrays.asList(annotationValue));
 		this.sourceRange = sourceRange;
 	}
 

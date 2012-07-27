@@ -140,8 +140,8 @@ public final class JaxrsAnnotationsScanner {
 			throws CoreException {
 		IJavaSearchScope searchScope = null;
 		if (scope instanceof IJavaProject) {
-			IJavaProject javaProject = (IJavaProject) scope;
-			searchScope = SearchEngine.createJavaSearchScope(javaProject.getPackageFragmentRoots());
+			searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
+					IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
 		} else {
 			searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope });
 		}
@@ -195,7 +195,7 @@ public final class JaxrsAnnotationsScanner {
 		List<String> annotations = new ArrayList<String>(httpMethods.size() + 1);
 		annotations.add(PATH.qualifiedName);
 		for (IJaxrsHttpMethod httpMethod : httpMethods) {
-			annotations.add(httpMethod.getJavaElement().getFullyQualifiedName());
+			annotations.add(httpMethod.getFullyQualifiedName());
 		}
 		return searchForAnnotatedMethods(annotations, searchScope, progressMonitor);
 	}
