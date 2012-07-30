@@ -12,7 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +22,8 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
 /**
@@ -99,8 +99,8 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	}
 
 	@Override
-	public EnumElementKind getElementKind() {
-		return EnumElementKind.HTTP_METHOD;
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.HTTP_METHOD;
 	}
 
 	@Override
@@ -183,11 +183,11 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	}
 
 	@Override
-	public EnumKind getKind() {
+	public EnumElementKind getElementKind() {
 		if (getHttpMethodAnnotation() != null) {
-			return EnumKind.HTTP_METHOD;
+			return EnumElementKind.HTTP_METHOD;
 		}
-		return EnumKind.UNDEFINED;
+		return EnumElementKind.UNDEFINED;
 	}
 
 	/**

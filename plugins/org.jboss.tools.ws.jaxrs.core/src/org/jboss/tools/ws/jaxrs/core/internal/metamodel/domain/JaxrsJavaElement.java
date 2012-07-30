@@ -22,15 +22,15 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,7 +43,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IMember;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
 /**
@@ -118,7 +118,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 			return 0;
 		}
 		boolean changed = false;
-		final EnumKind previousKind = getKind();
+		final EnumElementKind previousKind = getElementKind();
 		final String annotationName = annotation.getName();
 		if (annotations.containsKey(annotation.getName())) {
 			changed = annotations.get(annotation.getName()).update(annotation);
@@ -156,9 +156,9 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		return flags;
 	}
 
-	private int qualifyChange(final String annotationName, EnumKind previousKind) {
+	private int qualifyChange(final String annotationName, EnumElementKind previousKind) {
 		int flag = F_NONE;
-		final EnumKind currentKind = getKind();
+		final EnumElementKind currentKind = getElementKind();
 		if (annotationName.equals(PATH.qualifiedName)) {
 			flag = F_PATH_VALUE;
 		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
@@ -203,7 +203,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 			Annotation annotation = entry.getValue();
 			if (annotation.getJavaAnnotation().getHandleIdentifier().equals(handleIdentifier)) {
 				this.metamodel.unindexElement(this, handleIdentifier);
-				final EnumKind previousKind = getKind();
+				final EnumElementKind previousKind = getElementKind();
 				final String annotationName = entry.getKey();
 				iterator.remove();
 				if (annotationName.equals(PATH.qualifiedName)) {
@@ -230,7 +230,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 						}
 					}
 				}
-				final EnumKind currentKind = getKind();
+				final EnumElementKind currentKind = getElementKind();
 				if (currentKind != previousKind) {
 					flag += F_ELEMENT_KIND;
 				}

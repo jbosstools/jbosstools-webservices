@@ -16,8 +16,8 @@ import java.util.List;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsParamBeanProperty;
 
 /**
@@ -31,8 +31,8 @@ public class JaxrsParamBeanProperty extends JaxrsJavaElement<IMethod> implements
 	}
 
 	@Override
-	public EnumElementKind getElementKind() {
-		return EnumElementKind.RESOURCE_FIELD;
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.RESOURCE_FIELD;
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class JaxrsParamBeanProperty extends JaxrsJavaElement<IMethod> implements
 	}
 
 	@Override
-	public EnumKind getKind() {
+	public EnumElementKind getElementKind() {
 		return null;
 	}
 

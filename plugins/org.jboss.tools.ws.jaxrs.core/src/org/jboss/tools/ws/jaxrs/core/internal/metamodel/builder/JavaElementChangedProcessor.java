@@ -21,7 +21,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,8 +55,8 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
@@ -111,33 +111,36 @@ public class JavaElementChangedProcessor {
 		if (metamodel == null) {
 			metamodel = JaxrsMetamodel.create(javaProject);
 		}
-
 		switch (deltaKind) {
 		case ADDED:
-			switch (elementType) {
-			case JAVA_PROJECT:
-				return processAddition(element, metamodel, progressMonitor);
-			case PACKAGE_FRAGMENT_ROOT:
-				return processAddition(element, metamodel, progressMonitor);
-			case COMPILATION_UNIT:
-				return processAddition((ICompilationUnit) element, ast, metamodel, progressMonitor);
-			case TYPE:
-				return processAddition((IType) element, ast, metamodel, progressMonitor);
-			case METHOD:
-				return processAddition((IMethod) element, ast, metamodel, progressMonitor);
-			case FIELD:
-				return processAddition((IField) element, ast, metamodel, progressMonitor);
-			case ANNOTATION:
-				return processAddition((IAnnotation) element, ast, metamodel, progressMonitor);
-			}
+			//if(element.exists()) { // needed to prevent exception for edge cases such as 'package-info.java' that holds some shadow 'A' type..
+				switch (elementType) {
+				case JAVA_PROJECT:
+					return processAddition(element, metamodel, progressMonitor);
+				case PACKAGE_FRAGMENT_ROOT:
+					return processAddition(element, metamodel, progressMonitor);
+				case COMPILATION_UNIT:
+					return processAddition((ICompilationUnit) element, ast, metamodel, progressMonitor);
+				case TYPE:
+					return processAddition((IType) element, ast, metamodel, progressMonitor);
+				case METHOD:
+					return processAddition((IMethod) element, ast, metamodel, progressMonitor);
+				case FIELD:
+					return processAddition((IField) element, ast, metamodel, progressMonitor);
+				case ANNOTATION:
+					return processAddition((IAnnotation) element, ast, metamodel, progressMonitor);
+				}
+			//}
 			break;
 		case CHANGED:
-			switch (elementType) {
-			case METHOD:
-				return processChange((IMethod) element, ast, metamodel, progressMonitor);
-			case ANNOTATION:
-				return processChange((IAnnotation) element, ast, metamodel, progressMonitor);
-			}
+			//if(element.exists()) { // needed to prevent exception for edge cases such as 'package-info.java' that holds some shadow 'A' type..
+				switch (elementType) {
+					case METHOD:
+					return processChange((IMethod) element, ast, metamodel, progressMonitor);
+				case ANNOTATION:
+					return processChange((IAnnotation) element, ast, metamodel, progressMonitor);
+				}
+			//}
 			break;
 		case REMOVED:
 			switch (elementType) {
@@ -315,7 +318,7 @@ public class JavaElementChangedProcessor {
 			if (createdElement != null) {
 				metamodel.add(createdElement);
 				changes.add(new JaxrsElementDelta(createdElement, ADDED));
-				switch (createdElement.getElementKind()) {
+				switch (createdElement.getElementCategory()) {
 				case RESOURCE_FIELD:
 				case RESOURCE_METHOD:
 					JaxrsResource parentResource = ((JaxrsResourceElement<?>) createdElement).getParentResource();
@@ -353,7 +356,7 @@ public class JavaElementChangedProcessor {
 				if (createdElement != null) {
 					metamodel.add(createdElement);
 					changes.add(new JaxrsElementDelta(createdElement, ADDED));
-					switch (createdElement.getElementKind()) {
+					switch (createdElement.getElementCategory()) {
 					case RESOURCE_FIELD:
 					case RESOURCE_METHOD:
 						JaxrsResource parentResource = ((JaxrsResourceElement<?>) createdElement).getParentResource();
@@ -377,7 +380,7 @@ public class JavaElementChangedProcessor {
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final JaxrsBaseElement jaxrsElement = metamodel.getElement(javaMethod);
-		if (jaxrsElement != null && jaxrsElement.getElementKind() == EnumElementKind.RESOURCE_METHOD) {
+		if (jaxrsElement != null && jaxrsElement.getElementCategory() == EnumElementCategory.RESOURCE_METHOD) {
 			final int flag = ((JaxrsResourceMethod) jaxrsElement).update(CompilationUnitsRepository.getInstance()
 					.getMethodSignature(javaMethod));
 			if (flag != F_NONE) {
@@ -452,7 +455,7 @@ public class JavaElementChangedProcessor {
 		if (element != null) {
 			// The logic is the same for all the kinds of elements
 			final int flag = element.removeAnnotation(javaAnnotation.getHandleIdentifier());
-			if (element.getKind() == EnumKind.UNDEFINED) {
+			if (element.getElementKind() == EnumElementKind.UNDEFINED) {
 				metamodel.remove(element);
 				changes.add(new JaxrsElementDelta(element, REMOVED));
 			} else {
@@ -478,7 +481,7 @@ public class JavaElementChangedProcessor {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final List<JaxrsBaseElement> elements = metamodel.getElements(method);
 		for (JaxrsBaseElement element : elements) {
-			if (element.getElementKind() == EnumElementKind.RESOURCE_METHOD) {
+			if (element.getElementCategory() == EnumElementCategory.RESOURCE_METHOD) {
 				metamodel.remove(element);
 				changes.add(new JaxrsElementDelta(element, REMOVED));
 			}

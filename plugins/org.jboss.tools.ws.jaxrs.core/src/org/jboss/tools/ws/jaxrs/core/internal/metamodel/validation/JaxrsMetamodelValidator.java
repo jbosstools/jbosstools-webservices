@@ -28,7 +28,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
 public class JaxrsMetamodelValidator extends AbstractValidator {
@@ -55,7 +55,7 @@ public class JaxrsMetamodelValidator extends AbstractValidator {
 				}
 				List<JaxrsBaseElement> elements = jaxrsMetamodel.getElements(JdtUtils.getCompilationUnit(resource));
 				for(JaxrsBaseElement element : elements) {
-					if (element.getElementKind() == EnumElementKind.RESOURCE) {
+					if (element.getElementCategory() == EnumElementCategory.RESOURCE) {
 						Logger.debug("Validating the JAX-RS Metamodel after {} was {}", resource.getName(),
 								ConstantUtils.getStaticFieldName(IResourceDelta.class, kind));
 						List<ValidatorMessage> validationMessages = element.validate();

@@ -14,7 +14,7 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
  * @author Xavier Coulon
  *
  */
-public enum EnumJaxrsElements {
+public enum EnumJaxrsClassname {
 	
 	DELETE("javax.ws.rs.DELETE"),
 	
@@ -33,6 +33,12 @@ public enum EnumJaxrsElements {
 	APPLICATION("javax.ws.rs.core.Application"), 
 	
 	APPLICATION_PATH("javax.ws.rs.ApplicationPath"),
+	
+	MESSAGE_BODY_READER("javax.ws.rs.ext.MessageBodyReader"),
+
+	MESSAGE_BODY_WRITER("javax.ws.rs.ext.MessageBodyWriter"),
+	
+	EXCEPTION_MAPPER("javax.ws.rs.ext.ExceptionMapper"),
 	
 	PATH("javax.ws.rs.Path"),
 	
@@ -68,7 +74,7 @@ public enum EnumJaxrsElements {
 	
 	public final String qualifiedName;
 	
-	private EnumJaxrsElements(final String qualifiedName) {
+	private EnumJaxrsClassname(final String qualifiedName) {
 		this.qualifiedName = qualifiedName;
 	}
 

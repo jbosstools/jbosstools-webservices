@@ -10,6 +10,10 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import org.eclipse.jdt.core.IType;
+
 public interface IJaxrsProvider extends IJaxrsElement{
+
+	public IType getProvidedType(EnumElementKind messageBodyReader);
 
 }

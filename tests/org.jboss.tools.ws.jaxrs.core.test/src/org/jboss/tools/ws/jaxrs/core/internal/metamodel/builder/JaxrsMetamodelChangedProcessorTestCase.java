@@ -21,13 +21,13 @@ import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.GET;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.POST;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.POST;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 
@@ -52,11 +52,11 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod.Builder;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsEndpointDelta;
@@ -95,7 +95,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	}
 
 	private JaxrsResourceMethod createResourceMethod(String methodName, JaxrsResource parentResource,
-			EnumJaxrsElements httpMethodElement) throws CoreException, JavaModelException {
+			EnumJaxrsClassname httpMethodElement) throws CoreException, JavaModelException {
 		final IType javaType = parentResource.getJavaElement();
 		final ICompilationUnit compilationUnit = javaType.getCompilationUnit();
 		final IMethod javaMethod = getMethod(javaType, methodName);
@@ -274,7 +274,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerSubresourceMethod = createResourceMethod("getCustomer", customerResource,
 				null);
-		assertThat(customerSubresourceMethod.getKind(), equalTo(EnumKind.SUBRESOURCE_LOCATOR));
+		assertThat(customerSubresourceMethod.getElementKind(), equalTo(EnumElementKind.SUBRESOURCE_LOCATOR));
 		// operation
 		Annotation httpAnnotation = getAnnotation(customerSubresourceMethod.getJavaElement(), GET.qualifiedName);
 		final int flags = customerSubresourceMethod.addOrUpdateAnnotation(httpAnnotation);

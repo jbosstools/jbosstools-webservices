@@ -5,8 +5,8 @@ import java.util.List;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.validation.ValidatorMessage;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 
 public abstract class JaxrsBaseElement implements IJaxrsElement {
@@ -46,9 +46,9 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 		return metamodel;
 	}
 
-	public abstract EnumElementKind getElementKind();
+	public abstract EnumElementCategory getElementCategory();
 
-	public abstract EnumKind getKind();
+	public abstract EnumElementKind getElementKind();
 
 	public abstract IResource getResource();
 	

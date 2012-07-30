@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.wst.validation.ValidatorMessage;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 
 public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsApplication {
@@ -52,13 +52,13 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 	}
 
 	@Override
-	public EnumElementKind getElementKind() {
-		return EnumElementKind.APPLICATION;
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.APPLICATION;
 	}
 
 	@Override
-	public EnumKind getKind() {
-		return EnumKind.APPLICATION_WEBXML;
+	public EnumElementKind getElementKind() {
+		return EnumElementKind.APPLICATION_WEBXML;
 	}
 
 	@Override

@@ -30,7 +30,7 @@ public interface IJaxrsResourceMethod {
 	 */
 	public abstract void hasErrors(final boolean h);
 
-	public abstract EnumKind getKind();
+	public abstract EnumElementKind getElementKind();
 
 	abstract String getPathTemplate();
 

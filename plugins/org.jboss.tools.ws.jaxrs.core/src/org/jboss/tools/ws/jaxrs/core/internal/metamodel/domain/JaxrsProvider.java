@@ -13,20 +13,18 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
 
 /**
- * JAX-RS Provider class Providers *must* implement MessageBodyReader,
- * MessageBodyWriter or ExceptionMapper Providers *may* be annotated with
- * <code>javax.ws.rs.ext.Provider</code> annotation.
+ * JAX-RS Provider class Providers <strong>must</strong> implement MessageBodyReader, MessageBodyWriter or
+ * ExceptionMapper Providers *may* be annotated with <code>javax.ws.rs.ext.Provider</code> annotation.
  * 
  * @author xcoulon
  */
@@ -38,96 +36,70 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	 * @author xcoulon
 	 */
 	public static class Builder {
+		final IType javaType;
+		final JaxrsMetamodel metamodel;
+		private Annotation consumesAnnotation;
+		private Annotation producesAnnotation;
+		private Annotation providerAnnotation;
+		private Map<EnumElementKind, IType> providedKinds;
 
-		private final JaxrsMetamodel metamodel;
-		private final IType javaType;
-
-		/**
-		 * Mandatory attributes of the enclosing 'Provider' element.
-		 * 
-		 * @param javaType
-		 * @param metamodel
-		 */
 		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
 			this.javaType = javaType;
 			this.metamodel = metamodel;
 		}
 
-		/**
-		 * Builds and returns the elements. Internally calls the merge() method.
-		 * 
-		 * @param progressMonitor
-		 * @return
-		 * @throws CoreException
-		 */
-		public JaxrsProvider build(IProgressMonitor progressMonitor) throws CoreException {
-			JaxrsProvider provider = new JaxrsProvider(this);
-			// provider.merge(javaType, progressMonitor);
-			return provider;
+		public Builder withProviderAnnotation(final Annotation providerAnnotation) {
+			this.providerAnnotation = providerAnnotation;
+			return this;
+		}
+
+		public Builder consumes(final Annotation consumesAnnotation) {
+			this.consumesAnnotation = consumesAnnotation;
+			return this;
+		}
+
+		public Builder produces(final Annotation producesAnnotation) {
+			this.producesAnnotation = producesAnnotation;
+			return this;
+		}
+
+		public JaxrsProvider build() {
+			List<Annotation> annotations = new ArrayList<Annotation>();
+			if (providerAnnotation != null) {
+				annotations.add(providerAnnotation);
+			}
+			if (consumesAnnotation != null) {
+				annotations.add(consumesAnnotation);
+			}
+			if (producesAnnotation != null) {
+				annotations.add(producesAnnotation);
+			}
+			return new JaxrsProvider(javaType, annotations, providedKinds, metamodel);
+		}
+
+		public Builder providing(final Annotation providerAnnotation, final Map<EnumElementKind, IType> providedKinds) {
+			this.providerAnnotation = providerAnnotation;
+			this.providedKinds = providedKinds;
+			return this;
 		}
 	}
 
+	private final Map<EnumElementKind, IType> providedKinds;
 	/**
-	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
-	 * class.
+	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static class.
+	 * @param providedKinds 
 	 * 
 	 * @param builder
 	 */
-	private JaxrsProvider(Builder builder) {
-		super(builder.javaType, (Annotation) null, builder.metamodel);
+	private JaxrsProvider(final IType javaType, final List<Annotation> annotations, final Map<EnumElementKind, IType> providedKinds, final JaxrsMetamodel metamodel) {
+		super(javaType, annotations, metamodel);
+		this.providedKinds = providedKinds;
 	}
 
 	@Override
-	public EnumElementKind getElementKind() {
-		return EnumElementKind.PROVIDER;
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.PROVIDER;
 	}
-
-	/**
-	 * @param javaType
-	 * @return
-	 * @throws CoreException
-	 * @Override public final Set<EnumElementChange> merge(final IType javaType,
-	 *           final IProgressMonitor progressMonitor) throws
-	 *           InvalidModelElementException, CoreException { if
-	 *           (!JdtUtils.isTopLevelType(javaType)) { throw new
-	 *           InvalidModelElementException("Type is not a top-level type"); }
-	 *           Set<EnumElementChange> changes = new
-	 *           HashSet<EnumElementChange>();
-	 * 
-	 *           CompilationUnit compilationUnit =
-	 *           getCompilationUnit(progressMonitor); Set<IProblem> problems =
-	 *           JdtUtils.resolveErrors(javaType, compilationUnit); if (problems
-	 *           != null && problems.size() > 0) { //
-	 *           metamodel.reportErrors(javaType, problems); return changes; }
-	 *           IAnnotationBinding annotationBinding =
-	 *           JdtUtils.resolveAnnotationBinding(javaType, compilationUnit,
-	 *           javax.ws.rs.ext.Provider.class); // annotation was removed, or
-	 *           import was removed if (annotationBinding == null) { throw new
-	 *           InvalidModelElementException (
-	 *           "SimpleAnnotation binding not found : missing 'import' statement ?"
-	 *           ); } ITypeHierarchy providerTypeHierarchy =
-	 *           JdtUtils.resolveTypeHierarchy(javaType, false,
-	 *           progressMonitor); IType[] subtypes =
-	 *           providerTypeHierarchy.getSubtypes(javaType); // assert that the
-	 *           class is not abstract and has no // sub-type, or continue; if
-	 *           (JdtUtils.isAbstractType(javaType) || (subtypes != null &&
-	 *           subtypes.length > 0)) { throw new InvalidModelElementException(
-	 *           "Type is an abstract type or has subtypes" ); } Map<EnumKind,
-	 *           IType> providerKinds = getProviderKinds(javaType,
-	 *           compilationUnit, providerTypeHierarchy,
-	 *           container.getProviderInterfaces(), null); // removes previous
-	 *           kinds and capabilities for (Iterator<EnumKind> iterator =
-	 *           this.getProvidedKinds().keySet().iterator();
-	 *           iterator.hasNext();) { EnumKind kind = iterator.next(); if
-	 *           (providerKinds == null || !providerKinds.containsKey(kind)) {
-	 *           iterator.remove(); } } // add new kind and capabilities based
-	 *           on resolved types and // annotations if (providerKinds != null)
-	 *           { for (Entry<EnumKind, IType> entry : providerKinds.entrySet())
-	 *           { JaxrsMediaTypeCapabilities mediaTypes =
-	 *           resolveMediaTypeCapabilities(getJavaElement(), compilationUnit,
-	 *           entry.getKey()); addProviderKind(entry.getKey(),
-	 *           entry.getValue(), mediaTypes); } } return changes; }
-	 */
 
 	@Override
 	public List<ValidatorMessage> validate() {
@@ -136,9 +108,25 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	}
 
 	@Override
-	public EnumKind getKind() {
-		// TODO Auto-generated method stub
+	public EnumElementKind getElementKind() {
+		final boolean isMessageBodyReader = providedKinds.get(EnumElementKind.MESSAGE_BODY_READER) != null;
+		final boolean isMessageBodyWriter = providedKinds.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
+		final boolean isExceptionMapper = providedKinds.get(EnumElementKind.EXCEPTION_MAPPER) != null;
+		if(isMessageBodyReader && isMessageBodyWriter) {
+			return EnumElementKind.ENTITY_MAPPER;
+		} else if(isMessageBodyReader) {
+			return EnumElementKind.MESSAGE_BODY_READER;
+		} else if(isMessageBodyWriter) {
+			return EnumElementKind.MESSAGE_BODY_WRITER;
+		} else if(isExceptionMapper) {
+			return EnumElementKind.EXCEPTION_MAPPER;
+		}
 		return null;
+	}
+
+	@Override
+	public IType getProvidedType(EnumElementKind providerKind) {
+		return providedKinds.get(providerKind);
 	}
 
 }

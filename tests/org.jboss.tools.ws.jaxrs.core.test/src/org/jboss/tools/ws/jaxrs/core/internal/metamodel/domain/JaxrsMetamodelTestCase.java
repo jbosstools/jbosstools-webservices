@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.junit.Assert.assertThat;
 
 import java.lang.annotation.Target;
@@ -39,7 +39,7 @@ import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
@@ -136,7 +136,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertEquals(7, metamodel.getAllResources().size());
 		for (IJaxrsResource jaxrsResource : metamodel.getAllResources()) {
 			assertThat(((JaxrsResource) jaxrsResource).getJavaElement(), notNullValue());
-			assertThat(((JaxrsResource) jaxrsResource).getKind(), notNullValue());
+			assertThat(((JaxrsResource) jaxrsResource).getElementKind(), notNullValue());
 			assertThat(jaxrsResource.getAllMethods().size(), greaterThan(0));
 		}
 	}
@@ -159,7 +159,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	}
 	@Test
 	public void shouldRetrieveApplicationPath() throws CoreException {
-		assertThat(metamodel.getApplication().getKind(), equalTo(EnumKind.APPLICATION_WEBXML));
+		assertThat(metamodel.getApplication().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
 		assertThat(metamodel.getApplication().getApplicationPath(), equalTo("/hello"));
 	}
 	

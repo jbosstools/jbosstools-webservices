@@ -21,7 +21,7 @@ import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 
 public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
@@ -110,7 +110,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		s.append("JaxrsElementChange: [").append(ConstantUtils.toCamelCase(element.getElementKind().toString()))
+		s.append("JaxrsElementChange: [").append(ConstantUtils.toCamelCase(element.getElementCategory().toString()))
 				.append(" ").append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind)).append("] ")
 				.append(element.getName());
 
@@ -142,8 +142,8 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
 	@Override
 	public int compareTo(JaxrsElementDelta other) {
-		final EnumKind elementKind = this.element.getKind();
-		final EnumKind otherElementKind = other.getElement().getKind();
+		final EnumElementKind elementKind = this.element.getElementKind();
+		final EnumElementKind otherElementKind = other.getElement().getElementKind();
 		return elementKind.ordinal() - otherElementKind.ordinal();
 	}
 

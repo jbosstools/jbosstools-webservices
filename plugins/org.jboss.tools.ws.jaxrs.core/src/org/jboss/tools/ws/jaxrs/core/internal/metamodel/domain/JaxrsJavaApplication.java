@@ -11,7 +11,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +19,8 @@ import java.util.List;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 
 /**
@@ -43,16 +43,16 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	}
 
 	@Override
-	public EnumElementKind getElementKind() {
-		return EnumElementKind.APPLICATION;
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.APPLICATION;
 	}
 
 	@Override
-	public EnumKind getKind() {
+	public EnumElementKind getElementKind() {
 		if (getAnnotation(APPLICATION_PATH.qualifiedName) != null) {
-			return EnumKind.APPLICATION_JAVA;
+			return EnumElementKind.APPLICATION_JAVA;
 		}
-		return EnumKind.UNDEFINED;
+		return EnumElementKind.UNDEFINED;
 	}
 
 	@Override

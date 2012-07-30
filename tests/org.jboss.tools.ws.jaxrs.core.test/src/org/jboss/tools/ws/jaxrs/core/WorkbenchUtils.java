@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
@@ -870,7 +871,7 @@ public class WorkbenchUtils {
 	 * @throws CoreException
 	 * @throws IOException
 	 */
-	public static IResource createContent(IFolder folder, String fileName, InputStream stream) throws CoreException,
+	public static IResource createFileFromStream(IFolder folder, String fileName, InputStream stream) throws CoreException,
 			IOException {
 		if (!folder.exists()) {
 			folder.create(true, true, new NullProgressMonitor());
@@ -900,26 +901,15 @@ public class WorkbenchUtils {
 	 * @throws CoreException
 	 * @throws IOException
 	 */
-	public static void replaceContent(IResource resource, InputStream stream) throws CoreException, IOException {
+	public static void replaceContent(IResource resource, InputStream stream, boolean useWorkingCopy) throws CoreException, IOException {
 		final IProject project = resource.getProject();
 		final IFile file = project.getFile(resource.getProjectRelativePath());
-		if (file.exists()) {
-			file.delete(true, new NullProgressMonitor());
-		}
-		file.create(stream, true, null);
-		LOGGER.debug("Content:");
-		final InputStream contents = file.getContents();
-		final char[] buffer = new char[0x10000];
-		StringBuilder out = new StringBuilder();
-		Reader in = new InputStreamReader(contents, "UTF-8");
-		int read;
-		do {
-			read = in.read(buffer, 0, buffer.length);
-			if (read > 0) {
-				out.append(buffer, 0, read);
-			}
-		} while (read >= 0);
-		LOGGER.debug(out.toString());
+		ICompilationUnit unit = getCompilationUnit(JdtUtils.getCompilationUnit(file), useWorkingCopy);
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		buffer.setContents(IOUtils.toString(stream));
+		saveAndClose(unit);
+		
+		
 	}
 
 	/**
@@ -946,10 +936,10 @@ public class WorkbenchUtils {
 		InputStream stream = FileLocator.openStream(bundle, new Path("resources").append(webxmlReplacementName), false);
 		assertThat(stream, notNullValue());
 		if (webxmlResource != null) {
-			replaceContent(webxmlResource, stream);
+			replaceContent(webxmlResource, stream, false);
 			return webxmlResource;
 		} else {
-			return createContent(webInfFolder, "web.xml", stream);
+			return createFileFromStream(webInfFolder, "web.xml", stream);
 		}
 	}
 

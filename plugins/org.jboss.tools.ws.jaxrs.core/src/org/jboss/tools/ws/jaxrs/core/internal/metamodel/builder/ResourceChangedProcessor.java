@@ -15,7 +15,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_FINE_GRAINED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,7 +51,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
@@ -227,14 +227,14 @@ public class ResourceChangedProcessor {
 		final IJaxrsApplication application = metamodel.getApplication();
 		if (resolvedApplicationPath != null) {
 			final JaxrsWebxmlApplication webxmlApplication = factory.createApplication(resolvedApplicationPath, resource, metamodel);
-			if (application == null || application.getKind() == EnumKind.APPLICATION_JAVA) {
+			if (application == null || application.getElementKind() == EnumElementKind.APPLICATION_JAVA) {
 				metamodel.add(webxmlApplication);
 				results.add(new JaxrsElementDelta(webxmlApplication, ADDED));
-			} else if (application != null && application.getKind() == EnumKind.APPLICATION_WEBXML) {
+			} else if (application != null && application.getElementKind() == EnumElementKind.APPLICATION_WEBXML) {
 				int flags = webxmlApplication.update(webxmlApplication);
 				results.add(new JaxrsElementDelta(webxmlApplication, CHANGED, flags));
 			}
-		} else if(application != null && application.getKind() == EnumKind.APPLICATION_WEBXML){
+		} else if(application != null && application.getElementKind() == EnumElementKind.APPLICATION_WEBXML){
 			final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) application;
 			metamodel.remove(webxmlApplication);
 			results.add(new JaxrsElementDelta(webxmlApplication, REMOVED));
@@ -656,7 +656,7 @@ public class ResourceChangedProcessor {
 			final JaxrsResourceField existingField = entry.getValue();
 			final JaxrsResourceField matchingField = matchingResource.getFields().get(entry.getKey());
 			int flags = existingField.mergeAnnotations(matchingField.getAnnotations());
-			if ((flags & F_ELEMENT_KIND) > 0 && existingField.getKind() == EnumKind.UNDEFINED) {
+			if ((flags & F_ELEMENT_KIND) > 0 && existingField.getElementKind() == EnumElementKind.UNDEFINED) {
 				metamodel.remove(existingField);
 				changes.add(new JaxrsElementDelta(existingField, REMOVED));
 			} else if (flags > 0) {
@@ -697,7 +697,7 @@ public class ResourceChangedProcessor {
 			final JavaMethodSignature matchingResourceMethodSignature = JdtUtils.resolveMethodSignature(matchingMethod.getJavaElement(), matchingResourceAST);
 			if(matchingResourceMethodSignature != null) {
 				flags += existingMethod.update(matchingResourceMethodSignature);
-				if ((flags & F_ELEMENT_KIND) > 0 && existingMethod.getKind() == EnumKind.UNDEFINED) {
+				if ((flags & F_ELEMENT_KIND) > 0 && existingMethod.getElementKind() == EnumElementKind.UNDEFINED) {
 					metamodel.remove(existingMethod);
 					changes.add(new JaxrsElementDelta(existingMethod, REMOVED));
 				} else if (flags > 0) {

@@ -16,11 +16,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.GET;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 
@@ -33,6 +34,7 @@ import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.junit.Before;
@@ -77,7 +79,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldCreateSubesourceFromType() throws CoreException {
+	public void shouldCreateSubresourceFromType() throws CoreException {
 		// pre-conditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
 		// operation
@@ -165,5 +167,62 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		assertThat(element.getQueryParamAnnotation().getValue("value"), equalTo("foo"));
 		assertThat(element.getDefaultValueAnnotation().getValue("value"), equalTo("foo!"));
 	}
+	
+	@Test
+	public void shouldCreateMessageBodyWriterProviderFromType() throws CoreException {
+		// pre-conditions
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.services.providers.CustomerVCardMessageBodyWriter", javaProject);
+		// operation
+		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		// verifications
+		assertNotNull(element);
+		assertThat(element.getAnnotations().size(), equalTo(2));
+		assertThat(element.getElementKind(), equalTo(EnumElementKind.MESSAGE_BODY_WRITER));
+		assertNull(element.getProvidedType(EnumElementKind.MESSAGE_BODY_READER));
+		assertThat(element.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(), equalTo("org.jboss.tools.ws.jaxrs.sample.domain.Customer"));
+		assertNull(element.getProvidedType(EnumElementKind.EXCEPTION_MAPPER));
+	}
+	
+	
+	@Test
+	public void shouldCreateEntityProviderFromType() throws CoreException {
+		// pre-conditions
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject);
+		// operation
+		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		// verifications
+		assertNotNull(element);
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getElementKind(), equalTo(EnumElementKind.ENTITY_MAPPER));
+		assertThat(element.getProvidedType(EnumElementKind.MESSAGE_BODY_READER).getFullyQualifiedName(), equalTo(String.class.getName()));
+		assertThat(element.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(), equalTo(Number.class.getName()));
+		assertNull(element.getProvidedType(EnumElementKind.EXCEPTION_MAPPER));
+	}
 
+	@Test
+	public void shouldCreateExceptionMapperProviderFromType() throws CoreException {
+		// pre-conditions
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedExceptionMapper", javaProject);
+		// operation
+		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		// verifications
+		assertNotNull(element);
+		assertThat(element.getAnnotations().size(), equalTo(1));
+		assertThat(element.getElementKind(), equalTo(EnumElementKind.EXCEPTION_MAPPER));
+		assertNull(element.getProvidedType(EnumElementKind.MESSAGE_BODY_READER));
+		assertNull(element.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER));
+		assertThat(element.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(), equalTo("org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedException$TestException"));
+	}
+
+	@Test
+	public void shouldNotCreateProviderFromType() throws CoreException {
+		// pre-conditions
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
+		// operation
+		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		// verifications
+		assertNull(element);
+	}
+
+	
 }

@@ -10,10 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
-public interface IJaxrsApplication extends IJaxrsElement {
-
-	public abstract String getApplicationPath();
-
-	public abstract EnumElementKind getElementKind();
+public enum EnumElementCategory {
+	APPLICATION, HTTP_METHOD, PROVIDER, RESOURCE, RESOURCE_FIELD, RESOURCE_METHOD
 
 }

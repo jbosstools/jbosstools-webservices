@@ -36,8 +36,8 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
@@ -87,7 +87,7 @@ public class JaxrsMetamodelChangedProcessor {
 	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsEndpointDelta> processEvent(final JaxrsElementDelta event) throws CoreException {
 		final JaxrsBaseElement element = event.getElement();
-		final EnumElementKind elementKind = element.getElementKind();
+		final EnumElementCategory elementKind = element.getElementCategory();
 		final int flags = event.getFlags();
 		switch (event.getDeltaKind()) {
 		case ADDED:
@@ -169,10 +169,10 @@ public class JaxrsMetamodelChangedProcessor {
 		if (resource == null) {
 			Logger.warn("Found an orphan resource method: " + resourceMethod);
 		} else {
-			switch (resourceMethod.getKind()) {
+			switch (resourceMethod.getElementKind()) {
 			case RESOURCE_METHOD:
 			case SUBRESOURCE_METHOD:
-				switch (resource.getKind()) {
+				switch (resource.getElementKind()) {
 				case ROOT_RESOURCE:
 					changes.addAll(processRootResourceMethodAddition(resourceMethod, metamodel));
 					break;
@@ -184,7 +184,7 @@ public class JaxrsMetamodelChangedProcessor {
 				break;
 			case SUBRESOURCE_LOCATOR:
 				// FIXME : support multiple levels of subresource locators
-				switch (resource.getKind()) {
+				switch (resource.getElementKind()) {
 				case ROOT_RESOURCE:
 					changes.addAll(processSubresourceLocatorAddition(resourceMethod, metamodel));
 					break;
@@ -208,7 +208,7 @@ public class JaxrsMetamodelChangedProcessor {
 		for (IJaxrsResource otherResource : metamodel.getAllResources()) {
 			if (((JaxrsResource) otherResource).isRootResource()) {
 				for (JaxrsResourceMethod otherResourceMethod : ((JaxrsResource) otherResource).getMethods().values()) {
-					if (otherResourceMethod.getKind() == EnumKind.SUBRESOURCE_LOCATOR) {
+					if (otherResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR) {
 						final String returnTypeHandler = (otherResourceMethod.getReturnType() != null) ? otherResourceMethod
 								.getReturnType().getHandleIdentifier() : null;
 						if (returnTypeHandler != null && supertypesHandlers.contains(returnTypeHandler)) {
@@ -256,7 +256,7 @@ public class JaxrsMetamodelChangedProcessor {
 						if (resourceHandleIdentifier.equals(returnType.getHandleIdentifier())
 								|| subtypesHandlers.contains(resourceHandleIdentifier)) {
 							for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
-								switch (resourceMethod.getKind()) {
+								switch (resourceMethod.getElementKind()) {
 								case RESOURCE_METHOD:
 								case SUBRESOURCE_METHOD:
 									final JaxrsHttpMethod httpMethod = metamodel.getHttpMethod(resourceMethod
@@ -349,7 +349,7 @@ public class JaxrsMetamodelChangedProcessor {
 			}
 			// create endpoints using this resourceMethod:
 			changes.addAll(processAddition(changedResourceMethod));
-		} else if (changedResourceMethod.getKind() == EnumKind.SUBRESOURCE_LOCATOR
+		} else if (changedResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR
 				&& (flags & F_METHOD_RETURN_TYPE) > 0) {
 
 			for (Iterator<JaxrsEndpoint> endpointIterator = changedResourceMethod.getMetamodel().getEndpoints()

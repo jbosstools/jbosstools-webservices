@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.*;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.*;
 
 
 
@@ -40,8 +40,8 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
@@ -196,8 +196,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	}
 
 	@Override
-	public EnumElementKind getElementKind() {
-		return EnumElementKind.RESOURCE_METHOD;
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.RESOURCE_METHOD;
 	}
 
 	@Override
@@ -367,17 +367,17 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	 * ()
 	 */
 	@Override
-	public final EnumKind getKind() {
+	public final EnumElementKind getElementKind() {
 		final Annotation pathAnnotation = getPathAnnotation();
 		final Annotation httpMethodAnnotation = getHttpMethodAnnotation();
 		if (pathAnnotation == null && httpMethodAnnotation != null) {
-			return EnumKind.RESOURCE_METHOD;
+			return EnumElementKind.RESOURCE_METHOD;
 		} else if (pathAnnotation != null && httpMethodAnnotation != null) {
-			return EnumKind.SUBRESOURCE_METHOD;
+			return EnumElementKind.SUBRESOURCE_METHOD;
 		} else if (pathAnnotation != null && httpMethodAnnotation == null) {
-			return EnumKind.SUBRESOURCE_LOCATOR;
+			return EnumElementKind.SUBRESOURCE_LOCATOR;
 		}
-		return EnumKind.UNDEFINED;
+		return EnumElementKind.UNDEFINED;
 	}
 
 	/*
@@ -471,7 +471,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	public final String toString() {
 		return "ResourceMethod '" + parentResource.getName() + "."
 				+ getJavaElement().getElementName() + "' ("
-				+ getKind().toString() + ")";
+				+ getElementKind().toString() + ")";
 	}
 
 	@Override

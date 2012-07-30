@@ -29,23 +29,23 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONTEXT;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DELETE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.ENCODED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.GET;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.POST;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PUT;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.RESPONSE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.URI_INFO;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONTEXT;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DELETE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.POST;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PUT;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RESPONSE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.URI_INFO;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -83,10 +83,10 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -121,7 +121,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	private JaxrsHttpMethod createHttpMethod(EnumJaxrsElements httpMethodElement) throws CoreException, JavaModelException {
+	private JaxrsHttpMethod createHttpMethod(EnumJaxrsClassname httpMethodElement) throws CoreException, JavaModelException {
 		final IType httpMethodType = JdtUtils.resolveType(httpMethodElement.qualifiedName, javaProject, progressMonitor);
 		final Annotation httpMethodAnnotation = getAnnotation(httpMethodType, HTTP_METHOD.qualifiedName);
 		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpMethodType, httpMethodAnnotation, metamodel);
@@ -224,7 +224,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
@@ -241,7 +241,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
@@ -259,7 +259,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
@@ -296,7 +296,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -348,7 +348,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()), equalTo(application));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -367,7 +367,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -386,7 +386,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -423,7 +423,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -439,7 +439,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(((JaxrsHttpMethod) impacts.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		verify(metamodel, times(1)).add(any(JaxrsHttpMethod.class));
@@ -456,7 +456,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(((JaxrsHttpMethod) impacts.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		//verify(metamodel, times(1)).add(any(HTTP_METHOD.qualifiedName));
@@ -474,7 +474,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(((JaxrsHttpMethod) impacts.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		verify(metamodel, times(1)).add(any(JaxrsHttpMethod.class));
@@ -511,7 +511,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(((JaxrsHttpMethod) impacts.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
@@ -564,7 +564,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(((JaxrsHttpMethod) impacts.get(0).getElement()), equalTo(httpMethod));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -583,7 +583,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(((JaxrsHttpMethod) impacts.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -602,7 +602,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -638,7 +638,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
@@ -659,7 +659,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.HTTP_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(REMOVED))));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
@@ -1986,7 +1986,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
@@ -2017,7 +2017,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
-		assertThat(impacts.get(0).getElement().getElementKind(), equalTo(EnumElementKind.RESOURCE_METHOD));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); // @HTTP + resource + resourceMethod
 	}
 
@@ -2370,5 +2370,5 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	public void shouldUpdateResourceMethodWhenRemovingThrowsException() throws CoreException {
 		fail("Not implemented yet - postponed along with support for providers");
 	}
-
+	
 }

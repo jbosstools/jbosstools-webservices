@@ -14,42 +14,48 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.eclipse.jdt.core.IJavaElement.FIELD;
 import static org.eclipse.jdt.core.IJavaElement.METHOD;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.COOKIE_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HEADER_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.COOKIE_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HEADER_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod.Builder;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
 public class JaxrsElementFactory {
@@ -152,7 +158,7 @@ public class JaxrsElementFactory {
 			internalCreateField(javaField, ast, metamodel, resource);
 		}
 		// well, sorry.. this is not a valid JAX-RS resource..
-		if (resource.getKind() == EnumKind.UNDEFINED) {
+		if (resource.getElementKind() == EnumElementKind.UNDEFINED) {
 			return null;
 		}
 		return resource;
@@ -353,7 +359,7 @@ public class JaxrsElementFactory {
 			// yet..
 			parentResource = internalCreateResource(parentType, ast, metamodel);
 		}
-		if (parentResource != null && parentResource.getElementKind() == EnumElementKind.RESOURCE) {
+		if (parentResource != null && parentResource.getElementCategory() == EnumElementCategory.RESOURCE) {
 			final JaxrsResourceField field = internalCreateField(javaField, ast, metamodel,
 					(JaxrsResource) parentResource);
 			return field;
@@ -379,5 +385,78 @@ public class JaxrsElementFactory {
 
 	public JaxrsWebxmlApplication createApplication(String applicationPath, IResource resource, JaxrsMetamodel metamodel) {
 		return new JaxrsWebxmlApplication(applicationPath, resource, metamodel);
+	}
+
+	/**
+	 * Creates a JAX-RS Provider from the given Type. A valid Provider must be annotated with
+	 * <code>javax.ws.rs.ext.MessageBodyReader</code>, <code>javax.ws.rs.ext.MessageBodyWriter</code> or
+	 * <code>javax.ws.rs.ext.ExceptionMapper</code>. If the given type is not annotated with
+	 * <code>javax.ws.rs.ext.Provider</code>, a should be reported to the user.
+	 * 
+	 * @param javaType
+	 * @param metamodel
+	 * @throws CoreException in case of underlying exception
+	 * @return a representation of the given provider or null in case of invalid type (ie, not a valid JAX-RS Provider)
+	 */
+	public JaxrsProvider createProvider(final IType javaType, final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor ) throws CoreException {
+
+		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, PROVIDER.qualifiedName,
+				CONSUMES.qualifiedName, PRODUCES.qualifiedName);
+		// assert that given java type is not abstract 
+		if(JdtUtils.isAbstractType(javaType)) {
+			return null;
+		}
+		ITypeHierarchy providerTypeHierarchy = JdtUtils.resolveTypeHierarchy(javaType, false, progressMonitor);
+		IType[] subtypes = providerTypeHierarchy.getSubtypes(javaType);
+		// assert that given java type has no sub-type, or continue;
+		if (subtypes != null && subtypes.length > 0) {
+			return null;
+		}
+		Map<EnumElementKind, IType> providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy, progressMonitor);
+
+		//TODO: annotations are splitted here, but they are aggregated later again in the JaxrsProvider :-/
+		final Annotation providerAnnotation = annotations.get(PROVIDER.qualifiedName);
+		final Annotation consumesAnnotation = annotations.get(CONSUMES.qualifiedName);
+		final Annotation producesAnnotation = annotations.get(PRODUCES.qualifiedName);
+		
+		final JaxrsProvider provider = new JaxrsProvider.Builder(javaType, metamodel).providing(providerAnnotation, providedKinds)
+				.consumes(consumesAnnotation).produces(producesAnnotation).build();
+		if(provider.getElementKind() == null) {
+			return null;
+		}
+		return provider;
+	}
+	
+	/**
+	 * @param metamodel
+	 * @param providerType
+	 * @param providerTypeHierarchy
+	 * @param providerInterfaces
+	 * @param progressMonitor
+	 * @param providerTypeHierarchy
+	 * @return
+	 * @throws CoreException
+	 * @throws JavaModelException
+	 */
+	private static Map<EnumElementKind, IType> getProvidedKinds(final IType providerType,
+			final CompilationUnit compilationUnit, final ITypeHierarchy providerTypeHierarchy,
+			final IProgressMonitor progressMonitor)
+			throws CoreException, JavaModelException {
+		final Map<EnumElementKind, IType> providerKinds = new HashMap<EnumElementKind, IType>();
+		List<Pair<EnumJaxrsClassname, EnumElementKind>> pairs = new ArrayList<Pair<EnumJaxrsClassname, EnumElementKind>>();
+		pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_READER, EnumElementKind.MESSAGE_BODY_READER));
+		pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_WRITER, EnumElementKind.MESSAGE_BODY_WRITER));
+		pairs.add(Pair.makePair(EnumJaxrsClassname.EXCEPTION_MAPPER, EnumElementKind.EXCEPTION_MAPPER));
+		
+		for (Pair<EnumJaxrsClassname, EnumElementKind> pair : pairs) {
+			final IType matchingGenericType = JdtUtils.resolveType(pair.a.qualifiedName, providerType.getJavaProject(), progressMonitor);
+			List<IType> argumentTypes = JdtUtils.resolveTypeArguments(providerType, compilationUnit,
+					matchingGenericType, providerTypeHierarchy, progressMonitor);
+			if (argumentTypes == null || argumentTypes.size() == 0) {
+				continue;
+			}
+			providerKinds.put(pair.b, argumentTypes.get(0));
+		}
+		return providerKinds;
 	}
 }

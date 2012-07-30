@@ -11,9 +11,9 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,8 +26,8 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
@@ -95,27 +95,27 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	}
 
 	@Override
-	public EnumElementKind getElementKind() {
-		return EnumElementKind.RESOURCE;
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.RESOURCE;
 	}
 
 	public final boolean isRootResource() {
-		return getKind() == EnumKind.ROOT_RESOURCE;
+		return getElementKind() == EnumElementKind.ROOT_RESOURCE;
 	}
 
 	public boolean isSubresource() {
-		return getKind() == EnumKind.SUBRESOURCE;
+		return getElementKind() == EnumElementKind.SUBRESOURCE;
 	}
 
 	@Override
-	public final EnumKind getKind() {
+	public final EnumElementKind getElementKind() {
 		final Annotation pathAnnotation = getAnnotation(PATH.qualifiedName);
 		if (pathAnnotation != null) {
-			return EnumKind.ROOT_RESOURCE;
+			return EnumElementKind.ROOT_RESOURCE;
 		} else if (resourceMethods.size() > 0 || resourceFields.size() > 0 || paramBeanProperties.size() > 0) {
-			return EnumKind.SUBRESOURCE;
+			return EnumElementKind.SUBRESOURCE;
 		}
-		return EnumKind.UNDEFINED;
+		return EnumElementKind.UNDEFINED;
 	}
 
 	public final String getName() {
@@ -180,7 +180,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	}
 
 	public void addElement(JaxrsResourceElement<?> element) {
-		switch (element.getElementKind()) {
+		switch (element.getElementCategory()) {
 		case RESOURCE_FIELD:
 			this.resourceFields.put(element.getJavaElement().getHandleIdentifier(), (JaxrsResourceField) element);
 			break;

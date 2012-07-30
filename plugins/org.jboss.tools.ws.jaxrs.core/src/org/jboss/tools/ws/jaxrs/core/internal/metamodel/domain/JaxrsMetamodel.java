@@ -35,7 +35,7 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
@@ -153,7 +153,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	public void add(JaxrsJavaElement<?> element) {
-		switch (element.getElementKind()) {
+		switch (element.getElementCategory()) {
 		case APPLICATION:
 			this.applications.add((JaxrsJavaApplication) element);
 			break;
@@ -182,7 +182,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		Collections.sort(this.applications, new Comparator<IJaxrsApplication>() {
 			@Override
 			public int compare(IJaxrsApplication app1, IJaxrsApplication app2) {
-				return app1.getKind().compareTo(app2.getKind());
+				return app1.getElementKind().compareTo(app2.getElementKind());
 			}
 		});
 		indexElement(application, javaProject);
@@ -205,7 +205,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		for (Entry<String, Annotation> entry : jaxrsElement.getAnnotations().entrySet()) {
 			indexElement(jaxrsElement, entry.getValue());
 		}
-		if (jaxrsElement.getElementKind() == EnumElementKind.RESOURCE) {
+		if (jaxrsElement.getElementCategory() == EnumElementCategory.RESOURCE) {
 			JaxrsResource resource = (JaxrsResource) jaxrsElement;
 			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 				indexElement(resourceMethod);
@@ -243,7 +243,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	protected void unindexElement(final JaxrsBaseElement jaxrsElement) {
 		// if the given element is a JAX-RS Resource, also unindex its children
 		// ResourceMethod
-		if (jaxrsElement.getElementKind() == EnumElementKind.RESOURCE) {
+		if (jaxrsElement.getElementCategory() == EnumElementCategory.RESOURCE) {
 			final JaxrsResource resource = (JaxrsResource) jaxrsElement;
 			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 				unindexElement(resourceMethod);
@@ -349,7 +349,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		IType annotationType = JdtUtils.resolveType(annotationName, javaProject, new NullProgressMonitor());
 		if (annotationType != null) {
 			final JaxrsBaseElement element = getElement(annotationType);
-			if (element != null && element.getElementKind() == EnumElementKind.HTTP_METHOD) {
+			if (element != null && element.getElementCategory() == EnumElementCategory.HTTP_METHOD) {
 				return (IJaxrsHttpMethod) element;
 			}
 		}
@@ -418,7 +418,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	public void remove(JaxrsBaseElement element) {
-		switch (element.getKind()) {
+		switch (element.getElementKind()) {
 		case APPLICATION_WEBXML:
 			remove((JaxrsWebxmlApplication) element);
 			break;
@@ -438,7 +438,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (element == null) {
 			return;
 		}
-		switch (element.getElementKind()) {
+		switch (element.getElementCategory()) {
 		case APPLICATION:
 			this.applications.remove(element);
 			break;

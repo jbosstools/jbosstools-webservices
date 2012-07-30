@@ -11,7 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.ui.contentassist;
 
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 
 import java.util.ArrayList;
 import java.util.Collections;

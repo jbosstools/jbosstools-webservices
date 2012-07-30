@@ -3,7 +3,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.utils;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION;
 import static org.junit.Assert.assertThat;
 
 import org.eclipse.core.resources.IResource;
