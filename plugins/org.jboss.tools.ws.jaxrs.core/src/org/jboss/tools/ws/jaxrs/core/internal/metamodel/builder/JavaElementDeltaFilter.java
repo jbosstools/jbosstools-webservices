@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
@@ -122,7 +123,8 @@ public class JavaElementDeltaFilter {
 		int deltaKind = event.getDeltaKind();
 		IJavaElement element = event.getElement();
 		// prevent processing java elements in a closed java project
-		if (element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen()) {
+		// prevent processing of any file named 'package-info.java'
+		if (isProjectClosed(element) || isPackageInfoFile(element)) {
 			return false;
 		}
 		int flags = event.getFlags();
@@ -137,6 +139,24 @@ public class JavaElementDeltaFilter {
 			Logger.trace("**rejected** {}", event);
 		}
 		return match;
+	}
+
+	/**
+	 * Returns true if the element resource is a file named 'package-info.java' (whatever the containing folder)
+	 * @param element
+	 * @return
+	 */
+	private boolean isPackageInfoFile(IJavaElement element) {
+		return element.getResource() != null && element.getResource().getType() == IResource.FILE && element.getResource().getName().equals("package-info.java");
+	}
+
+	/**
+	 * Returns true if the enclosing project is closed
+	 * @param element
+	 * @return
+	 */
+	private boolean isProjectClosed(IJavaElement element) {
+		return element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen();
 	}
 
 	protected boolean apply(int elementKind, int deltaKind, int eventType, int flags, boolean workingCopy) {

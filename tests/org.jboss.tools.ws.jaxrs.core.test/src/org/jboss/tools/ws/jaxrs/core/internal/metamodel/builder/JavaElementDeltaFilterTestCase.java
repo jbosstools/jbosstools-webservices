@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
@@ -99,6 +100,21 @@ public class JavaElementDeltaFilterTestCase {
 	public void shouldNotAcceptWithMissingFlags() throws JavaModelException {
 		IJavaElement element = createMock(IMethod.class, METHOD);
 		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
+	}
+	
+	@Test
+	public void shouldNotAcceptChangesInPackageInfoFile() {
+		IJavaElement element = createMock(IType.class, ANNOTATION, workingCopy);
+		IResource resource = mock(IResource.class);
+		when(element.getResource()).thenReturn(resource);
+		when(resource.getType()).thenReturn(IResource.FILE);
+		when(resource.getName()).thenReturn("package-info.java");
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_CHANGE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_RECONCILE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_CHANGE, NO_FLAG)));
 	}
 
 }
