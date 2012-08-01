@@ -113,7 +113,6 @@ public class JavaElementChangedProcessor {
 		}
 		switch (deltaKind) {
 		case ADDED:
-			//if(element.exists()) { // needed to prevent exception for edge cases such as 'package-info.java' that holds some shadow 'A' type..
 				switch (elementType) {
 				case JAVA_PROJECT:
 					return processAddition(element, metamodel, progressMonitor);

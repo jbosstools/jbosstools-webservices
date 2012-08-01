@@ -10,12 +10,17 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -154,6 +159,34 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		assertThat(metamodel, notNullValue());
 		// 13 usual endpoints + 2 newly created
 		assertThat(metamodel.getAllEndpoints().size(), equalTo(16));
+	}
+	
+	@Test
+	public void shouldDoNothingWhenPackageInfoAdded() throws CoreException, IOException {
+		// pre-conditions
+		IFolder folder = javaProject.getProject().getFolder("src/main/java/org/jboss/tools/ws/jaxrs/sample/services");
+		// operation
+		WorkbenchUtils.createFileFromStream(folder, "package-info.java",
+						IOUtils.toInputStream("package org.jboss.tools.ws.jaxrs.sample.services;"));
+		// explicitly trigger the project build
+		javaProject.getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+		// verifications: no exception should have been thrown
+	
+	}
+
+	@Test
+	public void shouldDoNothingWhenPackageInfoChanged() throws CoreException, IOException {
+		// pre-conditions
+		JBossJaxrsCorePlugin.getDefault().registerListeners();
+		IFile pkgInfoFile = javaProject.getProject().getFile("src/main/java/org/jboss/tools/ws/jaxrs/sample/services/package-info.java");
+		pkgInfoFile.create(IOUtils.toInputStream(""), true, new NullProgressMonitor());
+		// operation
+		WorkbenchUtils.replaceContent(pkgInfoFile, IOUtils.toInputStream("package org.jboss.tools.ws.jaxrs.sample;"), true);
+		WorkbenchUtils.replaceContent(pkgInfoFile, IOUtils.toInputStream("package org.jboss.tools.ws.jaxrs.sample.services;"), true);
+		// explicitly trigger the project build
+		//javaProject.getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+		// verifications: no exception should have been thrown
+	
 	}
 	
 	

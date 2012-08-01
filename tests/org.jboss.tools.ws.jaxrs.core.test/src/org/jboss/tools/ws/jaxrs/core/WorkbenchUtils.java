@@ -893,6 +893,38 @@ public class WorkbenchUtils {
 		return folder.findMember(fileName);
 	}
 
+	
+	/**
+	 * Replaces the content of the given resource with the given stream.
+	 * 
+	 * @param webxmlResource
+	 * @param stream
+	 * @throws CoreException
+	 * @throws IOException
+	 */
+	public static void replaceContent(IResource resource, InputStream stream) throws CoreException, IOException {
+		final IProject project = resource.getProject();
+		final IFile file = project.getFile(resource.getProjectRelativePath());
+		if (file.exists()) {
+			file.delete(true, new NullProgressMonitor());
+		}
+		file.create(stream, true, null);
+		LOGGER.debug("Content:");
+		final InputStream contents = file.getContents();
+		final char[] buffer = new char[0x10000];
+		StringBuilder out = new StringBuilder();
+		Reader in = new InputStreamReader(contents, "UTF-8");
+		int read;
+		do {
+			read = in.read(buffer, 0, buffer.length);
+			if (read > 0) {
+				out.append(buffer, 0, read);
+			}
+		} while (read >= 0);
+		LOGGER.debug(out.toString());
+	}
+	
+	
 	/**
 	 * Replaces the content of the given resource with the given stream.
 	 * 
@@ -908,8 +940,6 @@ public class WorkbenchUtils {
 		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		buffer.setContents(IOUtils.toString(stream));
 		saveAndClose(unit);
-		
-		
 	}
 
 	/**
@@ -936,7 +966,7 @@ public class WorkbenchUtils {
 		InputStream stream = FileLocator.openStream(bundle, new Path("resources").append(webxmlReplacementName), false);
 		assertThat(stream, notNullValue());
 		if (webxmlResource != null) {
-			replaceContent(webxmlResource, stream, false);
+			replaceContent(webxmlResource, stream);
 			return webxmlResource;
 		} else {
 			return createFileFromStream(webInfFolder, "web.xml", stream);
