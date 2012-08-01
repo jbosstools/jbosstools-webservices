@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBuiltinHttpMethod.*;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -111,9 +111,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * </ul>
 	 */
 	private void preloadHttpMethods() {
-		httpMethods.addAll(Arrays.asList(JaxrsBuiltinHttpMethod.GET, JaxrsBuiltinHttpMethod.POST,
-				JaxrsBuiltinHttpMethod.PUT, JaxrsBuiltinHttpMethod.DELETE, JaxrsBuiltinHttpMethod.HEAD,
-				JaxrsBuiltinHttpMethod.OPTIONS));
+		httpMethods.addAll(Arrays.asList(GET, POST, PUT, DELETE, HEAD, OPTIONS));
+		elementsIndex.put(GET.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(GET)));
+		elementsIndex.put(POST.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(POST)));
+		elementsIndex.put(PUT.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(PUT)));
+		elementsIndex.put(DELETE.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(DELETE)));
+		elementsIndex.put(OPTIONS.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(OPTIONS)));
+		elementsIndex.put(HEAD.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(HEAD)));
 	}
 
 	/*
@@ -348,9 +352,17 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public IJaxrsHttpMethod getHttpMethod(final String annotationName) throws CoreException {
 		IType annotationType = JdtUtils.resolveType(annotationName, javaProject, new NullProgressMonitor());
 		if (annotationType != null) {
-			final JaxrsBaseElement element = getElement(annotationType);
+			// look for custom HTTP Methods
+			JaxrsBaseElement element = getElement(annotationType);
 			if (element != null && element.getElementCategory() == EnumElementCategory.HTTP_METHOD) {
 				return (IJaxrsHttpMethod) element;
+			}
+			// if not found, look for built-in HTTP Methods
+			else if(element == null) {
+				element = getElement(annotationType.getFullyQualifiedName());
+				if (element != null && element.getElementCategory() == EnumElementCategory.HTTP_METHOD) {
+					return (IJaxrsHttpMethod) element;
+				}
 			}
 		}
 		return null;
@@ -370,8 +382,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (element == null) {
 			return null;
 		}
-		final String handleIdentifier = element.getHandleIdentifier();
-		final Set<JaxrsBaseElement> elements = elementsIndex.get(handleIdentifier);
+		return getElement(element.getHandleIdentifier());
+	}
+	
+	protected JaxrsBaseElement getElement(final String elementName) {
+		if (elementName == null) {
+			return null;
+		}
+		final Set<JaxrsBaseElement> elements = elementsIndex.get(elementName);
 		if (elements == null || elements.isEmpty()) {
 			return null;
 		}
