@@ -16,6 +16,7 @@
 		<systemProperties>-Djbosstools.test.jre.6=${jbosstools.test.jre.6} -Djbosstools.test.jre.5=${jbosstools.test.jre.5} -Djbosstools.test.jboss.home.4.2=${requirementsDirectory}/jboss-4.2.3.GA</systemProperties>
 		<coverage.filter>org.jboss.tools.ws.creation.core*</coverage.filter>
 		<emma.instrument.bundles>org.jboss.tools.ws.creation.core</emma.instrument.bundles>
+		<surefire.timeout>3600</surefire.timeout>
 	</properties>
 
 	<build>
@@ -52,16 +53,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-surefire-plugin</artifactId>
-				
-				<configuration>
-					<!-- timeout in seconds -->
-					<surefire.timeout>3600</surefire.timeout>
-					<forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
