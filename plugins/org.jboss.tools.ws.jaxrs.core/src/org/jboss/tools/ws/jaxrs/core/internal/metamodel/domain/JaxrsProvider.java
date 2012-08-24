@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IType;
-import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -99,12 +98,6 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.PROVIDER;
-	}
-
-	@Override
-	public List<ValidatorMessage> validate() {
-		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		return messages;
 	}
 
 	@Override

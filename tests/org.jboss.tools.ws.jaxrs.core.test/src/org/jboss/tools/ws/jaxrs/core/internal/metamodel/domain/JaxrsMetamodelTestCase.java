@@ -78,7 +78,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		final Annotation annotation = JdtUtils.resolveAnnotation(javaType, JdtUtils.parse(javaType, progressMonitor),
-				Target.class);
+				SuppressWarnings.class);
 		assertThat(metamodel.getElement(annotation), nullValue());
 	}
 
@@ -144,7 +144,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	@Test
 	public void shouldAssertResolvedEndpoints() throws CoreException {
 		List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
-		Assert.assertEquals("Wrong result", 14, endpoints.size());
+		Assert.assertEquals("Wrong result", 20, endpoints.size());
 		for (IJaxrsEndpoint endpoint : endpoints) {
 			Assert.assertFalse("Empty list of resourceMethods", endpoint.getResourceMethods().isEmpty());
 			Assert.assertNotNull("No URI Path template", endpoint.getUriPathTemplate());

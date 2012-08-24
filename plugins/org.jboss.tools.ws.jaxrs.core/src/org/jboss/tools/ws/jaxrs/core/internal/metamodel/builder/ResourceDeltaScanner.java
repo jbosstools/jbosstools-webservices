@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
@@ -105,7 +106,7 @@ public class ResourceDeltaScanner {
 					int severity = markerDelta.getAttribute(IMarker.SEVERITY, 0);
 					String type = markerDelta.getType();
 					String message = markerDelta.getAttribute(IMarker.MESSAGE, "");
-					if (severity == IMarker.SEVERITY_ERROR && type.equals("org.eclipse.jdt.core.problem")) {
+					if (severity == IMarker.SEVERITY_ERROR && type.equals(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER)) {
 						Logger.debug("Marker delta: {} [{}] {}: \"{}\" at line {} (id={})", markerDelta.getResource()
 								.getName(), ConstantUtils.getStaticFieldName(IResourceDelta.class,
 								markerDelta.getKind()), ConstantUtils.getStaticFieldName(IMarker.class, severity,

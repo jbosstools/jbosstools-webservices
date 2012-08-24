@@ -30,8 +30,6 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.TypedRegion;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 public class JavaMethodSignaturesVisitor extends ASTVisitor {
@@ -110,9 +108,8 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 									annotationElements, sourceRange));
 						}
 					}
-					final TypedRegion typedRegion = new TypedRegion(parameter.getStartPosition(),
-							parameter.getLength(), IDocument.DEFAULT_CONTENT_TYPE);
-					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations, typedRegion));
+					final ISourceRange sourceRange = new SourceRange(parameter.getStartPosition(), parameter.getLength());
+					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations, sourceRange));
 				}
 
 				// TODO : add support for thrown exceptions

@@ -1,10 +1,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import java.util.List;
-
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
@@ -52,9 +48,6 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 
 	public abstract IResource getResource();
 	
-	public abstract List<ValidatorMessage> validate() throws JavaModelException;
-
-	public abstract String getName();
-	
+	public abstract String getName();	
 	
 }

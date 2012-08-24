@@ -13,28 +13,20 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.text.TypedRegion;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IValidable;
+import org.eclipse.jdt.core.ISourceRange;
 
-public class JavaMethodParameter implements IValidable {
+public class JavaMethodParameter {
 
 	private final String typeName;
 
 	private final List<Annotation> annotations;
 
-	private final TypedRegion region;
+	private final ISourceRange sourceRange;
 
-	public JavaMethodParameter(String name, String typeName, List<Annotation> annotations, final TypedRegion region) {
+	public JavaMethodParameter(String name, String typeName, List<Annotation> annotations, final ISourceRange sourceRange) {
 		this.typeName = typeName;
 		this.annotations = annotations;
-		this.region = region;
-	}
-
-	@Override
-	public void validate(IProgressMonitor progressMonitor) throws CoreException {
-		// TODO Auto-generated method stub
+		this.sourceRange = sourceRange;
 	}
 
 	/** @return the parameterType */
@@ -58,8 +50,8 @@ public class JavaMethodParameter implements IValidable {
 	/**
 	 * @return the region
 	 */
-	public TypedRegion getRegion() {
-		return region;
+	public ISourceRange getRegion() {
+		return sourceRange;
 	}
 
 	@Override

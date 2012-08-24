@@ -53,31 +53,8 @@ public class ProjectBuilderUtilsTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldInstallProjectFacetAndCheckPositionWithValidation() throws Exception {
+	public void shouldInstallProjectFacetAndCheckPosition() throws Exception {
 		// pre-conditions
-		ProjectBuilderUtils.installProjectBuilder(javaProject.getProject(), ProjectBuilderUtils.VALIDATION_BUILDER_ID);
-		Assert.assertTrue("Wrong result", ProjectBuilderUtils.isProjectBuilderInstalled(javaProject.getProject(),
-				ProjectBuilderUtils.VALIDATION_BUILDER_ID));
-		ProjectBuilderUtils.uninstallProjectBuilder(javaProject.getProject(), BUILDER_ID);
-		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.isProjectBuilderInstalled(javaProject.getProject(), BUILDER_ID));
-		// operation
-		ProjectBuilderUtils.installProjectBuilder(javaProject.getProject(), BUILDER_ID);
-		// post-conditions
-		int customBuilderPosition = ProjectBuilderUtils.getBuilderPosition(project, BUILDER_ID);
-		int validationBuilderPosition = ProjectBuilderUtils.getBuilderPosition(project,
-				ProjectBuilderUtils.VALIDATION_BUILDER_ID);
-		Assert.assertTrue("Wrong ordering:" + customBuilderPosition + " < " + validationBuilderPosition,
-				customBuilderPosition == validationBuilderPosition - 1);
-	}
-
-	@Test
-	public void shouldInstallProjectFacetAndCheckPositionWithoutValidation() throws Exception {
-		// pre-conditions
-		ProjectBuilderUtils
-				.uninstallProjectBuilder(javaProject.getProject(), ProjectBuilderUtils.VALIDATION_BUILDER_ID);
-		Assert.assertFalse("Wrong result", ProjectBuilderUtils.isProjectBuilderInstalled(javaProject.getProject(),
-				ProjectBuilderUtils.VALIDATION_BUILDER_ID));
 		ProjectBuilderUtils.uninstallProjectBuilder(javaProject.getProject(), BUILDER_ID);
 		Assert.assertFalse("Wrong result",
 				ProjectBuilderUtils.isProjectBuilderInstalled(javaProject.getProject(), BUILDER_ID));

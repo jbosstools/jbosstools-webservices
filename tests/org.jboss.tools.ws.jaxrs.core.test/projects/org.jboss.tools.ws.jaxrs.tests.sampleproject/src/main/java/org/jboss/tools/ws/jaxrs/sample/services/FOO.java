@@ -8,8 +8,9 @@ import java.lang.annotation.Target;
 import javax.ws.rs.HttpMethod;
 
 @Retention(value=RetentionPolicy.RUNTIME)
-@Target(value=ElementType.ANNOTATION_TYPE)
+@Target(value=ElementType.METHOD)
 @HttpMethod("FOO")
+@SuppressWarnings("unused") // keep it for some junit tests
 public @interface FOO {
 
 }

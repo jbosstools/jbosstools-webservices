@@ -10,29 +10,36 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
 /**
  * @author Xavier Coulon
  *
  */
 public enum EnumJaxrsClassname {
 	
-	DELETE("javax.ws.rs.DELETE"),
+	DELETE("javax.ws.rs.DELETE", "DELETE"),
 	
-	GET("javax.ws.rs.GET"),
+	GET("javax.ws.rs.GET", "GET"),
 	
-	POST("javax.ws.rs.POST"),
+	POST("javax.ws.rs.POST", "POST"),
 	
-	PUT("javax.ws.rs.PUT"),
+	PUT("javax.ws.rs.PUT", "PUT"),
 	
-	HEAD("javax.ws.rs.HEAD"),
+	HEAD("javax.ws.rs.HEAD", "HEAD"),
 	
-	OPTIONS("javax.ws.rs.OPTIONS"),
+	OPTIONS("javax.ws.rs.OPTIONS", "OPTIONS"),
 	
-	HTTP_METHOD("javax.ws.rs.HttpMethod"),
+	HTTP_METHOD("javax.ws.rs.HttpMethod", "HttpMethod"),
 	
-	APPLICATION("javax.ws.rs.core.Application"), 
+	TARGET(Target.class.getName(), "Target"),
 	
-	APPLICATION_PATH("javax.ws.rs.ApplicationPath"),
+	RETENTION(Retention.class.getName(), "Retention"),
+	
+	APPLICATION("javax.ws.rs.core.Application", "Application"), 
+	
+	APPLICATION_PATH("javax.ws.rs.ApplicationPath", "ApplicationPath"),
 	
 	MESSAGE_BODY_READER("javax.ws.rs.ext.MessageBodyReader"),
 
@@ -40,25 +47,25 @@ public enum EnumJaxrsClassname {
 	
 	EXCEPTION_MAPPER("javax.ws.rs.ext.ExceptionMapper"),
 	
-	PATH("javax.ws.rs.Path"),
+	PATH("javax.ws.rs.Path", "Path"),
 	
-	PATH_PARAM("javax.ws.rs.PathParam"),
+	PATH_PARAM("javax.ws.rs.PathParam", "PathParam"),
 	
-	CONSUMES("javax.ws.rs.Consumes"),
+	CONSUMES("javax.ws.rs.Consumes", "Consumes"),
 	
-	PRODUCES("javax.ws.rs.Produces"),
+	PRODUCES("javax.ws.rs.Produces", "Produces"),
 	
-	DEFAULT_VALUE("javax.ws.rs.DefaultValue"),
+	DEFAULT_VALUE("javax.ws.rs.DefaultValue", "DefaultValue"),
 
-	COOKIE_PARAM("javax.ws.rs.CookieParam"),
+	COOKIE_PARAM("javax.ws.rs.CookieParam", "CookieParam"),
 
-	HEADER_PARAM("javax.ws.rs.HeaderParam"),
+	HEADER_PARAM("javax.ws.rs.HeaderParam", "HeaderParam"),
 
-	MATRIX_PARAM("javax.ws.rs.MatrixParam"),
+	MATRIX_PARAM("javax.ws.rs.MatrixParam", "MatrixParam"),
 	
-	QUERY_PARAM("javax.ws.rs.QueryParam"),
+	QUERY_PARAM("javax.ws.rs.QueryParam", "QueryParam"),
 	
-	CONTEXT("javax.ws.rs.core.Context"),
+	CONTEXT("javax.ws.rs.core.Context", "Context"),
 	
 	HTTP_HEADERS("javax.ws.rs.core.HttpHeaders"),
 
@@ -68,14 +75,22 @@ public enum EnumJaxrsClassname {
 	
 	URI_INFO("javax.ws.rs.core.UriInfo"),
 	
-	ENCODED("javax.ws.rs.Encoded"),
+	ENCODED("javax.ws.rs.Encoded", "Encoded"),
 	
-	PROVIDER("javax.ws.rs.ext.Provider");
+	PROVIDER("javax.ws.rs.ext.Provider", "Provider");
 	
 	public final String qualifiedName;
+
+	public final String annotationName;
 	
 	private EnumJaxrsClassname(final String qualifiedName) {
 		this.qualifiedName = qualifiedName;
+		this.annotationName = null;
+	}
+
+	private EnumJaxrsClassname(final String qualifiedName, final String annotationName) {
+		this.qualifiedName = qualifiedName;
+		this.annotationName = annotationName;
 	}
 
 }

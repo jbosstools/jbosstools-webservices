@@ -73,7 +73,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(20));
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(14));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(20));
 	}
 
 	@Test
@@ -139,8 +139,8 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		// 13 usual endpoints + 2 newly created
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(16));
+		// 13 usual endpoints + some newly created
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(22));
 	}
 
 	@Test
@@ -157,8 +157,8 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
-		// 13 usual endpoints + 2 newly created
-		assertThat(metamodel.getAllEndpoints().size(), equalTo(16));
+		// 13 usual endpoints + some newly created
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(22));
 	}
 	
 	@Test

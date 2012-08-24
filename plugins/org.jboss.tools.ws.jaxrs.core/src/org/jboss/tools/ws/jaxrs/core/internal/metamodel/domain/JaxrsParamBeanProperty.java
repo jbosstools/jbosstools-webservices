@@ -10,11 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -33,12 +29,6 @@ public class JaxrsParamBeanProperty extends JaxrsJavaElement<IMethod> implements
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.RESOURCE_FIELD;
-	}
-
-	@Override
-	public List<ValidatorMessage> validate() {
-		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		return messages;
 	}
 
 	@Override

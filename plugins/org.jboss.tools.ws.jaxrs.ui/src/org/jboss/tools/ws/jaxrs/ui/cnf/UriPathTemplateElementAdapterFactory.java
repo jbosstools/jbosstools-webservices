@@ -6,6 +6,7 @@ import org.eclipse.debug.ui.actions.ILaunchable;
 public class UriPathTemplateElementAdapterFactory implements IAdapterFactory {
 
 	@Override
+	@SuppressWarnings("rawtypes") 
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
 		if( adapterType.equals(ILaunchable.class)) {
 			if( adaptableObject instanceof UriPathTemplateElement ) {
@@ -15,6 +16,7 @@ public class UriPathTemplateElementAdapterFactory implements IAdapterFactory {
 		return null;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Class[] getAdapterList() {
 		return new Class[]{ILaunchable.class};

@@ -35,31 +35,35 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	public static final int F_NONE = 0;
 
 	/** Meaning that the change occurred at a finer level. */
-	public static final int F_FINE_GRAINED = 1;
+	public static final int F_FINE_GRAINED = 0x1;
 
-	public static final int F_ELEMENT_KIND = 2;
+	public static final int F_ELEMENT_KIND = 0x2;
 
-	public static final int F_PATH_VALUE = 4;
+	public static final int F_PATH_VALUE = 0x4;
 
-	public static final int F_APPLICATION_PATH_VALUE = 8;
+	public static final int F_APPLICATION_PATH_VALUE = 0x8;
 
-	public static final int F_HTTP_METHOD_VALUE = 16;
+	public static final int F_HTTP_METHOD_VALUE = 0x10;
 
-	public static final int F_PATH_PARAM_VALUE = 32;
+	public static final int F_PATH_PARAM_VALUE = 0x20;
 
-	public static final int F_QUERY_PARAM_VALUE = 64;
+	public static final int F_QUERY_PARAM_VALUE = 0x40;
 
-	public static final int F_MATRIX_PARAM_VALUE = 128;
+	public static final int F_MATRIX_PARAM_VALUE = 0x80;
 
-	public static final int F_DEFAULT_VALUE_VALUE = 256;
+	public static final int F_DEFAULT_VALUE_VALUE = 0x100;
 
-	public static final int F_CONSUMED_MEDIATYPES_VALUE = 512;
+	public static final int F_CONSUMED_MEDIATYPES_VALUE = 0x200;
 
-	public static final int F_PRODUCED_MEDIATYPES_VALUE = 1024;
+	public static final int F_PRODUCED_MEDIATYPES_VALUE = 0x400;
 
-	public static final int F_METHOD_PARAMETERS = 2048;
+	public static final int F_METHOD_PARAMETERS = 0x800;
 
-	public static final int F_METHOD_RETURN_TYPE = 4096;
+	public static final int F_METHOD_RETURN_TYPE = 0x1000;
+
+	public static final int F_TARGET_VALUE = 0x2000;
+	
+	public static final int F_RETENTION_VALUE = 0x4000;
 
 	/**
 	 * Full constructor.

@@ -195,6 +195,28 @@ public final class JdtUtils {
 		}
 		return element;
 	}
+	
+	/**
+	 * Returns the closest Java Element of the expected type that surrounds the given location in the
+	 * given compilationUnit. This method can return SimpleAnnotation, which the
+	 * default JDT ICompilationUnit implementation does not support.
+	 * 
+	 * @param sourceRange
+	 * @param location
+	 * @param type
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static IJavaElement getElementAt(ICompilationUnit compilationUnit, int location, int type) throws JavaModelException {
+		IJavaElement element = getElementAt(compilationUnit, location);
+		while (element != null && element.exists()) {
+			if (element.getElementType() == type) {
+				return element;
+			}
+			element = element.getParent();
+		}
+		return null;
+	}
 
 	/**
 	 * Parse the DOM of the given member, and resolve bindings. If the given
@@ -591,5 +613,7 @@ public final class JdtUtils {
 		return false;
 
 	}
+
+	
 
 }

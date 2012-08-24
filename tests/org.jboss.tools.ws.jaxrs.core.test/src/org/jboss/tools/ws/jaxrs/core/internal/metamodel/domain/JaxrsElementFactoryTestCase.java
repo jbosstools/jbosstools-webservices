@@ -117,7 +117,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType httpType = getType(GET.qualifiedName, javaProject);
 		final Annotation httpAnnotation = getAnnotation(httpType, HTTP_METHOD.qualifiedName);
-		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpType, metamodel).httpMethod(httpAnnotation).build();
 		metamodel.add(httpMethod);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final IMethod method = getMethod(type, "getCustomerAsVCard");
@@ -135,7 +135,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType httpType = getType(GET.qualifiedName, javaProject);
 		final Annotation httpAnnotation = getAnnotation(httpType, HTTP_METHOD.qualifiedName);
-		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpType, metamodel).httpMethod(httpAnnotation).build();
 		metamodel.add(httpMethod);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
 		final IMethod method = getMethod(type, "getProduct");
@@ -153,7 +153,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType httpType = getType(GET.qualifiedName, javaProject);
 		final Annotation httpAnnotation = getAnnotation(httpType, HTTP_METHOD.qualifiedName);
-		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpType, metamodel).httpMethod(httpAnnotation).build();
 		metamodel.add(httpMethod);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		IField field = type.getField("foo");

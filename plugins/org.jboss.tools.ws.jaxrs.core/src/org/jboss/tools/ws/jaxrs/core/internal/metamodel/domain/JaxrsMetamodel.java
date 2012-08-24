@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -249,7 +250,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		// ResourceMethod
 		if (jaxrsElement.getElementCategory() == EnumElementCategory.RESOURCE) {
 			final JaxrsResource resource = (JaxrsResource) jaxrsElement;
-			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
+			for (JaxrsBaseElement resourceMethod : resource.getMethods().values()) {
 				unindexElement(resourceMethod);
 			}
 			for (JaxrsResourceField resourceField : ((JaxrsResource) jaxrsElement).getFields().values()) {
@@ -291,6 +292,20 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			jaxrsElements.remove(jaxrsElement);
 		}
 	}
+
+	/**
+	 * Returns an unmodifiable list of all the elements in the Metamodel.
+	 * @return
+	 */
+	public List<JaxrsBaseElement> getAllElements() {
+		final Collection<Set<JaxrsBaseElement>> values = elementsIndex.values();
+		final List<JaxrsBaseElement> elements = new ArrayList<JaxrsBaseElement>();
+		for (Set<JaxrsBaseElement> subSet : values) {
+			elements.addAll(subSet);
+		}
+		return Collections.unmodifiableList(elements);
+	}
+
 
 	/**
 	 * @return the application that is used to compute the Endpoint's URI Path Templates, or null if no application was
@@ -411,6 +426,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	public List<JaxrsBaseElement> getElements(final IJavaElement javaElement) {
+		if(javaElement == null) {
+			return Collections.emptyList();
+		}
 		final String key = javaElement.getHandleIdentifier();
 		final List<JaxrsBaseElement> result = new ArrayList<JaxrsBaseElement>();
 		if (elementsIndex.containsKey(key)) {
@@ -436,23 +454,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	public void remove(JaxrsBaseElement element) {
-		switch (element.getElementKind()) {
-		case APPLICATION_WEBXML:
-			remove((JaxrsWebxmlApplication) element);
-			break;
-		default:
-			remove((JaxrsJavaElement<?>)element);
-			break;
-		}
-	}
-
-	/**
-	 * Remove the given JAX-RS Element from the metamodel.
-	 * 
-	 * @param resource
-	 * @return true if the resource was actually removed, false otherwise.
-	 */
-	public void remove(JaxrsJavaElement<?> element) {
 		if (element == null) {
 			return;
 		}
@@ -480,11 +481,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			break;
 		}
 		unindexElement(element);
-	}
-
-	public void remove(JaxrsWebxmlApplication application) {
-		this.applications.remove(application);
-		unindexElement(application);
 	}
 
 	public JaxrsHttpMethod getHttpMethod(Annotation httpMethodAnnotation) {

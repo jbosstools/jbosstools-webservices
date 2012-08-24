@@ -17,6 +17,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
@@ -26,7 +27,10 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.POST;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PUT;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.spy;
@@ -114,7 +118,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @throws JavaModelException
 	 */
 	private JaxrsJavaApplication createApplication(IType type, String applicationPath) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName, applicationPath);
+		final Annotation annotation = changeAnnotation(type, APPLICATION_PATH.qualifiedName, applicationPath);
 		return new JaxrsJavaApplication(type, annotation, metamodel);
 	}
 
@@ -137,19 +141,22 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	private JaxrsHttpMethod createHttpMethod(EnumJaxrsClassname httpMethodElement) throws CoreException, JavaModelException {
 		final IType httpMethodType = JdtUtils.resolveType(httpMethodElement.qualifiedName, javaProject, progressMonitor);
 		final Annotation httpMethodAnnotation = getAnnotation(httpMethodType, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpMethodType, httpMethodAnnotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpMethodType, metamodel).httpMethod(httpMethodAnnotation).build();
+		
 		return httpMethod;
 	}
 
 	private JaxrsHttpMethod createHttpMethod(IType type) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
+		final Annotation httpMethodAnnotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
+		final Annotation targetAnnotation = getAnnotation(type, TARGET.qualifiedName);
+		final Annotation retentionAnnotation = getAnnotation(type, RETENTION.qualifiedName);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(httpMethodAnnotation).target(targetAnnotation).retention(retentionAnnotation).build();
 		return httpMethod;
 	}
 
 	private JaxrsHttpMethod createHttpMethod(IType type, String httpVerb) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName, httpVerb);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
+		final Annotation annotation = changeAnnotation(type, HTTP_METHOD.qualifiedName, httpVerb);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(annotation).build();
 		return httpMethod;
 	}
 
@@ -188,7 +195,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(9));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all HttpMethods, Resources, ResourceMethods and ResourceFields. only application is available: the java-based one found in src/main/java
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(30));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(35));
 	}
 
 	@Test
@@ -211,7 +218,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all project-specific Applications, HttpMethods, Resources, ResourceMethods and ResourceFields (built-in HttpMethods are not bound to a project)
 		// 2 applications are available: the java-based and the web.xml since a full build was performed
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(31));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(36));
 	}
 
 	/**
@@ -242,7 +249,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
 		assertThat(affectedElements.size(), equalTo(9));
 		// all Applications, HttpMethods, Resources, ResourceMethods and ResourceFields specific to the project
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(31));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(36));
 
 	}
 
@@ -354,7 +361,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(annotation).build();
 		metamodel.add(httpMethod);
 		// operation
 		WorkbenchUtils.delete(type);
@@ -563,7 +570,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// let's suppose that this jar only contains 1 HTTP Methods ;-)
 		final IType type = JdtUtils.resolveType("javax.ws.rs.GET", javaProject, progressMonitor);
 		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(annotation).build();
 		metamodel.add(httpMethod);
 		// operation
 		final ResourceDelta event = createEvent(lib.getResource(), REMOVED);
@@ -595,7 +602,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		metamodel.add(createHttpMethod(type, "bar"));
+		final JaxrsHttpMethod httpMethod = createHttpMethod(type, "bar");
+		metamodel.add(httpMethod);
 		// operation
 		final ResourceDelta event = createEvent(type.getResource(), CHANGED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
@@ -606,8 +614,47 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(((IJaxrsHttpMethod) affectedElements.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		verify(metamodel, times(1)).add(any(JaxrsHttpMethod.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 	}
 
+	@Test
+	public void shouldChangeHttpMethodWhenRemovingTargetAnnotation() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
+				progressMonitor);
+		final JaxrsHttpMethod httpMethod = createHttpMethod(type);
+		metamodel.add(httpMethod);
+		final Annotation annotation = getAnnotation(type, TARGET.qualifiedName);
+		// operation
+		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
+		final ResourceDelta event = createEvent(annotation.getJavaParent().getResource(), CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsHttpMethod) affectedElements.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
+		verify(metamodel, times(1)).add(any(JaxrsHttpMethod.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertNull(httpMethod.getAnnotations().get(TARGET.qualifiedName));
+	}
+
+	@Test
+	public void shouldNotChangeHttpMethodWhenAddingDeprecatedAnnotation() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
+				progressMonitor);
+		final JaxrsHttpMethod httpMethod = createHttpMethod(type);
+		metamodel.add(httpMethod);
+		final Annotation annotation = getAnnotation(type, TARGET.qualifiedName);
+		// operation
+		WorkbenchUtils.addTypeAnnotation(type, "@Deprecated", false);
+		final ResourceDelta event = createEvent(annotation.getJavaParent().getResource(), CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(0));
+	}
+	
 	@Test
 	public void shouldRemoveHttpMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
@@ -635,7 +682,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(annotation).build();
 		metamodel.add(httpMethod);
 		// operation
 		final ResourceDelta event = createEvent(type.getResource(), REMOVED);
@@ -654,7 +701,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(annotation).build();
 		metamodel.add(httpMethod);
 		// operation
 		WorkbenchUtils.delete(type);
@@ -674,7 +721,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(annotation).build();
 		metamodel.add(httpMethod);
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);

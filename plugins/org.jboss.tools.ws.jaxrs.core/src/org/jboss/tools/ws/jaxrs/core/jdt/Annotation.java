@@ -95,14 +95,26 @@ public class Annotation {
 	public ISourceRange getSourceRange() {
 		return sourceRange;
 	}
-
+	
 	/** @return the value */
-	public List<String> getValues(String elementName) {
+	public List<String> getValues(final String elementName) {
 		return javaAnnotationElements.get(elementName);
 	}
 
+	/** @return the default value */
+	public String getValue() {
+		final List<String> values = javaAnnotationElements.get("value");
+		if (values != null) {
+			assert !(values.size() > 1);
+			if (values.size() == 1) {
+				return values.get(0);
+			}
+		}
+		return null;
+	}
+	
 	/** @return the value */
-	public String getValue(String elementName) {
+	public String getValue(final String elementName) {
 		final List<String> values = javaAnnotationElements.get(elementName);
 		if (values != null) {
 			assert !(values.size() > 1);

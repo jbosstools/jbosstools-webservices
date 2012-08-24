@@ -11,16 +11,15 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.wst.validation.ValidatorMessage;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -94,35 +93,67 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		}
 	}
 	
-	public JaxrsHttpMethod(IType javaType, Annotation httpMethodAnnotation, JaxrsMetamodel metamodel) {
-		super(javaType, httpMethodAnnotation, metamodel);
+	public static class Builder {
+		final IType javaType;
+		final JaxrsMetamodel metamodel;
+		final List<Annotation> annotations = new ArrayList<Annotation>();
+
+		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
+			this.javaType = javaType;
+			this.metamodel = metamodel;
+		}
+
+		public Builder retention(final Annotation retentionAnnotation) {
+			if(retentionAnnotation != null) {
+				annotations.add(retentionAnnotation);
+			}
+			return this;
+		}
+
+		public Builder httpMethod(final Annotation httpMethodAnnotation) {
+			if(httpMethodAnnotation != null) {
+				annotations.add(httpMethodAnnotation);
+			}
+			return this;
+		}
+
+		public Builder target(final Annotation targetAnnotation) {
+			if(targetAnnotation != null) {
+				annotations.add(targetAnnotation);
+			}
+			return this;
+		}
+
+		public Builder annotations(final Collection<Annotation> annotations) {
+			if(annotations != null) {
+				this.annotations.addAll(annotations);
+			}
+			return this;
+		}
+		public JaxrsHttpMethod build() {
+			JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(javaType, annotations, metamodel);
+			return httpMethod;
+		}
+	}
+
+	/**
+	 * Full constructor.
+	 * 
+	 * @param annotations
+	 * 
+	 */
+	JaxrsHttpMethod(IType javaType, List<Annotation> annotations,
+			final JaxrsMetamodel metamodel) {
+		super(javaType, annotations, metamodel);
+	}
+	
+	public boolean isBuiltIn() {
+		return false;
 	}
 
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.HTTP_METHOD;
-	}
-
-	@Override
-	public List<ValidatorMessage> validate() {
-		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		final Annotation annotation = getHttpMethodAnnotation();
-		if (annotation == null) {
-
-		} else {
-			final String httpValue = annotation.getValue("value");
-			if (httpValue == null || httpValue.isEmpty()) {
-				final ValidatorMessage message = ValidatorMessage
-						.create("HTTP Verb should not be empty", getResource());
-				message.setAttribute(IMarker.MARKER, JaxrsMetamodelBuilder.JAXRS_PROBLEM);
-				message.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-				message.setAttribute(IMarker.CHAR_START, annotation.getSourceRange().getOffset());
-				message.setAttribute(IMarker.CHAR_END, annotation.getSourceRange().getOffset()
-						+ annotation.getSourceRange().getLength());
-				messages.add(message);
-			}
-		}
-		return messages;
 	}
 
 	/*
@@ -141,10 +172,19 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		return null;
 	}
 
-	/** @return the httpVerbAnnotation */
-	@Override
+	/** @return the HttpMethod Annotation */
 	public Annotation getHttpMethodAnnotation() {
 		return getAnnotation(HTTP_METHOD.qualifiedName);
+	}
+	
+	/** @return the Retention Annotation */
+	public Annotation getRetentionAnnotation() {
+		return getAnnotation(Retention.class.getName());
+	}
+	
+	/** @return the Target Annotation */
+	public Annotation getTargetAnnotation() {
+		return getAnnotation(Target.class.getName());
 	}
 
 	/*
@@ -197,15 +237,16 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * @return the flags indicating the kind of changes that occurred during the
 	 *         update.
 	 */
-	public int update(JaxrsHttpMethod httpMethod) {
-		int flags = 0;
+	public int update(final JaxrsHttpMethod httpMethod) {
+		/*int flags = 0;
 		final Annotation annotation = this.getAnnotation(HTTP_METHOD.qualifiedName);
 		final Annotation otherAnnotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
 		if (annotation != null && otherAnnotation != null && !annotation.equals(otherAnnotation)
 				&& annotation.update(otherAnnotation)) {
 			flags += F_HTTP_METHOD_VALUE;
 		}
-		return flags;
+		return flags;*/
+		return mergeAnnotations(httpMethod.getAnnotations());
 	}
 
 }

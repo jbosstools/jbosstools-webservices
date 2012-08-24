@@ -10,6 +10,9 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import java.util.Arrays;
+
+import org.eclipse.core.resources.IResource;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 /**
@@ -30,10 +33,24 @@ public class JaxrsBuiltinHttpMethod extends JaxrsHttpMethod {
 	private final String httpVerb;
 	
 	public JaxrsBuiltinHttpMethod(String annotationName, String annotationValue) {
-		super(null, new Annotation(null, annotationName, annotationValue, null), null);
+		super(null, Arrays.asList(new Annotation(null, annotationName, annotationValue, null)), null);
 		this.annotationName = annotationName;
 		this.httpVerb = annotationValue;
 	} 
+
+	@Override
+	public boolean isBuiltIn() {
+		return true;
+	}
+
+	/**
+	 * There is no resource associated with this built-in HTTP Method. Overriding this method prevents NPE (since <code>javaElement<code> attribute is null).
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement#getResource()
+	 */
+	@Override
+	public IResource getResource() {
+		return null;
+	}
 
 	@Override
 	public String getHttpVerb() {

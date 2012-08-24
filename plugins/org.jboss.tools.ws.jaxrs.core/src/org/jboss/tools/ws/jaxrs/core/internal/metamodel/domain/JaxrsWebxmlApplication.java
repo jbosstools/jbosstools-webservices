@@ -2,10 +2,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
 
-import java.util.List;
-
 import org.eclipse.core.resources.IResource;
-import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
@@ -69,12 +66,6 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 	@Override
 	public String getName() {
 		return webxmlResource != null ? webxmlResource.getName() : "*unknown resource*";
-	}
-
-	@Override
-	public List<ValidatorMessage> validate() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	/*

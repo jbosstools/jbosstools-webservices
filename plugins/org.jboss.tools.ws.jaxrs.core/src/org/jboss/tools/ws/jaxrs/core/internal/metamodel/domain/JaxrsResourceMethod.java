@@ -14,30 +14,18 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.*;
-
-
-
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.osgi.util.NLS;
-import org.eclipse.wst.validation.ValidatorMessage;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.ValidationMessages;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
@@ -48,12 +36,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 /** @author xcoulon */
 public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 		implements IJaxrsResourceMethod {
-
-	/** The parameter type names that can be annotated with {@link Context}. */
-	private final static List<String> CONTEXT_TYPE_NAMES = new ArrayList<String>(Arrays.asList(
-			"javax.ws.rs.core.HttpHeaders", "javax.ws.rs.core.UriInfo", "javax.ws.rs.core.Request",
-			"javax.servlet.http.HttpServletRequest", "javax.servlet.http.HttpServletResponse", "javax.servlet.ServletConfig",
-			"javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext"));
 
 	private final JaxrsResource parentResource;
 
@@ -198,149 +180,6 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.RESOURCE_METHOD;
-	}
-
-	@Override
-	public List<ValidatorMessage> validate() throws JavaModelException {
-		this.hasErrors(false);
-		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		messages.addAll(validateMissingPathValueInPathParamAnnotations());
-		messages.addAll(validateMissingPathParamAnnotations());
-		messages.addAll(validateParamsWithContextAnnotation());
-		messages.addAll(validateSingleParamWithoutAnnotation());
-		return messages;
-	}
-
-	/**
-	 * Validate that only one method parameter is not annotated with a JAX-RS
-	 * annotation. This non-annotated parameter is the "Entity parameter",
-	 * coming from the client's request body, unmarshalled by the appropriate
-	 * {@link MesssageBodyReader}.
-	 * 
-	 * @return
-	 */
-	private List<ValidatorMessage> validateSingleParamWithoutAnnotation() {
-		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		return messages;
-	}
-
-	/**
-	 * Validates that the method parameters annotated with {@link Context} are
-	 * of the supported types in the spec: {@link UriInfo}, {@link HttpHeaders},
-	 * {@link ServletConfig}, {@link ServletContext}, {@link HttpServletRequest}
-	 * , {@link Request}, {@link HttpServletResponse} and {@link Response}.
-	 * 
-	 * @return
-	 * @throws JavaModelException 
-	 */
-	private List<ValidatorMessage> validateParamsWithContextAnnotation() throws JavaModelException {
-		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		for (JavaMethodParameter parameter : this.javaMethodParameters) {
-			final Annotation annotation = parameter.getAnnotation(CONTEXT.qualifiedName);
-			final String typeName = parameter.getTypeName();
-			if (annotation != null && typeName != null
-					&& !CONTEXT_TYPE_NAMES.contains(typeName)) {
-				final String msg = NLS
-								.bind(ValidationMessages.INVALID_CONTEXT_ANNOTATION,
-										typeName);
-				ValidatorMessage validationMsg = createValidationMessage(msg, IMarker.SEVERITY_ERROR, parameter.getRegion().getOffset(), parameter.getRegion().getLength());
-				messages.add(validationMsg);
-				this.hasErrors(true);
-			}
-		}
-		return messages;	
-	}
-
-	/**
-	 * Validates that the @Path annotation parameters have a counterpart in the
-	 * java method paramters, otherwise, issues some markers with a 'warning'
-	 * severity.
-	 * 
-	 * @return
-	 * @throws JavaModelException
-	 */
-	private List<ValidatorMessage> validateMissingPathParamAnnotations()
-			throws JavaModelException {
-		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		final List<String> pathParamValueProposals = getPathParamValueProposals();
-		for (String proposal : pathParamValueProposals) {
-			boolean matching = false;
-			for (JavaMethodParameter parameter : this.javaMethodParameters) {
-				final Annotation annotation = parameter
-						.getAnnotation(PATH_PARAM.qualifiedName);
-				if (annotation != null && annotation.getValue("value") != null
-						&& annotation.getValue("value").equals(proposal)) {
-					matching = true;
-					break;
-				}
-			}
-			if (!matching) {
-				final String msg = NLS
-						.bind(ValidationMessages.INVALID_PATHPARAM_VALUE,
-								proposal);
-				final ISourceRange nameRange = getJavaElement().getNameRange();
-				ValidatorMessage validationMsg = createValidationMessage(msg, IMarker.SEVERITY_WARNING, nameRange.getOffset(), nameRange.getLength());
-				messages.add(validationMsg);
-			}
-		}
-		return messages;
-	}
-
-	/**
-	 * Checks that the {@link PathParam} annotation values match the params in
-	 * the {@link Path} annotations at the method and the parent type levels.
-	 * 
-	 * @return errors in case of mismatch, empty list otherwise.
-	 * @throws JavaModelException 
-	 */
-	private List<ValidatorMessage> validateMissingPathValueInPathParamAnnotations() throws JavaModelException {
-		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		final List<String> pathParamValueProposals = getPathParamValueProposals();
-		for (JavaMethodParameter parameter : this.javaMethodParameters) {
-			final Annotation annotation = parameter
-					.getAnnotation(PATH_PARAM.qualifiedName);
-			if (annotation != null) {
-				final String value = annotation.getValue("value");
-				if(value != null) {
-					if (!pathParamValueProposals.contains(value)) {
-						final String msg = NLS
-								.bind(ValidationMessages.INVALID_PATHPARAM_VALUE,
-										pathParamValueProposals);
-						final ISourceRange region = annotation.getSourceRange();
-						ValidatorMessage validationMsg = createValidationMessage(msg, IMarker.SEVERITY_ERROR, region.getOffset(), region.getLength());
-						hasErrors(true);
-						messages.add(validationMsg);
-					}
-				}
-			}
-		}
-		return messages;
-	}
-
-	/**
-	 * Creates a validation message from the given parameters. The created validation messages is of the 'JAX-RS' type.
-	 * @param msg the message to display
-	 * @param severity the severity of the marker
-	 * @param region the region that the validation marker points to
-	 * @return the created validation message.
-	 * @throws JavaModelException 
-	 */
-	private ValidatorMessage createValidationMessage(final String msg,
-			int severity, final int offset, int length) throws JavaModelException {
-		final ValidatorMessage validationMsg = ValidatorMessage.create(msg,
-				this.getResource());
-		validationMsg.setType(JaxrsMetamodelBuilder.JAXRS_PROBLEM);
-		final ICompilationUnit compilationUnit = this.getJavaElement().getCompilationUnit();
-		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
-		validationMsg.setAttribute(IMarker.LOCATION, NLS.bind(ValidationMessages.LINE_NUMBER, ast.getLineNumber(offset)));
-		validationMsg.setAttribute(IMarker.MARKER,
-				JaxrsMetamodelBuilder.JAXRS_PROBLEM);
-		validationMsg.setAttribute(IMarker.SEVERITY, severity);
-		validationMsg.setAttribute(IMarker.CHAR_START, offset);
-		validationMsg.setAttribute(IMarker.CHAR_END, offset + length);
-		Logger.debug("Validation message for {}: {}", this.getJavaElement()
-				.getElementName(), validationMsg.getAttribute(IMarker.MESSAGE));
-		return validationMsg;
 	}
 
 	

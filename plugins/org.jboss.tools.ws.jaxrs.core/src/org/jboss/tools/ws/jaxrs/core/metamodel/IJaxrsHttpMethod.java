@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 public interface IJaxrsHttpMethod extends IJaxrsElement, Comparable<IJaxrsHttpMethod> {
 
@@ -20,8 +19,6 @@ public interface IJaxrsHttpMethod extends IJaxrsElement, Comparable<IJaxrsHttpMe
 
 	/** @return the name */
 	String getFullyQualifiedName();
-
-	Annotation getHttpMethodAnnotation();
 
 	IType getJavaElement();
 

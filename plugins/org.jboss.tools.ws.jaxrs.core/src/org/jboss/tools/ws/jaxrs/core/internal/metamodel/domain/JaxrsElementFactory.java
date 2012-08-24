@@ -26,6 +26,8 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -269,11 +271,11 @@ public class JaxrsElementFactory {
 	 */
 	public JaxrsHttpMethod createHttpMethod(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
-		Annotation httpMethodAnnotation = JdtUtils.resolveAnnotation(javaType, ast, HTTP_METHOD.qualifiedName);
-		if (httpMethodAnnotation == null) {
+		Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, HTTP_METHOD.qualifiedName, TARGET.qualifiedName, RETENTION.qualifiedName);
+		if (annotations == null || annotations.isEmpty()) {
 			return null;
 		}
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(javaType, httpMethodAnnotation, metamodel);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(javaType, metamodel).annotations(annotations.values()).build();
 		return httpMethod;
 	}
 
@@ -291,7 +293,8 @@ public class JaxrsElementFactory {
 			final JaxrsMetamodel metamodel) throws CoreException {
 		if (annotation.getJavaParent() != null && annotation.getJavaParent().getElementType() == IJavaElement.TYPE
 				&& annotation.getName().equals(HTTP_METHOD.qualifiedName)) {
-			return new JaxrsHttpMethod((IType) annotation.getJavaParent(), annotation, metamodel);
+			//return new JaxrsHttpMethod.Builder((IType) annotation.getJavaParent(), metamodel).httpMethod(annotation).build();
+			return createHttpMethod((IType) annotation.getJavaParent(), ast, metamodel);
 		}
 		return null;
 	}

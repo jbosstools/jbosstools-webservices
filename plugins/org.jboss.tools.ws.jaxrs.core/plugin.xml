@@ -37,7 +37,7 @@
          <action
                class="org.jboss.tools.ws.jaxrs.core.configuration.AddNatureAction"
                id="org.jboss.tools.ws.jaxrs.configuration.addJaxrsConfigurationAction"
-               label="Add JAX-RS 1.1 support..."
+               label="%ConfigureMenu_AddJaxrs11Support"
                menubarPath="org.eclipse.ui.projectConfigure/additions">
          </action>
       </objectContribution>
@@ -60,7 +60,7 @@
          <action
                class="org.jboss.tools.ws.jaxrs.core.configuration.RemoveNatureAction"
                id="org.jboss.tools.ws.jaxrs.removeJaxrsConfigurationAction"
-               label="Remove JAX-RS 1.1 support..."
+               label="%ConfigureMenu_RemoveJaxrs11Support"
                menubarPath="org.eclipse.ui.projectConfigure/additions">
          </action>
       </objectContribution>
@@ -87,22 +87,16 @@
       </super>
    </extension>
    <extension
-         id="org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"
-         name="JAX-RS Metamodel Validator"
-         point="org.eclipse.wst.validation.validatorV2">
+         point="org.jboss.tools.common.validation.validator">
       <validator
-            build="true"
             class="org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator"
-            manual="true"
-            markerId="org.jboss.tools.ws.jaxrs.metamodelMarker">
-         <include>
-            <rules>
-               <projectNature
-                     id="org.jboss.tools.ws.jaxrs.nature">
-               </projectNature>
-            </rules>
-         </include>
+            id="org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"
+            name="%VALIDATOR_NAME">
       </validator>
+   </extension>
+   
+    <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferenceInitializer"/>
    </extension>
   
 

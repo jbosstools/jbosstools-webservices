@@ -23,11 +23,6 @@ import org.eclipse.core.runtime.CoreException;
  */
 public final class ProjectBuilderUtils {
 
-	// TODO : replace with javabuilder, add jaxrs builder after this one.
-	public static final String VALIDATION_BUILDER_ID = "org.eclipse.wst.validation.validationbuilder";
-	/** The JAX-RS Metamodel Builder Id. */
-	public static final String JAXRS_BUILDER_ID = "org.jboss.tools.ws.jaxrs.metamodelBuilder";
-
 	/** Hidden constructor of the utility method. Prevents instantiation. */
 	private ProjectBuilderUtils() {
 		super();
@@ -75,22 +70,8 @@ public final class ProjectBuilderUtils {
 		if (isProjectBuilderInstalled(project, builderId)) {
 			return false;
 		}
-
+		
 		ICommand[] newCommands = new ICommand[commands.length + 1];
-		for (int i = 0; i < commands.length; i++) {
-			if (commands[i].getBuilderName().equals(VALIDATION_BUILDER_ID)) {
-				System.arraycopy(commands, 0, newCommands, 0, i);
-				ICommand command = desc.newCommand();
-				command.setBuilderName(builderId);
-				newCommands[i] = command;
-				System.arraycopy(commands, i, newCommands, i + 1, commands.length - i);
-				desc.setBuildSpec(newCommands);
-				project.setDescription(desc, null);
-				return true;
-			}
-		}
-		// if no validation builder was found, add the jax-rs builder at the
-		// last position
 		System.arraycopy(commands, 0, newCommands, 0, commands.length);
 		ICommand command = desc.newCommand();
 		command.setBuilderName(builderId);

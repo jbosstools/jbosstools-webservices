@@ -15,11 +15,9 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.IField;
-import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -57,12 +55,6 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 
 	public Annotation getDefaultValueAnnotation() {
 		return getAnnotation(DEFAULT_VALUE.qualifiedName);
-	}
-
-	@Override
-	public List<ValidatorMessage> validate() {
-		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		return messages;
 	}
 
 	@Override

@@ -1,0 +1,63 @@
+package org.jboss.tools.ws.jaxrs.ui.quickfix;
+
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.ui.IMarkerResolution;
+import org.eclipse.ui.IMarkerResolutionGenerator2;
+import org.jboss.tools.common.validation.ValidationErrorManager;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.quickfix.JaxrsValidationQuickFixes;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+
+public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerator2 {
+
+	@Override
+	public IMarkerResolution[] getResolutions(IMarker marker) {
+		return getMarkerResolutions(marker);
+	}
+
+	@Override
+	public boolean hasResolutions(IMarker marker) {
+		return getMarkerResolutions(marker).length > 0;
+	}
+
+	/**
+	 * Null-safe extraction of the potential marker resolutions bound to this marker.
+	 * 
+	 * @param marker
+	 *            the marker
+	 * @return a array of marker resolutions. If no resolution is bound to the marker, the returned array is empty (not
+	 *         null).
+	 */
+	private IMarkerResolution[] getMarkerResolutions(final IMarker marker) {
+		try {
+			final int quickfixId = getQuickFixID(marker);
+			switch (quickfixId) {
+			case JaxrsValidationQuickFixes.HTTP_METHOD_MISSING_TARGET_ANNOTATION_ID:
+				final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(marker.getResource());
+				final IType type = (IType) JdtUtils.getElementAt(compilationUnit,
+						marker.getAttribute(IMarker.CHAR_START, 0), IJavaElement.TYPE);
+				if (type != null) {
+					return new IMarkerResolution[] { new AddTargetAnnotationMarkerResolution(type) };
+				}
+			}
+		} catch (CoreException e) {
+			Logger.error("Failed to retrieve marker resolution", e);
+		}
+		return new IMarkerResolution[0];
+	}
+
+	/**
+	 * return message id or -1 if impossible to find
+	 * 
+	 * @param marker
+	 * @return
+	 */
+	private int getQuickFixID(IMarker marker) throws CoreException {
+		return ((Integer) marker.getAttribute(ValidationErrorManager.MESSAGE_ID_ATTRIBUTE_NAME, -1));
+	}
+
+}

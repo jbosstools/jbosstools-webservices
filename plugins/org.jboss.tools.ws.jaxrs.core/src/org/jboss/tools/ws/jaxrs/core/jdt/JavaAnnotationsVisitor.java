@@ -28,6 +28,8 @@ import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -239,10 +241,10 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 				final List<String> values = new ArrayList<String>();
 				if (binding.getValue() instanceof Object[]) {
 					for (Object v : (Object[]) binding.getValue()) {
-						values.add(v.toString());
+						values.add(toString(v));
 					}
 				} else {
-					values.add(binding.getValue().toString());
+					values.add(toString(binding.getValue()));
 				}
 				annotationElements.put(binding.getName(), values);
 			}
@@ -256,6 +258,27 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 			// silently ignore
 		}
 		return annotationElements;
+	}
+
+	/**
+	 * Converts the given value into String. The actual types that are supported are:
+	 * java.lang.Class - the ITypeBinding for the class object
+	 * java.lang.String - the string value itself
+	 * enum type - the IVariableBinding for the enum constant
+	 * annotation type - an IAnnotationBinding
+	 * for other types, the <code>java.lang.Object{@link #toString()}</code> method is used.
+	 * @param value
+	 * @return litteral value
+	 */
+	private static String toString(Object value) {
+		if(value instanceof ITypeBinding) {
+			return ((ITypeBinding)value).getQualifiedName();
+		} else if(value instanceof IVariableBinding) {
+			return ((IVariableBinding)value).getName();
+		} else if(value instanceof IAnnotationBinding) {
+			return ((IAnnotationBinding)value).getName();
+		} 
+		return value.toString();
 	}
 
 }

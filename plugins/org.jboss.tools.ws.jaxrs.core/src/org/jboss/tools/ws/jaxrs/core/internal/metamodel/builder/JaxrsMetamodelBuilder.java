@@ -40,12 +40,9 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 
 	public static final int SCALE = 10;
 
-	/** The standard 'Java type' marker type. */
-	public static final String JAVA_PROBLEM = "org.eclipse.jdt.core.problem";
-
-	/** The custom 'JAX-RS Problem' marker type. */
-	public static final String JAXRS_PROBLEM = "org.jboss.tools.ws.jaxrs.metamodelMarker";
-
+	/** The builder ID. */
+	public static final String BUILDER_ID = "org.jboss.tools.ws.jaxrs.metamodelBuilder";
+	
 	/** The Java element change listener name. */
 	public static final QualifiedName JAXRS_ELEMENT_CHANGE_LISTENER_NAME = new QualifiedName(
 			JBossJaxrsCorePlugin.PLUGIN_ID, "jaxrsPostReconcileListener");

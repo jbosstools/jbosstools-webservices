@@ -57,6 +57,8 @@ public class JaxrsFacetedProjectListener implements IFacetedProjectListener {
 							ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
 						}
 						break;
+					default:
+						break;
 					}
 				} catch (CoreException ex) {
 					Logger.error("Failed to add or remove JAX-RS 1.1 support Nature", ex);

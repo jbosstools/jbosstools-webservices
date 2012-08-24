@@ -22,6 +22,8 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_RETENTION_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_TARGET_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
@@ -31,6 +33,8 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,10 +43,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.osgi.util.NLS;
+import org.eclipse.wst.validation.ValidatorMessage;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.ValidationMessages;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
@@ -95,7 +110,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		}
 	}
 
-	Annotation getAnnotation(String className) {
+	public Annotation getAnnotation(String className) {
 		return annotations.get(className);
 	}
 
@@ -208,7 +223,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 				iterator.remove();
 				if (annotationName.equals(PATH.qualifiedName)) {
 					flag = F_PATH_VALUE;
-				}else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
+				} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
 					flag = F_APPLICATION_PATH_VALUE;
 				} else if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
 					flag = F_HTTP_METHOD_VALUE;
@@ -222,6 +237,10 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 					flag = F_CONSUMED_MEDIATYPES_VALUE;
 				} else if (annotationName.equals(PRODUCES.qualifiedName)) {
 					flag = F_PRODUCED_MEDIATYPES_VALUE;
+				} else if (annotationName.equals(TARGET.qualifiedName)) {
+					flag = F_TARGET_VALUE;
+				} else if (annotationName.equals(RETENTION.qualifiedName)) {
+					flag = F_RETENTION_VALUE;
 				} else {
 					for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
 						if (httpMethod.getFullyQualifiedName().equals(annotationName)) {
@@ -283,5 +302,30 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		}
 		return true;
 	}
+
+	/**
+	 * Creates a validation message from the given parameters. The created validation messages is of the 'JAX-RS' type.
+	 * @param msg the message to display
+	 * @param severity the severity of the marker
+	 * @param region the region that the validation marker points to
+	 * @return the created validation message.
+	 * @throws JavaModelException 
+	ValidatorMessage createValidatorMessage(final String id, final String msg, int severity, final ISourceRange sourceRange)
+			throws JavaModelException {
+		final ValidatorMessage validationMsg = ValidatorMessage.create(msg, this.getResource());
+		validationMsg.setType(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		final ICompilationUnit compilationUnit = this.getJavaElement().getCompilationUnit();
+		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
+		validationMsg.setAttribute(IMarker.LOCATION,
+				NLS.bind(ValidationMessages.LINE_NUMBER, ast.getLineNumber(sourceRange.getOffset())));
+		validationMsg.setAttribute(IMarker.MARKER, JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		validationMsg.setAttribute(IMarker.SEVERITY, severity);
+		validationMsg.setAttribute(IMarker.CHAR_START, sourceRange.getOffset());
+		validationMsg.setAttribute(IMarker.CHAR_END, sourceRange.getOffset() + sourceRange.getLength());
+		Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(),
+				validationMsg.getAttribute(IMarker.MESSAGE));
+		return validationMsg;
+	}
+	 */
 
 }

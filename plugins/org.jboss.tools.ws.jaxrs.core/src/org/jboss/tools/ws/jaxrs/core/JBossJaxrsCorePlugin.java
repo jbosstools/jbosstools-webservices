@@ -13,8 +13,8 @@ package org.jboss.tools.ws.jaxrs.core;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Plugin;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedListener;
 import org.osgi.framework.BundleContext;
@@ -22,7 +22,7 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class JBossJaxrsCorePlugin extends Plugin {
+public class JBossJaxrsCorePlugin extends AbstractUIPlugin {
 
 	/** The plug-in ID. */
 	public static final String PLUGIN_ID = "org.jboss.tools.ws.jaxrs.core"; //$NON-NLS-1$

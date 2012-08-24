@@ -848,7 +848,7 @@ public class WorkbenchUtils {
 		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
 	}
 
-	public static Annotation getAnnotation(final IMember member, final String annotationName, String... values)
+	public static Annotation changeAnnotation(final IMember member, final String annotationName, String... values)
 			throws JavaModelException {
 		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
 

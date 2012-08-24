@@ -17,7 +17,6 @@ import org.eclipse.jdt.core.IJavaElement;
 
 public interface IJaxrsMetamodel {
 
-	/** @return the JAX-RS Ednpoints */
 	public abstract List<IJaxrsEndpoint> getAllEndpoints();
 
 	public abstract <T> T getElement(IJavaElement invocationElement, Class<T> clazz);

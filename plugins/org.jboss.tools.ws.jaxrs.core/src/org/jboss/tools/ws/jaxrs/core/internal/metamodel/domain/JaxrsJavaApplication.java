@@ -13,11 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jdt.core.IType;
-import org.eclipse.wst.validation.ValidatorMessage;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -53,12 +49,6 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 			return EnumElementKind.APPLICATION_JAVA;
 		}
 		return EnumElementKind.UNDEFINED;
-	}
-
-	@Override
-	public List<ValidatorMessage> validate() {
-		List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
-		return messages;
 	}
 
 	/**

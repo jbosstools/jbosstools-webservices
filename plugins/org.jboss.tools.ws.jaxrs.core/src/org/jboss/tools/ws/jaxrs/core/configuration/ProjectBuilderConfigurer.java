@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.core.configuration;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
@@ -33,7 +34,7 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 		}
 		// project nature installation triggers the project builder
 		// installation, by configuration/association in the plugin.xml file.
-		if (ProjectBuilderUtils.installProjectBuilder(project, ProjectBuilderUtils.JAXRS_BUILDER_ID)) {
+		if (ProjectBuilderUtils.installProjectBuilder(project, JaxrsMetamodelBuilder.BUILDER_ID)) {
 			Logger.info("JAX-RS Builder is now installed.");
 		} else {
 			Logger.info("JAX-RS Builder was already installed.");
@@ -45,7 +46,7 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 		if (project == null) {
 			return;
 		}
-		if (ProjectBuilderUtils.uninstallProjectBuilder(project, ProjectBuilderUtils.JAXRS_BUILDER_ID)) {
+		if (ProjectBuilderUtils.uninstallProjectBuilder(project, JaxrsMetamodelBuilder.BUILDER_ID)) {
 			Logger.debug("JAX-RS Metamodel Builder is now uninstalled.");
 		} else {
 			Logger.debug("JAX-RS Metamodel Builder was not installed.");
