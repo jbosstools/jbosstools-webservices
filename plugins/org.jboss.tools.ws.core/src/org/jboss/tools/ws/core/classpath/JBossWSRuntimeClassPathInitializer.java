@@ -24,9 +24,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.jboss.ide.eclipse.as.classpath.core.jee.AbstractClasspathContainer;
-import org.jboss.ide.eclipse.as.classpath.core.jee.AbstractClasspathContainerInitializer;
-import org.jboss.ide.eclipse.as.classpath.core.xpl.ClasspathDecorations;
+import org.jboss.tools.common.core.classpath.*;
 import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
 
 /**
@@ -204,7 +202,6 @@ AbstractClasspathContainerInitializer {
 		public void refresh() {
 			new JBossWSRuntimeClasspathContainer(path,javaProject).install();
 		}
-
 	}
 
 	public boolean filterJars(String jarName, ArrayList<IClasspathEntry> list) {

@@ -22,7 +22,7 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
  org.eclipse.jdt.launching;bundle-version="3.6.1",
  org.eclipse.jst.j2ee;bundle-version="1.1.501",
  org.eclipse.jst.ws.consumption.ui;bundle-version="1.1.401",
- org.jboss.ide.eclipse.as.classpath.core;bundle-version="2.3.0"
+ org.jboss.tools.common.core;bundle-version="3.4.0"
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %PLUGIN_PROVIDER
 Export-Package: org.jboss.tools.ws.core,
