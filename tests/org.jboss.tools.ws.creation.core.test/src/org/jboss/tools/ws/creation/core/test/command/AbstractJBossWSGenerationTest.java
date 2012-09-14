@@ -20,6 +20,7 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerUtil;
+import org.eclipse.wst.server.core.model.ServerDelegate;
 import org.jboss.ide.eclipse.as.core.server.internal.JBossServer;
 import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
 import org.jboss.ide.eclipse.as.test.ASTest;
@@ -149,7 +150,7 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	protected void undeployWebProject() throws CoreException {
 		IModule[] modules = ServerUtil.getModules(currentServer.getServerType()
 				.getRuntimeType().getModuleTypes());
-		JBossServer ds = (JBossServer)currentServer.loadAdapter(JBossServer.class, new NullProgressMonitor());
+		ServerDelegate ds = (ServerDelegate)currentServer.loadAdapter(ServerDelegate.class, new NullProgressMonitor());
 		IServerWorkingCopy serverWC = ds.getServerWorkingCopy();
 		serverWC.modifyModules(null, modules, null);
 		serverWC.save(true, null).publish(IServer.PUBLISH_FULL, null);
