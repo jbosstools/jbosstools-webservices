@@ -19,7 +19,7 @@ public interface IJaxrsHttpMethod extends IJaxrsElement, Comparable<IJaxrsHttpMe
 	String getHttpVerb();
 
 	/** @return the name */
-	String getSimpleName();
+	String getFullyQualifiedName();
 
 	Annotation getHttpMethodAnnotation();
 

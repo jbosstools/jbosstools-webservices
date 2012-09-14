@@ -19,20 +19,20 @@ import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.ENCODED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.GET;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.RESPONSE;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Encoded;
-import javax.ws.rs.GET;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 
 import junit.framework.Assert;
 
@@ -327,7 +327,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor), "Path");
 		// verifications
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
-		assertThat(javaAnnotation.getName(), equalTo(Path.class.getName()));
+		assertThat(javaAnnotation.getName(), equalTo(PATH.qualifiedName));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
 		assertThat(javaAnnotation.getRegion(), notNullValue());
@@ -341,8 +341,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
-				JdtUtils.parse(type, progressMonitor), Path.class.getName(), Consumes.class.getName(),
-				Produces.class.getName(), Encoded.class.getName());
+				JdtUtils.parse(type, progressMonitor), PATH.qualifiedName, CONSUMES.qualifiedName,
+				PRODUCES.qualifiedName, ENCODED.qualifiedName);
 		// verifications
 		assertThat(javaAnnotations.size(), equalTo(4));
 		for (Entry<String, Annotation> entry : javaAnnotations.entrySet()) {
@@ -364,7 +364,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(annotation, JdtUtils.parse(type, progressMonitor));
 		// verifications
 		assertThat(javaAnnotation.getJavaAnnotation(), equalTo(annotation));
-		assertThat(javaAnnotation.getName(), equalTo(Path.class.getName()));
+		assertThat(javaAnnotation.getName(), equalTo(PATH.qualifiedName));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
 	}
@@ -376,8 +376,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 				progressMonitor);
 		Assert.assertNotNull("Type not found", type);
 		// operation
-		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor),
-				HttpMethod.class);
+		Annotation javaAnnotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		// verifications
 		assertThat(javaAnnotation, nullValue());
 	}
@@ -385,14 +384,14 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveBinaryTypeAnnotationFromClassName() throws CoreException {
 		// pre-conditions
-		IType type = JdtUtils.resolveType(GET.class.getName(), javaProject, progressMonitor);
+		IType type = JdtUtils.resolveType(GET.qualifiedName, javaProject, progressMonitor);
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor),
-				HttpMethod.class.getName());
+				HTTP_METHOD.qualifiedName);
 		// verifications
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
-		assertThat(javaAnnotation.getName(), equalTo(HttpMethod.class.getName()));
+		assertThat(javaAnnotation.getName(), equalTo(HTTP_METHOD.qualifiedName));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
 	}
@@ -400,17 +399,17 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveBinaryTypeAnnotationsFromClassNames() throws CoreException {
 		// pre-conditions
-		IType type = JdtUtils.resolveType(GET.class.getName(), javaProject, progressMonitor);
+		IType type = JdtUtils.resolveType(GET.qualifiedName, javaProject, progressMonitor);
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
-				JdtUtils.parse(type, progressMonitor), HttpMethod.class.getName());
+				JdtUtils.parse(type, progressMonitor), HTTP_METHOD.qualifiedName);
 		// verifications
 		assertThat(javaAnnotations.size(), equalTo(1));
-		Annotation javaAnnotation = javaAnnotations.get(HttpMethod.class.getName());
+		Annotation javaAnnotation = javaAnnotations.get(HTTP_METHOD.qualifiedName);
 		assertThat(javaAnnotation, notNullValue());
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
-		assertThat(javaAnnotation.getName(), equalTo(HttpMethod.class.getName()));
+		assertThat(javaAnnotation.getName(), equalTo(HTTP_METHOD.qualifiedName));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
 	}
@@ -418,15 +417,15 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveBinaryTypeAnnotationFromElement() throws CoreException {
 		// pre-conditions
-		IType type = JdtUtils.resolveType(GET.class.getName(), javaProject, progressMonitor);
+		IType type = JdtUtils.resolveType(GET.qualifiedName, javaProject, progressMonitor);
 		Assert.assertNotNull("Type not found", type);
-		IAnnotation javaAnnotation = type.getAnnotation(HttpMethod.class.getName());
+		IAnnotation javaAnnotation = type.getAnnotation(HTTP_METHOD.qualifiedName);
 		Assert.assertTrue("Annotation not found", javaAnnotation.exists());
 		// operation
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, JdtUtils.parse(type, progressMonitor));
 		// verifications
 		assertThat(annotation.getJavaAnnotation(), equalTo(javaAnnotation));
-		assertThat(annotation.getName(), equalTo(HttpMethod.class.getName()));
+		assertThat(annotation.getName(), equalTo(HTTP_METHOD.qualifiedName));
 		assertThat(annotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(annotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
 	}
@@ -434,12 +433,12 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudNotResolveBinaryTypeUnknownAnnotationFromElement() throws CoreException {
 		// pre-conditions
-		IType type = JdtUtils.resolveType(GET.class.getName(), javaProject, progressMonitor);
+		IType type = JdtUtils.resolveType(GET.qualifiedName, javaProject, progressMonitor);
 		Assert.assertNotNull("Type not found", type);
-		IAnnotation javaAnnotation = type.getAnnotation(Path.class.getName());
+		IAnnotation javaAnnotation = type.getAnnotation(PATH.qualifiedName);
 		Assert.assertFalse("Annotation not expected", javaAnnotation.exists());
 		// operation
-		Annotation annotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor), Path.class);
+		Annotation annotation = getAnnotation(type, PATH.qualifiedName);
 		// verifications
 		assertThat(annotation, nullValue());
 	}
@@ -467,7 +466,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// verification
 		Assert.assertNotNull(methodSignature);
 		Assert.assertEquals(2, methodSignature.getMethodParameters().size());
-		Assert.assertNull(methodSignature.getMethodParameters().get(0).getAnnotation(PathParam.class.getName()).getValue("value"));
+		Assert.assertNull(methodSignature.getMethodParameters().get(0).getAnnotation(PATH_PARAM.qualifiedName).getValue("value"));
 	}
 	
 	@Test
@@ -520,7 +519,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotConfirmSuperType() throws CoreException {
 		final IType bookType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final IType objectType = getType(Response.class.getName());
+		final IType objectType = getType(RESPONSE.qualifiedName);
 		assertThat(JdtUtils.isTypeOrSuperType(objectType, bookType), is(false));
 	}
 

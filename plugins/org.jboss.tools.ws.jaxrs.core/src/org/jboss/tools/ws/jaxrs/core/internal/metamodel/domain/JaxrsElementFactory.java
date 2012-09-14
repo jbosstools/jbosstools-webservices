@@ -1,7 +1,8 @@
 /******************************************************************************* 
- * Copyright (c) 2008 Red Hat, Inc. 
+Le * Copyright (c) 2008 Red Hat, Inc. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
+ * real racin
  * Eclipse Public License v1.0 which accompanies this distribution, 
  * and is available at http://www.eclipse.org/legal/epl-v10.html 
  * 
@@ -13,23 +14,22 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.eclipse.jdt.core.IJavaElement.FIELD;
 import static org.eclipse.jdt.core.IJavaElement.METHOD;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.COOKIE_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HEADER_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -71,31 +71,31 @@ public class JaxrsElementFactory {
 			return null;
 		}
 		final String annotationName = annotation.getName();
-		if (annotationName.equals(HttpMethod.class.getName())) {
+		if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
 			final JaxrsHttpMethod httpMethod = createHttpMethod(annotation, ast, metamodel);
 			return httpMethod;
-		} else if (annotationName.equals(ApplicationPath.class.getName())) {
+		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
 			final JaxrsJavaApplication application = createApplication(annotation, ast, metamodel);
 			return application;
 		} else {
 			switch (javaAnnotation.getParent().getElementType()) {
 			case TYPE:
-				if (annotationName.equals(Path.class.getName())) {
+				if (annotationName.equals(PATH.qualifiedName)) {
 					return createResource(annotation, ast, metamodel);
 				}
 				break;
 			case METHOD:
 				final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) metamodel.getHttpMethod(annotationName);
-				if (annotationName.equals(Path.class.getName())) {
+				if (annotationName.equals(PATH.qualifiedName)) {
 					return createResourceMethod(annotation, ast, metamodel);
 				} else if (httpMethod != null) {
 					return createResourceMethod(annotation, ast, metamodel);
 				}
 				break;
 			case FIELD:
-				if (annotationName.equals(PathParam.class.getName())
-						|| annotationName.equals(QueryParam.class.getName())
-						|| annotationName.equals(MatrixParam.class.getName())) {
+				if (annotationName.equals(PATH_PARAM.qualifiedName)
+						|| annotationName.equals(QUERY_PARAM.qualifiedName)
+						|| annotationName.equals(MATRIX_PARAM.qualifiedName)) {
 					return createField(annotation, ast, metamodel);
 				}
 				break;
@@ -160,11 +160,11 @@ public class JaxrsElementFactory {
 
 	private JaxrsResource internalCreateResource(IType type, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws JavaModelException {
-		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(type, ast, Path.class.getName(),
-				Consumes.class.getName(), Produces.class.getName());
-		final Annotation pathAnnotation = annotations.get(Path.class.getName());
-		final Annotation consumesAnnotation = annotations.get(Consumes.class.getName());
-		final Annotation producesAnnotation = annotations.get(Produces.class.getName());
+		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(type, ast, PATH.qualifiedName,
+				CONSUMES.qualifiedName, PRODUCES.qualifiedName);
+		final Annotation pathAnnotation = annotations.get(PATH.qualifiedName);
+		final Annotation consumesAnnotation = annotations.get(CONSUMES.qualifiedName);
+		final Annotation producesAnnotation = annotations.get(PRODUCES.qualifiedName);
 		final JaxrsResource resource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
 				.consumes(consumesAnnotation).produces(producesAnnotation).build();
 		return resource;
@@ -213,14 +213,14 @@ public class JaxrsElementFactory {
 			JaxrsMetamodel metamodel, JaxrsResource parentResource) throws JavaModelException {
 		final List<String> httpMethodAnnotationNames = new ArrayList<String>();
 		for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-			httpMethodAnnotationNames.add(httpMethod.getJavaElement().getFullyQualifiedName());
+			httpMethodAnnotationNames.add(httpMethod.getFullyQualifiedName());
 		}
 		final List<String> annotationNames = new ArrayList<String>();
-		annotationNames.addAll(Arrays.asList(Path.class.getName(), Produces.class.getName(), Consumes.class.getName()));
+		annotationNames.addAll(Arrays.asList(PATH.qualifiedName, PRODUCES.qualifiedName, CONSUMES.qualifiedName));
 		annotationNames.addAll(httpMethodAnnotationNames);
 		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaMethod, ast, annotationNames);
 		Annotation httpMethod = null;
-		final Annotation pathAnnotation = annotations.get(Path.class.getName());
+		final Annotation pathAnnotation = annotations.get(PATH.qualifiedName);
 		for (String httpMethodAnnotationName : httpMethodAnnotationNames) {
 			if (annotations.containsKey(httpMethodAnnotationName)) {
 				httpMethod = annotations.get(httpMethodAnnotationName);
@@ -231,8 +231,8 @@ public class JaxrsElementFactory {
 			Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on method {}.{}()",
 					javaMethod.getParent().getElementName(), javaMethod.getElementName());
 		} else {
-			final Annotation producesAnnotation = annotations.get(Produces.class.getName());
-			final Annotation consumesAnnotation = annotations.get(Consumes.class.getName());
+			final Annotation producesAnnotation = annotations.get(PRODUCES.qualifiedName);
+			final Annotation consumesAnnotation = annotations.get(CONSUMES.qualifiedName);
 			final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
 			// avoid creating Resource Method when the Java Method cannot be parsed (ie, syntax/compilation error)P
 			if (methodSignature != null) {
@@ -263,7 +263,7 @@ public class JaxrsElementFactory {
 	 */
 	public JaxrsHttpMethod createHttpMethod(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
-		Annotation httpMethodAnnotation = JdtUtils.resolveAnnotation(javaType, ast, HttpMethod.class);
+		Annotation httpMethodAnnotation = JdtUtils.resolveAnnotation(javaType, ast, HTTP_METHOD.qualifiedName);
 		if (httpMethodAnnotation == null) {
 			return null;
 		}
@@ -284,7 +284,7 @@ public class JaxrsElementFactory {
 	public JaxrsHttpMethod createHttpMethod(final Annotation annotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		if (annotation.getJavaParent() != null && annotation.getJavaParent().getElementType() == IJavaElement.TYPE
-				&& annotation.getName().equals(HttpMethod.class.getName())) {
+				&& annotation.getName().equals(HTTP_METHOD.qualifiedName)) {
 			return new JaxrsHttpMethod((IType) annotation.getJavaParent(), annotation, metamodel);
 		}
 		return null;
@@ -302,7 +302,7 @@ public class JaxrsElementFactory {
 	 */
 	public JaxrsJavaApplication createApplication(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
-		Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, ast, ApplicationPath.class);
+		Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, ast, APPLICATION_PATH.qualifiedName);
 		if (applicationPathAnnotation == null) {
 			return null;
 		}
@@ -322,7 +322,7 @@ public class JaxrsElementFactory {
 	public JaxrsJavaApplication createApplication(final Annotation annotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		if (annotation.getJavaParent() != null && annotation.getJavaParent().getElementType() == IJavaElement.TYPE
-				&& annotation.getName().equals(ApplicationPath.class.getName())) {
+				&& annotation.getName().equals(APPLICATION_PATH.qualifiedName)) {
 			return new JaxrsJavaApplication((IType) annotation.getJavaParent(), annotation, metamodel);
 		}
 		return null;
@@ -363,13 +363,13 @@ public class JaxrsElementFactory {
 
 	private JaxrsResourceField internalCreateField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel,
 			final JaxrsResource parentResource) throws JavaModelException {
-		final List<String> supportedFieldAnnotations = Arrays.asList(MatrixParam.class.getName(),
-				QueryParam.class.getName(), PathParam.class.getName(), CookieParam.class.getName(),
-				HeaderParam.class.getName(), DefaultValue.class.getName());
+		final List<String> supportedFieldAnnotations = Arrays.asList(MATRIX_PARAM.qualifiedName,
+				QUERY_PARAM.qualifiedName, PATH_PARAM.qualifiedName, COOKIE_PARAM.qualifiedName,
+				HEADER_PARAM.qualifiedName, DEFAULT_VALUE.qualifiedName);
 		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaField, ast,
 				supportedFieldAnnotations);
-		if ((annotations.size() == 1 && !annotations.containsKey(DefaultValue.class.getName()))
-				|| (annotations.size() == 2 && annotations.containsKey(DefaultValue.class.getName()))) {
+		if ((annotations.size() == 1 && !annotations.containsKey(DEFAULT_VALUE.qualifiedName))
+				|| (annotations.size() == 2 && annotations.containsKey(DEFAULT_VALUE.qualifiedName))) {
 			final JaxrsResourceField field = new JaxrsResourceField(javaField, new ArrayList<Annotation>(
 					annotations.values()), parentResource, metamodel);
 			return field;

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBuiltinHttpMethod.*;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -96,6 +96,28 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	private JaxrsMetamodel(final IJavaProject javaProject) throws CoreException {
 		this.javaProject = javaProject;
+		preloadHttpMethods();
+	}
+
+	/**
+	 * Preload the HttpMethods collection with 6 items from the specification:
+	 * <ul>
+	 * <li>@GET</li>
+	 * <li>@POST</li>
+	 * <li>@PUT</li>
+	 * <li>@DELETE</li>
+	 * <li>@OPTIONS</li>
+	 * <li>@HEAD</li>
+	 * </ul>
+	 */
+	private void preloadHttpMethods() {
+		httpMethods.addAll(Arrays.asList(GET, POST, PUT, DELETE, HEAD, OPTIONS));
+		elementsIndex.put(GET.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(GET)));
+		elementsIndex.put(POST.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(POST)));
+		elementsIndex.put(PUT.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(PUT)));
+		elementsIndex.put(DELETE.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(DELETE)));
+		elementsIndex.put(OPTIONS.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(OPTIONS)));
+		elementsIndex.put(HEAD.getFullyQualifiedName(), new HashSet<JaxrsBaseElement>(Arrays.asList(HEAD)));
 	}
 
 	/*
@@ -148,6 +170,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		case RESOURCE:
 			final JaxrsResource resource = (JaxrsResource) element;
 			this.resources.add(resource);
+			break;
+		case RESOURCE_FIELD:
+			break;
+		case RESOURCE_METHOD:
+			break;
+		default:
 			break;
 		}
 		indexElement(element);
@@ -324,13 +352,22 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public IJaxrsHttpMethod getHttpMethod(final String annotationName) throws CoreException {
 		IType annotationType = JdtUtils.resolveType(annotationName, javaProject, new NullProgressMonitor());
 		if (annotationType != null) {
-			final JaxrsBaseElement element = getElement(annotationType);
+			// look for custom HTTP Methods
+			JaxrsBaseElement element = getElement(annotationType);
 			if (element != null && element.getElementKind() == EnumElementKind.HTTP_METHOD) {
 				return (IJaxrsHttpMethod) element;
+			}
+			// if not found, look for built-in HTTP Methods
+			else if(element == null) {
+				element = getElement(annotationType.getFullyQualifiedName());
+				if (element != null && element.getElementKind() == EnumElementKind.HTTP_METHOD) {
+					return (IJaxrsHttpMethod) element;
+				}
 			}
 		}
 		return null;
 	}
+
 
 	/**
 	 * returns true if this metamodel already contains the given element.
@@ -346,8 +383,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (element == null) {
 			return null;
 		}
-		final String handleIdentifier = element.getHandleIdentifier();
-		final Set<JaxrsBaseElement> elements = elementsIndex.get(handleIdentifier);
+		return getElement(element.getHandleIdentifier());
+	}
+	
+	protected JaxrsBaseElement getElement(final String elementName) {
+		if (elementName == null) {
+			return null;
+		}
+		final Set<JaxrsBaseElement> elements = elementsIndex.get(elementName);
 		if (elements == null || elements.isEmpty()) {
 			return null;
 		}
@@ -444,7 +487,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public JaxrsHttpMethod getHttpMethod(Annotation httpMethodAnnotation) {
 		if (httpMethodAnnotation != null) {
 			for (IJaxrsHttpMethod httpMethod : httpMethods) {
-				final String handleIdentifier1 = httpMethod.getJavaElement().getFullyQualifiedName();
+				final String handleIdentifier1 = httpMethod.getFullyQualifiedName();
 				final String handleIdentifier2 = httpMethodAnnotation.getName();
 				if (handleIdentifier1.equals(handleIdentifier2)) {
 					return (JaxrsHttpMethod) httpMethod;

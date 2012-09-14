@@ -15,6 +15,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_FINE_GRAINED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,13 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.ws.rs.core.Application;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
@@ -103,18 +103,18 @@ public class ResourceChangedProcessor {
 		final JaxrsMetamodel metamodel = JaxrsMetamodel.create(JavaCore.create(project));
 		final JaxrsMetamodelDelta metamodelDelta = new JaxrsMetamodelDelta(metamodel, deltaKind);
 		try {
-			progressMonitor.beginTask("Processing Project '" + project.getName() + "'...", 1);
-			Logger.debug("Processing Project '" + project.getName() + "'...");
+			progressMonitor.beginTask("Processing project '" + project.getName() + "'...", 1);
+			Logger.debug("Processing project '" + project.getName() + "'...");
 			metamodelDelta.addAll(processEvent(new ResourceDelta(project, ADDED, 0), progressMonitor));
 			if(WtpUtils.hasWebDeploymentDescriptor(project)) {
 				processEvent(new ResourceDelta(WtpUtils.getWebDeploymentDescriptor(project), ADDED, 0), progressMonitor);
 			}
 			progressMonitor.worked(1);
 		} catch (CoreException e) {
-			Logger.error("Failed while processing Resource results", e);
+			Logger.error("Failed while processing resource results", e);
 		} finally {
 			progressMonitor.done();
-			Logger.debug("Done processing Resource results.");
+			Logger.debug("Done processing resource results.");
 
 		}
 
@@ -145,7 +145,6 @@ public class ResourceChangedProcessor {
 				elementChanges.addAll(processEvent(event, progressMonitor));
 				progressMonitor.worked(1);
 			}
-
 		} catch (CoreException e) {
 			Logger.error("Failed while processing Resource results", e);
 			elementChanges.clear();
@@ -168,7 +167,9 @@ public class ResourceChangedProcessor {
 		final IJavaElement scope = JavaCore.create(resource);
 		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(resource.getProject());
 		final int deltaKind = event.getDeltaKind();
-		if (scope != null) {
+		if (scope != null && 
+				// ignore changes on binary files (added/removed/changed jars to improve builder performances)
+				!(scope.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)scope).isArchive())) {
 			switch (deltaKind) {
 			case ADDED:
 			case CHANGED:
@@ -200,7 +201,7 @@ public class ResourceChangedProcessor {
 
 	private List<JaxrsElementDelta> processApplicationChangesOnWebxmlAdditionOrChange(IResource resource,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
-		final IType applicationType = JdtUtils.resolveType(Application.class.getName(), metamodel.getJavaProject(),
+		final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, metamodel.getJavaProject(),
 				progressMonitor);
 		// occurs when the project has the jax-rs nature (the builder is called), but no jaxrs library is in the classpath
 		if(applicationType == null) {

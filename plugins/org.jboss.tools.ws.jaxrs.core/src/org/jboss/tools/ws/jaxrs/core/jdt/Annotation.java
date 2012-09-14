@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,23 @@ public class Annotation {
 		this.javaAnnotation = annotation;
 		this.javaAnnotationName = name;
 		this.javaAnnotationElements = new HashMap<String, List<String>>(annotationElements);
+		this.region = region;
+	}
+
+	/**
+	 * Full constructor with a single unnamed 'value'
+	 * 
+	 * @param annotation
+	 * @param annotationName
+	 * @param annotationValue
+	 * @param sourceRange
+	 */
+	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue,
+			final TypedRegion sourceRange) {
+		this.javaAnnotation = annotation;
+		this.javaAnnotationName = annotationName;
+		this.javaAnnotationElements = new HashMap<String, List<String>>();
+		this.javaAnnotationElements.put("value", Arrays.asList(annotationValue));
 		this.region = region;
 	}
 

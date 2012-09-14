@@ -3,9 +3,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.utils;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION;
 import static org.junit.Assert.assertThat;
-
-import javax.ws.rs.core.Application;
 
 import org.eclipse.core.resources.IResource;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
@@ -38,7 +37,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_3-with-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 	}
@@ -48,7 +47,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_3-without-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -58,7 +57,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-with-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 	}
@@ -68,7 +67,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-without-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -78,7 +77,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-with-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 	}
@@ -88,7 +87,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-without-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -98,7 +97,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-with-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 
@@ -109,7 +108,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml", bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -119,7 +118,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, null, bundle);
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(project, Application.class.getName());
+		final String applicationPath = WtpUtils.getApplicationPath(project, APPLICATION.qualifiedName);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}

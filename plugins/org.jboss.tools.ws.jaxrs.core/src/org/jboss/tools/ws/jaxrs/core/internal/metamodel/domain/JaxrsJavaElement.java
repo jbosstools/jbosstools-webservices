@@ -22,6 +22,15 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,16 +38,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IMember;
@@ -160,27 +159,27 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	private int qualifyChange(final String annotationName, EnumKind previousKind) {
 		int flag = F_NONE;
 		final EnumKind currentKind = getKind();
-		if (annotationName.equals(Path.class.getName())) {
+		if (annotationName.equals(PATH.qualifiedName)) {
 			flag = F_PATH_VALUE;
-		} else if (annotationName.equals(ApplicationPath.class.getName())) {
+		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
 			flag = F_APPLICATION_PATH_VALUE;
-		} else if (annotationName.equals(HttpMethod.class.getName())) {
+		} else if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
 			flag = F_HTTP_METHOD_VALUE;
-		} else if (annotationName.equals(PathParam.class.getName())) {
+		} else if (annotationName.equals(PATH_PARAM.qualifiedName)) {
 			flag = F_PATH_PARAM_VALUE;
-		} else if (annotationName.equals(QueryParam.class.getName())) {
+		} else if (annotationName.equals(QUERY_PARAM.qualifiedName)) {
 			flag = F_QUERY_PARAM_VALUE;
-		} else if (annotationName.equals(MatrixParam.class.getName())) {
+		} else if (annotationName.equals(MATRIX_PARAM.qualifiedName)) {
 			flag = F_MATRIX_PARAM_VALUE;
-		} else if (annotationName.equals(DefaultValue.class.getName())) {
+		} else if (annotationName.equals(DEFAULT_VALUE.qualifiedName)) {
 			flag = F_DEFAULT_VALUE_VALUE;
-		} else if (annotationName.equals(Consumes.class.getName())) {
+		} else if (annotationName.equals(CONSUMES.qualifiedName)) {
 			flag = F_CONSUMED_MEDIATYPES_VALUE;
-		} else if (annotationName.equals(Produces.class.getName())) {
+		} else if (annotationName.equals(PRODUCES.qualifiedName)) {
 			flag = F_PRODUCED_MEDIATYPES_VALUE;
 		} else {
 			for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-				if (httpMethod.getJavaElement().getFullyQualifiedName().equals(annotationName)) {
+				if (httpMethod.getFullyQualifiedName().equals(annotationName)) {
 					flag = F_HTTP_METHOD_VALUE;
 					break;
 				}
@@ -207,25 +206,25 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 				final EnumKind previousKind = getKind();
 				final String annotationName = entry.getKey();
 				iterator.remove();
-				if (annotationName.equals(Path.class.getName())) {
+				if (annotationName.equals(PATH.qualifiedName)) {
 					flag = F_PATH_VALUE;
-				}else if (annotationName.equals(ApplicationPath.class.getName())) {
+				}else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
 					flag = F_APPLICATION_PATH_VALUE;
-				} else if (annotationName.equals(HttpMethod.class.getName())) {
+				} else if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
 					flag = F_HTTP_METHOD_VALUE;
-				} else if (annotationName.equals(PathParam.class.getName())) {
+				} else if (annotationName.equals(PATH_PARAM.qualifiedName)) {
 					flag = F_PATH_PARAM_VALUE;
-				} else if (annotationName.equals(QueryParam.class.getName())) {
+				} else if (annotationName.equals(QUERY_PARAM.qualifiedName)) {
 					flag = F_QUERY_PARAM_VALUE;
-				} else if (annotationName.equals(MatrixParam.class.getName())) {
+				} else if (annotationName.equals(MATRIX_PARAM.qualifiedName)) {
 					flag = F_MATRIX_PARAM_VALUE;
-				} else if (annotationName.equals(Consumes.class.getName())) {
+				} else if (annotationName.equals(CONSUMES.qualifiedName)) {
 					flag = F_CONSUMED_MEDIATYPES_VALUE;
-				} else if (annotationName.equals(Produces.class.getName())) {
+				} else if (annotationName.equals(PRODUCES.qualifiedName)) {
 					flag = F_PRODUCED_MEDIATYPES_VALUE;
 				} else {
 					for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-						if (httpMethod.getJavaElement().getFullyQualifiedName().equals(annotationName)) {
+						if (httpMethod.getFullyQualifiedName().equals(annotationName)) {
 							flag = F_HTTP_METHOD_VALUE;
 							break;
 						}

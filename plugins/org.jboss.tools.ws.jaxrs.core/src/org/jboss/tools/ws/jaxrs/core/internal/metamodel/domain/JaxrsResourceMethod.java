@@ -19,15 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.*;
+
+
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -243,8 +237,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	private List<ValidatorMessage> validateParamsWithContextAnnotation() throws JavaModelException {
 		final List<ValidatorMessage> messages = new ArrayList<ValidatorMessage>();
 		for (JavaMethodParameter parameter : this.javaMethodParameters) {
-			final Annotation annotation = parameter.getAnnotation(Context.class
-					.getName());
+			final Annotation annotation = parameter.getAnnotation(CONTEXT.qualifiedName);
 			final String typeName = parameter.getTypeName();
 			if (annotation != null && typeName != null
 					&& !CONTEXT_TYPE_NAMES.contains(typeName)) {
@@ -275,7 +268,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 			boolean matching = false;
 			for (JavaMethodParameter parameter : this.javaMethodParameters) {
 				final Annotation annotation = parameter
-						.getAnnotation(PathParam.class.getName());
+						.getAnnotation(PATH_PARAM.qualifiedName);
 				if (annotation != null && annotation.getValue("value") != null
 						&& annotation.getValue("value").equals(proposal)) {
 					matching = true;
@@ -306,7 +299,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 		final List<String> pathParamValueProposals = getPathParamValueProposals();
 		for (JavaMethodParameter parameter : this.javaMethodParameters) {
 			final Annotation annotation = parameter
-					.getAnnotation(PathParam.class.getName());
+					.getAnnotation(PATH_PARAM.qualifiedName);
 			if (annotation != null) {
 				final String value = annotation.getValue("value");
 				if(value != null) {
@@ -400,7 +393,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	}
 
 	public Annotation getPathAnnotation() {
-		return getAnnotation(Path.class.getName());
+		return getAnnotation(PATH.qualifiedName);
 	}
 
 	@Override
@@ -421,7 +414,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	public Annotation getHttpMethodAnnotation() {
 		for (IJaxrsHttpMethod httpMethod : getMetamodel().getAllHttpMethods()) {
 			final Annotation annotation = getAnnotation(httpMethod
-					.getJavaElement().getFullyQualifiedName());
+					.getFullyQualifiedName());
 			if (annotation != null) {
 				return annotation;
 			}
@@ -439,7 +432,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	}
 
 	public Annotation getConsumesAnnotation() {
-		return getAnnotation(Consumes.class.getName());
+		return getAnnotation(CONSUMES.qualifiedName);
 	}
 
 	@Override
@@ -452,7 +445,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	}
 
 	public Annotation getProducesAnnotation() {
-		return getAnnotation(Produces.class.getName());
+		return getAnnotation(PRODUCES.qualifiedName);
 	}
 
 	@Override

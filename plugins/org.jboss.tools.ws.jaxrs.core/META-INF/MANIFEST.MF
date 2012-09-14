@@ -26,13 +26,11 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.7.0";visibility:=reex
  org.eclipse.core.resources;bundle-version="3.5.1";visibility:=reexport,
  org.eclipse.jst.j2ee;bundle-version="1.1.301";visibility:=reexport,
  org.eclipse.emf.ecore;bundle-version="2.5.0";visibility:=reexport,
- org.eclipse.wst.common.frameworks.ui;bundle-version="1.1.301"
+ org.eclipse.wst.common.frameworks.ui;bundle-version="1.1.301",
+ org.eclipse.jface.text;bundle-version="3.7.1"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: javax.ws.rs,
- javax.ws.rs.core,
- javax.ws.rs.ext,
- org.jboss.tools.ws.jaxrs.core;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
+Export-Package: org.jboss.tools.ws.jaxrs.core;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
  org.jboss.tools.ws.jaxrs.core.configuration,
  org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
  org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
@@ -40,5 +38,4 @@ Export-Package: javax.ws.rs,
  org.jboss.tools.ws.jaxrs.core.jdt,
  org.jboss.tools.ws.jaxrs.core.metamodel,
  org.jboss.tools.ws.jaxrs.core.pubsub
-Bundle-ClassPath: .,
- lib/jaxrs-api.jar
+Bundle-ClassPath: .

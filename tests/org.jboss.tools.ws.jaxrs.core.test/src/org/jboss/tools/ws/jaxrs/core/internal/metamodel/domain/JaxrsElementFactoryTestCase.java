@@ -13,25 +13,24 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.GET;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
@@ -52,38 +51,25 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		metamodel = spy(JaxrsMetamodel.create(javaProject));
 	}
 
-	private IType getType(String typeName) throws CoreException {
-		return JdtUtils.resolveType(typeName, javaProject, progressMonitor);
-	}
-
-	private IMethod getMethod(IType parentType, String methodName) throws JavaModelException {
-		return WorkbenchUtils.getMethod(parentType, methodName);
-	}
-
-	private Annotation getAnnotation(final IMember member, final Class<?> annotationClass) throws JavaModelException {
-		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, progressMonitor), annotationClass);
-	}
-
 	@Test
 	public void shouldCreateRootResourceFromPathAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation annotation = getAnnotation(type, Path.class);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		final Annotation annotation = getAnnotation(type, PATH.qualifiedName);
 		// operation
 		final JaxrsJavaElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);
 		final IJaxrsResource resource = (IJaxrsResource) element;
-		// only @Path annotation is known by the metamodel, so pure resource
-		// methods with @GET, etc. are not created here.
-		assertThat(resource.getAllMethods().size(), equalTo(4));
+		// result contains a mix of resource methods and subresource methods since http methods are built-in the metamodel
+		assertThat(resource.getAllMethods().size(), equalTo(6));
 	}
 
 	@Test
 	public void shouldCreateRootResourceFromType() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		// operation
 		final JaxrsResource element = factory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
@@ -93,7 +79,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateSubesourceFromType() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
 		// operation
 		final JaxrsResource element = factory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
@@ -103,8 +89,8 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateHttpMethodFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		final Annotation annotation = getAnnotation(type, HttpMethod.class);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
+		final Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		// operation
 		final JaxrsJavaElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
@@ -117,7 +103,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotCreateElementFromOtherType() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.domain.Customer");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject);
 		// operation
 		final JaxrsResource resource = factory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
@@ -127,13 +113,13 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateMethodInRootResourceFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType httpType = getType(GET.class.getName());
-		final Annotation httpAnnotation = getAnnotation(httpType, HttpMethod.class);
+		final IType httpType = getType(GET.qualifiedName, javaProject);
+		final Annotation httpAnnotation = getAnnotation(httpType, HTTP_METHOD.qualifiedName);
 		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final IMethod method = getMethod(type, "getCustomerAsVCard");
-		final Annotation annotation = getAnnotation(method, Path.class);
+		final Annotation annotation = getAnnotation(method, PATH.qualifiedName);
 		// operation
 		JaxrsResourceMethod element = factory.createResourceMethod(annotation,
 				JdtUtils.parse(method, progressMonitor), metamodel);
@@ -145,13 +131,13 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateMethodInSubresourceFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType httpType = getType(GET.class.getName());
-		final Annotation httpAnnotation = getAnnotation(httpType, HttpMethod.class);
+		final IType httpType = getType(GET.qualifiedName, javaProject);
+		final Annotation httpAnnotation = getAnnotation(httpType, HTTP_METHOD.qualifiedName);
 		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
 		final IMethod method = getMethod(type, "getProduct");
-		final Annotation annotation = getAnnotation(method, Path.class);
+		final Annotation annotation = getAnnotation(method, PATH.qualifiedName);
 		// operation
 		JaxrsResourceMethod element = factory.createResourceMethod(annotation,
 				JdtUtils.parse(method, progressMonitor), metamodel);
@@ -163,14 +149,14 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateFieldFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType httpType = getType(GET.class.getName());
-		final Annotation httpAnnotation = getAnnotation(httpType, HttpMethod.class);
+		final IType httpType = getType(GET.qualifiedName, javaProject);
+		final Annotation httpAnnotation = getAnnotation(httpType, HTTP_METHOD.qualifiedName);
 		JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, httpAnnotation, metamodel);
 		metamodel.add(httpMethod);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
 		IField field = type.getField("foo");
 
-		final Annotation annotation = getAnnotation(field, QueryParam.class);
+		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		// operation
 		JaxrsResourceField element = factory.createField(annotation, JdtUtils.parse(field, progressMonitor), metamodel);
 		// verifications

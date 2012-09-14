@@ -18,16 +18,15 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.QueryParam;
 
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -259,13 +258,13 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		for (Iterator<JavaMethodParameter> paramIterator = resourceMethod.getJavaMethodParameters().iterator(); paramIterator
 				.hasNext();) {
 			JavaMethodParameter parameter = paramIterator.next();
-			if (parameter.getAnnotation(MatrixParam.class.getName()) != null) {
+			if (parameter.getAnnotation(MATRIX_PARAM.qualifiedName) != null) {
 				matrixParameters.add(parameter);
 			}
 		}
 		for (Iterator<JavaMethodParameter> iterator = matrixParameters.iterator(); iterator.hasNext();) {
 			JavaMethodParameter matrixParam = iterator.next();
-			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(MatrixParam.class.getName());
+			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(MATRIX_PARAM.qualifiedName);
 			if(matrixParamAnnotation.getValue("value") != null) {
 				uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue("value")).append("={")
 						.append(matrixParam.getTypeName()).append("}");
@@ -278,7 +277,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		for (Iterator<JavaMethodParameter> paramIterator = resourceMethod.getJavaMethodParameters().iterator(); paramIterator
 				.hasNext();) {
 			JavaMethodParameter parameter = paramIterator.next();
-			if (parameter.getAnnotation(QueryParam.class.getName()) != null) {
+			if (parameter.getAnnotation(QUERY_PARAM.qualifiedName) != null) {
 				queryParameters.add(parameter);
 			}
 		}
@@ -286,13 +285,13 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			uriPathTemplateBuilder.append('?');
 			for (Iterator<JavaMethodParameter> iterator = queryParameters.iterator(); iterator.hasNext();) {
 				JavaMethodParameter queryParam = iterator.next();
-				final Annotation queryParamAnnotation = queryParam.getAnnotation(QueryParam.class.getName());
+				final Annotation queryParamAnnotation = queryParam.getAnnotation(QUERY_PARAM.qualifiedName);
 				final String paramName = queryParamAnnotation.getValue("value");
 				if(paramName != null) {
 					final String paramType = queryParam.getTypeName();
 					uriPathTemplateBuilder.append(paramName).append("={");
 					uriPathTemplateBuilder.append(paramName).append(":").append(paramType);
-					final Annotation defaultValueAnnotation = queryParam.getAnnotation(DefaultValue.class.getName());
+					final Annotation defaultValueAnnotation = queryParam.getAnnotation(DEFAULT_VALUE.qualifiedName);
 					if (defaultValueAnnotation != null) {
 						uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
 					}
@@ -377,7 +376,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	@Override
 	public IJavaProject getJavaProject() {
-		return this.httpMethod.getJavaElement().getJavaProject();
+		return this.metamodel.getJavaProject();
 	}
 
 }

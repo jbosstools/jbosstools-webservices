@@ -11,13 +11,13 @@
 
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PROVIDER;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Path;
-import javax.ws.rs.ext.Provider;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -64,7 +64,7 @@ public final class JaxrsAnnotationsScanner {
 		IJavaSearchScope searchScope = null;
 		searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope }, IJavaSearchScope.SOURCES
 				| IJavaSearchScope.REFERENCED_PROJECTS);
-		return searchForAnnotatedTypes(ApplicationPath.class, searchScope, progressMonitor);
+		return searchForAnnotatedTypes(APPLICATION_PATH.qualifiedName, searchScope, progressMonitor);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public final class JaxrsAnnotationsScanner {
 			searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope }, IJavaSearchScope.SOURCES
 					| IJavaSearchScope.REFERENCED_PROJECTS);
 		}
-		return searchForAnnotatedTypes(Provider.class, searchScope, progressMonitor);
+		return searchForAnnotatedTypes(PROVIDER.qualifiedName, searchScope, progressMonitor);
 	}
 
 	/**
@@ -121,7 +121,7 @@ public final class JaxrsAnnotationsScanner {
 		// }
 		// look for type with @Path annotations, as looking for types with
 		// annotated resourceMethods may return incomplete results
-		return searchForAnnotatedTypes(Path.class, searchScope, progressMonitor);
+		return searchForAnnotatedTypes(PATH.qualifiedName, searchScope, progressMonitor);
 	}
 
 	/**
@@ -140,12 +140,12 @@ public final class JaxrsAnnotationsScanner {
 			throws CoreException {
 		IJavaSearchScope searchScope = null;
 		if (scope instanceof IJavaProject) {
-			IJavaProject javaProject = (IJavaProject) scope;
-			searchScope = SearchEngine.createJavaSearchScope(javaProject.getPackageFragmentRoots());
+			searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
+					IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
 		} else {
 			searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope });
 		}
-		return searchForAnnotatedTypes(HttpMethod.class, searchScope, progressMonitor);
+		return searchForAnnotatedTypes(HTTP_METHOD.qualifiedName, searchScope, progressMonitor);
 	}
 
 	/**
@@ -161,10 +161,10 @@ public final class JaxrsAnnotationsScanner {
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
-	private static List<IType> searchForAnnotatedTypes(final Class<?> annotation, final IJavaSearchScope searchScope,
+	private static List<IType> searchForAnnotatedTypes(final String annotationName, final IJavaSearchScope searchScope,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.TYPE, searchScope);
-		SearchPattern pattern = SearchPattern.createPattern(annotation.getName(), IJavaSearchConstants.ANNOTATION_TYPE,
+		SearchPattern pattern = SearchPattern.createPattern(annotationName, IJavaSearchConstants.ANNOTATION_TYPE,
 				IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE | IJavaSearchConstants.TYPE, SearchPattern.R_EXACT_MATCH
 						| SearchPattern.R_CASE_SENSITIVE);
 		// perform search, results are added/filtered by the custom
@@ -193,9 +193,9 @@ public final class JaxrsAnnotationsScanner {
 		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
 				IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
 		List<String> annotations = new ArrayList<String>(httpMethods.size() + 1);
-		annotations.add(Path.class.getName());
+		annotations.add(PATH.qualifiedName);
 		for (IJaxrsHttpMethod httpMethod : httpMethods) {
-			annotations.add(httpMethod.getJavaElement().getFullyQualifiedName());
+			annotations.add(httpMethod.getFullyQualifiedName());
 		}
 		return searchForAnnotatedMethods(annotations, searchScope, progressMonitor);
 	}

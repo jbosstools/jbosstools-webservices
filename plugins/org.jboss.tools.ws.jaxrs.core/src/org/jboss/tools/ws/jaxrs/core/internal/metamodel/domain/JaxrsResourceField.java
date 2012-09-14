@@ -10,13 +10,13 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.QUERY_PARAM;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 
 import org.eclipse.jdt.core.IField;
 import org.eclipse.wst.validation.ValidatorMessage;
@@ -44,19 +44,19 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	}
 
 	public Annotation getPathParamAnnotation() {
-		return getAnnotation(PathParam.class.getName());
+		return getAnnotation(PATH_PARAM.qualifiedName);
 	}
 
 	public Annotation getQueryParamAnnotation() {
-		return getAnnotation(QueryParam.class.getName());
+		return getAnnotation(QUERY_PARAM.qualifiedName);
 	}
 
 	public Annotation getMatrixParamAnnotation() {
-		return getAnnotation(MatrixParam.class.getName());
+		return getAnnotation(MATRIX_PARAM.qualifiedName);
 	}
 
 	public Annotation getDefaultValueAnnotation() {
-		return getAnnotation(DefaultValue.class.getName());
+		return getAnnotation(DEFAULT_VALUE.qualifiedName);
 	}
 
 	@Override

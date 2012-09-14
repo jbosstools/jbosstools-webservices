@@ -84,6 +84,7 @@ public class JaxrsMetamodelChangedProcessor {
 		return metamodelDelta;
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsEndpointDelta> processEvent(final JaxrsElementDelta event) throws CoreException {
 		final JaxrsBaseElement element = event.getElement();
 		final EnumElementKind elementKind = element.getElementKind();
@@ -160,6 +161,7 @@ public class JaxrsMetamodelChangedProcessor {
 		return changes;
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsEndpointDelta> processAddition(final JaxrsResourceMethod resourceMethod) throws CoreException {
 		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) resourceMethod.getMetamodel();
@@ -236,6 +238,7 @@ public class JaxrsMetamodelChangedProcessor {
 	}
 
 	// FIXME: support chain of subresource locators
+	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsEndpointDelta> processSubresourceLocatorAddition(final JaxrsResourceMethod subresourceLocator,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();

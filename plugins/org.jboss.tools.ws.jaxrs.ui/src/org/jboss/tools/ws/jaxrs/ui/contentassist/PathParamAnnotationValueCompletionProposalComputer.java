@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.PathParam;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsElements.PATH_PARAM;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -87,7 +87,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 					for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
 						for (Annotation annotation : methodParameter.getAnnotations()) {
 							final TypedRegion region = annotation.getRegion();
-							if (annotation.getName().equals(PathParam.class.getName()) && region != null
+							if (annotation.getName().equals(PATH_PARAM.qualifiedName) && region != null
 									&& context.getInvocationOffset() >= region.getOffset()
 									&& context.getInvocationOffset() < (region.getOffset() + region.getLength())) {
 								// completion proposal on @PathParam method
