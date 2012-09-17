@@ -21,7 +21,7 @@ import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerUtil;
 import org.eclipse.wst.server.core.model.ServerDelegate;
-import org.jboss.ide.eclipse.as.core.server.internal.JBossServer;
+import org.jboss.ide.eclipse.as.core.server.IDeployableServer;
 import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
 import org.jboss.ide.eclipse.as.test.ASTest;
 import org.jboss.ide.eclipse.as.test.util.ServerRuntimeUtils;
@@ -97,11 +97,11 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	
 	public IStatus publishWebProject(IProject project) throws CoreException {
 		IModule mod = ServerUtil.getModule(project);
-		JBossServer ds = (JBossServer)currentServer.loadAdapter(JBossServer.class, new NullProgressMonitor());
+		IDeployableServer ds = (IDeployableServer)currentServer.loadAdapter(IDeployableServer.class, new NullProgressMonitor());
 		IServerWorkingCopy copy = currentServer.createWorkingCopy();
 		copy.modifyModules(new IModule[]{mod}, new IModule[0], new NullProgressMonitor());
 		currentServer = copy.save(true, new NullProgressMonitor());
-		ds = (JBossServer)currentServer.loadAdapter(JBossServer.class, new NullProgressMonitor());
+		ds = (IDeployableServer)currentServer.loadAdapter(IDeployableServer.class, new NullProgressMonitor());
 		ds.setDeployLocationType("server");
 		IStatus status = ServerRuntimeUtils.publish(IServer.PUBLISH_INCREMENTAL,currentServer);
 		return status;
