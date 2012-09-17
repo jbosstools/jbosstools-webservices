@@ -35,7 +35,7 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 	}
 
 	private SectionDescription SECTION_ACTIVATORS = new SectionDescription(
-		JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_httpMethods,
+		JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_applications,
 		new String[][]{
 			{JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationNoOccurrenceFound_label},
 			{JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationTooManyOccurrencesFound_label}
