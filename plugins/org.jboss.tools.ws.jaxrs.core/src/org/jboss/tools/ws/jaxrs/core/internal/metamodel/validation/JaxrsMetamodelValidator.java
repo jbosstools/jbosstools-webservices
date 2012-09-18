@@ -87,10 +87,28 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 */
 	public IStatus validate(Set<IFile> changedFiles, IProject project, ContextValidationHelper validationHelper,
 			IProjectValidationContext context, ValidatorManager manager, IReporter reporter) throws ValidationException {
+		Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(), changedFiles.toString());
 		init(project, validationHelper, context, manager, reporter);
 		setAsYouTypeValidation(false);
-		for (IFile changedFile : changedFiles) {
-			validate(reporter, changedFile);
+		try {
+			if (!changedFiles.isEmpty()) {
+				for (IFile changedFile : changedFiles) {
+					try {
+						final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
+						validateJaxrsApplicationDeclarations(jaxrsMetamodel);
+						validate(reporter, changedFile, jaxrsMetamodel);
+					} catch (CoreException e) {
+						Logger.error("Failed to validate changed file " + changedFile.getName() + " in project "
+								+ changedFile.getProject(), e);
+					}
+				}
+			}	
+			// trigger a full validation instead
+			else {
+				validateAll(project, validationHelper, context, manager, reporter);
+			}
+		} finally {
+			Logger.debug("Validation done.");
 		}
 		return Status.OK_STATUS;
 	}
@@ -100,15 +118,13 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 * @param file
 	 * @throws CoreException
 	 */
-	private void validate(final IReporter reporter, final IFile file) {
+	private void validate(final IReporter reporter, final IFile file, final JaxrsMetamodel jaxrsMetamodel) {
 		if (reporter.isCancelled() || !file.isAccessible()) {
 			return;
 		}
 		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE,
 				new String[] { file.getProject().getName(), file.getName() });
 		try {
-			// clearMarkers((IFile) resource);
-			final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(file.getProject());
 			if (jaxrsMetamodel != null) {
 				List<JaxrsBaseElement> elements = jaxrsMetamodel.getElements(JdtUtils.getCompilationUnit(file));
 				for (JaxrsBaseElement element : elements) {
@@ -124,6 +140,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	public void validate(org.eclipse.wst.validation.internal.provisional.core.IValidator validatorManager,
 			IProject rootProject, Collection<IRegion> dirtyRegions, IValidationContext helper, IReporter reporter,
 			EditorValidationContext validationContext, IProjectValidationContext projectContext, IFile file) {
+		Logger.debug("*** Validating project {} after file {} changed... ***", file.getProject().getName(), file.getFullPath());
 		ContextValidationHelper validationHelper = new ContextValidationHelper();
 		validationHelper.setProject(rootProject);
 		validationHelper.setValidationContextManager(validationContext);
@@ -132,13 +149,24 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		this.document = validationContext.getDocument();
 		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE,
 				new String[] { file.getProject().getName(), file.getName() });
-		validate(reporter, file);
+		try {
+			final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(file.getProject());
+			validateJaxrsApplicationDeclarations(jaxrsMetamodel);
+			validate(reporter, file, jaxrsMetamodel);
+		} catch (CoreException e) {
+			Logger.error(
+					"Failed to validate changed file " + file.getName() + " in project "
+							+ file.getProject(), e);
+		} finally {
+			Logger.debug("Validation done.");
+		}
 	}
 
 	@Override
 	public IStatus validateAll(IProject project, ContextValidationHelper validationHelper,
 			IProjectValidationContext validationContext, ValidatorManager manager, IReporter reporter)
 			throws ValidationException {
+		Logger.debug("*** Validating all files in project {} ***", project.getName());
 		init(project, validationHelper, validationContext, manager, reporter);
 		setAsYouTypeValidation(false);
 		displaySubtask(JaxrsValidationMessages.VALIDATING_PROJECT, new String[] { project.getName() });
@@ -154,12 +182,17 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate project '", e);
+		} finally {
+			Logger.debug("Validation done.");
 		}
 
 		return Status.OK_STATUS;
 	}
 
 	private void validateJaxrsApplicationDeclarations(JaxrsMetamodel jaxrsMetamodel) throws CoreException {
+		if(jaxrsMetamodel == null) {
+			return;
+		}
 		MarkerUtils.clearMarkers(jaxrsMetamodel.getProject());
 		final List<IJaxrsApplication> allApplications = jaxrsMetamodel.getAllApplications();
 		if(allApplications.isEmpty()) {

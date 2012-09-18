@@ -20,12 +20,12 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
  */
 public class MarkerUtils {
 
-	public static void clearMarkers(IResource resource) throws CoreException {
+	public static void clearMarkers(final IResource resource) throws CoreException {
 		if (resource == null) {
 			return;
 		}
-		Logger.debug("Clearing JAXRS markers for resource " + resource.getName());
-		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, true, org.eclipse.core.resources.IResource.DEPTH_INFINITE);
+		Logger.debug("Clearing JAX-RS markers for resource " + resource.getName());
+		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
 	}
 
 }
