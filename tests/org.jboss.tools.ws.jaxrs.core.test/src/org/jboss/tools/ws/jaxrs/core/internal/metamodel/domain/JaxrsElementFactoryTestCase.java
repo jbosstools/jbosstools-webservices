@@ -16,15 +16,19 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -32,9 +36,13 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
+import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.junit.Before;
@@ -223,6 +231,87 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertNull(element);
 	}
-
 	
+	@Test
+	public void shouldCreateApplicationFromApplicationAnnotationAndApplicationSubclass() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		// operation
+		final JaxrsJavaElement<?> element = factory.createApplication(annotation,
+				JdtUtils.parse(type, progressMonitor), metamodel);
+		// verifications
+		assertNotNull(element);
+		final IJaxrsApplication application = (IJaxrsApplication) element;
+		// result contains a mix of resource methods and subresource methods since http methods are built-in the metamodel
+		assertThat(application.getApplicationPath(), equalTo("/app"));
+	}
+
+	@Test
+	public void shouldCreateApplicationFromApplicationSubclassOnly() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
+		// operation
+		final JaxrsJavaElement<?> element = factory.createApplication(type,
+				JdtUtils.parse(type, progressMonitor), metamodel);
+		// verifications
+		assertNotNull(element);
+		final IJaxrsApplication application = (IJaxrsApplication) element;
+		// result contains a mix of resource methods and subresource methods since http methods are built-in the metamodel
+		assertNull(application.getApplicationPath());
+	}
+	
+	@Test
+	public void shouldCreateApplicationFromApplicationAnnotationOnly() throws CoreException {
+		// pre-conditions
+		final IType initialType = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(initialType.getCompilationUnit(), "RestApplication extends Application", "RestApplication", false);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		final IType applicationType = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName, javaProject, progressMonitor);
+		assertFalse(JdtUtils.isTypeOrSuperType(applicationType, type));
+		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		// operation
+		final JaxrsJavaElement<?> element = factory.createApplication(annotation,
+				JdtUtils.parse(type, progressMonitor), metamodel);
+		// verifications
+		assertNotNull(element);
+		final IJaxrsApplication application = (IJaxrsApplication) element;
+		// result contains a mix of resource methods and subresource methods since http methods are built-in the metamodel
+		assertThat(application.getApplicationPath(), equalTo("/app"));
+	}
+	
+	@Test
+	public void shouldCreateApplicationFromApplicationSubclassInWebxml() throws CoreException {
+		// pre-conditions
+		final IType appType = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
+		IResource webxmlResource = webInfFolder.findMember("web.xml");
+		final JaxrsJavaApplication javaApplication = factory.createApplication(appType, JdtUtils.parse(appType, progressMonitor), metamodel);
+		metamodel.add(javaApplication);
+		// operation
+		final JaxrsWebxmlApplication webxmlApplication = factory.createApplication(
+				appType.getFullyQualifiedName(), "/foo", webxmlResource, metamodel);
+		// verifications
+		assertNotNull(webxmlApplication);
+		assertThat(webxmlApplication.getApplicationPath(), equalTo("/foo"));
+		assertThat(webxmlApplication.isOverride(), equalTo(true));
+		assertThat(webxmlApplication.getOverridenJaxrsJavaApplication(), equalTo(javaApplication));
+	}
+	
+	@Test
+	public void shouldCreateApplicationFromApplicationClassInWebxml() throws CoreException {
+		// pre-conditions
+		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
+		IResource webxmlResource = webInfFolder.findMember("web.xml");
+		// operation
+		final JaxrsWebxmlApplication webxmlApplication = factory.createApplication(
+				EnumJaxrsClassname.APPLICATION.qualifiedName, "/foo", webxmlResource, metamodel);
+		// verifications
+		assertNotNull(webxmlApplication);
+		assertThat(webxmlApplication.getApplicationPath(), equalTo("/foo"));
+		assertThat(webxmlApplication.isOverride(), equalTo(false));
+		assertThat(webxmlApplication.getOverridenJaxrsJavaApplication(), equalTo(null));
+	}
 }

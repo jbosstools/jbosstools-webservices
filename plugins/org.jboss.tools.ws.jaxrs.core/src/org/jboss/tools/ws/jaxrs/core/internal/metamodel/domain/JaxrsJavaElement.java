@@ -36,6 +36,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,21 +44,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.osgi.util.NLS;
-import org.eclipse.wst.validation.ValidatorMessage;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.ValidationMessages;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
@@ -89,7 +79,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	 *            the underlying java element
 	 */
 	public JaxrsJavaElement(final T element, final Annotation annotation, final JaxrsMetamodel metamodel) {
-		this(element, Arrays.asList(annotation), metamodel);
+		this(element, (annotation != null ? Arrays.asList(annotation) : new ArrayList<Annotation>()), metamodel);
 	}
 
 	/**
@@ -130,7 +120,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 
 	public int addOrUpdateAnnotation(final Annotation annotation) {
 		if (annotation == null) {
-			return 0;
+			return F_NONE;
 		}
 		boolean changed = false;
 		final EnumElementKind previousKind = getElementKind();
@@ -194,7 +184,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 			flag = F_PRODUCED_MEDIATYPES_VALUE;
 		} else {
 			for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-				if (httpMethod.getFullyQualifiedName().equals(annotationName)) {
+				if (httpMethod.getJavaClassName().equals(annotationName)) {
 					flag = F_HTTP_METHOD_VALUE;
 					break;
 				}
@@ -243,7 +233,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 					flag = F_RETENTION_VALUE;
 				} else {
 					for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-						if (httpMethod.getFullyQualifiedName().equals(annotationName)) {
+						if (httpMethod.getJavaClassName().equals(annotationName)) {
 							flag = F_HTTP_METHOD_VALUE;
 							break;
 						}

@@ -30,7 +30,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
- * Validates the given JAX-RS resource
+ * JAX-RS Resource Method validator.
  * 
  * @author Xavier Coulon
  * 
@@ -87,10 +87,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		}
 		if (counter > 1) {
 			final ISourceRange nameRange = resourceMethod.getJavaElement().getNameRange();
-			Logger.debug("Reporting problem of type {} on ResourceMethod {}.{}",
-					JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, resourceMethod
-							.getParentResource().getName(), resourceMethod.getName());
-			getMarkerManager().addProblem(JaxrsValidationMessages.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER,
+			addProblem(JaxrsValidationMessages.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER,
 					JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, new String[0],
 					nameRange.getLength(), nameRange.getOffset(), resourceMethod.getResource());
 			resourceMethod.hasErrors(true);
@@ -111,10 +108,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			final Annotation contextAnnotation = parameter.getAnnotation(CONTEXT.qualifiedName);
 			final String typeName = parameter.getTypeName();
 			if (contextAnnotation != null && typeName != null && !CONTEXT_TYPE_NAMES.contains(typeName)) {
-				Logger.debug("Reporting problem of type {} on ResourceMethod {}.{}",
-						JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION, resourceMethod.getParentResource()
-								.getName(), resourceMethod.getName());
-				getMarkerManager().addProblem(JaxrsValidationMessages.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
+				addProblem(JaxrsValidationMessages.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
 						JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
 						new String[] { CONTEXT_TYPE_NAMES.toString() }, contextAnnotation.getSourceRange().getLength(),
 						contextAnnotation.getSourceRange().getOffset(), resourceMethod.getResource());
@@ -144,11 +138,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		final ISourceRange nameRange = resourceMethod.getJavaElement().getNameRange();
 		for (String pathTemplateParameter : pathParamValueProposals) {
 			if (!pathParamValues.contains(pathTemplateParameter)) {
-				Logger.debug("Reporting problem of type {} on ResourceMethod {}.{}",
-						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER, resourceMethod
-								.getParentResource().getName(), resourceMethod.getName());
-				getMarkerManager().addProblem(
-						JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
+				addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
 						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
 						new String[] { pathTemplateParameter }, nameRange.getLength(), nameRange.getOffset(),
 						resourceMethod.getResource());
@@ -174,22 +164,14 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 				if (pathParamValue != null) {
 					if (!pattern.matcher(pathParamValue).matches()) {
 						final ISourceRange sourceRange = annotation.getSourceRange();
-						Logger.debug("Reporting problem of type {} on ResourceMethod {}.{}",
-								JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE, resourceMethod
-										.getParentResource().getName(), resourceMethod.getName());
-						getMarkerManager().addProblem(
-								JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
+						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								new String[] { pathParamValue }, sourceRange.getLength(), sourceRange.getOffset(),
 								resourceMethod.getResource());
 						resourceMethod.hasErrors(true);
 					} else if (!pathParamValueProposals.contains(pathParamValue)) {
 						final ISourceRange sourceRange = annotation.getSourceRange();
-						Logger.debug("Reporting problem of type {} on ResourceMethod {}.{}",
-								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, resourceMethod
-										.getParentResource().getName(), resourceMethod.getName());
-						getMarkerManager().addProblem(
-								JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
+						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								new String[] { pathParamValue }, sourceRange.getLength(), sourceRange.getOffset(),
 								resourceMethod.getResource());
@@ -199,17 +181,15 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			}
 		}
 	}
-	
+
 	private void validatePublicModifierOnJavaMethod(final JaxrsResourceMethod resourceMethod) throws JavaModelException {
 		final IMethod javaMethod = resourceMethod.getJavaElement();
-		if(javaMethod != null && !Flags.isPublic(javaMethod.getFlags())) {
+		if (javaMethod != null && !Flags.isPublic(javaMethod.getFlags())) {
 			final ISourceRange nameRange = javaMethod.getNameRange();
-			getMarkerManager().addProblem(
-					JaxrsValidationMessages.RESOURCE_METHOD_NO_PUBLIC_MODIFIER,
-					JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER,
-					new String[0], nameRange.getLength(), nameRange.getOffset(),
-					resourceMethod.getResource());
+			addProblem(JaxrsValidationMessages.RESOURCE_METHOD_NO_PUBLIC_MODIFIER,
+					JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, new String[0], nameRange.getLength(),
+					nameRange.getOffset(), resourceMethod.getResource());
 		}
 	}
-	
+
 }

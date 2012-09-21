@@ -15,7 +15,7 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 
-public interface IJaxrsMetamodel {
+public interface IJaxrsMetamodel extends IJaxrsElement {
 
 	public abstract List<IJaxrsEndpoint> getAllEndpoints();
 

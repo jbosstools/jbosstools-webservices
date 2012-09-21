@@ -21,7 +21,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedL
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedProcessorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactoryTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodelTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidatorTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsApplicationValidatorTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtilsTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepositoryTestCase;
@@ -38,7 +38,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		JavaElementDeltaFilterTestCase.class, JavaElementChangedProcessorTestCase.class,
 		JaxrsMetamodelChangedProcessorTestCase.class, JaxrsMetamodelTestCase.class,
 		JaxrsElementFactoryTestCase.class, JaxrsMetamodelBuilderTestCase.class, CollectionUtilsTestCase.class,
-		PubSubServiceTestCase.class, JaxrsMetamodelValidatorTestCase.class,
+		PubSubServiceTestCase.class, JaxrsApplicationValidatorTestCase.class,
 		ResourceChangedProcessorTestCase.class, ResourceChangedListenerTestCase.class,
 		JaxrsAnnotationScannerTestCase.class, WtpUtilsTestCase.class})
 public class AllTests {

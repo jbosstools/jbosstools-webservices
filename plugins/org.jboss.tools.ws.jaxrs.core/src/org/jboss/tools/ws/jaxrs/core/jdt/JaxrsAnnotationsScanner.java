@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
@@ -25,6 +26,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -44,9 +46,8 @@ public final class JaxrsAnnotationsScanner {
 
 	/**
 	 * Returns all JAX-RS Applications in the given scope (ex : javaProject), ie, types annotated with
-	 * <code>javax.ws.rs.ApplicationPath</code> annotation. Those types should be subtypes of
-	 * {@link javax.ws.rs.Application}, but this will be verified at validation time, eventually reporting the
-	 * missing/wrong super type (hierarchy).
+	 * <code>javax.ws.rs.ApplicationPath</code> annotation and subtypes of
+	 * {@link javax.ws.rs.Application} (even if type hirarchy or annotation is missing).
 	 * 
 	 * 
 	 * @param scope
@@ -61,10 +62,24 @@ public final class JaxrsAnnotationsScanner {
 	 */
 	public static List<IType> findApplicationTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
+		//FIXME: need correct usage of progressmonitor/subprogress monitor
+		
+		// first, search for type annotated with <code>javax.ws.rs.ApplicationPath</code>
 		IJavaSearchScope searchScope = null;
 		searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope }, IJavaSearchScope.SOURCES
 				| IJavaSearchScope.REFERENCED_PROJECTS);
-		return searchForAnnotatedTypes(APPLICATION_PATH.qualifiedName, searchScope, progressMonitor);
+		
+		final List<IType> applicationTypes = searchForAnnotatedTypes(APPLICATION_PATH.qualifiedName, searchScope, progressMonitor);
+		// the search result also includes all subtypes of javax.ws.rs.core.Application (while avoiding duplicate results)
+		final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, scope.getJavaProject(), progressMonitor);
+		final ITypeHierarchy applicationTypeHierarchy = JdtUtils.resolveTypeHierarchy(applicationType, scope, false, progressMonitor);
+		final IType[] allSubtypes = applicationTypeHierarchy.getAllSubtypes(applicationType);
+		for(IType subtype : allSubtypes) {
+			if(subtype.getJavaProject().equals(scope.getJavaProject()) && !applicationTypes.contains(subtype)) {
+				applicationTypes.add(subtype);
+			}
+		}
+		return applicationTypes;
 	}
 
 	/**
@@ -195,7 +210,7 @@ public final class JaxrsAnnotationsScanner {
 		List<String> annotations = new ArrayList<String>(httpMethods.size() + 1);
 		annotations.add(PATH.qualifiedName);
 		for (IJaxrsHttpMethod httpMethod : httpMethods) {
-			annotations.add(httpMethod.getFullyQualifiedName());
+			annotations.add(httpMethod.getJavaClassName());
 		}
 		return searchForAnnotatedMethods(annotations, searchScope, progressMonitor);
 	}

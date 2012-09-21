@@ -18,18 +18,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 
 public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
-
-	private final JaxrsBaseElement element;
-
-	private final int deltaKind;
-
-	private final int flags;
 
 	/** No change. */
 	public static final int F_NONE = 0;
@@ -43,35 +37,45 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
 	public static final int F_APPLICATION_PATH_VALUE = 0x8;
 
-	public static final int F_HTTP_METHOD_VALUE = 0x10;
+	public static final int F_APPLICATION_PATH_VALUE_ORVERRIDE = 0x10;
 
-	public static final int F_PATH_PARAM_VALUE = 0x20;
+	public static final int F_APPLICATION_HIERARCHY = 0x20;
 
-	public static final int F_QUERY_PARAM_VALUE = 0x40;
+	public static final int F_HTTP_METHOD_VALUE = 0x40;
 
-	public static final int F_MATRIX_PARAM_VALUE = 0x80;
+	public static final int F_PATH_PARAM_VALUE = 0x80;
 
-	public static final int F_DEFAULT_VALUE_VALUE = 0x100;
+	public static final int F_QUERY_PARAM_VALUE = 0x100;
 
-	public static final int F_CONSUMED_MEDIATYPES_VALUE = 0x200;
+	public static final int F_MATRIX_PARAM_VALUE = 0x200;
 
-	public static final int F_PRODUCED_MEDIATYPES_VALUE = 0x400;
+	public static final int F_DEFAULT_VALUE_VALUE = 0x400;
 
-	public static final int F_METHOD_PARAMETERS = 0x800;
+	public static final int F_CONSUMED_MEDIATYPES_VALUE = 0x800;
 
-	public static final int F_METHOD_RETURN_TYPE = 0x1000;
+	public static final int F_PRODUCED_MEDIATYPES_VALUE = 0x1000;
 
-	public static final int F_TARGET_VALUE = 0x2000;
+	public static final int F_METHOD_PARAMETERS = 0x2000;
+
+	public static final int F_METHOD_RETURN_TYPE = 0x4000;
+
+	public static final int F_TARGET_VALUE = 0x8000;
 	
-	public static final int F_RETENTION_VALUE = 0x4000;
+	public static final int F_RETENTION_VALUE = 0x10000;
 
+	private final IJaxrsElement element;
+	
+	private final int deltaKind;
+	
+	private final int flags;
+	
 	/**
 	 * Full constructor.
 	 * 
 	 * @param element
 	 * @param deltaKind
 	 */
-	public JaxrsElementDelta(JaxrsBaseElement element, int deltaKind) {
+	public JaxrsElementDelta(IJaxrsElement element, int deltaKind) {
 		this(element, deltaKind, 0);
 	}
 
@@ -82,7 +86,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	 * @param deltaKind
 	 * @param flags
 	 */
-	public JaxrsElementDelta(JaxrsBaseElement element, int deltaKind, int flags) {
+	public JaxrsElementDelta(IJaxrsElement element, int deltaKind, int flags) {
 		this.element = element;
 		this.deltaKind = deltaKind;
 		this.flags = flags;
@@ -92,7 +96,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	}
 
 	/** @return the element */
-	public JaxrsBaseElement getElement() {
+	public IJaxrsElement getElement() {
 		return element;
 	}
 

@@ -1,12 +1,25 @@
 package org.jboss.tools.ws.jaxrs.core.internal.utils;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.eclipse.core.resources.IFile;
@@ -15,6 +28,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jst.j2ee.web.componentcore.util.WebArtifactEdit;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -22,6 +37,7 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class WtpUtils {
 
@@ -56,14 +72,12 @@ public class WtpUtils {
 	 * @return the applicationPath or null if it is not configured.
 	 * @throws CoreException
 	 */
-	public static String getApplicationPath(IProject project, String applicationTypeName) throws CoreException {
-		IFolder webInfFolder = getWebInfFolder(project);
-		if (webInfFolder == null) {
+	public static String getApplicationPath(IResource webxmlResource, String applicationTypeName) throws CoreException {
+		if(webxmlResource == null) {
 			return null;
 		}
-		IResource webxmlResource = webInfFolder.findMember("web.xml");
-		if (webxmlResource == null || !webxmlResource.exists()) {
-			Logger.debug("No deployment descriptor found in project '{}'", project.getName());
+		if (!webxmlResource.exists()) {
+			Logger.debug("No deployment descriptor '{}' does not exists", webxmlResource.getLocation());
 			return null;
 		}
 		if (!webxmlResource.isSynchronized(IResource.DEPTH_INFINITE)) {
@@ -71,43 +85,11 @@ public class WtpUtils {
 			webxmlResource.refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
 		}
 
-		/*
-		 * WebArtifactEdit webArtifactEdit = WebArtifactEdit.getWebArtifactEditForRead(project); // if
-		 * (!webArtifactEdit.isValid()) { return null; } WebPackageImpl.eINSTANCE.getWebApp(); IModelProvider provider =
-		 * ModelProviderManager.getModelProvider(project); Object mObj = provider.getModelObject(); if (mObj instanceof
-		 * org.eclipse.jst.j2ee.webapplication.WebApp) { org.eclipse.jst.j2ee.webapplication.WebApp webApp =
-		 * (org.eclipse.jst.j2ee.webapplication.WebApp) mObj; } else if (mObj instanceof
-		 * org.eclipse.jst.javaee.web.WebApp) { org.eclipse.jst.javaee.web.WebApp webApp =
-		 * (org.eclipse.jst.javaee.web.WebApp) mObj; }
-		 */
-		// final List<Servlet> servlets = webApp.getServlets();
-		/*
-		 * webArtifactEdit.getDeploymentDescriptorRoot().eResource().unload();
-		 * webArtifactEdit.getDeploymentDescriptorRoot(); WebApp webApp = webArtifactEdit.getWebApp();
-		 * @SuppressWarnings("unchecked") EList<ServletMapping> servletMappings = webApp.getServletMappings(); for
-		 * (ServletMapping servletMapping : servletMappings) { if (servletMapping.getName().equals(applicationTypeName))
-		 * { return servletMapping.getUrlPattern(); } }
-		 */
-		// using a good old xpath expression to scan the file.
-
 		try {
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			dbf.setNamespaceAware(false); // never forget this!
-			dbf.setValidating(false);
-			dbf.setFeature("http://xml.org/sax/features/namespaces", false);
-			dbf.setFeature("http://xml.org/sax/features/validation", false);
-			dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-			dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-			DocumentBuilder builder = dbf.newDocumentBuilder();
-			final FileInputStream fileInputStream = new FileInputStream(webxmlResource.getLocation().toFile());
-			InputSource inputSource = new InputSource(fileInputStream);
-			Document doc = builder.parse(inputSource);
-			XPath xpath = XPathFactory.newInstance().newXPath();
-			String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName + "\"]/url-pattern/text()";
-			XPathExpression expr = xpath.compile(expression);
-			Node urlPattern = (Node) expr.evaluate(doc, XPathConstants.NODE);
+			final String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName + "\"]/url-pattern/text()";
+			final Node urlPattern = evaluateXPathExpression(webxmlResource, expression);
 			if (urlPattern != null) {
-				Logger.debug("Found matching url-pattern: {}", urlPattern);
+				Logger.debug("Found matching url-pattern: {} for class {}", urlPattern.getTextContent(), applicationTypeName);
 				return urlPattern.getTextContent();
 			}
 		} catch (Exception e) {
@@ -115,11 +97,140 @@ public class WtpUtils {
 					+ "' to find <servlet-mapping> elements", e);
 		}
 
-		Logger.debug("No servlet mapping found for {} in {}", applicationTypeName,
+		Logger.debug("No servlet mapping found for class '{}' in file '{}'", applicationTypeName,
 				webxmlResource.getProjectRelativePath());
 		return null;
 	}
 
+	/**
+	 * Attempts to find the <strong>node range</strong> for the applicationPath configured in the application's web deployment description. The
+	 * applicationPath is expected to be configured as below: <code>
+	 * 	<servlet-mapping>
+	 * 		<servlet-name>com.acme.MyApplication</servlet-name>
+	 * 		<url-pattern>/hello/*</url-pattern>
+	 * 	</servlet-mapping>
+	 * </code> where
+	 * <code>com.acme.MyApplication</code> is a subtype of <code>javax.ws.rs.Application</code> and is the given
+	 * 'applicationType' parameter of this method. If the webapp does not provide its own subtype of
+	 * <code>javax.ws.rs.Application</code>, then the applicationType parameter can be
+	 * <code>javax.ws.rs.Application</code> itself.
+	 * 
+	 * @param javaProject
+	 *            the current java project
+	 * @param applicationTypeName
+	 *            the name of the type/subtype to match in the servlet-mapping
+	 * @return the source range or null if it is not configured.
+	 * @throws CoreException
+	 */
+	public static ISourceRange getApplicationPathLocation(final IResource webxmlResource, final String applicationTypeName) throws CoreException {
+		if(webxmlResource == null) {
+			return null;
+		}
+		if (!webxmlResource.exists()) {
+			Logger.debug("No deployment descriptor '{}' does not exists", webxmlResource.getLocation());
+			return null;
+		}
+		try {
+			final String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName + "\"]";
+			final Node servletMappingNode = evaluateXPathExpression(webxmlResource, expression); 
+			if (servletMappingNode != null) {
+				StringWriter writer = new StringWriter();
+				Transformer transformer = TransformerFactory.newInstance().newTransformer();
+				transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+				transformer.transform(new DOMSource(servletMappingNode), new StreamResult(writer));
+				String servletMappingXml = writer.toString();
+				Logger.debug("Found matching servlet-mapping: {}", servletMappingXml);
+				final InputStream contents = ((IFile)webxmlResource).getContents();
+				int offset = findLocation(contents, servletMappingXml);
+				if(offset != -1) {
+					int length = servletMappingXml.length();
+					return new SourceRange(offset-length+1, length);
+				}
+				return new SourceRange(0, 0);
+			}
+		} catch (Exception e) {
+			Logger.error("Unable to parse file '" + webxmlResource.getProjectRelativePath().toOSString()
+					+ "' to find <servlet-mapping> elements", e);
+		}
+
+		Logger.debug("No servlet mapping found for class '{}' in file '{}'", applicationTypeName,
+				webxmlResource.getProjectRelativePath());
+		return null;
+	}
+	
+	/**
+	 * Return the searchString location in the input source
+	 * @param reader
+	 * @param searchString
+	 * @return the matching location or -1 if not found
+	 * @throws IOException
+	 */
+	private static int findLocation(InputStream stream, String searchString) throws IOException {
+	    char[] buffer = new char[1024];
+	    int location = -1;
+	    int numCharsRead;
+	    int count = 0;
+	    Reader reader = null;
+		try {
+			reader = new InputStreamReader(stream);
+			// reading the stream
+			while ((numCharsRead = reader.read(buffer)) > 0) {
+				// reading the buffer
+				for (int c = 0; c < numCharsRead; c++) {
+					location++;
+					// character matching -> keep counting
+					if (buffer[c] == searchString.charAt(count)) {
+						count++;
+					}
+					// character mismatch -> reset counter
+					else {
+						count = 0;
+					}
+					// whole match -> \o/
+					if (count == searchString.length()) {
+						return location;
+					}
+				}
+			}
+			return -1;
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
+		}
+	}
+
+
+	/**
+	 * @param webxmlResource
+	 * @param applicationTypeName
+	 * @return
+	 * @throws ParserConfigurationException
+	 * @throws FileNotFoundException
+	 * @throws SAXException
+	 * @throws IOException
+	 * @throws XPathExpressionException
+	 */
+	private static Node evaluateXPathExpression(final IResource webxmlResource, final String expression)
+			throws ParserConfigurationException, FileNotFoundException, SAXException, IOException,
+			XPathExpressionException {
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		dbf.setNamespaceAware(false); // never forget this!
+		dbf.setValidating(false);
+		dbf.setFeature("http://xml.org/sax/features/namespaces", false);
+		dbf.setFeature("http://xml.org/sax/features/validation", false);
+		dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+		dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		DocumentBuilder builder = dbf.newDocumentBuilder();
+		final FileInputStream fileInputStream = new FileInputStream(webxmlResource.getLocation().toFile());
+		InputSource inputSource = new InputSource(fileInputStream);
+		Document doc = builder.parse(inputSource);
+		XPath xpath = XPathFactory.newInstance().newXPath();
+		XPathExpression expr = xpath.compile(expression);
+		Node servletMapping = (Node) expr.evaluate(doc, XPathConstants.NODE);
+		return servletMapping;
+	}
+	
 	/**
 	 * Indicates if the given resource is the web deployment descriptor (or not).
 	 * 

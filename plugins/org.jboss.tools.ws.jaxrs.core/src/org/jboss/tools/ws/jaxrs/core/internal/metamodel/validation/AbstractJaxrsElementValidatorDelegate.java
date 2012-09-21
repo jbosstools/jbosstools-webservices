@@ -10,15 +10,19 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.common.validation.TempMarkerManager;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
+ * Abstract validator delegate with bits of generics for better readability in subclasses
+ * 
  * @author Xavier Coulon
  *
  */
-public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseElement> {
+public abstract class AbstractJaxrsElementValidatorDelegate<T extends Object> {
 	
 	private final T element;
 	
@@ -35,11 +39,27 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 		return element;
 	}
 
-	/**
-	 * @return the validator
-	 */
-	public TempMarkerManager getMarkerManager() {
+	TempMarkerManager getMarkerManager() {
 		return markerManager;
+	}
+
+
+	public IMarker addProblem(String message, String preferenceKey, String[] messageArguments, int length, int offset, IResource target) {
+		Logger.debug("Reporting problem '{}' on resource '{}'", message, target.getFullPath().toString());
+		return markerManager.addProblem(message, preferenceKey, messageArguments, length, offset, target);
+	}
+
+	public IMarker addProblem(String message, String preferenceKey, String[] messageArguments, int length, int offset, IResource target, int quickFixId) {
+		Logger.debug("Reporting problem '{}' on resource '{}'", message, target.getFullPath().toString());
+		return markerManager.addProblem(message, preferenceKey, messageArguments, length, offset, target, quickFixId);
+	}
+	
+	public static void deleteJaxrsMarkers(final IResource resource) throws CoreException {
+		if (resource == null) {
+			return;
+		}
+		Logger.debug("Clearing JAX-RS markers for resource " + resource.getName());
+		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
 	}
 
 }

@@ -11,11 +11,13 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -34,16 +36,23 @@ import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.SimpleValidatingProjectTree;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
+/**
+ * JAX-RS Metamodel Validator. Relies on delegates to validate each category of element.
+ * 
+ * @author Xavier Coulon
+ * 
+ */
 @SuppressWarnings("restriction")
 public class JaxrsMetamodelValidator extends TempMarkerManager implements IValidator, IAsYouTypeValidator {
 
@@ -87,26 +96,24 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 */
 	public IStatus validate(Set<IFile> changedFiles, IProject project, ContextValidationHelper validationHelper,
 			IProjectValidationContext context, ValidatorManager manager, IReporter reporter) throws ValidationException {
-		Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(), changedFiles.toString());
+		Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
+				changedFiles.toString());
 		init(project, validationHelper, context, manager, reporter);
 		setAsYouTypeValidation(false);
 		try {
 			if (!changedFiles.isEmpty()) {
-				for (IFile changedFile : changedFiles) {
-					try {
-						final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
-						validateJaxrsApplicationDeclarations(jaxrsMetamodel);
-						validate(reporter, changedFile, jaxrsMetamodel);
-					} catch (CoreException e) {
-						Logger.error("Failed to validate changed file " + changedFile.getName() + " in project "
-								+ changedFile.getProject(), e);
-					}
+				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
+				final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, (IResource[]) changedFiles.toArray());
+				for (IResource changedResource : allResources) {
+					validate(reporter, changedResource, jaxrsMetamodel);
 				}
-			}	
+			}
 			// trigger a full validation instead
 			else {
 				validateAll(project, validationHelper, context, manager, reporter);
 			}
+		} catch (CoreException e) {
+			Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);
 		} finally {
 			Logger.debug("Validation done.");
 		}
@@ -114,22 +121,43 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	}
 
 	/**
+	 * @param jaxrsMetamodel
+	 * @param objects
+	 * @return
+	 */
+	private Set<IResource> completeValidationSet(JaxrsMetamodel jaxrsMetamodel, final IResource... changedResources) {
+		final Set<IResource> resources = new HashSet<IResource>();
+		for(IResource changedResource : changedResources) {
+			resources.add(changedResource);
+			if(jaxrsMetamodel.getApplication(changedResource) != null) {
+				Logger.debug("Adding all applications and project in the set of files to validate...");
+				for(IJaxrsApplication application : jaxrsMetamodel.getAllApplications()) {
+					resources.add(application.getResource());
+				}
+				resources.add(jaxrsMetamodel.getProject());
+			}
+		}
+		return resources;
+	}
+
+	/**
 	 * @param reporter
-	 * @param file
+	 * @param changedResource
 	 * @throws CoreException
 	 */
-	private void validate(final IReporter reporter, final IFile file, final JaxrsMetamodel jaxrsMetamodel) {
-		if (reporter.isCancelled() || !file.isAccessible()) {
+	private void validate(final IReporter reporter, final IResource changedResource, final JaxrsMetamodel jaxrsMetamodel) {
+		if (reporter.isCancelled() || !changedResource.isAccessible()) {
 			return;
 		}
 		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE,
-				new String[] { file.getProject().getName(), file.getName() });
+				new String[] { changedResource.getProject().getName(), changedResource.getName() });
 		try {
 			if (jaxrsMetamodel != null) {
-				List<JaxrsBaseElement> elements = jaxrsMetamodel.getElements(JdtUtils.getCompilationUnit(file));
-				for (JaxrsBaseElement element : elements) {
+				List<IJaxrsElement> elements = jaxrsMetamodel.getElements(changedResource);
+				for (IJaxrsElement element : elements) {
 					validate(element);
 				}
+				
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate the resource change", e);
@@ -139,8 +167,9 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	@Override
 	public void validate(org.eclipse.wst.validation.internal.provisional.core.IValidator validatorManager,
 			IProject rootProject, Collection<IRegion> dirtyRegions, IValidationContext helper, IReporter reporter,
-			EditorValidationContext validationContext, IProjectValidationContext projectContext, IFile file) {
-		Logger.debug("*** Validating project {} after file {} changed... ***", file.getProject().getName(), file.getFullPath());
+			EditorValidationContext validationContext, IProjectValidationContext projectContext, IFile changedFile) {
+		Logger.debug("*** Validating project {} after file {} changed... ***", changedFile.getProject().getName(),
+				changedFile.getFullPath());
 		ContextValidationHelper validationHelper = new ContextValidationHelper();
 		validationHelper.setProject(rootProject);
 		validationHelper.setValidationContextManager(validationContext);
@@ -148,15 +177,15 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		setAsYouTypeValidation(false);
 		this.document = validationContext.getDocument();
 		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE,
-				new String[] { file.getProject().getName(), file.getName() });
+				new String[] { changedFile.getProject().getName(), changedFile.getName() });
 		try {
-			final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(file.getProject());
-			validateJaxrsApplicationDeclarations(jaxrsMetamodel);
-			validate(reporter, file, jaxrsMetamodel);
+			final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
+			final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, changedFile);
+			for (IResource changedResource : allResources) {
+				validate(reporter, changedResource, jaxrsMetamodel);
+			}
 		} catch (CoreException e) {
-			Logger.error(
-					"Failed to validate changed file " + file.getName() + " in project "
-							+ file.getProject(), e);
+			Logger.error("Failed to validate changed file " + changedFile.getName() + " in project " + changedFile.getProject(), e);
 		} finally {
 			Logger.debug("Validation done.");
 		}
@@ -172,13 +201,11 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		displaySubtask(JaxrsValidationMessages.VALIDATING_PROJECT, new String[] { project.getName() });
 		try {
 			final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
-			// validate that the number of jax-rs applications (java or web.xml) is 1.
-			validateJaxrsApplicationDeclarations(jaxrsMetamodel);
-			// validate all other elements
 			if (jaxrsMetamodel != null) {
-				for (JaxrsBaseElement element : jaxrsMetamodel.getAllElements()) {
+				for (IJaxrsElement element : jaxrsMetamodel.getAllElements()) {
 					validate(element);
 				}
+				validate(jaxrsMetamodel);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate project '", e);
@@ -189,24 +216,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		return Status.OK_STATUS;
 	}
 
-	private void validateJaxrsApplicationDeclarations(JaxrsMetamodel jaxrsMetamodel) throws CoreException {
-		if(jaxrsMetamodel == null) {
-			return;
-		}
-		MarkerUtils.clearMarkers(jaxrsMetamodel.getProject());
-		final List<IJaxrsApplication> allApplications = jaxrsMetamodel.getAllApplications();
-		if(allApplications.isEmpty()) {
-			this.addProblem(JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND,
-					JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, new String[0],
-					0, 0, jaxrsMetamodel.getProject());
-			
-		} else if(allApplications.size() > 1) {
-			this.addProblem(JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES,
-					JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0],
-					0, 0, jaxrsMetamodel.getProject());
-		}
-	}
-
 	/**
 	 * Uses the appropriate validator to validate the given JAX-RS element, or does nothing if no validator could be
 	 * found.
@@ -214,21 +223,35 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 * @param element
 	 * @throws CoreException
 	 */
-	private void validate(JaxrsBaseElement element) throws CoreException {
-		Logger.debug("Validating element {}", element.getName());
-			switch (element.getElementCategory()) {
-			case APPLICATION:
+	@SuppressWarnings("incomplete-switch")
+	private void validate(IJaxrsElement element) throws CoreException {
+		Logger.debug("Validating element {}", element);
+		switch (element.getElementCategory()) {
+		case METAMODEL:
+			new JaxrsMetamodelValidatorDelegate(this, (JaxrsMetamodel)element).validate();
+			break;
+		case APPLICATION:
+			switch (element.getElementKind()) {
+			case APPLICATION_JAVA:
+				new JaxrsJavaApplicationValidatorDelegate(this, (JaxrsJavaApplication) element).validate();
 				break;
-			case HTTP_METHOD:
-				new JaxrsHttpMethodValidatorDelegate(this, (JaxrsHttpMethod) element).validate();
-			case PROVIDER:
+			case APPLICATION_WEBXML:
+				new JaxrsWebxmlApplicationValidatorDelegate(this, (JaxrsWebxmlApplication) element).validate();
 				break;
-			case RESOURCE:
-				// this validator delegate also deals with ResourceMethods and ResourceFields 
-				new JaxrsResourceValidatorDelegate(this, (JaxrsResource) element).validate();
-			default:
-				// skipping other categories of elements at this validator level. (see above)
-				break;
+			}
+			break;
+		case HTTP_METHOD:
+			new JaxrsHttpMethodValidatorDelegate(this, (JaxrsHttpMethod) element).validate();
+			break;
+		case PROVIDER:
+			break;
+		case RESOURCE:
+			// this validator delegate also deals with ResourceMethods and ResourceFields
+			new JaxrsResourceValidatorDelegate(this, (JaxrsResource) element).validate();
+			break;
+		default:
+			// skipping other categories of elements at this validator level. (see above)
+			break;
 		}
 	}
 

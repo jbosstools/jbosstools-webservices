@@ -273,11 +273,12 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, getAnnotation(type, APPLICATION_PATH.qualifiedName), metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
-		final Annotation annotation = getAnnotation(type, SuppressWarnings.class.getName());
+		final Annotation suppressWarningAnnotation = getAnnotation(type, SuppressWarnings.class.getName());
 		// operation
-		final JavaElementDelta event = createEvent(annotation, ADDED);
+		final JavaElementDelta event = createEvent(suppressWarningAnnotation, ADDED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
@@ -290,11 +291,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = changeAnnotation(type, APPLICATION_PATH.qualifiedName, "/bar");
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = changeAnnotation(type, APPLICATION_PATH.qualifiedName, "/bar");
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final JavaElementDelta event = createEvent(appPathAnnotation, CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
@@ -309,11 +310,11 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementDelta event = createEvent(annotation, CHANGED);
+		final JavaElementDelta event = createEvent(appPathAnnotation, CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
@@ -325,8 +326,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		final Annotation suppressWarningsAnnotation = getAnnotation(type, SuppressWarnings.class.getName());
 		// operation
@@ -342,8 +343,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(type.getCompilationUnit(), REMOVED);
@@ -361,8 +362,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(type, REMOVED);
@@ -376,22 +377,23 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	}
 
 	@Test
-	public void shouldRemoveApplicationWhenRemovingAnnotation() throws CoreException {
+	public void shouldNotRemoveApplicationWhenRemovingAnnotation() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		// operation
-		final JavaElementDelta event = createEvent(annotation, REMOVED);
+		final JavaElementDelta event = createEvent(appPathAnnotation, REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertThat(application.getApplicationPath(), nullValue());
 	}
 
 	@Test
@@ -399,8 +401,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		// operation
 		final JavaElementDelta event = createEvent(getAnnotation(type, SuppressWarnings.class.getName()), REMOVED);
@@ -415,8 +417,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotation, metamodel);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 		metamodel.add(application);
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);

@@ -65,6 +65,14 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 
 	public static final String APPLICATION_TOO_MANY_OCCURRENCES = INSTANCE
 			.createSeverityOption("applicationTooManyOccurrencesFound"); //$NON-NLS-1$
+
+	public static final String JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION = INSTANCE
+			.createSeverityOption("applicationMissingApplicationPathAnnotation"); //$NON-NLS-1$
+
+	public static final String JAVA_APPLICATION_INVALID_TYPE_HIERARCHY = INSTANCE
+			.createSeverityOption("applicationInvalidTypeHierarchy"); //$NON-NLS-1$
+
+
 	/**
 	 * @return the only instance of {@link JaxrsPreferences}
 	 */

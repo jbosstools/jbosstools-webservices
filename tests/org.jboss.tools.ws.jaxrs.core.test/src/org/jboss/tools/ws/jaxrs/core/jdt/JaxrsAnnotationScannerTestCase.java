@@ -10,8 +10,10 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
+import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -114,7 +116,7 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldRetrieveOneApplicationsInType() throws CoreException {
+	public void shouldRetrieveOneApplicationInType() throws CoreException {
 		// pre-conditions
 		IType restType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject, null);
 		assertThat(restType, notNullValue());
@@ -126,7 +128,61 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldNotRetrieveApplicationsInOtherType() throws CoreException {
+	public void shouldRetrieveOneApplicationWithSupertypeOnlyOnScopeType() throws CoreException {
+		// pre-conditions
+		IType restType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject, null);
+		assertThat(restType, notNullValue());
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(restType.getCompilationUnit(), "@ApplicationPath(\"/app\")", "", false);
+		// operation
+		final List<IType> applications = JaxrsAnnotationsScanner.findApplicationTypes(restType,
+				new NullProgressMonitor());
+		// verifications
+		assertThat(applications.size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldRetrieveOneApplicationWithSupertypeOnlyOnScopeProject() throws CoreException {
+		// pre-conditions
+		IType restType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject, null);
+		assertThat(restType, notNullValue());
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(restType.getCompilationUnit(), "@ApplicationPath(\"/app\")", "", false);
+		// operation
+		final List<IType> applications = JaxrsAnnotationsScanner.findApplicationTypes(restType.getJavaProject(),
+				new NullProgressMonitor());
+		// verifications
+		assertThat(applications.size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldRetrieveOneApplicationWithAnnotationOnly() throws CoreException {
+		// pre-conditions
+		IType restType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject, null);
+		assertThat(restType, notNullValue());
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(restType.getCompilationUnit(), "extends Application", "", false);
+		// operation
+		final List<IType> applications = JaxrsAnnotationsScanner.findApplicationTypes(restType,
+				new NullProgressMonitor());
+		// verifications
+		assertThat(applications.size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldNotRetrieveApplicationsWithSupertypeOnlyOnScopeLibrary() throws CoreException {
+		// pre-conditions
+		final IPackageFragmentRoot lib = WorkbenchUtils.getPackageFragmentRoot(javaProject,
+				"lib/jaxrs-api-2.0.1.GA.jar", new NullProgressMonitor());
+		IType restType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject, null);
+		assertThat(restType, notNullValue());
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(restType.getCompilationUnit(), "@ApplicationPath(\"/app\")", "", false);
+		// operation
+		final List<IType> applications = JaxrsAnnotationsScanner.findApplicationTypes(lib,
+				new NullProgressMonitor());
+		// verifications
+		assertThat(applications.size(), equalTo(0));
+	}
+	
+	@Test
+	public void shouldNotRetrieveApplicationsOnScopeOtherType() throws CoreException {
 		// pre-conditions
 		IType fooType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject, null);
 		assertThat(fooType, notNullValue());

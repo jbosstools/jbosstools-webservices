@@ -58,6 +58,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
 public class JaxrsElementFactory {
@@ -221,7 +222,7 @@ public class JaxrsElementFactory {
 			JaxrsMetamodel metamodel, JaxrsResource parentResource) throws JavaModelException {
 		final List<String> httpMethodAnnotationNames = new ArrayList<String>();
 		for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-			httpMethodAnnotationNames.add(httpMethod.getFullyQualifiedName());
+			httpMethodAnnotationNames.add(httpMethod.getJavaClassName());
 		}
 		final List<String> annotationNames = new ArrayList<String>();
 		annotationNames.addAll(Arrays.asList(PATH.qualifiedName, PRODUCES.qualifiedName, CONSUMES.qualifiedName));
@@ -312,10 +313,7 @@ public class JaxrsElementFactory {
 	public JaxrsJavaApplication createApplication(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, ast, APPLICATION_PATH.qualifiedName);
-		if (applicationPathAnnotation == null) {
-			return null;
-		}
-		return new JaxrsJavaApplication(javaType, applicationPathAnnotation, metamodel);
+		return createApplication(javaType, applicationPathAnnotation, metamodel);
 	}
 
 	/**
@@ -330,12 +328,35 @@ public class JaxrsElementFactory {
 	 */
 	public JaxrsJavaApplication createApplication(final Annotation annotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
-		if (annotation.getJavaParent() != null && annotation.getJavaParent().getElementType() == IJavaElement.TYPE
+		final IJavaElement javaParent = annotation.getJavaParent();
+		if (javaParent != null && javaParent.getElementType() == IJavaElement.TYPE
 				&& annotation.getName().equals(APPLICATION_PATH.qualifiedName)) {
-			return new JaxrsJavaApplication((IType) annotation.getJavaParent(), annotation, metamodel);
+			final IType javaType = (IType) javaParent;
+			return createApplication(javaType, annotation, metamodel);
 		}
 		return null;
 	}
+	
+	/**
+	 * Creates a JAX-RS Application from the given type and its AST, <b>without adding it to the given JAX-RS
+	 * Metamodel</b>
+	 * 
+	 * @param ast
+	 * @param metamodel
+	 * @param annotation
+	 * @return
+	 * @throws CoreException
+	 */
+	private JaxrsJavaApplication createApplication(final IType applicationType, final Annotation appPathAnnotation, 
+			final JaxrsMetamodel metamodel) throws CoreException {
+		final IType applicationSupertype = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName, applicationType.getJavaProject(), new NullProgressMonitor());
+		final boolean isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, applicationType);
+		if(isApplicationSubclass || appPathAnnotation != null) {
+			return new JaxrsJavaApplication(applicationType, appPathAnnotation, isApplicationSubclass, metamodel);
+		}
+		return null;
+	}
+
 
 	/**
 	 * Create a JAX-RS Resource field from the given annotation, <b>without adding it to the given JAX-RS Metamodel</b>
@@ -356,7 +377,7 @@ public class JaxrsElementFactory {
 	public JaxrsResourceField createField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws JavaModelException {
 		final IType parentType = (IType) javaField.getParent();
-		JaxrsBaseElement parentResource = metamodel.getElement(parentType);
+		IJaxrsElement parentResource = metamodel.getElement(parentType);
 		if (parentResource == null) {
 			// creating the parent resource but not adding it to the metamodel
 			// yet..
@@ -386,8 +407,8 @@ public class JaxrsElementFactory {
 		return null;
 	}
 
-	public JaxrsWebxmlApplication createApplication(String applicationPath, IResource resource, JaxrsMetamodel metamodel) {
-		return new JaxrsWebxmlApplication(applicationPath, resource, metamodel);
+	public JaxrsWebxmlApplication createApplication(final String javaClassName, final String applicationPath, final IResource resource, final JaxrsMetamodel metamodel) {
+		return new JaxrsWebxmlApplication(javaClassName, applicationPath, resource, metamodel);
 	}
 
 	/**
@@ -409,7 +430,7 @@ public class JaxrsElementFactory {
 		if(JdtUtils.isAbstractType(javaType)) {
 			return null;
 		}
-		ITypeHierarchy providerTypeHierarchy = JdtUtils.resolveTypeHierarchy(javaType, false, progressMonitor);
+		ITypeHierarchy providerTypeHierarchy = JdtUtils.resolveTypeHierarchy(javaType, javaType.getJavaProject(), false, progressMonitor);
 		IType[] subtypes = providerTypeHierarchy.getSubtypes(javaType);
 		// assert that given java type has no sub-type, or continue;
 		if (subtypes != null && subtypes.length > 0) {

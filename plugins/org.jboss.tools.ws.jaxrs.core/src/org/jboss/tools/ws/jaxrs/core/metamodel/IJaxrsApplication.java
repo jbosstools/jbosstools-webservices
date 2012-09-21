@@ -10,10 +10,14 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
+import org.eclipse.core.resources.IResource;
+
 public interface IJaxrsApplication extends IJaxrsElement {
 
 	public abstract String getApplicationPath();
 
-	public abstract EnumElementKind getElementKind();
+	public abstract String getJavaClassName();
+
+	public abstract IResource getResource();
 
 }

@@ -58,7 +58,7 @@ public class JaxrsBuiltinHttpMethod extends JaxrsHttpMethod {
 	}
 	
 	@Override
-	public String getFullyQualifiedName() {
+	public String getJavaClassName() {
 		return annotationName;
 	}
 

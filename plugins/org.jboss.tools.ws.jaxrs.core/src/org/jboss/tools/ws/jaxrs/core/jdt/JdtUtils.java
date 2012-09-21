@@ -436,7 +436,7 @@ public final class JdtUtils {
 	 *             the underlying CoreException thrown by the manipulated JDT
 	 *             APIs
 	 */
-	public static ITypeHierarchy resolveTypeHierarchy(final IType baseType, final boolean includeLibraries,
+	public static ITypeHierarchy resolveTypeHierarchy(final IType baseType, final IJavaElement scope, final boolean includeLibraries,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		// create type hierarchy
 		// FIXME : restrict operation scope to sources only, exclude application
@@ -446,7 +446,7 @@ public final class JdtUtils {
 			appLibs = IJavaSearchScope.APPLICATION_LIBRARIES;
 		}
 		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(
-				new IJavaElement[] { baseType.getJavaProject() }, IJavaSearchScope.SOURCES | appLibs
+				new IJavaElement[] { scope }, IJavaSearchScope.SOURCES | appLibs
 						| IJavaSearchScope.REFERENCED_PROJECTS);
 		CreateTypeHierarchyOperation operation = new CreateTypeHierarchyOperation(baseType, null, searchScope, true);
 		ITypeHierarchy hierarchy = operation.getResult();
@@ -603,7 +603,7 @@ public final class JdtUtils {
 		if (superType.getHandleIdentifier().equals(subType.getHandleIdentifier())) {
 			return true;
 		}
-		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(subType, true, new NullProgressMonitor());
+		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(subType, subType.getJavaProject(), true, new NullProgressMonitor());
 		final List<IType> allSuperclasses = Arrays.asList(hierarchy.getAllSuperclasses(subType));
 		for (IType type : allSuperclasses) {
 			if (type.getHandleIdentifier().equals(superType.getHandleIdentifier())) {

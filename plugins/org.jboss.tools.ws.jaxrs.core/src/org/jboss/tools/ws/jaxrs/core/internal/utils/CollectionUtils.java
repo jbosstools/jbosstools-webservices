@@ -119,5 +119,29 @@ public class CollectionUtils {
 		}
 		return result;
 	}
+	
+	public static <T> T[] append(T[] sourceArray, T extraElement, T[] targetArray) {
+		System.arraycopy(sourceArray, 0, targetArray, 0, sourceArray.length);
+		targetArray[targetArray.length -1] = extraElement;
+		return targetArray;
+	}
+	
+	/**
+	 * Returns true if the given source contains the given element, false otherwise
+	 * @param source the array of elements
+	 * @param element the element to find in the array
+	 * @return true if found, false otherwise
+	 */
+	public static <T> boolean contains(T[] source, T element) {
+		if(element == null || source == null) {
+			return false;
+		}
+		for(T item : source) {
+			if(item.equals(element)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 }

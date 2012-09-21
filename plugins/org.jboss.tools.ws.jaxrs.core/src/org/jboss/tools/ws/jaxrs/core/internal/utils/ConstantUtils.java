@@ -12,6 +12,11 @@ package org.jboss.tools.ws.jaxrs.core.internal.utils;
 
 import java.lang.reflect.Field;
 
+/**
+ * Utility to manipulate constants defined as "static final" attributes in classes
+ * @author Xavier Coulon
+ *
+ */
 public class ConstantUtils {
 
 	public static String getStaticFieldName(final Class<?> clazz, final int value) {

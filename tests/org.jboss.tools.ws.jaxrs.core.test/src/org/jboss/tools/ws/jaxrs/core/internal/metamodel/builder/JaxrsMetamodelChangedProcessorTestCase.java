@@ -53,6 +53,8 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod.Builder;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
@@ -80,10 +82,18 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		metamodel = spy(JaxrsMetamodel.create(javaProject));
 	}
 
-	private JaxrsJavaApplication createApplication(String typeName) throws CoreException, JavaModelException {
+	private JaxrsJavaApplication createJavaApplication(String typeName) throws CoreException, JavaModelException {
 		final IType applicationType = getType(typeName, javaProject);
+		final Annotation appPathAnnotation = getAnnotation(applicationType, APPLICATION_PATH.qualifiedName);
 		final JaxrsJavaApplication application = new JaxrsJavaApplication(applicationType,
-				getAnnotation(applicationType, APPLICATION_PATH.qualifiedName), metamodel);
+				appPathAnnotation, true, metamodel);
+		metamodel.add(application);
+		return application;
+	}
+
+	private JaxrsWebxmlApplication createWebxmlApplication(String typeName, String applicationPath) throws CoreException, JavaModelException {
+		final JaxrsWebxmlApplication application = new JaxrsWebxmlApplication(typeName,
+				applicationPath, WtpUtils.getWebDeploymentDescriptor(project), metamodel);
 		metamodel.add(application);
 		return application;
 	}
@@ -134,7 +144,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	}
 
 	private JaxrsEndpoint createEndpoint(JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
-		JaxrsEndpoint endpoint = new JaxrsEndpoint(null, httpMethod, new LinkedList<JaxrsResourceMethod>(
+		JaxrsEndpoint endpoint = new JaxrsEndpoint(this.metamodel, httpMethod, new LinkedList<JaxrsResourceMethod>(
 				Arrays.asList(resourceMethods)));
 		metamodel.add(endpoint);
 		return endpoint;
@@ -285,7 +295,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
-
 	}
 
 	@Test
@@ -310,7 +319,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 
 	@Test
 	public void shoudChangeUriPathTemplateWhenAddingApplication() throws JavaModelException, CoreException {
-		// the subresource becomes a root resource !
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
@@ -319,7 +327,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
-		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsElementDelta event = new JaxrsElementDelta(application, ADDED);
 		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
 		// verifications
@@ -330,8 +338,50 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	}
 	
 	@Test
+	public void shoudChangeUriPathTemplateWhenRemovingApplicationType() throws JavaModelException, CoreException {
+		// pre-conditions
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
+		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET);
+		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		// operation
+		metamodel.remove(application);
+		final JaxrsElementDelta event = new JaxrsElementDelta(application, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(changes.get(0).getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(changes.get(0).getEndpoint().getUriPathTemplate(), equalTo("/customers/{id}"));
+	}
+
+	@Test
+	public void shoudChangeUriPathTemplateWhenRemovingApplicationPathAnnotation() throws JavaModelException, CoreException {
+		// pre-conditions
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
+		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET);
+		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		// operation
+		final Annotation appPathAnnotation = application.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
+		application.removeAnnotation(appPathAnnotation);
+		final JaxrsElementDelta event = new JaxrsElementDelta(application, CHANGED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(changes.get(0).getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(changes.get(0).getEndpoint().getUriPathTemplate(), equalTo("/customers/{id}"));
+	}
+	
+	@Test
 	public void shoudChangeUriPathTemplateWhenAddingResourcePathAnnotation() throws JavaModelException, CoreException {
-		// the subresource becomes a root resource !
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
@@ -377,7 +427,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenChangingApplicationPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
@@ -398,6 +448,106 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/foo/customers/{id}"));
 	}
 
+	@Test
+	public void shoudChangeUriPathTemplateWhenSwitchingToWebxmlCoreApplication() throws JavaModelException, CoreException {
+		// pre-conditions
+		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET);
+		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		// operation
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("javax.ws.rs.core.Application", "/foo");
+		final JaxrsElementDelta event = new JaxrsElementDelta(webxmlApplication, ADDED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		final JaxrsEndpointDelta change = changes.get(0);
+		assertThat(change.getDeltaKind(), equalTo(CHANGED));
+		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
+		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+	}
+	
+	@Test
+	public void shoudChangeUriPathTemplateWhenSwitchingBackToJavaApplication() throws JavaModelException, CoreException {
+		// pre-conditions
+		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET);
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("javax.ws.rs.core.Application", "/foo");
+		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+		// operation
+		metamodel.remove(webxmlApplication);
+		final JaxrsElementDelta event = new JaxrsElementDelta(webxmlApplication, REMOVED);
+		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		final JaxrsEndpointDelta change = changes.get(0);
+		assertThat(change.getDeltaKind(), equalTo(CHANGED));
+		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
+		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/app/customers/{id}"));
+	}
+	
+	@Test
+	public void shoudChangeUriPathTemplateWhenOverridingApplication() throws JavaModelException, CoreException {
+		// pre-conditions
+		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET);
+		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		// operation
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
+		List<JaxrsEndpointDelta> changes = processEvent(new JaxrsElementDelta(webxmlApplication, ADDED), progressMonitor);
+		assertThat(changes.size(), equalTo(0));
+		// (at the same time, the JavaApplication is changed since this is an override)
+		javaApplication.setApplicationPathOverride("/foo");
+		changes = processEvent(new JaxrsElementDelta(javaApplication, CHANGED), progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		final JaxrsEndpointDelta change = changes.get(0);
+		assertThat(change.getDeltaKind(), equalTo(CHANGED));
+		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
+		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+	}
+
+	@Test
+	public void shoudChangeUriPathTemplateWhenUnoverridingApplication() throws JavaModelException, CoreException {
+		// pre-conditions
+		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
+		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
+				GET);
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
+		javaApplication.setApplicationPathOverride("/foo");
+		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+		// operation
+		List<JaxrsEndpointDelta> changes = processEvent(new JaxrsElementDelta(webxmlApplication, REMOVED), progressMonitor);
+		assertThat(changes.size(), equalTo(1)); // FAKE change...
+		// (at the same time, the JavaApplication is changed since this is an override)
+		javaApplication.unsetApplicationPathOverride();
+		changes = processEvent(new JaxrsElementDelta(javaApplication, CHANGED), progressMonitor);
+		// verifications
+		assertThat(changes.size(), equalTo(1));
+		final JaxrsEndpointDelta change = changes.get(0);
+		assertThat(change.getDeltaKind(), equalTo(CHANGED));
+		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
+		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
+		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/app/customers/{id}"));
+	}
+	
 	@Test
 	public void shoudChangeUriPathTemplateWhenChangingResourcePathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
@@ -498,7 +648,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudChangeUriPathTemplateWhenRemovingMetamodelApplication() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
@@ -1123,4 +1273,6 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			assertThat(change.getEndpoint(), isOneOf((IJaxrsEndpoint) bookEndpoint, (IJaxrsEndpoint) gameEndpoint));
 		}
 	}
+	
+	
 }

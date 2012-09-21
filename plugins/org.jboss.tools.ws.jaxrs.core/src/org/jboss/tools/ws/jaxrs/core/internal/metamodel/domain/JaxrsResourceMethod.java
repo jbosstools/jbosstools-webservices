@@ -252,7 +252,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	public Annotation getHttpMethodAnnotation() {
 		for (IJaxrsHttpMethod httpMethod : getMetamodel().getAllHttpMethods()) {
 			final Annotation annotation = getAnnotation(httpMethod
-					.getFullyQualifiedName());
+					.getJavaClassName());
 			if (annotation != null) {
 				return annotation;
 			}

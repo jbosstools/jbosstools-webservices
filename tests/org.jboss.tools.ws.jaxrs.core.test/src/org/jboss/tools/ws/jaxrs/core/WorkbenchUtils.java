@@ -257,12 +257,22 @@ public class WorkbenchUtils {
 		replaceFirstOccurrenceOfCode(type, content, "", useWorkingCopy);
 	}
 
+	/**
+	 * Replace the first occurrence of the given old content with the new content. Fails if the old content is not found
+	 * (avoids weird side effects in the rest of the test).
+	 * 
+	 * @param compilationUnit
+	 * @param oldContent
+	 * @param newContent
+	 * @param useWorkingCopy
+	 * @throws JavaModelException
+	 */
 	public static void replaceFirstOccurrenceOfCode(ICompilationUnit compilationUnit, String oldContent,
 			String newContent, boolean useWorkingCopy) throws JavaModelException {
 		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
 		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		int offset = buffer.getContents().indexOf(oldContent);
-		Assert.assertTrue("Old content not found", offset != -1);
+		Assert.assertTrue("Old content '" + oldContent + "' not found", offset != -1);
 		buffer.replace(offset, oldContent.length(), newContent);
 		saveAndClose(unit);
 	}
@@ -276,19 +286,6 @@ public class WorkbenchUtils {
 	public static ICompilationUnit getCompilationUnit(ICompilationUnit compilationUnit, boolean useWorkingCopy)
 			throws JavaModelException {
 		return useWorkingCopy ? createWorkingCopy(compilationUnit) : compilationUnit;
-	}
-
-	public static void replaceFirstOccurrenceOfCode(ICompilationUnit compilationUnit, String[] oldContents,
-			String[] newContents) throws JavaModelException {
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		Assert.assertEquals("Wrong parameters", oldContents.length, newContents.length);
-		for (int i = 0; i < oldContents.length; i++) {
-			IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
-			int offset = buffer.getContents().indexOf(oldContents[i]);
-			Assert.assertTrue("Old content not found", offset != -1);
-			buffer.replace(offset, oldContents[i].length(), newContents[i]);
-		}
-		saveAndClose(workingCopy);
 	}
 
 	public static <T extends IMember> T replaceFirstOccurrenceOfCode(T member, String oldContent, String newContent,
@@ -909,7 +906,6 @@ public class WorkbenchUtils {
 			file.delete(true, new NullProgressMonitor());
 		}
 		file.create(stream, true, null);
-		LOGGER.debug("Content:");
 		final InputStream contents = file.getContents();
 		final char[] buffer = new char[0x10000];
 		StringBuilder out = new StringBuilder();
@@ -921,7 +917,7 @@ public class WorkbenchUtils {
 				out.append(buffer, 0, read);
 			}
 		} while (read >= 0);
-		LOGGER.debug(out.toString());
+		LOGGER.debug("Content:\n" + out.toString());
 	}
 	
 	

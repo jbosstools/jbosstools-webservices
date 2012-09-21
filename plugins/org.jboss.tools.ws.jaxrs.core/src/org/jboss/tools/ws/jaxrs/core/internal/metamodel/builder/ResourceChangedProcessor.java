@@ -13,6 +13,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE_ORVERRIDE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_FINE_GRAINED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION;
@@ -52,7 +54,6 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
@@ -195,12 +196,26 @@ public class ResourceChangedProcessor {
 				break;
 			}
 		}
-
+		for (JaxrsElementDelta delta : results) {
+			Logger.debug("Resulting event: {}", delta);
+		}
 		return results;
 	}
 
 	private List<JaxrsElementDelta> processApplicationChangesOnWebxmlAdditionOrChange(IResource resource,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		final List<JaxrsElementDelta> changes = preprocessApplicationChangesOnWebxmlAdditionOrChange(resource, metamodel,
+				progressMonitor);
+		for (JaxrsElementDelta change : changes) {
+			results.addAll(postProcessWebxmlApplication(change, progressMonitor));
+		}
+		return results;
+
+	}
+	
+	private List<JaxrsElementDelta> preprocessApplicationChangesOnWebxmlAdditionOrChange(IResource resource,
+				JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
 		final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, metamodel.getJavaProject(),
 				progressMonitor);
 		// occurs when the project has the jax-rs nature (the builder is called), but no jaxrs library is in the classpath
@@ -208,25 +223,43 @@ public class ResourceChangedProcessor {
 			return Collections.emptyList();
 		}
 		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
-		final ITypeHierarchy applicationTypeHierarchy = JdtUtils.resolveTypeHierarchy(applicationType, false,
+		final ITypeHierarchy applicationTypeHierarchy = JdtUtils.resolveTypeHierarchy(applicationType, applicationType.getJavaProject(), false,
 				progressMonitor);
 		final IType[] applicationSubclasses = applicationTypeHierarchy.getSubclasses(applicationType);
 		// add the standard Application type in last position in the hierarchy
-		final IType[] applicationClasses = new IType[applicationSubclasses.length + 1];
-		System.arraycopy(applicationSubclasses, 0, applicationClasses, 0, applicationSubclasses.length);
-		applicationClasses[applicationClasses.length -1] = applicationType;
-		String resolvedApplicationPath = null;
+		final IType[] applicationClasses = CollectionUtils.append(applicationSubclasses, applicationType,  
+				new IType[applicationSubclasses.length + 1]);
+		// existing web.xml-based JAX-RS applications in the metamodel 
+		final List<JaxrsWebxmlApplication> existingApplications = metamodel.getWebxmlApplications();
+		// web.xml-based JAX-RS applications declared in the web deployment descriptor 
+		final List<JaxrsWebxmlApplication> declaredApplications = new ArrayList<JaxrsWebxmlApplication>();
 		for (IType applicationClass : applicationClasses) {
-			final String applicationPath = WtpUtils.getApplicationPath(resource.getProject(),
-					applicationClass.getFullyQualifiedName());
+			final String applicationClassName = applicationClass.getFullyQualifiedName();
+			final String applicationPath = WtpUtils.getApplicationPath(resource,
+					applicationClassName);
 			if (applicationPath != null) {
-				resolvedApplicationPath = applicationPath;
-				break;
+				declaredApplications.add(factory.createApplication(applicationClassName, applicationPath, resource, metamodel));
 			}
 		}
-		final IJaxrsApplication application = metamodel.getApplication();
+		// now compare the 'existing' vs 'declared' lists to update the metamodel (adding/updating/removing items) 
+		final Collection<JaxrsWebxmlApplication> addedApplications = CollectionUtils.difference(declaredApplications,
+				existingApplications);
+		for (JaxrsWebxmlApplication application : addedApplications) {
+			results.add(new JaxrsElementDelta(application, ADDED));
+		}
+		final Collection<JaxrsWebxmlApplication> changedApplications = CollectionUtils.intersection(declaredApplications,
+				existingApplications);
+		for (JaxrsWebxmlApplication application : changedApplications) {
+			results.add(new JaxrsElementDelta(application, CHANGED, F_FINE_GRAINED));
+		}
+		final Collection<JaxrsWebxmlApplication> removedApplications = CollectionUtils.difference(existingApplications,
+				declaredApplications);
+		for (JaxrsWebxmlApplication application : removedApplications) {
+			results.add(new JaxrsElementDelta(application, REMOVED));
+		}
+		
+		/*final IJaxrsApplication application = metamodel.getApplication();
 		if (resolvedApplicationPath != null) {
-			final JaxrsWebxmlApplication webxmlApplication = factory.createApplication(resolvedApplicationPath, resource, metamodel);
 			if (application == null || application.getElementKind() == EnumElementKind.APPLICATION_JAVA) {
 				metamodel.add(webxmlApplication);
 				results.add(new JaxrsElementDelta(webxmlApplication, ADDED));
@@ -238,17 +271,65 @@ public class ResourceChangedProcessor {
 			final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) application;
 			metamodel.remove(webxmlApplication);
 			results.add(new JaxrsElementDelta(webxmlApplication, REMOVED));
-		}
+		}*/
 		// otherwise, do nothing (application path not declared in web.xml, or not valid but can't be discovered)
 		return results;
 	}
+	
+	private List<JaxrsElementDelta> postProcessWebxmlApplication(JaxrsElementDelta event, IProgressMonitor progressMonitor) {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) event.getElement();
+		final JaxrsMetamodel metamodel = webxmlApplication.getMetamodel();
+		JaxrsJavaApplication overridenJaxrsJavaApplication;
+		switch (event.getDeltaKind()) {
+		case ADDED:
+			metamodel.add(webxmlApplication);
+			results.add(event);
+			overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
+			if(overridenJaxrsJavaApplication != null) {
+				overridenJaxrsJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
+				results.add(new JaxrsElementDelta(overridenJaxrsJavaApplication, CHANGED, F_APPLICATION_PATH_VALUE));
+			}
+			break;
+		case REMOVED:
+			metamodel.remove(webxmlApplication);
+			results.add(event);
+			overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
+			if(overridenJaxrsJavaApplication != null) {
+				overridenJaxrsJavaApplication.unsetApplicationPathOverride();
+				results.add(new JaxrsElementDelta(overridenJaxrsJavaApplication, CHANGED, F_APPLICATION_PATH_VALUE));
+			}
+			
+			break;
+		case CHANGED:
+			final JaxrsWebxmlApplication existingWebxmlApplication = metamodel.getWebxmlApplication(webxmlApplication.getJavaClassName());
+			final int flags = existingWebxmlApplication.update(webxmlApplication);
+			if (flags != 0) {
+				results.add(new JaxrsElementDelta(existingWebxmlApplication, CHANGED, flags));
+			}
+			break;
+		}
+		return results;
+	}
+
 
 	private List<JaxrsElementDelta> processApplicationChangesOnWebxmlRemoval(IResource resource,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) {
 		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
-		for (Iterator<IJaxrsApplication> iterator = metamodel.getAllApplications().iterator(); iterator.hasNext();) {
-			IJaxrsApplication application = (IJaxrsApplication) iterator.next();
-			if(application instanceof JaxrsWebxmlApplication) {
+		final List<JaxrsElementDelta> changes = preprocessApplicationChangesOnWebxmlRemoval(resource, metamodel,
+				progressMonitor);
+		for (JaxrsElementDelta change : changes) {
+			results.addAll(postProcessWebxmlApplication(change, progressMonitor));
+		}
+		return results;
+	}
+
+	private List<JaxrsElementDelta> preprocessApplicationChangesOnWebxmlRemoval(IResource resource,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		for (Iterator<JaxrsWebxmlApplication> iterator = metamodel.getWebxmlApplications().iterator(); iterator.hasNext();) {
+			JaxrsWebxmlApplication application = iterator.next();
+			if(application.getResource().equals(resource)) {
 				Logger.debug("Removing {}", application);
 				final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication)application;
 				metamodel.remove(webxmlApplication);
@@ -264,7 +345,7 @@ public class ResourceChangedProcessor {
 		final List<JaxrsElementDelta> changes = preprocessApplicationChangesOnScopeAdditionOrChange(scope, metamodel,
 				progressMonitor);
 		for (JaxrsElementDelta change : changes) {
-			results.addAll(postProcessApplication(change, progressMonitor));
+			results.addAll(postProcessJavaApplication(change, progressMonitor));
 		}
 		return results;
 	}
@@ -272,7 +353,7 @@ public class ResourceChangedProcessor {
 	/**
 	 * See if Applications exist in the given scope. The exact kind of the {@link JaxrsElementDelta} event is not
 	 * determined at this stage, it's the responsibility of the
-	 * {@link ResourceChangedProcessor#postProcessApplication(JaxrsElementDelta, IProgressMonitor)} method.
+	 * {@link ResourceChangedProcessor#postProcessJavaApplication(JaxrsElementDelta, IProgressMonitor)} method.
 	 * 
 	 * @param scope
 	 * @param metamodel
@@ -319,14 +400,14 @@ public class ResourceChangedProcessor {
 		}
 		return results;
 	}
-
+	
 	private List<JaxrsElementDelta> processApplicationChangesOnScopeRemoval(IJavaElement scope,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
 		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
 		final List<JaxrsElementDelta> changes = preprocessApplicationChangesOnScopeRemoval(scope, metamodel,
 				progressMonitor);
 		for (JaxrsElementDelta change : changes) {
-			results.addAll(postProcessApplication(change, progressMonitor));
+			results.addAll(postProcessJavaApplication(change, progressMonitor));
 		}
 		return results;
 	}
@@ -354,25 +435,36 @@ public class ResourceChangedProcessor {
 		return results;
 	}
 
-	private List<JaxrsElementDelta> postProcessApplication(JaxrsElementDelta event, IProgressMonitor progressMonitor) {
+	private List<JaxrsElementDelta> postProcessJavaApplication(final JaxrsElementDelta event, final IProgressMonitor progressMonitor) {
 		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
-		final JaxrsJavaApplication eventApplication = (JaxrsJavaApplication) event.getElement();
-		final JaxrsMetamodel metamodel = eventApplication.getMetamodel();
+		final JaxrsJavaApplication eventJavaApplication = (JaxrsJavaApplication) event.getElement();
+		final JaxrsMetamodel metamodel = eventJavaApplication.getMetamodel();
+		JaxrsWebxmlApplication webxmlApplication = null;
 		switch (event.getDeltaKind()) {
 		case ADDED:
-			metamodel.add(eventApplication);
-			results.add(event);
+			metamodel.add(eventJavaApplication);
+			webxmlApplication = metamodel.getWebxmlApplication(eventJavaApplication.getJavaClassName());
+			if(webxmlApplication != null) {
+				eventJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
+				results.add(new JaxrsElementDelta(eventJavaApplication, ADDED, F_APPLICATION_PATH_VALUE_ORVERRIDE));
+			} else {
+				results.add(event);
+			}
 			break;
 		case REMOVED:
-			metamodel.remove(eventApplication);
+			metamodel.remove(eventJavaApplication);
 			results.add(event);
 			break;
 		case CHANGED:
-			final JaxrsJavaApplication existingApplication = metamodel.getElement(eventApplication.getJavaElement(),
+			final JaxrsJavaApplication existingJavaApplication = metamodel.getElement(eventJavaApplication.getJavaElement(),
 					JaxrsJavaApplication.class);
-			final int flags = existingApplication.update(eventApplication);
-			if (flags != 0) {
-				results.add(new JaxrsElementDelta(existingApplication, CHANGED, flags));
+			final int flags = existingJavaApplication.update(eventJavaApplication);
+			webxmlApplication = metamodel.getWebxmlApplication(eventJavaApplication.getJavaClassName());
+			if(flags != 0 && webxmlApplication != null) {
+				eventJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
+				results.add(new JaxrsElementDelta(eventJavaApplication, CHANGED, flags + F_APPLICATION_PATH_VALUE_ORVERRIDE));
+			} else if(flags != 0) {
+				results.add(new JaxrsElementDelta(existingJavaApplication, CHANGED, flags));
 			}
 			break;
 		}

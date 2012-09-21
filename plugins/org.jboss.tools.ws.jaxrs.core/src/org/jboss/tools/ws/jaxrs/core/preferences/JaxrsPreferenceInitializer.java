@@ -36,6 +36,8 @@ public class JaxrsPreferenceInitializer extends AbstractPreferenceInitializer {
 		}
 		defaultPreferences.put(JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferences.WARNING);
 		defaultPreferences.put(JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, JaxrsPreferences.WARNING);
+		defaultPreferences.put(JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY, JaxrsPreferences.ERROR);
 
 		defaultPreferences.put(JaxrsPreferences.HTTP_METHOD_MISSING_TARGET_ANNOTATION, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE, JaxrsPreferences.ERROR);

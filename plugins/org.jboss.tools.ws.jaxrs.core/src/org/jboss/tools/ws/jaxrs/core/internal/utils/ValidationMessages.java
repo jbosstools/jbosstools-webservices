@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.utils;
 
 import org.eclipse.osgi.util.NLS;
 
+@Deprecated
 public class ValidationMessages extends NLS {
 	private static final String BUNDLE_NAME = ValidationMessages.class.getName(); //$NON-NLS-1$
 

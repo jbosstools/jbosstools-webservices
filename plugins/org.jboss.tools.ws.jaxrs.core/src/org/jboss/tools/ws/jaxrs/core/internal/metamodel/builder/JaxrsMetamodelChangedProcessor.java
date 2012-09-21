@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -39,6 +38,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsEndpointDelta;
@@ -86,7 +86,7 @@ public class JaxrsMetamodelChangedProcessor {
 
 	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsEndpointDelta> processEvent(final JaxrsElementDelta event) throws CoreException {
-		final JaxrsBaseElement element = event.getElement();
+		final IJaxrsElement element = event.getElement();
 		final EnumElementCategory elementKind = element.getElementCategory();
 		final int flags = event.getFlags();
 		switch (event.getDeltaKind()) {
@@ -203,7 +203,7 @@ public class JaxrsMetamodelChangedProcessor {
 		final JaxrsResource resource = resourceMethod.getParentResource();
 		final IProgressMonitor progressMonitor = new NullProgressMonitor();
 		final IType resourceType = resource.getJavaElement();
-		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(resourceType, false, progressMonitor);
+		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(resourceType, resourceType.getJavaProject(), false, progressMonitor);
 		final List<String> supertypesHandlers = extractHandlers(returnTypeHierarchy.getAllSupertypes(resourceType));
 		for (IJaxrsResource otherResource : metamodel.getAllResources()) {
 			if (((JaxrsResource) otherResource).isRootResource()) {
@@ -246,7 +246,7 @@ public class JaxrsMetamodelChangedProcessor {
 		final IType returnType = subresourceLocator.getReturnType();
 		if (returnType != null) {
 			final ITypeHierarchy returnTypeHierarchy = JdtUtils
-					.resolveTypeHierarchy(returnType, false, progressMonitor);
+					.resolveTypeHierarchy(returnType, returnType.getJavaProject(), false, progressMonitor);
 			if (returnTypeHierarchy != null) {
 				final List<String> subtypesHandlers = extractHandlers(returnTypeHierarchy.getAllSubtypes(returnType));
 				for (Iterator<IJaxrsResource> iterator = metamodel.getAllResources().iterator(); iterator.hasNext();) {

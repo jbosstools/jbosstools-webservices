@@ -45,6 +45,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
@@ -72,113 +73,169 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 
 	@Test
 	public void shouldResolveTypeByQNameInSourceCode() throws CoreException {
-		Assert.assertNotNull("Type not found", JdtUtils.resolveType(
+		// preconditions
+		// operation
+		final IType type = JdtUtils.resolveType(
 				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper", javaProject,
-				new NullProgressMonitor()));
+				new NullProgressMonitor());
+		// verification
+		Assert.assertNotNull("Type not found", type);
 	}
 
 	@Test
 	public void shouldResolveTypeByQNameInLibrary() throws CoreException {
-		Assert.assertNotNull("Type not found",
-				JdtUtils.resolveType("javax.persistence.PersistenceException", javaProject, new NullProgressMonitor()));
+		// preconditions
+		// operation
+		final IType type = JdtUtils.resolveType("javax.persistence.PersistenceException", javaProject,
+				new NullProgressMonitor());
+		// verification
+		Assert.assertNotNull("Type not found", type);
 	}
 
 	@Test
 	public void shouldNotResolveTypeByUnknownQName() throws CoreException {
+		// preconditions
+		// operation
+		final IType type = JdtUtils.resolveType("unknown.class", javaProject, new NullProgressMonitor());
+		// verification
 		Assert.assertNull("No Type expected",
-				JdtUtils.resolveType("unknown.class", javaProject, new NullProgressMonitor()));
+				type);
 	}
 
 	@Test
 	public void shouldResolveTypeByVeryQName() throws CoreException {
-		Assert.assertNotNull("Type not found", JdtUtils.resolveType(
+		// preconditions
+		// operation
+		final IType type = JdtUtils.resolveType(
 				"org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedException.TestException", javaProject,
-				new NullProgressMonitor()));
+				new NullProgressMonitor());
+		// verification
+		Assert.assertNotNull("Type not found", type);
 	}
 
 	@Test
 	public void shouldAssertTypeIsAbstract() throws CoreException {
+		// preconditions
+		// operation
 		IType type = JdtUtils.resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider", javaProject,
 				new NullProgressMonitor());
+		// verification
 		Assert.assertNotNull("Type not found", type);
 		Assert.assertTrue("Type is abstract", JdtUtils.isAbstractType(type));
 	}
 
 	@Test
 	public void shouldNotAssertTypeIsAbstract() throws CoreException {
+		// preconditions
+		// operation
 		IType type = JdtUtils.resolveType(
 				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper", javaProject,
 				new NullProgressMonitor());
+		// verification
 		Assert.assertNotNull("Type not found", type);
 		Assert.assertFalse("Type is not abstract", JdtUtils.isAbstractType(type));
 	}
 
 	@Test
 	public void shouldNotResolveTypeWithNullQName() throws CoreException {
+		// preconditions
+		// operation
 		IType type = JdtUtils.resolveType(null, javaProject, new NullProgressMonitor());
+		// verification
 		Assert.assertNull("No type was expected", type);
 	}
 
 	@Test
-	public void shouldResolveTypeHierarchyFromClass() throws CoreException {
+	public void shouldResolveTypeHierarchyOnClass() throws CoreException {
+		// preconditions
+		// operation
+		IType type = JdtUtils.resolveType(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper", javaProject,
+				new NullProgressMonitor());
+		// verification
+		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("Type hierarchy not found",
+				JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false, new NullProgressMonitor()));
+	}
+
+	@Test
+	public void shouldResolveTypeHierarchyOnInterface() throws CoreException {
+		// preconditions
+		// operation
+		IType type = JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject, new NullProgressMonitor());
+		// verification
+		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("Type hierarchy not found",
+				JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false, new NullProgressMonitor()));
+	}
+
+	@Test
+	public void shouldResolveTypeHierarchyOnLibrariesWithSubclasses() throws CoreException {
+		// preconditions
+		IType type = JdtUtils.resolveType("javax.ws.rs.core.Application", javaProject, new NullProgressMonitor());
+		Assert.assertNotNull("Type not found", type);
+		// operation
+		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), true, new NullProgressMonitor());
+		// verifications
+		Assert.assertNotNull("Type hierarchy not found", hierarchy);
+		Assert.assertEquals("Type hierarchy incomplete", 1, hierarchy.getSubtypes(type).length);
+	}
+
+	@Test
+	public void shouldResolveTypeHierarchyOnLibrariesWithNoSubclass() throws CoreException {
+		// preconditions
+		IType type = JdtUtils.resolveType("javax.ws.rs.core.Application", javaProject, new NullProgressMonitor());
+		Assert.assertNotNull("Type not found", type);
+		final IPackageFragmentRoot lib = WorkbenchUtils.getPackageFragmentRoot(javaProject,
+				"lib/jaxrs-api-2.0.1.GA.jar", new NullProgressMonitor());
+		Assert.assertNotNull("Lib not found", lib);
+		// operation
+		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, lib, true, new NullProgressMonitor());
+		// verifications
+		Assert.assertNotNull("Type hierarchy not found", hierarchy);
+		Assert.assertEquals("Type hierarchy incomplete", 0, hierarchy.getSubtypes(type).length);
+	}
+	
+	@Test
+	public void shouldNotResolveTypeHierarchyOnRemovedClass() throws CoreException {
+		// preconditions
 		IType type = JdtUtils.resolveType(
 				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper", javaProject,
 				new NullProgressMonitor());
 		Assert.assertNotNull("Type not found", type);
-		Assert.assertNotNull("Type hierarchy not found",
-				JdtUtils.resolveTypeHierarchy(type, false, new NullProgressMonitor()));
-	}
-
-	@Test
-	public void shouldResolveTypeHierarchyFromInterface() throws CoreException {
-		IType type = JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject, new NullProgressMonitor());
-		Assert.assertNotNull("Type not found", type);
-		Assert.assertNotNull("Type hierarchy not found",
-				JdtUtils.resolveTypeHierarchy(type, false, new NullProgressMonitor()));
-	}
-
-	@Test
-	public void shouldResolveTypeHierarchyWithLibraries() throws CoreException {
-		IType type = JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject, new NullProgressMonitor());
-		Assert.assertNotNull("Type not found", type);
-		Assert.assertNotNull("Type hierarchy not found",
-				JdtUtils.resolveTypeHierarchy(type, true, new NullProgressMonitor()));
-	}
-
-	@Test
-	public void shouldNotResolveTypeHierarchyOfRemovedClass() throws CoreException {
-		IType type = JdtUtils.resolveType(
-				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper", javaProject,
-				new NullProgressMonitor());
-		Assert.assertNotNull("Type not found", type);
+		// operation
 		type.delete(true, new NullProgressMonitor());
-		Assert.assertNull("No Type hierarchy expected",
-				JdtUtils.resolveTypeHierarchy(type, false, new NullProgressMonitor()));
+		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false, new NullProgressMonitor());
+		// verification
+		Assert.assertNull("No Type hierarchy expected", hierarchy);
 	}
 
 	@Test
 	public void shouldResolveConcreteTypeArgumentsOnBinaryTypesWithoutSources() throws CoreException,
 			OperationCanceledException, InterruptedException {
-
+		// preconditions
 		IType parameterizedType = JdtUtils.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider",
 				javaProject, progressMonitor);
 		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
 		IType matchSuperInterfaceType = JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject,
 				progressMonitor);
 		Assert.assertNotNull("Interface Type not found", matchSuperInterfaceType);
-		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType, false,
+		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType, parameterizedType.getJavaProject(), false,
 				progressMonitor);
 		boolean removedReferencedLibrarySourceAttachment = WorkbenchUtils.removeReferencedLibrarySourceAttachment(
 				javaProject, "resteasy-jaxb-provider-2.0.1.GA.jar", progressMonitor);
 		Assert.assertTrue("Source attachment was not removed (not found?)", removedReferencedLibrarySourceAttachment);
+		// operation
 		CompilationUnit compilationUnit = JdtUtils.parse(parameterizedType, null);
 		List<IType> resolvedTypeParameters = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit,
 				matchSuperInterfaceType, parameterizedTypeHierarchy, progressMonitor);
+		// verification
 		Assert.assertNull("No type parameters expected", resolvedTypeParameters);
 	}
 
 	@Test
 	public void shouldNotResolveTypeArgumentsOnBinaryImplementation() throws CoreException {
+		// preconditions
 		IType parameterizedType = JdtUtils.resolveType(
 				"org.jboss.resteasy.plugins.providers.jaxb.AbstractJAXBProvider", javaProject,
 				new NullProgressMonitor());
@@ -186,16 +243,19 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		IType matchGenericType = JdtUtils.resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider",
 				javaProject, new NullProgressMonitor());
 		Assert.assertNotNull("Interface Type not found", matchGenericType);
-		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType, false,
+		// operation
+		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType, parameterizedType.getJavaProject(), false,
 				new NullProgressMonitor());
 		CompilationUnit compilationUnit = JdtUtils.parse(parameterizedType, null);
 		List<IType> resolvedTypeParameters = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit,
 				matchGenericType, parameterizedTypeHierarchy, new NullProgressMonitor());
+		// verification
 		Assert.assertNull("No type parameters expected", resolvedTypeParameters);
 	}
 
 	@Test
 	public void shouldResolveMultipleConcreteTypeArgumentsOnSourceImplementation() throws CoreException {
+		// preconditions
 		IType parameterizedType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.AnotherDummyProvider",
 				javaProject, new NullProgressMonitor());
 		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
@@ -205,7 +265,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 				new NullProgressMonitor());
 		Assert.assertNotNull("Interface Type not found", matchGenericType);
 		CompilationUnit compilationUnit = JdtUtils.parse(parameterizedType, null);
-		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType, false,
+		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType, parameterizedType.getJavaProject(), false,
 				new NullProgressMonitor());
 
 		List<IType> resolvedTypeParameters = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit,
@@ -238,83 +298,118 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 
 	@Test
 	public void shouldNotResolveTypeArgumentsOnWrongHierarchy() throws CoreException {
+		// preconditions
 		IType parameterizedType = JdtUtils.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider",
 				javaProject, new NullProgressMonitor());
 		IType unrelatedType = JdtUtils.resolveType("javax.ws.rs.ext.ExceptionMapper", javaProject,
 				new NullProgressMonitor());
-
 		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
+		// operation
 		IType matchSuperInterfaceType = JdtUtils.resolveType("javax.ws.rs.ext.MessageBodyReader", javaProject,
 				new NullProgressMonitor());
+		// verification
 		Assert.assertNotNull("Interface Type not found", matchSuperInterfaceType);
-		ITypeHierarchy unrelatedTypeHierarchy = JdtUtils.resolveTypeHierarchy(unrelatedType, false,
+		// operation
+		ITypeHierarchy unrelatedTypeHierarchy = JdtUtils.resolveTypeHierarchy(unrelatedType, unrelatedType.getJavaProject(), false,
 				new NullProgressMonitor());
 		CompilationUnit compilationUnit = JdtUtils.parse(parameterizedType, null);
-		Assert.assertNull(JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit, matchSuperInterfaceType,
-				unrelatedTypeHierarchy, new NullProgressMonitor()));
+		final List<IType> typeArgs = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit, matchSuperInterfaceType,
+				unrelatedTypeHierarchy, new NullProgressMonitor());
+		// verification
+		Assert.assertNull(typeArgs);
 	}
 
 	@Test
 	public void shouldResolveTopLevelTypeFromSourceType() throws JavaModelException, CoreException {
-
+		// preconditions
 		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
 				javaProject, progressMonitor);
 		Assert.assertNotNull("ResourceType not found", resourceType);
-		Assert.assertNotNull("Type not found", JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit()));
+		// operation
+		final IType topLevelType = JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit());
+		// verification
+		Assert.assertNotNull("Type not found", topLevelType);
 	}
 
 	@Test
 	public void shouldNotResolveTopLevelTypeOnBinaryType() throws JavaModelException, CoreException {
-
+		// preconditions
 		IType resourceType = JdtUtils.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider",
 				javaProject, progressMonitor);
 		Assert.assertNotNull("ResourceType not found", resourceType);
-		Assert.assertNull("Type not found", JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit()));
+		// operation
+		final IType topLevelType = JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit());
+		// verification
+		Assert.assertNull("Type not found", topLevelType);
 	}
 
 	@Test
 	public void shouldGetTopLevelTypeOKNoneInSourceType() throws JavaModelException, CoreException {
+		// preconditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "Empty.txt",
 				"org.jboss.tools.ws.jaxrs.sample", "PersistenceExceptionMapper.java", bundle);
 		Assert.assertNotNull("Resource not found", compilationUnit);
-		Assert.assertNull("Type not expected", JdtUtils.resolveTopLevelType(compilationUnit));
+		// operation
+		final IType topLevelType = JdtUtils.resolveTopLevelType(compilationUnit);
+		// verification
+		Assert.assertNull("Type not expected", topLevelType);
 	}
 
 	@Test
 	public void shouldResolveTopLevelTypeOnSourceWithMultipleTypes() throws JavaModelException, CoreException {
+		// preconditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "Multi.txt",
 				"org.jboss.tools.ws.jaxrs.sample", "PersistenceExceptionMapper.java", bundle);
 		Assert.assertNotNull("Resource not found", compilationUnit);
-		Assert.assertNotNull("Type not found", JdtUtils.resolveTopLevelType(compilationUnit));
+		// operation
+		final IType topLevelType = JdtUtils.resolveTopLevelType(compilationUnit);
+		// verification
+		Assert.assertNotNull("Type not found", topLevelType);
 	}
 
 	@Test
 	public void shouldReturnTrueOnTopLevelTypeDetection() throws JavaModelException, CoreException {
+		// preconditions
 
 		IType resourceType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
 				javaProject, progressMonitor);
 		Assert.assertNotNull("ResourceType not found", resourceType);
-		Assert.assertTrue("Wrong result", JdtUtils.isTopLevelType(resourceType));
+		// operation
+		final boolean isTopLevelType = JdtUtils.isTopLevelType(resourceType);
+		// verification
+		Assert.assertTrue("Wrong result", isTopLevelType);
 	}
 
 	@Test
 	public void shouldGetCompiltationUnitFromType() throws CoreException {
+		// preconditions
 		IResource resource = project
 				.findMember("src/main/java/org/jboss/tools/ws/jaxrs/sample/services/BookResource.java");
 		Assert.assertNotNull("Resource not found", resource);
-		Assert.assertNotNull("CompilationUnit not found", JdtUtils.getCompilationUnit(resource));
+		// operation
+		final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(resource);
+		// verification
+		Assert.assertNotNull("CompilationUnit not found", compilationUnit);
 	}
 
 	@Test
 	public void shouldGetCompiltationUnitFromProject() {
+		// preconditions
 		IResource resource = project.findMember("src/main/resources/log4j.xml");
 		Assert.assertNotNull("Resource not found", resource);
-		Assert.assertNull("CompilationUnit not expected", JdtUtils.getCompilationUnit(resource));
+		// operation
+		final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(resource);
+		// verification
+		Assert.assertNull("CompilationUnit not expected", compilationUnit);
 	}
 
 	@Test
 	public void shoudNotParseNullMember() throws CoreException {
-		Assert.assertNull(JdtUtils.parse((IMember) null, progressMonitor));
+		// preconditions
+		// operation
+		final CompilationUnit compilationUnit = JdtUtils.parse((IMember) null, progressMonitor);
+		// verifications
+		Assert.assertNull(compilationUnit);
 	}
 
 	@Test
@@ -445,6 +540,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 
 	@Test
 	public void shouldResolveJavaMethodSignatures() throws CoreException {
+		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
 		final List<JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type,
@@ -471,6 +567,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	
 	@Test
 	public void shouldResolveJavaMethodSignaturesForParameterizedType() throws CoreException {
+		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ParameterizedResource");
 		// operation
 		final List<JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type,
@@ -481,6 +578,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	
 	@Test
 	public void shouldResolveJavaMethodSignature() throws CoreException {
+		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = getMethod(type, "getCustomers");
 		// operation
@@ -504,6 +602,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 
 	@Test
 	public void shouldConfirmSuperType() throws CoreException {
+		// preconditions
 		final IType bookType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final IType objectType = getType(Object.class.getName());
 		assertThat(JdtUtils.isTypeOrSuperType(objectType, bookType), is(true));
@@ -511,6 +610,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 
 	@Test
 	public void shouldConfirmSuperTypeWhenSameType() throws CoreException {
+		// preconditions
 		final IType subType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final IType superType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		assertThat(JdtUtils.isTypeOrSuperType(superType, subType), is(true));
@@ -518,6 +618,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 
 	@Test
 	public void shouldNotConfirmSuperType() throws CoreException {
+		// preconditions
 		final IType bookType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final IType objectType = getType(RESPONSE.qualifiedName);
 		assertThat(JdtUtils.isTypeOrSuperType(objectType, bookType), is(false));

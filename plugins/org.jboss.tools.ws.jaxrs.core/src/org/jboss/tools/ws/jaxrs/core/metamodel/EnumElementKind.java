@@ -20,6 +20,8 @@ public enum EnumElementKind {
 	 * UNDEFINED KIND (when no annotation nor any other java element can define precisely what the element is.
 	 */
 	UNDEFINED,
+	/** JAX-RS Project. */
+	METAMODEL,
 	/** A JAX-RS Application declared in the web deployment descriptor.*/
 	// must be declared *before* APPLICATION_JAVA constant to enable comparison ! 
 	APPLICATION_WEBXML,
@@ -50,5 +52,5 @@ public enum EnumElementKind {
 	/** QueryParam field. */
 	QUERY_PARAM_FIELD,
 	/** MatrixParam field. */
-	MATRIX_PARAM_FIELD;
+	MATRIX_PARAM_FIELD; 
 }

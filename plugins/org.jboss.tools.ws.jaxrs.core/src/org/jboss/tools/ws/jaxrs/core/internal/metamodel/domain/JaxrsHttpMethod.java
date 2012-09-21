@@ -195,7 +195,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * ()
 	 */
 	@Override
-	public String getFullyQualifiedName() {
+	public String getJavaClassName() {
 		return getJavaElement().getFullyQualifiedName();
 	}
 
@@ -206,7 +206,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 */
 	@Override
 	public final String toString() {
-		return "HttpMethod [@" + getFullyQualifiedName() + ":" + getHttpMethodAnnotation() + "]";
+		return "HttpMethod [@" + getJavaClassName() + ":" + getHttpMethodAnnotation() + "]";
 	}
 
 	@Override

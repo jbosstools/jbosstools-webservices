@@ -13,15 +13,25 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * @author Alexey Kazakov
+ * JAX-RS Validation messages.
+ * 
+ * @author Xavier Coulon
  */
 public class JaxrsValidationMessages {
 
 	private static final String BUNDLE_NAME = JaxrsValidationMessages.class.getName(); //$NON-NLS-1$
 
+
+
+
 	public static String SEARCHING_RESOURCES;
 	public static String VALIDATING_RESOURCE;
 	public static String VALIDATING_PROJECT;
+
+	public static String APPLICATION_NO_OCCURRENCE_FOUND;
+	public static String APPLICATION_TOO_MANY_OCCURRENCES;
+	public static String JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION;
+	public static String JAVA_APPLICATION_INVALID_TYPE_HIERARCHY;
 
 	public static String HTTP_METHOD_MISSING_RETENTION_ANNOTATION;
 	public static String HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE;
@@ -35,8 +45,6 @@ public class JaxrsValidationMessages {
 	public static String RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE;
 	public static String RESOURCE_METHOD_NO_PUBLIC_MODIFIER;
 
-	public static String APPLICATION_NO_OCCURRENCE_FOUND;
-	public static String APPLICATION_TOO_MANY_OCCURRENCES;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JaxrsValidationMessages.class);

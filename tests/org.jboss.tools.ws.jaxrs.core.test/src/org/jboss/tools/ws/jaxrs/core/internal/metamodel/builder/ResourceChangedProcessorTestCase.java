@@ -17,6 +17,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
@@ -62,6 +63,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
@@ -105,9 +107,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	private JaxrsJavaApplication createApplication(IType type) throws JavaModelException {
-		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		return new JaxrsJavaApplication(type, annotation, metamodel);
+	private JaxrsJavaApplication createJavaApplication(IType type) throws JavaModelException {
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		return new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 	}
 
 	/**
@@ -117,9 +119,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	private JaxrsJavaApplication createApplication(IType type, String applicationPath) throws JavaModelException {
-		final Annotation annotation = changeAnnotation(type, APPLICATION_PATH.qualifiedName, applicationPath);
-		return new JaxrsJavaApplication(type, annotation, metamodel);
+	private JaxrsJavaApplication createJavaApplication(IType type, String applicationPath) throws JavaModelException {
+		final Annotation appPathAnnotation = changeAnnotation(type, APPLICATION_PATH.qualifiedName, applicationPath);
+		return new JaxrsJavaApplication(type, appPathAnnotation, true, metamodel);
 	}
 
 	/**
@@ -129,8 +131,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	private JaxrsWebxmlApplication createApplication(String applicationPath) throws JavaModelException {
-		return new JaxrsWebxmlApplication(applicationPath, null, metamodel);
+	private JaxrsWebxmlApplication createWebxmlApplication(final String applicationClassName, final String applicationPath) throws JavaModelException {
+		final IResource webDeploymentDescriptor = WtpUtils.getWebDeploymentDescriptor(project);
+		return new JaxrsWebxmlApplication(applicationClassName, applicationPath, webDeploymentDescriptor, metamodel);
 	}
 
 	/**
@@ -281,7 +284,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldAddApplicationWhenChangingResource() throws CoreException {
+	public void shouldAddJavaApplicationWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
@@ -299,11 +302,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldChangeApplicationWhenChangingResource() throws CoreException {
+	public void shouldChangeJavaApplicationWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		metamodel.add(createApplication(type, "/bar"));
+		metamodel.add(createJavaApplication(type, "/bar"));
 		// operation
 		final ResourceDelta event = createEvent(type.getResource(), CHANGED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
@@ -317,11 +320,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldRemoveApplicationWhenChangingResource() throws CoreException {
+	public void shouldChangeJavaApplicationWhenRemovingAnnotation() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		metamodel.add(createApplication(type));
+		metamodel.add(createJavaApplication(type));
 		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
 		// operation
 		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
@@ -329,20 +332,37 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((IJaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsHttpMethod.class));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), nullValue());
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
 	@Test
-	public void shouldRemoveApplicationWhenRemovingCompilationUnit() throws CoreException {
+	public void shouldChangeJavaApplicationWhenRemovingSupertype() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		metamodel.add(createJavaApplication(type));
+		// operation
+		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Application", "", false);
+		final ResourceDelta event = createEvent(type.getResource(), CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+
+	@Test
+	public void shouldRemoveJavaApplicationWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
 		// JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final JaxrsJavaApplication application = createApplication(type);
+		final JaxrsJavaApplication application = createJavaApplication(type);
 		metamodel.add(application);
 		// operation
 		final ResourceDelta event = createEvent(type.getResource(), REMOVED);
@@ -356,7 +376,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldRemoveApplicationWhenRemovingSourceType() throws CoreException {
+	public void shouldRemoveJavaApplicationWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
@@ -376,11 +396,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldRemoveApplicationWhenRemovingSourceFolder() throws CoreException {
+	public void shouldRemoveJavaApplicationWhenRemovingSourceFolder() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final JaxrsJavaApplication application = createApplication(type);
+		final JaxrsJavaApplication application = createJavaApplication(type);
 		metamodel.add(application);
 		final IPackageFragmentRoot sourceFolder = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
 				progressMonitor);
@@ -396,10 +416,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldAddApplicationWhenAddingWebxml() throws Exception {
+	public void shouldAddWebxmlApplicationWhenAddingWebxml() throws Exception {
 		// pre-conditions
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
-				"web-3_0-with-servlet-mapping.xml", bundle);
+				"web-3_0-with-default-servlet-mapping.xml", bundle);
 		// operation
 		final ResourceDelta event = createEvent(webxmlResource, ADDED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
@@ -413,7 +433,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldNotAddApplicationWhenAddingEmptyWebxml() throws Exception {
+	public void shouldNotAddWebxmlApplicationWhenAddingEmptyWebxml() throws Exception {
 		// pre-conditions
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
 				"web-3_0-without-servlet-mapping.xml", bundle);
@@ -426,16 +446,16 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldAddApplicationWhenChangingWebxml() throws Exception {
+	public void shouldAddWebxmlApplicationWhenChangingWebxml() throws Exception {
 		// pre-conditions
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
-				"web-3_0-with-servlet-mapping.xml", bundle);
+				"web-3_0-with-default-servlet-mapping.xml", bundle);
 		// operation
 		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
@@ -443,14 +463,152 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldOverrideApplicationWhenChangingWebxml() throws Exception {
+	public void shouldOverrideJavaApplicationWhenAddingCustomServletMapping() throws Exception {
+		// in this test, the java-application exists first, and then a web.xml application is added -> it should immediately override the java-one
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
-		final JaxrsJavaApplication application = createApplication(type);
+		final JaxrsJavaApplication application = createJavaApplication(type);
 		metamodel.add(application);
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
-				"web-3_0-with-servlet-mapping.xml", bundle);
+				"web-3_0-with-custom-servlet-mapping.xml", bundle);
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, ADDED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications: the JAVA Application is the sole element to be really changed
+		assertThat(affectedElements.size(), equalTo(2));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) affectedElements.get(0).getElement();
+		assertThat(webxmlApplication.getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
+
+		assertThat(affectedElements.get(1).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		assertThat(affectedElements.get(1).getDeltaKind(), equalTo(CHANGED));
+		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication)affectedElements.get(1).getElement();
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)javaApplication)); // custom web.xml override DOES NOT precede the java based JAX-RS Application element
+		assertThat(javaApplication.getApplicationPath(), equalTo("/hello")); // Java-based application configuration should not be changed
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (java) + new one (web.xml)
+		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
+	}
+
+	/**
+	 *  in this test, the webxml exists first, and then an annotated Java Application is added -> it should be immediately overriden
+	 */
+	@Test
+	public void shouldOverrideJavaApplicationWhenAddingAnnotatedJavaApplication() throws Exception {
+		// precondition
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		metamodel.add(webxmlApplication);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		// operation
+		final ResourceDelta event = createEvent(type.getResource(), ADDED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications: the JAVA Application is the sole element to be really changed
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) affectedElements.get(0).getElement();
+		assertThat(javaApplication.getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(javaApplication.getApplicationPath(), equalTo("/hello"));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (web.xml) + new one (java)
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
+	}
+
+	/**
+	 * in this test, the webxml exists first, and then a NOT annotated Java Application is added -> it should be
+	 * immediately overriden
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void shouldOverrideJavaApplicationWhenAddingUnannotatedJavaApplication() throws Exception {
+		// precondition
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		metamodel.add(webxmlApplication);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type.getCompilationUnit(), "@ApplicationPath(\"/app\")", "", false);
+		// operation
+		final ResourceDelta event = createEvent(type.getResource(), ADDED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications: the JAVA Application is the sole element to be really changed
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) affectedElements.get(0).getElement();
+		assertThat(javaApplication.getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(javaApplication.getApplicationPath(), equalTo("/hello"));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (web.xml) + new one (java)
+		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
+	}
+
+	/**
+	 * In this test, the java application path override should be removed when the web.xml application is removed from the web.xml file
+	 * @throws Exception
+	 */
+	@Test
+	public void shouldUnoverrideAnnotatedJavaApplicationWhenRemovingCustomWebxml() throws Exception {
+		// precondition
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		metamodel.add(webxmlApplication);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsJavaApplication javaApplication = createJavaApplication(type);
+		metamodel.add(javaApplication);
+		assertThat(javaApplication.isOverriden(), equalTo(true));
+		// operation
+		final ResourceDelta event = createEvent(webxmlApplication.getResource(), REMOVED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(2));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		assertThat(affectedElements.get(1).getDeltaKind(), equalTo(CHANGED));
+		assertThat(affectedElements.get(1).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		final JaxrsJavaApplication application = (JaxrsJavaApplication) affectedElements.get(1).getElement();
+		assertThat(application.getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(application.getApplicationPath(), equalTo("/app"));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1)); // one (java)
+	}
+	
+	@Test
+	public void shouldUnoverrideUnannotatedJavaApplicationWhenRemovingCustomWebxml() throws Exception {
+		// precondition
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		metamodel.add(webxmlApplication);
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type.getCompilationUnit(), "@ApplicationPath(\"/app\")", "", false);
+		final JaxrsJavaApplication javaApplication = createJavaApplication(type);
+		metamodel.add(javaApplication);
+		assertThat(javaApplication.isOverriden(), equalTo(true));
+		// operation
+		final ResourceDelta event = createEvent(webxmlApplication.getResource(), REMOVED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(2));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		assertThat(affectedElements.get(1).getDeltaKind(), equalTo(CHANGED));
+		assertThat(affectedElements.get(1).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		final JaxrsJavaApplication application = (JaxrsJavaApplication) affectedElements.get(1).getElement();
+		assertThat(application.getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(application.getApplicationPath(), nullValue());
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1)); // one (java)
+	}
+	
+	
+	@Test
+	public void shouldNotOverrideJavaApplicationWhenAddingDefaultServletMapping() throws Exception {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsJavaApplication application = createJavaApplication(type);
+		metamodel.add(application);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-default-servlet-mapping.xml", bundle);
 		// operation
 		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
@@ -463,25 +621,108 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (java) + new one (web.xml)
 		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)webxmlApplication)); // web.xml based application precedes any other java based JAX-RS Application element
-		
+		assertThat(metamodel.getJavaApplications().get(0).getApplicationPath(), equalTo("/app")); // Java-based application configuration should not be changed
 	}
-
+	
+	/**
+	 * In this test, the existing Java Application is not modified when adding a web.xml with default application configuration, 
+	 * but the resulting webxmlApplication becomes the primary one in the metamodel
+	 * @throws Exception
+	 */
 	@Test
-	public void shouldChangeApplicationWhenChangingWebxml() throws Exception {
+	public void shouldPreceedJavaApplicationWhenAddingDefaultWebxmlMapping() throws Exception {
+		// in this test, the java-application exists first, and then a web.xml application is added -> it should immediately override the java-one
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsJavaApplication javaApplication = createJavaApplication(type);
+		metamodel.add(javaApplication);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-default-servlet-mapping.xml", bundle);
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, ADDED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) affectedElements.get(0).getElement();
+		assertThat(webxmlApplication.getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
+		assertThat(javaApplication.getApplicationPath(), equalTo("/app")); // Java-based application configuration should not be changed
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (java) + new one (web.xml)
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)webxmlApplication)); // old application (java) + new one (web.xml)
+		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
+	}
+	
+	@Test
+	public void shouldRestoreJavaApplicationWhenRemovingDefaultWebxmlMapping() throws Exception {
+		// in this test, the java-application exists first, and then a web.xml application is added -> it should immediately override the java-one
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final JaxrsJavaApplication javaApplication = createJavaApplication(type);
+		metamodel.add(javaApplication);
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
+		metamodel.add(webxmlApplication);
+		// operation
+		final ResourceDelta event = createEvent(webxmlApplication.getResource(), REMOVED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		assertThat(javaApplication.getApplicationPath(), equalTo("/app")); // Java-based application configuration should not be changed
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1)); // java application
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)javaApplication)); // old application (java) + new one (web.xml)
+		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
+	}
+	
+	/**
+	 * In this test, the webxml application is changed when the application path is changed, too.
+	 * @throws Exception
+	 */
+	@Test
+	public void shouldReplaceWebxmlApplicationWhenChangingApplicationClassName() throws Exception {
 		// pre-conditions
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
-				"web-3_0-with-servlet-mapping.xml", bundle);
-		metamodel.add(createApplication("/foo"));
+				"web-3_0-with-default-servlet-mapping.xml", bundle);
+		metamodel.add(createWebxmlApplication("bar.foo", "/foo"));
+		// operation
+		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(2));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(affectedElements.get(1).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(affectedElements.get(1).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		assertThat(affectedElements.get(1).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		verify(metamodel, times(2)).add(any(JaxrsWebxmlApplication.class)); // initial app added + new app added, too
+		verify(metamodel, times(1)).remove(any(JaxrsWebxmlApplication.class)); // initial app removed
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+	}
+	
+	/**
+	 * In this test, the webxml application is changed when the application path is changed, too.
+	 * @throws Exception
+	 */
+	@Test
+	public void shouldChangeWebxmlApplicationWhenChangingApplicationPathValue() throws Exception {
+		// pre-conditions
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+				"web-3_0-with-default-servlet-mapping.xml", bundle);
+		metamodel.add(createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/foo"));
 		// operation
 		// operation
 		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
 		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
-		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 	
@@ -503,9 +744,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldRemoveApplicationWhenChangingWebxml() throws Exception {
+	public void shouldRemoveWebxmlApplicationWhenChangingWebxml() throws Exception {
 		// pre-conditions
-		metamodel.add(createApplication("/hello"));
+		metamodel.add(createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello"));
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
 				"web-3_0-without-servlet-mapping.xml", bundle);
 		// operation
@@ -521,13 +762,13 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldRemoveApplicationWhenRemovingWebxml() throws Exception {
+	public void shouldRemoveWebxmlApplicationWhenRemovingWebxml() throws Exception {
 		// pre-conditions
 		// JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
-		final JaxrsWebxmlApplication application = createApplication("/hello");
+		final JaxrsWebxmlApplication application = createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
 		metamodel.add(application);
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
-				"web-3_0-with-servlet-mapping.xml", bundle);
+				"web-3_0-with-default-servlet-mapping.xml", bundle);
 		// operation
 		webxmlResource.delete(true, progressMonitor);
 		final ResourceDelta event = createEvent(webxmlResource, REMOVED);
@@ -542,11 +783,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 
 	@Test
 	@Ignore()
-	public void shouldRemoveApplicationWhenRemovingWebInfFolder() throws Exception {
+	public void shouldRemoveWebxmlApplicationWhenRemovingWebInfFolder() throws Exception {
 		// pre-conditions
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
 				"web-3_0-with-servlet-mapping.xml", bundle);
-		final JaxrsWebxmlApplication application = createApplication("/hello");
+		final JaxrsWebxmlApplication application = createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
 		metamodel.add(application);
 		
 		// operation
