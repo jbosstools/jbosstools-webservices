@@ -103,7 +103,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		try {
 			if (!changedFiles.isEmpty()) {
 				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
-				final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, (IResource[]) changedFiles.toArray());
+				final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, (IResource[]) changedFiles.toArray(new IResource[0]));
 				for (IResource changedResource : allResources) {
 					validate(reporter, changedResource, jaxrsMetamodel);
 				}
