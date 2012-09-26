@@ -10,7 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import org.eclipse.core.resources.IResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 
 public abstract class JaxrsBaseElement implements IJaxrsElement {
