@@ -49,7 +49,7 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 		if (!application.isOverriden() && applicationPathAnnotation == null) {
 			addProblem(JaxrsValidationMessages.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION,
 					JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, new String[0],
-					appJavaElement.getSourceRange().getLength(), appJavaElement.getSourceRange().getOffset(),
+					appJavaElement.getNameRange().getLength(), appJavaElement.getNameRange().getOffset(),
 					application.getResource(),
 					JaxrsValidationQuickFixes.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_ID);
 		}
