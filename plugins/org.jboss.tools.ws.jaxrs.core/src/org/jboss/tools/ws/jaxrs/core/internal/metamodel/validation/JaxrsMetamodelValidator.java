@@ -28,12 +28,15 @@ import org.eclipse.wst.validation.internal.provisional.core.IValidationContext;
 import org.jboss.tools.common.validation.ContextValidationHelper;
 import org.jboss.tools.common.validation.EditorValidationContext;
 import org.jboss.tools.common.validation.IAsYouTypeValidator;
+import org.jboss.tools.common.validation.IPreferenceInfo;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.IValidatingProjectTree;
 import org.jboss.tools.common.validation.IValidator;
+import org.jboss.tools.common.validation.PreferenceInfoManager;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.SimpleValidatingProjectTree;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
@@ -55,6 +58,10 @@ import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
  */
 @SuppressWarnings("restriction")
 public class JaxrsMetamodelValidator extends TempMarkerManager implements IValidator, IAsYouTypeValidator {
+
+	private static final String PREFERENCE_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui";
+
+	private static final String PROPERTY_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui";
 
 	/** The JAX-RS Validator ID. */
 	public static final String ID = "org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"; //$NON-NLS-1$
@@ -103,7 +110,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		try {
 			if (!changedFiles.isEmpty()) {
 				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
-				final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, (IResource[]) changedFiles.toArray(new IResource[0]));
+				final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, changedFiles.toArray(new IFile[changedFiles.size()]));
 				for (IResource changedResource : allResources) {
 					validate(reporter, changedResource, jaxrsMetamodel);
 				}
@@ -125,7 +132,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 * @param objects
 	 * @return
 	 */
-	private Set<IResource> completeValidationSet(JaxrsMetamodel jaxrsMetamodel, final IResource... changedResources) {
+	private Set<IResource> completeValidationSet(JaxrsMetamodel jaxrsMetamodel, final IFile... changedResources) {
 		final Set<IResource> resources = new HashSet<IResource>();
 		for(IResource changedResource : changedResources) {
 			resources.add(changedResource);
@@ -267,7 +274,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 
 	@Override
 	protected String getPreferencePageId() {
-		return "org.jboss.tools.ws.jaxrs.ui";
+		return PREFERENCE_PAGE_ID;
 	}
 
 	@Override
@@ -297,7 +304,27 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 
 	@Override
 	protected void registerPreferenceInfo() {
-		// TODO Auto-generated method stub
+		if(PreferenceInfoManager.getPreferenceInfo(JAXRS_PROBLEM_TYPE) == null){
+			PreferenceInfoManager.register(JAXRS_PROBLEM_TYPE, new JaxrsPreferenceInfo());
+		}
+	}
+	
+	class JaxrsPreferenceInfo implements IPreferenceInfo{
+
+		@Override
+		public String getPreferencePageId() {
+			return PREFERENCE_PAGE_ID;
+		}
+
+		@Override
+		public String getPropertyPageId() {
+			return PROPERTY_PAGE_ID;
+		}
+
+		@Override
+		public String getPluginId() {
+			return JBossJaxrsCorePlugin.PLUGIN_ID;
+		}
 		
 	}
 
