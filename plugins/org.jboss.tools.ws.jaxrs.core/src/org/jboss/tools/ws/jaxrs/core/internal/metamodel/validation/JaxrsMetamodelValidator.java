@@ -295,4 +295,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		return new SimpleValidatingProjectTree(project);
 	}
 
+	@Override
+	protected void registerPreferenceInfo() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
