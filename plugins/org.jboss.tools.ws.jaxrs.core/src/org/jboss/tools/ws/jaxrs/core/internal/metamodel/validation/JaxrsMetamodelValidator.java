@@ -272,12 +272,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		return JaxrsPreferences.getInstance().getProjectPreference(project, preferenceKey);
 	}
 
-	@Override
-	protected String getPreferencePageId() {
-		return PREFERENCE_PAGE_ID;
-	}
-
-	@Override
 	public int getMaxNumberOfMarkersPerFile(IProject project) {
 		return JaxrsPreferences.getMaxNumberOfProblemMarkersPerFile(project);
 	}
