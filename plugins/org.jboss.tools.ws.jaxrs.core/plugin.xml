@@ -94,7 +94,8 @@
       <validator
             class="org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator"
             id="org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"
-            name="%VALIDATOR_NAME">
+            name="%VALIDATOR_NAME"
+            problemType="org.jboss.tools.ws.jaxrs.metamodelMarker">
       </validator>
    </extension>
    

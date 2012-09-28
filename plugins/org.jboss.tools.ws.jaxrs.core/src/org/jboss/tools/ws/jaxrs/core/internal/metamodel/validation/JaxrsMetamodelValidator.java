@@ -277,11 +277,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	}
 
 	@Override
-	public String getMarkerType() {
-		return JAXRS_PROBLEM_TYPE;
-	}
-
-	@Override
 	public String getId() {
 		return ID;
 	}
@@ -297,10 +292,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	}
 
 	@Override
-	protected void registerPreferenceInfo() {
-		if(PreferenceInfoManager.getPreferenceInfo(JAXRS_PROBLEM_TYPE) == null){
-			PreferenceInfoManager.register(JAXRS_PROBLEM_TYPE, new JaxrsPreferenceInfo());
-		}
+	public void registerPreferenceInfo() {
+		PreferenceInfoManager.register(getProblemType(), new JaxrsPreferenceInfo());
 	}
 	
 	class JaxrsPreferenceInfo implements IPreferenceInfo{
