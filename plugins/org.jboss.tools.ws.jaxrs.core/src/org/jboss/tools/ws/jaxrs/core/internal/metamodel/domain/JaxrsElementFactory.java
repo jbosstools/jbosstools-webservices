@@ -142,11 +142,14 @@ public class JaxrsElementFactory {
 	 *            the AST associated to the java type
 	 * @param metamodel
 	 *            the current metamodel, in which the JAX-RS Resource should be added
-	 * @return the created resource
+	 * @return the created resource, or null if the java type did not exist.
 	 * @throws CoreException
 	 */
 	public JaxrsResource createResource(IType javaType, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws CoreException {
+		if(!javaType.exists()) {
+			return null;
+		}
 		// create the resource:
 		final JaxrsResource resource = internalCreateResource(javaType, ast, metamodel);
 		// find the resource methods, subresource methods and subresource
@@ -207,7 +210,9 @@ public class JaxrsElementFactory {
 	 */
 	public JaxrsResourceMethod createResourceMethod(IMethod method, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws CoreException {
-
+		if(!method.exists()) {
+			return null;
+		}
 		final IType parentType = (IType) method.getParent();
 		JaxrsResource parentResource = (JaxrsResource) metamodel.getElement(parentType);
 		if (parentResource == null) {
@@ -272,6 +277,9 @@ public class JaxrsElementFactory {
 	 */
 	public JaxrsHttpMethod createHttpMethod(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
+		if(!javaType.exists()) {
+			return null;
+		}
 		Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, HTTP_METHOD.qualifiedName, TARGET.qualifiedName, RETENTION.qualifiedName);
 		if (annotations == null || annotations.isEmpty()) {
 			return null;
@@ -312,6 +320,9 @@ public class JaxrsElementFactory {
 	 */
 	public JaxrsJavaApplication createApplication(final IType javaType, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
+		if(!javaType.exists()) {
+			return null;
+		}
 		Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, ast, APPLICATION_PATH.qualifiedName);
 		return createApplication(javaType, applicationPathAnnotation, metamodel);
 	}
@@ -349,6 +360,9 @@ public class JaxrsElementFactory {
 	 */
 	private JaxrsJavaApplication createApplication(final IType applicationType, final Annotation appPathAnnotation, 
 			final JaxrsMetamodel metamodel) throws CoreException {
+		if(!applicationType.exists()) {
+			return null;
+		}
 		final IType applicationSupertype = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName, applicationType.getJavaProject(), new NullProgressMonitor());
 		final boolean isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, applicationType);
 		if(isApplicationSubclass || appPathAnnotation != null) {
@@ -376,6 +390,9 @@ public class JaxrsElementFactory {
 
 	public JaxrsResourceField createField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel)
 			throws JavaModelException {
+		if(!javaField.exists()) {
+			return null;
+		}
 		final IType parentType = (IType) javaField.getParent();
 		IJaxrsElement parentResource = metamodel.getElement(parentType);
 		if (parentResource == null) {
@@ -423,7 +440,9 @@ public class JaxrsElementFactory {
 	 * @return a representation of the given provider or null in case of invalid type (ie, not a valid JAX-RS Provider)
 	 */
 	public JaxrsProvider createProvider(final IType javaType, final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor ) throws CoreException {
-
+		if(!javaType.exists()) {
+			return null;
+		}
 		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, PROVIDER.qualifiedName,
 				CONSUMES.qualifiedName, PRODUCES.qualifiedName);
 		// assert that given java type is not abstract 

@@ -106,7 +106,8 @@ public class JavaElementDeltaScanner {
 			// compilationUnitAST is null when the given compilation unit'w
 			// working copy is being commited (ie, Java Editor is being closed
 			// for the given compilation unit, etc.)
-			if (compilationUnit.isWorkingCopy() && compilationUnitAST != null) {
+			if (compilationUnit.exists() // see https://issues.jboss.org/browse/JBIDE-12760: compilationUnit may not exist
+					&& compilationUnit.isWorkingCopy() && compilationUnitAST != null) {
 				// Looking for changes in the method signatures (return type,
 				// param types and param annotations). Other changes in methods
 				// (renaming, adding/removing params) result in add+remove
