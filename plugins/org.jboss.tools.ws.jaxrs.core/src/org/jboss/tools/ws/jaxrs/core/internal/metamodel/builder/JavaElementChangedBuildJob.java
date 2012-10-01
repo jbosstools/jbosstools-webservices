@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -36,6 +37,10 @@ public class JavaElementChangedBuildJob extends Job {
 		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
 		Logger.debug("Initiating an incremental JAX-RS Metamodel build after " + event); //$NON-NLS-1$
+	}
+	
+	public void execute() {
+		run(new NullProgressMonitor());
 	}
 	
 	@Override
