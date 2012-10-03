@@ -71,6 +71,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 
 	private static final String BUNDLE_NAME = JaxrsMetamodelValidator.class.getPackage().getName() + ".messages";
 
+	public JaxrsMetamodelValidator() {
+		super.setProblemType(JAXRS_PROBLEM_TYPE);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.jboss.tools.jst.web.kb.validation.IValidator#isEnabled(org.eclipse.core.resources.IProject)
