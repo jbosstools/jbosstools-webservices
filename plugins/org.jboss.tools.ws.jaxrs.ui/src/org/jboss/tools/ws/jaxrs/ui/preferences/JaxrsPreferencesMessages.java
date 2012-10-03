@@ -33,6 +33,8 @@ public class JaxrsPreferencesMessages extends NLS {
 	public static String JaxrsValidatorConfigurationBlock_section_applications ;
 	public static String JaxrsValidatorConfigurationBlock_pb_applicationNoOccurrenceFound_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_applicationTooManyOccurrencesFound_label;
+	public static String JaxrsValidatorConfigurationBlock_pb_applicationMissingApplicationPathAnnotation_label;
+	public static String JaxrsValidatorConfigurationBlock_pb_applicationInvalidTypeHierarchy_label;
 
 	// Section HTTP Method
 	public static String JaxrsValidatorConfigurationBlock_section_httpMethods;

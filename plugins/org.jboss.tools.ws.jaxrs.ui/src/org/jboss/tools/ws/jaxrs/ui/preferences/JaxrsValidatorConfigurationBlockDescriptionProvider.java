@@ -38,7 +38,9 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 		JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_applications,
 		new String[][]{
 			{JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationNoOccurrenceFound_label},
-			{JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationTooManyOccurrencesFound_label}
+			{JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationTooManyOccurrencesFound_label},
+			{JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationMissingApplicationPathAnnotation_label},
+			{JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationInvalidTypeHierarchy_label}
 		},
 		JBossJaxrsCorePlugin.PLUGIN_ID
 	);
