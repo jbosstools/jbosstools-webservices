@@ -13,8 +13,14 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 import static org.hamcrest.Matchers.equalTo;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.hasPreferenceKey;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_MISSING_TARGET_ANNOTATION;
 import static org.junit.Assert.assertThat;
 
 import java.util.HashSet;
@@ -63,13 +69,13 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		// preconditions
 		final IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
 		final JaxrsBaseElement httpMethod = (JaxrsBaseElement) metamodel.getElement(fooType);
-		assertThat(MarkerUtils.findJaxrsMarkers(httpMethod).length, equalTo(0));
-		MarkerUtils.deleteJaxrsMarkers(httpMethod);
+		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
+		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		assertThat(MarkerUtils.findJaxrsMarkers(httpMethod).length, equalTo(0));
+		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
 	}
 
 	@Test
@@ -79,13 +85,14 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation httpAnnotation = changeAnnotation(fooType, HTTP_METHOD.qualifiedName, new String[0]);
 		httpMethod.addOrUpdateAnnotation(httpAnnotation);
-		MarkerUtils.deleteJaxrsMarkers(httpMethod);
+		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		final IMarker[] markers = MarkerUtils.findJaxrsMarkers(httpMethod);
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE));
 	}
 
 	@Test
@@ -95,12 +102,14 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation httpAnnotation = changeAnnotation(fooType, HTTP_METHOD.qualifiedName, (String) null);
 		httpMethod.addOrUpdateAnnotation(httpAnnotation);
-		MarkerUtils.deleteJaxrsMarkers(httpMethod);
+		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		assertThat(MarkerUtils.findJaxrsMarkers(httpMethod).length, equalTo(1));
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE));
 	}
 
 	@Test
@@ -110,12 +119,14 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation targetAnnotation = getAnnotation(fooType, TARGET.qualifiedName);
 		httpMethod.removeAnnotation(targetAnnotation);
-		MarkerUtils.deleteJaxrsMarkers(httpMethod);
+		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		assertThat(MarkerUtils.findJaxrsMarkers(httpMethod).length, equalTo(1));
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_TARGET_ANNOTATION));
 	}
 
 	@Test
@@ -126,13 +137,14 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation targetAnnotation = changeAnnotation(fooType, TARGET.qualifiedName, (String) null);
 		httpMethod.addOrUpdateAnnotation(targetAnnotation);
-		MarkerUtils.deleteJaxrsMarkers(httpMethod);
+		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		assertThat(MarkerUtils.findJaxrsMarkers(httpMethod).length, equalTo(1));
-
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE));
 	}
 
 	@Test
@@ -143,12 +155,14 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation targetAnnotation = changeAnnotation(fooType, TARGET.qualifiedName, "FOO");
 		httpMethod.addOrUpdateAnnotation(targetAnnotation);
-		MarkerUtils.deleteJaxrsMarkers(httpMethod);
+		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		assertThat(MarkerUtils.findJaxrsMarkers(httpMethod).length, equalTo(1));
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE));
 	}
 
 }

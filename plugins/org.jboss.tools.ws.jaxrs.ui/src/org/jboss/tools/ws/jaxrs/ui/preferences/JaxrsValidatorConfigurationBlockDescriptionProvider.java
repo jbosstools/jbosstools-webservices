@@ -47,6 +47,7 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 	private SectionDescription SECTION_HTTP_METHODS = new SectionDescription(
 			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_httpMethods,
 			new String[][]{
+					{JaxrsPreferences.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_httpMethodInvalidHttpMethodAnnotationValue_label},
 					{JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_httpMethodMissingRetentionAnnotation_label},
 					{JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_httpMethodInvalidRetentionAnnotationValue_label},
 					{JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_httpMethodMissingTargetAnnotation_label},

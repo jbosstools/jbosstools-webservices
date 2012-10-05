@@ -20,6 +20,7 @@ import org.eclipse.osgi.util.NLS;
 public class JaxrsPreferencesMessages extends NLS {
 	private static final String BUNDLE_NAME = "org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferencesMessages"; //$NON-NLS-1$
 
+
 	public static String JAXRS_SETTINGS_PREFERENCE_PAGE_JAXRS_SUPPORT;
 
 	// Validator Preference page
@@ -38,6 +39,7 @@ public class JaxrsPreferencesMessages extends NLS {
 
 	// Section HTTP Method
 	public static String JaxrsValidatorConfigurationBlock_section_httpMethods;
+	public static String JaxrsValidatorConfigurationBlock_pb_httpMethodInvalidHttpMethodAnnotationValue_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_httpMethodMissingRetentionAnnotation_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_httpMethodInvalidRetentionAnnotationValue_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_httpMethodMissingTargetAnnotation_label;

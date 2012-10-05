@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.quickfix.JaxrsValidationQuickFixes;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
@@ -36,7 +37,8 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	@Override
 	public void validate() throws CoreException {
 		final JaxrsHttpMethod httpMethod = getElement();
-		deleteJaxrsMarkers(httpMethod.getResource());
+		JaxrsMetamodelValidator.deleteJaxrsMarkers(httpMethod);
+		Logger.debug("Validating element {}", getElement());
 		if (!httpMethod.isBuiltIn()) {
 			validateHttpMethodAnnotation(httpMethod);
 			validateRetentionAnnotation(getElement());
@@ -55,8 +57,8 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 		if (annotation != null) { // if annotation is null, the resource is not a JaxrsHttpMethod anymore.
 			final String httpValue = annotation.getValue("value");
 			if (httpValue == null || httpValue.isEmpty()) {
-				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE,
-						JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, new String[0], annotation
+				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE,
+						JaxrsPreferences.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE, new String[0], annotation
 								.getSourceRange().getLength(), annotation.getSourceRange().getOffset(),
 						httpMethod.getResource());
 			}
