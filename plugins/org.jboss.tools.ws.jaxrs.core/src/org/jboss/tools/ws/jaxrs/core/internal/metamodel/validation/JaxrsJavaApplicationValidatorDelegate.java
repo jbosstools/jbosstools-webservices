@@ -41,7 +41,8 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 	@Override
 	public void validate() throws CoreException {
 		final JaxrsJavaApplication application = getElement();
-		deleteJaxrsMarkers(application.getResource());
+		JaxrsMetamodelValidator.deleteJaxrsMarkers(application);
+		Logger.debug("Validating element {}", getElement());
 		
 		final Annotation applicationPathAnnotation = application
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);

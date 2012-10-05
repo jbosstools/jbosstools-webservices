@@ -39,6 +39,7 @@ import org.jboss.tools.common.validation.internal.SimpleValidatingProjectTree;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -236,7 +237,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 */
 	@SuppressWarnings("incomplete-switch")
 	private void validate(IJaxrsElement element) throws CoreException {
-		Logger.debug("Validating element {}", element);
 		switch (element.getElementCategory()) {
 		case METAMODEL:
 			new JaxrsMetamodelValidatorDelegate(this, (JaxrsMetamodel)element).validate();
@@ -300,6 +300,21 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		PreferenceInfoManager.register(getProblemType(), new JaxrsPreferenceInfo());
 	}
 	
+	public static void deleteJaxrsMarkers(final JaxrsBaseElement element) throws CoreException {
+		if (element == null) {
+			return;
+		}
+		deleteJaxrsMarkers(element.getResource());
+	}
+
+	public static void deleteJaxrsMarkers(final IResource resource) throws CoreException {
+		if (resource == null) {
+			return;
+		}
+		Logger.debug("Clearing JAX-RS markers for resource " + resource.getName());
+		resource.deleteMarkers(JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
+	}
+
 	class JaxrsPreferenceInfo implements IPreferenceInfo{
 
 		@Override

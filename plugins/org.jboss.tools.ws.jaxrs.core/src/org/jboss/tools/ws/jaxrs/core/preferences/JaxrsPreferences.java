@@ -29,6 +29,9 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 	public static final String WARNING_GROUP_ID = "jaxrs";
 
 	// HTTP Method group
+	public static final String HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE = INSTANCE
+			.createSeverityOption("httpMethodInvalidHttpMethodAnnotationValue"); //$NON-NLS-1$
+
 	public static final String HTTP_METHOD_MISSING_RETENTION_ANNOTATION = INSTANCE
 			.createSeverityOption("httpMethodMissingRetentionAnnotation"); //$NON-NLS-1$
 	

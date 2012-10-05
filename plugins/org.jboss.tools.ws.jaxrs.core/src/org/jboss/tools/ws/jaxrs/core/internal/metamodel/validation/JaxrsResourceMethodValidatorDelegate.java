@@ -53,6 +53,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 
 	@Override
 	public void validate() {
+		Logger.debug("Validating element {}", getElement());
 		final JaxrsResourceMethod resourceMethod = getElement();
 		try {
 			resourceMethod.hasErrors(false);

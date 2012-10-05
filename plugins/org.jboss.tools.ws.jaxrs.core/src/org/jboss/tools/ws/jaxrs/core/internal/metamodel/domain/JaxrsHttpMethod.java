@@ -205,7 +205,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public final String toString() {
+	public String toString() {
 		return "HttpMethod [@" + getJavaClassName() + ":" + getHttpMethodAnnotation() + "]";
 	}
 
@@ -246,7 +246,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 			flags += F_HTTP_METHOD_VALUE;
 		}
 		return flags;*/
-		return mergeAnnotations(httpMethod.getAnnotations());
+		return updateAnnotations(httpMethod.getAnnotations());
 	}
 
 }

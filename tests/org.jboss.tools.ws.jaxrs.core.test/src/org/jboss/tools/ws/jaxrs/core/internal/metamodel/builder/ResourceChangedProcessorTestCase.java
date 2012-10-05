@@ -103,6 +103,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 
 	/**
 	 * Creates a java annotated type based JAX-RS Application element
+	 * 
 	 * @param type
 	 * @return
 	 * @throws JavaModelException
@@ -114,6 +115,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 
 	/**
 	 * Creates a java annotated type based JAX-RS Application element
+	 * 
 	 * @param type
 	 * @param applicationPath
 	 * @return
@@ -131,7 +133,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	private JaxrsWebxmlApplication createWebxmlApplication(final String applicationClassName, final String applicationPath) throws JavaModelException {
+	private JaxrsWebxmlApplication createWebxmlApplication(final String applicationClassName,
+			final String applicationPath) throws JavaModelException {
 		final IResource webDeploymentDescriptor = WtpUtils.getWebDeploymentDescriptor(project);
 		return new JaxrsWebxmlApplication(applicationClassName, applicationPath, webDeploymentDescriptor, metamodel);
 	}
@@ -141,11 +144,14 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	private JaxrsHttpMethod createHttpMethod(EnumJaxrsClassname httpMethodElement) throws CoreException, JavaModelException {
-		final IType httpMethodType = JdtUtils.resolveType(httpMethodElement.qualifiedName, javaProject, progressMonitor);
+	private JaxrsHttpMethod createHttpMethod(EnumJaxrsClassname httpMethodElement) throws CoreException,
+			JavaModelException {
+		final IType httpMethodType = JdtUtils
+				.resolveType(httpMethodElement.qualifiedName, javaProject, progressMonitor);
 		final Annotation httpMethodAnnotation = getAnnotation(httpMethodType, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpMethodType, metamodel).httpMethod(httpMethodAnnotation).build();
-		
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpMethodType, metamodel).httpMethod(
+				httpMethodAnnotation).build();
+
 		return httpMethod;
 	}
 
@@ -153,7 +159,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final Annotation httpMethodAnnotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
 		final Annotation targetAnnotation = getAnnotation(type, TARGET.qualifiedName);
 		final Annotation retentionAnnotation = getAnnotation(type, RETENTION.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(httpMethodAnnotation).target(targetAnnotation).retention(retentionAnnotation).build();
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel)
+				.httpMethod(httpMethodAnnotation).target(targetAnnotation).retention(retentionAnnotation).build();
 		return httpMethod;
 	}
 
@@ -197,7 +204,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// 1 application + 1 HttpMethod + 7 Resources
 		assertThat(affectedElements.size(), equalTo(9));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
-		// all HttpMethods, Resources, ResourceMethods and ResourceFields. only application is available: the java-based one found in src/main/java
+		// all HttpMethods, Resources, ResourceMethods and ResourceFields. only application is available: the java-based
+		// one found in src/main/java
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(35));
 	}
 
@@ -216,10 +224,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		metamodel = (JaxrsMetamodel) affectedMetamodel.getMetamodel();
 		assertThat(metamodel, equalTo((IJaxrsMetamodel) metamodel));
 		final List<JaxrsElementDelta> affectedElements = affectedMetamodel.getAffectedElements();
-		// 1 application + 1 HttpMethod + 7 Resources  
+		// 1 application + 1 HttpMethod + 7 Resources
 		assertThat(affectedElements.size(), equalTo(9));
 		assertThat(affectedElements, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
-		// all project-specific Applications, HttpMethods, Resources, ResourceMethods and ResourceFields (built-in HttpMethods are not bound to a project)
+		// all project-specific Applications, HttpMethods, Resources, ResourceMethods and ResourceFields (built-in
+		// HttpMethods are not bound to a project)
 		// 2 applications are available: the java-based and the web.xml since a full build was performed
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(36));
 	}
@@ -427,7 +436,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(),
+				equalTo("/hello"));
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
@@ -457,14 +467,16 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(),
+				equalTo("/hello"));
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
 	@Test
 	public void shouldOverrideJavaApplicationWhenAddingCustomServletMapping() throws Exception {
-		// in this test, the java-application exists first, and then a web.xml application is added -> it should immediately override the java-one
+		// in this test, the java-application exists first, and then a web.xml application is added -> it should
+		// immediately override the java-one
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
@@ -485,20 +497,26 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 
 		assertThat(affectedElements.get(1).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
 		assertThat(affectedElements.get(1).getDeltaKind(), equalTo(CHANGED));
-		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication)affectedElements.get(1).getElement();
-		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)javaApplication)); // custom web.xml override DOES NOT precede the java based JAX-RS Application element
-		assertThat(javaApplication.getApplicationPath(), equalTo("/hello")); // Java-based application configuration should not be changed
+		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) affectedElements.get(1).getElement();
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication) javaApplication)); // custom web.xml override
+																								// DOES NOT precede the
+																								// java based JAX-RS
+																								// Application element
+		assertThat(javaApplication.getApplicationPath(), equalTo("/hello")); // Java-based application configuration
+																				// should not be changed
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (java) + new one (web.xml)
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 	}
 
 	/**
-	 *  in this test, the webxml exists first, and then an annotated Java Application is added -> it should be immediately overriden
+	 * in this test, the webxml exists first, and then an annotated Java Application is added -> it should be
+	 * immediately overriden
 	 */
 	@Test
 	public void shouldOverrideJavaApplicationWhenAddingAnnotatedJavaApplication() throws Exception {
 		// precondition
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
 		metamodel.add(webxmlApplication);
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
@@ -525,7 +543,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldOverrideJavaApplicationWhenAddingUnannotatedJavaApplication() throws Exception {
 		// precondition
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
 		metamodel.add(webxmlApplication);
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
@@ -545,13 +564,16 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	}
 
 	/**
-	 * In this test, the java application path override should be removed when the web.xml application is removed from the web.xml file
+	 * In this test, the java application path override should be removed when the web.xml application is removed from
+	 * the web.xml file
+	 * 
 	 * @throws Exception
 	 */
 	@Test
 	public void shouldUnoverrideAnnotatedJavaApplicationWhenRemovingCustomWebxml() throws Exception {
 		// precondition
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
 		metamodel.add(webxmlApplication);
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
@@ -572,11 +594,12 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(application.getApplicationPath(), equalTo("/app"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1)); // one (java)
 	}
-	
+
 	@Test
 	public void shouldUnoverrideUnannotatedJavaApplicationWhenRemovingCustomWebxml() throws Exception {
 		// precondition
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
 		metamodel.add(webxmlApplication);
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
@@ -598,8 +621,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(application.getApplicationPath(), nullValue());
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1)); // one (java)
 	}
-	
-	
+
 	@Test
 	public void shouldNotOverrideJavaApplicationWhenAddingDefaultServletMapping() throws Exception {
 		// pre-conditions
@@ -620,18 +642,28 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (java) + new one (web.xml)
-		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)webxmlApplication)); // web.xml based application precedes any other java based JAX-RS Application element
-		assertThat(metamodel.getJavaApplications().get(0).getApplicationPath(), equalTo("/app")); // Java-based application configuration should not be changed
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication) webxmlApplication)); // web.xml based
+																								// application precedes
+																								// any other java based
+																								// JAX-RS Application
+																								// element
+		assertThat(metamodel.getJavaApplications().get(0).getApplicationPath(), equalTo("/app")); // Java-based
+																									// application
+																									// configuration
+																									// should not be
+																									// changed
 	}
-	
+
 	/**
-	 * In this test, the existing Java Application is not modified when adding a web.xml with default application configuration, 
-	 * but the resulting webxmlApplication becomes the primary one in the metamodel
+	 * In this test, the existing Java Application is not modified when adding a web.xml with default application
+	 * configuration, but the resulting webxmlApplication becomes the primary one in the metamodel
+	 * 
 	 * @throws Exception
 	 */
 	@Test
 	public void shouldPreceedJavaApplicationWhenAddingDefaultWebxmlMapping() throws Exception {
-		// in this test, the java-application exists first, and then a web.xml application is added -> it should immediately override the java-one
+		// in this test, the java-application exists first, and then a web.xml application is added -> it should
+		// immediately override the java-one
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
@@ -649,21 +681,26 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) affectedElements.get(0).getElement();
 		assertThat(webxmlApplication.getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
-		assertThat(javaApplication.getApplicationPath(), equalTo("/app")); // Java-based application configuration should not be changed
+		assertThat(javaApplication.getApplicationPath(), equalTo("/app")); // Java-based application configuration
+																			// should not be changed
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(2)); // old application (java) + new one (web.xml)
-		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)webxmlApplication)); // old application (java) + new one (web.xml)
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication) webxmlApplication)); // old application
+																								// (java) + new one
+																								// (web.xml)
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 	}
-	
+
 	@Test
 	public void shouldRestoreJavaApplicationWhenRemovingDefaultWebxmlMapping() throws Exception {
-		// in this test, the java-application exists first, and then a web.xml application is added -> it should immediately override the java-one
+		// in this test, the java-application exists first, and then a web.xml application is added -> it should
+		// immediately override the java-one
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, progressMonitor);
 		final JaxrsJavaApplication javaApplication = createJavaApplication(type);
 		metamodel.add(javaApplication);
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
+		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+				EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
 		metamodel.add(webxmlApplication);
 		// operation
 		final ResourceDelta event = createEvent(webxmlApplication.getResource(), REMOVED);
@@ -672,14 +709,56 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
-		assertThat(javaApplication.getApplicationPath(), equalTo("/app")); // Java-based application configuration should not be changed
+		assertThat(javaApplication.getApplicationPath(), equalTo("/app")); // Java-based application configuration
+																			// should not be changed
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1)); // java application
-		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication)javaApplication)); // old application (java) + new one (web.xml)
+		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication) javaApplication)); // old application (java)
+																								// + new one (web.xml)
 		verify(metamodel, times(1)).add(any(JaxrsWebxmlApplication.class));
 	}
-	
+
+	@Test
+	public void shouldRemoveApplicationWhenRemovingAnnotationAndHierarchyAlreadyMissing() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type.getCompilationUnit(), "extends Application", "", false);
+		metamodel.add(createJavaApplication(type, "/bar"));
+		// operation
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type.getCompilationUnit(), "@ApplicationPath(\"/app\")", "", false);
+		final ResourceDelta event = createEvent(type.getResource(), CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		verify(metamodel, times(1)).remove(any(JaxrsJavaApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldRemoveApplicationWhenRemovingHierarchyAndAnnotationAlreadyMissing() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type.getCompilationUnit(), "@ApplicationPath(\"/app\")", "", false);
+		metamodel.add(createJavaApplication(type));
+		// operation
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type.getCompilationUnit(), "extends Application", "", false);
+		final ResourceDelta event = createEvent(type.getResource(), CHANGED);
+		final List<JaxrsElementDelta> affectedElements = processResourceChanges(event, progressMonitor);
+		// verifications
+		assertThat(affectedElements.size(), equalTo(1));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
+		verify(metamodel, times(1)).remove(any(JaxrsJavaApplication.class));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+
+	}
+
 	/**
 	 * In this test, the webxml application is changed when the application path is changed, too.
+	 * 
 	 * @throws Exception
 	 */
 	@Test
@@ -698,14 +777,16 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.get(1).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(affectedElements.get(1).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
 		assertThat(affectedElements.get(1).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(),
+				equalTo("/hello"));
 		verify(metamodel, times(2)).add(any(JaxrsWebxmlApplication.class)); // initial app added + new app added, too
 		verify(metamodel, times(1)).remove(any(JaxrsWebxmlApplication.class)); // initial app removed
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
-	
+
 	/**
 	 * In this test, the webxml application is changed when the application path is changed, too.
+	 * 
 	 * @throws Exception
 	 */
 	@Test
@@ -722,10 +803,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(),
+				equalTo("/hello"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
-	
+
 	@Test
 	public void shouldNotFailWhenWebxmlWithUnknownServletClass() throws Exception {
 		// pre-conditions
@@ -734,7 +816,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertFalse(removedEntries.isEmpty());
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
 				"web-3_0-with-invalid-servlet-mapping.xml", bundle);
-		//metamodel.add(createApplication("/foo"));
+		// metamodel.add(createApplication("/foo"));
 		// operation
 		// operation
 		final ResourceDelta event = createEvent(webxmlResource, CHANGED);
@@ -756,7 +838,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		assertThat(affectedElements.size(), equalTo(1));
 		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(), equalTo("/hello"));
+		assertThat(((JaxrsWebxmlApplication) affectedElements.get(0).getElement()).getApplicationPath(),
+				equalTo("/hello"));
 		verify(metamodel, times(1)).remove(any(JaxrsWebxmlApplication.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
@@ -765,7 +848,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 	public void shouldRemoveWebxmlApplicationWhenRemovingWebxml() throws Exception {
 		// pre-conditions
 		// JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
-		final JaxrsWebxmlApplication application = createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
+		final JaxrsWebxmlApplication application = createWebxmlApplication(
+				EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
 		metamodel.add(application);
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
 				"web-3_0-with-default-servlet-mapping.xml", bundle);
@@ -787,9 +871,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
 				"web-3_0-with-servlet-mapping.xml", bundle);
-		final JaxrsWebxmlApplication application = createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
+		final JaxrsWebxmlApplication application = createWebxmlApplication(
+				EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
 		metamodel.add(application);
-		
+
 		// operation
 		final IContainer webInfFolder = webxmlResource.getParent();
 		webInfFolder.delete(IResource.FORCE, progressMonitor);
@@ -895,7 +980,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(affectedElements.size(), equalTo(0));
 	}
-	
+
 	@Test
 	public void shouldRemoveHttpMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
@@ -1053,7 +1138,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1)); // 1 resource method
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(),
+				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(8));
 	}
@@ -1082,9 +1168,11 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(affectedElements.size(), equalTo(2)); // 2 resource methods
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(),
+				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(affectedElements.get(1).getDeltaKind(), equalTo(CHANGED));
-		assertThat(affectedElements.get(1).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(affectedElements.get(1).getElement().getElementCategory(),
+				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(8));
 	}
@@ -1110,7 +1198,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1)); // 1 resource method
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(),
+				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 4 HttpMethods + 1 resource (including their remaining methods and fields)
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(7));
 	}
@@ -1131,7 +1220,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1)); // 1 resource field
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(),
+				equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(9));
 	}
@@ -1160,7 +1250,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1)); // 1 resource field
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(),
+				equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(9));
 	}
@@ -1187,7 +1278,8 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(affectedElements.size(), equalTo(1)); // 1 resource field
 		assertThat(affectedElements.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(affectedElements.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(affectedElements.get(0).getElement().getElementCategory(),
+				equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 4 HttpMethods + 2 resources (including their methods and fields)
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(8));
 	}

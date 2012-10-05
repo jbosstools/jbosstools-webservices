@@ -323,7 +323,7 @@ public class JaxrsMetamodelChangedProcessor {
 			}
 		}
 		// structural change : remove all endpoints associated with its methods
-		// and creat new ones
+		// and create new ones
 		else {
 			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 				changes.addAll(processRemoval(resourceMethod));

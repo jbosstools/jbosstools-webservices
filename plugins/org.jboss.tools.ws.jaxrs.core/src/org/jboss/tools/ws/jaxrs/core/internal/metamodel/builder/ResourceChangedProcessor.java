@@ -700,20 +700,20 @@ public class ResourceChangedProcessor {
 			final JaxrsResource existingResource = metamodel.getElement(eventResource.getJavaElement(),
 					JaxrsResource.class);
 			// compare at the fields level
-			results.addAll(mergeResourceFields(existingResource, eventResource, metamodel));
+			results.addAll(updateResourceFields(existingResource, eventResource, metamodel));
 			// and compare at the methods level
-			results.addAll(mergeResourceMethods(existingResource, eventResource, metamodel));
+			results.addAll(updateResourceMethods(existingResource, eventResource, metamodel));
 			// finally, compare at the annotations level
-			results.addAll(mergeResourceAnnotations(existingResource, eventResource));
+			results.addAll(updateResourceAnnotations(existingResource, eventResource));
 			break;
 		}
 		return results;
 	}
 
-	private final List<JaxrsElementDelta> mergeResourceAnnotations(final JaxrsResource existingResource,
+	private final List<JaxrsElementDelta> updateResourceAnnotations(final JaxrsResource existingResource,
 			final JaxrsResource matchingResource) {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
-		final int flags = existingResource.mergeAnnotations(matchingResource.getAnnotations());
+		final int flags = existingResource.updateAnnotations(matchingResource.getAnnotations());
 		if (flags > 0) {
 			changes.add(new JaxrsElementDelta(existingResource, CHANGED, flags));
 		}
@@ -728,7 +728,7 @@ public class ResourceChangedProcessor {
 	 * @param otherResource
 	 * @return the flags indicating the kind of changes that occurred during the update.
 	 */
-	private List<JaxrsElementDelta> mergeResourceFields(final JaxrsResource existingResource,
+	private List<JaxrsElementDelta> updateResourceFields(final JaxrsResource existingResource,
 			final JaxrsResource matchingResource, final JaxrsMetamodel metamodel) {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final Map<String, JaxrsResourceField> addedFields = CollectionUtils.difference(matchingResource.getFields(),
@@ -747,7 +747,7 @@ public class ResourceChangedProcessor {
 		for (Entry<String, JaxrsResourceField> entry : changedFields.entrySet()) {
 			final JaxrsResourceField existingField = entry.getValue();
 			final JaxrsResourceField matchingField = matchingResource.getFields().get(entry.getKey());
-			int flags = existingField.mergeAnnotations(matchingField.getAnnotations());
+			int flags = existingField.updateAnnotations(matchingField.getAnnotations());
 			if ((flags & F_ELEMENT_KIND) > 0 && existingField.getElementKind() == EnumElementKind.UNDEFINED) {
 				metamodel.remove(existingField);
 				changes.add(new JaxrsElementDelta(existingField, REMOVED));
@@ -765,7 +765,7 @@ public class ResourceChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsElementDelta> mergeResourceMethods(final JaxrsResource existingResource,
+	private List<JaxrsElementDelta> updateResourceMethods(final JaxrsResource existingResource,
 			final JaxrsResource matchingResource, final JaxrsMetamodel metamodel) throws JavaModelException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final Map<String, JaxrsResourceMethod> addedMethods = CollectionUtils.difference(matchingResource.getMethods(),
@@ -784,7 +784,7 @@ public class ResourceChangedProcessor {
 		for (Entry<String, JaxrsResourceMethod> entry : changedMethods.entrySet()) {
 			final JaxrsResourceMethod existingMethod = entry.getValue();
 			final JaxrsResourceMethod matchingMethod = matchingResource.getMethods().get(entry.getKey());
-			int flags = existingMethod.mergeAnnotations(matchingMethod.getAnnotations());
+			int flags = existingMethod.updateAnnotations(matchingMethod.getAnnotations());
 			final CompilationUnit matchingResourceAST = CompilationUnitsRepository.getInstance().getAST(matchingResource.getResource());
 			final JavaMethodSignature matchingResourceMethodSignature = JdtUtils.resolveMethodSignature(matchingMethod.getJavaElement(), matchingResourceAST);
 			if(matchingResourceMethodSignature != null) {
@@ -805,4 +805,5 @@ public class ResourceChangedProcessor {
 		}
 		return changes;
 	}
+	
 }

@@ -53,13 +53,5 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends Object> {
 		Logger.debug("Reporting problem '{}' on resource '{}'", message, target.getFullPath().toString());
 		return markerManager.addProblem(message, preferenceKey, messageArguments, length, offset, target, quickFixId);
 	}
-	
-	public static void deleteJaxrsMarkers(final IResource resource) throws CoreException {
-		if (resource == null) {
-			return;
-		}
-		Logger.debug("Clearing JAX-RS markers for resource " + resource.getName());
-		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
-	}
 
 }

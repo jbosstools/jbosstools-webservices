@@ -133,7 +133,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public IResource getResource() {
 		return getProject();
 	}
-	
+
 	@Override
 	public String getName() {
 		return "JAX-RS Metamodel for project " + getProject().getName();
@@ -732,21 +732,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		JaxrsMetamodel other = (JaxrsMetamodel) obj;
-		if (javaProject == null && other.javaProject != null) {
-			return false;
-		} else if (javaProject != null && other.javaProject == null) {
-			return false;
-		} else if (javaProject != null && other.javaProject != null && !javaProject.getHandleIdentifier().equals(other.javaProject.getHandleIdentifier())) {
-			return false;
-		}
-		return true;
+		return false;
 	}
 
 	@Override

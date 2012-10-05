@@ -397,6 +397,44 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	}
 
 	@Test
+	public void shouldRemoveApplicationWhenRemovingAnnotationAndHierarchyAlreadyMissing() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		final Annotation appPathAnnotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, appPathAnnotation, false, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementDelta event = createEvent(appPathAnnotation, REMOVED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(impacts.get(0).getElement(), is(notNullValue()));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+	
+	@Test
+	public void shouldRemoveApplicationWhenRemovingHierarchyAndAnnotationAlreadyMissing() throws CoreException {
+		// pre-conditions
+		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				javaProject, progressMonitor);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Application", "", false);
+		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, null, true, metamodel);
+		metamodel.add(application);
+		// operation
+		final JavaElementDelta event = createEvent(type, CHANGED, IJavaElementDeltaFlag.F_SUPER_TYPES);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(impacts.get(0).getElement(), is(notNullValue()));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
+	}
+	
+	@Test
 	public void shouldDoNothingWhenRemovingUnrelatedAnnotationOnApplication() throws CoreException {
 		// pre-conditions
 		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",

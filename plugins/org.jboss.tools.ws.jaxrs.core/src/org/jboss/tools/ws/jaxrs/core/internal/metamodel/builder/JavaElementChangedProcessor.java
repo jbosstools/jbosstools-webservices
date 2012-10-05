@@ -132,14 +132,14 @@ public class JavaElementChangedProcessor {
 			//}
 			break;
 		case CHANGED:
-			//if(element.exists()) { // needed to prevent exception for edge cases such as 'package-info.java' that holds some shadow 'A' type..
-				switch (elementType) {
-					case METHOD:
-					return processChange((IMethod) element, ast, metamodel, progressMonitor);
-				case ANNOTATION:
-					return processChange((IAnnotation) element, ast, metamodel, progressMonitor);
-				}
-			//}
+			switch (elementType) {
+			case TYPE:
+				return processChange((IType) element, ast, metamodel, progressMonitor);
+			case METHOD:
+				return processChange((IMethod) element, ast, metamodel, progressMonitor);
+			case ANNOTATION:
+				return processChange((IAnnotation) element, ast, metamodel, progressMonitor);
+			}
 			break;
 		case REMOVED:
 			switch (elementType) {
@@ -338,6 +338,7 @@ public class JavaElementChangedProcessor {
 	}
 
 	/**
+	 * Process changes on the JAX-RS element after the given annotation was changed
 	 * @param javaAnnotation
 	 * @param progressMonitor
 	 * @throws CoreException
@@ -350,22 +351,8 @@ public class JavaElementChangedProcessor {
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
 		if (annotation != null) {
 			final JaxrsJavaElement<?> existingElement = (JaxrsJavaElement<?>) metamodel.getElement(annotation);
-			if (existingElement == null) {
-				final JaxrsJavaElement<?> createdElement = factory.createElement(javaAnnotation, ast, metamodel);
-				if (createdElement != null) {
-					metamodel.add(createdElement);
-					changes.add(new JaxrsElementDelta(createdElement, ADDED));
-					switch (createdElement.getElementCategory()) {
-					case RESOURCE_FIELD:
-					case RESOURCE_METHOD:
-						JaxrsResource parentResource = ((JaxrsResourceElement<?>) createdElement).getParentResource();
-						if (metamodel.containsElement(parentResource)) {
-							metamodel.add(parentResource);
-							changes.add(new JaxrsElementDelta(parentResource, ADDED));
-						}
-					}
-				}
-			} else {
+			// there's no reason that an annotation *change* could trigger the creation of a new JAX-RS element.
+			if (existingElement != null) {
 				final int flags = existingElement.addOrUpdateAnnotation(annotation);
 				if (flags > 0) {
 					changes.add(new JaxrsElementDelta(existingElement, CHANGED, flags));
@@ -375,6 +362,15 @@ public class JavaElementChangedProcessor {
 		return changes;
 	}
 
+	/**
+	 * Process changes on the method, trying to find fine-grained changes in the signatures/parameters
+	 * @param javaMethod
+	 * @param ast
+	 * @param metamodel
+	 * @param progressMonitor
+	 * @return
+	 * @throws CoreException
+	 */
 	private List<JaxrsElementDelta> processChange(IMethod javaMethod, CompilationUnit ast,
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
@@ -389,6 +385,33 @@ public class JavaElementChangedProcessor {
 		return changes;
 	}
 
+	/**
+	 * Process type change (eg: supertypes changes) and remove it if kind is UNDEFINED
+	 * @param javaApplication
+	 * @param ast
+	 * @param metamodel
+	 * @param progressMonitor
+	 * @return
+	 * @throws CoreException
+	 */
+	private List<JaxrsElementDelta> processChange(IType javaType, CompilationUnit ast,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
+		final IJaxrsElement jaxrsElement = metamodel.getElement(javaType);
+		if (jaxrsElement != null && jaxrsElement.getElementKind() == EnumElementKind.APPLICATION_JAVA) {
+			final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) jaxrsElement;
+			final int flag = javaApplication.update(javaType);
+			if(javaApplication.getElementKind() == EnumElementKind.UNDEFINED) {
+				Logger.debug("Removing element {}", javaApplication);
+				metamodel.remove(javaApplication);
+				changes.add(new JaxrsElementDelta(jaxrsElement, REMOVED, flag));
+			}
+			else if (flag != F_NONE) {
+				changes.add(new JaxrsElementDelta(jaxrsElement, CHANGED, flag));
+			}
+		}
+		return changes;
+	}
 	/**
 	 * @param element
 	 * @param progressMonitor

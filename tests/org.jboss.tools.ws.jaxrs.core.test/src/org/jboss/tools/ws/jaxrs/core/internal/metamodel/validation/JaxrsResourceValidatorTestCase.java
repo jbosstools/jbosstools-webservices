@@ -12,6 +12,10 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -31,7 +35,6 @@ import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.jboss.tools.common.validation.ContextValidationHelper;
 import org.jboss.tools.common.validation.IProjectValidationContext;
-import org.jboss.tools.common.validation.ValidationErrorManager;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
@@ -39,7 +42,6 @@ import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 import org.junit.Test;
 
 /**
@@ -66,12 +68,13 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final IType customerJavaType = WorkbenchUtils.getType(
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
 		final JaxrsBaseElement customerResource = (JaxrsBaseElement) metamodel.getElement(customerJavaType);
-		MarkerUtils.deleteJaxrsMarkers(customerResource);
+		deleteJaxrsMarkers(customerResource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(customerResource.getResource()), project, validationHelper,
 				context, validatorManager, reporter);
 		// validation
-		assertThat(MarkerUtils.findJaxrsMarkers(customerResource).length, equalTo(0));
+		final IMarker[] markers = findJaxrsMarkers(customerResource);
+		assertThat(markers.length, equalTo(0));
 	}
 
 	@Test
@@ -80,22 +83,20 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final IType barJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.BarResource",
 				javaProject);
 		final JaxrsResource barResource = metamodel.getElement(barJavaType, JaxrsResource.class);
-		MarkerUtils.deleteJaxrsMarkers(barResource);
+		deleteJaxrsMarkers(barResource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(barResource.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		final IMarker[] markers = MarkerUtils.findJaxrsMarkers(barResource);
+		final IMarker[] markers = findJaxrsMarkers(barResource);
 		assertThat(markers.length, equalTo(8));
 		final Map<String, JaxrsResourceMethod> resourceMethods = barResource.getMethods();
 		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {
-			final IMarker[] methodMarkers = MarkerUtils.findJaxrsMarkers(entry.getValue());
+			final IMarker[] methodMarkers = findJaxrsMarkers(entry.getValue());
 			if (entry.getKey().contains("getContent1")) {
 				assertThat(entry.getValue().hasErrors(), is(true));
 				assertThat(methodMarkers.length, equalTo(1));
-				assertThat(methodMarkers[0].getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE));
-				assertThat(methodMarkers[0].getAttribute(ValidationErrorManager.PREFERENCE_KEY_ATTRIBUTE_NAME, ""),
-						equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+				assertThat(methodMarkers, hasPreferenceKey(RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
 			} else if (entry.getKey().contains("getContent2")) {
 				assertThat(entry.getValue().hasErrors(), is(true));
 				assertThat(methodMarkers.length, equalTo(3));
@@ -120,22 +121,20 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final IType barJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource",
 				javaProject);
 		final JaxrsResource barResource = metamodel.getElement(barJavaType, JaxrsResource.class);
-		MarkerUtils.deleteJaxrsMarkers(barResource);
+		deleteJaxrsMarkers(barResource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(barResource.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		final IMarker[] markers = MarkerUtils.findJaxrsMarkers(barResource);
+		final IMarker[] markers = findJaxrsMarkers(barResource);
 		assertThat(markers.length, equalTo(6));
 		final Map<String, JaxrsResourceMethod> resourceMethods = barResource.getMethods();
 		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {
-			final IMarker[] methodMarkers = MarkerUtils.findJaxrsMarkers(entry.getValue());
+			final IMarker[] methodMarkers = findJaxrsMarkers(entry.getValue());
 			if (entry.getKey().contains("getContent1")) {
 				assertThat(entry.getValue().hasErrors(), is(true));
 				assertThat(methodMarkers.length, equalTo(1));
-				assertThat(methodMarkers[0].getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE));
-				assertThat(methodMarkers[0].getAttribute(ValidationErrorManager.PREFERENCE_KEY_ATTRIBUTE_NAME, ""),
-						equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+				assertThat(methodMarkers, hasPreferenceKey(RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
 			} else if (entry.getKey().contains("getContent2")) {
 				assertThat(entry.getValue().hasErrors(), is(true));
 				assertThat(methodMarkers.length, equalTo(2));

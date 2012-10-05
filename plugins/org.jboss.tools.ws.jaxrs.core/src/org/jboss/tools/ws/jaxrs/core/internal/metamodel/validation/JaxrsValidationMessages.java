@@ -24,6 +24,10 @@ public class JaxrsValidationMessages {
 
 
 
+
+
+
+
 	public static String SEARCHING_RESOURCES;
 	public static String VALIDATING_RESOURCE;
 	public static String VALIDATING_PROJECT;
@@ -33,6 +37,7 @@ public class JaxrsValidationMessages {
 	public static String JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION;
 	public static String JAVA_APPLICATION_INVALID_TYPE_HIERARCHY;
 
+	public static String HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE;
 	public static String HTTP_METHOD_MISSING_RETENTION_ANNOTATION;
 	public static String HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE;
 	public static String HTTP_METHOD_MISSING_TARGET_ANNOTATION;

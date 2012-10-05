@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
 /**
@@ -31,7 +32,8 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 	@Override
 	public void validate() throws CoreException {
 		final JaxrsResource resource = getElement();
-		deleteJaxrsMarkers(resource.getResource());
+		JaxrsMetamodelValidator.deleteJaxrsMarkers(resource);
+		Logger.debug("Validating element {}", getElement());
 		for(IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
 			new JaxrsResourceMethodValidatorDelegate(getMarkerManager(), (JaxrsResourceMethod) resourceMethod).validate();
 		}

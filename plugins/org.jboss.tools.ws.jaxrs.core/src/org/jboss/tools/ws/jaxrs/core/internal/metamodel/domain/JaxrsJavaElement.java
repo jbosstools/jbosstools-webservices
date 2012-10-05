@@ -138,7 +138,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		return F_NONE;
 	}
 
-	public int mergeAnnotations(Map<String, Annotation> otherAnnotations) {
+	public int updateAnnotations(Map<String, Annotation> otherAnnotations) {
 		int flags = 0;
 		// keep values in the 'otherAnnotations' map
 		final Map<String, Annotation> addedAnnotations = CollectionUtils.difference(otherAnnotations, this.annotations);

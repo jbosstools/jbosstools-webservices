@@ -40,7 +40,8 @@ public class JaxrsWebxmlApplicationValidatorDelegate extends
 	@Override
 	public void validate() throws CoreException {
 		JaxrsWebxmlApplication webxmlApplication = getElement();
-		deleteJaxrsMarkers(webxmlApplication.getResource());
+		JaxrsMetamodelValidator.deleteJaxrsMarkers(webxmlApplication);
+		Logger.debug("Validating element {}", getElement());
 		
 		if (webxmlApplication.getMetamodel().hasMultipleApplications()) {
 			final IResource webxmlResource = webxmlApplication.getResource();
