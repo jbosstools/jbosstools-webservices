@@ -18,7 +18,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;

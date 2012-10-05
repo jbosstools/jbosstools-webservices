@@ -344,7 +344,6 @@ public class JavaElementChangedProcessor {
 	 * @throws CoreException
 	 */
 	// FIXME : same code as method processAddition(annotation, etc..) ?!?
-	@SuppressWarnings("incomplete-switch")
 	private List<JaxrsElementDelta> processChange(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
