@@ -1,7 +1,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.utils;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -73,7 +72,7 @@ public class WtpUtils {
 	 * @throws CoreException
 	 */
 	public static String getApplicationPath(IResource webxmlResource, String applicationTypeName) throws CoreException {
-		if(webxmlResource == null) {
+		if (webxmlResource == null) {
 			return null;
 		}
 		if (!webxmlResource.exists()) {
@@ -86,10 +85,12 @@ public class WtpUtils {
 		}
 
 		try {
-			final String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName + "\"]/url-pattern/text()";
+			final String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName
+					+ "\"]/url-pattern/text()";
 			final Node urlPattern = evaluateXPathExpression(webxmlResource, expression);
 			if (urlPattern != null) {
-				Logger.debug("Found matching url-pattern: {} for class {}", urlPattern.getTextContent(), applicationTypeName);
+				Logger.debug("Found matching url-pattern: {} for class {}", urlPattern.getTextContent(),
+						applicationTypeName);
 				return urlPattern.getTextContent();
 			}
 		} catch (Exception e) {
@@ -103,8 +104,8 @@ public class WtpUtils {
 	}
 
 	/**
-	 * Attempts to find the <strong>node range</strong> for the applicationPath configured in the application's web deployment description. The
-	 * applicationPath is expected to be configured as below: <code>
+	 * Attempts to find the <strong>node range</strong> for the applicationPath configured in the application's web
+	 * deployment description. The applicationPath is expected to be configured as below: <code>
 	 * 	<servlet-mapping>
 	 * 		<servlet-name>com.acme.MyApplication</servlet-name>
 	 * 		<url-pattern>/hello/*</url-pattern>
@@ -122,8 +123,9 @@ public class WtpUtils {
 	 * @return the source range or null if it is not configured.
 	 * @throws CoreException
 	 */
-	public static ISourceRange getApplicationPathLocation(final IResource webxmlResource, final String applicationTypeName) throws CoreException {
-		if(webxmlResource == null) {
+	public static ISourceRange getApplicationPathLocation(final IResource webxmlResource,
+			final String applicationTypeName) throws CoreException {
+		if (webxmlResource == null) {
 			return null;
 		}
 		if (!webxmlResource.exists()) {
@@ -132,7 +134,7 @@ public class WtpUtils {
 		}
 		try {
 			final String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName + "\"]";
-			final Node servletMappingNode = evaluateXPathExpression(webxmlResource, expression); 
+			final Node servletMappingNode = evaluateXPathExpression(webxmlResource, expression);
 			if (servletMappingNode != null) {
 				StringWriter writer = new StringWriter();
 				Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -140,11 +142,11 @@ public class WtpUtils {
 				transformer.transform(new DOMSource(servletMappingNode), new StreamResult(writer));
 				String servletMappingXml = writer.toString();
 				Logger.debug("Found matching servlet-mapping: {}", servletMappingXml);
-				final InputStream contents = ((IFile)webxmlResource).getContents();
+				final InputStream contents = ((IFile) webxmlResource).getContents();
 				int offset = findLocation(contents, servletMappingXml);
-				if(offset != -1) {
+				if (offset != -1) {
 					int length = servletMappingXml.length();
-					return new SourceRange(offset-length+1, length);
+					return new SourceRange(offset - length + 1, length);
 				}
 				return new SourceRange(0, 0);
 			}
@@ -157,20 +159,21 @@ public class WtpUtils {
 				webxmlResource.getProjectRelativePath());
 		return null;
 	}
-	
+
 	/**
 	 * Return the searchString location in the input source
+	 * 
 	 * @param reader
 	 * @param searchString
 	 * @return the matching location or -1 if not found
 	 * @throws IOException
 	 */
 	private static int findLocation(InputStream stream, String searchString) throws IOException {
-	    char[] buffer = new char[1024];
-	    int location = -1;
-	    int numCharsRead;
-	    int count = 0;
-	    Reader reader = null;
+		char[] buffer = new char[1024];
+		int location = -1;
+		int numCharsRead;
+		int count = 0;
+		Reader reader = null;
 		try {
 			reader = new InputStreamReader(stream);
 			// reading the stream
@@ -200,37 +203,51 @@ public class WtpUtils {
 		}
 	}
 
-
 	/**
+	 * Evaluate the (XPath) expression on the given resource.
+	 * 
 	 * @param webxmlResource
 	 * @param applicationTypeName
-	 * @return
-	 * @throws ParserConfigurationException
-	 * @throws FileNotFoundException
-	 * @throws SAXException
-	 * @throws IOException
-	 * @throws XPathExpressionException
+	 * @return the xpath expression evalutation or null if an error occurred
 	 */
-	private static Node evaluateXPathExpression(final IResource webxmlResource, final String expression)
-			throws ParserConfigurationException, FileNotFoundException, SAXException, IOException,
-			XPathExpressionException {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(false); // never forget this!
-		dbf.setValidating(false);
-		dbf.setFeature("http://xml.org/sax/features/namespaces", false);
-		dbf.setFeature("http://xml.org/sax/features/validation", false);
-		dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-		dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-		DocumentBuilder builder = dbf.newDocumentBuilder();
-		final FileInputStream fileInputStream = new FileInputStream(webxmlResource.getLocation().toFile());
-		InputSource inputSource = new InputSource(fileInputStream);
-		Document doc = builder.parse(inputSource);
-		XPath xpath = XPathFactory.newInstance().newXPath();
-		XPathExpression expr = xpath.compile(expression);
-		Node servletMapping = (Node) expr.evaluate(doc, XPathConstants.NODE);
-		return servletMapping;
+	private static Node evaluateXPathExpression(final IResource webxmlResource, final String expression) {
+		FileInputStream fileInputStream = null;
+		try {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setNamespaceAware(false); // never forget this!
+			dbf.setValidating(false);
+			dbf.setFeature("http://xml.org/sax/features/namespaces", false);
+			dbf.setFeature("http://xml.org/sax/features/validation", false);
+			dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+			dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			DocumentBuilder builder = dbf.newDocumentBuilder();
+			fileInputStream = new FileInputStream(webxmlResource.getLocation().toFile());
+			InputSource inputSource = new InputSource(fileInputStream);
+			Document doc = builder.parse(inputSource);
+			XPath xpath = XPathFactory.newInstance().newXPath();
+			XPathExpression expr = xpath.compile(expression);
+			Node servletMapping = (Node) expr.evaluate(doc, XPathConstants.NODE);
+			return servletMapping;
+		} catch (ParserConfigurationException e) {
+			Logger.error("Error while analyzing web deployment descriptor", e);
+		} catch (SAXException e) {
+			// if xml file is malformed, there should already be some error markers, so no need to fill the error log.
+			Logger.debug("Error while analyzing web deployment descriptor", e);
+		} catch (IOException e) {
+			Logger.error("Error while analyzing web deployment descriptor", e);
+		} catch (XPathExpressionException e) {
+			Logger.error("Error while analyzing web deployment descriptor", e);
+		} finally {
+			if (fileInputStream != null) {
+				try {
+					fileInputStream.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		return null;
 	}
-	
+
 	/**
 	 * Indicates if the given resource is the web deployment descriptor (or not).
 	 * 
