@@ -78,7 +78,7 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 			final IMethodBinding methodBinding = declaration.resolveBinding();
 			// sometimes, the binding cannot be resolved
 			if (methodBinding == null) {
-				Logger.warn("Could not resolve bindings form method " + method.getElementName());
+				Logger.debug("Could not resolve bindings form method " + method.getElementName());
 			} else {
 				final IType returnedType = getReturnType(methodBinding);
 						//.getReturnType().getJavaElement() : null;
