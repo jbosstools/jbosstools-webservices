@@ -1,4 +1,4 @@
-package org.jboss.tools.ws.jaxrs.ui.quickfix;
+  package org.jboss.tools.ws.jaxrs.ui.quickfix;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -35,13 +35,19 @@ public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerato
 	private IMarkerResolution[] getMarkerResolutions(final IMarker marker) {
 		try {
 			final int quickfixId = getQuickFixID(marker);
-			switch (quickfixId) {
-			case JaxrsValidationQuickFixes.HTTP_METHOD_MISSING_TARGET_ANNOTATION_ID:
-				final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(marker.getResource());
-				final IType type = (IType) JdtUtils.getElementAt(compilationUnit,
-						marker.getAttribute(IMarker.CHAR_START, 0), IJavaElement.TYPE);
-				if (type != null) {
+			final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(marker.getResource());
+			final IType type = (IType) JdtUtils.getElementAt(compilationUnit,
+					marker.getAttribute(IMarker.CHAR_START, 0), IJavaElement.TYPE);
+			if (type != null) {
+				switch (quickfixId) {
+				case JaxrsValidationQuickFixes.HTTP_METHOD_MISSING_TARGET_ANNOTATION_ID:
 					return new IMarkerResolution[] { new AddTargetAnnotationMarkerResolution(type) };
+				case JaxrsValidationQuickFixes.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_ID:
+					return new IMarkerResolution[] { new AddRetentionAnnotationMarkerResolution(type) };
+				case JaxrsValidationQuickFixes.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_ID:
+					return new IMarkerResolution[] { new UpdateTargetAnnotationValueMarkerResolution(type) };
+				case JaxrsValidationQuickFixes.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_ID:
+					return new IMarkerResolution[] { new UpdateRetentionAnnotationValueMarkerResolution(type) };
 				}
 			}
 		} catch (CoreException e) {

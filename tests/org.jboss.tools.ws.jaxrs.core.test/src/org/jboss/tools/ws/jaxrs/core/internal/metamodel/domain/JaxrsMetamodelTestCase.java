@@ -16,9 +16,9 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.junit.Assert.assertThat;
 
@@ -67,7 +67,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	public void shouldGetHttpMethodByAnnotation() throws CoreException {
 		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
-		final Annotation annotation = getAnnotation(javaType, HTTP_METHOD.qualifiedName);
+		final Annotation annotation = resolveAnnotation(javaType, HTTP_METHOD.qualifiedName);
 		assertThat((JaxrsHttpMethod) metamodel.getElement(annotation), notNullValue());
 	}
 
@@ -76,7 +76,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
 				progressMonitor);
 		final Annotation annotation = JdtUtils.resolveAnnotation(javaType, JdtUtils.parse(javaType, progressMonitor),
-				SuppressWarnings.class);
+				SuppressWarnings.class.getName());
 		assertThat(metamodel.getElement(annotation), nullValue());
 	}
 

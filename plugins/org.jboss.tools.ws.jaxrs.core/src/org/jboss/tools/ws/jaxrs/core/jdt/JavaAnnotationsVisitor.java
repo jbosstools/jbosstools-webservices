@@ -16,20 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
-import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
-import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -181,20 +175,13 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	private void visitExtendedModifiers(final List<?> modifiers) {
 		for (Object modifier : modifiers) {
 			if (modifier instanceof org.eclipse.jdt.core.dom.Annotation) {
-				final org.eclipse.jdt.core.dom.Annotation annotation = (org.eclipse.jdt.core.dom.Annotation) modifier;
 				IAnnotationBinding annotationBinding = ((org.eclipse.jdt.core.dom.Annotation) modifier)
 						.resolveAnnotationBinding();
 				if (annotationBinding != null) {
 					final String qualifiedName = annotationBinding.getAnnotationType().getQualifiedName();
 					final String name = annotationBinding.getAnnotationType().getName();
 					if (annotationNames.contains(qualifiedName) || annotationNames.contains(name)) {
-						final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
-						final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
-						final ISourceRange sourceRange = new SourceRange(annotation.getStartPosition(),
-								annotation.getLength());
-						final IAnnotation javaAnnotation = (IAnnotation) annotationBinding.getJavaElement();
-						annotations
-								.add(new Annotation(javaAnnotation, annotationName, annotationElements, sourceRange));
+						annotations.add(BindingUtils.toAnnotation(annotationBinding));
 					}
 				}
 			}
@@ -229,56 +216,11 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 	public final Map<String, Annotation> getResolvedAnnotations() throws JavaModelException {
 		final Map<String, Annotation> resolvedJavaAnnotations = new HashMap<String, Annotation>();
 		for (Annotation annotation : annotations) {
-			resolvedJavaAnnotations.put(annotation.getName(), annotation);
+			resolvedJavaAnnotations.put(annotation.getFullyQualifiedName(), annotation);
 		}
 		return resolvedJavaAnnotations;
 	}
 
-	private static Map<String, List<String>> resolveAnnotationElements(IAnnotationBinding annotationBinding) {
-		final Map<String, List<String>> annotationElements = new HashMap<String, List<String>>();
-		try {
-			for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
-				final List<String> values = new ArrayList<String>();
-				if (binding.getValue() instanceof Object[]) {
-					for (Object v : (Object[]) binding.getValue()) {
-						values.add(toString(v));
-					}
-				} else {
-					values.add(toString(binding.getValue()));
-				}
-				annotationElements.put(binding.getName(), values);
-			}
-			// if the code is not valid, the underlying DefaultValuePairBinding
-			// may throw a NPE:
-			// at
-			// org.eclipse.jdt.core.dom.DefaultValuePairBinding.<init>(DefaultValuePairBinding.java:31)
-			// at
-			// org.eclipse.jdt.core.dom.AnnotationBinding.getAllMemberValuePairs(AnnotationBinding.java:98)
-		} catch (Throwable e) {
-			// silently ignore
-		}
-		return annotationElements;
-	}
-
-	/**
-	 * Converts the given value into String. The actual types that are supported are:
-	 * java.lang.Class - the ITypeBinding for the class object
-	 * java.lang.String - the string value itself
-	 * enum type - the IVariableBinding for the enum constant
-	 * annotation type - an IAnnotationBinding
-	 * for other types, the <code>java.lang.Object{@link #toString()}</code> method is used.
-	 * @param value
-	 * @return litteral value
-	 */
-	private static String toString(Object value) {
-		if(value instanceof ITypeBinding) {
-			return ((ITypeBinding)value).getQualifiedName();
-		} else if(value instanceof IVariableBinding) {
-			return ((IVariableBinding)value).getName();
-		} else if(value instanceof IAnnotationBinding) {
-			return ((IAnnotationBinding)value).getName();
-		} 
-		return value.toString();
-	}
+	
 
 }

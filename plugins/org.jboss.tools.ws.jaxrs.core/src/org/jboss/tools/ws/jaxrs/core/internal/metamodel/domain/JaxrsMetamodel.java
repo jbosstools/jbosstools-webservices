@@ -685,7 +685,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (httpMethodAnnotation != null) {
 			for (IJaxrsHttpMethod httpMethod : httpMethods) {
 				final String handleIdentifier1 = httpMethod.getJavaClassName();
-				final String handleIdentifier2 = httpMethodAnnotation.getName();
+				final String handleIdentifier2 = httpMethodAnnotation.getFullyQualifiedName();
 				if (handleIdentifier1.equals(handleIdentifier2)) {
 					return (JaxrsHttpMethod) httpMethod;
 				}

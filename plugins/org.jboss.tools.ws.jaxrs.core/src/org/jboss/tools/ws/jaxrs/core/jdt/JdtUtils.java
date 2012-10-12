@@ -35,11 +35,13 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -283,10 +285,9 @@ public final class JdtUtils {
 			throws JavaModelException {
 		if (member.isBinary()) {
 			IAnnotatable javaElement = (IAnnotatable) member;
-			final IAnnotation annotation = javaElement.getAnnotation(annotationName);
-			if (annotation != null && annotation.exists()) {
-				return new Annotation(annotation, annotation.getElementName(), resolveAnnotationElements(annotation),
-						null);
+			final IAnnotation javaAnnotation = javaElement.getAnnotation(annotationName);
+			if (javaAnnotation != null && javaAnnotation.exists()) {
+				return new Annotation(javaAnnotation, javaAnnotation.getElementName(), resolveAnnotationElements(javaAnnotation));
 			}
 			return null;
 		}
@@ -330,10 +331,10 @@ public final class JdtUtils {
 			IAnnotatable javaElement = (IAnnotatable) member;
 			final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
 			for (String annotationName : annotationNames) {
-				final IAnnotation annotation = javaElement.getAnnotation(annotationName);
-				if (annotation.exists()) {
-					annotations.put(annotationName, new Annotation(annotation, annotation.getElementName(),
-							resolveAnnotationElements(annotation), null));
+				final IAnnotation javaAnnotation = javaElement.getAnnotation(annotationName);
+				if (javaAnnotation.exists()) {
+					annotations.put(annotationName, new Annotation(javaAnnotation, javaAnnotation.getElementName(),
+							resolveAnnotationElements(javaAnnotation)));
 				}
 			}
 			return annotations;
@@ -353,21 +354,7 @@ public final class JdtUtils {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	public static Annotation resolveAnnotation(IMember member, CompilationUnit ast, Class<?> annotationClass)
-			throws JavaModelException {
-		return resolveAnnotation(member, ast, annotationClass.getName());
-	}
-
-	/**
-	 * Resolves the annotation given its type.
-	 * 
-	 * @param type
-	 * @param ast
-	 * @param annotationClass
-	 * @return
-	 * @throws JavaModelException
-	 */
-	public static Annotation resolveAnnotation(IAnnotation javaAnnotation, CompilationUnit ast)
+	public static Annotation resolveAnnotation(final IAnnotation javaAnnotation, final CompilationUnit ast)
 			throws JavaModelException {
 		if (javaAnnotation.getParent() instanceof IMember) {
 			return resolveAnnotation((IMember) javaAnnotation.getParent(), ast,
@@ -375,6 +362,51 @@ public final class JdtUtils {
 		}
 		return null;
 	}
+	
+	/**
+	 * Locates the annotation located at the given position in the compilation unit, with a hint on the search scope provided by the given eponym parameter. 
+	 * @param location
+	 * @param scope
+	 * @return the {@link IAnnotation} or null if the element at the given location is not an IJavaAnnotation
+	 * @throws JavaModelException 
+	 */
+	public static Annotation resolveAnnotationAt(final int location, final ICompilationUnit compilationUnit) throws JavaModelException {
+		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
+		if (ast != null) {
+			final IJavaElement element = compilationUnit.getElementAt(location);
+			final ASTNode astChildNode = DOMUtils.getASTNodeByTypeAndLocation(ast, element.getElementType(), location);
+			if (astChildNode != null) {
+				final JavaAnnotationLocator annotationLocator = new JavaAnnotationLocator(location);
+				astChildNode.accept(annotationLocator);
+				return annotationLocator.getLocatedAnnotation();
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the source range for the MemberValuePair whose name is the given memberName, in the given annotation.
+	 * @param annotation
+	 * @param memberName
+	 * @return the sourceRange or null if it could not be evaluated.
+	 * @throws JavaModelException 
+	 */
+	public static ISourceRange resolveMemberPairValueRange(final IAnnotation annotation, final String annotationQualifiedName, 
+			final String memberName) throws JavaModelException {
+		final IType ancestor = (IType) annotation.getAncestor(IJavaElement.TYPE);
+		if(ancestor != null && ancestor.exists()) {
+			final ICompilationUnit compilationUnit = ancestor.getCompilationUnit();
+			final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
+			if (ast != null) {
+				MemberValuePairLocationRetriever locationRetriever = new MemberValuePairLocationRetriever(annotation,
+						annotationQualifiedName, memberName);
+				ast.accept(locationRetriever);
+				return locationRetriever.getMemberValuePairSourceRange();
+			}
+		}
+		return null;
+	}
+
 
 	private static Map<String, List<String>> resolveAnnotationElements(IAnnotation annotation)
 			throws JavaModelException {
@@ -614,6 +646,5 @@ public final class JdtUtils {
 
 	}
 
-	
 
 }

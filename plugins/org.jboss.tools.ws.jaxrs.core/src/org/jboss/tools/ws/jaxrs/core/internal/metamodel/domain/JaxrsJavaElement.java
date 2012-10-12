@@ -95,7 +95,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		this.javaElement = element;
 		if (annotations != null) {
 			for (Annotation annotation : annotations) {
-				this.annotations.put(annotation.getName(), annotation);
+				this.annotations.put(annotation.getFullyQualifiedName(), annotation);
 			}
 		}
 	}
@@ -124,11 +124,11 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		}
 		boolean changed = false;
 		final EnumElementKind previousKind = getElementKind();
-		final String annotationName = annotation.getName();
-		if (annotations.containsKey(annotation.getName())) {
-			changed = annotations.get(annotation.getName()).update(annotation);
+		final String annotationName = annotation.getFullyQualifiedName();
+		if (annotations.containsKey(annotation.getFullyQualifiedName())) {
+			changed = annotations.get(annotation.getFullyQualifiedName()).update(annotation);
 		} else {
-			annotations.put(annotation.getName(), annotation);
+			annotations.put(annotation.getFullyQualifiedName(), annotation);
 			changed = true;
 		}
 		if (changed) {
@@ -140,15 +140,14 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 
 	public int updateAnnotations(Map<String, Annotation> otherAnnotations) {
 		int flags = 0;
-		// keep values in the 'otherAnnotations' map
+		// added annotations (ie: found in 'otherAnnotation' but not this.annotations)
 		final Map<String, Annotation> addedAnnotations = CollectionUtils.difference(otherAnnotations, this.annotations);
-		// keep values in the 'this.annotations' map
+		// removed annotations (ie: found in this.annotations but not in 'otherAnnotation')
 		final Map<String, Annotation> removedAnnotations = CollectionUtils.difference(this.annotations,
 				otherAnnotations);
-		// keep values in the 'otherAnnotations' map
+		// may-be-changed annotations (ie: available in both collections, but not sure all values are equal)
 		final Map<String, Annotation> changedAnnotations = CollectionUtils.intersection(otherAnnotations,
 				this.annotations);
-
 		for (Entry<String, Annotation> entry : addedAnnotations.entrySet()) {
 			flags += this.addOrUpdateAnnotation(entry.getValue());
 		}

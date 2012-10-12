@@ -89,6 +89,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 				validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(barResource);
+		for(IMarker marker : markers) {
+			LOGGER.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER), marker.getAttribute(IMarker.MESSAGE));
+		}
 		assertThat(markers.length, equalTo(8));
 		final Map<String, JaxrsResourceMethod> resourceMethods = barResource.getMethods();
 		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {

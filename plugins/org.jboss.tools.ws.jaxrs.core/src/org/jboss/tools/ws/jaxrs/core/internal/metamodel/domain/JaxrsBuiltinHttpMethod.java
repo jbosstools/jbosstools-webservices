@@ -33,7 +33,7 @@ public class JaxrsBuiltinHttpMethod extends JaxrsHttpMethod {
 	private final String httpVerb;
 	
 	public JaxrsBuiltinHttpMethod(String annotationName, String annotationValue) {
-		super(null, Arrays.asList(new Annotation(null, annotationName, annotationValue, null)), null);
+		super(null, Arrays.asList(new Annotation(null, annotationName, annotationValue)), null);
 		this.annotationName = annotationName;
 		this.httpVerb = annotationValue;
 	} 

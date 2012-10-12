@@ -16,6 +16,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.Flags;
@@ -27,6 +28,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMeth
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -81,7 +83,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			// Should count parameters annotated with:
 			// @MatrixParam, @QueryParam, @PathParam, @CookieParam, @HeaderParam, @Context or @FormParam
-			final List<Annotation> jaxrsAnnotations = parameter.getAnnotations();
+			final Map<String, Annotation> jaxrsAnnotations = parameter.getAnnotations();
 			if (jaxrsAnnotations.size() == 0) {
 				counter++;
 			}
@@ -104,15 +106,17 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 * @return
 	 * @throws JavaModelException
 	 */
-	private void validateNoUnauthorizedContextAnnotationOnJavaMethodParameters(final JaxrsResourceMethod resourceMethod) {
+	private void validateNoUnauthorizedContextAnnotationOnJavaMethodParameters(final JaxrsResourceMethod resourceMethod)
+			throws JavaModelException {
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation contextAnnotation = parameter.getAnnotation(CONTEXT.qualifiedName);
 			final String typeName = parameter.getTypeName();
 			if (contextAnnotation != null && typeName != null && !CONTEXT_TYPE_NAMES.contains(typeName)) {
+				final ISourceRange range = contextAnnotation.getJavaAnnotation().getSourceRange();
 				addProblem(JaxrsValidationMessages.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
 						JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
-						new String[] { CONTEXT_TYPE_NAMES.toString() }, contextAnnotation.getSourceRange().getLength(),
-						contextAnnotation.getSourceRange().getOffset(), resourceMethod.getResource());
+						new String[] { CONTEXT_TYPE_NAMES.toString() }, range.getLength(),
+						range.getOffset(), resourceMethod.getResource());
 				resourceMethod.hasErrors(true);
 			}
 		}
@@ -130,6 +134,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			throws JavaModelException {
 		final List<String> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
 		final List<String> pathParamValues = new ArrayList<String>();
+		// retrieve all @Path
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation annotation = parameter.getAnnotation(PATH_PARAM.qualifiedName);
 			if (annotation != null && annotation.getValue() != null) {
@@ -159,22 +164,24 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			throws JavaModelException {
 		final List<String> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
-			final Annotation annotation = parameter.getAnnotation(PATH_PARAM.qualifiedName);
-			if (annotation != null) {
-				final String pathParamValue = annotation.getValue("value");
+			final Annotation pathParamAnnotation = parameter.getAnnotation(PATH_PARAM.qualifiedName);
+			if (pathParamAnnotation != null) {
+				final String pathParamValue = pathParamAnnotation.getValue("value");
 				if (pathParamValue != null) {
 					if (!pattern.matcher(pathParamValue).matches()) {
-						final ISourceRange sourceRange = annotation.getSourceRange();
+						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(),
+								pathParamAnnotation.getFullyQualifiedName(), "value");
 						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
-								new String[] { pathParamValue }, sourceRange.getLength(), sourceRange.getOffset(),
+								new String[] { pathParamValue }, range.getLength(), range.getOffset(),
 								resourceMethod.getResource());
 						resourceMethod.hasErrors(true);
 					} else if (!pathParamValueProposals.contains(pathParamValue)) {
-						final ISourceRange sourceRange = annotation.getSourceRange();
+						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(),
+								pathParamAnnotation.getFullyQualifiedName(), "value");
 						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
-								new String[] { pathParamValue }, sourceRange.getLength(), sourceRange.getOffset(),
+								new String[] { pathParamValue }, range.getLength(), range.getOffset(),
 								resourceMethod.getResource());
 						resourceMethod.hasErrors(true);
 					}

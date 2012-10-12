@@ -81,16 +81,16 @@ public enum EnumJaxrsClassname {
 	
 	public final String qualifiedName;
 
-	public final String annotationName;
+	public final String simpleName;
 	
 	private EnumJaxrsClassname(final String qualifiedName) {
 		this.qualifiedName = qualifiedName;
-		this.annotationName = null;
+		this.simpleName = null;
 	}
 
-	private EnumJaxrsClassname(final String qualifiedName, final String annotationName) {
+	private EnumJaxrsClassname(final String qualifiedName, final String simpleName) {
 		this.qualifiedName = qualifiedName;
-		this.annotationName = annotationName;
+		this.simpleName = simpleName;
 	}
 
 }

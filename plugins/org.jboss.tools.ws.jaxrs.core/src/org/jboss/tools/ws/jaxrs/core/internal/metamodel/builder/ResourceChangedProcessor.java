@@ -165,24 +165,24 @@ public class ResourceChangedProcessor {
 		if (resource == null) {
 			return results;
 		}
-		final IJavaElement scope = JavaCore.create(resource);
+		final IJavaElement javaElement = JavaCore.create(resource);
 		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(resource.getProject());
 		final int deltaKind = event.getDeltaKind();
-		if (scope != null && 
+		if (javaElement != null && 
 				// ignore changes on binary files (added/removed/changed jars to improve builder performances)
-				!(scope.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)scope).isArchive())) {
+				!(javaElement.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)javaElement).isArchive())) {
 			switch (deltaKind) {
 			case ADDED:
 			case CHANGED:
-				results.addAll(processApplicationChangesOnScopeAdditionOrChange(scope, metamodel, progressMonitor));
-				results.addAll(processHttpMethodChangesOnScopeAdditionOrChange(scope, metamodel, progressMonitor));
-				results.addAll(processResourceChangesOnScopeAdditionOrChange(scope, metamodel, deltaKind,
+				results.addAll(processApplicationChangesOnScopeAdditionOrChange(javaElement, metamodel, progressMonitor));
+				results.addAll(processHttpMethodChangesOnScopeAdditionOrChange(javaElement, metamodel, progressMonitor));
+				results.addAll(processResourceChangesOnScopeAdditionOrChange(javaElement, metamodel, deltaKind,
 						progressMonitor));
 				break;
 			case REMOVED:
-				results.addAll(processApplicationChangesOnScopeRemoval(scope, metamodel, progressMonitor));
-				results.addAll(processHttpMethodChangesOnScopeRemoval(scope, metamodel, progressMonitor));
-				results.addAll(processResourceChangesOnScopeRemoval(scope, metamodel, progressMonitor));
+				results.addAll(processApplicationChangesOnScopeRemoval(javaElement, metamodel, progressMonitor));
+				results.addAll(processHttpMethodChangesOnScopeRemoval(javaElement, metamodel, progressMonitor));
+				results.addAll(processResourceChangesOnScopeRemoval(javaElement, metamodel, progressMonitor));
 				break;
 			}
 		} else if (WtpUtils.isWebDeploymentDescriptor(resource)) {
@@ -803,6 +803,7 @@ public class ResourceChangedProcessor {
 			metamodel.remove(removedMethod);
 			changes.add(new JaxrsElementDelta(removedMethod, REMOVED));
 		}
+		
 		return changes;
 	}
 	

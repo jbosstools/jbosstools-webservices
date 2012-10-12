@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -61,6 +62,11 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
+/**
+ * Factory for JAX-RS elements that should be created from Java elements.
+ * @author Xavier Coulon
+ *
+ */
 public class JaxrsElementFactory {
 
 	/**
@@ -79,7 +85,7 @@ public class JaxrsElementFactory {
 		if(annotation == null) { // annotation on package declaration are ignored
 			return null;
 		}
-		final String annotationName = annotation.getName();
+		final String annotationName = annotation.getFullyQualifiedName();
 		if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
 			final JaxrsHttpMethod httpMethod = createHttpMethod(annotation, ast, metamodel);
 			return httpMethod;
@@ -253,8 +259,8 @@ public class JaxrsElementFactory {
 				final Builder builder = new JaxrsResourceMethod.Builder(javaMethod, parentResource, metamodel)
 						.pathTemplate(pathAnnotation).consumes(consumesAnnotation).produces(producesAnnotation)
 						.httpMethod(httpMethod).returnType(methodSignature.getReturnedType());
-				for (JavaMethodParameter methodParam : methodSignature.getMethodParameters()) {
-					builder.methodParameter(methodParam);
+				for (Entry<String, JavaMethodParameter> methodParamEntry : methodSignature.getMethodParameters().entrySet()) {
+					builder.methodParameter(methodParamEntry.getValue());
 				}
 				final JaxrsResourceMethod resourceMethod = builder.build();
 
@@ -301,7 +307,7 @@ public class JaxrsElementFactory {
 	public JaxrsHttpMethod createHttpMethod(final Annotation annotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel) throws CoreException {
 		if (annotation.getJavaParent() != null && annotation.getJavaParent().getElementType() == IJavaElement.TYPE
-				&& annotation.getName().equals(HTTP_METHOD.qualifiedName)) {
+				&& annotation.getFullyQualifiedName().equals(HTTP_METHOD.qualifiedName)) {
 			//return new JaxrsHttpMethod.Builder((IType) annotation.getJavaParent(), metamodel).httpMethod(annotation).build();
 			return createHttpMethod((IType) annotation.getJavaParent(), ast, metamodel);
 		}
@@ -341,7 +347,7 @@ public class JaxrsElementFactory {
 			final JaxrsMetamodel metamodel) throws CoreException {
 		final IJavaElement javaParent = annotation.getJavaParent();
 		if (javaParent != null && javaParent.getElementType() == IJavaElement.TYPE
-				&& annotation.getName().equals(APPLICATION_PATH.qualifiedName)) {
+				&& annotation.getFullyQualifiedName().equals(APPLICATION_PATH.qualifiedName)) {
 			final IType javaType = (IType) javaParent;
 			return createApplication(javaType, annotation, metamodel);
 		}

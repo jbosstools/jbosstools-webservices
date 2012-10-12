@@ -11,8 +11,6 @@
 package org.jboss.tools.ws.jaxrs.ui.quickfix;
 
 
-import java.lang.annotation.ElementType;
-
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -29,14 +27,14 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  * @author Xavier Coulon
  *
  */
-public class AddTargetAnnotationMarkerResolution extends BaseMarkerResolution  {
+public class UpdateRetentionAnnotationValueMarkerResolution extends BaseMarkerResolution  {
 	
 	private final IType type;
 
-	public AddTargetAnnotationMarkerResolution(IType type){
+	public UpdateRetentionAnnotationValueMarkerResolution(IType type){
 		super(type.getCompilationUnit());
 		this.type = type;
-		label = NLS.bind(JaxrsQuickFixMessages.ADD_TARGET_ANNOTATION_MARKER_RESOLUTION_TITLE, type.getElementName());
+		label = NLS.bind(JaxrsQuickFixMessages.UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE, type.getElementName());
 		init();
 	}
 
@@ -46,11 +44,9 @@ public class AddTargetAnnotationMarkerResolution extends BaseMarkerResolution  {
 		MultiTextEdit edit = new MultiTextEdit();
 		change.setEdit(edit);
 		try{
-			MarkerResolutionUtils.addImport(EnumJaxrsClassname.TARGET.qualifiedName, compilationUnit, edit);
-			MarkerResolutionUtils.addImport(ElementType.class.getName(), compilationUnit, edit);
-			MarkerResolutionUtils.addAnnotation(EnumJaxrsClassname.TARGET.simpleName, compilationUnit, type, "(ElementType.METHOD)", edit);
+			MarkerResolutionUtils.updateAnnotation(EnumJaxrsClassname.RETENTION.simpleName, compilationUnit, type, "(ElementType.METHOD)", edit);
 		} catch (JavaModelException e) {
-			Logger.error("Failed to add @Target annotation on type " + type.getFullyQualifiedName(), e);
+			Logger.error("Failed to add @Retention annotation on type " + type.getFullyQualifiedName(), e);
 		}
 		return change;
 	}

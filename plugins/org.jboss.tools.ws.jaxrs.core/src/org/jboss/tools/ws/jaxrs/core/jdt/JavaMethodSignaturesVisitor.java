@@ -11,21 +11,17 @@
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
-import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -89,28 +85,23 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 				List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
 				@SuppressWarnings("unchecked")
 				List<SingleVariableDeclaration> parameters = declaration.parameters();
-				for (SingleVariableDeclaration parameter : parameters) {
+				for (int i = 0; i < parameters.size(); i++) {
+					final SingleVariableDeclaration parameter = parameters.get(i);
 					final String paramName = parameter.getName().getFullyQualifiedName();
 					final IVariableBinding paramBinding = parameter.resolveBinding();
 					final String paramTypeName = paramBinding.getType().getQualifiedName();
-					final List<org.jboss.tools.ws.jaxrs.core.jdt.Annotation> paramAnnotations = new ArrayList<org.jboss.tools.ws.jaxrs.core.jdt.Annotation>();
-					final List<?> modifiers = (List<?>) (parameter
-							.getStructuralProperty(SingleVariableDeclaration.MODIFIERS2_PROPERTY));
-					for (Object modifier : modifiers) {
-						if (modifier instanceof Annotation) {
-							final Annotation annotation = (Annotation) modifier;
-							IAnnotationBinding annotationBinding = annotation.resolveAnnotationBinding();
-							final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
-							final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
-							final ISourceRange sourceRange = new SourceRange(annotation.getStartPosition(),
-									annotation.getLength());
-							paramAnnotations.add(new org.jboss.tools.ws.jaxrs.core.jdt.Annotation(null, annotationName,
-									annotationElements, sourceRange));
-						}
+					final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
+					final IAnnotationBinding[] annotationBindings = paramBinding.getAnnotations();
+					for(int j = 0; j < annotationBindings.length; j++) {
+						final ILocalVariable localVariable = method.getParameters()[i];
+						final IAnnotation javaAnnotation = localVariable.getAnnotations()[j];
+						final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
+						paramAnnotations.add(BindingUtils.toAnnotation(javaAnnotationBinding, javaAnnotation));
 					}
-					final ISourceRange sourceRange = new SourceRange(parameter.getStartPosition(), parameter.getLength());
-					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations, sourceRange));
+					//final ISourceRange sourceRange = new SourceRange(parameter.getStartPosition(), parameter.getLength());
+					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations));
 				}
+				
 
 				// TODO : add support for thrown exceptions
 				this.methodSignatures.add(new JavaMethodSignature(method, returnedType, methodParameters));
@@ -131,24 +122,6 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 			return (IType) methodBinding.getReturnType().getJavaElement().getAdapter(IType.class);
 		}
 		return null;
-	}
-
-	private static Map<String, List<String>> resolveAnnotationElements(IAnnotationBinding annotationBinding) {
-		final Map<String, List<String>> annotationElements = new HashMap<String, List<String>>();
-		for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
-			final List<String> values = new ArrayList<String>();
-			if(binding.getValue() != null) {
-				if (binding.getValue() instanceof Object[]) {
-					for (Object v : (Object[]) binding.getValue()) {
-						values.add(v.toString());
-					}
-				} else {
-					values.add(binding.getValue().toString());
-				}
-			}
-			annotationElements.put(binding.getName(), values);
-		}
-		return annotationElements;
 	}
 
 	/** @return the methodDeclarations */

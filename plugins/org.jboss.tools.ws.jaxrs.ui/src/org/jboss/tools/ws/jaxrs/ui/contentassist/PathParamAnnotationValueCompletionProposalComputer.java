@@ -19,10 +19,9 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
@@ -37,7 +36,7 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
@@ -76,29 +75,40 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			if (metamodel == null) {
 				return Collections.emptyList();
 			}
-			IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
-					context.getInvocationOffset());
-			// ICompilationUnit.getElementAt(int) method may return null
-			if (invocationElement != null && invocationElement.getElementType() == IJavaElement.METHOD) {
-				IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement,
+//			final IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
+//					context.getInvocationOffset());
+//			
+//			// ICompilationUnit.getElementAt(int) method may return null
+//			if (invocationElement != null && invocationElement.getElementType() == IJavaElement.METHOD) {
+//				IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement,
+//						IJaxrsResourceMethod.class);
+//				// the java method must be associated with a JAX-RS Resource Method. 
+//				if (resourceMethod != null) {
+//					for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
+//						for (Annotation annotation : methodParameter.getAnnotations().values()) {
+//							final ISourceRange range = annotation.getSourceRange();
+//							if (annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName) && range != null
+//									&& context.getInvocationOffset() >= range.getOffset()
+//									&& context.getInvocationOffset() < (range.getOffset() + range.getLength())) {
+//								// completion proposal on @PathParam method
+//								// annotation
+//								return internalComputePathParamProposals(javaContext, resourceMethod);
+//							}
+//
+//						}
+//					}
+//				}
+//			}
+			
+			final int invocationOffset = context.getInvocationOffset();
+			final ICompilationUnit compilationUnit = javaContext.getCompilationUnit();
+			final Annotation annotation = JdtUtils.resolveAnnotationAt(invocationOffset, compilationUnit);
+			if(annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName)) {
+				final IJaxrsResourceMethod resourceMethod = metamodel.getElement(annotation.getJavaParent(),
 						IJaxrsResourceMethod.class);
-				// the java method must be associated with a JAX-RS Resource Method. 
-				if (resourceMethod != null) {
-					for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
-						for (Annotation annotation : methodParameter.getAnnotations()) {
-							final ISourceRange range = annotation.getSourceRange();
-							if (annotation.getName().equals(PATH_PARAM.qualifiedName) && range != null
-									&& context.getInvocationOffset() >= range.getOffset()
-									&& context.getInvocationOffset() < (range.getOffset() + range.getLength())) {
-								// completion proposal on @PathParam method
-								// annotation
-								return internalComputePathParamProposals(javaContext, annotation, resourceMethod);
-							}
-
-						}
-					}
-				}
+				return internalComputePathParamProposals(javaContext, resourceMethod);	
 			}
+			
 		} catch (Exception e) {
 			Logger.error("Failed to compute completion proposal", e);
 		}
@@ -127,8 +137,8 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	 * @throws org.eclipse.jface.text.BadLocationException
 	 */
 	private List<ICompletionProposal> internalComputePathParamProposals(
-			final JavaContentAssistInvocationContext javaContext, final Annotation pathParamAnnotation,
-			final IJaxrsResourceMethod resourceMethod) throws CoreException, BadLocationException {
+			final JavaContentAssistInvocationContext javaContext, final IJaxrsResourceMethod resourceMethod)
+			throws CoreException, BadLocationException {
 		final List<ICompletionProposal> completionProposals = new ArrayList<ICompletionProposal>();
 		final ITypedRegion region = getRegion(javaContext);
 		String matchValue = javaContext.getDocument().get(region.getOffset(),

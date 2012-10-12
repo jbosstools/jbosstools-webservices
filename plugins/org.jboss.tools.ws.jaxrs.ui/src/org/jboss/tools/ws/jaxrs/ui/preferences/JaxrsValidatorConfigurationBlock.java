@@ -60,7 +60,6 @@ public class JaxrsValidatorConfigurationBlock extends SeverityConfigurationBlock
 		return WRONG_BUILDER_ORDER_KEY;
 	}
 
-	@SuppressWarnings("restriction")
 	public JaxrsValidatorConfigurationBlock(IStatusChangeListener context,
 			IProject project, IWorkbenchPreferenceContainer container) {
 		super(context, project, getKeys(), container);

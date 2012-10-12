@@ -56,7 +56,7 @@ public class BarResource {
 	@PUT
 	@Path("{param2}") 
 	public Response update3(@Context HttpServletRequest requestContext,
-			@PathParam("param1") String param2, 
+			@PathParam("param1") String param1, 
 			@PathParam("param2") String param2, 
 			String bar, String foo) throws Exception {
 		return null;

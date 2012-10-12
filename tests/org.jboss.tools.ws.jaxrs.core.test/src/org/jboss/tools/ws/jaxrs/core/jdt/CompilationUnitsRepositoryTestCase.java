@@ -60,9 +60,8 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	public void shouldGetASTByCompilationUnit() throws CoreException {
 		// pre-conditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final ICompilationUnit compilationUnit = type.getCompilationUnit();
 		// operation
-		final CompilationUnit ast = repository.getAST(compilationUnit);
+		final CompilationUnit ast = repository.getAST(type.getCompilationUnit());
 		// verification
 		assertThat(ast, notNullValue());
 	}
@@ -84,7 +83,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 		final IMethod method = getMethod(type, "getCustomer");
 		final ICompilationUnit compilationUnit = type.getCompilationUnit();
 		// record the previous version
-		repository.getAST(compilationUnit);
+		repository.getAST(type.getCompilationUnit());
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
 				"@PathParam(\"ide\") Integer id", true);

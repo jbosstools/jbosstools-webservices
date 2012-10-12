@@ -56,6 +56,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IOpenable;
@@ -443,6 +444,29 @@ public class WorkbenchUtils {
 		Assert.fail("Failed to locate method named '" + name + "'");
 		return null;
 	}
+
+	public static ILocalVariable getLocalVariable(IMethod method, String variableName) throws JavaModelException {
+		for (ILocalVariable param : method.getParameters()) {
+			if (param.getElementName().equals(variableName)) {
+				return param;
+			}
+		}
+		Assert.fail("Failed to locate method parameter named '" + variableName + "'");
+		return null;
+	}
+
+
+	
+	public static IField getField(IType type, String fieldName) throws JavaModelException {
+		for (IField field : type.getFields()) {
+			if (field.getElementName().equals(fieldName)) {
+				return field;
+			}
+		}
+		Assert.fail("Failed to locate method named '" + fieldName + "'");
+		return null;
+	}
+
 
 	public static IAnnotation addMethodAnnotation(IMethod method, String annotationStmt, boolean useWorkingCopy)
 			throws JavaModelException {
@@ -837,7 +861,7 @@ public class WorkbenchUtils {
 		return found;
 	}
 
-	public static Annotation getAnnotation(final IMember member, final String annotationName)
+	public static Annotation resolveAnnotation(final IMember member, final String annotationName)
 			throws JavaModelException {
 		if (annotationName == null) {
 			return null;
@@ -851,7 +875,7 @@ public class WorkbenchUtils {
 
 		Map<String, List<String>> elements = new HashMap<String, List<String>>();
 		elements.put("value", Arrays.asList(values));
-		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getName(), elements, null));
+		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getFullyQualifiedName(), elements));
 		return annotation;
 	}
 
@@ -968,5 +992,6 @@ public class WorkbenchUtils {
 			return createFileFromStream(webInfFolder, "web.xml", stream);
 		}
 	}
+
 
 }

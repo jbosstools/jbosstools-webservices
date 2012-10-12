@@ -506,7 +506,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", "@Path(\"/foo\")",
+		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", "@Path(\"/foo\")",
 				WORKING_COPY);
 		IAnnotation annotation = type.getAnnotation("Path");
 		// verifications
@@ -519,7 +519,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", "@Path(\"/foo\")",
+		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", "@Path(\"/foo\")",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -532,7 +532,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 				null);
 		// operation
 		IAnnotation annotation = type.getAnnotation("Path");
-		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", WORKING_COPY);
+		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", WORKING_COPY);
 		// verifications
 		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -543,7 +543,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
 		// operation
-		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(CustomerResource.URI_BASE)", PRIMARY_COPY);
+		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -901,7 +901,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldNotNotifyWhenMethodParameterNameChangedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenMethodParameterNameChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
 				null);
@@ -911,7 +911,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		method = WorkbenchUtils
 				.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", WORKING_COPY);
 		// verifications
-		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(0));
+		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
 	}
 
 	@Test

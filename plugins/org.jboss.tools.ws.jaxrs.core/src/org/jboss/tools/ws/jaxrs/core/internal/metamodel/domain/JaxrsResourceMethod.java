@@ -19,12 +19,19 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
@@ -45,7 +52,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	 */
 	private IType returnedJavaType = null;
 
-	private final List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
+	private final Map<String, JavaMethodParameter> javaMethodParameters = new HashMap<String, JavaMethodParameter>();
+
 
 	public static class Builder {
 
@@ -144,7 +152,9 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 		this.parentResource = parentResource;
 		this.returnedJavaType = returnedJavaType;
 		if (javaMethodParameters != null) {
-			this.javaMethodParameters.addAll(javaMethodParameters);
+			for (JavaMethodParameter javaMethodParameter : javaMethodParameters) {
+				this.javaMethodParameters.put(javaMethodParameter.getName(), javaMethodParameter);
+			}
 		}
 		this.parentResource.addMethod(this);
 	}
@@ -152,25 +162,54 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	public int update(JavaMethodSignature methodSignature)
 			throws JavaModelException {
 		int flag = F_NONE;
-		// method parameters, including annotations
-		final List<JavaMethodParameter> methodParameters = methodSignature
-				.getMethodParameters();
-		if (!this.javaMethodParameters.equals(methodParameters)) {
-			this.javaMethodParameters.clear();
-			this.javaMethodParameters.addAll(methodParameters);
-			flag = F_METHOD_PARAMETERS;
-		}
+		// method parameters, including their own annotations
+		flag += updateMethodParameters(methodSignature);
 		// method return type
+		flag += updateReturnedType(methodSignature);
+		// TODO: method thrown exceptions..
+		return flag;
+	}
+
+	/**
+	 * @param the methodSignature to use to update this one's returned type.
+	 * @return the flag indicating some change ({@link JaxrsElementDelta.F_METHOD_RETURN_TYPE}) or no change ({@link JaxrsElementDelta.F_NONE})
+	 */
+	private int updateReturnedType(JavaMethodSignature methodSignature) {
 		final IType returnedType = methodSignature.getReturnedType();
 		if ((this.returnedJavaType != null && returnedType == null)
 				|| (this.returnedJavaType == null && returnedType != null)
 				|| (this.returnedJavaType != null && returnedType != null && !this.returnedJavaType
 						.equals(returnedType))) {
 			this.returnedJavaType = returnedType;
-			flag += F_METHOD_RETURN_TYPE;
+			return F_METHOD_RETURN_TYPE;
 		}
-		// TODO: method thrown exceptions..
-		return flag;
+		return F_NONE;
+	}
+
+	/**
+	 * @param the methodSignature to use to update this one's method parameters.
+	 * @return the flag indicating some change ({@link JaxrsElementDelta.F_METHOD_PARAMETERS}) or no change ({@link JaxrsElementDelta.F_NONE})
+	 */
+	private int updateMethodParameters(final JavaMethodSignature methodSignature) {
+		final Map<String, JavaMethodParameter> otherMethodParameters = methodSignature.getMethodParameters();
+		final MapComparison<String, JavaMethodParameter> comparison = CollectionUtils.compare(this.javaMethodParameters, otherMethodParameters);
+		boolean changed = false; // track changes. "true" means at least 1 method parameter changed
+		for (Entry<String, JavaMethodParameter> entry : comparison.getAddedItems().entrySet()) {
+			javaMethodParameters.put(entry.getKey(), entry.getValue());
+			changed = true;
+		}
+		for (Entry<String, JavaMethodParameter> entry : comparison.getItemsInCommon().entrySet()) {
+			final JavaMethodParameter thisMethodParameter = this.javaMethodParameters.get(entry.getKey());
+			final JavaMethodParameter otherMethodParameter = otherMethodParameters.get(entry.getKey());
+			if(thisMethodParameter != null && thisMethodParameter.updateAnnotations(otherMethodParameter)) {
+				changed = true;
+			}
+		}
+		for (Entry<String, JavaMethodParameter> entry : comparison.getRemovedItems().entrySet()) {
+			javaMethodParameters.remove(entry.getKey());
+			changed = true;
+		}
+		return changed ? F_METHOD_PARAMETERS : F_NONE;
 	}
 
 	public IType getReturnType() {
@@ -298,8 +337,18 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	/** @return the javaMethodParameters */
 	@Override
 	public List<JavaMethodParameter> getJavaMethodParameters() {
-		return javaMethodParameters;
+		return Collections.unmodifiableList(new ArrayList<JavaMethodParameter>(javaMethodParameters.values()));
 	}
+	
+	/**
+	 * Returns the {@link JavaMethodParameter} whose name is equal to the given elementName, or null if this resource method has no such parameter
+	 * @param elementName
+	 * @return
+	 */
+	public JavaMethodParameter getJavaMethodParameter(String elementName) {
+		return javaMethodParameters.get(elementName);
+	}
+
 
 	/*
 	 * (non-Javadoc)
@@ -351,5 +400,6 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 		}
 		return params;
 	}
+
 
 }

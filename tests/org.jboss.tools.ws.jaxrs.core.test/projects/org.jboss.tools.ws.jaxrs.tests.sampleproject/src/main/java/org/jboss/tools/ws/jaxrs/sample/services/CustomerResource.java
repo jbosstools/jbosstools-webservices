@@ -24,7 +24,7 @@ import javax.ws.rs.core.UriInfo;
 import org.jboss.tools.ws.jaxrs.sample.domain.Customer;
 
 @Encoded
-@Path(CustomerResource.URI_BASE)
+@Path(value=CustomerResource.URI_BASE) // leave as-is: this form is required by a test
 @Consumes(MediaType.APPLICATION_XML)
 @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 @SuppressWarnings("foo") // keep this for tests

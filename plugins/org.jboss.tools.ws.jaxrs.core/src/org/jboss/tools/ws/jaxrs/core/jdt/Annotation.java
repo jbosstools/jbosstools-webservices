@@ -10,15 +10,24 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 
+/**
+ * Annotation wrapper for IAnnotation on types, fields, methods and method parameters as well. Annotation wrappers
+ * should follow the same lifecycle as their underlying java elements, which means that in the particular case of the
+ * ILocalVariable wrapper (java method parameter), the Annotation maybe destroy/re-created as the ILocalVariable is
+ * re-created, too.
+ * 
+ * @author Xavier Coulon
+ * 
+ */
 public class Annotation {
 
 	private final IAnnotation javaAnnotation;
@@ -27,8 +36,6 @@ public class Annotation {
 
 	private final Map<String, List<String>> javaAnnotationElements;
 
-	private ISourceRange sourceRange;
-
 	/**
 	 * Full constructor
 	 * 
@@ -36,15 +43,15 @@ public class Annotation {
 	 * @param annotationName
 	 * @param annotationElements
 	 * @param sourceRange
+	 * @throws JavaModelException 
 	 */
-	public Annotation(final IAnnotation annotation, final String annotationName, final Map<String, List<String>> annotationElements,
-			final ISourceRange sourceRange) {
+	public Annotation(final IAnnotation annotation, final String annotationName,
+			final Map<String, List<String>> annotationElements) {
 		this.javaAnnotation = annotation;
 		this.javaAnnotationName = annotationName;
 		this.javaAnnotationElements = new HashMap<String, List<String>>(annotationElements);
-		this.sourceRange = sourceRange;
 	}
-	
+
 	/**
 	 * Full constructor with a single unnamed 'value'
 	 * 
@@ -52,30 +59,27 @@ public class Annotation {
 	 * @param annotationName
 	 * @param annotationValue
 	 * @param sourceRange
+	 * @throws JavaModelException 
 	 */
-	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue,
-			final ISourceRange sourceRange) {
-		this.javaAnnotation = annotation;
-		this.javaAnnotationName = annotationName;
-		this.javaAnnotationElements = new HashMap<String, List<String>>();
-		this.javaAnnotationElements.put("value", Arrays.asList(annotationValue));
-		this.sourceRange = sourceRange;
+	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue)  {
+		this(annotation, annotationName, CollectionUtils.toMap("value", annotationValue));
 	}
 
-	public boolean update(Annotation annotation) {
-		assert annotation != null;
-
-		if (this.javaAnnotationElements.equals(annotation.getJavaAnnotationElements())) {
+	/**
+	 * Update this Annotation from the given other annotation.
+	 * @param otherAnnotation
+	 * @return true if some updates in the annotation elements (member pair values) were performed, false otherwise.
+	 */
+	public boolean update(final Annotation otherAnnotation) {
+		assert otherAnnotation != null;
+		if (this.javaAnnotationElements.equals(otherAnnotation.getJavaAnnotationElements())) {
 			return false;
 		}
 		this.javaAnnotationElements.clear();
-		this.javaAnnotationElements.putAll(annotation.getJavaAnnotationElements());
-		if (annotation.getSourceRange() != null) {
-			this.sourceRange = annotation.getSourceRange();
-		}
+		this.javaAnnotationElements.putAll(otherAnnotation.getJavaAnnotationElements());
 		return true;
 	}
-
+	
 	public IAnnotation getJavaAnnotation() {
 		return javaAnnotation;
 	}
@@ -84,7 +88,7 @@ public class Annotation {
 		return javaAnnotation.getParent();
 	}
 
-	public String getName() {
+	public String getFullyQualifiedName() {
 		return javaAnnotationName;
 	}
 
@@ -92,10 +96,6 @@ public class Annotation {
 		return javaAnnotationElements;
 	}
 
-	public ISourceRange getSourceRange() {
-		return sourceRange;
-	}
-	
 	/** @return the value */
 	public List<String> getValues(final String elementName) {
 		return javaAnnotationElements.get(elementName);
@@ -112,7 +112,7 @@ public class Annotation {
 		}
 		return null;
 	}
-	
+
 	/** @return the value */
 	public String getValue(final String elementName) {
 		final List<String> values = javaAnnotationElements.get(elementName);
@@ -127,7 +127,6 @@ public class Annotation {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -137,7 +136,6 @@ public class Annotation {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -152,7 +150,6 @@ public class Annotation {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -183,5 +180,6 @@ public class Annotation {
 		}
 		return true;
 	}
+
 
 }

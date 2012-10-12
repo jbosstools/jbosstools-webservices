@@ -28,9 +28,9 @@ public interface IJaxrsResourceMethod {
 	 * @param h
 	 *            : true if the java element has errors, false otherwise
 	 */
-	public abstract void hasErrors(final boolean h);
+	abstract void hasErrors(final boolean h);
 
-	public abstract EnumElementKind getElementKind();
+	abstract EnumElementKind getElementKind();
 
 	abstract String getPathTemplate();
 
@@ -40,7 +40,7 @@ public interface IJaxrsResourceMethod {
 
 	abstract List<String> getProducedMediaTypes();
 
-	List<JavaMethodParameter> getJavaMethodParameters();
+	abstract List<JavaMethodParameter> getJavaMethodParameters();
 
 	/**
 	 * Determines the proposals for the PathParam annotated method parameters of
@@ -49,8 +49,8 @@ public interface IJaxrsResourceMethod {
 	 * 
 	 * @return
 	 */
-	List<String> getPathParamValueProposals();
+	abstract List<String> getPathParamValueProposals();
 
-	boolean hasPathTemplate();
+	abstract boolean hasPathTemplate();
 
 }
