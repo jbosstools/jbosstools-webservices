@@ -19,7 +19,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplicat
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.metamodel.quickfix.JaxrsValidationQuickFixes;
+import org.jboss.tools.ws.jaxrs.core.metamodel.validation.JaxrsMetamodelValidationConstants;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -52,14 +52,14 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 					JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, new String[0],
 					appJavaElement.getNameRange().getLength(), appJavaElement.getNameRange().getOffset(),
 					application.getResource(),
-					JaxrsValidationQuickFixes.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_ID);
+					JaxrsMetamodelValidationConstants.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_ID);
 		}
 		if (!application.isJaxrsCoreApplicationSubclass()) {
 			addProblem(JaxrsValidationMessages.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
 					JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
 					new String[] { appJavaElement.getFullyQualifiedName() }, application.getJavaElement()
 							.getSourceRange().getLength(), appJavaElement.getSourceRange().getOffset(),
-					application.getResource(), JaxrsValidationQuickFixes.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_ID);
+					application.getResource(), JaxrsMetamodelValidationConstants.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_ID);
 		}
 
 		if (application.getMetamodel().hasMultipleApplications()) {

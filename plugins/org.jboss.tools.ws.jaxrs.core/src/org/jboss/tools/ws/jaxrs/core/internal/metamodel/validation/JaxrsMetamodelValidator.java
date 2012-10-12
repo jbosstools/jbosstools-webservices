@@ -49,6 +49,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.core.metamodel.validation.JaxrsMetamodelValidationConstants;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -67,13 +68,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	/** The JAX-RS Validator ID. */
 	public static final String ID = "org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"; //$NON-NLS-1$
 
-	/** The custom 'JAX-RS Problem' marker type. */
-	public static final String JAXRS_PROBLEM_TYPE = "org.jboss.tools.ws.jaxrs.metamodelMarker";
-
 	private static final String BUNDLE_NAME = JaxrsMetamodelValidator.class.getPackage().getName() + ".messages";
 
 	public JaxrsMetamodelValidator() {
-		super.setProblemType(JAXRS_PROBLEM_TYPE);
+		super.setProblemType(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE);
 	}
 	
 	/*
@@ -312,7 +310,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			return;
 		}
 		Logger.debug("Clearing JAX-RS markers for resource " + resource.getName());
-		resource.deleteMarkers(JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
+		resource.deleteMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
 	}
 
 	class JaxrsPreferenceInfo implements IPreferenceInfo{

@@ -15,6 +15,7 @@ import org.jboss.tools.common.validation.ValidationErrorManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.metamodel.validation.JaxrsMetamodelValidationConstants;
 
 /**
  * @author Xavier Coulon
@@ -32,10 +33,10 @@ public class MarkerUtils {
 		case APPLICATION:
 		case HTTP_METHOD:
 		case RESOURCE:
-			return element.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, true,
+			return element.getResource().findMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, true,
 					IResource.DEPTH_INFINITE);
 		case RESOURCE_METHOD:
-			final IMarker[] markers = element.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE,
+			final IMarker[] markers = element.getResource().findMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE,
 					true, IResource.DEPTH_INFINITE);
 			final List<IMarker> resourceMethodMarkers = new ArrayList<IMarker>();
 			final ISourceRange methodSourceRange = ((JaxrsResourceMethod) element).getJavaElement().getSourceRange();
@@ -54,7 +55,7 @@ public class MarkerUtils {
 	}
 	
 	public static IMarker[] findJaxrsMarkers(IProject project) throws CoreException {
-		return project.findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, false, 0);
+		return project.findMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, false, 0);
 	}
 	
 	/**
@@ -63,7 +64,7 @@ public class MarkerUtils {
 	 */
 	public static void deleteJaxrsMarkers(final JaxrsBaseElement element) throws CoreException {
 		element.getResource()
-				.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
+				.deleteMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
 	}
 
 	/**
@@ -71,7 +72,7 @@ public class MarkerUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final IProject project) throws CoreException {
-		project.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
+		project.deleteMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
 	}
 	
 	public static Matcher<IMarker[]> hasPreferenceKey(String javaApplicationInvalidTypeHierarchy) {

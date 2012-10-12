@@ -9,7 +9,7 @@ import org.eclipse.ui.IMarkerResolution;
 import org.eclipse.ui.IMarkerResolutionGenerator2;
 import org.jboss.tools.common.validation.ValidationErrorManager;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.quickfix.JaxrsValidationQuickFixes;
+import org.jboss.tools.ws.jaxrs.core.metamodel.validation.JaxrsMetamodelValidationConstants;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerator2 {
@@ -40,13 +40,13 @@ public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerato
 					marker.getAttribute(IMarker.CHAR_START, 0), IJavaElement.TYPE);
 			if (type != null) {
 				switch (quickfixId) {
-				case JaxrsValidationQuickFixes.HTTP_METHOD_MISSING_TARGET_ANNOTATION_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_TARGET_ANNOTATION_ID:
 					return new IMarkerResolution[] { new AddTargetAnnotationMarkerResolution(type) };
-				case JaxrsValidationQuickFixes.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_ID:
 					return new IMarkerResolution[] { new AddRetentionAnnotationMarkerResolution(type) };
-				case JaxrsValidationQuickFixes.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_ID:
 					return new IMarkerResolution[] { new UpdateTargetAnnotationValueMarkerResolution(type) };
-				case JaxrsValidationQuickFixes.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_ID:
 					return new IMarkerResolution[] { new UpdateRetentionAnnotationValueMarkerResolution(type) };
 				}
 			}
