@@ -203,20 +203,24 @@ public class JaxrsMetamodelChangedProcessor {
 		final JaxrsResource resource = resourceMethod.getParentResource();
 		final IProgressMonitor progressMonitor = new NullProgressMonitor();
 		final IType resourceType = resource.getJavaElement();
-		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(resourceType, resourceType.getJavaProject(), false, progressMonitor);
-		final List<String> supertypesHandlers = extractHandlers(returnTypeHierarchy.getAllSupertypes(resourceType));
-		for (IJaxrsResource otherResource : metamodel.getAllResources()) {
-			if (((JaxrsResource) otherResource).isRootResource()) {
-				for (JaxrsResourceMethod otherResourceMethod : ((JaxrsResource) otherResource).getMethods().values()) {
-					if (otherResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR) {
-						final String returnTypeHandler = (otherResourceMethod.getReturnType() != null) ? otherResourceMethod
-								.getReturnType().getHandleIdentifier() : null;
-						if (returnTypeHandler != null && supertypesHandlers.contains(returnTypeHandler)) {
-							final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
-									Arrays.asList(otherResourceMethod, resourceMethod));
-							final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, resourceMethods);
-							if (metamodel.add(endpoint)) {
-								changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
+		if(resourceType != null) {
+			final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(resourceType,
+					resourceType.getJavaProject(), false, progressMonitor);
+			final List<String> supertypesHandlers = extractHandlers(returnTypeHierarchy.getAllSupertypes(resourceType));
+			for (IJaxrsResource otherResource : metamodel.getAllResources()) {
+				if (((JaxrsResource) otherResource).isRootResource()) {
+					for (JaxrsResourceMethod otherResourceMethod : ((JaxrsResource) otherResource).getMethods()
+							.values()) {
+						if (otherResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR) {
+							final String returnTypeHandler = (otherResourceMethod.getReturnType() != null) ? otherResourceMethod
+									.getReturnType().getHandleIdentifier() : null;
+							if (returnTypeHandler != null && supertypesHandlers.contains(returnTypeHandler)) {
+								final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
+										Arrays.asList(otherResourceMethod, resourceMethod));
+								final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, resourceMethods);
+								if (metamodel.add(endpoint)) {
+									changes.add(new JaxrsEndpointDelta(endpoint, ADDED));
+								}
 							}
 						}
 					}

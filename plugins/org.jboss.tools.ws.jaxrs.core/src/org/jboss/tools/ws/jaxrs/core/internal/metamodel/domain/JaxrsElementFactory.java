@@ -446,7 +446,7 @@ public class JaxrsElementFactory {
 	 * @return a representation of the given provider or null in case of invalid type (ie, not a valid JAX-RS Provider)
 	 */
 	public JaxrsProvider createProvider(final IType javaType, final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor ) throws CoreException {
-		if(!javaType.exists()) {
+		if(javaType == null || !javaType.exists()) {
 			return null;
 		}
 		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, PROVIDER.qualifiedName,

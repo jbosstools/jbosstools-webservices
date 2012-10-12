@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
@@ -191,5 +192,17 @@ public class JaxrsAnnotationScannerTestCase extends AbstractCommonTestCase {
 				new NullProgressMonitor());
 		// verifications
 		assertThat(applications.size(), equalTo(0));
+	}
+	
+	@Test
+	public void shouldNotFailWhenJaxrsCoreApplicationTypeIsMissing() throws CoreException, OperationCanceledException, InterruptedException {
+		// pre-conditions: remove Appllication from project classpath
+		WorkbenchUtils.removeClasspathEntry(javaProject,
+				"jaxrs-api-2.0.1.GA.jar", null);
+		// operation
+		final List<IType> applications = JaxrsAnnotationsScanner.findApplicationTypes(javaProject,
+				new NullProgressMonitor());
+		// verifications
+		assertThat(applications.size(), equalTo(1));
 	}
 }

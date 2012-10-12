@@ -32,6 +32,7 @@ import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 
 /**
@@ -72,12 +73,16 @@ public final class JaxrsAnnotationsScanner {
 		final List<IType> applicationTypes = searchForAnnotatedTypes(APPLICATION_PATH.qualifiedName, searchScope, progressMonitor);
 		// the search result also includes all subtypes of javax.ws.rs.core.Application (while avoiding duplicate results)
 		final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, scope.getJavaProject(), progressMonitor);
-		final ITypeHierarchy applicationTypeHierarchy = JdtUtils.resolveTypeHierarchy(applicationType, scope, false, progressMonitor);
-		final IType[] allSubtypes = applicationTypeHierarchy.getAllSubtypes(applicationType);
-		for(IType subtype : allSubtypes) {
-			if(subtype.getJavaProject().equals(scope.getJavaProject()) && !applicationTypes.contains(subtype)) {
-				applicationTypes.add(subtype);
+		if(applicationType != null) {
+			final ITypeHierarchy applicationTypeHierarchy = JdtUtils.resolveTypeHierarchy(applicationType, scope, false, progressMonitor);
+			final IType[] allSubtypes = applicationTypeHierarchy.getAllSubtypes(applicationType);
+			for(IType subtype : allSubtypes) {
+				if(subtype.getJavaProject().equals(scope.getJavaProject()) && !applicationTypes.contains(subtype)) {
+					applicationTypes.add(subtype);
+				}
 			}
+		} else {
+			Logger.warn("Could not find type '"+APPLICATION.qualifiedName + "' in project's classpath.");
 		}
 		return applicationTypes;
 	}

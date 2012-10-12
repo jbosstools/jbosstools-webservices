@@ -455,7 +455,7 @@ public final class JdtUtils {
 	}
 
 	/**
-	 * Returns the hierarchy for the given type.
+	 * Returns the hierarchy for the given type, or null if it could not be 'computed'.
 	 * 
 	 * @param baseType
 	 *            the base type for the hierarchy
@@ -482,7 +482,7 @@ public final class JdtUtils {
 						| IJavaSearchScope.REFERENCED_PROJECTS);
 		CreateTypeHierarchyOperation operation = new CreateTypeHierarchyOperation(baseType, null, searchScope, true);
 		ITypeHierarchy hierarchy = operation.getResult();
-		if (hierarchy.exists()) {
+		if (hierarchy != null && hierarchy.exists()) {
 			hierarchy.refresh(progressMonitor);
 			return hierarchy;
 		}
