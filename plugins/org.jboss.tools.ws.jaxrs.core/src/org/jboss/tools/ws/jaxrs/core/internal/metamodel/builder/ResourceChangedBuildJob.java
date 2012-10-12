@@ -51,7 +51,7 @@ public class ResourceChangedBuildJob extends Job {
 		long startTime = new Date().getTime();
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
-			Logger.debug("Building JAX-RS Metamodel...");
+			Logger.debug("Building JAX-RS Metamodel after resource changed...");
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}

@@ -106,12 +106,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 */
 	public IStatus validate(Set<IFile> changedFiles, IProject project, ContextValidationHelper validationHelper,
 			IProjectValidationContext context, ValidatorManager manager, IReporter reporter) throws ValidationException {
-		Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
-				changedFiles.toString());
 		init(project, validationHelper, context, manager, reporter);
 		setAsYouTypeValidation(false);
 		try {
 			if (!changedFiles.isEmpty()) {
+				Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
+						changedFiles.toString());
 				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
 				final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, changedFiles.toArray(new IFile[changedFiles.size()]));
 				for (IResource changedResource : allResources) {
@@ -120,7 +120,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			}
 			// trigger a full validation instead
 			else {
-				validateAll(project, validationHelper, context, manager, reporter);
+				//validateAll(project, validationHelper, context, manager, reporter);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);

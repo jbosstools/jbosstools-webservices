@@ -48,7 +48,7 @@ public class JavaElementChangedBuildJob extends Job {
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
 			progressMonitor.worked(SCALE);
-			Logger.debug("Building JAX-RS Metamodel...");
+			Logger.debug("Building JAX-RS Metamodel after Java element changed...");
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
