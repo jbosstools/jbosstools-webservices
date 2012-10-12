@@ -376,7 +376,7 @@ public final class JdtUtils {
 			final IJavaElement element = compilationUnit.getElementAt(location);
 			final ASTNode astChildNode = DOMUtils.getASTNodeByTypeAndLocation(ast, element.getElementType(), location);
 			if (astChildNode != null) {
-				final JavaAnnotationLocator annotationLocator = new JavaAnnotationLocator(location);
+				final JavaAnnotationLocator annotationLocator = new JavaAnnotationLocator(element, location);
 				astChildNode.accept(annotationLocator);
 				return annotationLocator.getLocatedAnnotation();
 			}

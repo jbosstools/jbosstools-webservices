@@ -12,13 +12,20 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.List;
 
+import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
  * @author Xavier Coulon
@@ -27,9 +34,12 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 public class JavaAnnotationLocator extends ASTVisitor {
 
 	private final int location;
+	private final IMethod parentMethod;
+
 	private Annotation locatedAnnotation;
 
-	public JavaAnnotationLocator(final int location) {
+	public JavaAnnotationLocator(final IJavaElement parentElement, final int location) {
+		this.parentMethod = (parentElement.getElementType() == IJavaElement.METHOD) ? (IMethod) parentElement : null;
 		this.location = location;
 	}
 
@@ -61,16 +71,6 @@ public class JavaAnnotationLocator extends ASTVisitor {
 	}
 
 	/**
-	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.MethodDeclaration)
-	 */
-	@Override
-	public boolean visit(MethodDeclaration node) {
-		visitExtendedModifiers((List<?>) node.getStructuralProperty(MethodDeclaration.MODIFIERS2_PROPERTY));
-		// visit children to look for SingleVariableDeclaration
-		return true;
-	}
-
-	/**
 	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.TypeDeclaration)
 	 */
 	@Override
@@ -81,15 +81,73 @@ public class JavaAnnotationLocator extends ASTVisitor {
 	}
 
 	/**
+	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.MethodDeclaration)
+	 */
+	@Override
+	public boolean visit(MethodDeclaration declaration) {
+		visitExtendedModifiers((List<?>) declaration.getStructuralProperty(MethodDeclaration.MODIFIERS2_PROPERTY));
+		return this.locatedAnnotation == null;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.SingleVariableDeclaration)
 	 */
 	@Override
-	public boolean visit(SingleVariableDeclaration node) {
-		visitExtendedModifiers((List<?>) node.getStructuralProperty(SingleVariableDeclaration.MODIFIERS2_PROPERTY));
-		// no need to visit furthermore
+	public boolean visit(SingleVariableDeclaration variableDeclaration) {
+		// skip if parentMethod is undefined or if annotation is already located
+		if (this.parentMethod == null || this.locatedAnnotation != null) {
+			return false;
+		}
+		try {
+			if (DOMUtils.nodeMatches(variableDeclaration, location)) {
+				final IVariableBinding variableDeclarationBinding = variableDeclaration.resolveBinding();
+				final IAnnotationBinding[] annotationBindings = variableDeclarationBinding.getAnnotations();
+				// retrieve the parameter index in the parent method
+				final ILocalVariable localVariable = getLocalVariable(variableDeclarationBinding);
+				if (localVariable != null) {
+					final IAnnotation[] variableAnnotations = localVariable.getAnnotations();
+					for (int j = 0; j < annotationBindings.length; j++) {
+						final IAnnotation javaAnnotation = variableAnnotations[j];
+						if (RangeUtils.matches(javaAnnotation.getSourceRange(), location)) {
+							final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
+							this.locatedAnnotation = BindingUtils.toAnnotation(javaAnnotationBinding, javaAnnotation);
+							break;
+						}
+					}
+				}
+				// TODO : add support for thrown exceptions
+			}
+		} catch (JavaModelException e) {
+			Logger.error("Failed to analyse compilation unit method '" + this.parentMethod.getElementName() + "'", e);
+		}
+
+		// no need to carry on from here
 		return false;
+
 	}
-	
+
+	/**
+	 * Returns the localVariable associated with the given variable declaration binding, or null if it could not be found
+	 * @param variableDeclarationBinding
+	 * @return
+	 * @throws JavaModelException
+	 */
+	private ILocalVariable getLocalVariable(final IVariableBinding variableDeclarationBinding)
+			throws JavaModelException {
+		int i = -1;
+		for (String paramName : parentMethod.getParameterNames()) {
+			i++;
+			if (paramName.equals(variableDeclarationBinding.getName())) {
+				break;
+			}
+		}
+		if(i>=0) {
+		return this.parentMethod.getParameters()[i];
+		}
+		return null;
+	}
+
 	/**
 	 * Visits the modifiers.
 	 * 
@@ -103,7 +161,8 @@ public class JavaAnnotationLocator extends ASTVisitor {
 				if (DOMUtils.nodeMatches(annotation, location)) {
 					final IAnnotationBinding annotationBinding = annotation.resolveAnnotationBinding();
 					if (annotationBinding != null) {
-						this.locatedAnnotation = BindingUtils.toAnnotation(annotationBinding);
+						final IAnnotation javaAnnotation = (IAnnotation) annotationBinding.getJavaElement();
+						this.locatedAnnotation = BindingUtils.toAnnotation(annotationBinding, javaAnnotation);
 					}
 				}
 			}

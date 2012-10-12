@@ -20,6 +20,7 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
@@ -75,40 +76,43 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			if (metamodel == null) {
 				return Collections.emptyList();
 			}
-//			final IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
-//					context.getInvocationOffset());
-//			
-//			// ICompilationUnit.getElementAt(int) method may return null
-//			if (invocationElement != null && invocationElement.getElementType() == IJavaElement.METHOD) {
-//				IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement,
-//						IJaxrsResourceMethod.class);
-//				// the java method must be associated with a JAX-RS Resource Method. 
-//				if (resourceMethod != null) {
-//					for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
-//						for (Annotation annotation : methodParameter.getAnnotations().values()) {
-//							final ISourceRange range = annotation.getSourceRange();
-//							if (annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName) && range != null
-//									&& context.getInvocationOffset() >= range.getOffset()
-//									&& context.getInvocationOffset() < (range.getOffset() + range.getLength())) {
-//								// completion proposal on @PathParam method
-//								// annotation
-//								return internalComputePathParamProposals(javaContext, resourceMethod);
-//							}
-//
-//						}
-//					}
-//				}
-//			}
-			
+			// final IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
+			// context.getInvocationOffset());
+			//
+			// // ICompilationUnit.getElementAt(int) method may return null
+			// if (invocationElement != null && invocationElement.getElementType() == IJavaElement.METHOD) {
+			// IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement,
+			// IJaxrsResourceMethod.class);
+			// // the java method must be associated with a JAX-RS Resource Method.
+			// if (resourceMethod != null) {
+			// for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
+			// for (Annotation annotation : methodParameter.getAnnotations().values()) {
+			// final ISourceRange range = annotation.getSourceRange();
+			// if (annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName) && range != null
+			// && context.getInvocationOffset() >= range.getOffset()
+			// && context.getInvocationOffset() < (range.getOffset() + range.getLength())) {
+			// // completion proposal on @PathParam method
+			// // annotation
+			// return internalComputePathParamProposals(javaContext, resourceMethod);
+			// }
+			//
+			// }
+			// }
+			// }
+			// }
+
 			final int invocationOffset = context.getInvocationOffset();
 			final ICompilationUnit compilationUnit = javaContext.getCompilationUnit();
 			final Annotation annotation = JdtUtils.resolveAnnotationAt(invocationOffset, compilationUnit);
-			if(annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName)) {
-				final IJaxrsResourceMethod resourceMethod = metamodel.getElement(annotation.getJavaParent(),
-						IJaxrsResourceMethod.class);
-				return internalComputePathParamProposals(javaContext, resourceMethod);	
+			if (annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName)) {
+				final IJavaElement javaMethod = annotation.getJavaAnnotation().getAncestor(IJavaElement.METHOD);
+				if (javaMethod != null) {
+					final IJaxrsResourceMethod resourceMethod = metamodel.getElement(javaMethod,
+							IJaxrsResourceMethod.class);
+					return internalComputePathParamProposals(javaContext, resourceMethod);
+				}
 			}
-			
+
 		} catch (Exception e) {
 			Logger.error("Failed to compute completion proposal", e);
 		}

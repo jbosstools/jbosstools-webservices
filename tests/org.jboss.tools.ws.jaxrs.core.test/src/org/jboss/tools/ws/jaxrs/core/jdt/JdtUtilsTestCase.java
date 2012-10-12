@@ -757,7 +757,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, method.getCompilationUnit());
 		// verification
 		assertThat(foundAnnotation, notNullValue());
-		assertThat(foundAnnotation.getJavaAnnotation(), nullValue());
+		assertThat(foundAnnotation.getJavaAnnotation(), notNullValue());
 	}
 
 	@Test
@@ -772,8 +772,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification
 		assertThat(foundAnnotation, notNullValue());
-		// iannotation retrieved from this method is null and does not need to be evaluated anyway.
-		assertThat(foundAnnotation.getJavaAnnotation(), nullValue());
+		assertThat(foundAnnotation.getJavaAnnotation(), notNullValue());
 	}
 
 	@Test
