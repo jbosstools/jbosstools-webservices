@@ -41,6 +41,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -124,7 +125,8 @@ public class JavaElementDeltaFilter {
 		IJavaElement element = event.getElement();
 		// prevent processing java elements in a closed java project
 		// prevent processing of any file named 'package-info.java'
-		if (isProjectClosed(element) || isPackageInfoFile(element)) {
+		// prevent processing of any jar file
+		if (isProjectClosed(element) || isPackageInfoFile(element) || isJarArchive(element)) {
 			return false;
 		}
 		int flags = event.getFlags();
@@ -139,6 +141,16 @@ public class JavaElementDeltaFilter {
 			Logger.trace("**rejected** {}", event);
 		}
 		return match;
+	}
+
+	/**
+	 * 
+	 * @param element
+	 * @return true if the given java element is a Jar archive.
+	 */
+	private boolean isJarArchive(IJavaElement element) {
+		return (element.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)element).isArchive());
+            
 	}
 
 	/**

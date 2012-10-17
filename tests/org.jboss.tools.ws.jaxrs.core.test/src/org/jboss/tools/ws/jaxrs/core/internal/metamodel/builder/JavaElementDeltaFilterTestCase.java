@@ -13,7 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 import static org.eclipse.jdt.core.ElementChangedEvent.POST_CHANGE;
 import static org.eclipse.jdt.core.ElementChangedEvent.POST_RECONCILE;
-import static org.eclipse.jdt.core.IJavaElement.ANNOTATION;
+import static org.eclipse.jdt.core.IJavaElement.*;
 import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
 import static org.eclipse.jdt.core.IJavaElement.METHOD;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
@@ -30,6 +30,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.junit.Before;
@@ -117,4 +118,18 @@ public class JavaElementDeltaFilterTestCase {
 		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_CHANGE, NO_FLAG)));
 	}
 
+	@Test
+	public void shouldNotAcceptChangesInJarFile() {
+		IPackageFragmentRoot element = createMock(IPackageFragmentRoot.class, PACKAGE_FRAGMENT_ROOT);
+		IResource resource = mock(IResource.class);
+		when(element.getResource()).thenReturn(resource);
+		when(element.isArchive()).thenReturn(true);
+		when(resource.getType()).thenReturn(IResource.FILE);
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_CHANGE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_RECONCILE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_CHANGE, NO_FLAG)));
+	}
 }
