@@ -113,14 +113,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
 						changedFiles.toString());
 				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
-				final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, changedFiles.toArray(new IFile[changedFiles.size()]));
-				for (IResource changedResource : allResources) {
-					validate(reporter, changedResource, jaxrsMetamodel);
+				if(jaxrsMetamodel != null) { // prevent failure in case validation would be called at workbench startup, even before metamodel is built.
+					final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, changedFiles.toArray(new IFile[changedFiles.size()]));
+					for (IResource changedResource : allResources) {
+						validate(reporter, changedResource, jaxrsMetamodel);
+					}
 				}
-			}
-			// trigger a full validation instead
-			else {
-				//validateAll(project, validationHelper, context, manager, reporter);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);
@@ -235,6 +233,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 */
 	@SuppressWarnings("incomplete-switch")
 	private void validate(IJaxrsElement element) throws CoreException {
+		// skip validation on binary JAX-RS elements (if metamodel contains any)
+		if(element.isBinary()) {
+			return;
+		}
 		switch (element.getElementCategory()) {
 		case METAMODEL:
 			new JaxrsMetamodelValidatorDelegate(this, (JaxrsMetamodel)element).validate();

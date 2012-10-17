@@ -42,8 +42,11 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 	public void validate() throws CoreException {
 		final JaxrsJavaApplication application = getElement();
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(application);
+		if(application.getJavaElement().isBinary()) {
+			Logger.debug("Skipping validation on binary element {}", getElement());
+			return;
+		}
 		Logger.debug("Validating element {}", getElement());
-		
 		final Annotation applicationPathAnnotation = application
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		final IType appJavaElement = application.getJavaElement();

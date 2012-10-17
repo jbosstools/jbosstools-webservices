@@ -3,6 +3,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
@@ -26,6 +28,17 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 		this.applicationPath = normalizeApplicationPath(applicationPath);
 		this.webxmlResource = webxmlResource;
 		this.javaClassName = applicationClassName;
+		
+	}
+	
+	@Override
+	public boolean isBinary() {
+		final IJavaProject javaProject = getMetamodel().getJavaProject();
+		IPackageFragmentRoot fragment = javaProject.getPackageFragmentRoot(webxmlResource);
+		if(fragment != null && fragment.exists() && fragment.isArchive()) {
+			return true;
+		}
+		return false;
 		
 	}
 

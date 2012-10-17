@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 
 /**
  * Abstract validator delegate with bits of generics for better readability in subclasses
@@ -22,7 +23,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
  * @author Xavier Coulon
  *
  */
-public abstract class AbstractJaxrsElementValidatorDelegate<T extends Object> {
+public abstract class AbstractJaxrsElementValidatorDelegate<T extends IJaxrsElement> {
 	
 	private final T element;
 	

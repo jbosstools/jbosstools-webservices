@@ -120,6 +120,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	@Override
+	public boolean isBinary() {
+		// Metamodel is never binary
+		return false;
+	}
+	
+	@Override
 	public EnumElementKind getElementKind() {
 		return EnumElementKind.METAMODEL;
 	}

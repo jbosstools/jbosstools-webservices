@@ -100,6 +100,14 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		}
 	}
 
+	@Override
+	public boolean isBinary() {
+		if(this.javaElement == null) {
+			return true;
+		}
+		return this.javaElement.isBinary();
+	}
+	
 	public Annotation getAnnotation(String className) {
 		return annotations.get(className);
 	}

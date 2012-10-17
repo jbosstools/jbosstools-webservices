@@ -125,6 +125,7 @@ public class JavaElementDeltaFilterTestCase {
 		when(element.getResource()).thenReturn(resource);
 		when(element.isArchive()).thenReturn(true);
 		when(resource.getType()).thenReturn(IResource.FILE);
+		when(resource.getName()).thenReturn("somearchive.jar");
 		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
 		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
 		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
