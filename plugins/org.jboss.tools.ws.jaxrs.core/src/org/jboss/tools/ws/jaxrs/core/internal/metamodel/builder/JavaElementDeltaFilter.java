@@ -41,6 +41,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -104,27 +105,23 @@ public class JavaElementDeltaFilter {
 		return new RuleBuilder();
 	}
 
+	
 	/**
-	 * Attempts to retrieve the CompilationUnitContext value matching the given
-	 * parameters.
-	 * 
-	 * @param elementKind
-	 *            the kind of Java element that changed.
-	 * @param deltaKind
-	 *            the kind of change.
-	 * @param workingCopy
-	 * @return the scope defined by the rules, or PRIMARY_COPY if nothing was
-	 *         set.
-	 * @see IJavaElementDelta, IJavaElementKind
+	 * Applies the configured rules to see if the given JavaElementDelta needs to be processed or should be ignored.
+	 * @param event the  Java Element Delta
+	 * @return true if the event should be processed, false otherwise
 	 */
-
 	public boolean apply(JavaElementDelta event) {
+		if(event.getElement() == null) {
+			return false;
+		}
 		int elementKind = event.getElement().getElementType();
 		int deltaKind = event.getDeltaKind();
 		IJavaElement element = event.getElement();
 		// prevent processing java elements in a closed java project
 		// prevent processing of any file named 'package-info.java'
-		if (isProjectClosed(element) || isPackageInfoFile(element)) {
+		// prevent processing of any jar file
+		if (isProjectClosed(element) || isPackageInfoFile(element) || isJarArchive(element)) {
 			return false;
 		}
 		int flags = event.getFlags();
@@ -139,6 +136,16 @@ public class JavaElementDeltaFilter {
 			Logger.trace("**rejected** {}", event);
 		}
 		return match;
+	}
+
+	/**
+	 * 
+	 * @param element
+	 * @return true if the given java element is a Jar archive.
+	 */
+	private boolean isJarArchive(IJavaElement element) {
+		return (element.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)element).isArchive());
+            
 	}
 
 	/**

@@ -549,12 +549,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenLibraryAddedInClasspath() throws CoreException, InterruptedException {
+	public void shouldNotNotifyWhenLibraryAddedInClasspath() throws CoreException, InterruptedException {
 		// operation
 		IPackageFragmentRoot addedEntry = WorkbenchTasks.addClasspathEntry(javaProject, "slf4j-api-1.5.2.jar",
 				new NullProgressMonitor());
 		// verifications
-		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(1));
+		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(0));
 	}
 
 	@Test
@@ -567,13 +567,13 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenLibraryRemovedFromClasspath() throws CoreException, InterruptedException {
+	public void shouldNotNotifyWhenLibraryRemovedFromClasspath() throws CoreException, InterruptedException {
 		// operation
 		List<IPackageFragmentRoot> removedEntries = WorkbenchUtils.removeClasspathEntry(javaProject,
 				"jaxrs-api-2.0.1.GA.jar", null);
 		// verifications
 		for (IPackageFragmentRoot removedEntry : removedEntries) {
-			verifyEventNotification(removedEntry, REMOVED, POST_CHANGE, F_REMOVED_FROM_CLASSPATH, times(1));
+			verifyEventNotification(removedEntry, REMOVED, POST_CHANGE, F_REMOVED_FROM_CLASSPATH, times(0));
 		}
 	}
 
