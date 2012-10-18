@@ -105,21 +105,16 @@ public class JavaElementDeltaFilter {
 		return new RuleBuilder();
 	}
 
+	
 	/**
-	 * Attempts to retrieve the CompilationUnitContext value matching the given
-	 * parameters.
-	 * 
-	 * @param elementKind
-	 *            the kind of Java element that changed.
-	 * @param deltaKind
-	 *            the kind of change.
-	 * @param workingCopy
-	 * @return the scope defined by the rules, or PRIMARY_COPY if nothing was
-	 *         set.
-	 * @see IJavaElementDelta, IJavaElementKind
+	 * Applies the configured rules to see if the given JavaElementDelta needs to be processed or should be ignored.
+	 * @param event the  Java Element Delta
+	 * @return true if the event should be processed, false otherwise
 	 */
-
 	public boolean apply(JavaElementDelta event) {
+		if(event.getElement() == null) {
+			return false;
+		}
 		int elementKind = event.getElement().getElementType();
 		int deltaKind = event.getDeltaKind();
 		IJavaElement element = event.getElement();
