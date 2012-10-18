@@ -42,8 +42,10 @@ import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Test;
 
 /**
@@ -69,6 +71,21 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		// preconditions
 		final IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
 		final JaxrsBaseElement httpMethod = (JaxrsBaseElement) metamodel.getElement(fooType);
+		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
+		deleteJaxrsMarkers(httpMethod);
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
+	}
+
+	@Test
+	public void shouldSkipValidationOnBinaryHttpMethod() throws CoreException, ValidationException {
+		// preconditions: create an HttpMethod from the binary annotation, then try to validate
+		final IType getType = WorkbenchUtils.getType("javax.ws.rs.GET", javaProject);
+		final JaxrsHttpMethod httpMethod = new JaxrsElementFactory().createHttpMethod(getType, JdtUtils.parse(getType, null), metamodel);
+		metamodel.add(httpMethod);
 		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
 		deleteJaxrsMarkers(httpMethod);
 		// operation

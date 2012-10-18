@@ -28,6 +28,8 @@ public interface IJaxrsElement {
 	public abstract IResource getResource();
 	
 	public abstract String getName();	
+	
+	public abstract boolean isBinary();
 
 
 }

@@ -12,6 +12,13 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
@@ -40,10 +47,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
-import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.*;
 import org.junit.Test;
-
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.*;
 
 /**
  * @author Xi
@@ -88,7 +92,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(0));
 	}
-
+	
 	@Test
 	public void shouldNotReportProblemIfOneWebxmlApplicationExists() throws CoreException, ValidationException {
 		// preconditions

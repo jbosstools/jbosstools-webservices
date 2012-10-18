@@ -43,7 +43,6 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 		final JaxrsJavaApplication application = getElement();
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(application);
 		Logger.debug("Validating element {}", getElement());
-		
 		final Annotation applicationPathAnnotation = application
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		final IType appJavaElement = application.getJavaElement();
