@@ -1,5 +1,9 @@
 # The Webservices Tools project
 
+## Summary
+
+Webservices provides wizards, validation and a webservice tester for JAX-RS and JAX-WS based projects.
+
 ## Install
 
 _Webservices Tools_ is part of [JBoss Tools](http://jboss.org/tools) from
