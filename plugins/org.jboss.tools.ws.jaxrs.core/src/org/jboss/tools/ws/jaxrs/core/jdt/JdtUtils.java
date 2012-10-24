@@ -185,6 +185,9 @@ public final class JdtUtils {
 	 * @throws JavaModelException
 	 */
 	public static IJavaElement getElementAt(ICompilationUnit compilationUnit, int location) throws JavaModelException {
+		if (compilationUnit == null) {
+			return null;
+		}
 		final IJavaElement element = compilationUnit.getElementAt(location);
 		if (element instanceof IAnnotatable) {
 			for (IAnnotation annotation : ((IAnnotatable) element).getAnnotations()) {
