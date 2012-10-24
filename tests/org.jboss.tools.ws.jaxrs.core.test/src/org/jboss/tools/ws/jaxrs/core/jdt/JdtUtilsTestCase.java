@@ -48,6 +48,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
@@ -930,6 +931,15 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final ISourceRange annotationRange = annotation.getSourceRange();
 		assertThat(range.getOffset(), greaterThan(annotationRange.getOffset()));
 		assertThat(range.getOffset(), lessThan(annotationRange.getOffset() + annotationRange.getLength()));
+	}
+	
+	@Test
+	public void shouldReturnNullWhenRetrievingElementAtLocationOnNullCompilationUnit() throws JavaModelException {
+		// preconditions
+		// operation
+		IJavaElement element = JdtUtils.getElementAt(null, 0);
+		// verification
+		assertThat(element, nullValue());
 	}
 
 }
