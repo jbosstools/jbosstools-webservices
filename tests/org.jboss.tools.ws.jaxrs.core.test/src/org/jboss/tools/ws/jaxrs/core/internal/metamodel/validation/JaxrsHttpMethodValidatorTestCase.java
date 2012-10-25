@@ -17,9 +17,12 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.Marker
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.hasPreferenceKey;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_MISSING_TARGET_ANNOTATION;
 import static org.junit.Assert.assertThat;
 
@@ -119,6 +122,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation httpAnnotation = changeAnnotation(fooType, HTTP_METHOD.qualifiedName, (String) null);
 		httpMethod.addOrUpdateAnnotation(httpAnnotation);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@HttpMethod(\"FOO\")", "@HttpMethod", true);
 		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
@@ -136,6 +140,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation targetAnnotation = resolveAnnotation(fooType, TARGET.qualifiedName);
 		httpMethod.removeAnnotation(targetAnnotation);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Target(value=ElementType.METHOD)", "", true);
 		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
@@ -154,6 +159,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation targetAnnotation = changeAnnotation(fooType, TARGET.qualifiedName, (String) null);
 		httpMethod.addOrUpdateAnnotation(targetAnnotation);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Target(value=ElementType.METHOD)", "@Target", true);
 		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
@@ -172,6 +178,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
 		final Annotation targetAnnotation = changeAnnotation(fooType, TARGET.qualifiedName, "FOO");
 		httpMethod.addOrUpdateAnnotation(targetAnnotation);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Target(value=ElementType.METHOD)", "@Target(value=ElementType.FIELD)", true);
 		deleteJaxrsMarkers(httpMethod);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
@@ -180,6 +187,62 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE));
+	}
+
+	@Test
+	public void shouldReportProblemWhenHttpMethodTypeMissesRetentionAnnotation() throws CoreException, ValidationException {
+		// preconditions
+		final IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
+		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
+		final Annotation targetAnnotation = resolveAnnotation(fooType, RETENTION.qualifiedName);
+		httpMethod.removeAnnotation(targetAnnotation);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.RUNTIME)", "", true);
+		deleteJaxrsMarkers(httpMethod);
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
+	}
+	
+	@Test
+	public void shouldReportProblemWhenHttpMethodTypeRetentionAnnotationHasNullValue() throws CoreException,
+	ValidationException {
+		// preconditions
+		final IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
+		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
+		final Annotation targetAnnotation = changeAnnotation(fooType, TARGET.qualifiedName, (String) null);
+		httpMethod.addOrUpdateAnnotation(targetAnnotation);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.RUNTIME)", "@Retention", true);
+		deleteJaxrsMarkers(httpMethod);
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE));
+	}
+	
+	@Test
+	public void shouldReportProblemWhenHttpMethodTypeRetentionAnnotationHasWrongValue() throws CoreException,
+	ValidationException {
+		// preconditions
+		final IType fooType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
+		final JaxrsHttpMethod httpMethod = metamodel.getElement(fooType, JaxrsHttpMethod.class);
+		final Annotation targetAnnotation = changeAnnotation(fooType, RETENTION.qualifiedName, "FOO");
+		httpMethod.addOrUpdateAnnotation(targetAnnotation);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.RUNTIME)", "@Retention(value=RetentionPolicy.SOURCE)", true);
+		deleteJaxrsMarkers(httpMethod);
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(httpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE));
 	}
 
 }
