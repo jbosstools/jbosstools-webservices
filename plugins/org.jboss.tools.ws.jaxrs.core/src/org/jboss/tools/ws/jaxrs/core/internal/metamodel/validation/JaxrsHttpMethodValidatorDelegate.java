@@ -55,12 +55,17 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	 * @throws JavaModelException
 	 */
 	private void validateHttpMethodAnnotation(final JaxrsHttpMethod httpMethod) throws JavaModelException {
-		final Annotation annotation = httpMethod.getHttpMethodAnnotation();
-		if (annotation != null) { // if annotation is null, the resource is not a JaxrsHttpMethod anymore.
-			final String httpValue = annotation.getValue("value");
-			if (httpValue == null || httpValue.isEmpty()) {
-				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(),
-						annotation.getFullyQualifiedName(), "value");
+		final Annotation httpMethodAnnotation = httpMethod.getHttpMethodAnnotation();
+		if (httpMethodAnnotation != null) { // if annotation is null, the resource is not a JaxrsHttpMethod anymore.
+			final String httpValue = httpMethodAnnotation.getValue("value");
+			if (httpValue == null) {
+				final ISourceRange range = httpMethodAnnotation.getJavaAnnotation().getNameRange();
+				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE,
+						JaxrsPreferences.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE, new String[0],
+						range.getLength(), range.getOffset(), httpMethod.getResource());
+			} else if (httpValue.isEmpty()) {
+				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(httpMethodAnnotation.getJavaAnnotation(),
+						httpMethodAnnotation.getFullyQualifiedName(), "value");
 				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE,
 						JaxrsPreferences.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE, new String[0],
 						range.getLength(), range.getOffset(), httpMethod.getResource());

@@ -42,12 +42,6 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 
 	private CompilationUnitsRepository repository = null;
 
-	@Before
-	public void setup() {
-		repository = CompilationUnitsRepository.getInstance();
-		repository.clear();
-	}
-
 	private IType getType(String typeName) throws CoreException {
 		return JdtUtils.resolveType(typeName, javaProject, progressMonitor);
 	}
@@ -56,6 +50,11 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 		return WorkbenchUtils.getMethod(parentType, methodName);
 	}
 
+	@Before
+	public void setup() {
+		repository = CompilationUnitsRepository.getInstance();
+	}
+	
 	@Test
 	public void shouldGetASTByCompilationUnit() throws CoreException {
 		// pre-conditions

@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -130,6 +131,11 @@ public abstract class AbstractCommonTestCase {
 			long endTime = new Date().getTime();
 			LOGGER.info("Test Workspace setup in " + (endTime - startTime) + "ms.");
 		}
+	}
+	
+	@Before
+	public void clearCompilationUnitsRepository() {
+		CompilationUnitsRepository.getInstance().clear();
 	}
 
 	@After
