@@ -562,12 +562,10 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// verification
 		Assert.assertEquals(7, methodSignatures.size());
 		for (JavaMethodSignature methodSignature : methodSignatures) {
-			for (Entry<String, JavaMethodParameter> methodParameterEntry : methodSignature.getMethodParameters()
-					.entrySet()) {
-				for (Entry<String, Annotation> annotationEntry : methodParameterEntry.getValue().getAnnotations()
-						.entrySet()) {
+			for (JavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
+				for (Entry<String, Annotation> annotationEntry : methodParameter.getAnnotations().entrySet()) {
 					assertNotNull(
-							"JavaAnnotation for " + methodParameterEntry.getKey() + "." + annotationEntry.getKey()
+							"JavaAnnotation for " + methodParameter.getName() + "." + annotationEntry.getKey()
 									+ " is null", annotationEntry.getValue().getJavaAnnotation());
 				}
 			}
@@ -587,14 +585,16 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// verification
 		assertNotNull(methodSignature);
 		assertEquals(2, methodSignature.getMethodParameters().size());
-		for (Entry<String, JavaMethodParameter> methodParameterEntry : methodSignature.getMethodParameters().entrySet()) {
-			for (Entry<String, Annotation> annotationEntry : methodParameterEntry.getValue().getAnnotations()
-					.entrySet()) {
-				assertNotNull("JavaAnnotation for " + methodParameterEntry.getKey() + "." + annotationEntry.getKey()
-						+ " is null", annotationEntry.getValue().getJavaAnnotation());
+		for (JavaMethodParameter methodParameter : methodSignature
+				.getMethodParameters()) {
+			for (Entry<String, Annotation> annotationEntry : methodParameter
+					.getAnnotations().entrySet()) {
+				assertNotNull("JavaAnnotation for " + methodParameter.getName()
+						+ "." + annotationEntry.getKey() + " is null",
+						annotationEntry.getValue().getJavaAnnotation());
 			}
 		}
-		assertNull(methodSignature.getMethodParameters().get("id").getAnnotation(PATH_PARAM.qualifiedName)
+		assertNull(methodSignature.getMethodParameter("id").getAnnotation(PATH_PARAM.qualifiedName)
 				.getValue("value"));
 	}
 
@@ -621,8 +621,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		assertThat(methodSignature, notNullValue());
 		assertThat(methodSignature.getJavaMethod(), notNullValue());
 		assertThat(methodSignature.getMethodParameters().size(), equalTo(3));
-		for (Entry<String, JavaMethodParameter> parameterEntry : methodSignature.getMethodParameters().entrySet()) {
-			JavaMethodParameter parameter = parameterEntry.getValue();
+		for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
 			assertThat(parameter.getAnnotations().size(), isOneOf(1, 2));
 			for (Annotation annotation : parameter.getAnnotations().values()) {
 				assertThat(annotation.getJavaAnnotation(), notNullValue());

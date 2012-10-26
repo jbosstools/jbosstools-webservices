@@ -10,10 +10,9 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.jdt.core.IMethod;
@@ -25,15 +24,15 @@ public class JavaMethodSignature {
 	private final IMethod javaMethod;
 	/** Java method return type.*/
 	private final IType returnedType;
-	/** Method parameters, indexed by their own name.*/
-	private final Map<String, JavaMethodParameter> methodParameters;
+	/** Method parameters.*/
+	private final List<JavaMethodParameter> methodParameters;
 
 	public JavaMethodSignature(IMethod javaMethod, IType returnedType, List<JavaMethodParameter> methodParameters) {
 		this.javaMethod = javaMethod;
 		this.returnedType = returnedType;
-		this.methodParameters = new HashMap<String, JavaMethodParameter>(methodParameters.size()*2);
-		for (JavaMethodParameter javaMethodParameter : methodParameters) {
-			this.methodParameters.put(javaMethodParameter.getName(), javaMethodParameter);
+		this.methodParameters = new ArrayList<JavaMethodParameter>(methodParameters.size()*2);
+		if (methodParameters != null) {
+			this.methodParameters.addAll(methodParameters);
 		}
 	}
 
@@ -53,9 +52,24 @@ public class JavaMethodSignature {
 	 * The java method parameters.
 	 * @return
 	 */
-	public Map<String, JavaMethodParameter> getMethodParameters() {
+	public List<JavaMethodParameter> getMethodParameters() {
 		return methodParameters;
 	}
+
+	/**
+	 * Returns the {@link JavaMethodParameter} whose name is the given name  
+	 * @param name
+	 * @return
+	 */
+	public JavaMethodParameter getMethodParameter(String name) {
+		for(JavaMethodParameter parameter : methodParameters) {
+			if(parameter.getName().equals(name)) {
+				return parameter;
+			}
+		}
+		return null;
+	}
+
 
 	@Override
 	public String toString() {
@@ -66,7 +80,7 @@ public class JavaMethodSignature {
 			stb.append("void ");
 		}
 		stb.append(javaMethod.getElementName()).append("(");
-		for (Iterator<JavaMethodParameter> paramIterator = methodParameters.values().iterator(); paramIterator.hasNext();) {
+		for (Iterator<JavaMethodParameter> paramIterator = methodParameters.iterator(); paramIterator.hasNext();) {
 			JavaMethodParameter methodParam = (JavaMethodParameter) paramIterator.next();
 			for (Entry<String, Annotation> entry : methodParam.getAnnotations().entrySet()) {
 				stb.append(entry.getValue()).append(" ");

@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -259,8 +258,8 @@ public class JaxrsElementFactory {
 				final Builder builder = new JaxrsResourceMethod.Builder(javaMethod, parentResource, metamodel)
 						.pathTemplate(pathAnnotation).consumes(consumesAnnotation).produces(producesAnnotation)
 						.httpMethod(httpMethod).returnType(methodSignature.getReturnedType());
-				for (Entry<String, JavaMethodParameter> methodParamEntry : methodSignature.getMethodParameters().entrySet()) {
-					builder.methodParameter(methodParamEntry.getValue());
+				for (JavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
+					builder.methodParameter(methodParameter);
 				}
 				final JaxrsResourceMethod resourceMethod = builder.build();
 

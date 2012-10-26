@@ -17,9 +17,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotation;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
@@ -35,7 +35,6 @@ import static org.mockito.Mockito.spy;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -121,9 +120,8 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			builder.httpMethod(resolveAnnotation(javaMethod, httpMethodElement.qualifiedName));
 		}
 		
-		for (Entry<String, JavaMethodParameter> methodParameterEntry : methodSignature.getMethodParameters().entrySet()) {
-			JavaMethodParameter parameter = methodParameterEntry.getValue();
-			builder.methodParameter(parameter);
+		for (JavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
+			builder.methodParameter(methodParameter);
 		}
 		final JaxrsResourceMethod resourceMethod = builder.build();
 		metamodel.add(resourceMethod);

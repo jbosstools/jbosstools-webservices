@@ -22,7 +22,6 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -242,10 +241,8 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			if (resourceMethod.hasPathTemplate()) {
 				uriPathTemplateBuilder.append("/").append(resourceMethod.getPathTemplate());
 			}
-			if (resourceMethod.getJavaMethodParameters() != null) {
-				refreshUriTemplateMatrixParams(uriPathTemplateBuilder, resourceMethod);
-				refreshUriTemplateQueryParams(uriPathTemplateBuilder, resourceMethod);
-			}
+			refreshUriTemplateMatrixParams(uriPathTemplateBuilder, resourceMethod);
+			refreshUriTemplateQueryParams(uriPathTemplateBuilder, resourceMethod);
 		}
 		this.uriPathTemplate = uriPathTemplateBuilder.toString();
 		while (uriPathTemplate.indexOf("//") > -1) {
@@ -254,33 +251,20 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	}
 
 	private void refreshUriTemplateMatrixParams(StringBuilder uriPathTemplateBuilder, JaxrsResourceMethod resourceMethod) {
-		List<JavaMethodParameter> matrixParameters = new ArrayList<JavaMethodParameter>();
-		for (Iterator<JavaMethodParameter> paramIterator = resourceMethod.getJavaMethodParameters().iterator(); paramIterator
-				.hasNext();) {
-			JavaMethodParameter parameter = paramIterator.next();
-			if (parameter.getAnnotation(MATRIX_PARAM.qualifiedName) != null) {
-				matrixParameters.add(parameter);
-			}
-		}
-		for (Iterator<JavaMethodParameter> iterator = matrixParameters.iterator(); iterator.hasNext();) {
-			JavaMethodParameter matrixParam = iterator.next();
-			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(MATRIX_PARAM.qualifiedName);
+		final List<JavaMethodParameter> matrixParameters = resourceMethod
+				.getJavaMethodParametersWithAnnotation(MATRIX_PARAM.qualifiedName);
+		for(JavaMethodParameter matrixParameter : matrixParameters) {
+			final Annotation matrixParamAnnotation = matrixParameter.getAnnotation(MATRIX_PARAM.qualifiedName);
 			if(matrixParamAnnotation.getValue("value") != null) {
 				uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue("value")).append("={")
-						.append(matrixParam.getTypeName()).append("}");
+				.append(matrixParameter.getTypeName()).append("}");
 			}
 		}
 	}
 
 	private void refreshUriTemplateQueryParams(StringBuilder uriPathTemplateBuilder, JaxrsResourceMethod resourceMethod) {
-		List<JavaMethodParameter> queryParameters = new ArrayList<JavaMethodParameter>();
-		for (Iterator<JavaMethodParameter> paramIterator = resourceMethod.getJavaMethodParameters().iterator(); paramIterator
-				.hasNext();) {
-			JavaMethodParameter parameter = paramIterator.next();
-			if (parameter.getAnnotation(QUERY_PARAM.qualifiedName) != null) {
-				queryParameters.add(parameter);
-			}
-		}
+		final List<JavaMethodParameter> queryParameters = resourceMethod
+				.getJavaMethodParametersWithAnnotation(QUERY_PARAM.qualifiedName);
 		if (queryParameters.size() > 0) {
 			uriPathTemplateBuilder.append('?');
 			for (Iterator<JavaMethodParameter> iterator = queryParameters.iterator(); iterator.hasNext();) {
@@ -296,7 +280,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 						uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
 					}
 					uriPathTemplateBuilder.append('}');
-	
+					// prepare for next query param item if there is more to process..
 					if (iterator.hasNext()) {
 						uriPathTemplateBuilder.append('&');
 					}

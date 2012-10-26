@@ -212,8 +212,8 @@ public class JaxrsMetamodelChangedProcessor {
 					for (JaxrsResourceMethod otherResourceMethod : ((JaxrsResource) otherResource).getMethods()
 							.values()) {
 						if (otherResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR) {
-							final String returnTypeHandler = (otherResourceMethod.getReturnType() != null) ? otherResourceMethod
-									.getReturnType().getHandleIdentifier() : null;
+							final String returnTypeHandler = (otherResourceMethod.getReturnedType() != null) ? otherResourceMethod
+									.getReturnedType().getHandleIdentifier() : null;
 							if (returnTypeHandler != null && supertypesHandlers.contains(returnTypeHandler)) {
 								final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
 										Arrays.asList(otherResourceMethod, resourceMethod));
@@ -247,7 +247,7 @@ public class JaxrsMetamodelChangedProcessor {
 			final JaxrsMetamodel metamodel) throws CoreException {
 		final List<JaxrsEndpointDelta> changes = new ArrayList<JaxrsEndpointDelta>();
 		final IProgressMonitor progressMonitor = new NullProgressMonitor();
-		final IType returnType = subresourceLocator.getReturnType();
+		final IType returnType = subresourceLocator.getReturnedType();
 		if (returnType != null) {
 			final ITypeHierarchy returnTypeHierarchy = JdtUtils
 					.resolveTypeHierarchy(returnType, returnType.getJavaProject(), false, progressMonitor);
@@ -365,7 +365,7 @@ public class JaxrsMetamodelChangedProcessor {
 						JaxrsResourceMethod endpointResourceMethod = (JaxrsResourceMethod) resourceMethodIterator
 								.next();
 						if (endpointResourceMethod.equals(changedResourceMethod)) {
-							IType returnType = endpointResourceMethod.getReturnType();
+							IType returnType = endpointResourceMethod.getReturnedType();
 							JaxrsResourceMethod nextEndpointResourceMethod = (JaxrsResourceMethod) resourceMethodIterator
 									.next();
 							IType nextEndpointResourceMethodType = (IType) nextEndpointResourceMethod.getJavaElement()

@@ -77,29 +77,28 @@ public class JavaMethodParameter {
 	}
 	
 	/**
-	 * Update this method parameter annotations from the given method parameter, including their location.
+	 * @return true if this {@link JavaMethodParameter} is different from the
+	 *         given {@link JavaMethodParameter}, including differences at the
+	 *         {@link Annotation} level. This method is just form comparison, it does not update the values.
 	 * 
 	 * @param otherMethodParameter
 	 */
-	public boolean updateAnnotations(final JavaMethodParameter otherMethodParameter) {
+	public boolean hasChanges(final JavaMethodParameter otherMethodParameter) {
 		final Map<String, Annotation> otherAnnotations = otherMethodParameter.getAnnotations();
 		final MapComparison<String, Annotation> comparison = CollectionUtils.compare(this.annotations, otherAnnotations);
-		boolean changes = false; // track changes. "true" means at least 1 method parameter changed
-		for (Entry<String, Annotation> entry : comparison.getAddedItems().entrySet()) {
-			this.annotations.put(entry.getKey(), entry.getValue());
-			changes = true;
+		if(!comparison.getAddedItems().isEmpty()) {
+			return true;
 		}
-		for (Entry<String, Annotation> entry : comparison.getRemovedItems().entrySet()) {
-			this.annotations.remove(entry.getKey());
-			changes = true;
+		if(!comparison.getRemovedItems().isEmpty()) {
+			return true;
 		}
 		// update the remaining annotations'location
 		for (Entry<String, Annotation> entry : comparison.getItemsInCommon().entrySet()) {
-			if(this.annotations.get(entry.getKey()).update(otherAnnotations.get(entry.getKey()))) {
-				changes = true;
+			if(this.annotations.get(entry.getKey()).hasChanges(otherAnnotations.get(entry.getKey()))) {
+				return true;
 			}
 		}
-		return changes;
+		return false;
 	}
 	
 	@Override

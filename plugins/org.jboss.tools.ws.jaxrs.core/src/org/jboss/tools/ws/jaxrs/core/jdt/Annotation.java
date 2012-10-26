@@ -72,11 +72,23 @@ public class Annotation {
 	 */
 	public boolean update(final Annotation otherAnnotation) {
 		assert otherAnnotation != null;
-		if (this.javaAnnotationElements.equals(otherAnnotation.getJavaAnnotationElements())) {
+		if(!hasChanges(otherAnnotation)) {
 			return false;
 		}
 		this.javaAnnotationElements.clear();
 		this.javaAnnotationElements.putAll(otherAnnotation.getJavaAnnotationElements());
+		return true;
+	}
+
+	/**
+	 * Returns true if the given 'otherAnnotation' is different from this annotation, false otherwise.
+	 * @param otherAnnotation
+	 * @return
+	 */
+	public boolean hasChanges(final Annotation otherAnnotation) {
+		if (this.javaAnnotationElements.equals(otherAnnotation.getJavaAnnotationElements())) {
+			return false;
+		}
 		return true;
 	}
 	
