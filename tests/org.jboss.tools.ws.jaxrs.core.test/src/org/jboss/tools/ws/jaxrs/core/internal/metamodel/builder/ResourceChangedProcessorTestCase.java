@@ -1431,7 +1431,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 				.build();
 		metamodel.add(customerResource);
 		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
+				pathAnnotation.getJavaAnnotation(), "value");
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
 		// operation: removing @Encoded *before* the CustomerResource type
@@ -1441,7 +1441,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		processResourceChanges(event, progressMonitor);
 		// verifications
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
+				pathAnnotation.getJavaAnnotation(), "value");
 		assertThat(afterChangeSourceRange.getOffset(), lessThan(offset));
 		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
 	}
@@ -1494,9 +1494,9 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		metamodel.add(customerResource);
 		final IMethod javaMethod = getMethod(type, "getCustomer");
 		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
-		final Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
+		Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
 				.get(PATH_PARAM.qualifiedName);
-		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
+		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
 		final int beforeLength = beforeChangeSourceRange.getLength();
 		final int beforeOffset = beforeChangeSourceRange.getOffset();
 		// operation: removing @Encoded *before* the getCustomer() method
@@ -1505,7 +1505,10 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final ResourceDelta event = createEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		processResourceChanges(event, progressMonitor);
 		// verifications
-		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
+		// reference has changed (local variable)
+		pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
+				.get(PATH_PARAM.qualifiedName);
+		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
 		final int afterLength = afterChangeSourceRange.getLength();
 		final int afterOffset = afterChangeSourceRange.getOffset();
 		assertThat(afterOffset, lessThan(beforeOffset));
@@ -1562,7 +1565,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final JaxrsResource customerResource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
 				.build();
 		metamodel.add(customerResource);
-		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
+		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathAnnotation.getJavaAnnotation(), "value");
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
 		// operation: removing @DELETE *after* the CustomerResource type
@@ -1571,7 +1574,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final ResourceDelta event = createEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		processResourceChanges(event, progressMonitor);
 		// verifications
-		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
+		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathAnnotation.getJavaAnnotation(), "value");
 		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
 		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
 	}
@@ -1626,7 +1629,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
 		final Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
 				.get(PATH_PARAM.qualifiedName);
-		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
+		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
 		// operation: removing @DELETE, *after* the getCustomer() method
@@ -1635,7 +1638,7 @@ public class ResourceChangedProcessorTestCase extends AbstractCommonTestCase {
 		final ResourceDelta event = createEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		processResourceChanges(event, progressMonitor);
 		// verifications
-		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
+		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
 		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
 		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
 	}

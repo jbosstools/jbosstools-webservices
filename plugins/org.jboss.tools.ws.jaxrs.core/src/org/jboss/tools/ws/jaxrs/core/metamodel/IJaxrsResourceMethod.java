@@ -11,8 +11,10 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.IMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 
 public interface IJaxrsResourceMethod {
@@ -44,12 +46,12 @@ public interface IJaxrsResourceMethod {
 
 	/**
 	 * Determines the proposals for the PathParam annotated method parameters of
-	 * the underlying Java Method. This list is based on the @Path annotation
-	 * found on the Java Method and on the parent Java Type.
+	 * the underlying Java Method. This map contains the @Path annotations
+	 * found on the Java Method and on the parent Java Type, indexed by their extracted value (ie, with no regexp)
 	 * 
 	 * @return
 	 */
-	abstract List<String> getPathParamValueProposals();
+	abstract Map<String, Annotation> getPathParamValueProposals();
 
 	abstract boolean hasPathTemplate();
 

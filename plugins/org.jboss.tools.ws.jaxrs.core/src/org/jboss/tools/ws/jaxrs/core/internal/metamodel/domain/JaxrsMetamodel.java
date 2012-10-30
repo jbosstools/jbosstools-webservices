@@ -273,7 +273,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	protected void indexElement(final JaxrsJavaElement<?> element, final Annotation annotation) {
-		if (annotation != null) {
+		if (annotation != null && annotation.getJavaAnnotation() != null) {
 			indexElement(element, annotation.getJavaAnnotation());
 			indexElement(element, annotation.getJavaAnnotation().getResource());
 		}

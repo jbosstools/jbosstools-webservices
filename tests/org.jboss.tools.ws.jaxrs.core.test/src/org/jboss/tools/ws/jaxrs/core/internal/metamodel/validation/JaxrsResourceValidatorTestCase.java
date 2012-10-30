@@ -29,6 +29,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
@@ -40,8 +41,10 @@ import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Test;
 
 /**
@@ -93,30 +96,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 			LOGGER.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER), marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(8));
-		final Map<String, JaxrsResourceMethod> resourceMethods = barResource.getMethods();
-		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {
-			final IMarker[] methodMarkers = findJaxrsMarkers(entry.getValue());
-			if (entry.getKey().contains("getContent1")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
-				assertThat(methodMarkers.length, equalTo(1));
-				assertThat(methodMarkers, hasPreferenceKey(RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
-			} else if (entry.getKey().contains("getContent2")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
-				assertThat(methodMarkers.length, equalTo(3));
-			} else if (entry.getKey().contains("update1")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
-				assertThat(methodMarkers.length, equalTo(2));
-			} else if (entry.getKey().contains("update2")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
-				assertThat(methodMarkers.length, equalTo(1));
-			} else if (entry.getKey().contains("update3")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
-				assertThat(methodMarkers.length, equalTo(1));
-			} else {
-				fail("Unexpected method " + entry.getKey());
-			}
-		}
 	}
+	
+	
 
 	@Test
 	public void shouldReportProblemsOnBazResourceMethods() throws CoreException, ValidationException {
@@ -154,5 +136,130 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 				fail("Unexpected method " + entry.getKey());
 			}
 		}
+	}
+	
+	@Test
+	public void shouldNotReportProblemOnValidResource() throws CoreException, ValidationException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		metamodel.add(resource);
+		deleteJaxrsMarkers(resource);
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(0));
+	}
+
+	@Test
+	public void shouldReportProblemOnNonPublicJavaMethod() throws CoreException, ValidationException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "public Response", "private Response", false);
+		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		metamodel.add(resource);
+		deleteJaxrsMarkers(resource);
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
+	}
+
+	@Test
+	public void shouldReportProblemOnUnboundTypePathArgument() throws ValidationException, CoreException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"type\") String type,", false);
+		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		metamodel.add(resource);
+		deleteJaxrsMarkers(resource);
+		// operation: remove the @PathParam, so that some @Path value has no counterpart
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(1));
+		final IMarker marker = markers[0];
+		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(9));
+		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(6));
+	}
+
+	@Test
+	public void shouldReportProblemOnUnboundMethodPathArgument() throws ValidationException, CoreException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
+		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		metamodel.add(resource);
+		deleteJaxrsMarkers(resource);
+		// operation: remove the @PathParam, so that some @Path value has no counterpart
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(1));
+		final IMarker marker = markers[0];
+		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(13));
+		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(26));
+	}
+
+	@Test
+	public void shouldReportProblemOnUnboundMethodPathArgumentWithWhitespaces() throws ValidationException, CoreException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "{format", "{  format", false);
+		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		metamodel.add(resource);
+		deleteJaxrsMarkers(resource);
+		// operation: remove the @PathParam, so that some @Path value has no counterpart
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(1));
+		final IMarker marker = markers[0];
+		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(13));
+		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(28));
+	}
+	
+	@Test
+	public void shouldReportProblemOnUnboundPathParamArgument() throws CoreException, ValidationException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "@Path(\"/{id}", "@Path(\"", false);
+		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		metamodel.add(resource);
+		deleteJaxrsMarkers(resource);
+		// operation: remove the @PathParam, so that some @Path value has no counterpart
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(1));
+		final IMarker marker = markers[0];
+		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_ERROR));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
+		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(4));
 	}
 }

@@ -249,15 +249,27 @@ public class WorkbenchUtils {
 	/**
 	 * Removes the first occurrence of the given content (not a regexp)
 	 * 
-	 * @param type
+	 * @param member
 	 * @param content
 	 * @throws JavaModelException
 	 */
-	public static void removeFirstOccurrenceOfCode(IType type, String content, boolean useWorkingCopy)
+	public static void removeFirstOccurrenceOfCode(IMember member, String content, boolean useWorkingCopy)
 			throws JavaModelException {
-		replaceFirstOccurrenceOfCode(type, content, "", useWorkingCopy);
+		replaceFirstOccurrenceOfCode(member, content, "", useWorkingCopy);
 	}
 
+	/**
+	 * Removes the first occurrence of the given content (not a regexp)
+	 * 
+	 * @param member
+	 * @param content
+	 * @throws JavaModelException
+	 */
+	public static void removeFirstOccurrenceOfCode(ICompilationUnit compilationUnit, String content, boolean useWorkingCopy)
+			throws JavaModelException {
+		replaceFirstOccurrenceOfCode(compilationUnit, content, "", useWorkingCopy);
+	}
+	
 	/**
 	 * Replace the first occurrence of the given old content with the new content. Fails if the old content is not found
 	 * (avoids weird side effects in the rest of the test).

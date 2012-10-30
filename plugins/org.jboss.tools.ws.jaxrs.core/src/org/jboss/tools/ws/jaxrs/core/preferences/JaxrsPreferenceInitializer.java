@@ -48,7 +48,7 @@ public class JaxrsPreferenceInitializer extends AbstractPreferenceInitializer {
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, JaxrsPreferences.WARNING);
-		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER, JaxrsPreferences.WARNING);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 
 		defaultPreferences.putInt(SeverityPreferences.MAX_NUMBER_OF_MARKERS_PREFERENCE_NAME, SeverityPreferences.DEFAULT_MAX_NUMBER_OF_MARKERS_PER_FILE);
