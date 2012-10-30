@@ -63,8 +63,16 @@ public class MarkerUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final JaxrsBaseElement element) throws CoreException {
-		element.getResource()
-				.deleteMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
+		element.getResource().deleteMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, false,
+				IResource.DEPTH_INFINITE);
+	}
+
+	/**
+	 * @param element
+	 * @throws CoreException
+	 */
+	public static void deleteJaxrsMarkers(final IResource resource) throws CoreException {
+		resource.deleteMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
 	}
 
 	/**

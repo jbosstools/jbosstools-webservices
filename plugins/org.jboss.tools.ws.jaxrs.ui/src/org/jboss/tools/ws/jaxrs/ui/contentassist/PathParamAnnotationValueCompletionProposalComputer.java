@@ -150,7 +150,8 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		if (!matchValue.isEmpty() && matchValue.charAt(0) == '\"') {
 			matchValue = matchValue.substring(1);
 		}
-		List<String> proposals = resourceMethod.getPathParamValueProposals();
+		List<String> proposals = new ArrayList<String>(resourceMethod.getPathParamValueProposals().keySet());
+		Collections.sort(proposals);
 		for (String proposal : proposals) {
 			if (proposal.startsWith(matchValue)) {
 				completionProposals.add(generateCompletionProposal(resourceMethod.getJavaElement(), region, proposal));

@@ -40,6 +40,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -394,15 +395,14 @@ public final class JdtUtils {
 	 * @return the sourceRange or null if it could not be evaluated.
 	 * @throws JavaModelException 
 	 */
-	public static ISourceRange resolveMemberPairValueRange(final IAnnotation annotation, final String annotationQualifiedName, 
+	public static ISourceRange resolveMemberPairValueRange(final IAnnotation annotation, 
 			final String memberName) throws JavaModelException {
 		final IType ancestor = (IType) annotation.getAncestor(IJavaElement.TYPE);
 		if(ancestor != null && ancestor.exists()) {
 			final ICompilationUnit compilationUnit = ancestor.getCompilationUnit();
 			final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
 			if (ast != null) {
-				MemberValuePairLocationRetriever locationRetriever = new MemberValuePairLocationRetriever(annotation,
-						annotationQualifiedName, memberName);
+				MemberValuePairLocationRetriever locationRetriever = new MemberValuePairLocationRetriever(annotation, memberName);
 				ast.accept(locationRetriever);
 				return locationRetriever.getMemberValuePairSourceRange();
 			}
@@ -649,5 +649,27 @@ public final class JdtUtils {
 
 	}
 
+	public static String getReadableMethodSignature(final IMethod method) {
+		StringBuilder name = new StringBuilder();
+		name.append(method.getElementName());
+		name.append("(");
 
+		String comma = "";
+		String[] parameterTypes = method.getParameterTypes();
+		try {
+			String[] parameterNames = method.getParameterNames();
+			for (int i = 0; i < method.getParameterTypes().length; ++i) {
+				name.append(comma);
+				name.append(Signature.toString(parameterTypes[i]));
+				name.append(" ");
+				name.append(parameterNames[i]);
+				comma = ", ";
+			}
+		} catch (JavaModelException e) {
+		}
+
+		name.append(")");
+
+		return name.toString();
+	}
 }

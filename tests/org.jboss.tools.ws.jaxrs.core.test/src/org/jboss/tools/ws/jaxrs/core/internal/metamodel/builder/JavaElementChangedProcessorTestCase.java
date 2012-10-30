@@ -12,12 +12,10 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.eclipse.jdt.core.IJavaElementDelta.F_CHILDREN;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotation;
@@ -27,7 +25,6 @@ import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMED_MEDIATYPES_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_FINE_GRAINED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
@@ -74,7 +71,6 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.hamcrest.Matchers;
@@ -82,7 +78,6 @@ import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -178,12 +173,6 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				JdtUtils.parse(element, progressMonitor), NO_FLAG);
 	}
 
-	private static JavaElementDelta createEvent(ICompilationUnit element, int deltaKind, int flags)
-			throws JavaModelException {
-		return new JavaElementDelta(element, deltaKind, ANY_EVENT_TYPE,
-				JdtUtils.parse(element, progressMonitor), flags);
-	}
-	
 	private static JavaElementDelta createEvent(IPackageFragmentRoot element, int deltaKind)
 			throws JavaModelException {
 		return new JavaElementDelta(element, deltaKind, ANY_EVENT_TYPE, null, NO_FLAG);
@@ -2437,248 +2426,6 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Ignore
 	public void shouldUpdateResourceMethodWhenRemovingThrowsException() throws CoreException {
 		fail("Not implemented yet - postponed along with support for providers");
-	}
-
-	/**
-	 * Test in relation with https://issues.jboss.org/browse/JBIDE-12806
-	 * 
-	 * @throws CoreException
-	 */
-	@Test
-	public void shouldUpdateTypeAnnotationLocationAfterCodeChangeAbove() throws CoreException {
-		// pre-condition: using the CustomerResource type
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		final Annotation pathAnnotation = resolveAnnotation(type, PATH.qualifiedName);
-		// this test needs a complete Resource, built by the Factory
-		final JaxrsResource customerResource = new JaxrsElementFactory().createResource(type,
-				JdtUtils.parse(type, null), metamodel);
-		metamodel.add(customerResource);
-		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
-		final int length = beforeChangeSourceRange.getLength();
-		final int offset = beforeChangeSourceRange.getOffset();
-		// operation: removing @Encoded *before* the CustomerResource type
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Encoded", "", true);
-		CompilationUnitsRepository.getInstance().mergeAST(type.getCompilationUnit(),
-				JdtUtils.parse(type.getCompilationUnit(), null), true);
-		// verifications
-		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
-		assertThat(afterChangeSourceRange.getOffset(), lessThan(offset));
-		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
-	}
-
-	/**
-	 * Test in relation with https://issues.jboss.org/browse/JBIDE-12806
-	 * 
-	 * @throws CoreException
-	 */
-	@Test
-	public void shouldUpdateMethodAnnotationLocationAfterCodeChangeAbove() throws CoreException {
-		// pre-condition: using the CustomerResource type
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		final Annotation pathAnnotation = resolveAnnotation(type, PATH.qualifiedName);
-		final JaxrsResource customerResource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
-				.build();
-		metamodel.add(customerResource);
-		final IMethod method = getMethod(type, "createCustomer");
-		final Annotation postAnnotation = resolveAnnotation(method, POST.qualifiedName);
-		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, customerResource, metamodel)
-				.httpMethod(postAnnotation).build();
-		metamodel.add(resourceMethod);
-		final ISourceRange beforeChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
-		final int length = beforeChangeSourceRange.getLength();
-		final int offset = beforeChangeSourceRange.getOffset();
-		// operation: removing @Encoded *before* the createCustomer() method
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Encoded", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(type.getCompilationUnit(),
-				JdtUtils.parse(type.getCompilationUnit(), null), true);
-		final JavaElementDelta event = createEvent(type.getCompilationUnit(), CHANGED, F_CHILDREN+F_FINE_GRAINED);
-		processEvent(event, progressMonitor);
-		// verifications
-		final ISourceRange afterChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
-		assertThat(afterChangeSourceRange.getOffset(), lessThan(offset));
-		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
-	}
-
-	/**
-	 * Test in relation with https://issues.jboss.org/browse/JBIDE-12806
-	 * 
-	 * @throws CoreException
-	 */
-	@Test
-	public void shouldUpdateMethodParameterAnnotationLocationAfterCodeChangeAbove() throws CoreException {
-		// pre-condition: using the CustomerResource type
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		final JaxrsResource customerResource = new JaxrsElementFactory().createResource(type,
-				JdtUtils.parse(type.getCompilationUnit(), null), metamodel);
-		metamodel.add(customerResource);
-		final IMethod javaMethod = getMethod(type, "getCustomer");
-		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
-		final Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
-				.get(PATH_PARAM.qualifiedName);
-		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
-		final int beforeLength = beforeChangeSourceRange.getLength();
-		final int beforeOffset = beforeChangeSourceRange.getOffset();
-		// operation: removing @Encoded *before* the getCustomer() method
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Encoded", "", true);
-		CompilationUnitsRepository.getInstance().mergeAST(type.getCompilationUnit(),
-				JdtUtils.parse(type.getCompilationUnit(), null), true);
-		final JavaElementDelta event = createEvent(type.getCompilationUnit(), CHANGED, F_CHILDREN+F_FINE_GRAINED);
-		processEvent(event, progressMonitor);
-		// verifications
-		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
-		final int afterLength = afterChangeSourceRange.getLength();
-		final int afterOffset = afterChangeSourceRange.getOffset();
-		assertThat(afterOffset, lessThan(beforeOffset));
-		assertThat(afterLength, equalTo(beforeLength));
-	}
-
-	/**
-	 * Test in relation with https://issues.jboss.org/browse/JBIDE-12806
-	 * 
-	 * @throws CoreException
-	 */
-	@Test
-	public void shouldUpdateMethodParameterAnnotationLocationAfterPreviousMethodParamRemoved() throws CoreException {
-		// pre-condition: using the CustomerResource type
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		final JaxrsResource customerResource = new JaxrsElementFactory().createResource(type,
-				JdtUtils.parse(type.getCompilationUnit(), null), metamodel);
-		metamodel.add(customerResource);
-		IMethod javaMethod = getMethod(type, "getCustomer");
-		JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
-		Annotation contextAnnotation = resourceMethod.getJavaMethodParameters().get(1).getAnnotations()
-				.get(CONTEXT.qualifiedName);
-		final ISourceRange beforeChangeSourceRange = contextAnnotation.getJavaAnnotation().getSourceRange();
-		final int beforeLength = beforeChangeSourceRange.getLength();
-		final int beforeOffset = beforeChangeSourceRange.getOffset();
-		// operation: removing "@PathParam("id") Integer id" parameter in the getCustomer() method
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@PathParam(\"id\") Integer id, ", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(type.getCompilationUnit(),
-				JdtUtils.parse(type.getCompilationUnit(), null), true);
-		JavaElementDelta event = createEvent(javaMethod, REMOVED);
-		processEvent(event, progressMonitor);
-		javaMethod = getMethod(type, "getCustomer");
-		event = createEvent(javaMethod, ADDED);
-		processEvent(event, progressMonitor);
-		// verifications: java method has changed, so all references must be looked-up again
-		resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
-		contextAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations().get(CONTEXT.qualifiedName);
-		final ISourceRange afterChangeSourceRange = contextAnnotation.getJavaAnnotation().getSourceRange();
-		final int afterLength = afterChangeSourceRange.getLength();
-		final int afterOffset = afterChangeSourceRange.getOffset();
-		assertThat(afterOffset, lessThan(beforeOffset));
-		assertThat(afterLength, equalTo(beforeLength));
-	}
-
-	/**
-	 * Test in relation with https://issues.jboss.org/browse/JBIDE-12806
-	 * 
-	 * @throws CoreException
-	 */
-	@Test
-	public void shouldNotUpdateTypeAnnotationLocationAfterCodeChangeBelow() throws CoreException {
-		// pre-condition: using the CustomerResource type
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		final Annotation pathAnnotation = resolveAnnotation(type, PATH.qualifiedName);
-		final JaxrsResource customerResource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
-				.build();
-		metamodel.add(customerResource);
-		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
-		final int length = beforeChangeSourceRange.getLength();
-		final int offset = beforeChangeSourceRange.getOffset();
-		final IMethod deleteMethod = getMethod(type, "deleteCustomer");
-		final Annotation deleteAnnotation = resolveAnnotation(deleteMethod, "DELETE");
-		// operation: removing @DELETE *after* the CustomerResource type
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@DELETE", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(type.getCompilationUnit(),
-				JdtUtils.parse(type.getCompilationUnit(), null), true);
-		final JavaElementDelta event = createEvent(deleteAnnotation, REMOVED);
-		processEvent(event, progressMonitor);
-		// verifications
-		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), pathAnnotation.getFullyQualifiedName(), "value");
-		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
-		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
-	}
-
-	/**
-	 * Test in relation with https://issues.jboss.org/browse/JBIDE-12806
-	 * 
-	 * @throws CoreException
-	 */
-	@Test
-	public void shouldNotUpdateMethodAnnotationLocationAfterCodeChangeBelow() throws CoreException {
-		// pre-condition: using the CustomerResource type
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		final Annotation pathAnnotation = resolveAnnotation(type, PATH.qualifiedName);
-		final JaxrsResource customerResource = new JaxrsResource.Builder(type, metamodel).pathTemplate(pathAnnotation)
-				.build();
-		metamodel.add(customerResource);
-		final IMethod method = getMethod(type, "createCustomer");
-		final Annotation postAnnotation = resolveAnnotation(method, POST.qualifiedName);
-		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod.Builder(method, customerResource, metamodel)
-				.httpMethod(postAnnotation).build();
-		metamodel.add(resourceMethod);
-		final ISourceRange beforeChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
-		final int length = beforeChangeSourceRange.getLength();
-		final int offset = beforeChangeSourceRange.getOffset();
-		final IMethod deleteMethod = getMethod(type, "deleteCustomer");
-		final Annotation deleteAnnotation = resolveAnnotation(deleteMethod, "DELETE");
-		// operation: removing @DELETE *after* the CustomerResource type
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@DELETE", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(type.getCompilationUnit(),
-				JdtUtils.parse(type.getCompilationUnit(), null), true);
-		final JavaElementDelta event = createEvent(deleteAnnotation, REMOVED);
-		processEvent(event, progressMonitor);
-		// verifications
-		final ISourceRange afterChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
-		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
-		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
-	}
-
-	/**
-	 * Test in relation with https://issues.jboss.org/browse/JBIDE-12806
-	 * 
-	 * @throws CoreException
-	 */
-	@Test
-	public void shouldNotUpdateMethodParameterAnnotationLocationAfterCodeChangeBelow() throws CoreException {
-		// pre-condition: using the CustomerResource type
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject, progressMonitor);
-		final JaxrsResource customerResource = new JaxrsElementFactory().createResource(type,
-				JdtUtils.parse(type.getCompilationUnit(), null), metamodel);
-		metamodel.add(customerResource);
-		final IMethod javaMethod = getMethod(type, "getCustomer");
-		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
-		final Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations().get(PATH_PARAM.qualifiedName);
-		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
-		final int length = beforeChangeSourceRange.getLength();
-		final int offset = beforeChangeSourceRange.getOffset();
-		final IMethod deleteMethod = getMethod(type, "deleteCustomer");
-		final Annotation deleteAnnotation = resolveAnnotation(deleteMethod, "DELETE");
-		// operation: removing @DELETE *after* the CustomerResource type
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@DELETE", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(type.getCompilationUnit(),
-				JdtUtils.parse(type.getCompilationUnit(), null), true);
-		final JavaElementDelta event = createEvent(deleteAnnotation, REMOVED);
-		processEvent(event, progressMonitor);
-		// verifications
-		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathParamAnnotation.getJavaAnnotation(), pathParamAnnotation.getFullyQualifiedName(), "value");
-		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
-		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
 	}
 
 }

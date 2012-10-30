@@ -7,7 +7,6 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
@@ -19,7 +18,6 @@ import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.TypedRegion;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
@@ -66,7 +64,7 @@ public class MethodParametersCompletionProposalComputer implements IJavaCompleti
 					context.getInvocationOffset());
 			if (invocationElement.getElementType() == IJavaElement.TYPE) {
 					final ITypedRegion region = new TypedRegion(javaContext.getInvocationOffset(), 0, null);
-					proposals.add(new MethodParametersCompletionProposal("Foo !", new StyledString("Foo!"), region, icon, (IMember) invocationElement));
+					//proposals.add(new MethodParametersCompletionProposal("Foo !", new StyledString("Foo!"), region, icon, (IMember) invocationElement));
 			}
 		} catch (Exception e) {
 			Logger.error("Failed to compute completion proposal", e);

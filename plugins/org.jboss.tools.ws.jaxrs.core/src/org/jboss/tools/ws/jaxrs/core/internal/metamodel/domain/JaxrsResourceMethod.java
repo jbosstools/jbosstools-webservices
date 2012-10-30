@@ -20,7 +20,9 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
@@ -190,9 +192,10 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 		final List<JavaMethodParameter> otherMethodParameters = methodSignature.getMethodParameters();
 		final CollectionComparison<JavaMethodParameter> comparison = CollectionUtils.compare(this.javaMethodParameters, otherMethodParameters);
 		boolean changed = hasChanges(otherMethodParameters, comparison);
+		// in any case, let's override to get the latest source ranges, even if 'business' content has not changed.
+		this.javaMethodParameters.clear();
+		this.javaMethodParameters.addAll(otherMethodParameters);
 		if(changed) {
-			this.javaMethodParameters.clear();
-			this.javaMethodParameters.addAll(otherMethodParameters);
 			return F_METHOD_PARAMETERS;
 		}
 		return F_NONE;
@@ -376,18 +379,21 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	}
 
 	@Override
-	public List<String> getPathParamValueProposals() {
-		final List<String> proposals = new ArrayList<String>();
-		final Annotation methodPathAnnotation = getPathAnnotation();
-		if (methodPathAnnotation != null && methodPathAnnotation.getValue("value") != null) {
-			final String value = methodPathAnnotation.getValue("value");
-			proposals.addAll(extractParamsFromUriTemplateFragment(value));
-		}
-		final Annotation typePathAnnotation = getParentResource()
-				.getPathAnnotation();
-		if (typePathAnnotation != null) {
-			final String value = typePathAnnotation.getValue("value");
-			proposals.addAll(extractParamsFromUriTemplateFragment(value));
+	public Map<String, Annotation> getPathParamValueProposals() {
+		final Map<String, Annotation> proposals = new HashMap<String, Annotation>();
+		proposals.putAll(extractProposals(getPathAnnotation()));
+		proposals.putAll(extractProposals(getParentResource().getPathAnnotation()));
+		return proposals;
+	}
+
+	private Map<String, Annotation> extractProposals(final Annotation pathAnnotation) {
+		final Map<String, Annotation> proposals = new HashMap<String, Annotation>();
+		if (pathAnnotation != null && pathAnnotation.getValue("value") != null) {
+			final String value = pathAnnotation.getValue("value");
+			List<String> params = extractParamsFromUriTemplateFragment(value);
+			for(String param : params) {
+				proposals.put(param, pathAnnotation);
+			}
 		}
 		return proposals;
 	}

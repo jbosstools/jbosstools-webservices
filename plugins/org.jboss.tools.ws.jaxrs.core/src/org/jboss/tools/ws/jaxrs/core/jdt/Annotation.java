@@ -17,6 +17,7 @@ import java.util.Map;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.LocalVariable;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 
 /**
@@ -28,12 +29,22 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
  * @author Xavier Coulon
  * 
  */
+@SuppressWarnings("restriction")
 public class Annotation {
 
+	/**
+	 * Underlying java annotation, which may change in the case of method
+	 * parameter annotation, which are managed by {@link LocalVariable} in JDT.
+	 * In this particular case, a new LocalVariable instance is created after
+	 * content changes, and this new instance should be kept for source range
+	 * resolution.
+	 */
 	private final IAnnotation javaAnnotation;
 
+	/** The Java annotation fully qualified name. */
 	private final String javaAnnotationName;
 
+	/** The java annotation member value pairs. */
 	private final Map<String, List<String>> javaAnnotationElements;
 
 	/**

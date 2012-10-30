@@ -84,7 +84,7 @@ public class ResourceChangedBuildJob extends Job {
 		} finally {
 			long endTime = new Date().getTime();
 			if (Logger.isDebugEnabled()) {
-				Logger.debug("JAX-RS Metamodel fully built in {} ms.", project.getName(), (endTime - startTime));
+				Logger.debug("JAX-RS Metamodel for project '{}' fully built in {} ms.", project.getName(), (endTime - startTime));
 				try {
 					final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 					Logger.debug(
@@ -92,7 +92,7 @@ public class ResourceChangedBuildJob extends Job {
 							project.getName(), metamodel.getAllHttpMethods().size(),
 							metamodel.getAllResources().size(), metamodel.getAllEndpoints().size());
 				} catch (Throwable e) {
-					// debug level since the purpose was to display a debug message
+					// debug level here since the purpose was to display a debug message
 					Logger.debug("Error occurred: {}", e);
 				}
 			}

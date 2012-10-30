@@ -17,12 +17,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.SourceRange;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
@@ -45,7 +48,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			"javax.servlet.http.HttpServletRequest", "javax.servlet.http.HttpServletResponse",
 			"javax.servlet.ServletConfig", "javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext"));
 
-	private static final Pattern pattern = Pattern.compile("[a-zA-Z1-9]+");
+	private static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]+");
 
 	public JaxrsResourceMethodValidatorDelegate(final TempMarkerManager markerManager,
 			final JaxrsResourceMethod resourceMethod) {
@@ -132,7 +135,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 */
 	private void validateNoUnboundPathAnnotationTemplateParameters(final JaxrsResourceMethod resourceMethod)
 			throws JavaModelException {
-		final List<String> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
+		final Map<String, Annotation> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
 		final List<String> pathParamValues = new ArrayList<String>();
 		// retrieve all @Path
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
@@ -141,12 +144,16 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 				pathParamValues.add(annotation.getValue());
 			}
 		}
-		final ISourceRange nameRange = resourceMethod.getJavaElement().getNameRange();
-		for (String pathTemplateParameter : pathParamValueProposals) {
+		for (Entry<String, Annotation> pathTemplateParameterEntry : pathParamValueProposals.entrySet()) {
+			final String pathTemplateParameter = pathTemplateParameterEntry.getKey();
 			if (!pathParamValues.contains(pathTemplateParameter)) {
+				final Annotation pathTemplateParameterAnnotation = pathTemplateParameterEntry.getValue();
+				// look-up source range for annotation value
+				final ISourceRange range = resolveAnnotationParamSourceRange(pathTemplateParameterAnnotation, pathTemplateParameter);
+				
 				addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
 						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
-						new String[] { pathTemplateParameter }, nameRange.getLength(), nameRange.getOffset(),
+						new String[] { pathTemplateParameter, JdtUtils.getReadableMethodSignature(resourceMethod.getJavaElement()) }, range.getLength(), range.getOffset(),
 						resourceMethod.getResource());
 				resourceMethod.hasErrors(true);
 			}
@@ -162,23 +169,23 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 */
 	private void validateNoUnboundPathParamAnnotationValues(final JaxrsResourceMethod resourceMethod)
 			throws JavaModelException {
-		final List<String> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
+		final Map<String, Annotation> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation pathParamAnnotation = parameter.getAnnotation(PATH_PARAM.qualifiedName);
 			if (pathParamAnnotation != null) {
 				final String pathParamValue = pathParamAnnotation.getValue("value");
 				if (pathParamValue != null) {
-					if (!pattern.matcher(pathParamValue).matches()) {
+					if (!alphaNumPattern.matcher(pathParamValue).matches()) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(),
-								pathParamAnnotation.getFullyQualifiedName(), "value");
+								"value");
 						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								new String[] { pathParamValue }, range.getLength(), range.getOffset(),
 								resourceMethod.getResource());
 						resourceMethod.hasErrors(true);
-					} else if (!pathParamValueProposals.contains(pathParamValue)) {
+					} else if (!pathParamValueProposals.keySet().contains(pathParamValue)) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(),
-								pathParamAnnotation.getFullyQualifiedName(), "value");
+								"value");
 						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								new String[] { pathParamValue }, range.getLength(), range.getOffset(),
@@ -190,6 +197,34 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		}
 	}
 
+	/**
+	 * Resolves the location of the Path parameter in the source range, narrowed to the minimal value. For instance, the returned range corresponds to the location of the path parameter, including curly brackets and the the optional regexp in the given <code>@Path</code> annotation  
+	 * @param pathTemplateParameterAnnotation the <code>@Path</code> annotation
+	 * @param pathTemplateParameter the parameter that should be found in the given annotation value
+	 * @return
+	 * @throws JavaModelException
+	 */
+	private ISourceRange resolveAnnotationParamSourceRange(final Annotation pathTemplateParameterAnnotation, final String pathTemplateParameter)
+			throws JavaModelException {
+		// refine source range for path parameter in the value (including whitespaces between starting curly bracket and param name)
+		final ISourceRange valueRange = JdtUtils.resolveMemberPairValueRange(pathTemplateParameterAnnotation.getJavaAnnotation(),
+				"value");
+		final String annotationValue = pathTemplateParameterAnnotation.getValue();
+		final Pattern p = Pattern.compile("\\{\\s*" + Pattern.quote(pathTemplateParameter));
+		final Matcher matcher = p.matcher(annotationValue);
+		if(matcher.find()) {
+			final int start = matcher.start();
+			final int end = annotationValue.indexOf("}", start);
+			return new SourceRange(valueRange.getOffset() + start + 1, end - start + 1);
+		}
+		return valueRange;
+	}
+
+	/**
+	 * As per specification, the java method should have a public modifier.
+	 * @param resourceMethod
+	 * @throws JavaModelException
+	 */
 	private void validatePublicModifierOnJavaMethod(final JaxrsResourceMethod resourceMethod) throws JavaModelException {
 		final IMethod javaMethod = resourceMethod.getJavaElement();
 		if (javaMethod != null && !Flags.isPublic(javaMethod.getFlags())) {

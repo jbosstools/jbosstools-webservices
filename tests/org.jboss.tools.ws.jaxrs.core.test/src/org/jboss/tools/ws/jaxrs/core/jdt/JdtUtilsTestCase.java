@@ -858,7 +858,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final Annotation annotation = resolveAnnotation(customerType, PATH.qualifiedName);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(),
-				annotation.getFullyQualifiedName(), "value");
+				 "value");
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -873,8 +873,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = resolveAnnotation(customerType, CONSUMES.qualifiedName);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(),
-				annotation.getFullyQualifiedName(), "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -890,8 +889,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final IMethod method = getMethod(customerType, "getCustomer");
 		final Annotation annotation = resolveAnnotation(method, PATH.qualifiedName);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(),
-				annotation.getFullyQualifiedName(), "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -906,8 +904,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final IField field = getField(type, "foo");
 		final Annotation annotation = resolveAnnotation(field, QUERY_PARAM.qualifiedName);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(),
-				annotation.getFullyQualifiedName(), "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -923,8 +920,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final ILocalVariable localVariable = getLocalVariable(method, "id");
 		final IAnnotation annotation = localVariable.getAnnotations()[0];
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation, PATH_PARAM.qualifiedName,
-				"value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation, "value");
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getSourceRange();

@@ -40,13 +40,13 @@ public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerato
 					marker.getAttribute(IMarker.CHAR_START, 0), IJavaElement.TYPE);
 			if (type != null) {
 				switch (quickfixId) {
-				case JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_TARGET_ANNOTATION_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_TARGET_ANNOTATION_QUICKFIX_ID:
 					return new IMarkerResolution[] { new AddTargetAnnotationMarkerResolution(type) };
-				case JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_QUICKFIX_ID:
 					return new IMarkerResolution[] { new AddRetentionAnnotationMarkerResolution(type) };
-				case JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_QUICKFIX_ID:
 					return new IMarkerResolution[] { new UpdateTargetAnnotationValueMarkerResolution(type) };
-				case JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_ID:
+				case JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_QUICKFIX_ID:
 					return new IMarkerResolution[] { new UpdateRetentionAnnotationValueMarkerResolution(type) };
 				}
 			}

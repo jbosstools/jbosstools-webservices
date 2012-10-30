@@ -97,7 +97,24 @@ public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 	}
 
 	@Test
-	public void shouldDisplayEndpointParametersInOrderAfterUpdate() throws CoreException {
+	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdate() throws CoreException {
+		// pre-conditions
+		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
+		final JaxrsResourceMethod resourceMethod = createResourceMethod();
+		final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel,
+				httpMethod, resourceMethod);
+		// operation
+		final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
+		final Annotation postAnnotation = createAnnotation(EnumJaxrsClassname.POST, null);
+		annotations.put(postAnnotation.getFullyQualifiedName(),postAnnotation);
+		resourceMethod.updateAnnotations(annotations);
+		endpoint.refresh(resourceMethod, JaxrsElementDelta.F_HTTP_METHOD_VALUE);
+		// verifications
+		assertThat(endpoint.getHttpMethod().getHttpVerb(), equalTo("POST"));
+	}
+	
+	@Test
+	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdate() throws CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsResourceMethod resourceMethod = createResourceMethod();

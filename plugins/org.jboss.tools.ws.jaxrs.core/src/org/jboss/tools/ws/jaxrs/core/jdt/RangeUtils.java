@@ -21,7 +21,7 @@ public class RangeUtils {
 	/**
 	 * Private constructor for this utility class
 	 */
-	public RangeUtils() {
+	private RangeUtils() {
 	}
 
 	/**
@@ -31,6 +31,9 @@ public class RangeUtils {
 	 * @return
 	 */
 	public static boolean matches(final ISourceRange range, final int position) {
+		if(range == null) {
+			return false;
+		}
 		return range.getOffset() <= position && position <= (range.getOffset() + range.getLength());
 	}
 	

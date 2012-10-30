@@ -79,6 +79,7 @@ public class JavaElementChangedProcessor {
 					}
 					final JaxrsMetamodelDelta metamodelDelta = affectedMetamodels.get(affectedMetamodel);
 					metamodelDelta.add(jaxrsElementDelta);
+					
 				}
 				progressMonitor.worked(1);
 			}

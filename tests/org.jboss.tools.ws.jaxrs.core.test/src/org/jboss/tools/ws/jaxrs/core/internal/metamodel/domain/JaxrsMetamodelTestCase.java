@@ -186,7 +186,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		IMethod customerMethod = getMethod(customerType, "getCustomer");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
-		Assert.assertThat(customerResourceMethod.getPathParamValueProposals(), containsInAnyOrder("id"));
+		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().keySet(), containsInAnyOrder("id"));
 	}
 
 	@Test
@@ -204,7 +204,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		IMethod customerMethod = getMethod(customerType, "getProduct");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
-		Assert.assertThat(customerResourceMethod.getPathParamValueProposals(), containsInAnyOrder("id"));
+		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().keySet(), containsInAnyOrder("id"));
 	}
 	
 	@Test
@@ -213,7 +213,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		IMethod bazMethod = getMethod(bazType, "getContent2");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(bazMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
-		final List<String> pathParamValueProposals = customerResourceMethod.getPathParamValueProposals();
+		final Set<String> pathParamValueProposals = customerResourceMethod.getPathParamValueProposals().keySet();
 		Assert.assertThat(pathParamValueProposals, hasSize(3));
 		Assert.assertThat(pathParamValueProposals, containsInAnyOrder("id", "format", "encoding"));
 	}

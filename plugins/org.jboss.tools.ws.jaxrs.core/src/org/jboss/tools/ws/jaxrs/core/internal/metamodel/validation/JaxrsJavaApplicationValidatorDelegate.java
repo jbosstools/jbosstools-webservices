@@ -55,14 +55,14 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 					JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, new String[0],
 					appJavaElement.getNameRange().getLength(), appJavaElement.getNameRange().getOffset(),
 					application.getResource(),
-					JaxrsMetamodelValidationConstants.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_ID);
+					JaxrsMetamodelValidationConstants.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_QUICKFIX_ID);
 		}
 		if (!application.isJaxrsCoreApplicationSubclass()) {
 			addProblem(JaxrsValidationMessages.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
 					JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
 					new String[] { appJavaElement.getFullyQualifiedName() }, application.getJavaElement()
 							.getSourceRange().getLength(), appJavaElement.getSourceRange().getOffset(),
-					application.getResource(), JaxrsMetamodelValidationConstants.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_ID);
+					application.getResource(), JaxrsMetamodelValidationConstants.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_QUICKFIX_ID);
 		}
 
 		if (application.getMetamodel().hasMultipleApplications()) {
