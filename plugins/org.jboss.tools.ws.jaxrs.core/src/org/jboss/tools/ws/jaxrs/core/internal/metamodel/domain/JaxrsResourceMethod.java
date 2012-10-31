@@ -237,14 +237,14 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	 * @see
 	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IResourceMethod#hasErrors
 	 * (boolean)
-	 */
 	@Override
-	public void hasErrors(final boolean h) {
-		super.hasErrors(h);
-		if (hasErrors()) {
-			parentResource.hasErrors(true);
+	public void setProblem(final int severity) {
+		super.setProblemLevel(severity);
+		if (getProblemLevel()) {
+			parentResource.setProblemLevel(true);
 		}
 	}
+	 */
 
 	/*
 	 * (non-Javadoc)

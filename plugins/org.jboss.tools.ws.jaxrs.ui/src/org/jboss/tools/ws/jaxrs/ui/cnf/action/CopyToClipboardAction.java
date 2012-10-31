@@ -32,7 +32,7 @@ public class CopyToClipboardAction extends Action implements ISelectionChangedLi
 	private ISelection selection = null;
 
 	public CopyToClipboardAction() {
-		super("Copy URI Path Template", JBossJaxrsUIPlugin.getDefault().createImageDescriptor("copyqualifiedname.gif"));
+		super("Copy URI Path Template", JBossJaxrsUIPlugin.getDefault().getImageDescriptor("copyqualifiedname.gif"));
 	}
 
 	/*

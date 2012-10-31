@@ -363,4 +363,16 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		return this.metamodel.getJavaProject();
 	}
 
+	/**
+	 * @return the problem level for this given endpoint. The returned problem level is the highest value
+	 * from all the resource methods this endpoint is made of.
+	 */
+	@Override
+	public int getProblemLevel() {
+		int level = 0; // Severity NONE
+		for (IJaxrsResourceMethod resourceMethod : getResourceMethods()) {
+			level = Math.max(level, resourceMethod.getProblemLevel());
+		}
+		return level;
+	}
 }

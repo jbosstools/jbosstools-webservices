@@ -33,4 +33,6 @@ public interface IJaxrsEndpoint extends Comparable<IJaxrsEndpoint> {
 
 	public abstract IJavaProject getJavaProject();
 
+	int getProblemLevel();
+
 }

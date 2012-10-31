@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.metamodel;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
@@ -21,16 +22,23 @@ public interface IJaxrsResourceMethod {
 
 	abstract IMethod getJavaElement();
 
-	abstract boolean hasErrors();
+	/**
+	 * @return the highest level problem this resource method has.
+	 * @see {@link IMarker} for severity levels and values.
+	 */
+	abstract int getProblemLevel();
 
 	/**
-	 * Sets a flag of whether the underlying java method has compilation errors
-	 * or not. If true, also marke the parent resource with errors flag.
+	 * Sets the severity level for the given resource method. If the resource
+	 * method already has problem with higher severity, the given one is
+	 * ignored. On the other side, if the given problem severity is higher than
+	 * the current one, it is kept.
 	 * 
-	 * @param h
-	 *            : true if the java element has errors, false otherwise
+	 * @param level the severity level.
+	 * 
+	 * @see {@link IMarker} for severity levels and values.
 	 */
-	abstract void hasErrors(final boolean h);
+	abstract void setProblemLevel(final int level);
 
 	abstract EnumElementKind getElementKind();
 

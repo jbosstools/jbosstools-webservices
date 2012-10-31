@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
@@ -61,7 +62,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		Logger.debug("Validating element {}", getElement());
 		final JaxrsResourceMethod resourceMethod = getElement();
 		try {
-			resourceMethod.hasErrors(false);
+			resourceMethod.resetProblemLevel();
 			validatePublicModifierOnJavaMethod(resourceMethod);
 			validateNoUnboundPathAnnotationTemplateParameters(resourceMethod);
 			validateNoUnboundPathParamAnnotationValues(resourceMethod);
@@ -93,10 +94,10 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		}
 		if (counter > 1) {
 			final ISourceRange nameRange = resourceMethod.getJavaElement().getNameRange();
-			addProblem(JaxrsValidationMessages.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER,
+			final IMarker marker = addProblem(JaxrsValidationMessages.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER,
 					JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, new String[0],
 					nameRange.getLength(), nameRange.getOffset(), resourceMethod.getResource());
-			resourceMethod.hasErrors(true);
+			resourceMethod.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
 		}
 	}
 
@@ -116,11 +117,11 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			final String typeName = parameter.getTypeName();
 			if (contextAnnotation != null && typeName != null && !CONTEXT_TYPE_NAMES.contains(typeName)) {
 				final ISourceRange range = contextAnnotation.getJavaAnnotation().getSourceRange();
-				addProblem(JaxrsValidationMessages.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
+				final IMarker marker = addProblem(JaxrsValidationMessages.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
 						JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
 						new String[] { CONTEXT_TYPE_NAMES.toString() }, range.getLength(),
 						range.getOffset(), resourceMethod.getResource());
-				resourceMethod.hasErrors(true);
+				resourceMethod.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
 			}
 		}
 	}
@@ -150,12 +151,11 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 				final Annotation pathTemplateParameterAnnotation = pathTemplateParameterEntry.getValue();
 				// look-up source range for annotation value
 				final ISourceRange range = resolveAnnotationParamSourceRange(pathTemplateParameterAnnotation, pathTemplateParameter);
-				
-				addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
+				final IMarker marker = addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
 						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
 						new String[] { pathTemplateParameter, JdtUtils.getReadableMethodSignature(resourceMethod.getJavaElement()) }, range.getLength(), range.getOffset(),
 						resourceMethod.getResource());
-				resourceMethod.hasErrors(true);
+				resourceMethod.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
 			}
 		}
 	}
@@ -178,19 +178,19 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 					if (!alphaNumPattern.matcher(pathParamValue).matches()) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(),
 								"value");
-						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
+						final IMarker marker = addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								new String[] { pathParamValue }, range.getLength(), range.getOffset(),
 								resourceMethod.getResource());
-						resourceMethod.hasErrors(true);
+						resourceMethod.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
 					} else if (!pathParamValueProposals.keySet().contains(pathParamValue)) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(),
 								"value");
-						addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
+						final IMarker marker = addProblem(JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 								new String[] { pathParamValue }, range.getLength(), range.getOffset(),
 								resourceMethod.getResource());
-						resourceMethod.hasErrors(true);
+						resourceMethod.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
 					}
 				}
 			}

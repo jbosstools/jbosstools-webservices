@@ -117,20 +117,20 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {
 			final IMarker[] methodMarkers = findJaxrsMarkers(entry.getValue());
 			if (entry.getKey().contains("getContent1")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
+				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_WARNING));
 				assertThat(methodMarkers.length, equalTo(1));
 				assertThat(methodMarkers, hasPreferenceKey(RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
 			} else if (entry.getKey().contains("getContent2")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
+				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_ERROR));
 				assertThat(methodMarkers.length, equalTo(2));
 			} else if (entry.getKey().contains("update1")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
+				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_ERROR));
 				assertThat(methodMarkers.length, equalTo(2));
 			} else if (entry.getKey().contains("update2")) {
-				assertThat(entry.getValue().hasErrors(), is(false));
+				assertThat(entry.getValue().getProblemLevel(), is(0));
 				assertThat(methodMarkers.length, equalTo(0));
 			} else if (entry.getKey().contains("update3")) {
-				assertThat(entry.getValue().hasErrors(), is(true));
+				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_ERROR));
 				assertThat(methodMarkers.length, equalTo(1));
 			} else {
 				fail("Unexpected method " + entry.getKey());

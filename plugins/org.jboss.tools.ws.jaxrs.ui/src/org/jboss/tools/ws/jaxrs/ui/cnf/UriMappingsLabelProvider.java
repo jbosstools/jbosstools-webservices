@@ -36,26 +36,20 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	@Override
 	public Image getImage(Object element) {
 		if (element instanceof UriPathTemplateCategory) {
-			if (((UriPathTemplateCategory) element).hasErrors()) {
-				return JBossJaxrsUIPlugin.getDefault().createImage("restful_web_services_error.gif");
-			}
-			return JBossJaxrsUIPlugin.getDefault().createImage("restful_web_services.gif");
+			return JBossJaxrsUIPlugin.getDefault().getImage("restful_web_services.gif", ((UriPathTemplateCategory) element).getProblemLevel());
 		} else if (element instanceof UriPathTemplateElement) {
-			if (((UriPathTemplateElement) element).hasErrors()) {
-				return JBossJaxrsUIPlugin.getDefault().createImage("url_mapping_error.gif");
-			}
-			return JBossJaxrsUIPlugin.getDefault().createImage("url_mapping.gif");
+			return JBossJaxrsUIPlugin.getDefault().getImage("url_mapping.gif", ((UriPathTemplateElement) element).getProblemLevel());
 		} else if (element instanceof UriPathTemplateMediaTypeMappingElement) {
 			switch (((UriPathTemplateMediaTypeMappingElement) element).getType()) {
 			case CONSUMES:
-				return JBossJaxrsUIPlugin.getDefault().createImage("filter_mapping_in.gif");
+				return JBossJaxrsUIPlugin.getDefault().getImage("filter_mapping_in.gif");
 			case PRODUCES:
-				return JBossJaxrsUIPlugin.getDefault().createImage("filter_mapping_out.gif");
+				return JBossJaxrsUIPlugin.getDefault().getImage("filter_mapping_out.gif");
 			}
 		} else if (element instanceof UriPathTemplateMethodMappingElement) {
-			return JBossJaxrsUIPlugin.getDefault().createImage("servlet_mapping.gif");
+			return JBossJaxrsUIPlugin.getDefault().getImage("servlet_mapping.gif");
 		} else if (element instanceof LoadingStub) {
-			return JBossJaxrsUIPlugin.getDefault().createImage("systemprocess.gif");
+			return JBossJaxrsUIPlugin.getDefault().getImage("systemprocess.gif");
 		} 
 
 		return null;
@@ -177,5 +171,5 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	public String getText(Object element) {
 		return getStyledText(element).getString();
 	}
-
+	
 }
