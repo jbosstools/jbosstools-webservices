@@ -17,8 +17,8 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	/** The associated metamodel. */
 	final JaxrsMetamodel metamodel;
 
-	/** Indicates if the underlying java element has compiltation errors. */
-	private boolean hasErrors;
+	/** Indicates if the element has problems. */
+	private int problemLevel;
 
 	/**
 	 * Full constructor.
@@ -30,18 +30,26 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	}
 
 	/**
-	 * Sets a flag of whether the underlying java element has compilation errors or not.
-	 * 
-	 * @param h
-	 *            : true if the java element has errors, false otherwise
+	 * Resets the problem level for this given element.
 	 */
-	public void hasErrors(final boolean h) {
-		this.hasErrors = h;
+	public void resetProblemLevel() {
+		this.problemLevel = 0;
 	}
 
-	/** @return true if the java element has errors, false otherwise. */
-	public final boolean hasErrors() {
-		return hasErrors;
+	/**
+	 * Sets the problem level for this element. If this element already has a problem level, the highest value is kept.
+	 * 
+	 * @param problem level: the incoming new problem level.
+	 */
+	public void setProblemLevel(final int problemLevel) {
+		this.problemLevel = Math.max(this.problemLevel, problemLevel);
+	}
+	
+	/** @return the problem level. 
+	 * @see IMarker for the severity level (value "0" meaning "no problem, dude")
+	 */
+	public final int getProblemLevel() {
+		return problemLevel;
 	}
 
 	/** @return the metamodel */

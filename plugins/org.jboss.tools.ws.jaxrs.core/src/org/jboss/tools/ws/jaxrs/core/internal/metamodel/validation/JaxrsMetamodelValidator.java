@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -38,6 +39,7 @@ import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.SimpleValidatingProjectTree;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedPublisher;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
@@ -48,6 +50,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplic
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.core.metamodel.validation.JaxrsMetamodelValidationConstants;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
@@ -119,6 +122,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 						validate(reporter, changedResource, jaxrsMetamodel);
 					}
 				}
+				new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED), null);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);
@@ -165,7 +169,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				for (IJaxrsElement element : elements) {
 					validate(element);
 				}
-				
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate the resource change", e);
@@ -192,6 +195,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			for (IResource changedResource : allResources) {
 				validate(reporter, changedResource, jaxrsMetamodel);
 			}
+			new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED), null);
 		} catch (CoreException e) {
 			Logger.error("Failed to validate changed file " + changedFile.getName() + " in project " + changedFile.getProject(), e);
 		} finally {
@@ -214,6 +218,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 					validate(element);
 				}
 				validate(jaxrsMetamodel);
+				new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED), null);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate project '", e);

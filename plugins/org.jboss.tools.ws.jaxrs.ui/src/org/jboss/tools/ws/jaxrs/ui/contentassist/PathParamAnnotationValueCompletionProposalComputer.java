@@ -52,7 +52,7 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 public class PathParamAnnotationValueCompletionProposalComputer implements IJavaCompletionProposalComputer {
 
 	/** Icon for completion proposals. */
-	private final Image icon = JBossJaxrsUIPlugin.getDefault().createImage("url_mapping.gif");
+	private final Image icon = JBossJaxrsUIPlugin.getDefault().getImage("url_mapping.gif");
 
 	/** {@inheritDoc} */
 	@Override

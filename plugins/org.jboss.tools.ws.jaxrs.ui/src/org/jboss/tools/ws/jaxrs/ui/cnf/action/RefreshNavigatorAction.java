@@ -25,7 +25,7 @@ public class RefreshNavigatorAction extends Action implements ISelectionChangedL
 	private ISelection selection = null;
 
 	public RefreshNavigatorAction() {
-		super("Refresh", JBossJaxrsUIPlugin.getDefault().createImageDescriptor("refresh.gif"));
+		super("Refresh", JBossJaxrsUIPlugin.getDefault().getImageDescriptor("refresh.gif"));
 	}
 
 	@Override

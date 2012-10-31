@@ -70,13 +70,12 @@ public class UriPathTemplateElement implements ITreeContentProvider, ILaunchable
 		Logger.trace("Input changed: {} -> {}", oldInput, newInput);
 	}
 
-	public boolean hasErrors() {
-		for (IJaxrsResourceMethod resourceMethod : endpoint.getResourceMethods()) {
-			if (resourceMethod.hasErrors()) {
-				return true;
-			}
-		}
-		return false;
+	/**
+	 * @return the problem level for the given template element. The returned problem level is the highest value
+	 * from all the resource methods this element is made of.
+	 */
+	public int getProblemLevel() {
+		return endpoint.getProblemLevel();
 	}
 
 	public void setEndpoint(IJaxrsEndpoint endpoint) {

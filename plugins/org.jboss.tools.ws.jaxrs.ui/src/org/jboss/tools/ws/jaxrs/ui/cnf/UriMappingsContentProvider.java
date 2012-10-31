@@ -11,8 +11,6 @@
 
 package org.jboss.tools.ws.jaxrs.ui.cnf;
 
-import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
-
 import java.util.Date;
 import java.util.EventObject;
 import java.util.HashMap;
@@ -146,21 +144,17 @@ public class UriMappingsContentProvider implements ITreeContentProvider, Subscri
 		uriPathTemplateCategories = null;
 	}
 
-	/*
-	 * @Override public void resourceChanged(IResourceChangeEvent event) { refreshChangedProjects(event.getDelta()); }
+	
+	/**
+	 * Call by the pub/sub mecanism in the core plugin when displayable elements changed.
 	 */
-
 	@Override
 	public void inform(EventObject event) {
 		// FIXME: should receive a single JaxrsMetamodelChangedEvent containing 0 or more IJaxrsEndpointChangedEvent(s)
 		final Object eventSource = event.getSource();
 		if (eventSource instanceof JaxrsMetamodelDelta) {
 			final JaxrsMetamodelDelta metamodelDelta = (JaxrsMetamodelDelta) eventSource;
-			if (metamodelDelta.getDeltaKind() == ADDED || !metamodelDelta.getAffectedEndpoints().isEmpty()) {
-				refreshContent(metamodelDelta.getMetamodel().getProject());
-			} else {
-				Logger.debug("Well, the changes are *not* relevant to the UI: no refresh required");
-			}
+			refreshContent(metamodelDelta.getMetamodel().getProject());
 		}
 	}
 
