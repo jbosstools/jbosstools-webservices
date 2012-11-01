@@ -1520,6 +1520,14 @@ public class JAXRSWSTestView2 extends ViewPart {
 			try {
 				new URL(urlText);
 				startToolItem.setEnabled(true);
+				
+				// per JBIDE-6919, if we encounter an "https" url make sure 
+				// basic authorization checkbox is checked
+				// per JBIDE-12981, only set this when the user updates
+				// the url, not every time they run the test
+				if (urlText.trim().startsWith(HTTPS_STRING)) {
+					useBasicAuthCB.setSelection(true);
+				}
 			} catch (MalformedURLException mue) {
 				startToolItem.setEnabled(false);
 				return;
@@ -1677,9 +1685,10 @@ public class JAXRSWSTestView2 extends ViewPart {
 		
 		// per JBIDE-6919, if we encounter an "https" url make sure 
 		// basic authorization checkbox is checked
-		if (url.trim().startsWith(HTTPS_STRING)) {
-			useBasicAuthCB.setSelection(true);
-		}
+		// per JBIDE-12981, moved this check and set to setControlsForSelectedURL()
+//		if (url.trim().startsWith(HTTPS_STRING)) {
+//			useBasicAuthCB.setSelection(true);
+//		}
 		
 		// If basic authorization checkbox is checked, use the uid/pwd
 		if (useBasicAuthCB.getSelection()) {
