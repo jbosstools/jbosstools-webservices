@@ -35,6 +35,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
+import org.jboss.tools.common.ui.CommonUIImages;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.ServiceSampleCreationCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
@@ -76,6 +77,7 @@ public class JBossWSGenerateWizard extends Wizard implements INewWizard {
 		JBossWSGenerateWizardPage onePage =
 			new JBossWSGenerateWizardPage("onePage"); //$NON-NLS-1$
 		addPage(onePage);
+		setDefaultPageImageDescriptor(CommonUIImages.getInstance().getOrCreateImageDescriptor(CommonUIImages.WEB_SERVICE_IMAGE));
 	}
 
 	@Override

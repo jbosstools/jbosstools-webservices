@@ -34,6 +34,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
+import org.jboss.tools.common.ui.CommonUIImages;
 import org.jboss.tools.ws.creation.core.commands.AddRestEasyJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.RSMergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RSServiceSampleCreationCommand;
@@ -77,6 +78,7 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 		super();
 		super.setWindowTitle(JBossWSUIMessages.JBossRSGenerateWizard_RS_Wizard_Window_Title);
 		super.setHelpAvailable(false);
+		setDefaultPageImageDescriptor(CommonUIImages.getInstance().getOrCreateImageDescriptor(CommonUIImages.WEB_SERVICE_IMAGE));
 	}
 
 	public void addPages() {
