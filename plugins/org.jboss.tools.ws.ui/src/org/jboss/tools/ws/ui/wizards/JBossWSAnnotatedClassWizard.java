@@ -35,6 +35,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
+import org.jboss.tools.common.ui.CommonUIImages;
 import org.jboss.tools.ws.creation.core.commands.AddRestEasyJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RSMergeWebXMLCommand;
@@ -83,6 +84,7 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 		super();
 		super.setWindowTitle(JBossWSUIMessages.JBossWSAnnotatedClassWizard_Annotated_Class_WS_Wizard_Title);
 		super.setHelpAvailable(false);
+		setDefaultPageImageDescriptor(CommonUIImages.getInstance().getOrCreateImageDescriptor(CommonUIImages.WEB_SERVICE_IMAGE));
 	}
 
 	public void addPages() {
