@@ -50,7 +50,7 @@ public class ResourceChangedBuildJob extends Job {
 	protected IStatus run(final IProgressMonitor progressMonitor) {
 		long startTime = new Date().getTime();
 		try {
-			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
+			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			Logger.debug("Building JAX-RS Metamodel after resource changed...");
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -76,7 +76,7 @@ public class ResourceChangedBuildJob extends Job {
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			new JaxrsElementChangedPublisher().publish(metamodelDelta, new SubProgressMonitor(progressMonitor, SCALE));
+			new JaxrsElementChangedPublisher().publish(metamodelDelta);
 			progressMonitor.worked(SCALE);
 
 		} catch (Throwable e) {

@@ -122,7 +122,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 						validate(reporter, changedResource, jaxrsMetamodel);
 					}
 				}
-				new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED), null);
+				new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED));
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);
@@ -195,7 +195,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			for (IResource changedResource : allResources) {
 				validate(reporter, changedResource, jaxrsMetamodel);
 			}
-			new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED), null);
+			new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED));
 		} catch (CoreException e) {
 			Logger.error("Failed to validate changed file " + changedFile.getName() + " in project " + changedFile.getProject(), e);
 		} finally {
@@ -218,7 +218,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 					validate(element);
 				}
 				validate(jaxrsMetamodel);
-				new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED), null);
+				new JaxrsElementChangedPublisher().publish(new JaxrsMetamodelDelta(jaxrsMetamodel, IJavaElementDelta.CHANGED));
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate project '", e);
