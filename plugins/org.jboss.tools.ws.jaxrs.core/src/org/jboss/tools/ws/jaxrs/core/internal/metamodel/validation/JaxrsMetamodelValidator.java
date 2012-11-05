@@ -64,9 +64,9 @@ import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 @SuppressWarnings("restriction")
 public class JaxrsMetamodelValidator extends TempMarkerManager implements IValidator, IAsYouTypeValidator {
 
-	private static final String PREFERENCE_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui";
+	private static final String PREFERENCE_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSValidatorPreferencePage";
 
-	private static final String PROPERTY_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui";
+	private static final String PROPERTY_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui.propertyPages.JaxrsValidatorPreferencePage";
 
 	/** The JAX-RS Validator ID. */
 	public static final String ID = "org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"; //$NON-NLS-1$
