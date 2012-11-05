@@ -46,7 +46,7 @@ public class JavaElementChangedBuildJob extends Job {
 	@Override
 	protected IStatus run(final IProgressMonitor progressMonitor) {
 		try {
-			progressMonitor.beginTask("Building JAX-RS Metamodel", 4 * SCALE);
+			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			progressMonitor.worked(SCALE);
 			Logger.debug("Building JAX-RS Metamodel after Java element changed...");
 			if (progressMonitor.isCanceled()) {
@@ -68,8 +68,7 @@ public class JavaElementChangedBuildJob extends Job {
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			new JaxrsElementChangedPublisher().publish(affectedMetamodels, new SubProgressMonitor(progressMonitor,
-					SCALE));
+			new JaxrsElementChangedPublisher().publish(affectedMetamodels);
 		} catch (Throwable e) {
 			Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 		} finally {

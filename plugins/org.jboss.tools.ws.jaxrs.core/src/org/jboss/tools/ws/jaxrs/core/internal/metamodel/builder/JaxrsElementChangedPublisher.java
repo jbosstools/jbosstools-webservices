@@ -13,7 +13,6 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 import java.util.EventObject;
 import java.util.List;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
@@ -22,17 +21,16 @@ import org.jboss.tools.ws.jaxrs.core.pubsub.EventService;
 
 public class JaxrsElementChangedPublisher {
 
-	public void publish(List<JaxrsMetamodelDelta> affectedMetamodel, IProgressMonitor progressMonitor) {
+	public void publish(List<JaxrsMetamodelDelta> affectedMetamodel) {
 		for (JaxrsMetamodelDelta metamodelDelta : affectedMetamodel) {
-			publish(metamodelDelta, progressMonitor);
+			publish(metamodelDelta);
 		}
 	}
 	
-	public void publish(JaxrsMetamodelDelta metamodelDelta, IProgressMonitor progressMonitor) {
+	public void publish(JaxrsMetamodelDelta metamodelDelta) {
 		Logger.debug("*** Notifying the UI that JAX-RS metamodel was {} (including {} endpoint changes) ***",
 				ConstantUtils.getStaticFieldName(IJavaElementDelta.class, metamodelDelta.getDeltaKind()),
 				metamodelDelta.getAffectedEndpoints().size());
 		EventService.getInstance().publish(new EventObject(metamodelDelta));
-		progressMonitor.worked(1);
 	}
 }
