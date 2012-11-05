@@ -389,13 +389,13 @@
       <page 
          category="org.jboss.tools.ws.jaxrs.ui" 
          class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsValidatorPreferencePage" 
-         id="org.jboss.tools.ws.jaxrs.ui.JAXRSValidatorPreferencePage" 
+         id="org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSValidatorPreferencePage" 
          name="%PreferencePage_Validator">
       </page>
       <page
             category="org.jboss.tools.common.model.ui.MainPreferencePage"
             class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferencePage"
-            id="org.jboss.tools.ws.jaxrs.ui"
+            id="org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSPreferencePage"
             name="%PreferencePage">
       </page>
    </extension>
