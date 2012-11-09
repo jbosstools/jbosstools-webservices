@@ -73,7 +73,6 @@
                   <excludes>
                     <exclude>**/Abstract*.class</exclude>
                   </excludes>
-                  <parallel>true</parallel>
                 </configuration>
               </plugin>
 			
