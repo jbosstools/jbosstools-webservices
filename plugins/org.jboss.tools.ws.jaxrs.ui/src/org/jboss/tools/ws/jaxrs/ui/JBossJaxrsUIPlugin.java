@@ -23,6 +23,7 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.osgi.framework.BundleContext;
@@ -38,9 +39,9 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static JBossJaxrsUIPlugin plugin;
 	
-	private ImageRegistry imageRegistry = new ImageRegistry();
+	private ImageRegistry imageRegistry = null;
 
-	private ImageRegistry imageDescriptorRegistry = new ImageRegistry();
+	private ImageRegistry imageDescriptorRegistry = null;
 	/**
 	 * The constructor
 	 */
@@ -54,6 +55,8 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		imageRegistry = new ImageRegistry(Display.getDefault());
+		imageDescriptorRegistry = new ImageRegistry(Display.getDefault());
 	}
 
 	/*
