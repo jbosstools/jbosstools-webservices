@@ -82,7 +82,7 @@ public final class JaxrsAnnotationsScanner {
 				}
 			}
 		} else {
-			Logger.warn("Could not find type '"+APPLICATION.qualifiedName + "' in project's classpath.");
+			Logger.debug("Could not find type '"+APPLICATION.qualifiedName + "' in project's classpath.");
 		}
 		return applicationTypes;
 	}
