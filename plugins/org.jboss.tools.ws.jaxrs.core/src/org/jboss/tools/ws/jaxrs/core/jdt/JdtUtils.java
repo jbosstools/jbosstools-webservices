@@ -451,7 +451,7 @@ public final class JdtUtils {
 		}
 		IType findType = javaProject.findType(qName, progressMonitor);
 		if (findType == null) {
-			Logger.warn("Unable to find type with fully qualified name '" + qName + "' in Java Project '"
+			Logger.debug("Unable to find type with fully qualified name '" + qName + "' in Java Project '"
 					+ javaProject.getProject().getName() + "'");
 		}
 		return findType;
