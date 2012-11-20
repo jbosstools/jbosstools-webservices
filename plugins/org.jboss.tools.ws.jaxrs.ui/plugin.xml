@@ -395,7 +395,7 @@
       <page
             category="org.jboss.tools.common.model.ui.MainPreferencePage"
             class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferencePage"
-            id="org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSPreferencePage"
+            id="org.jboss.tools.ws.jaxrs.ui"
             name="%PreferencePage">
       </page>
    </extension>
