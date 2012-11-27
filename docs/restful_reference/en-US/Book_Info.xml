@@ -5,9 +5,9 @@
 	<title>JBoss RESTful Web Services User Guide</title>
 	<subtitle>Provides information relating to RESTful Web Services for JBoss.</subtitle>
 	<productname>JBoss Developer Studio</productname>
-	<productnumber>5.0</productnumber>
-	<edition>5.0.0</edition>
-	<pubsnumber>9</pubsnumber>
+	<productnumber>6.0</productnumber>
+	<edition>6.0.0</edition>
+	<pubsnumber>1</pubsnumber>
 	<abstract>
 		<para>The JBoss RESTful Web Services User Guide explains how to use RESTful Web Services to implement web services in Java.</para>
 	</abstract>
