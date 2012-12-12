@@ -10,13 +10,13 @@
 	</parent>
 	<groupId>org.jboss.tools.ws.plugins</groupId>
 	<artifactId>org.jboss.tools.ws.jaxrs.core</artifactId>
-	
+
 	<packaging>eclipse-plugin</packaging>
-	
+
 	<profiles>
 		<profile>
 			<!-- Ignore optional deps to jdt.launching.macosx -->
-			<id>osx-dep</id>
+			<id>ignore-mac-deps-on-other-os</id>
 			<activation>
 				<os>
 					<family>!mac</family>
@@ -33,13 +33,44 @@
 								<optionalDependencies>ignore</optionalDependencies>
 							</dependency-resolution>
 						</configuration>
-				       	</plugin>
-				       	<plugin>
+					</plugin>
+					<plugin>
 						<groupId>org.eclipse.tycho</groupId>
 						<artifactId>tycho-compiler-plugin</artifactId>
 						<version>${tychoVersion}</version>
 						<configuration>
 							<optionalDependencies>ignore</optionalDependencies>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>remove-other-plqtforms-from-query-on-mac</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.eclipse.tycho</groupId>
+						<artifactId>target-platform-configuration</artifactId>
+						<version>${tychoVersion}</version>
+						<configuration>
+							<environments>
+								<environment>
+									<os>macosx</os>
+									<ws>cocoa</ws>
+									<arch>x86_64</arch>
+								</environment>
+								<environment>
+									<os>macosx</os>
+									<ws>cocoa</ws>
+									<arch>x86</arch>
+								</environment>
+							</environments>
 						</configuration>
 					</plugin>
 				</plugins>
