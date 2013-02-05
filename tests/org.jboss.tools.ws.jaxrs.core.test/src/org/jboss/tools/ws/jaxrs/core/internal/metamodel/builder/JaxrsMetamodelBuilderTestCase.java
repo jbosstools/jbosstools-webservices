@@ -135,7 +135,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
 		// operation
 		WorkbenchUtils.createCompilationUnit(javaProject, "FooResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java", bundle);
+				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java");
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
@@ -153,7 +153,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		assertThat(JaxrsMetamodelLocator.get(javaProject), nullValue());
 		// operation
 		WorkbenchUtils.createCompilationUnit(javaProject, "FooResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java", bundle);
+				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java");
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());

@@ -15,9 +15,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -93,59 +91,27 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		}
 	}
 	
-	public static class Builder {
-		final IType javaType;
-		final JaxrsMetamodel metamodel;
-		final List<Annotation> annotations = new ArrayList<Annotation>();
-
-		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
-			this.javaType = javaType;
-			this.metamodel = metamodel;
-		}
-
-		public Builder retention(final Annotation retentionAnnotation) {
-			if(retentionAnnotation != null) {
-				annotations.add(retentionAnnotation);
-			}
-			return this;
-		}
-
-		public Builder httpMethod(final Annotation httpMethodAnnotation) {
-			if(httpMethodAnnotation != null) {
-				annotations.add(httpMethodAnnotation);
-			}
-			return this;
-		}
-
-		public Builder target(final Annotation targetAnnotation) {
-			if(targetAnnotation != null) {
-				annotations.add(targetAnnotation);
-			}
-			return this;
-		}
-
-		public Builder annotations(final Collection<Annotation> annotations) {
-			if(annotations != null) {
-				this.annotations.addAll(annotations);
-			}
-			return this;
-		}
-		public JaxrsHttpMethod build() {
-			JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(javaType, annotations, metamodel);
-			return httpMethod;
-		}
-	}
-
 	/**
 	 * Full constructor.
 	 * 
 	 * @param annotations
 	 * 
 	 */
-	JaxrsHttpMethod(IType javaType, List<Annotation> annotations,
+	public JaxrsHttpMethod(IType javaType, Map<String, Annotation> annotations,
 			final JaxrsMetamodel metamodel) {
 		super(javaType, annotations, metamodel);
 	}
+	
+	/**
+	 * Full constructor.
+	 * 
+	 * @param annotations
+	 * 
+	public JaxrsHttpMethod(IType javaType, Annotation annotation,
+			final JaxrsMetamodel metamodel) {
+		super(javaType, annotation, metamodel);
+	}
+	 */
 	
 	public boolean isBuiltIn() {
 		return false;

@@ -37,6 +37,8 @@ public enum EnumElementKind {
 	ENTITY_MAPPER,
 	/** An exception mapper. */
 	EXCEPTION_MAPPER,
+	/** A Context Provider. */
+	CONTEXT_PROVIDER,
 	/** A root resource. */
 	ROOT_RESOURCE,
 	/** A subresource. */

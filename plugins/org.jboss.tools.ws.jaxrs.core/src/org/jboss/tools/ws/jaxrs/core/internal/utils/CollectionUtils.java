@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -29,18 +28,17 @@ public class CollectionUtils {
 	}
 
 	/**
-	 * Handy method to initializes a map of String/List of String with the given key/value pair.
+	 * Handy method to initializes a map from the given key/value pair.
 	 * 
 	 * @param key
 	 *            the key in the returned map
 	 * @param value
-	 *            the value put in the list value in the returned map
-	 * @return a map containing a single entry identified by 'key' and a list of values, whose only value is the given
-	 *         value.
+	 *            the value put in the returned map
+	 * @return a map containing a single entry identified by 'key' hodling the given value.
 	 */
-	public static Map<String, List<String>> toMap(final String key, final String value) {
-		Map<String, List<String>> map = new HashMap<String, List<String>>();
-		map.put("value", Arrays.asList(value));
+	public static <K, V> Map<K, V> toMap(final K key, final V value) {
+		Map<K, V> map = new HashMap<K, V>();
+		map.put(key, value);
 		return map;
 	}
 

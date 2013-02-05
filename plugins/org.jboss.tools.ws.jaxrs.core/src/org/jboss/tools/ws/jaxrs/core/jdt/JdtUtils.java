@@ -335,6 +335,9 @@ public final class JdtUtils {
 			IAnnotatable javaElement = (IAnnotatable) member;
 			final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
 			for (String annotationName : annotationNames) {
+				if(annotationName == null) {
+					continue;
+				}
 				final IAnnotation javaAnnotation = javaElement.getAnnotation(annotationName);
 				if (javaAnnotation.exists()) {
 					annotations.put(annotationName, new Annotation(javaAnnotation, javaAnnotation.getElementName(),

@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import org.eclipse.jdt.core.ISourceRange;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
  * @author Xavier Coulon
@@ -34,6 +35,7 @@ public class RangeUtils {
 		if(range == null) {
 			return false;
 		}
+		Logger.trace("Checking if position {} is in range {}", position, range);
 		return range.getOffset() <= position && position <= (range.getOffset() + range.getLength());
 	}
 	

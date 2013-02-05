@@ -62,8 +62,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
 public class JavaElementChangedProcessor {
 
-	private final JaxrsElementFactory factory = new JaxrsElementFactory();
-
 	public List<JaxrsMetamodelDelta> processAffectedJavaElements(List<JavaElementDelta> affectedJavaElements,
 			IProgressMonitor progressMonitor) {
 		final Map<JaxrsMetamodel, JaxrsMetamodelDelta> affectedMetamodels = new HashMap<JaxrsMetamodel, JaxrsMetamodelDelta>();
@@ -186,7 +184,7 @@ public class JavaElementChangedProcessor {
 			for (IType type : matchingHttpMethodTypes) {
 				final CompilationUnit ast = JdtUtils.parse(type, progressMonitor);
 				final Annotation annotation = JdtUtils.resolveAnnotation(type, ast, HTTP_METHOD.qualifiedName);
-				final JaxrsHttpMethod httpMethod = factory.createHttpMethod(annotation, ast, metamodel);
+				final JaxrsHttpMethod httpMethod = JaxrsElementFactory.createHttpMethod(annotation, ast, metamodel);
 				metamodel.add(httpMethod);
 				if (httpMethod != null) {
 					changes.add(new JaxrsElementDelta(httpMethod, ADDED));
@@ -196,7 +194,7 @@ public class JavaElementChangedProcessor {
 			final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResourceTypes(scope, progressMonitor);
 			for (IType matchingType : matchingResourceTypes) {
 				final CompilationUnit ast = JdtUtils.parse(matchingType, progressMonitor);
-				final JaxrsResource createdResource = factory.createResource(matchingType, ast, metamodel);
+				final JaxrsResource createdResource = JaxrsElementFactory.createResource(matchingType, ast, metamodel);
 				if (createdResource != null) {
 					metamodel.add(createdResource);
 					changes.add(new JaxrsElementDelta(createdResource, ADDED));
@@ -215,7 +213,7 @@ public class JavaElementChangedProcessor {
 					progressMonitor);
 			for (IType matchingType : matchingApplicationTypes) {
 				final CompilationUnit ast = JdtUtils.parse(matchingType, progressMonitor);
-				final JaxrsJavaApplication createdApplication = factory.createApplication(matchingType, ast, metamodel);
+				final JaxrsJavaApplication createdApplication = JaxrsElementFactory.createApplication(matchingType, ast, metamodel);
 				if (createdApplication != null) {
 					metamodel.add(createdApplication);
 					changes.add(new JaxrsElementDelta(createdApplication, ADDED));
@@ -245,20 +243,20 @@ public class JavaElementChangedProcessor {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		// let's see if the given type can be an HTTP Method (ie, is annotated
 		// with @HttpMethod)
-		final JaxrsHttpMethod httpMethod = factory.createHttpMethod(javaType, ast, metamodel);
+		final JaxrsHttpMethod httpMethod = JaxrsElementFactory.createHttpMethod(javaType, ast, metamodel);
 		if (httpMethod != null) {
 			metamodel.add(httpMethod);
 			changes.add(new JaxrsElementDelta(httpMethod, ADDED));
 		}
 		// now,let's see if the given type can be a Resource (with or without
 		// @Path)
-		final JaxrsResource resource = factory.createResource(javaType, ast, metamodel);
+		final JaxrsResource resource = JaxrsElementFactory.createResource(javaType, ast, metamodel);
 		if (resource != null) {
 			metamodel.add(resource);
 			changes.add(new JaxrsElementDelta(resource, ADDED));
 		}
 		// now,let's see if the given type can be an Application
-		final JaxrsJavaApplication application = factory.createApplication(javaType, ast, metamodel);
+		final JaxrsJavaApplication application = JaxrsElementFactory.createApplication(javaType, ast, metamodel);
 		if (application != null) {
 			metamodel.add(application);
 			changes.add(new JaxrsElementDelta(application, ADDED));
@@ -272,7 +270,7 @@ public class JavaElementChangedProcessor {
 			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		// let's see if the added field has some JAX-RS annotation on itself.
-		final JaxrsResourceField field = factory.createField(javaField, ast, metamodel);
+		final JaxrsResourceField field = JaxrsElementFactory.createField(javaField, ast, metamodel);
 		if (field != null) {
 			metamodel.add(field);
 			changes.add(new JaxrsElementDelta(field, ADDED));
@@ -288,7 +286,7 @@ public class JavaElementChangedProcessor {
 	private List<JaxrsElementDelta> processAddition(final IMethod javaMethod, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
-		final JaxrsResourceMethod resourceMethod = factory.createResourceMethod(javaMethod, ast, metamodel);
+		final JaxrsResourceMethod resourceMethod = JaxrsElementFactory.createResourceMethod(javaMethod, ast, metamodel);
 		if (resourceMethod != null) {
 			metamodel.add(resourceMethod);
 			changes.add(new JaxrsElementDelta(resourceMethod, ADDED));
@@ -314,7 +312,7 @@ public class JavaElementChangedProcessor {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final JaxrsJavaElement<?> existingElement = (JaxrsJavaElement<?>) metamodel.getElement(javaAnnotation.getParent());
 		if (existingElement == null) {
-			final JaxrsJavaElement<?> createdElement = factory.createElement(javaAnnotation, ast, metamodel);
+			final JaxrsJavaElement<?> createdElement = JaxrsElementFactory.createElement(javaAnnotation, ast, metamodel);
 			if (createdElement != null) {
 				metamodel.add(createdElement);
 				changes.add(new JaxrsElementDelta(createdElement, ADDED));
@@ -479,7 +477,7 @@ public class JavaElementChangedProcessor {
 			if (element.getElementKind() == EnumElementKind.UNDEFINED) {
 				metamodel.remove(element);
 				changes.add(new JaxrsElementDelta(element, REMOVED));
-			} else {
+			} else if(flag != 0) {
 				changes.add(new JaxrsElementDelta(element, CHANGED, flag));
 			}
 		}

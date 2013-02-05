@@ -44,50 +44,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 
 	private final Map<String, JaxrsResourceMethod> resourceMethods = new HashMap<String, JaxrsResourceMethod>();
 
-	public static class Builder {
-		final IType javaType;
-		final JaxrsMetamodel metamodel;
-		private Annotation consumesAnnotation;
-		private Annotation producesAnnotation;
-		private Annotation pathAnnotation;
-
-		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
-			this.javaType = javaType;
-			this.metamodel = metamodel;
-		}
-
-		public Builder pathTemplate(final Annotation pathAnnotation) {
-			this.pathAnnotation = pathAnnotation;
-			return this;
-		}
-
-		public Builder consumes(final Annotation consumesAnnotation) {
-			this.consumesAnnotation = consumesAnnotation;
-			return this;
-		}
-
-		public Builder produces(final Annotation producesAnnotation) {
-			this.producesAnnotation = producesAnnotation;
-			return this;
-		}
-
-		public JaxrsResource build() {
-			List<Annotation> annotations = new ArrayList<Annotation>();
-			if (pathAnnotation != null) {
-				annotations.add(pathAnnotation);
-			}
-			if (consumesAnnotation != null) {
-				annotations.add(consumesAnnotation);
-			}
-			if (producesAnnotation != null) {
-				annotations.add(producesAnnotation);
-			}
-			JaxrsResource resource = new JaxrsResource(javaType, annotations, metamodel);
-			return resource;
-		}
-	}
-
-	private JaxrsResource(final IType javaType, final List<Annotation> annotations, final JaxrsMetamodel metamodel) {
+	public JaxrsResource(final IType javaType, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel) {
 		super(javaType, annotations, metamodel);
 	}
 

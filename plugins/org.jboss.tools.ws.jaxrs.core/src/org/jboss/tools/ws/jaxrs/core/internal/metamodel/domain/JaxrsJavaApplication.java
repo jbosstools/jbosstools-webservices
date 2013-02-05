@@ -13,6 +13,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.*;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IType;
@@ -40,16 +42,20 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	
 	/**
 	 * Full constructor.
-	 * 
-	 * @param javaType
-	 * @param applicationPathAnnocation
-	 * @param metamodel
 	 */
-	public JaxrsJavaApplication(final IType javaType, final Annotation applicationPathAnnocation, final boolean isApplicationSubclass, final JaxrsMetamodel metamodel) {
-		super(javaType, applicationPathAnnocation, metamodel);
+	public JaxrsJavaApplication(final IType javaType, final Map<String, Annotation> annotations, final boolean isApplicationSubclass, final JaxrsMetamodel metamodel) {
+		super(javaType, annotations, metamodel);
 		this.isApplicationSubclass = isApplicationSubclass;
 	}
 
+	/**
+	 * Full constructor.
+	 */
+	public JaxrsJavaApplication(final IType javaType, Annotation applicationPathAnnotation, final boolean isApplicationSubclass, final JaxrsMetamodel metamodel) {
+		super(javaType, singleToMap(applicationPathAnnotation), metamodel);
+		this.isApplicationSubclass = isApplicationSubclass;
+	}
+	
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.APPLICATION;

@@ -10,9 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import java.util.Arrays;
-
 import org.eclipse.core.resources.IResource;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 /**
@@ -33,7 +32,7 @@ public class JaxrsBuiltinHttpMethod extends JaxrsHttpMethod {
 	private final String httpVerb;
 	
 	public JaxrsBuiltinHttpMethod(String annotationName, String annotationValue) {
-		super(null, Arrays.asList(new Annotation(null, annotationName, annotationValue)), null);
+		super(null, CollectionUtils.toMap(annotationName, new Annotation(null, annotationName, annotationValue)), null);
 		this.annotationName = annotationName;
 		this.httpVerb = annotationValue;
 	} 

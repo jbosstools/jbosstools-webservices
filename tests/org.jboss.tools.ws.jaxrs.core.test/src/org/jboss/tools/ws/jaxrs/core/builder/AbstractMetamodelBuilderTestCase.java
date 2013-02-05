@@ -32,8 +32,6 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractMetamodelBuilderTestCase.class);
 
-	protected JaxrsMetamodel metamodel;
-
 	@Before
 	public void buildMetamodel() throws CoreException, OperationCanceledException, InterruptedException {
 		// WARNING : Avoid project with "Dynamic Web project" facet version

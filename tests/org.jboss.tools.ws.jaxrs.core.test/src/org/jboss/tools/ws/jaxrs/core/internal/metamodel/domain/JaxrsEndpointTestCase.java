@@ -12,11 +12,11 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +25,6 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -54,21 +53,16 @@ public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 
 	private JaxrsResourceMethod createResourceMethod() throws CoreException {
 		final IType resourceType = getType(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource",
-				javaProject);
-		final JaxrsResource resource = new JaxrsResource.Builder(resourceType,
-				metamodel).pathTemplate(
-				resolveAnnotation(resourceType, PATH.qualifiedName)).build();
-		final IMethod method = WorkbenchUtils.getMethod(resourceType,
-				"getCustomer");
-		final JavaMethodParameter queryParam1 = createMethodParameter("queryParam1", EnumJaxrsClassname.QUERY_PARAM);
-		final JavaMethodParameter queryParam2 = createMethodParameter("queryParam2", EnumJaxrsClassname.QUERY_PARAM);
-		final JavaMethodParameter matrixParam1 = createMethodParameter("matrixParam1", EnumJaxrsClassname.MATRIX_PARAM);
-		final JavaMethodParameter matrixParam2 = createMethodParameter("matrixParam2", EnumJaxrsClassname.MATRIX_PARAM);
-		return new JaxrsResourceMethod.Builder(
-				method, resource, metamodel).methodParameter(queryParam1)
-				.methodParameter(queryParam2).methodParameter(matrixParam1)
-				.methodParameter(matrixParam2).build();
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final Map<String, Annotation> annotations = resolveAnnotations(resourceType, PATH.qualifiedName);
+		final JaxrsResource resource = new JaxrsResource(resourceType, annotations, metamodel);
+		final IMethod method = getMethod(resourceType, "getCustomer");
+		final List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
+		methodParameters.add(createMethodParameter("queryParam1", EnumJaxrsClassname.QUERY_PARAM));
+		methodParameters.add(createMethodParameter("queryParam2", EnumJaxrsClassname.QUERY_PARAM));
+		methodParameters.add(createMethodParameter("matrixParam1", EnumJaxrsClassname.MATRIX_PARAM));
+		methodParameters.add(createMethodParameter("matrixParam2", EnumJaxrsClassname.MATRIX_PARAM));
+		return new JaxrsResourceMethod(method, resource, methodParameters, null, null, metamodel);
 	}
 	
 	private JavaMethodSignature modifyJavaMethodSignature(JaxrsResourceMethod resourceMethod) {

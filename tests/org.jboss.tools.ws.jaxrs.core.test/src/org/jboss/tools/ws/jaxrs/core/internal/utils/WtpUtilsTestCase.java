@@ -37,7 +37,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveApplicationPathFromInWeb23xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_3-with-default-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_3-with-default-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -47,7 +47,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathInWeb23xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_3-without-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_3-without-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -57,7 +57,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveApplicationPathInWeb24xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-with-default-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-with-default-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -67,7 +67,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveApplicationPathLocationInWeb24xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-with-default-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-with-default-servlet-mapping.xml");
 		// operation
 		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -78,7 +78,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathInWeb24xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-without-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-without-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -88,7 +88,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathLocationInWeb24xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-without-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_4-without-servlet-mapping.xml");
 		// operation
 		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -98,7 +98,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveApplicationPathInWeb25xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-with-default-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-with-default-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -108,7 +108,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveApplicationPathLocationInWeb25xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-with-default-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-with-default-servlet-mapping.xml");
 		// operation
 		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -119,7 +119,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathInWeb25xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-without-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-without-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -129,7 +129,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathLocationInWeb25xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-without-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-2_5-without-servlet-mapping.xml");
 		// operation
 		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -139,7 +139,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveApplicationPathInWeb30xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-with-default-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-with-default-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -150,7 +150,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveApplicationPathLocationInWeb30xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-with-default-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-with-default-servlet-mapping.xml");
 		// operation
 		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -161,7 +161,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathInWeb30xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml");
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -171,7 +171,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathLocationInWeb30xml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml", bundle);
+		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml");
 		// operation
 		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -181,7 +181,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathWhenWebXmlMissing() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, null, bundle);
+		final IResource webxmlResource = WorkbenchUtils.deleteDeploymentDescriptor(javaProject);
 		// operation
 		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
 		// verifications
@@ -191,7 +191,7 @@ public class WtpUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationPathLocationWhenWebxmlMissing() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, null, bundle);
+		final IResource webxmlResource = WorkbenchUtils.deleteDeploymentDescriptor(javaProject);
 		// operation
 		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
 		// verifications

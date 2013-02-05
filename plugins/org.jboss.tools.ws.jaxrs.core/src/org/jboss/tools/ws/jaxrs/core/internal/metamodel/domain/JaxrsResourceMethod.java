@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -54,99 +53,19 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	/** List of method parameters bound to the underlying java method of this resource method. */
 	private final List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
 
-
-	public static class Builder {
-
-		private final IMethod javaMethod;
-		private final JaxrsMetamodel metamodel;
-		private final JaxrsResource parentResource;
-		private Annotation httpMethod = null;
-		private Annotation consumesAnnotation = null;
-		private Annotation producesAnnotation = null;
-		private Annotation pathAnnotation = null;
-		private final List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
-		private IType returnedJavaType;
-
-		public Builder(IMethod method, JaxrsResource parentResource,
-				JaxrsMetamodel metamodel) {
-			assert method != null;
-			assert parentResource != null;
-			assert metamodel != null;
-			this.javaMethod = method;
-			this.parentResource = parentResource;
-			this.metamodel = metamodel;
-		}
-
-		public Builder pathTemplate(Annotation pathTemplateAnnotation) {
-			this.pathAnnotation = pathTemplateAnnotation;
-			return this;
-		}
-
-		public Builder consumes(Annotation consumedMediaTypes) {
-			this.consumesAnnotation = consumedMediaTypes;
-			return this;
-		}
-
-		public Builder produces(Annotation producedMediaTypes) {
-			this.producesAnnotation = producedMediaTypes;
-			return this;
-		}
-
-		public Builder httpMethod(Annotation httpAnnotation) {
-			this.httpMethod = httpAnnotation;
-			return this;
-		}
-
-		public Builder methodParameter(JavaMethodParameter methodParameter) {
-			this.javaMethodParameters.add(methodParameter);
-			return this;
-		}
-
-		public Builder returnType(IType returnedJavaType) {
-			this.returnedJavaType = returnedJavaType;
-			return this;
-		}
-
-		public JaxrsResourceMethod build() throws JavaModelException {
-			// needs at least one of {@Path, @HttpMethod} annotations to be a
-			// valid resource method
-			List<Annotation> annotations = new ArrayList<Annotation>();
-			if (httpMethod != null) {
-				annotations.add(httpMethod);
-			}
-			if (pathAnnotation != null) {
-				annotations.add(pathAnnotation);
-			}
-			if (consumesAnnotation != null) {
-				annotations.add(consumesAnnotation);
-			}
-			if (producesAnnotation != null) {
-				annotations.add(producesAnnotation);
-			}
-			JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(
-					javaMethod, parentResource, javaMethodParameters,
-					returnedJavaType, annotations, metamodel);
-
-			return resourceMethod;
-		}
-
-	}
-
 	/**
 	 * Full constructor.
-	 * 
-	 * @param annotations
-	 * @param returnedJavaType
+	 * @param javaMethod
+	 * @param parentResource
 	 * @param javaMethodParameters
-	 * 
-	 * @param javaMethodSignature
-	 * 
-	 * @throws CoreException
+	 * @param returnedJavaType
+	 * @param annotations
+	 * @param metamodel
 	 */
-	private JaxrsResourceMethod(final IMethod javaMethod,
+	public JaxrsResourceMethod(final IMethod javaMethod,
 			final JaxrsResource parentResource,
 			List<JavaMethodParameter> javaMethodParameters,
-			IType returnedJavaType, List<Annotation> annotations,
+			IType returnedJavaType, Map<String, Annotation> annotations,
 			final JaxrsMetamodel metamodel) {
 		super(javaMethod, annotations, parentResource, metamodel);
 		this.parentResource = parentResource;

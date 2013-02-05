@@ -23,7 +23,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsParamBeanProperty;
 public class JaxrsParamBeanProperty extends JaxrsJavaElement<IMethod> implements IJaxrsParamBeanProperty {
 
 	public JaxrsParamBeanProperty(IMethod element, Annotation annotation, JaxrsMetamodel metamodel) {
-		super(element, annotation, metamodel);
+		super(element, singleToMap(annotation), metamodel);
 	}
 
 	@Override

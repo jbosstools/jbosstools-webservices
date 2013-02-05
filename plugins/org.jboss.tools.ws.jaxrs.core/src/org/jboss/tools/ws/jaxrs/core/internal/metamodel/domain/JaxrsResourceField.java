@@ -15,7 +15,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 
-import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.IField;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -23,15 +23,20 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceField;
 
-/** @author xcoulon */
+/**
+ * JAX-RS Resource Field.
+ * @author xcoulon 
+ */
 public class JaxrsResourceField extends JaxrsResourceElement<IField> implements IJaxrsResourceField {
 
-	public JaxrsResourceField(IField javaField, Annotation annotation, JaxrsResource parentResource,
-			JaxrsMetamodel metamodel) {
-		super(javaField, annotation, parentResource, metamodel);
-	}
-
-	public JaxrsResourceField(IField javaField, List<Annotation> annotations, JaxrsResource parentResource,
+	/**
+	 * Full constructor.
+	 * @param javaField
+	 * @param annotations
+	 * @param parentResource
+	 * @param metamodel
+	 */
+	public JaxrsResourceField(final IField javaField, final Map<String, Annotation> annotations, final JaxrsResource parentResource,
 			JaxrsMetamodel metamodel) {
 		super(javaField, annotations, parentResource, metamodel);
 	}

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +74,7 @@ public class Annotation {
 	 * @throws JavaModelException 
 	 */
 	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue)  {
-		this(annotation, annotationName, CollectionUtils.toMap("value", annotationValue));
+		this(annotation, annotationName, CollectionUtils.toMap("value", Arrays.asList(annotationValue)));
 	}
 
 	/**

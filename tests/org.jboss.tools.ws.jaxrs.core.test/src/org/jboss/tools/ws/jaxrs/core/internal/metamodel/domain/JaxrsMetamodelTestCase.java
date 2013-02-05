@@ -16,8 +16,6 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.junit.Assert.assertThat;
@@ -34,10 +32,8 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
@@ -51,39 +47,36 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldGetHttpMethodByType() throws CoreException {
-		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
-				progressMonitor);
+		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		assertThat(metamodel.getElement(javaType, JaxrsHttpMethod.class), notNullValue());
 	}
 
 	@Test
 	public void shouldNotGetHttpMethodByType() throws CoreException {
-		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
+		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		assertThat(metamodel.getElement(javaType, JaxrsHttpMethod.class), nullValue());
 	}
 
 	@Test
 	public void shouldGetHttpMethodByAnnotation() throws CoreException {
-		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
-				progressMonitor);
+		// pre-condition
+		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		// operation
 		final Annotation annotation = resolveAnnotation(javaType, HTTP_METHOD.qualifiedName);
+		// verification
 		assertThat((JaxrsHttpMethod) metamodel.getElement(annotation), notNullValue());
 	}
 
 	@Test
 	public void shouldNotGetHttpMethodByAnnotation() throws CoreException {
-		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
-				progressMonitor);
-		final Annotation annotation = JdtUtils.resolveAnnotation(javaType, JdtUtils.parse(javaType, progressMonitor),
-				SuppressWarnings.class.getName());
+		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final Annotation annotation = resolveAnnotation(javaType, SuppressWarnings.class.getName());
 		assertThat(metamodel.getElement(annotation), nullValue());
 	}
 
 	@Test
 	public void shouldGetHttpMethodByCompilationUnit() throws CoreException {
-		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject,
-				progressMonitor);
+		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final List<JaxrsHttpMethod> httpMethods = metamodel.getElements(javaType.getCompilationUnit(),
 				JaxrsHttpMethod.class);
 		assertThat(httpMethods.size(), equalTo(1));
@@ -91,8 +84,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldNotGetHttpMethodByCompilationUnit() throws CoreException {
-		IType javaType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
-				progressMonitor);
+		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final List<JaxrsHttpMethod> httpMethods = metamodel.getElements(javaType.getCompilationUnit(),
 				JaxrsHttpMethod.class);
 		assertThat(httpMethods.size(), equalTo(0));
@@ -100,23 +92,22 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldGetHttpMethodByPackageFragmentRoot() throws CoreException {
-		IPackageFragmentRoot src = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/main/java",
-				new NullProgressMonitor());
+		IPackageFragmentRoot src = getPackageFragmentRoot("src/main/java");
 		final List<JaxrsHttpMethod> httpMethods = metamodel.getElements(src, JaxrsHttpMethod.class);
 		assertThat(httpMethods.size(), equalTo(1));
 	}
 
 	@Test
 	public void shouldNotGetHttpMethodByPackageFragmentRoot() throws CoreException {
-		IPackageFragmentRoot src = WorkbenchUtils.getPackageFragmentRoot(javaProject, "src/test/java",
-				new NullProgressMonitor());
+		IPackageFragmentRoot src = getPackageFragmentRoot("src/test/java");
 		final List<JaxrsHttpMethod> httpMethods = metamodel.getElements(src, JaxrsHttpMethod.class);
 		assertThat(httpMethods.size(), equalTo(0));
 	}
-	
+
 	@Test
 	public void shouldAssertHTTPMethods() throws CoreException {
-		// 6 fixed HttpMethods as part of the jax-rs API (@GET, etc.) + 1 in the project
+		// 6 fixed HttpMethods as part of the jax-rs API (@GET, etc.) + 1 in the
+		// project
 		// (@FOO)
 		Assert.assertEquals(1 * 7, metamodel.getAllHttpMethods().size());
 		Set<IJaxrsHttpMethod> jaxrsHttpMethods = new HashSet<IJaxrsHttpMethod>();
@@ -155,6 +146,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 			Assert.assertFalse("No produced media types", endpoint.getProducedMediaTypes().isEmpty());
 		}
 	}
+
 	@Test
 	public void shouldRetrieveAllApplicationPathes() throws CoreException {
 		assertThat(metamodel.getAllApplications().size(), equalTo(2));
@@ -162,10 +154,10 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		assertThat(metamodel.getJavaApplications().size(), equalTo(1));
 		assertThat(metamodel.getApplication().getApplicationPath(), equalTo("/hello"));
 	}
-	
+
 	@Test
 	public void shouldRetrieveCustomerResource() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IJaxrsResource customerResource = (IJaxrsResource) metamodel.getElement(customerType);
 		Assert.assertNotNull("CustomerResource not found", customerType);
 		Assert.assertEquals("Wrong number of resource resourceMethods", 6, customerResource.getAllMethods().size());
@@ -173,7 +165,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveCustomerResourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IMethod customerMethod = getMethod(customerType, "getCustomers");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
@@ -182,7 +174,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveCustomerSubresourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IMethod customerMethod = getMethod(customerType, "getCustomer");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
@@ -191,7 +183,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveBookResourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		IMethod customerMethod = getMethod(customerType, "getAllProducts");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
@@ -200,16 +192,16 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveBookSubresourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		IMethod customerMethod = getMethod(customerType, "getProduct");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
 		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().keySet(), containsInAnyOrder("id"));
 	}
-	
+
 	@Test
 	public void shouldRetrieveBarResourceMethodProposals() throws CoreException {
-		IType bazType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource", javaProject);
+		IType bazType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
 		IMethod bazMethod = getMethod(bazType, "getContent2");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.getElement(bazMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
@@ -217,7 +209,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertThat(pathParamValueProposals, hasSize(3));
 		Assert.assertThat(pathParamValueProposals, containsInAnyOrder("id", "format", "encoding"));
 	}
-	
+
 	@Test
 	public void shouldSortHttpMethods() {
 		final List<IJaxrsHttpMethod> httpMethods = new ArrayList<IJaxrsHttpMethod>(metamodel.getAllHttpMethods());
@@ -225,8 +217,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		assertThat(httpMethods.get(0).getHttpVerb(), equalTo("GET"));
 		assertThat(httpMethods.get(5).getHttpVerb(), equalTo("OPTIONS"));
 		assertThat(httpMethods.get(6).getHttpVerb(), equalTo("FOO"));
-		
+
 	}
-	
 
 }

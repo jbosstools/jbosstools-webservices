@@ -11,8 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IType;
@@ -22,8 +21,24 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
 
 /**
- * JAX-RS Provider class Providers <strong>must</strong> implement MessageBodyReader, MessageBodyWriter or
- * ExceptionMapper Providers *may* be annotated with <code>javax.ws.rs.ext.Provider</code> annotation.
+ * <p>
+ * JAX-RS Provider class <strong>Providers</strong> fall into 3 categories:
+ * <ul>
+ * <li>Entity Providers: the class MUST implement
+ * <code>javax.ws.rs.ext.MessageBodyReader</code> and/or
+ * <code>javax.ws.rs.ext.MessageBodyWriter</code>. It MAY also declare media
+ * type capabilities with <code>javax.ws.rs.Consume</code> and
+ * <code>java.ws.rs.Produces</code> annotations.</li>
+ * <li>Context Providers: the class must implement
+ * <code>javax.ws.rs.ext.ContextResolver</code></li>
+ * <li>Exception Providers: the class must be annotated with
+ * <code>javax.ws.rs.ext.ExceptionMapper</code></li>
+ * </ul>
+ * </p>
+ * <p>
+ * In all cases, the class is annotated with
+ * <code>javax.ws.rs.ext.Provider</code> annotation.
+ * </p>
  * 
  * @author xcoulon
  */
@@ -37,60 +52,42 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	public static class Builder {
 		final IType javaType;
 		final JaxrsMetamodel metamodel;
-		private Annotation consumesAnnotation;
-		private Annotation producesAnnotation;
-		private Annotation providerAnnotation;
-		private Map<EnumElementKind, IType> providedKinds;
+		private final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
+		private final Map<EnumElementKind, IType> providedTypes = new HashMap<EnumElementKind, IType>();
 
 		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
 			this.javaType = javaType;
 			this.metamodel = metamodel;
 		}
 
-		public Builder withProviderAnnotation(final Annotation providerAnnotation) {
-			this.providerAnnotation = providerAnnotation;
+		public Builder providedTypes(final Map<EnumElementKind, IType> providedTypes) {
+			this.providedTypes.putAll(providedTypes);
 			return this;
 		}
 
-		public Builder consumes(final Annotation consumesAnnotation) {
-			this.consumesAnnotation = consumesAnnotation;
-			return this;
-		}
-
-		public Builder produces(final Annotation producesAnnotation) {
-			this.producesAnnotation = producesAnnotation;
+		public Builder annotations(final Map<String, Annotation> annotations) {
+			this.annotations.putAll(annotations);
 			return this;
 		}
 
 		public JaxrsProvider build() {
-			List<Annotation> annotations = new ArrayList<Annotation>();
-			if (providerAnnotation != null) {
-				annotations.add(providerAnnotation);
-			}
-			if (consumesAnnotation != null) {
-				annotations.add(consumesAnnotation);
-			}
-			if (producesAnnotation != null) {
-				annotations.add(producesAnnotation);
-			}
-			return new JaxrsProvider(javaType, annotations, providedKinds, metamodel);
+			return new JaxrsProvider(javaType, annotations, providedTypes, metamodel);
 		}
 
-		public Builder providing(final Annotation providerAnnotation, final Map<EnumElementKind, IType> providedKinds) {
-			this.providerAnnotation = providerAnnotation;
-			this.providedKinds = providedKinds;
-			return this;
-		}
 	}
 
 	private final Map<EnumElementKind, IType> providedKinds;
+
 	/**
-	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static class.
-	 * @param providedKinds 
+	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
+	 * class.
+	 * 
+	 * @param providedKinds
 	 * 
 	 * @param builder
 	 */
-	private JaxrsProvider(final IType javaType, final List<Annotation> annotations, final Map<EnumElementKind, IType> providedKinds, final JaxrsMetamodel metamodel) {
+	private JaxrsProvider(final IType javaType, final Map<String, Annotation> annotations,
+			final Map<EnumElementKind, IType> providedKinds, final JaxrsMetamodel metamodel) {
 		super(javaType, annotations, metamodel);
 		this.providedKinds = providedKinds;
 	}
@@ -105,14 +102,17 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		final boolean isMessageBodyReader = providedKinds.get(EnumElementKind.MESSAGE_BODY_READER) != null;
 		final boolean isMessageBodyWriter = providedKinds.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
 		final boolean isExceptionMapper = providedKinds.get(EnumElementKind.EXCEPTION_MAPPER) != null;
-		if(isMessageBodyReader && isMessageBodyWriter) {
+		final boolean isContextProvider = providedKinds.get(EnumElementKind.CONTEXT_PROVIDER) != null;
+		if (isMessageBodyReader && isMessageBodyWriter) {
 			return EnumElementKind.ENTITY_MAPPER;
-		} else if(isMessageBodyReader) {
+		} else if (isMessageBodyReader) {
 			return EnumElementKind.MESSAGE_BODY_READER;
-		} else if(isMessageBodyWriter) {
+		} else if (isMessageBodyWriter) {
 			return EnumElementKind.MESSAGE_BODY_WRITER;
-		} else if(isExceptionMapper) {
+		} else if (isExceptionMapper) {
 			return EnumElementKind.EXCEPTION_MAPPER;
+		} else if (isContextProvider) {
+			return EnumElementKind.CONTEXT_PROVIDER;
 		}
 		return null;
 	}

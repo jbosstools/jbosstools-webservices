@@ -24,11 +24,9 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -40,11 +38,8 @@ import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.junit.Test;
@@ -60,19 +55,6 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
 	private final IProjectValidationContext context = new ProjectValidationContext();
 	private final ValidatorManager validatorManager = new ValidatorManager();
-
-	/**
-	 * Creates a web.xml based JAX-RS Application element
-	 * 
-	 * @param applicationPath
-	 * @return
-	 * @throws JavaModelException
-	 */
-	private JaxrsWebxmlApplication createWebxmlApplication(final String applicationClassName,
-			final String applicationPath) throws JavaModelException {
-		final IResource webDeploymentDescriptor = WtpUtils.getWebDeploymentDescriptor(project);
-		return new JaxrsWebxmlApplication(applicationClassName, applicationPath, webDeploymentDescriptor, metamodel);
-	}
 
 	@Test
 	public void shouldNotReportProblemIfOneJavaApplicationExists() throws CoreException, ValidationException {
@@ -176,8 +158,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 	@Test
 	public void shouldReportProblemOnJavaApplicationIfInvalidTypeHierarchy() throws CoreException, ValidationException {
 		// preconditions
-		final IType type = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
-				javaProject, new NullProgressMonitor());
+		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Application", "", false);
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		deleteJaxrsMarkers(project);
@@ -195,11 +176,8 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final Annotation appPathAnnotation = javaApplication
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		javaApplication.removeAnnotation(appPathAnnotation);
-		final JaxrsWebxmlApplication webxmlDefaultApplication = (JaxrsWebxmlApplication) metamodel.getApplication();
-		metamodel.remove(webxmlDefaultApplication);
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(javaApplication.getJavaClassName(),
-				"/foo");
-		metamodel.add(webxmlApplication);
+		metamodel.remove(metamodel.getWebxmlApplication());
+		createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
 		deleteJaxrsMarkers(project);
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
@@ -213,8 +191,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			ValidationException {
 		// preconditions
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final JaxrsWebxmlApplication webxmlDefaultApplication = (JaxrsWebxmlApplication) metamodel.getApplication();
-		metamodel.remove(webxmlDefaultApplication);
+		metamodel.remove(metamodel.getWebxmlApplication());
 		deleteJaxrsMarkers(project);
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
@@ -228,8 +205,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			throws CoreException, ValidationException {
 		// preconditions operation #1
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final JaxrsWebxmlApplication webxmlDefaultApplication = (JaxrsWebxmlApplication) metamodel.getApplication();
-		metamodel.remove(webxmlDefaultApplication);
+		metamodel.remove(metamodel.getWebxmlApplication());
 		deleteJaxrsMarkers(project);
 		// operation #1: remove annotation and validate
 		LOGGER.warn("*** Operation #1 ***");

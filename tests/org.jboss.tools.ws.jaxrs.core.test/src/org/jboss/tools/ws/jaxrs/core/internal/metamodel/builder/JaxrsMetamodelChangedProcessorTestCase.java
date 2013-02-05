@@ -16,10 +16,9 @@ import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotation;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotationValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
@@ -30,17 +29,14 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.POST;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.spy;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
@@ -52,36 +48,23 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplicat
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod.Builder;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsEndpointDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCase {
 
-	private JaxrsMetamodel metamodel;
-
 	private final JaxrsMetamodelChangedProcessor delegate = new JaxrsMetamodelChangedProcessor();
 
-	private static final IProgressMonitor progressMonitor = new NullProgressMonitor();
-
-	@Before
-	public void setup() throws CoreException {
-		metamodel = spy(JaxrsMetamodel.create(javaProject));
-	}
-
+	/*
 	private JaxrsJavaApplication createJavaApplication(String typeName) throws CoreException, JavaModelException {
 		final IType applicationType = getType(typeName, javaProject);
 		final Annotation appPathAnnotation = resolveAnnotation(applicationType, APPLICATION_PATH.qualifiedName);
@@ -97,45 +80,9 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		metamodel.add(application);
 		return application;
 	}
+	*/
 	
-	private JaxrsResource createResource(String typeName) throws CoreException, JavaModelException {
-		final IType resourceType = getType(typeName, javaProject);
-		final JaxrsResource resource = new JaxrsResource.Builder(resourceType, metamodel).pathTemplate(
-				resolveAnnotation(resourceType, PATH.qualifiedName)).build();
-		metamodel.add(resource);
-		return resource;
-	}
 
-	private JaxrsResourceMethod createResourceMethod(String methodName, JaxrsResource parentResource,
-			EnumJaxrsClassname httpMethodElement) throws CoreException, JavaModelException {
-		final IType javaType = parentResource.getJavaElement();
-		final ICompilationUnit compilationUnit = javaType.getCompilationUnit();
-		final IMethod javaMethod = getMethod(javaType, methodName);
-		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod,
-				JdtUtils.parse(compilationUnit, progressMonitor));
-
-		final Builder builder = new JaxrsResourceMethod.Builder(javaMethod, (JaxrsResource) parentResource, metamodel)
-				.pathTemplate(resolveAnnotation(javaMethod, PATH.qualifiedName)).returnType(methodSignature.getReturnedType());
-		if (httpMethodElement != null) {
-			builder.httpMethod(resolveAnnotation(javaMethod, httpMethodElement.qualifiedName));
-		}
-		
-		for (JavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
-			builder.methodParameter(methodParameter);
-		}
-		final JaxrsResourceMethod resourceMethod = builder.build();
-		metamodel.add(resourceMethod);
-		return resourceMethod;
-	}
-
-	private JaxrsHttpMethod createHttpMethod(String qualifiedName) throws JavaModelException, CoreException {
-		final IType type = getType(qualifiedName, javaProject);
-		final Annotation httpAnnotation = resolveAnnotation(type, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(type, metamodel).httpMethod(httpAnnotation).build();
-		metamodel.add(httpMethod);
-		return httpMethod;
-	}
-	
 	private JaxrsEndpoint createEndpoint(JaxrsMetamodel metamodel, JaxrsHttpMethod httpMethod, JaxrsResourceMethod... resourceMethods) {
 		JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, new LinkedList<JaxrsResourceMethod>(
 				Arrays.asList(resourceMethods)));
@@ -150,11 +97,10 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		return endpoint;
 	}
 
-	private List<JaxrsEndpointDelta> processEvent(JaxrsElementDelta affectedElement,
-			IProgressMonitor progressMonitor) throws CoreException {
+	private List<JaxrsEndpointDelta> processEvent(JaxrsElementDelta affectedElement) throws CoreException {
 		JaxrsMetamodelDelta affectedMetamodel = new JaxrsMetamodelDelta(metamodel, CHANGED);
 		affectedMetamodel.add(affectedElement);
-		delegate.processAffectedMetamodel(affectedMetamodel, progressMonitor);
+		delegate.processAffectedMetamodel(affectedMetamodel, new NullProgressMonitor());
 		return affectedMetamodel.getAffectedEndpoints();
 	}
 
@@ -162,11 +108,9 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shouldConstructSimpleEndpoint() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		customerResource.addOrUpdateAnnotation(resolveAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName));
-		customerResource.addOrUpdateAnnotation(resolveAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName));
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
-				GET);
+				PATH.qualifiedName, GET.qualifiedName);
 		customerResourceMethod.addOrUpdateAnnotation(resolveAnnotation(customerResourceMethod.getJavaElement(),
 				PRODUCES.qualifiedName));
 		// operation
@@ -183,29 +127,27 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shouldConstructEndpointFromSubresource() throws CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource producLocatorResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource producLocatorResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productLocatorMethod = createResourceMethod("getProductResourceLocator",
-				producLocatorResource, GET);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod subresourceMethod = createResourceMethod("getProduct", bookResource, GET);
+				producLocatorResource, PATH.qualifiedName,GET.qualifiedName);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod subresourceMethod = createResourceMethod("getProduct", bookResource, PATH.qualifiedName,GET.qualifiedName);
 		// operation
 		JaxrsEndpoint endpoint = createEndpoint(httpMethod, productLocatorMethod, subresourceMethod);
 		// verifications
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/products/{productType}/{id}"));
-		// @produces and @consumes annotations were not declared in the setup(),
-		// default values should be set
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
-		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("*/*")));
+		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 	}
 
 	@Test
 	public void shouldConstructEndpointWithQueryParams() throws CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
-				GET);
+				GET.qualifiedName);
 		// operation
 		JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// verifications
@@ -216,12 +158,12 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingResourceMethodInRootResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsBaseElement customerResourceMethod = createResourceMethod("getCustomers", customerResource,
-				GET);
+				GET.qualifiedName);
 		// operation
 		JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, ADDED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -230,12 +172,12 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingSubresourceMethodInRootResource() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsBaseElement customerSubresourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				GET.qualifiedName);
 		// operation
 		JaxrsElementDelta event = new JaxrsElementDelta(customerSubresourceMethod, ADDED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -245,19 +187,19 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudCreateEndpointWhenAddingSubresourceLocatorMethodInRootResource() throws JavaModelException,
 			CoreException {
 		// pre-conditions
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		createResourceMethod("getProduct", bookResource, GET);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		// createEndpoint(httpMethod, bookResourceMethod);
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		// createEndpoint(httpMethod, gameResourceMethod);
 
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsBaseElement productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
-				productResourceLocator, null);
+				productResourceLocator);
 		// operation
 		JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, ADDED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -267,13 +209,13 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingResourceMethodInSubresource() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		createResourceMethod("getProductResourceLocator", productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsBaseElement bookResourceMethod = createResourceMethod("getAllProducts", bookResource, GET);
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		createResourceMethod("getProductResourceLocator", productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsBaseElement bookResourceMethod = createResourceMethod("getAllProducts", bookResource, GET.qualifiedName);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, ADDED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -283,15 +225,14 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudCreateEndpointWhenChangingSubresourceLocatorMethodIntoSubresourceMethod()
 			throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final JaxrsResourceMethod customerSubresourceMethod = createResourceMethod("getCustomer", customerResource,
-				null);
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerSubresourceMethod = createResourceMethod("getCustomer", customerResource);
 		assertThat(customerSubresourceMethod.getElementKind(), equalTo(EnumElementKind.SUBRESOURCE_LOCATOR));
 		// operation
 		Annotation httpAnnotation = resolveAnnotation(customerSubresourceMethod.getJavaElement(), GET.qualifiedName);
 		final int flags = customerSubresourceMethod.addOrUpdateAnnotation(httpAnnotation);
 		JaxrsElementDelta event = new JaxrsElementDelta(customerSubresourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -300,13 +241,13 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	@Test
 	public void shoudCreateEndpointWhenAddingSubresourceMethodInSubresource() throws JavaModelException, CoreException {
 		// pre-conditions
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		createResourceMethod("getProductResourceLocator", productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsBaseElement bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		createResourceMethod("getProductResourceLocator", productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsBaseElement bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, ADDED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -321,15 +262,15 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenAddingApplication() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
 		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsElementDelta event = new JaxrsElementDelta(application, ADDED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -342,15 +283,15 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation
 		metamodel.remove(application);
 		final JaxrsElementDelta event = new JaxrsElementDelta(application, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -363,16 +304,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation
 		final Annotation appPathAnnotation = application.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		application.removeAnnotation(appPathAnnotation);
 		final JaxrsElementDelta event = new JaxrsElementDelta(application, CHANGED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -384,14 +325,14 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenAddingResourcePathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
-				GET);
+				GET.qualifiedName);
 		final JaxrsEndpoint fakeEndpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, F_ELEMENT_KIND
 				+ F_PATH_VALUE);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -403,9 +344,9 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenAddingMethodPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				GET.qualifiedName);
 		final Annotation annotation = resolveAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
 		customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
@@ -414,7 +355,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		customerResourceMethod.addOrUpdateAnnotation(annotation);
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED,
 				F_PATH_VALUE);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -429,16 +370,15 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource, PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation
-		final Annotation annotation = changeAnnotation(application.getJavaElement(), APPLICATION_PATH.qualifiedName, "/foo");
-		int flags = application.addOrUpdateAnnotation(annotation);
+		final Map<String, Annotation> annotations = resolveAnnotations(application.getJavaElement(), APPLICATION_PATH.qualifiedName);
+		int flags = application.addOrUpdateAnnotation(changeAnnotationValue(annotations.get(APPLICATION_PATH.qualifiedName), "/foo"));
 		final JaxrsElementDelta event = new JaxrsElementDelta(application, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -453,15 +393,15 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation
 		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("javax.ws.rs.core.Application", "/foo");
 		final JaxrsElementDelta event = new JaxrsElementDelta(webxmlApplication, ADDED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -476,16 +416,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("javax.ws.rs.core.Application", "/foo");
 		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
 		// operation
 		metamodel.remove(webxmlApplication);
 		final JaxrsElementDelta event = new JaxrsElementDelta(webxmlApplication, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -500,18 +440,18 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation
 		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
-		List<JaxrsEndpointDelta> changes = processEvent(new JaxrsElementDelta(webxmlApplication, ADDED), progressMonitor);
+		List<JaxrsEndpointDelta> changes = processEvent(new JaxrsElementDelta(webxmlApplication, ADDED));
 		assertThat(changes.size(), equalTo(0));
 		// (at the same time, the JavaApplication is changed since this is an override)
 		javaApplication.setApplicationPathOverride("/foo");
-		changes = processEvent(new JaxrsElementDelta(javaApplication, CHANGED), progressMonitor);
+		changes = processEvent(new JaxrsElementDelta(javaApplication, CHANGED));
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -526,19 +466,19 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
 		javaApplication.setApplicationPathOverride("/foo");
 		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
 		// operation
-		List<JaxrsEndpointDelta> changes = processEvent(new JaxrsElementDelta(webxmlApplication, REMOVED), progressMonitor);
+		List<JaxrsEndpointDelta> changes = processEvent(new JaxrsElementDelta(webxmlApplication, REMOVED));
 		assertThat(changes.size(), equalTo(1)); // FAKE change...
 		// (at the same time, the JavaApplication is changed since this is an override)
 		javaApplication.unsetApplicationPathOverride();
-		changes = processEvent(new JaxrsElementDelta(javaApplication, CHANGED), progressMonitor);
+		changes = processEvent(new JaxrsElementDelta(javaApplication, CHANGED));
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -552,16 +492,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenChangingResourcePathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
-		final Annotation annotation = changeAnnotation(customerResource.getJavaElement(), PATH.qualifiedName, "/foo");
-		customerResource.addOrUpdateAnnotation(annotation);
+		final Annotation pathAnnotation = resolveAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);	
+		customerResource.addOrUpdateAnnotation(changeAnnotationValue(pathAnnotation, "/foo"));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, F_PATH_VALUE);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -575,16 +515,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenChangingMethodPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
-		final Annotation annotation = changeAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName, "{foo}");
-		final int flags = customerResourceMethod.addOrUpdateAnnotation(annotation);
+		final Annotation pathAnnotation = resolveAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);	
+		final int flags = customerResourceMethod.addOrUpdateAnnotation(changeAnnotationValue(pathAnnotation, "{foo}"));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -601,19 +541,19 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
 		// the subresource locator that will match the resourcemethod when the
 		// rootresource becomes a subresource
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		createResourceMethod("getProductResourceLocator", productResourceLocator, null);
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		createResourceMethod("getProductResourceLocator", productResourceLocator);
 		// the root resource that will become a subresource
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
 		final Annotation annotation = resolveAnnotation(customerResource.getJavaElement(), PATH.qualifiedName);
 		final int flags = customerResource.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		final JaxrsEndpointDelta change1 = changes.get(0);
@@ -628,16 +568,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeHttpVerbWhenChangingHttpMethodAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
-		int flags = httpMethod
-				.addOrUpdateAnnotation(changeAnnotation(httpMethod.getJavaElement(), HTTP_METHOD.qualifiedName, "BAR"));
+		final Annotation httpMethodAnnotation = resolveAnnotation(httpMethod.getJavaElement(), HTTP_METHOD.qualifiedName);	
+		int flags = httpMethod.addOrUpdateAnnotation(changeAnnotationValue(httpMethodAnnotation, "BAR"));
 		final JaxrsElementDelta event = new JaxrsElementDelta(httpMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -650,15 +590,15 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// pre-conditions
 		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(metamodel, httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		// operation : no 'application' left in the metamodel
 		metamodel.remove(application);
 		final JaxrsElementDelta event = new JaxrsElementDelta(application, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(CHANGED));
@@ -672,16 +612,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeUriPathTemplateWhenRemovingMethodPathAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
 		final Annotation annotation = resolveAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
 		final int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -695,16 +635,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeConsumedMediatypesWhenAddingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
-				POST);
+				POST.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		// operation
 		final int flags = customerResource.addOrUpdateAnnotation(resolveAnnotation(customerResource.getJavaElement(),
 				CONSUMES.qualifiedName));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -718,16 +658,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
-				POST);
+				POST.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		// operation
 		final int flags = customerResourceMethod.addOrUpdateAnnotation(resolveAnnotation(
 				customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -741,19 +681,17 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
-				POST);
-		final Annotation annotation = changeAnnotation(customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName,
-				"application/foo");
-		customerResourceMethod.addOrUpdateAnnotation(annotation);
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod customerResourceMethod = resourceMethodBuilder(customerResource, "createCustomer")
+				.annotation(POST.qualifiedName).annotation(CONSUMES.qualifiedName, "application/foo")
+				.build();
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
 		int flags = customerResourceMethod.addOrUpdateAnnotation(resolveAnnotation(customerResourceMethod.getJavaElement(),
 				CONSUMES.qualifiedName));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -766,19 +704,18 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeConsumedMediatypesWhenChangingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation annotation = changeAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName,
-				"application/foo");
-		customerResource.addOrUpdateAnnotation(annotation);
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final Annotation consumesAnnotation = resolveAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName);	
+		customerResource.addOrUpdateAnnotation(changeAnnotationValue(consumesAnnotation, "application/foo"));
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
-				POST);
+				POST.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
 		int flags = customerResource.addOrUpdateAnnotation(resolveAnnotation(customerResource.getJavaElement(),
 				CONSUMES.qualifiedName));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -792,20 +729,19 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		customerResource.addOrUpdateAnnotation(changeAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName,
-				"application/xml"));
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final Annotation consumesTypeAnnotation = resolveAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName);	
+		customerResource.addOrUpdateAnnotation(changeAnnotationValue(consumesTypeAnnotation, "application/xml"));
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
-				POST);
-		final Annotation annotation = changeAnnotation(customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName,
-				"application/foo");
-		customerResourceMethod.addOrUpdateAnnotation(annotation);
+				POST.qualifiedName);
+		final Annotation consumesMethodAnnotation = resolveAnnotation(customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName);	
+		customerResourceMethod.addOrUpdateAnnotation(changeAnnotationValue(consumesMethodAnnotation, "application/foo"));
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
-		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
+		int flags = customerResourceMethod.removeAnnotation(consumesMethodAnnotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -819,18 +755,17 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
-				POST);
-		final Annotation annotation = changeAnnotation(customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName,
-				"application/foo");
-		customerResourceMethod.addOrUpdateAnnotation(annotation);
+				POST.qualifiedName);
+		final Annotation consumesAnnotation = changeAnnotationValue(resolveAnnotation(customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName), "application/foo");
+		customerResourceMethod.addOrUpdateAnnotation(consumesAnnotation);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
-		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
+		int flags = customerResourceMethod.removeAnnotation(consumesAnnotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -843,16 +778,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeProducedMediatypesWhenAddingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
-				GET);
+				GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		// operation
-		final int flags = customerResource.addOrUpdateAnnotation(changeAnnotation(customerResource.getJavaElement(),
-				PRODUCES.qualifiedName, "application/xml"));
+		final Annotation producesAnnotation = resolveAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName);
+		final int flags = customerResource.addOrUpdateAnnotation(changeAnnotationValue(producesAnnotation, "application/xml"));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -866,16 +801,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
-				GET);
+				GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		// operation
 		final int flags = customerResourceMethod.addOrUpdateAnnotation(resolveAnnotation(
 				customerResourceMethod.getJavaElement(), PRODUCES.qualifiedName));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -888,19 +823,17 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudChangeProducedMediatypesWhenChangingResourceAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation annotation = changeAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName,
-				"application/foo");
-		customerResource.addOrUpdateAnnotation(annotation);
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
+		final Annotation producesResourceAnnotation = resolveAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName);
+		customerResource.addOrUpdateAnnotation(changeAnnotationValue(producesResourceAnnotation, "application/foo"));
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
-		int flags = customerResource.addOrUpdateAnnotation(changeAnnotation(customerResource.getJavaElement(),
-				PRODUCES.qualifiedName, "application/xml"));
+		int flags = customerResource.addOrUpdateAnnotation(changeAnnotationValue(producesResourceAnnotation, "application/xml"));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -914,19 +847,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
-				POST);
-		final Annotation annotation = changeAnnotation(customerResourceMethod.getJavaElement(), PRODUCES.qualifiedName,
-				"application/foo");
-		customerResourceMethod.addOrUpdateAnnotation(annotation);
+				POST.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
-		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/foo")));
+		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 		// operation
-		int flags = customerResourceMethod.addOrUpdateAnnotation(resolveAnnotation(customerResourceMethod.getJavaElement(),
-				PRODUCES.qualifiedName));
+		final Annotation producesMethodAnnotation = resolveAnnotation(customerResourceMethod.getJavaElement(), PRODUCES.qualifiedName);
+		int flags = customerResourceMethod.addOrUpdateAnnotation(changeAnnotationValue(producesMethodAnnotation, "text/x-vcard"));
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -940,26 +870,24 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		customerResource.addOrUpdateAnnotation(changeAnnotation(customerResource.getJavaElement(), PRODUCES.qualifiedName,
-				"application/xml"));
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
-				POST);
-		final Annotation annotation = changeAnnotation(customerResourceMethod.getJavaElement(), PRODUCES.qualifiedName,
-				"application/foo");
-		customerResourceMethod.addOrUpdateAnnotation(annotation);
+				PATH.qualifiedName,POST.qualifiedName, PRODUCES.qualifiedName);
+		final Annotation producesAnnotation = changeAnnotationValue(customerResourceMethod.getAnnotation(PRODUCES.qualifiedName), "application/foo");
+		customerResourceMethod.addOrUpdateAnnotation(producesAnnotation);
+		//customerResourceMethod.addOrUpdateAnnotation(producesAnnotation);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
-		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
+		int flags = customerResourceMethod.removeAnnotation(producesAnnotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
-		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml")));
+		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 	}
 
 	@Test
@@ -967,38 +895,37 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("createCustomer", customerResource,
-				POST);
-		final Annotation annotation = changeAnnotation(customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName,
-				"application/foo");
-		customerResourceMethod.addOrUpdateAnnotation(annotation);
+				PATH.qualifiedName,POST.qualifiedName);
+		final Annotation consumesAnnotation = customerResource.getAnnotation(CONSUMES.qualifiedName);
+		customerResourceMethod.addOrUpdateAnnotation(changeAnnotationValue(consumesAnnotation, "application/foo"));
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		// operation
-		int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
+		int flags = customerResourceMethod.removeAnnotation(consumesAnnotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
 		assertThat(change.getDeltaKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
-		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("*/*")));
+		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 	}
 
 	@Test
 	public void shoudRemoveEndpointWhenRemovingHttpMethodAnnotation() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(httpMethod, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -1011,9 +938,9 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				PATH.qualifiedName,GET.qualifiedName);
 
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
@@ -1021,7 +948,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final Annotation annotation = resolveAnnotation(customerResource.getJavaElement(), PATH.qualifiedName);
 		final int flags = customerResource.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -1033,16 +960,16 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointsWhenRemovingRootResource() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod1 = createResourceMethod("getCustomer", customerResource,
-				GET);
+				GET.qualifiedName);
 		final JaxrsEndpoint endpoint1 = createEndpoint(httpMethod, customerResourceMethod1);
 		final JaxrsResourceMethod customerResourceMethod2 = createResourceMethod("getCustomers", customerResource,
-				GET);
+				GET.qualifiedName);
 		final JaxrsEndpoint endpoint2 = createEndpoint(httpMethod, customerResourceMethod2);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		for (JaxrsEndpointDelta change : changes) {
@@ -1055,19 +982,19 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointsWhenRemovingSubresource() throws JavaModelException, CoreException {
 		// pre-conditions
 		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
-				productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+				productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		final JaxrsEndpoint bookEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, bookResourceMethod);
 		// adding an extra endpoint that shouldn't be affected
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		createEndpoint(httpMethod, gameResourceMethod);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(bookResource, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1078,20 +1005,20 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointsWhenRemovingHttpMethod() throws JavaModelException, CoreException {
 		// pre-conditions
 		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		createResourceMethod("getProductResourceLocator", productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		createResourceMethod("getProductResourceLocator", productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		final JaxrsEndpoint bookEndpoint = createEndpoint(httpMethod, bookResourceMethod);
 		// adding an extra endpoint that shouldn't be affected
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		createEndpoint(httpMethod, gameResourceMethod);
 		final Annotation httpAnnotation = bookResourceMethod.getHttpMethodAnnotation();
 		final int flags = bookResourceMethod.removeAnnotation(httpAnnotation.getJavaAnnotation().getHandleIdentifier());
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1102,25 +1029,25 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudAddEndpointsWhenChangingSubresourceLocatorReturnType() throws JavaModelException, CoreException {
 		// pre-conditions
 		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
-				productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+				productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		productResourceLocatorMethod.update(new JavaMethodSignature(productResourceLocatorMethod.getJavaElement(),
 				bookResource.getJavaElement(), productResourceLocatorMethod.getJavaMethodParameters()));
 		createEndpoint(httpMethod, productResourceLocatorMethod, bookResourceMethod);
 		// adding an extra subresource that should be affected later
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final JaxrsBaseElement gameResourceMethod = createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		final JaxrsBaseElement gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		assertThat(metamodel.getAllEndpoints().size(), equalTo(1));
 		// operation
-		final IType objectType = JdtUtils.resolveType(Object.class.getName(), javaProject, progressMonitor);
+		final IType objectType = resolveType(Object.class.getName());
 		int flags = productResourceLocatorMethod.update(new JavaMethodSignature(productResourceLocatorMethod
 				.getJavaElement(), objectType, productResourceLocatorMethod.getJavaMethodParameters()));
 		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, CHANGED,
 				flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(ADDED));
@@ -1132,15 +1059,15 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointsWhenChangingSubresourceLocatorReturnType() throws JavaModelException, CoreException {
 		// pre-conditions
 		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
-				productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+				productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		createEndpoint(httpMethod, productResourceLocatorMethod, bookResourceMethod);
 		// adding an extra subresource that should be affected later
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		createEndpoint(httpMethod, productResourceLocatorMethod, gameResourceMethod);
 		assertThat(metamodel.getAllEndpoints().size(), equalTo(2));
 		// operation
@@ -1149,7 +1076,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 				.getJavaElement(), bookResourceType, productResourceLocatorMethod.getJavaMethodParameters()));
 		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, CHANGED,
 				flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		assertThat(changes.get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1162,18 +1089,18 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointsWhenRemovingSubresourceLocatorResource() throws JavaModelException, CoreException {
 		// pre-conditions
 		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
-				productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+				productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		final JaxrsEndpoint bookEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, bookResourceMethod);
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		final JaxrsEndpoint gameEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, gameResourceMethod);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocator, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		for (JaxrsEndpointDelta change : changes) {
@@ -1186,13 +1113,13 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointWhenRemovingResourceMethodInRootResource() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomers", customerResource,
-				GET);
+				GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -1205,15 +1132,15 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			CoreException {
 		// pre-conditions
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomer", customerResource,
-				GET);
+				GET.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// operation
 		final Annotation annotation = resolveAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
 		final int flags = customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, REMOVED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
 		final JaxrsEndpointDelta change = changes.get(0);
@@ -1225,18 +1152,18 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 	public void shoudRemoveEndpointWhenRemovingSubresourceLocatorMethod() throws JavaModelException, CoreException {
 		// pre-conditions
 		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
-				productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+				productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		final JaxrsEndpoint bookEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, bookResourceMethod);
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		final JaxrsEndpoint gameEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, gameResourceMethod);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocatorMethod, REMOVED);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		for (JaxrsEndpointDelta change : changes) {
@@ -1250,14 +1177,14 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			CoreException {
 		// pre-conditions
 		JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResourceMethod productResourceLocatorMethod = createResourceMethod("getProductResourceLocator",
-				productResourceLocator, null);
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET);
+				productResourceLocator);
+		final JaxrsResource bookResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResourceMethod bookResourceMethod = createResourceMethod("getProduct", bookResource, GET.qualifiedName);
 		final JaxrsEndpoint bookEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, bookResourceMethod);
-		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET);
+		final JaxrsResource gameResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		final JaxrsResourceMethod gameResourceMethod = createResourceMethod("getProduct", gameResource, GET.qualifiedName);
 		final JaxrsEndpoint gameEndpoint = createEndpoint(httpMethod, productResourceLocatorMethod, gameResourceMethod);
 		final Annotation productResourceLocatorPathAnnotation = resolveAnnotation(productResourceLocator.getJavaElement(),
 				PATH.qualifiedName);
@@ -1265,7 +1192,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 				.getJavaAnnotation().getHandleIdentifier());
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(productResourceLocator, CHANGED, flags);
-		final List<JaxrsEndpointDelta> changes = processEvent(event, progressMonitor);
+		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
 		for (JaxrsEndpointDelta change : changes) {

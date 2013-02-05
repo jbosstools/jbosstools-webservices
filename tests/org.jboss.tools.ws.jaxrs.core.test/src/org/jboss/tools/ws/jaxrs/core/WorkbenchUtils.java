@@ -25,8 +25,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +69,7 @@ import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -84,6 +83,8 @@ import org.slf4j.LoggerFactory;
 public class WorkbenchUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WorkbenchUtils.class);
+
+	protected static Bundle bundle = JBossJaxrsCoreTestsPlugin.getDefault().getBundle();
 
 	@BeforeClass
 	public static void setupWorkspace() throws Exception {
@@ -148,7 +149,7 @@ public class WorkbenchUtils {
 		return path;
 	}
 
-	public static String getResourceContent(String name, Bundle bundle) {
+	public static String getResourceContent(String name) {
 		InputStream is = null;
 		BufferedReader reader = null;
 		try {
@@ -201,10 +202,10 @@ public class WorkbenchUtils {
 	 * @throws JavaModelException
 	 */
 	public static ICompilationUnit createCompilationUnit(IJavaProject javaProject, String fileName, String pkg,
-			String unitName, Bundle bundle) throws JavaModelException {
+			String unitName) throws JavaModelException {
 		String contents = "";
 		if (fileName != null) {
-			contents = getResourceContent(fileName, bundle);
+			contents = getResourceContent(fileName);
 		}
 		IPackageFragmentRoot sourceFolder = javaProject.findPackageFragmentRoot(javaProject.getProject().getFullPath()
 				.append("src/main/java"));
@@ -215,9 +216,9 @@ public class WorkbenchUtils {
 		return foocompilationUnit;
 	}
 
-	public static IType appendCompilationUnitType(ICompilationUnit compilationUnit, String resourceName, Bundle bundle,
+	public static IType appendCompilationUnitType(ICompilationUnit compilationUnit, String resourceName,
 			boolean useWorkingCopy) throws CoreException {
-		String content = getResourceContent(resourceName, bundle);
+		String content = getResourceContent(resourceName);
 		int offset = 0;
 		IType lastType = getLastTypeInSource(compilationUnit);
 		if (lastType != null) {
@@ -291,6 +292,28 @@ public class WorkbenchUtils {
 	}
 
 	/**
+	 * Replace the first occurrence of the given old content with the new content. Fails if the old content is not found
+	 * (avoids weird side effects in the rest of the test).
+	 * 
+	 * @param compilationUnit
+	 * @param oldContent
+	 * @param newContent
+	 * @param useWorkingCopy
+	 * @throws CoreException 
+	 */
+	public static IType replaceFirstOccurrenceOfCode(final String typeName, final IJavaProject javaProject, final String oldContent,
+			String newContent, final boolean useWorkingCopy) throws CoreException {
+		final IType type = JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor());
+		ICompilationUnit unit = getCompilationUnit(type.getCompilationUnit(), useWorkingCopy);
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		int offset = buffer.getContents().indexOf(oldContent);
+		Assert.assertTrue("Old content '" + oldContent + "' not found", offset != -1);
+		buffer.replace(offset, oldContent.length(), newContent);
+		saveAndClose(unit);
+		return type;
+	}
+	
+	/**
 	 * @param compilationUnit
 	 * @param useWorkingCopy
 	 * @return
@@ -332,40 +355,6 @@ public class WorkbenchUtils {
 		saveAndClose(unit);
 	}
 
-	public static void createImport(IType type, String name) throws JavaModelException {
-		LOGGER.debug("Adding import " + name);
-		ICompilationUnit compilationUnit = type.getCompilationUnit();
-		createImport(compilationUnit, name);
-	}
-
-	public static void createImport(ICompilationUnit compilationUnit, String name) throws JavaModelException {
-		LOGGER.debug("Adding import " + name);
-		NullProgressMonitor monitor = new NullProgressMonitor();
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		workingCopy.createImport(name, null, monitor);
-		saveAndClose(workingCopy);
-	}
-
-	public static void removeImport(ICompilationUnit compilationUnit, String name) throws JavaModelException {
-		LOGGER.debug("Removing import " + name);
-		IProgressMonitor monitor = new NullProgressMonitor();
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		workingCopy.getImport(name).delete(true, monitor);
-		saveAndClose(workingCopy);
-	}
-
-	public static void modifyImport(ICompilationUnit compilationUnit, String oldImport, String newImport)
-			throws JavaModelException {
-		LOGGER.debug("Modifying import " + oldImport + " -> " + newImport);
-		String oldImportStmt = "import " + oldImport;
-		String newImportStmt = "import " + newImport;
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
-		int offset = buffer.getContents().indexOf(oldImportStmt);
-		buffer.replace(offset, oldImportStmt.length(), newImportStmt);
-		saveAndClose(workingCopy);
-	}
-
 	public static IMethod removeMethod(ICompilationUnit compilationUnit, String methodName, boolean useWorkingCopy)
 			throws JavaModelException {
 		LOGGER.debug("Removing method " + methodName);
@@ -381,12 +370,6 @@ public class WorkbenchUtils {
 		}
 		Assert.fail("Method not found.");
 		return null;
-	}
-
-	public static void removeMethod(IType javaType, String methodName, boolean useWorkingCopy)
-			throws JavaModelException {
-		LOGGER.info("Removing method " + javaType.getElementName() + "." + methodName + "(...)");
-		removeMethod(javaType.getCompilationUnit(), methodName, useWorkingCopy);
 	}
 
 	public static void removeType(IType type, boolean useWorkingCopy) throws JavaModelException {
@@ -440,21 +423,6 @@ public class WorkbenchUtils {
 		// in parameter
 		return field;
 
-	}
-
-	/**
-	 * @param type
-	 * @return
-	 * @throws JavaModelException
-	 */
-	public static IMethod getMethod(IType type, String name) throws JavaModelException {
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals(name)) {
-				return method;
-			}
-		}
-		Assert.fail("Failed to locate method named '" + name + "'");
-		return null;
 	}
 
 	public static ILocalVariable getLocalVariable(IMethod method, String variableName) throws JavaModelException {
@@ -511,39 +479,6 @@ public class WorkbenchUtils {
 			}
 		}
 		return null;
-	}
-
-	public static void removeMethodAnnotation(IType javaType, String methodName, String annotationStmt)
-			throws JavaModelException {
-		LOGGER.info("Removing annotation " + annotationStmt + " on " + javaType.getElementName() + "." + methodName
-				+ "(...)");
-		ICompilationUnit compilationUnit = javaType.getCompilationUnit();
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		for (IMethod method : compilationUnit.findPrimaryType().getMethods()) {
-			if (method.getElementName().equals(methodName)) {
-				ISourceRange sourceRange = method.getSourceRange();
-				IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
-				int index = buffer.getContents().indexOf(annotationStmt, sourceRange.getOffset());
-				Assert.assertTrue("SimpleAnnotation not found", (index >= sourceRange.getOffset())
-						&& (index <= sourceRange.getOffset() + sourceRange.getLength()));
-				buffer.replace(index, annotationStmt.length(), "");
-				saveAndClose(workingCopy);
-				return;
-			}
-		}
-		Assert.fail("Method not found.");
-	}
-
-	public static void removeMethodAnnotation(IMethod method, String annotationStmt) throws JavaModelException {
-		ICompilationUnit compilationUnit = method.getCompilationUnit();
-		ICompilationUnit workingCopy = createWorkingCopy(compilationUnit);
-		ISourceRange sourceRange = method.getSourceRange();
-		IBuffer buffer = ((IOpenable) workingCopy).getBuffer();
-		int index = buffer.getContents().indexOf(annotationStmt, sourceRange.getOffset());
-		Assert.assertTrue("SimpleAnnotation not found: '" + annotationStmt + "'", (index >= sourceRange.getOffset())
-				&& (index <= sourceRange.getOffset() + sourceRange.getLength()));
-		buffer.replace(index, annotationStmt.length(), "");
-		saveAndClose(workingCopy);
 	}
 
 	public static IAnnotation removeMethodAnnotation(IMethod method, IAnnotation annotation, boolean useWorkingCopy)
@@ -682,25 +617,8 @@ public class WorkbenchUtils {
 		}
 	}
 
-	public static void move(ICompilationUnit compilationUnit, String targetPackageName, Bundle bundle)
-			throws CoreException {
-		/*
-		 * ICompilationUnit destContainer = createCompilationUnit(compilationUnit.getJavaProject(), null,
-		 * targetPackageName, compilationUnit.getElementName(), bundle); MoveElementsOperation operation = new
-		 * MoveElementsOperation( new IJavaElement[] { compilationUnit }, new IJavaElement[] { destContainer }, true);
-		 * operation.run(new NullProgressMonitor());
-		 */
-		IPackageFragment packageFragment = WorkbenchUtils.createPackage(compilationUnit.getJavaProject(),
-				"org.jboss.tools.ws.jaxrs.sample");
-		compilationUnit.move(packageFragment, null, compilationUnit.getElementName(), false, new NullProgressMonitor());
-
-		saveAndClose(compilationUnit);
-	}
-
 	public static void delete(ICompilationUnit compilationUnit) throws CoreException {
 		compilationUnit.delete(true, new NullProgressMonitor());
-
-		// saveAndClose(compilationUnit);
 	}
 
 	public static void delete(IAnnotation annotation, boolean useWorkingCopy) throws CoreException {
@@ -725,11 +643,6 @@ public class WorkbenchUtils {
 		saveAndClose(compilationUnit);
 	}
 
-	public static void rename(ICompilationUnit compilationUnit, String name) throws JavaModelException {
-		compilationUnit.rename(name, true, new NullProgressMonitor());
-		saveAndClose(compilationUnit);
-	}
-
 	public static IMethod renameMethod(ICompilationUnit compilationUnit, String oldName, String newName,
 			boolean useWorkingCopy) throws JavaModelException {
 		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
@@ -742,20 +655,6 @@ public class WorkbenchUtils {
 		}
 		Assert.fail("Method not found");
 		return null;
-	}
-
-	public static void removeSourceFolder(IProject project, IProgressMonitor progressMonitor) throws JavaModelException {
-		IFolder srcFolder = project.getFolder(new Path("src"));
-		IJavaProject javaProject = JavaCore.create(project);
-		List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>(Arrays.asList(javaProject.getRawClasspath()));
-		IClasspathEntry srcEntry = JavaCore.newSourceEntry(srcFolder.getFullPath());
-		for (Iterator<IClasspathEntry> entryIterator = entries.iterator(); entryIterator.hasNext();) {
-			IClasspathEntry entry = entryIterator.next();
-			if (entry.equals(srcEntry)) {
-				entries.remove(entry);
-			}
-		}
-		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), progressMonitor);
 	}
 
 	/**
@@ -881,18 +780,18 @@ public class WorkbenchUtils {
 		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
 	}
 
-	public static Annotation changeAnnotation(final IMember member, final String annotationName, String... values)
+	public static Map<String, Annotation> resolveAnnotations(final IMember member, final String... annotationNames)
 			throws JavaModelException {
-		Annotation annotation = JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
-
-		Map<String, List<String>> elements = new HashMap<String, List<String>>();
-		elements.put("value", Arrays.asList(values));
-		annotation.update(new Annotation(annotation.getJavaAnnotation(), annotation.getFullyQualifiedName(), elements));
-		return annotation;
+		if (annotationNames == null) {
+			return null;
+		}
+		return JdtUtils.resolveAnnotations(member, JdtUtils.parse(member, null), annotationNames);
 	}
-
-	public static IType getType(String typeName, IJavaProject javaProject) throws CoreException {
-		return JdtUtils.resolveType(typeName, javaProject, null);
+	
+	public static Annotation changeAnnotationValue(final Annotation annotation, final String... values)
+			throws JavaModelException {
+		Map<String, List<String>> elements = CollectionUtils.toMap("value", Arrays.asList(values));
+		return new Annotation(annotation.getJavaAnnotation(), annotation.getFullyQualifiedName(), elements);
 	}
 
 	/**
@@ -982,8 +881,7 @@ public class WorkbenchUtils {
 	 * @throws OperationCanceledException
 	 * @throws InvocationTargetException
 	 */
-	public static IResource replaceDeploymentDescriptorWith(IJavaProject javaProject, String webxmlReplacementName,
-			Bundle bundle) throws Exception {
+	public static IResource replaceDeploymentDescriptorWith(final IJavaProject javaProject, final String webxmlReplacementName) throws Exception {
 		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
 		IResource webxmlResource = webInfFolder.findMember("web.xml");
 		if (webxmlResource != null && webxmlReplacementName == null) {
@@ -1003,6 +901,17 @@ public class WorkbenchUtils {
 		} else {
 			return createFileFromStream(webInfFolder, "web.xml", stream);
 		}
+	}
+	/**
+	 * @return
+	 * @throws CoreException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws OperationCanceledException
+	 * @throws InvocationTargetException
+	 */
+	public static IResource deleteDeploymentDescriptor(IJavaProject javaProject) throws Exception {
+		return replaceDeploymentDescriptorWith(javaProject, null);
 	}
 
 

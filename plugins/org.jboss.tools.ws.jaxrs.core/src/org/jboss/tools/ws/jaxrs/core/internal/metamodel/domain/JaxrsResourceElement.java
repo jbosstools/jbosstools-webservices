@@ -10,33 +10,38 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.IMember;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 /**
+ * Abstract class holding the parent JAX-RS Resource. 
  * @author Xavier Coulon
  * 
  */
 public abstract class JaxrsResourceElement<T extends IMember> extends JaxrsJavaElement<T> {
 
+	/** The parent JAX-RS Resource for this element. */
 	private final JaxrsResource parentResource;
 
-	public JaxrsResourceElement(T javaElement, List<Annotation> annotations, JaxrsResource parentResource,
+	/**
+	 * Full constructor for elements having multiple annotations.
+	 * @param javaElement
+	 * @param annotations
+	 * @param parentResource
+	 * @param metamodel
+	 */
+	public JaxrsResourceElement(final T javaElement, final Map<String, Annotation> annotations, final JaxrsResource parentResource,
 			JaxrsMetamodel metamodel) {
 		super(javaElement, annotations, metamodel);
 		this.parentResource = parentResource;
 		this.parentResource.addElement(this);
 	}
 
-	public JaxrsResourceElement(T javaElement, Annotation annotation, JaxrsResource parentResource,
-			JaxrsMetamodel metamodel) {
-		super(javaElement, annotation, metamodel);
-		this.parentResource = parentResource;
-		this.parentResource.addElement(this);
-	}
-
+	/**
+	 * @return the parent JAX-RS Resource
+	 */
 	public JaxrsResource getParentResource() {
 		return parentResource;
 	}

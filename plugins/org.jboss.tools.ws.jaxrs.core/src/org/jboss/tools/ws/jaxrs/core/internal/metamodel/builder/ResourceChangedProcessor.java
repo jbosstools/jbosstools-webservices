@@ -59,8 +59,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 
 public class ResourceChangedProcessor {
 
-	private final JaxrsElementFactory factory = new JaxrsElementFactory();
-
 	/**
 	 * Process the given project's resources changes.
 	 * 
@@ -238,7 +236,7 @@ public class ResourceChangedProcessor {
 			final String applicationPath = WtpUtils.getApplicationPath(resource,
 					applicationClassName);
 			if (applicationPath != null) {
-				declaredApplications.add(factory.createApplication(applicationClassName, applicationPath, resource, metamodel));
+				declaredApplications.add(JaxrsElementFactory.createApplication(applicationClassName, applicationPath, resource, metamodel));
 			}
 		}
 		// now compare the 'existing' vs 'declared' lists to update the metamodel (adding/updating/removing items) 
@@ -372,7 +370,7 @@ public class ResourceChangedProcessor {
 				progressMonitor);
 		for (IType matchingApplicationType : matchingApplicationTypes) {
 			final CompilationUnit ast = JdtUtils.parse(matchingApplicationType, progressMonitor);
-			final JaxrsJavaApplication matchingApplication = factory.createApplication(matchingApplicationType, ast,
+			final JaxrsJavaApplication matchingApplication = JaxrsElementFactory.createApplication(matchingApplicationType, ast,
 					metamodel);
 			if (matchingApplication != null) {
 				matchingApplications.add(matchingApplication);
@@ -503,7 +501,7 @@ public class ResourceChangedProcessor {
 		final List<IType> matchingHttpMethodTypes = JaxrsAnnotationsScanner.findHttpMethodTypes(scope, progressMonitor);
 		for (IType matchingHttpMethodType : matchingHttpMethodTypes) {
 			final CompilationUnit ast = JdtUtils.parse(matchingHttpMethodType, progressMonitor);
-			final JaxrsHttpMethod matchingHttpMethod = factory.createHttpMethod(matchingHttpMethodType, ast, metamodel);
+			final JaxrsHttpMethod matchingHttpMethod = JaxrsElementFactory.createHttpMethod(matchingHttpMethodType, ast, metamodel);
 			if (matchingHttpMethod != null) {
 				matchingHttpMethods.add(matchingHttpMethod);
 			}
@@ -621,7 +619,7 @@ public class ResourceChangedProcessor {
 		final List<IType> matchingResourceTypes = JaxrsAnnotationsScanner.findResourceTypes(scope, progressMonitor);
 		for (IType matchingResourceType : matchingResourceTypes) {
 			final CompilationUnit ast = JdtUtils.parse(matchingResourceType, progressMonitor);
-			final JaxrsResource matchingResource = factory.createResource(matchingResourceType, ast, metamodel);
+			final JaxrsResource matchingResource = JaxrsElementFactory.createResource(matchingResourceType, ast, metamodel);
 			if (matchingResource != null) {
 				matchingResources.add(matchingResource);
 			}

@@ -68,8 +68,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldValidateCustomerResourceMethod() throws CoreException, ValidationException {
 		// preconditions
-		final IType customerJavaType = WorkbenchUtils.getType(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		final IType customerJavaType = getType(
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsBaseElement customerResource = (JaxrsBaseElement) metamodel.getElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		// operation
@@ -83,8 +83,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportProblemsOnBarResourceMethods() throws CoreException, ValidationException {
 		// preconditions
-		final IType barJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.BarResource",
-				javaProject);
+		final IType barJavaType = getType("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
 		final JaxrsResource barResource = metamodel.getElement(barJavaType, JaxrsResource.class);
 		deleteJaxrsMarkers(barResource);
 		// operation
@@ -103,8 +102,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportProblemsOnBazResourceMethods() throws CoreException, ValidationException {
 		// preconditions
-		final IType barJavaType = WorkbenchUtils.getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource",
-				javaProject);
+		final IType barJavaType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
 		final JaxrsResource barResource = metamodel.getElement(barJavaType, JaxrsResource.class);
 		deleteJaxrsMarkers(barResource);
 		// operation
@@ -142,8 +140,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldNotReportProblemOnValidResource() throws CoreException, ValidationException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
-		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
+		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
 		metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation
@@ -159,9 +157,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportProblemOnNonPublicJavaMethod() throws CoreException, ValidationException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "public Response", "private Response", false);
-		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
 		metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation
@@ -178,9 +176,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportProblemOnUnboundTypePathArgument() throws ValidationException, CoreException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"type\") String type,", false);
-		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
 		metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
@@ -200,9 +198,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportProblemOnUnboundMethodPathArgument() throws ValidationException, CoreException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
-		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
 		metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
@@ -222,10 +220,10 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportProblemOnUnboundMethodPathArgumentWithWhitespaces() throws ValidationException, CoreException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "{format", "{  format", false);
-		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
 		metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
@@ -245,9 +243,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportProblemOnUnboundPathParamArgument() throws CoreException, ValidationException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
-				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java", bundle);
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "@Path(\"/{id}", "@Path(\"", false);
-		JaxrsResource resource = new JaxrsElementFactory().createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
+		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
 		metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart

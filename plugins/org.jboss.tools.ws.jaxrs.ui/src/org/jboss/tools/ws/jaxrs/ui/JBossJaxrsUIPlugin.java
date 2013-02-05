@@ -42,6 +42,7 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 	private ImageRegistry imageRegistry = null;
 
 	private ImageRegistry imageDescriptorRegistry = null;
+	
 	/**
 	 * The constructor
 	 */

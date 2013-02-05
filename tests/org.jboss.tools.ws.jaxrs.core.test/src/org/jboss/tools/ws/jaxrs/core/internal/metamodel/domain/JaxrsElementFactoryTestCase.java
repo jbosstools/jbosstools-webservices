@@ -13,9 +13,9 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getMethod;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getType;
+import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
@@ -26,6 +26,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
+
+import java.util.Map;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -50,8 +52,6 @@ import org.junit.Test;
 
 public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 
-	private final JaxrsElementFactory factory = new JaxrsElementFactory();
-
 	private static final IProgressMonitor progressMonitor = new NullProgressMonitor();
 
 	private JaxrsMetamodel metamodel;
@@ -64,10 +64,10 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateRootResourceFromPathAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = resolveAnnotation(type, PATH.qualifiedName);
 		// operation
-		final JaxrsJavaElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
+		final JaxrsJavaElement<?> element = JaxrsElementFactory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);
@@ -79,9 +79,9 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateRootResourceFromType() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		final JaxrsResource element = factory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
+		final JaxrsResource element = JaxrsElementFactory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAllMethods().size(), greaterThan(0));
 	}
@@ -89,9 +89,9 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateSubresourceFromType() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		// operation
-		final JaxrsResource element = factory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
+		final JaxrsResource element = JaxrsElementFactory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAllMethods().size(), greaterThan(0));
 	}
@@ -99,10 +99,10 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateHttpMethodFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = resolveAnnotation(type, HTTP_METHOD.qualifiedName);
 		// operation
-		final JaxrsJavaElement<?> element = factory.createElement(annotation.getJavaAnnotation(),
+		final JaxrsJavaElement<?> element = JaxrsElementFactory.createElement(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);
@@ -113,9 +113,9 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotCreateElementFromOtherType() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.domain.Customer");
 		// operation
-		final JaxrsResource resource = factory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
+		final JaxrsResource resource = JaxrsElementFactory.createResource(type, JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertThat(resource, nullValue());
 	}
@@ -123,15 +123,15 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateMethodInRootResourceFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType httpType = getType(GET.qualifiedName, javaProject);
-		final Annotation httpAnnotation = resolveAnnotation(httpType, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpType, metamodel).httpMethod(httpAnnotation).build();
+		final IType httpType = getType(GET.qualifiedName);
+		final Map<String, Annotation> annotations = resolveAnnotations(httpType, HTTP_METHOD.qualifiedName);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, annotations, metamodel);
 		metamodel.add(httpMethod);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = getMethod(type, "getCustomerAsVCard");
 		final Annotation annotation = resolveAnnotation(method, PATH.qualifiedName);
 		// operation
-		JaxrsResourceMethod element = factory.createResourceMethod(annotation,
+		JaxrsResourceMethod element = JaxrsElementFactory.createResourceMethod(annotation,
 				JdtUtils.parse(method, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -141,15 +141,15 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateMethodInSubresourceFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType httpType = getType(GET.qualifiedName, javaProject);
-		final Annotation httpAnnotation = resolveAnnotation(httpType, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpType, metamodel).httpMethod(httpAnnotation).build();
+		final IType httpType = getType(GET.qualifiedName);
+		final Map<String, Annotation> annotations = resolveAnnotations(httpType, HTTP_METHOD.qualifiedName);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, annotations, metamodel);
 		metamodel.add(httpMethod);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final IMethod method = getMethod(type, "getProduct");
 		final Annotation annotation = resolveAnnotation(method, PATH.qualifiedName);
 		// operation
-		JaxrsResourceMethod element = factory.createResourceMethod(annotation,
+		JaxrsResourceMethod element = JaxrsElementFactory.createResourceMethod(annotation,
 				JdtUtils.parse(method, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -159,16 +159,15 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateFieldFromAnnotation() throws CoreException {
 		// pre-conditions
-		final IType httpType = getType(GET.qualifiedName, javaProject);
-		final Annotation httpAnnotation = resolveAnnotation(httpType, HTTP_METHOD.qualifiedName);
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod.Builder(httpType, metamodel).httpMethod(httpAnnotation).build();
+		final IType httpType = getType(GET.qualifiedName);
+		final Map<String, Annotation> annotations = resolveAnnotations(httpType, HTTP_METHOD.qualifiedName);
+		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(httpType, annotations, metamodel);
 		metamodel.add(httpMethod);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		IField field = type.getField("foo");
-
 		final Annotation annotation = resolveAnnotation(field, QUERY_PARAM.qualifiedName);
 		// operation
-		JaxrsResourceField element = factory.createField(annotation, JdtUtils.parse(field, progressMonitor), metamodel);
+		JaxrsResourceField element = JaxrsElementFactory.createField(annotation, JdtUtils.parse(field, progressMonitor), metamodel);
 		// verifications
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());
@@ -179,9 +178,9 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateMessageBodyWriterProviderFromType() throws CoreException {
 		// pre-conditions
-		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.services.providers.CustomerVCardMessageBodyWriter", javaProject);
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.services.providers.CustomerVCardMessageBodyWriter");
 		// operation
-		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		JaxrsProvider element = JaxrsElementFactory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
 		// verifications
 		assertNotNull(element);
 		assertThat(element.getAnnotations().size(), equalTo(2));
@@ -195,9 +194,9 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateEntityProviderFromType() throws CoreException {
 		// pre-conditions
-		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider", javaProject);
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
 		// operation
-		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		JaxrsProvider element = JaxrsElementFactory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
 		// verifications
 		assertNotNull(element);
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -210,9 +209,9 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateExceptionMapperProviderFromType() throws CoreException {
 		// pre-conditions
-		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedExceptionMapper", javaProject);
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedExceptionMapper");
 		// operation
-		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		JaxrsProvider element = JaxrsElementFactory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
 		// verifications
 		assertNotNull(element);
 		assertThat(element.getAnnotations().size(), equalTo(1));
@@ -225,9 +224,9 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotCreateProviderFromType() throws CoreException {
 		// pre-conditions
-		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", javaProject);
+		final IType providerType = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		// operation
-		JaxrsProvider element = factory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
+		JaxrsProvider element = JaxrsElementFactory.createProvider(providerType, JdtUtils.parse(providerType, progressMonitor), metamodel, progressMonitor);
 		// verifications
 		assertNull(element);
 	}
@@ -235,10 +234,10 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateApplicationFromApplicationAnnotationAndApplicationSubclass() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final Annotation annotation = resolveAnnotation(type, APPLICATION_PATH.qualifiedName);
 		// operation
-		final JaxrsJavaElement<?> element = factory.createApplication(annotation,
+		final JaxrsJavaElement<?> element = JaxrsElementFactory.createApplication(annotation,
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);
@@ -250,11 +249,11 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateApplicationFromApplicationSubclassOnly() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final Annotation annotation = resolveAnnotation(type, APPLICATION_PATH.qualifiedName);
 		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
 		// operation
-		final JaxrsJavaElement<?> element = factory.createApplication(type,
+		final JaxrsJavaElement<?> element = JaxrsElementFactory.createApplication(type,
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);
@@ -266,14 +265,13 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateApplicationFromApplicationAnnotationOnly() throws CoreException {
 		// pre-conditions
-		final IType initialType = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(initialType.getCompilationUnit(), "RestApplication extends Application", "RestApplication", false);
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
-		final IType applicationType = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName, javaProject, progressMonitor);
+		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject, "RestApplication extends Application", "RestApplication", false);
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final IType applicationType = resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName);
 		assertFalse(JdtUtils.isTypeOrSuperType(applicationType, type));
 		final Annotation annotation = resolveAnnotation(type, APPLICATION_PATH.qualifiedName);
 		// operation
-		final JaxrsJavaElement<?> element = factory.createApplication(annotation,
+		final JaxrsJavaElement<?> element = JaxrsElementFactory.createApplication(annotation,
 				JdtUtils.parse(type, progressMonitor), metamodel);
 		// verifications
 		assertNotNull(element);
@@ -285,13 +283,13 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldCreateApplicationFromApplicationSubclassInWebxml() throws CoreException {
 		// pre-conditions
-		final IType appType = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject);
+		final IType appType = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
 		IResource webxmlResource = webInfFolder.findMember("web.xml");
-		final JaxrsJavaApplication javaApplication = factory.createApplication(appType, JdtUtils.parse(appType, progressMonitor), metamodel);
+		final JaxrsJavaApplication javaApplication = JaxrsElementFactory.createApplication(appType, JdtUtils.parse(appType, progressMonitor), metamodel);
 		metamodel.add(javaApplication);
 		// operation
-		final JaxrsWebxmlApplication webxmlApplication = factory.createApplication(
+		final JaxrsWebxmlApplication webxmlApplication = JaxrsElementFactory.createApplication(
 				appType.getFullyQualifiedName(), "/foo", webxmlResource, metamodel);
 		// verifications
 		assertNotNull(webxmlApplication);
@@ -306,7 +304,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
 		IResource webxmlResource = webInfFolder.findMember("web.xml");
 		// operation
-		final JaxrsWebxmlApplication webxmlApplication = factory.createApplication(
+		final JaxrsWebxmlApplication webxmlApplication = JaxrsElementFactory.createApplication(
 				EnumJaxrsClassname.APPLICATION.qualifiedName, "/foo", webxmlResource, metamodel);
 		// verifications
 		assertNotNull(webxmlApplication);

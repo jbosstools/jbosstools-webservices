@@ -42,14 +42,6 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 
 	private CompilationUnitsRepository repository = null;
 
-	private IType getType(String typeName) throws CoreException {
-		return JdtUtils.resolveType(typeName, javaProject, progressMonitor);
-	}
-
-	private IMethod getMethod(IType parentType, String methodName) throws JavaModelException {
-		return WorkbenchUtils.getMethod(parentType, methodName);
-	}
-
 	@Before
 	public void setup() {
 		repository = CompilationUnitsRepository.getInstance();

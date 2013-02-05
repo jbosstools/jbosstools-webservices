@@ -36,11 +36,9 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -71,43 +69,34 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	private final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
 
 	/**
-	 * Full constructor.
-	 * 
-	 * @param model
-	 *            the associated metamodel
-	 * @param element
-	 *            the underlying java element
+	 * Full constructor for element with multiple annotations.
+	 * @param element the java element
+	 * @param annotations the java element annotations
+	 * @param metamodel the associated metamodel
 	 */
-	public JaxrsJavaElement(final T element, final Annotation annotation, final JaxrsMetamodel metamodel) {
-		this(element, (annotation != null ? Arrays.asList(annotation) : new ArrayList<Annotation>()), metamodel);
-	}
-
-	/**
-	 * Full constructor.
-	 * 
-	 * @param model
-	 *            the associated metamodel
-	 * @param element
-	 *            the underlying java element
-	 **/
-	public JaxrsJavaElement(final T element, final List<Annotation> annotations, final JaxrsMetamodel metamodel) {
+	public JaxrsJavaElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel) {
 		super(metamodel);
 		this.javaElement = element;
 		if (annotations != null) {
-			for (Annotation annotation : annotations) {
-				this.annotations.put(annotation.getFullyQualifiedName(), annotation);
-			}
+			this.annotations.putAll(annotations);
 		}
+	}
+
+	static Map<String, Annotation> singleToMap(final Annotation annotation) {
+		if(annotation != null) {
+			return CollectionUtils.toMap(annotation.getFullyQualifiedName(), annotation);
+		}
+		return Collections.emptyMap();
 	}
 
 	@Override
 	public boolean isBinary() {
-		if(this.javaElement == null) {
+		if (this.javaElement == null) {
 			return true;
 		}
 		return this.javaElement.isBinary();
 	}
-	
+
 	public Annotation getAnnotation(String className) {
 		return annotations.get(className);
 	}
@@ -116,7 +105,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	public final T getJavaElement() {
 		return javaElement;
 	}
-	
+
 	@Override
 	public String getName() {
 		return javaElement != null ? javaElement.getElementName() : "*unknown java element*";
@@ -148,12 +137,15 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 
 	public int updateAnnotations(Map<String, Annotation> otherAnnotations) {
 		int flags = 0;
-		// added annotations (ie: found in 'otherAnnotation' but not this.annotations)
+		// added annotations (ie: found in 'otherAnnotation' but not
+		// this.annotations)
 		final Map<String, Annotation> addedAnnotations = CollectionUtils.difference(otherAnnotations, this.annotations);
-		// removed annotations (ie: found in this.annotations but not in 'otherAnnotation')
+		// removed annotations (ie: found in this.annotations but not in
+		// 'otherAnnotation')
 		final Map<String, Annotation> removedAnnotations = CollectionUtils.difference(this.annotations,
 				otherAnnotations);
-		// may-be-changed annotations (ie: available in both collections, but not sure all values are equal)
+		// may-be-changed annotations (ie: available in both collections, but
+		// not sure all values are equal)
 		final Map<String, Annotation> changedAnnotations = CollectionUtils.intersection(otherAnnotations,
 				this.annotations);
 		for (Entry<String, Annotation> entry : addedAnnotations.entrySet()) {
@@ -255,7 +247,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		}
 		return flag;
 	}
-	
+
 	public IResource getResource() {
 		return this.javaElement.getResource();
 	}
@@ -301,28 +293,42 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	}
 
 	/**
-	 * Creates a validation message from the given parameters. The created validation messages is of the 'JAX-RS' type.
-	 * @param msg the message to display
-	 * @param severity the severity of the marker
-	 * @param region the region that the validation marker points to
+	 * Creates a validation message from the given parameters. The created
+	 * validation messages is of the 'JAX-RS' type.
+	 * 
+	 * @param msg
+	 *            the message to display
+	 * @param severity
+	 *            the severity of the marker
+	 * @param region
+	 *            the region that the validation marker points to
 	 * @return the created validation message.
-	 * @throws JavaModelException 
-	ValidatorMessage createValidatorMessage(final String id, final String msg, int severity, final ISourceRange sourceRange)
-			throws JavaModelException {
-		final ValidatorMessage validationMsg = ValidatorMessage.create(msg, this.getResource());
-		validationMsg.setType(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
-		final ICompilationUnit compilationUnit = this.getJavaElement().getCompilationUnit();
-		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
-		validationMsg.setAttribute(IMarker.LOCATION,
-				NLS.bind(ValidationMessages.LINE_NUMBER, ast.getLineNumber(sourceRange.getOffset())));
-		validationMsg.setAttribute(IMarker.MARKER, JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
-		validationMsg.setAttribute(IMarker.SEVERITY, severity);
-		validationMsg.setAttribute(IMarker.CHAR_START, sourceRange.getOffset());
-		validationMsg.setAttribute(IMarker.CHAR_END, sourceRange.getOffset() + sourceRange.getLength());
-		Logger.debug("Validation message for {}: {}", this.getJavaElement().getElementName(),
-				validationMsg.getAttribute(IMarker.MESSAGE));
-		return validationMsg;
-	}
+	 * @throws JavaModelException
+	 *             ValidatorMessage createValidatorMessage(final String id,
+	 *             final String msg, int severity, final ISourceRange
+	 *             sourceRange) throws JavaModelException { final
+	 *             ValidatorMessage validationMsg = ValidatorMessage.create(msg,
+	 *             this.getResource());
+	 *             validationMsg.setType(JaxrsMetamodelValidator
+	 *             .JAXRS_PROBLEM_TYPE); final ICompilationUnit compilationUnit
+	 *             = this.getJavaElement().getCompilationUnit(); final
+	 *             CompilationUnit ast =
+	 *             CompilationUnitsRepository.getInstance()
+	 *             .getAST(compilationUnit);
+	 *             validationMsg.setAttribute(IMarker.LOCATION,
+	 *             NLS.bind(ValidationMessages.LINE_NUMBER,
+	 *             ast.getLineNumber(sourceRange.getOffset())));
+	 *             validationMsg.setAttribute(IMarker.MARKER,
+	 *             JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+	 *             validationMsg.setAttribute(IMarker.SEVERITY, severity);
+	 *             validationMsg.setAttribute(IMarker.CHAR_START,
+	 *             sourceRange.getOffset());
+	 *             validationMsg.setAttribute(IMarker.CHAR_END,
+	 *             sourceRange.getOffset() + sourceRange.getLength());
+	 *             Logger.debug("Validation message for {}: {}",
+	 *             this.getJavaElement().getElementName(),
+	 *             validationMsg.getAttribute(IMarker.MESSAGE)); return
+	 *             validationMsg; }
 	 */
 
 }
