@@ -46,7 +46,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>remove-other-plqtforms-from-query-on-mac</id>
+			<id>remove-other-platforms-from-query-on-mac</id>
 			<activation>
 				<os>
 					<family>mac</family>
