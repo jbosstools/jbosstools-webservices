@@ -46,6 +46,8 @@ public enum EnumJaxrsClassname {
 	MESSAGE_BODY_WRITER("javax.ws.rs.ext.MessageBodyWriter"),
 	
 	EXCEPTION_MAPPER("javax.ws.rs.ext.ExceptionMapper"),
+
+	CONTEXT_RESOLVER("javax.ws.rs.ext.ContextResolver"),
 	
 	PATH("javax.ws.rs.Path", "Path"),
 	
@@ -91,6 +93,15 @@ public enum EnumJaxrsClassname {
 	private EnumJaxrsClassname(final String qualifiedName, final String simpleName) {
 		this.qualifiedName = qualifiedName;
 		this.simpleName = simpleName;
+	}
+	
+	/**
+	 * Compares the enum element's {@link qualifiedName} attribute with the given value.
+	 * @param qualifiedName
+	 * @return true or false
+	 */
+	public boolean equals(final String qualifiedName) {
+		return this.qualifiedName.equals(qualifiedName);
 	}
 
 }

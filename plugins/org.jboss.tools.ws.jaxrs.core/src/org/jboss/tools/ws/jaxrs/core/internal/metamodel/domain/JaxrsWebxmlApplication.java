@@ -1,6 +1,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaProject;
@@ -39,7 +39,16 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 			return true;
 		}
 		return false;
-		
+	}
+	
+	@Override
+	public boolean isWebXmlApplication() {
+		return true;
+	}
+	
+	@Override
+	public boolean isJavaApplication() {
+		return false;
 	}
 
 	/**
@@ -74,7 +83,7 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 			String eventApplicationPath = normalizeApplicationPath(eventApplication.getApplicationPath());
 			if (!(eventApplicationPath.equals(this.applicationPath))) {
 				this.applicationPath = eventApplicationPath;
-				return F_APPLICATION_PATH_VALUE;
+				return F_APPLICATION_PATH_ANNOTATION;
 			}
 		}
 		return 0;
@@ -93,6 +102,11 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 		return EnumElementCategory.APPLICATION;
 	}
 
+	@Override
+	public boolean isMarkedForRemoval() {
+		return false;
+	}
+	
 	@Override
 	public EnumElementKind getElementKind() {
 		return EnumElementKind.APPLICATION_WEBXML;

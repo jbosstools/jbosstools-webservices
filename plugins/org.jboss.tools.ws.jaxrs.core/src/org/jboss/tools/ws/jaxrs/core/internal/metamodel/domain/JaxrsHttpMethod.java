@@ -122,9 +122,13 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		return EnumElementCategory.HTTP_METHOD;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	@Override
+	public boolean isMarkedForRemoval() {
+		// element should be removed if HttpMethod annotation is missing
+		return (getHttpMethodAnnotation() == null);
+	}
+
+	/**
 	 * @see
 	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IHttpMethod#getHttpVerb
 	 * ()

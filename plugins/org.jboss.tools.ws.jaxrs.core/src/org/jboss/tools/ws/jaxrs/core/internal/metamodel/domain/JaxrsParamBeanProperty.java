@@ -32,6 +32,12 @@ public class JaxrsParamBeanProperty extends JaxrsJavaElement<IMethod> implements
 	}
 
 	@Override
+	public boolean isMarkedForRemoval() {
+		// TODO: implement
+		return false;
+	}
+
+	@Override
 	public EnumElementKind getElementKind() {
 		return null;
 	}

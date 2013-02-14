@@ -45,7 +45,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 
 	@BeforeClass
 	public static void registerListeners() {
-		JBossJaxrsCorePlugin.getDefault().registerListeners();
+		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 	}
 
 	@Before
@@ -177,7 +177,7 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldDoNothingWhenPackageInfoChanged() throws CoreException, IOException {
 		// pre-conditions
-		JBossJaxrsCorePlugin.getDefault().registerListeners();
+		JBossJaxrsCorePlugin.getDefault().resumeListeners();
 		IFile pkgInfoFile = javaProject.getProject().getFile("src/main/java/org/jboss/tools/ws/jaxrs/sample/services/package-info.java");
 		pkgInfoFile.create(IOUtils.toInputStream(""), true, new NullProgressMonitor());
 		// operation
@@ -188,6 +188,5 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// verifications: no exception should have been thrown
 	
 	}
-	
 	
 }

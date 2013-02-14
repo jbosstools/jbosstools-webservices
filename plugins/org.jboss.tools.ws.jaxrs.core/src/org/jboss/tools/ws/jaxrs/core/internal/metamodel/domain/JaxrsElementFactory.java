@@ -69,6 +69,32 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 public class JaxrsElementFactory {
 
 	/**
+	 * Creating a JAX-RS Element of the given kind (dispatching to the proper
+	 * method in this class)
+	 * 
+	 * @param category
+	 * @param type
+	 * @param ast
+	 * @param metamodel
+	 * @param progressMonitor
+	 * @return the expected element or null if it could not be created (ie:
+	 *         type/ast not matching the expected JAX-RS element kind)
+	 * @throws CoreException 
+	 */
+	public static JaxrsJavaElement<IType> createElement(final EnumElementCategory category, final IType javaType,
+			final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor)
+			throws CoreException {
+		switch (category) {
+		case APPLICATION:
+			return JaxrsElementFactory.createApplication(javaType, ast, metamodel);
+		case PROVIDER:
+			return JaxrsElementFactory.createProvider(javaType, ast, metamodel, progressMonitor);
+		default:
+			return null;
+		}
+	}
+
+	/**
 	 * Attempts to create a new JAX-RS element from the given Java annotation,
 	 * <b>without adding it to the given JAX-RS Metamodel</b>
 	 * 
@@ -79,11 +105,11 @@ public class JaxrsElementFactory {
 	 *         is not a valid one.
 	 * @throws CoreException
 	 */
-	public static JaxrsJavaElement<?> createElement(IAnnotation javaAnnotation, CompilationUnit ast, JaxrsMetamodel metamodel)
-			throws CoreException {
+	public static JaxrsJavaElement<?> createElement(final IAnnotation javaAnnotation, final CompilationUnit ast,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
-		if (annotation == null) { // annotation on package declaration are
-									// ignored
+		// invalid annotation (eg: on package declaration, or underlying java element does not exist or not found) are ignored
+		if (annotation == null) { 
 			return null;
 		}
 		final String annotationName = annotation.getFullyQualifiedName();
@@ -93,6 +119,9 @@ public class JaxrsElementFactory {
 		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
 			final JaxrsJavaApplication application = createApplication(annotation, ast, metamodel);
 			return application;
+		} else if (annotationName.equals(PROVIDER.qualifiedName)) {
+			final JaxrsProvider provider = createProvider(annotation, ast, metamodel, progressMonitor);
+			return provider;
 		} else {
 			switch (javaAnnotation.getParent().getElementType()) {
 			case TYPE:
@@ -199,8 +228,8 @@ public class JaxrsElementFactory {
 	 * @return
 	 * @throws CoreException
 	 */
-	public static JaxrsResourceMethod createResourceMethod(Annotation annotation, CompilationUnit ast, JaxrsMetamodel metamodel)
-			throws CoreException {
+	public static JaxrsResourceMethod createResourceMethod(Annotation annotation, CompilationUnit ast,
+			JaxrsMetamodel metamodel) throws CoreException {
 		final IMethod method = (IMethod) annotation.getJavaParent();
 		return createResourceMethod(method, ast, metamodel);
 	}
@@ -259,7 +288,8 @@ public class JaxrsElementFactory {
 			if (methodSignature != null) {
 				final List<JavaMethodParameter> methodParameters = methodSignature.getMethodParameters();
 				final IType returnedType = methodSignature.getReturnedType();
-				return new JaxrsResourceMethod(javaMethod, parentResource, methodParameters, returnedType, annotations, metamodel);
+				return new JaxrsResourceMethod(javaMethod, methodParameters, returnedType, annotations, parentResource,
+						metamodel);
 			}
 		}
 		return null;
@@ -365,8 +395,8 @@ public class JaxrsElementFactory {
 	 * @return
 	 * @throws CoreException
 	 */
-	private static JaxrsJavaApplication createApplication(final IType applicationType, final Annotation appPathAnnotation,
-			final JaxrsMetamodel metamodel) throws CoreException {
+	private static JaxrsJavaApplication createApplication(final IType applicationType,
+			final Annotation appPathAnnotation, final JaxrsMetamodel metamodel) throws CoreException {
 		if (!applicationType.exists()) {
 			return null;
 		}
@@ -416,8 +446,8 @@ public class JaxrsElementFactory {
 		return null;
 	}
 
-	private static JaxrsResourceField internalCreateField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel,
-			final JaxrsResource parentResource) throws JavaModelException {
+	private static JaxrsResourceField internalCreateField(IField javaField, CompilationUnit ast,
+			JaxrsMetamodel metamodel, final JaxrsResource parentResource) throws JavaModelException {
 		final List<String> supportedFieldAnnotations = Arrays.asList(MATRIX_PARAM.qualifiedName,
 				QUERY_PARAM.qualifiedName, PATH_PARAM.qualifiedName, COOKIE_PARAM.qualifiedName,
 				HEADER_PARAM.qualifiedName, DEFAULT_VALUE.qualifiedName);
@@ -434,6 +464,28 @@ public class JaxrsElementFactory {
 	public static JaxrsWebxmlApplication createApplication(final String javaClassName, final String applicationPath,
 			final IResource resource, final JaxrsMetamodel metamodel) {
 		return new JaxrsWebxmlApplication(javaClassName, applicationPath, resource, metamodel);
+	}
+
+	/**
+	 * Creates a JAX-RS Provider from the given {@link javax.ws.rs.Provider }
+	 * annotation and its AST, <b>without adding it to the given JAX-RS
+	 * Metamodel</b>.
+	 * 
+	 * @param ast
+	 * @param metamodel
+	 * @param annotation
+	 * @return
+	 * @throws CoreException
+	 */
+	public static JaxrsProvider createProvider(final Annotation annotation, final CompilationUnit ast,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		final IJavaElement javaParent = annotation.getJavaParent();
+		if (javaParent != null && javaParent.getElementType() == IJavaElement.TYPE
+				&& annotation.getFullyQualifiedName().equals(PROVIDER.qualifiedName)) {
+			final IType javaType = (IType) javaParent;
+			return createProvider(javaType, ast, metamodel, progressMonitor);
+		}
+		return null;
 	}
 
 	/**
@@ -473,12 +525,10 @@ public class JaxrsElementFactory {
 
 		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, PROVIDER.qualifiedName,
 				CONSUMES.qualifiedName, PRODUCES.qualifiedName);
-		final JaxrsProvider provider = new JaxrsProvider.Builder(javaType, metamodel).providedTypes(providedKinds)
-				.annotations(annotations).build();
-		if (provider.getElementKind() == null) {
-			return null;
+		if(annotations.get(PROVIDER.qualifiedName) != null || !providedKinds.isEmpty()) {
+			return new JaxrsProvider(javaType, annotations, providedKinds, metamodel);
 		}
-		return provider;
+		return null;
 	}
 
 	/**
@@ -500,6 +550,7 @@ public class JaxrsElementFactory {
 		pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_READER, EnumElementKind.MESSAGE_BODY_READER));
 		pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_WRITER, EnumElementKind.MESSAGE_BODY_WRITER));
 		pairs.add(Pair.makePair(EnumJaxrsClassname.EXCEPTION_MAPPER, EnumElementKind.EXCEPTION_MAPPER));
+		pairs.add(Pair.makePair(EnumJaxrsClassname.CONTEXT_RESOLVER, EnumElementKind.CONTEXT_RESOLVER));
 
 		for (Pair<EnumJaxrsClassname, EnumElementKind> pair : pairs) {
 			final IType matchingGenericType = JdtUtils.resolveType(pair.a.qualifiedName, providerType.getJavaProject(),

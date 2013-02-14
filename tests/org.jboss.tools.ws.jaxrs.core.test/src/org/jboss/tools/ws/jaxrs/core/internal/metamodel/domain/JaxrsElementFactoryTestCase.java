@@ -68,7 +68,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		final Annotation annotation = resolveAnnotation(type, PATH.qualifiedName);
 		// operation
 		final JaxrsJavaElement<?> element = JaxrsElementFactory.createElement(annotation.getJavaAnnotation(),
-				JdtUtils.parse(type, progressMonitor), metamodel);
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
 		// verifications
 		assertNotNull(element);
 		final IJaxrsResource resource = (IJaxrsResource) element;
@@ -103,7 +103,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		final Annotation annotation = resolveAnnotation(type, HTTP_METHOD.qualifiedName);
 		// operation
 		final JaxrsJavaElement<?> element = JaxrsElementFactory.createElement(annotation.getJavaAnnotation(),
-				JdtUtils.parse(type, progressMonitor), metamodel);
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
 		// verifications
 		assertNotNull(element);
 		final IJaxrsHttpMethod httpMethod = (IJaxrsHttpMethod)element ;

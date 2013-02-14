@@ -22,4 +22,6 @@ public interface IJaxrsHttpMethod extends IJaxrsElement, Comparable<IJaxrsHttpMe
 
 	IType getJavaElement();
 
+	boolean isBuiltIn();
+
 }

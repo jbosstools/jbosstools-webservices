@@ -1,6 +1,6 @@
-package org.jboss.tools.ws.jaxrs.core.metamodel.validation;
+package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
-public class JaxrsMetamodelValidationConstants {
+public class JaxrsValidationConstants {
 
 	/** The custom 'JAX-RS Problem' marker type. */
 	public static final String JAXRS_PROBLEM_TYPE = "org.jboss.tools.ws.jaxrs.metamodelMarker";

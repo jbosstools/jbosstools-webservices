@@ -35,7 +35,7 @@ public class ResourceChangedListenerTestCase extends AbstractMetamodelBuilderTes
 		// pre-conditions
 		final JaxrsMetamodel previousMetamodel = JaxrsMetamodelLocator.get(project);
 		assertThat(previousMetamodel, notNullValue());
-		JBossJaxrsCorePlugin.getDefault().registerListeners();
+		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		// operation
 		project.close(new NullProgressMonitor());
 		project.open(new NullProgressMonitor());

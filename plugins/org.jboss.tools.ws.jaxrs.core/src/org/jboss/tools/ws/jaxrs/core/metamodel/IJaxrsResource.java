@@ -12,7 +12,7 @@ package org.jboss.tools.ws.jaxrs.core.metamodel;
 
 import java.util.List;
 
-public interface IJaxrsResource {
+public interface IJaxrsResource extends IJaxrsElement {
 
 	String getPathTemplate();
 

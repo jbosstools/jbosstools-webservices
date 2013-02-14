@@ -62,7 +62,7 @@ public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 		methodParameters.add(createMethodParameter("queryParam2", EnumJaxrsClassname.QUERY_PARAM));
 		methodParameters.add(createMethodParameter("matrixParam1", EnumJaxrsClassname.MATRIX_PARAM));
 		methodParameters.add(createMethodParameter("matrixParam2", EnumJaxrsClassname.MATRIX_PARAM));
-		return new JaxrsResourceMethod(method, resource, methodParameters, null, null, metamodel);
+		return new JaxrsResourceMethod(method, methodParameters, null, null, resource, metamodel);
 	}
 	
 	private JavaMethodSignature modifyJavaMethodSignature(JaxrsResourceMethod resourceMethod) {
@@ -102,7 +102,7 @@ public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 		final Annotation postAnnotation = createAnnotation(EnumJaxrsClassname.POST, null);
 		annotations.put(postAnnotation.getFullyQualifiedName(),postAnnotation);
 		resourceMethod.updateAnnotations(annotations);
-		endpoint.refresh(resourceMethod, JaxrsElementDelta.F_HTTP_METHOD_VALUE);
+		endpoint.refresh(resourceMethod, JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION);
 		// verifications
 		assertThat(endpoint.getHttpMethod().getHttpVerb(), equalTo("POST"));
 	}
@@ -117,7 +117,7 @@ public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 		// operation
 		JavaMethodSignature methodSignature = modifyJavaMethodSignature(resourceMethod);
 		resourceMethod.update(methodSignature);
-		endpoint.refresh(resourceMethod, JaxrsElementDelta.F_QUERY_PARAM_VALUE + JaxrsElementDelta.F_MATRIX_PARAM_VALUE);
+		endpoint.refresh(resourceMethod, JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION + JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
 		String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
 		assertThat(uriPathTemplate, equalTo("/hello/customers;matrixParam1={java.lang.String};matrixParam2={java.lang.String};matrixParam3={java.lang.String}?queryParam1={queryParam1:java.lang.String}"));

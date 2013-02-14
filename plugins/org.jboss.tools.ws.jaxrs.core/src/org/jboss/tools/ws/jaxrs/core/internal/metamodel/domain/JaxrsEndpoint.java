@@ -10,14 +10,14 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMED_MEDIATYPES_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_DEFAULT_VALUE_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_MATRIX_PARAM_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
@@ -174,22 +174,22 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		 * false; }
 		 */
 
-		if ((flags & F_HTTP_METHOD_VALUE) > 0) {
+		if ((flags & F_HTTP_METHOD_ANNOTATION) > 0) {
 			refreshHttpMethod();
 		}
 
-		if ((flags & F_PATH_VALUE) > 0 || (flags & F_QUERY_PARAM_VALUE) > 0 || (flags & F_MATRIX_PARAM_VALUE) > 0 || (flags & F_DEFAULT_VALUE_VALUE) > 0
+		if ((flags & F_PATH_ANNOTATION) > 0 || (flags & F_QUERY_PARAM_ANNOTATION) > 0 || (flags & F_MATRIX_PARAM_ANNOTATION) > 0 || (flags & F_DEFAULT_VALUE_ANNOTATION) > 0
 				|| (flags & F_METHOD_PARAMETERS) > 0) {
 			refreshUriPathTemplate();
 		}
 
 		// look for mediatype capabilities at the method level, then fall back
 		// at the type level, then "any" otherwise
-		if ((flags & F_CONSUMED_MEDIATYPES_VALUE) > 0 || (flags & F_PRODUCED_MEDIATYPES_VALUE) > 0) {
-			if ((flags & F_CONSUMED_MEDIATYPES_VALUE) > 0) {
+		if ((flags & F_CONSUMES_ANNOTATION) > 0 || (flags & F_PRODUCES_ANNOTATION) > 0) {
+			if ((flags & F_CONSUMES_ANNOTATION) > 0) {
 				refreshConsumedMediaTypes();
 			}
-			if ((flags & F_PRODUCED_MEDIATYPES_VALUE) > 0) {
+			if ((flags & F_PRODUCES_ANNOTATION) > 0) {
 				refreshProducedMediaTypes();
 			}
 		}

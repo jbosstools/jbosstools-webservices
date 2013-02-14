@@ -60,6 +60,13 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	public boolean isSubresource() {
 		return getElementKind() == EnumElementKind.SUBRESOURCE;
 	}
+	
+	@Override
+	public boolean isMarkedForRemoval() {
+		final boolean hasPathAnnotation = hasAnnotation(PATH.qualifiedName);
+		// element should be removed if it has no @Path annotation and it has no JAX-RS element
+		return !(hasPathAnnotation || resourceMethods.size() > 0 || resourceFields.size() > 0 || paramBeanProperties.size() > 0);
+	}
 
 	@Override
 	public final EnumElementKind getElementKind() {
@@ -134,15 +141,10 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	}
 
 	public void addElement(JaxrsResourceElement<?> element) {
-		switch (element.getElementCategory()) {
-		case RESOURCE_FIELD:
+		if(element instanceof JaxrsResourceField) {
 			this.resourceFields.put(element.getJavaElement().getHandleIdentifier(), (JaxrsResourceField) element);
-			break;
-		case RESOURCE_METHOD:
+		} else if(element instanceof JaxrsResourceField) {
 			this.resourceMethods.put(element.getJavaElement().getHandleIdentifier(), (JaxrsResourceMethod) element);
-			break;
-		default:
-			break;
 		}
 	}
 

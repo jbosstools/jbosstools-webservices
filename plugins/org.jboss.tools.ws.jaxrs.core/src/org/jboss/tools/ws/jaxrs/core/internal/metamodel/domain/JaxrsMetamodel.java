@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,17 +52,20 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
 
 /**
- * Manages all the JAX-RS domain classes of the JAX-RS Metamodel. Not only a POJO, but also provides business services.
+ * Manages all the JAX-RS domain classes of the JAX-RS Metamodel. Not only a
+ * POJO, but also provides business services.
  * 
  * @author xcoulon
  */
 public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/**
-	 * The qualified name of the metamodel when stored in the project session properties.
+	 * The qualified name of the metamodel when stored in the project session
+	 * properties.
 	 */
 	public static final QualifiedName METAMODEL_QUALIFIED_NAME = new QualifiedName(JBossJaxrsCorePlugin.PLUGIN_ID,
 			"metamodel");
@@ -72,34 +74,41 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	private final IJavaProject javaProject;
 
 	/**
-	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although there should be only one.
+	 * All the subclasses of <code>javax.ws.rs.core.Application</code>, although
+	 * there should be only one.
 	 */
 	private final List<IJaxrsApplication> applications = new ArrayList<IJaxrsApplication>();
 
 	/**
-	 * All the resources (both rootresources and subresources) available in the service , indexed by their associated
-	 * java type fully qualified name.
+	 * All the resources (both rootresources and subresources) available in the
+	 * service , indexed by their associated java type fully qualified name.
 	 */
 	private final List<JaxrsResource> resources = new ArrayList<JaxrsResource>();
 
 	/**
-	 * The available providers (classes which implement MessageBodyWriter<T>, MessageBodyReader<T> or
-	 * ExceptionMapper<T>), , indexed by their associated java type fully qualified name.
+	 * The available providers (classes which implement MessageBodyWriter<T>,
+	 * MessageBodyReader<T> or ExceptionMapper<T>), , indexed by their
+	 * associated java type fully qualified name.
 	 */
 	private final List<JaxrsProvider> providers = new ArrayList<JaxrsProvider>();
 
 	/** The HTTP ResourceMethod elements container. */
 	private final List<JaxrsHttpMethod> httpMethods = new ArrayList<JaxrsHttpMethod>();
 
-	/** Internal index of all the elements of this metamodel (by handleIdentifier of their associated java element). */
+	/**
+	 * Internal index of all the elements of this metamodel (by handleIdentifier
+	 * of their associated java element).
+	 */
 	private final Map<String, Set<IJaxrsElement>> elementsIndex = new HashMap<String, Set<IJaxrsElement>>();
 
-	/** Internal index of all the elements of this metamodel (by fullpath of their underlying resource). */
+	/**
+	 * Internal index of all the elements of this metamodel (by fullpath of
+	 * their underlying resource).
+	 */
 	private final Map<String, Set<IJaxrsElement>> resourcesIndex = new HashMap<String, Set<IJaxrsElement>>();
 
 	/** the endpoints, built from the resource methods. */
 	private final List<JaxrsEndpoint> endpoints = new ArrayList<JaxrsEndpoint>();
-
 
 	/**
 	 * Full constructor.
@@ -113,7 +122,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		this.javaProject = javaProject;
 		init();
 	}
-	
+
 	@Override
 	public IJaxrsMetamodel getMetamodel() {
 		return this;
@@ -124,17 +133,23 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		// Metamodel is never binary
 		return false;
 	}
-	
+
 	@Override
 	public EnumElementKind getElementKind() {
 		return EnumElementKind.METAMODEL;
 	}
-	
+
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.METAMODEL;
 	}
-	
+
+	@Override
+	public boolean isMarkedForRemoval() {
+		// this element should not be removed 
+		return false;
+	}
+
 	@Override
 	public IResource getResource() {
 		return getProject();
@@ -145,7 +160,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return "JAX-RS Metamodel for project " + getProject().getName();
 	}
 
-	
 	/**
 	 * Preload the HttpMethods collection with 6 items from the specification:
 	 * <ul>
@@ -165,13 +179,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		elementsIndex.put(DELETE.getJavaClassName(), new HashSet<IJaxrsElement>(Arrays.asList(DELETE)));
 		elementsIndex.put(OPTIONS.getJavaClassName(), new HashSet<IJaxrsElement>(Arrays.asList(OPTIONS)));
 		elementsIndex.put(HEAD.getJavaClassName(), new HashSet<IJaxrsElement>(Arrays.asList(HEAD)));
-		
+
 		indexElement(this, getProject());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IMetamodel#getJavaProject ()
+	 * 
+	 * @see
+	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IMetamodel#getJavaProject
+	 * ()
 	 */
 	public IJavaProject getJavaProject() {
 		return javaProject;
@@ -206,38 +223,27 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	public void add(JaxrsJavaElement<?> element) {
-		switch (element.getElementCategory()) {
-		case APPLICATION:
+		if(element instanceof JaxrsJavaApplication) {
 			this.applications.add((JaxrsJavaApplication) element);
-			break;
-		case HTTP_METHOD:
+		} else if(element instanceof JaxrsHttpMethod) {
 			this.httpMethods.add((JaxrsHttpMethod) element);
-			break;
-		case PROVIDER:
-			// this.providers.add(element);
-			break;
-		case RESOURCE:
-			final JaxrsResource resource = (JaxrsResource) element;
-			this.resources.add(resource);
-			break;
-		case RESOURCE_FIELD:
-			break;
-		case RESOURCE_METHOD:
-			break;
-		default:
-			break;
+		} else if(element instanceof JaxrsProvider) {
+			this.providers.add((JaxrsProvider) element);
+		} else if(element instanceof JaxrsResource) {
+			this.resources.add((JaxrsResource) element);
 		}
 		indexElement(element);
 	}
 
 	public void add(JaxrsWebxmlApplication application) {
 		this.applications.add(application);
+		/*
 		Collections.sort(this.applications, new Comparator<IJaxrsApplication>() {
 			@Override
 			public int compare(IJaxrsApplication app1, IJaxrsApplication app2) {
 				return app1.getElementKind().compareTo(app2.getElementKind());
 			}
-		});
+		});*/
 		indexElement(application, this.javaProject);
 		indexElement(application, application.getResource());
 	}
@@ -280,8 +286,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * @param jaxrsElement the JAX-RS element of the metamodel to index
-	 * @param javaElement the associated Java Element
+	 * @param jaxrsElement
+	 *            the JAX-RS element of the metamodel to index
+	 * @param javaElement
+	 *            the associated Java Element
 	 */
 	private void indexElement(final JaxrsBaseElement jaxrsElement, final IJavaElement javaElement) {
 		if (javaElement == null) {
@@ -296,8 +304,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * @param jaxrsElement the JAX-RS element of the metamodel to index
-	 * @param resource the underlying resource
+	 * @param jaxrsElement
+	 *            the JAX-RS element of the metamodel to index
+	 * @param resource
+	 *            the underlying resource
 	 */
 	private void indexElement(final IJaxrsElement jaxrsElement, final IResource resource) {
 		if (resource == null) {
@@ -331,17 +341,19 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/**
 	 * @param jaxrsElement
-	 * @param index 
+	 * @param index
 	 */
 	private void unindex(final IJaxrsElement jaxrsElement, Map<String, Set<IJaxrsElement>> index) {
 		for (Iterator<Entry<String, Set<IJaxrsElement>>> indexIterator = index.entrySet().iterator(); indexIterator
 				.hasNext();) {
 			final Entry<String, Set<IJaxrsElement>> indexEntry = indexIterator.next();
 			final Set<IJaxrsElement> indexEntryElements = indexEntry.getValue();
-			// iterating because the elements.remove(jaxrsElement); does not work here
+			// iterating because the elements.remove(jaxrsElement); does not
+			// work here
 			// (hashcode has changed between the time the jaxrsElement was added
 			// and now !)
-			for (Iterator<IJaxrsElement> indexEntryElementsIterator = indexEntryElements.iterator(); indexEntryElementsIterator.hasNext();) {
+			for (Iterator<IJaxrsElement> indexEntryElementsIterator = indexEntryElements.iterator(); indexEntryElementsIterator
+					.hasNext();) {
 				IJaxrsElement element = indexEntryElementsIterator.next();
 				if (element.equals(jaxrsElement)) {
 					Logger.trace(" Removing {} from index", element);
@@ -356,8 +368,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Unindex the given JAX-RS Element so that it cannot be retrieved when searching for elements with the given
-	 * handleIdentifier. This does not mean that the given JAX-RS Element won't be findable anymore.
+	 * Unindex the given JAX-RS Element so that it cannot be retrieved when
+	 * searching for elements with the given handleIdentifier. This does not
+	 * mean that the given JAX-RS Element won't be findable anymore.
 	 * 
 	 * @param jaxrsElement
 	 * @param handleIdentifier
@@ -371,10 +384,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/**
 	 * Returns an unmodifiable set of all the elements in the Metamodel.
+	 * 
 	 * @return
 	 */
 	public Set<IJaxrsElement> getAllElements() {
-		// using a set automatically remove duplicates (because elements are indexed under several criteria)
+		// using a set automatically remove duplicates (because elements are
+		// indexed under several criteria)
 		final Collection<Set<IJaxrsElement>> values = elementsIndex.values();
 		final Set<IJaxrsElement> elements = new HashSet<IJaxrsElement>();
 		for (Set<IJaxrsElement> subSet : values) {
@@ -383,17 +398,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return Collections.unmodifiableSet(elements);
 	}
 
-
 	/**
-	 * @return the application that is used to compute the Endpoint's URI Path Templates, or null if no application was
-	 *         specified in the code. An invalid application may be returned, though (ie, a Type annotated with
-	 *         {@link javax.ws.rs.ApplicationPath} but not extending the {@link javax.ws.rs.Application} type).
-	 *         If multiple applications have been defined, the pure web.xml one is returned.
+	 * @return the application that is used to compute the Endpoint's URI Path
+	 *         Templates, or null if no application was specified in the code.
+	 *         An invalid application may be returned, though (ie, a Type
+	 *         annotated with {@link javax.ws.rs.ApplicationPath} but not
+	 *         extending the {@link javax.ws.rs.Application} type). If multiple
+	 *         applications have been defined, the pure web.xml one is returned.
 	 */
 	public final IJaxrsApplication getApplication() {
 		// try to return pure web.xml first
 		final JaxrsWebxmlApplication webxmlApplication = getWebxmlApplication();
-		if(webxmlApplication != null) {
+		if (webxmlApplication != null) {
 			return webxmlApplication;
 		}
 		final List<JaxrsJavaApplication> javaApplications = getJavaApplications();
@@ -403,29 +419,31 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		// otherwise, return first java-based application
 		return javaApplications.get(0);
 	}
-	
+
 	/**
-	 * Returns the Application (Java or Webxml) those underlying resource matches the given resource, or null if not found
+	 * Returns the Application (Java or Webxml) those underlying resource
+	 * matches the given resource, or null if not found
+	 * 
 	 * @param changedResource
 	 * @return the associated application or null
 	 */
 	public final IJaxrsApplication getApplication(IResource changedResource) {
 		for (IJaxrsApplication application : this.applications) {
-			if(application.getResource().equals(changedResource)) {
+			if (application.getResource().equals(changedResource)) {
 				return application;
 			}
 		}
 		return null;
 	}
 
-
 	/**
-	 * @return the java application that matches the given classname, or null if none was found.
+	 * @return the java application that matches the given classname, or null if
+	 *         none was found.
 	 */
 	public final JaxrsJavaApplication getJavaApplication(final String className) {
 		if (className != null) {
 			for (IJaxrsApplication application : this.applications) {
-				if (application.getElementKind() == EnumElementKind.APPLICATION_JAVA && className.equals(application.getJavaClassName())) {
+				if (application.isJavaApplication() && className.equals(application.getJavaClassName())) {
 					return (JaxrsJavaApplication) application;
 				}
 			}
@@ -434,60 +452,58 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * @return the webxml application that matches the given classname, or null if none was found.
+	 * @return the webxml application that matches the given classname, or null
+	 *         if none was found.
 	 */
 	public final JaxrsWebxmlApplication getWebxmlApplication(final String className) {
 		if (className != null) {
 			for (IJaxrsApplication application : this.applications) {
-				if (application.getElementKind() == EnumElementKind.APPLICATION_WEBXML && className.equals(application.getJavaClassName())) {
+				if (application.isWebXmlApplication() && className.equals(application.getJavaClassName())) {
 					return (JaxrsWebxmlApplication) application;
 				}
 			}
 		}
 		return null;
 	}
-	
+
 	/**
-	 * @return all the JAX-RS Application in the Metamodel
-	 * The result is a separate unmodifiable list
+	 * @return all the JAX-RS Application in the Metamodel The result is a
+	 *         separate unmodifiable list
 	 */
 	public final List<IJaxrsApplication> getAllApplications() {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsApplication>(this.applications));
 	}
-	
-	
+
 	/**
-	 * @return true if the metamodel holds more than 1 <strong>real</strong> applicatio, that is, excluding all 
-	 * application overrides configured in the web deployment descriptor. Returns false otherwise.
+	 * @return true if the metamodel holds more than 1 <strong>real</strong>
+	 *         applicatio, that is, excluding all application overrides
+	 *         configured in the web deployment descriptor. Returns false
+	 *         otherwise.
 	 */
-	@SuppressWarnings("incomplete-switch")
 	public boolean hasMultipleApplications() {
 		final List<IJaxrsApplication> realApplications = new ArrayList<IJaxrsApplication>();
 		for (IJaxrsApplication application : this.applications) {
-			switch (application.getElementKind()) {
-			case APPLICATION_JAVA:
+			if (application.isJavaApplication()) {
 				realApplications.add(application);
-				break;
-			case APPLICATION_WEBXML:
-				if (!((JaxrsWebxmlApplication) application).isOverride()) {
-					realApplications.add(application);
-				}
-				break;
+			} else if (!((JaxrsWebxmlApplication) application).isOverride()) {
+				realApplications.add(application);
 			}
 		}
 		return realApplications.size() > 1;
 	}
 
-
 	/**
-	 * @return the <strong>pure JEE</strong> web.xml based application. There can be only one (at most), defined with the
-	 *         <code>javax.ws.rs.core.Application</code> class name. Other web.xml application declarations are just to
-	 *         override the java-based application <code>@ApplicationPath</code> value and <strong>will not be returned</strong> by this method.
+	 * @return the <strong>pure JEE</strong> web.xml based application. There
+	 *         can be only one (at most), defined with the
+	 *         <code>javax.ws.rs.core.Application</code> class name. Other
+	 *         web.xml application declarations are just to override the
+	 *         java-based application <code>@ApplicationPath</code> value and
+	 *         <strong>will not be returned</strong> by this method.
 	 */
 	public final JaxrsWebxmlApplication getWebxmlApplication() {
 		for (IJaxrsApplication application : this.applications) {
-			if (application.getElementKind() == EnumElementKind.APPLICATION_WEBXML
-					&& EnumJaxrsClassname.APPLICATION.qualifiedName.equals(application.getJavaClassName())) {
+			if (application.isWebXmlApplication()
+					&& EnumJaxrsClassname.APPLICATION.equals(application.getJavaClassName())) {
 				return (JaxrsWebxmlApplication) application;
 			}
 		}
@@ -495,13 +511,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * @return the web.xml based application and all the java-based application overrides, or an empty collection if
-	 *         none exist in the metamodel.
+	 * @return the web.xml based application and all the java-based application
+	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
 	public final List<JaxrsWebxmlApplication> getWebxmlApplications() {
 		final List<JaxrsWebxmlApplication> webxmlApplications = new ArrayList<JaxrsWebxmlApplication>();
 		for (IJaxrsApplication application : this.applications) {
-			if (application.getElementKind() == EnumElementKind.APPLICATION_WEBXML) {
+			if (application.isWebXmlApplication()) {
 				webxmlApplications.add((JaxrsWebxmlApplication) application);
 			}
 		}
@@ -509,20 +525,32 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * @return the web.xml based application and all the java-based application overrides, or an empty collection if
-	 *         none exist in the metamodel.
+	 * @return the web.xml based application and all the java-based application
+	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
 	public final List<JaxrsJavaApplication> getJavaApplications() {
 		final List<JaxrsJavaApplication> javaApplications = new ArrayList<JaxrsJavaApplication>();
 		for (IJaxrsApplication application : this.applications) {
-			if (application.getElementKind() == EnumElementKind.APPLICATION_JAVA) {
+			if (application.isJavaApplication()) {
 				javaApplications.add((JaxrsJavaApplication) application);
 			}
 		}
 		return Collections.unmodifiableList(javaApplications);
 	}
+
 	public final List<IJaxrsProvider> getAllProviders() {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsProvider>(providers));
+	}
+
+	public IJaxrsProvider getProvider(IType providerType) {
+		if (providerType == null) {
+			return null;
+		}
+		final IJaxrsElement result = getElementByIdentifier(providerType.getHandleIdentifier());
+		if (result != null && result.getElementCategory() == EnumElementCategory.PROVIDER) {
+			return (IJaxrsProvider) result;
+		}
+		return null;
 	}
 
 	public final List<IJaxrsHttpMethod> getAllHttpMethods() {
@@ -550,7 +578,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				return (IJaxrsHttpMethod) element;
 			}
 			// if not found, look for built-in HTTP Methods
-			else if(element == null) {
+			else if (element == null) {
 				element = getElementByIdentifier(annotationType.getFullyQualifiedName());
 				if (element != null && element.getElementCategory() == EnumElementCategory.HTTP_METHOD) {
 					return (IJaxrsHttpMethod) element;
@@ -572,7 +600,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/**
 	 * Return the JAX-RS element matching the given Java Element
-	 * @param element the java element
+	 * 
+	 * @param element
+	 *            the java element
 	 * @return the JAX-RS element or null if none found
 	 */
 	public IJaxrsElement getElement(IJavaElement element) {
@@ -581,9 +611,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 		return getElementByIdentifier(element.getHandleIdentifier());
 	}
-	
+
 	public List<IJaxrsElement> getElements(final IResource resource) {
-		if (resource == null) { 
+		if (resource == null) {
 			return null;
 		}
 		final Set<IJaxrsElement> elements = resourcesIndex.get(resource.getFullPath().toOSString());
@@ -593,10 +623,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return new ArrayList<IJaxrsElement>(elements);
 	}
 
-	
 	/**
-	 * Return the JAX-RS element matching the given Java Element Handle Identifier
-	 * @param element the java element handle identifier
+	 * Return the JAX-RS element matching the given Java Element Handle
+	 * Identifier
+	 * 
+	 * @param element
+	 *            the java element handle identifier
 	 * @return the JAX-RS element or null if none found
 	 */
 	private IJaxrsElement getElementByIdentifier(final String elementHandleIdentifier) {
@@ -604,7 +636,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final Set<IJaxrsElement> elements = elementsIndex.get(elementHandleIdentifier);
-		if(elements == null || elements.isEmpty()) {
+		if (elements == null || elements.isEmpty()) {
 			return null;
 		}
 		return elements.iterator().next();
@@ -612,7 +644,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/**
 	 * Return the JAX-RS element matching the given Java Annotation
-	 * @param element the java annotation
+	 * 
+	 * @param element
+	 *            the java annotation
 	 * @return the JAX-RS element or null if none found
 	 */
 	public IJaxrsElement getElement(Annotation annotation) {
@@ -630,7 +664,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	public List<IJaxrsElement> getElements(final IJavaElement javaElement) {
-		if(javaElement == null) {
+		if (javaElement == null) {
 			return Collections.emptyList();
 		}
 		final String key = javaElement.getHandleIdentifier();
@@ -660,29 +694,21 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void remove(IJaxrsElement element) {
 		if (element == null) {
 			return;
-		}
-		switch (element.getElementCategory()) {
-		case APPLICATION:
+		} 
+		if(element instanceof IJaxrsApplication) {
 			this.applications.remove(element);
-			break;
-		case HTTP_METHOD:
+		} else if(element instanceof IJaxrsHttpMethod) {
 			this.httpMethods.remove(element);
-			break;
-		case RESOURCE:
+		} else if(element instanceof IJaxrsResource) {
 			this.resources.remove(element);
-			break;
-		case RESOURCE_METHOD:
+		} else if(element instanceof IJaxrsResourceMethod) {
 			final JaxrsResource parentResource = ((JaxrsResourceMethod) element).getParentResource();
 			parentResource.removeMethod((IJaxrsResourceMethod) element);
-			break;
-		case RESOURCE_FIELD:
+		} else if(element instanceof IJaxrsResourceField) {
 			final JaxrsResource fieldResourceParent = ((JaxrsResourceField) element).getParentResource();
 			fieldResourceParent.removeField((JaxrsResourceField) element);
-			break;
-		case PROVIDER:
-			break;
-		default:
-			break;
+		} else if(element instanceof IJaxrsProvider) {
+			this.providers.remove(element);
 		}
 		unindexElement(element);
 	}
@@ -719,6 +745,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -731,6 +758,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -748,11 +776,5 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 		return javaProject.getProject();
 	}
-
-	
-
-
-
-
 
 }

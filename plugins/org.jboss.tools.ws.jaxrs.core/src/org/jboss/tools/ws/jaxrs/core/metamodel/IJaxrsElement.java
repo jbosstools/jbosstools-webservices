@@ -21,6 +21,7 @@ public interface IJaxrsElement {
 	
 	public abstract IJaxrsMetamodel getMetamodel();
 
+	@Deprecated
 	public abstract EnumElementKind getElementKind();
 
 	public abstract EnumElementCategory getElementCategory();
@@ -30,6 +31,8 @@ public interface IJaxrsElement {
 	public abstract String getName();	
 	
 	public abstract boolean isBinary();
+
+	public abstract boolean isMarkedForRemoval();
 
 
 }

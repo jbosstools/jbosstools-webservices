@@ -22,12 +22,6 @@ public class JaxrsValidationMessages {
 	private static final String BUNDLE_NAME = JaxrsValidationMessages.class.getName(); //$NON-NLS-1$
 
 
-
-
-
-
-
-
 	public static String SEARCHING_RESOURCES;
 	public static String VALIDATING_RESOURCE;
 	public static String VALIDATING_PROJECT;
@@ -49,6 +43,15 @@ public class JaxrsValidationMessages {
 	public static String RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER;
 	public static String RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE;
 	public static String RESOURCE_METHOD_NO_PUBLIC_MODIFIER;
+
+	public static String PROVIDER_MISSING_VALID_CONSTRUCTOR;
+	public static String PROVIDER_MISSING_ANNOTATION;
+	public static String PROVIDER_MISSING_IMPLEMENTATION;
+	public static String PROVIDER_DUPLICATE_MESSAGE_BODY_READER;
+	public static String PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER;
+	public static String PROVIDER_DUPLICATE_EXCEPTION_MAPPER;
+
+
 
 	
 	static {

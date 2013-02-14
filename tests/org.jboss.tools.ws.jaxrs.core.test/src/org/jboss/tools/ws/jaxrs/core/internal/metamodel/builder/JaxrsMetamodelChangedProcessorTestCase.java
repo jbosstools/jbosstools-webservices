@@ -20,7 +20,7 @@ import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotationValue
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
@@ -331,7 +331,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsEndpoint fakeEndpoint = createEndpoint(httpMethod, customerResourceMethod);
 		// operation
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, F_ELEMENT_KIND
-				+ F_PATH_VALUE);
+				+ F_PATH_ANNOTATION);
 		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(2));
@@ -354,7 +354,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// operation
 		customerResourceMethod.addOrUpdateAnnotation(annotation);
 		final JaxrsElementDelta event = new JaxrsElementDelta(customerResourceMethod, CHANGED,
-				F_PATH_VALUE);
+				F_PATH_ANNOTATION);
 		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
@@ -500,7 +500,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		// operation
 		final Annotation pathAnnotation = resolveAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);	
 		customerResource.addOrUpdateAnnotation(changeAnnotationValue(pathAnnotation, "/foo"));
-		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, F_PATH_VALUE);
+		final JaxrsElementDelta event = new JaxrsElementDelta(customerResource, CHANGED, F_PATH_ANNOTATION);
 		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));
@@ -849,7 +849,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.POST;
 		final JaxrsResource customerResource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = createResourceMethod("getCustomerAsVCard", customerResource,
-				POST.qualifiedName);
+				GET.qualifiedName, PATH.qualifiedName);
 		final JaxrsEndpoint endpoint = createEndpoint(httpMethod, customerResourceMethod);
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 		// operation
@@ -1017,7 +1017,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final Annotation httpAnnotation = bookResourceMethod.getHttpMethodAnnotation();
 		final int flags = bookResourceMethod.removeAnnotation(httpAnnotation.getJavaAnnotation().getHandleIdentifier());
 		// operation
-		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, CHANGED, flags);
+		final JaxrsElementDelta event = new JaxrsElementDelta(bookResourceMethod, REMOVED, flags);
 		final List<JaxrsEndpointDelta> changes = processEvent(event);
 		// verifications
 		assertThat(changes.size(), equalTo(1));

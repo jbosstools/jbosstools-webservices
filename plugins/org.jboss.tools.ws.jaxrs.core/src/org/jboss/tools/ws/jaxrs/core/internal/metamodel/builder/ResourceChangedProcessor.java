@@ -13,8 +13,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE_ORVERRIDE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_VALUE_OVERRIDE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_FINE_GRAINED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION;
@@ -42,6 +42,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFacto
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
@@ -176,11 +177,14 @@ public class ResourceChangedProcessor {
 				results.addAll(processHttpMethodChangesOnScopeAdditionOrChange(javaElement, metamodel, progressMonitor));
 				results.addAll(processResourceChangesOnScopeAdditionOrChange(javaElement, metamodel, deltaKind,
 						progressMonitor));
+				results.addAll(processProviderChangesOnScopeAdditionOrChange(javaElement, metamodel, deltaKind,
+						progressMonitor));
 				break;
 			case REMOVED:
 				results.addAll(processApplicationChangesOnScopeRemoval(javaElement, metamodel, progressMonitor));
 				results.addAll(processHttpMethodChangesOnScopeRemoval(javaElement, metamodel, progressMonitor));
 				results.addAll(processResourceChangesOnScopeRemoval(javaElement, metamodel, progressMonitor));
+				results.addAll(processProviderChangesOnScopeRemoval(javaElement, metamodel, progressMonitor));
 				break;
 			}
 		} else if (WtpUtils.isWebDeploymentDescriptor(resource)) {
@@ -286,7 +290,7 @@ public class ResourceChangedProcessor {
 			overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
 			if(overridenJaxrsJavaApplication != null) {
 				overridenJaxrsJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
-				results.add(new JaxrsElementDelta(overridenJaxrsJavaApplication, CHANGED, F_APPLICATION_PATH_VALUE));
+				results.add(new JaxrsElementDelta(overridenJaxrsJavaApplication, CHANGED, F_APPLICATION_PATH_ANNOTATION));
 			}
 			break;
 		case REMOVED:
@@ -295,7 +299,7 @@ public class ResourceChangedProcessor {
 			overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
 			if(overridenJaxrsJavaApplication != null) {
 				overridenJaxrsJavaApplication.unsetApplicationPathOverride();
-				results.add(new JaxrsElementDelta(overridenJaxrsJavaApplication, CHANGED, F_APPLICATION_PATH_VALUE));
+				results.add(new JaxrsElementDelta(overridenJaxrsJavaApplication, CHANGED, F_APPLICATION_PATH_ANNOTATION));
 			}
 			
 			break;
@@ -420,6 +424,7 @@ public class ResourceChangedProcessor {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
+	//TODO: pseudo code duplication with other preprocess<Category>OnScopeRemoval
 	private List<JaxrsElementDelta> preprocessApplicationChangesOnScopeRemoval(final IJavaElement scope,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException,
 			JavaModelException {
@@ -444,7 +449,7 @@ public class ResourceChangedProcessor {
 			webxmlApplication = metamodel.getWebxmlApplication(eventJavaApplication.getJavaClassName());
 			if(webxmlApplication != null) {
 				eventJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
-				results.add(new JaxrsElementDelta(eventJavaApplication, ADDED, F_APPLICATION_PATH_VALUE_ORVERRIDE));
+				results.add(new JaxrsElementDelta(eventJavaApplication, ADDED, F_APPLICATION_PATH_VALUE_OVERRIDE));
 			} else {
 				results.add(event);
 			}
@@ -460,7 +465,7 @@ public class ResourceChangedProcessor {
 			webxmlApplication = metamodel.getWebxmlApplication(eventJavaApplication.getJavaClassName());
 			if(flags != 0 && webxmlApplication != null) {
 				eventJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
-				results.add(new JaxrsElementDelta(eventJavaApplication, CHANGED, flags + F_APPLICATION_PATH_VALUE_ORVERRIDE));
+				results.add(new JaxrsElementDelta(eventJavaApplication, CHANGED, flags + F_APPLICATION_PATH_VALUE_OVERRIDE));
 			} else if(flags != 0) {
 				results.add(new JaxrsElementDelta(existingJavaApplication, CHANGED, flags));
 			}
@@ -549,6 +554,7 @@ public class ResourceChangedProcessor {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
+	//TODO: pseudo code duplication with other preprocess<Category>OnScopeRemoval
 	private List<JaxrsElementDelta> preprocessHttpMethodChangesOnScopeRemoval(final IJavaElement scope,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException,
 			JavaModelException {
@@ -703,6 +709,103 @@ public class ResourceChangedProcessor {
 			results.addAll(updateResourceMethods(existingResource, eventResource, metamodel));
 			// finally, compare at the annotations level
 			results.addAll(updateResourceAnnotations(existingResource, eventResource));
+			break;
+		}
+		return results;
+	}
+
+	private List<JaxrsElementDelta> processProviderChangesOnScopeAdditionOrChange(IJavaElement scope,
+			JaxrsMetamodel metamodel, int deltaKind, IProgressMonitor progressMonitor) throws JavaModelException,
+			CoreException {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		final List<JaxrsElementDelta> changes = preprocessProviderChangesOnScopeAdditionOrChange(scope, metamodel,
+				progressMonitor);
+		for (JaxrsElementDelta change : changes) {
+			results.addAll(postProcessProvider(change, progressMonitor));
+		}
+		return results;
+	}
+
+	private List<JaxrsElementDelta> preprocessProviderChangesOnScopeAdditionOrChange(IJavaElement scope,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		// see if there may be elements to add/change from the given scope
+		final List<JaxrsProvider> transientProviders = new ArrayList<JaxrsProvider>();
+		final List<IType> transientProviderTypes = JaxrsAnnotationsScanner.findProviderTypes(scope, false, progressMonitor);
+		for (IType transientProviderType : transientProviderTypes) {
+			final CompilationUnit ast = JdtUtils.parse(transientProviderType, progressMonitor);
+			final JaxrsProvider transientProvider = JaxrsElementFactory.createProvider(transientProviderType, ast, metamodel, progressMonitor);
+			if (transientProvider != null) {
+				transientProviders.add(transientProvider);
+			}
+		}
+		// retrieve the existing elements from the Metamodel
+		final List<JaxrsProvider> existingProviders = metamodel.getElements(scope, JaxrsProvider.class);
+		// compute the differences, with a 'fuzzy' case when the kind is
+		// 'changed'
+		final Collection<JaxrsProvider> addedProviders = CollectionUtils.difference(transientProviders,
+				existingProviders);
+		for (JaxrsProvider provider : addedProviders) {
+			results.add(new JaxrsElementDelta(provider, ADDED));
+		}
+		final Collection<JaxrsProvider> changedProviders = CollectionUtils.intersection(transientProviders,
+				existingProviders);
+		for (JaxrsProvider provider : changedProviders) {
+			results.add(new JaxrsElementDelta(provider, CHANGED, F_FINE_GRAINED));
+		}
+		final Collection<JaxrsProvider> removedProviders = CollectionUtils.difference(existingProviders,
+				transientProviders);
+		for (JaxrsProvider provider : removedProviders) {
+			results.add(new JaxrsElementDelta(provider, REMOVED));
+		}
+		return results;
+	}
+	
+	private List<JaxrsElementDelta> processProviderChangesOnScopeRemoval(IJavaElement scope,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		final List<JaxrsElementDelta> changes = preprocessProviderChangesOnScopeRemoval(scope, metamodel,
+				progressMonitor);
+		for (JaxrsElementDelta change : changes) {
+			results.addAll(postProcessProvider(change, progressMonitor));
+		}
+		return results;
+	}
+	
+	//TODO: pseudo code duplication with other preprocess<Category>OnScopeRemoval
+	private List<JaxrsElementDelta> preprocessProviderChangesOnScopeRemoval(final IJavaElement scope,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException,
+			JavaModelException {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		// retrieve the existing elements from the Metamodel
+		final List<JaxrsProvider> existingProviders = metamodel.getElements(scope, JaxrsProvider.class);
+		for (JaxrsProvider httpMethod : existingProviders) {
+			results.add(new JaxrsElementDelta(httpMethod, REMOVED));
+		}
+		return results;
+	}
+
+	private Collection<JaxrsElementDelta> postProcessProvider(JaxrsElementDelta event,
+			IProgressMonitor progressMonitor) throws CoreException {
+		final List<JaxrsElementDelta> results = new ArrayList<JaxrsElementDelta>();
+		final JaxrsProvider eventProvider = (JaxrsProvider) event.getElement();
+		final JaxrsMetamodel metamodel = eventProvider.getMetamodel();
+		switch (event.getDeltaKind()) {
+		case ADDED:
+			metamodel.add(eventProvider);
+			results.add(event);
+			break;
+		case REMOVED:
+			metamodel.remove(eventProvider);
+			results.add(event);
+			break;
+		case CHANGED:
+			final JaxrsProvider existingProvider = metamodel.getElement(eventProvider.getJavaElement(),
+					JaxrsProvider.class);
+			final int flags = existingProvider.update(eventProvider);
+			if (flags != 0) {
+				results.add(new JaxrsElementDelta(existingProvider, CHANGED, flags));
+			}
 			break;
 		}
 		return results;

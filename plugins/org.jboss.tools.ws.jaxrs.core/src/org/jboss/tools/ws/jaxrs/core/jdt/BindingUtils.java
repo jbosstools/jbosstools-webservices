@@ -49,6 +49,10 @@ public class BindingUtils {
 	 * @return
 	 */
 	public static Annotation toAnnotation(IAnnotationBinding annotationBinding, IAnnotation javaAnnotation) {
+		// return null if underlying java annotation does not exists or is not found (eg: compilation error in the compilation unit)
+		if(javaAnnotation == null) {
+			return null;
+		}
 		final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
 		final Map<String, List<String>> annotationElements = BindingUtils.resolveAnnotationElements(annotationBinding);
 		return new Annotation(javaAnnotation, annotationName, annotationElements);

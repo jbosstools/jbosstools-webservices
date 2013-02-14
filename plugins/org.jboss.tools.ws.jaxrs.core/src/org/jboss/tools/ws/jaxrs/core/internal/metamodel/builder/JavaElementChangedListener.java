@@ -35,6 +35,23 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
  */
 public class JavaElementChangedListener implements IElementChangedListener {
 
+	/** Listener state. */
+	private boolean active = true;
+
+	/**
+	 * Stops processing the incoming {@link ElementChangedEvent} in the implemented {@link IElementChangedListener#elementChanged(ElementChangedEvent)} method
+	 */
+	public void pause() {
+		this.active = false;
+	}
+
+	/**
+	 * Stops processing the incoming {@link JavaElementDelta}
+	 */
+	public void resume() {
+		this.active = true;
+	}
+	
 	/**
 	 * {@inheritDoc} (non-Javadoc)
 	 * 
@@ -42,6 +59,9 @@ public class JavaElementChangedListener implements IElementChangedListener {
 	 */
 	@Override
 	public void elementChanged(ElementChangedEvent event) {
+		if(!active) {
+			return;
+		}
 		try {
 			if (isApplicable(event.getDelta())) {
 				logDelta(event.getDelta(), event.getType());

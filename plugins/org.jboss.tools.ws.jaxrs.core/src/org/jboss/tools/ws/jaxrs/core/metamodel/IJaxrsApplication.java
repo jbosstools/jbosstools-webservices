@@ -19,5 +19,9 @@ public interface IJaxrsApplication extends IJaxrsElement {
 	public abstract String getJavaClassName();
 
 	public abstract IResource getResource();
+	
+	public abstract boolean isWebXmlApplication();
+
+	public abstract boolean isJavaApplication();
 
 }

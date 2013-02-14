@@ -130,7 +130,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setup() throws CoreException {
-		JBossJaxrsCorePlugin.getDefault().unregisterListeners();
+		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		Assert.assertNotNull("JavaProject not set");
 		// ElementChangedEvent.POST_RECONCILE is the only case where the
 		// CompilationUnitAST is retrieved
@@ -1107,7 +1107,6 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenResourceMarkerRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		// ResourcesPlugin.getWorkspace().addResourceChangeListener(listener);
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operations
 		IField field = type.getField("entityManager");
@@ -1117,6 +1116,32 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		for (IMethod method : type.getMethods()) {
 			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_MARKER_ADDED, atLeastOnce());
 			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_MARKER_REMOVED, atLeastOnce());
+		}
+	}
+	
+	@Test
+	public void shouldNotifyWhenParameterTypeChangedInPrimaryCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		// operations
+		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "import javax.persistence.EntityNotFoundException;", "import javax.persistence.NoResultException;", false);
+		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "ExceptionMapper<EntityNotFoundException>", "ExceptionMapper<NoResultException>", false);
+		// verifications
+		for (IMethod method : type.getMethods()) {
+			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_SIGNATURE, atLeastOnce());
+		}
+	}
+
+	@Test
+	public void shouldNotifyWhenParameterTypeChangedInWorkingCopy() throws CoreException, InterruptedException {
+		// pre-condition
+		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		// operations
+		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "import javax.persistence.EntityNotFoundException;", "import javax.persistence.NoResultException;", true);
+		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "ExceptionMapper<EntityNotFoundException>", "ExceptionMapper<NoResultException>", true);
+		// verifications
+		for (IMethod method : type.getMethods()) {
+			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_SIGNATURE, atLeastOnce());
 		}
 	}
 }

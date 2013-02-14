@@ -36,14 +36,23 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	 * @param parentResource
 	 * @param metamodel
 	 */
-	public JaxrsResourceField(final IField javaField, final Map<String, Annotation> annotations, final JaxrsResource parentResource,
-			JaxrsMetamodel metamodel) {
+	public JaxrsResourceField(final IField javaField, final Map<String, Annotation> annotations,
+			final JaxrsResource parentResource, JaxrsMetamodel metamodel) {
 		super(javaField, annotations, parentResource, metamodel);
 	}
 
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.RESOURCE_FIELD;
+	}
+	
+	@Override
+	public boolean isMarkedForRemoval() {
+		final boolean hasPathParamAnnotation = hasAnnotation(PATH_PARAM.qualifiedName);
+		final boolean hasQueryParamAnnotation = hasAnnotation(QUERY_PARAM.qualifiedName);
+		final boolean hasMatrixParamAnnotation = hasAnnotation(MATRIX_PARAM.qualifiedName);
+		// element should be removed if it has neither @PathParam, @QueryParam nor @MatrixParam annotation
+		return !(hasPathParamAnnotation || hasQueryParamAnnotation || hasMatrixParamAnnotation);
 	}
 
 	public Annotation getPathParamAnnotation() {

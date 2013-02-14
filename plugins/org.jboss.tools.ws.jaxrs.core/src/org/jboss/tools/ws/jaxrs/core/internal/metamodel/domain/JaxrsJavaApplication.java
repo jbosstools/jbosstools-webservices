@@ -10,18 +10,15 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.*;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_HIERARCHY;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 
 import java.util.Map;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
@@ -62,11 +59,24 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	}
 	
 	@Override
+	public boolean isMarkedForRemoval() {
+		// element should be removed if it's not an application subclass and it has no ApplicationPath annotation
+		return !(isApplicationSubclass || getApplicationPathAnnotation() != null);
+	}
+
+	@Override
 	public EnumElementKind getElementKind() {
-		if(isApplicationSubclass || getApplicationPathAnnotation() != null) {
-			return EnumElementKind.APPLICATION_JAVA;
-		}
 		return EnumElementKind.UNDEFINED;
+	}
+
+	@Override
+	public boolean isWebXmlApplication() {
+		return false;
+	}
+	
+	@Override
+	public boolean isJavaApplication() {
+		return true;
 	}
 	
 	public boolean isJaxrsCoreApplicationSubclass() {
@@ -135,7 +145,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	 * @return the flags indicating the kind of changes that occurred during the
 	 *         update.
 	 */
-	public int update(JaxrsJavaApplication application) {
+	public int update(final JaxrsJavaApplication application) {
 		int flags = 0;
 		final Annotation annotation = this.getAnnotation(APPLICATION_PATH.qualifiedName);
 		final Annotation otherAnnotation = application.getAnnotation(APPLICATION_PATH.qualifiedName);
@@ -150,32 +160,11 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		// handle case where annotation is changed 
 		else if(annotation != null && otherAnnotation != null
 						&& annotation.update(otherAnnotation)) {
-			flags += F_APPLICATION_PATH_VALUE;
+			flags += F_APPLICATION_PATH_ANNOTATION;
 		}
 		
 		if(this.isJaxrsCoreApplicationSubclass() != application.isJaxrsCoreApplicationSubclass()) {
 			this.isApplicationSubclass = application.isJaxrsCoreApplicationSubclass();
-			flags += F_APPLICATION_HIERARCHY;
-		}
-		
-		return flags;
-	}
-
-	/**
-	 * Update this application from the given underlying java type. This update() method focused on supertype changes,
-	 * as annotation updates are taken into account by the {@link JaxrsJavaElement#updateAnnotations(java.util.Map)}
-	 * method.
-	 * 
-	 * @param javaType
-	 * @return flags indicating the nature of the changes
-	 * @throws CoreException 
-	 */
-	public int update(IType javaType) throws CoreException {
-		int flags = 0;
-		final IType applicationSupertype = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName, javaType.getJavaProject(), new NullProgressMonitor());
-		final boolean isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, javaType);
-		if(this.isJaxrsCoreApplicationSubclass() != isApplicationSubclass) {
-			this.isApplicationSubclass = isApplicationSubclass;
 			flags += F_APPLICATION_HIERARCHY;
 		}
 		return flags;

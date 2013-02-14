@@ -13,8 +13,10 @@ package org.jboss.tools.ws.jaxrs.core.internal.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Collections utility class.
@@ -169,6 +171,17 @@ public class CollectionUtils {
 		}
 		return result;
 	}
+	
+	/**
+	 * Compares the content of the 2 given collections
+	 * @param collection
+	 * @param otherCollection
+	 * @return true if the intersection of both collections is not empty (ie, collections have values in common), false otherwise.
+	 */
+	public static boolean hasIntersection(final Collection<String> collection, final Collection<String> otherCollection) {
+		return !intersection(collection, otherCollection).isEmpty();
+	}
+
 
 	public static <T> T[] append(T[] sourceArray, T extraElement, T[] targetArray) {
 		System.arraycopy(sourceArray, 0, targetArray, 0, sourceArray.length);
@@ -269,5 +282,19 @@ public class CollectionUtils {
 		}
 
 	}
+
+	/**
+	 * Converts the given elements into a set
+	 * @param elements
+	 * @return the set containing the given elements
+	 */
+	public static <T> Set<T> toSet(T... elements) {
+		final Set<T> result = new HashSet<T>();
+		for(T element : elements) {
+			result.add(element);
+		}
+		return result;
+	}
+
 
 }

@@ -22,13 +22,14 @@ import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotationValue
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCED_MEDIATYPES_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONTEXT;
@@ -42,6 +43,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.POST;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PUT;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RESPONSE;
@@ -83,6 +85,8 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
+import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -343,9 +347,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(impacts.get(0).getElement(), is(notNullValue()));
+		assertThat(impacts.get(0).getElement(), equalTo((IJaxrsElement)application));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
@@ -534,9 +537,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(impacts.get(0).getElement(), is(notNullValue()));
+		assertThat(impacts.get(0).getElement(), equalTo((IJaxrsElement)httpMethod));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
@@ -682,9 +684,10 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldBecomeRootResourceWhenAddingPathAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createSimpleResource(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PRODUCES.qualifiedName,
-				CONSUMES.qualifiedName);
+		final JaxrsResource resource = createFullResource(
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		resource.removeAnnotation(resource.getAnnotation(PATH.qualifiedName));
+		assertThat(resource.isSubresource(), equalTo(true));
 		// operation
 		final Annotation pathAnnotation = resolveAnnotation(resource.getJavaElement(), PATH.qualifiedName);
 		final JavaElementDelta event = createEvent(pathAnnotation, ADDED);
@@ -692,8 +695,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_ELEMENT_KIND + F_PATH_VALUE));
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_ELEMENT_KIND + F_PATH_ANNOTATION));
 	}
 
 	@Test
@@ -723,7 +725,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_ANNOTATION));
 		assertThat((JaxrsResource) impacts.get(0).getElement(), equalTo(resource));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
@@ -740,7 +742,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -758,7 +760,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -773,7 +775,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -789,7 +791,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -807,7 +809,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -822,7 +824,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
@@ -956,7 +958,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingPathParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "productType", PATH_PARAM.qualifiedName, "foo");
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "productType").annotation(PATH_PARAM.qualifiedName, "foobar")
+				.build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(PATH_PARAM.qualifiedName), CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -969,8 +972,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingQueryParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "foo", QUERY_PARAM.qualifiedName, "foo!");
-		// operation
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "foo").annotation(QUERY_PARAM.qualifiedName, "foo!")
+				.build();// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(QUERY_PARAM.qualifiedName), CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
@@ -982,7 +985,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingMatrixParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "bar", MATRIX_PARAM.qualifiedName, "bar!");
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "bar").annotation(MATRIX_PARAM.qualifiedName, "bar!")
+				.build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(MATRIX_PARAM.qualifiedName), CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -995,7 +999,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldDoNothingWhenChangingUnrelatedResourceFieldAnnotationValue() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "bar", SuppressWarnings.class.getName(), "foobar");
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "bar").annotation(MATRIX_PARAM.qualifiedName)
+				.annotation(SuppressWarnings.class.getName(), "foobar").build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(SuppressWarnings.class.getName()), CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1007,7 +1012,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingPathParamAnnotatedOnField() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "productType", PATH_PARAM.qualifiedName);
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "productType")
+				.annotation(PATH_PARAM.qualifiedName).build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(PATH_PARAM.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1020,7 +1026,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingQueryParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "foo", QUERY_PARAM.qualifiedName);
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "foo").annotation(QUERY_PARAM.qualifiedName)
+				.build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(QUERY_PARAM.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1033,7 +1040,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingMatrixParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "bar", MATRIX_PARAM.qualifiedName);
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "bar").annotation(MATRIX_PARAM.qualifiedName)
+				.build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(MATRIX_PARAM.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1046,7 +1054,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithQueryParam() throws CoreException {
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "foo", QUERY_PARAM.qualifiedName);
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "foo").annotation(QUERY_PARAM.qualifiedName)
+				.build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getAnnotation(QUERY_PARAM.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1060,7 +1069,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithPathParam() throws CoreException {
 		// pre-conditions
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = createField(resource, "productType", PATH_PARAM.qualifiedName, "foo");
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "foo").annotation(QUERY_PARAM.qualifiedName)
+				.build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getJavaElement(), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1074,7 +1084,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithMatrixParam() throws CoreException {
 		final JaxrsResource resource = createSimpleResource(
 				"org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator", PATH.qualifiedName);
-		final JaxrsResourceField field = createField(resource, "bar", MATRIX_PARAM.qualifiedName);
+		final JaxrsResourceField field = resourceFieldBuilder(resource, "bar").annotation(MATRIX_PARAM.qualifiedName)
+				.build();
 		// operation
 		final JavaElementDelta event = createEvent(field.getJavaElement(), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1210,7 +1221,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_ELEMENT_KIND + F_PATH_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_ELEMENT_KIND + F_PATH_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1336,7 +1347,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_VALUE + F_ELEMENT_KIND));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_ANNOTATION + F_ELEMENT_KIND));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1357,7 +1368,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_VALUE + F_ELEMENT_KIND));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_ANNOTATION + F_ELEMENT_KIND));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1378,7 +1389,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_HTTP_METHOD_VALUE + F_ELEMENT_KIND));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_HTTP_METHOD_ANNOTATION + F_ELEMENT_KIND));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1415,7 +1426,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PATH_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1436,7 +1447,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1457,7 +1468,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1478,7 +1489,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1500,7 +1511,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1519,7 +1530,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1539,7 +1550,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
@@ -1659,9 +1670,12 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// Parent JAX-RS Resource
 		final JaxrsResource resource = createSimpleResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource",
 				PATH.qualifiedName);
-		final IMethod method = createMethod(resource, "getPicture");
+		final JaxrsResourceMethod resourceMethod = resourceMethodBuilder(resource, "getPicture")
+				.annotation(PATH.qualifiedName)
+				.methodParameter("id", String.class.getName(), createAnnotation(PATH_PARAM.qualifiedName, null))
+				.returnedType("java.lang.Object").build();
 		// operation
-		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
+		final JavaElementDelta event = createEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
@@ -1670,20 +1684,6 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// @HTTP + resource + resourceMethod
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
-	}
-
-	protected IMethod createMethod(final JaxrsResource resource, String methodName) throws JavaModelException,
-			CoreException {
-		final IMethod method = getMethod(resource.getJavaElement(), methodName);
-		final JavaMethodParameter pathParameter = new JavaMethodParameter("id", String.class.getName(),
-				Arrays.asList(createAnnotation(PATH_PARAM.qualifiedName, null)));
-		final List<JavaMethodParameter> methodParameters = Arrays.asList(pathParameter);
-		final Map<String, Annotation> methodAnnotations = resolveAnnotations(method, PATH.qualifiedName);
-		final IType returnedType = getType("java.lang.Object");
-		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(method, resource, methodParameters,
-				returnedType, methodAnnotations, metamodel);
-		metamodel.add(resourceMethod);
-		return method;
 	}
 
 	@Test
@@ -1751,14 +1751,15 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// Parent JAX-RS Resource
 		final JaxrsResource resource = createSimpleResource(
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
-		// JAX-RS Resource Method (with an extra @Queryparam annotation on 'uriInfo' param)
+		// JAX-RS Resource Method (with an extra @Queryparam annotation on
+		// 'uriInfo' param)
 		final JaxrsResourceMethod resourceMethod = resourceMethodBuilder(resource, "getCustomers")
 				.annotation(GET.qualifiedName)
 				.methodParameter("start", "int", createAnnotation(QUERY_PARAM.qualifiedName, "start"))
 				.methodParameter("size", "int", createAnnotation(QUERY_PARAM.qualifiedName, "length"),
 						createAnnotation(DEFAULT_VALUE.qualifiedName, "2"))
-				.methodParameter("uriInfo", URI_INFO.qualifiedName, createAnnotation(CONTEXT.qualifiedName), createAnnotation(QUERY_PARAM.qualifiedName, "foo"))
-				.returnedType("java.util.List").build();
+				.methodParameter("uriInfo", URI_INFO.qualifiedName, createAnnotation(CONTEXT.qualifiedName),
+						createAnnotation(QUERY_PARAM.qualifiedName, "foo")).returnedType("java.util.List").build();
 		// operation
 		final JavaElementDelta event = createEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1767,7 +1768,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
 		// @HTTP + resource + resourceMethod
-		assertThat(metamodel.getElements(javaProject).size(), equalTo(3)); 
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(3));
 	}
 
 	@Test
@@ -1782,8 +1783,7 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		final JaxrsResourceMethod resourceMethod = resourceMethodBuilder(resource, "getPicture")
 				.annotation(GET.qualifiedName)
 				.methodParameter("id", Integer.class.getName(), createAnnotation(PATH_PARAM.qualifiedName, "id"))
-				.methodParameter("color", String.class.getName())
-				.returnedType("java.lang.Object").build();
+				.methodParameter("color", String.class.getName()).returnedType("java.lang.Object").build();
 		// operation
 		final JavaElementDelta event = createEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
@@ -1835,7 +1835,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// annotation on 'id' param)
 		final JaxrsResourceMethod resourceMethod = resourceMethodBuilder(resource, "getProduct")
 				.annotation(GET.qualifiedName)
-				.methodParameter("id", Integer.class.getName(), createAnnotation(MATRIX_PARAM.qualifiedName, "foo"), createAnnotation(PATH_PARAM.qualifiedName, "id"))
+				.methodParameter("id", Integer.class.getName(), createAnnotation(MATRIX_PARAM.qualifiedName, "foo"),
+						createAnnotation(PATH_PARAM.qualifiedName, "id"))
 				.returnedType("org.jboss.tools.ws.jaxrs.sample.domain.Book").build();
 		// operation
 		final JavaElementDelta event = createEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
@@ -1871,8 +1872,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 				uriInfoParameter);
 		final Map<String, Annotation> methodAnnotations = resolveAnnotations(method, GET.qualifiedName);
 		final IType returnedType = getType(RESPONSE.qualifiedName);
-		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(method, resource, methodParameters,
-				returnedType, methodAnnotations, metamodel);
+		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(method, methodParameters,
+				returnedType, methodAnnotations, resource, metamodel);
 		metamodel.add(resourceMethod);
 		// operation
 		final JavaElementDelta event = createEvent(method, CHANGED, F_SIGNATURE);
@@ -1981,10 +1982,8 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 	public void shouldUpdateResourceMethodWhenRemovingThrowsException() throws CoreException {
 		fail("Not implemented yet - postponed along with support for providers");
 	}
-	
-	
-	
-	@Test @Ignore
+
+	@Test
 	public void shouldAddProviderWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
 		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
@@ -1999,44 +1998,49 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldAddProviderWhenAddingSourceType() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		final JavaElementDelta event = createEvent(type, ADDED);
+		final JavaElementDelta event = createEvent(providerType, ADDED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
+		final JaxrsElementDelta delta = impacts.get(0);
+		assertThat(delta.getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(delta.getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsProvider) delta.getElement()).getProvidedType(EnumElementKind.EXCEPTION_MAPPER),
+				equalTo(resolveType("javax.persistence.EntityNotFoundException")));
+		verify(metamodel, times(1)).add(any(JaxrsProvider.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldAddProviderWhenAddingProviderAnnotation() throws CoreException {
 		// pre-conditions
 		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		final Annotation pathAnnotation = resolveAnnotation(type, APPLICATION_PATH.qualifiedName);
+		final Annotation providerAnnotation = resolveAnnotation(type, PROVIDER.qualifiedName);
 		// operation
-		final JavaElementDelta event = createEvent(pathAnnotation, ADDED);
+		final JavaElementDelta event = createEvent(providerAnnotation, ADDED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(impacts.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
-		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
+		final JaxrsElementDelta delta = impacts.get(0);
+		assertThat(delta.getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(delta.getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsProvider) delta.getElement()).getProvidedType(EnumElementKind.EXCEPTION_MAPPER),
+				equalTo(resolveType("javax.persistence.EntityNotFoundException")));
+		verify(metamodel, times(1)).add(any(JaxrsProvider.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldDoNothingWhenAddingUnrelatedAnnotationOnProvider() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		final Annotation suppressWarningAnnotation = resolveAnnotation(application.getJavaElement(),
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper").build();
+		final Annotation suppressWarningAnnotation = resolveAnnotation(provider.getJavaElement(),
 				SuppressWarnings.class.getName());
 		// operation
 		final JavaElementDelta event = createEvent(suppressWarningAnnotation, ADDED);
@@ -2044,27 +2048,32 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		// one call, during pre-conditions
-		verify(metamodel, times(1)).add(any(JaxrsJavaApplication.class));
+		verify(metamodel, times(1)).add(any(JaxrsProvider.class));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldDoNothingWhenAnnotationValueRemainsSameOnProvider() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper").annotation(
+				createAnnotation(PROVIDER.qualifiedName)).build();
 		// operation
-		final JavaElementDelta event = createEvent(application.getAnnotation(APPLICATION_PATH.qualifiedName), CHANGED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(PROVIDER.qualifiedName), CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldDoNothingWhenChangingUnrelatedProviderAnnotationValue() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		final Annotation suppressWarningsAnnotation = resolveAnnotation(application.getJavaElement(),
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(SuppressWarnings.class.getName())).build();
+		final Annotation suppressWarningsAnnotation = resolveAnnotation(provider.getJavaElement(),
 				SuppressWarnings.class.getName());
 		// operation
 		final JavaElementDelta event = createEvent(suppressWarningsAnnotation, CHANGED);
@@ -2074,218 +2083,323 @@ public class JavaElementChangedProcessorTestCase extends AbstractCommonTestCase 
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldRemoveProviderWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper").annotation(
+				createAnnotation(PROVIDER.qualifiedName)).build();
 		// operation
-		final JavaElementDelta event = createEvent(application.getJavaElement().getCompilationUnit(), REMOVED);
+		final JavaElementDelta event = createEvent(provider.getJavaElement().getCompilationUnit(), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()), equalTo(application));
+		assertThat(((JaxrsProvider) impacts.get(0).getElement()), equalTo(provider));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldRemoveProviderWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper").annotation(
+				createAnnotation(PROVIDER.qualifiedName)).build();
 		// operation
-		final JavaElementDelta event = createEvent(application.getJavaElement(), REMOVED);
+		final JavaElementDelta event = createEvent(provider.getJavaElement(), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsJavaApplication) impacts.get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldNotRemoveProviderWhenRemovingAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final JavaElementDelta event = createEvent(application.getAnnotation(APPLICATION_PATH.qualifiedName), REMOVED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(PROVIDER.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
-		assertThat(application.getApplicationPath(), nullValue());
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldRemoveProviderWhenRemovingAnnotationAndHierarchyAlreadyMissing() throws CoreException {
 		// pre-conditions
-		/*
-		 * final IType type =
-		 * resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper"
-		 * ); final Annotation appPathAnnotation = resolveAnnotation(type,
-		 * APPLICATION_PATH.qualifiedName); final JaxrsJavaApplication
-		 * application = new JaxrsJavaApplication(type, appPathAnnotation,
-		 * false, metamodel); metamodel.add(application);
-		 */
-		final JaxrsJavaApplication application = createJavaApplication(
-				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper", false);
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper").annotation(
+				createAnnotation(PROVIDER.qualifiedName)).build();
 		// operation
-		final JavaElementDelta event = createEvent(application.getAnnotation(APPLICATION_PATH.qualifiedName), REMOVED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(PROVIDER.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldRemoveProviderWhenRemovingHierarchyAndAnnotationAlreadyMissing() throws CoreException {
 		// pre-conditions
 		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@ApplicationPath(\"/app\")", "", false);
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Application", "", false);
-		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Provider", "", false);
+		providerBuilder("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", "",
+				false);
 		final JavaElementDelta event = createEvent(type, CHANGED, IJavaElementDeltaFlag.F_SUPER_TYPES);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldDoNothingWhenRemovingUnrelatedAnnotationOnProvider() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(SuppressWarnings.class.getName()))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final JavaElementDelta event = createEvent(application.getAnnotation(SuppressWarnings.class.getName()), REMOVED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(SuppressWarnings.class.getName()), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(0));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldRemoveProviderWhenRemovingSourceFolder() throws CoreException {
 		// pre-conditions
-		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		providerBuilder("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
 		// operation
 		final JavaElementDelta event = createEvent(sourceFolder, REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
-		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(impacts.get(0).getElement().getElementCategory(), equalTo(EnumElementCategory.PROVIDER));
 		assertThat(impacts.get(0).getElement(), is(notNullValue()));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(0));
 	}
-	
-	@Test @Ignore
+
+	@Test
 	public void shouldUpdateProviderWhenAddingConsumesAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createSimpleResource(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final Annotation consumesAnnotation = resolveAnnotation(resource.getJavaElement(), CONSUMES.qualifiedName);
+		final Annotation consumesAnnotation = resolveAnnotation(provider.getJavaElement(), CONSUMES.qualifiedName);
 		final JavaElementDelta event = createEvent(consumesAnnotation, ADDED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldUpdateProviderWhenChangingConsumesAnnotationValue() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createSimpleResource(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName, CONSUMES.qualifiedName);
-		final Annotation consumesAnnotation = changeAnnotationValue(resource.getAnnotation(CONSUMES.qualifiedName),
-				"application/foo");
-		resource.updateAnnotations(CollectionUtils.toMap(CONSUMES.qualifiedName, consumesAnnotation));
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(CONSUMES.qualifiedName, "application/foo"))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final JavaElementDelta event = createEvent(consumesAnnotation, CHANGED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(CONSUMES.qualifiedName), CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldUpdateProviderWhenRemovingConsumesAnnotation() throws CoreException {
-		// pre-conditions
-		final JaxrsResource resource = createSimpleResource(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName, CONSUMES.qualifiedName);
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(CONSUMES.qualifiedName))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final JavaElementDelta event = createEvent(resource.getAnnotation(CONSUMES.qualifiedName), REMOVED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(CONSUMES.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldUpdateProviderWhenAddingProducesAnnotation() throws CoreException {
-		// pre-conditions
-		final JaxrsResource resource = createSimpleResource(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName);
+		// pre-condition
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final Annotation producesAnnotation = resolveAnnotation(resource.getJavaElement(), PRODUCES.qualifiedName);
-		final JavaElementDelta event = createEvent(producesAnnotation, ADDED);
+		final JavaElementDelta event = createEvent(
+				resolveAnnotation(provider.getJavaElement(), PRODUCES.qualifiedName), ADDED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldUpdateProviderWhenChangingProducesAnnotationValue() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createSimpleResource(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName, PRODUCES.qualifiedName);
-		final Annotation producesAnnotation = changeAnnotationValue(resource.getAnnotation(PRODUCES.qualifiedName),
-				"application/foo");
-		resource.updateAnnotations(CollectionUtils.toMap(PRODUCES.qualifiedName, producesAnnotation));
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(PRODUCES.qualifiedName, "application/foo"))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final JavaElementDelta event = createEvent(producesAnnotation, CHANGED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(PRODUCES.qualifiedName), CHANGED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
-	@Test @Ignore
+	@Test
 	public void shouldUpdateProviderWhenRemovingProducesAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createSimpleResource(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", PATH.qualifiedName, PRODUCES.qualifiedName);
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(PRODUCES.qualifiedName))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.EntityNotFoundException").build();
 		// operation
-		final JavaElementDelta event = createEvent(resource.getAnnotation(PRODUCES.qualifiedName), REMOVED);
+		final JavaElementDelta event = createEvent(provider.getAnnotation(PRODUCES.qualifiedName), REMOVED);
 		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
 		// verifications
 		assertThat(impacts.size(), equalTo(1));
 		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCED_MEDIATYPES_VALUE));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
 	}
 
+	@Test
+	public void shouldUpdateProviderWhenProvidedTypeChanged() throws CoreException {
+		// pre-conditions
+		final JaxrsProvider provider = providerBuilder(
+				"org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(PRODUCES.qualifiedName))
+				.annotation(createAnnotation(CONSUMES.qualifiedName))
+				.providedType(EnumElementKind.EXCEPTION_MAPPER, "javax.persistence.NoResultException").build();
+		// operation
+		final JavaElementDelta event = createEvent(provider.getJavaElement(), CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER), notNullValue());
+		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(),
+				equalTo("javax.persistence.EntityNotFoundException"));
+	}
+
+	@Test
+	public void shouldUpdateProviderWhenProvidedTypeChangedWithInterfacesInheritance() throws CoreException {
+		// pre-conditions
+		final JaxrsProvider provider = providerBuilder("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(PRODUCES.qualifiedName))
+				.annotation(createAnnotation(CONSUMES.qualifiedName))
+				.providedType(EnumElementKind.MESSAGE_BODY_READER, "java.lang.Number")
+				.providedType(EnumElementKind.MESSAGE_BODY_WRITER, "java.lang.Number").build();
+		// operation
+		final JavaElementDelta event = createEvent(provider.getJavaElement(), CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER).getFullyQualifiedName(),
+				equalTo("java.lang.String"));
+		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(),
+				equalTo("java.lang.Number"));
+	}
+
+	@Test
+	public void shouldNotRemoveMessageBodyReaderWhenProviderAnnotationButProvidedTypeDoesNotExist() throws CoreException {
+		// pre-conditions
+		final JaxrsProvider provider = providerBuilder("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(PRODUCES.qualifiedName))
+				.annotation(createAnnotation(CONSUMES.qualifiedName))
+				.providedType(EnumElementKind.MESSAGE_BODY_READER, "java.lang.String")
+				.providedType(EnumElementKind.MESSAGE_BODY_WRITER, "java.lang.Number").build();
+		// operation
+		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
+				"AbstractEntityProvider<Foo, Number>", false);
+		final JavaElementDelta event = createEvent(provider.getJavaElement(), CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(impacts.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
+		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(),
+				equalTo("java.lang.Number"));
+	}
+
+	@Test
+	public void shouldNotRemoveProviderWhenProviderAnnotationButProvidedTypesDoNotExist() throws CoreException {
+		// pre-conditions
+		final JaxrsProvider provider = providerBuilder("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider")
+				.annotation(createAnnotation(PROVIDER.qualifiedName))
+				.annotation(createAnnotation(PRODUCES.qualifiedName))
+				.annotation(createAnnotation(CONSUMES.qualifiedName))
+				.providedType(EnumElementKind.MESSAGE_BODY_READER, "java.lang.String")
+				.providedType(EnumElementKind.MESSAGE_BODY_WRITER, "java.lang.Number").build();
+		// operation
+		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
+				"AbstractEntityProvider<Foo, Bar>", false);
+		final JavaElementDelta event = createEvent(provider.getJavaElement(), CHANGED);
+		final List<JaxrsElementDelta> impacts = processEvent(event, progressMonitor);
+		// verifications
+		assertThat(impacts.size(), equalTo(1));
+		assertThat(impacts.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodel.getElements(javaProject).size(), equalTo(1));
+		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
+		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER), nullValue());
+	}
 }

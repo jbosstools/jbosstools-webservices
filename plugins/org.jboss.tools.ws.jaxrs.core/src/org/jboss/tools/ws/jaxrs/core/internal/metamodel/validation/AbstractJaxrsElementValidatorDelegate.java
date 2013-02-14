@@ -25,20 +25,13 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
  */
 public abstract class AbstractJaxrsElementValidatorDelegate<T extends IJaxrsElement> {
 	
-	private final T element;
-	
 	private final TempMarkerManager markerManager;
 	
-	public AbstractJaxrsElementValidatorDelegate(TempMarkerManager markerManager, T element) {
+	public AbstractJaxrsElementValidatorDelegate(final TempMarkerManager markerManager) {
 		this.markerManager = markerManager;
-		this.element = element;
 	}
 	
-	public abstract void validate() throws CoreException;
-
-	public T getElement() {
-		return element;
-	}
+	public abstract void validate(final T element) throws CoreException;
 
 	TempMarkerManager getMarkerManager() {
 		return markerManager;

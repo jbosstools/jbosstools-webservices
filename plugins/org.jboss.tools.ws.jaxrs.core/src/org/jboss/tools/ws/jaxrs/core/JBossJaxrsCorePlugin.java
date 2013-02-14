@@ -42,29 +42,6 @@ public class JBossJaxrsCorePlugin extends AbstractUIPlugin {
 	public JBossJaxrsCorePlugin() {
 	}
 
-	/**
-	 * Register the listeners.
-	 */
-	public void registerListeners() {
-		// the java changes are only captured during POST_RECONCILE (ie, during
-		// live coding)
-		JavaCore.addElementChangedListener(javaElementChangedListener);
-		// the resource changes are only captured during POST_CHANGE (ie, when
-		// the resource is saved, whatever the mean of changes in the file -
-		// editor, refactoring, etc.)
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangedListener,
-				IResourceChangeEvent.PRE_CLOSE);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void stop(BundleContext context) throws Exception {
-		plugin = null;
-		unregisterListeners();
-		super.stop(context);
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -77,11 +54,52 @@ public class JBossJaxrsCorePlugin extends AbstractUIPlugin {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void stop(BundleContext context) throws Exception {
+		plugin = null;
+		unregisterListeners();
+		super.stop(context);
+	}
+
+
+	/**
+	 * Register the listeners.
+	 */
+	private void registerListeners() {
+		// the java changes are only captured during POST_RECONCILE (ie, during
+		// live coding)
+		JavaCore.addElementChangedListener(javaElementChangedListener);
+		// the resource changes are only captured during POST_CHANGE (ie, when
+		// the resource is saved, whatever the mean of changes in the file -
+		// editor, refactoring, etc.)
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangedListener,
+				IResourceChangeEvent.PRE_CLOSE);
+	}
+
+	/**
 	 * Unregister the listeners.
 	 */
-	public void unregisterListeners() {
+	private void unregisterListeners() {
 		JavaCore.removeElementChangedListener(javaElementChangedListener);
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangedListener);
+	}
+
+	/**
+	 * Puts the change listeners in 'pause' mode so that they won't process any incoming notification.
+	 */
+	public void pauseListeners() {
+		javaElementChangedListener.pause();
+		resourceChangedListener.pause();
+	}
+	
+	/**
+	 * Puts the change listeners back in 'normal' mode so that they will process incoming notifications again.
+	 */
+	public void resumeListeners() {
+		javaElementChangedListener.resume();
+		resourceChangedListener.resume();
 	}
 
 	/**

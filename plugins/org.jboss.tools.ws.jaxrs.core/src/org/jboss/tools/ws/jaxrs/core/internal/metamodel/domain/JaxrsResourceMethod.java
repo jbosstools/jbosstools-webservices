@@ -16,6 +16,7 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 
 import java.util.ArrayList;
@@ -63,9 +64,10 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	 * @param metamodel
 	 */
 	public JaxrsResourceMethod(final IMethod javaMethod,
+			final List<JavaMethodParameter> javaMethodParameters,
+			final IType returnedJavaType, 
+			final Map<String, Annotation> annotations,
 			final JaxrsResource parentResource,
-			List<JavaMethodParameter> javaMethodParameters,
-			IType returnedJavaType, Map<String, Annotation> annotations,
 			final JaxrsMetamodel metamodel) {
 		super(javaMethod, annotations, parentResource, metamodel);
 		this.parentResource = parentResource;
@@ -148,7 +150,14 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod>
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.RESOURCE_METHOD;
 	}
-
+	
+	@Override
+	public boolean isMarkedForRemoval() {
+		final boolean hasPathAnnotation = hasAnnotation(PATH.qualifiedName);
+		final boolean hasHttpMethodAnnotation = getHttpMethodAnnotation() != null;
+		// element should be removed if it has no @Path annotation and it has no HTTP Method annotation
+		return !(hasPathAnnotation || hasHttpMethodAnnotation);
+	}
 	
 	/*
 	 * (non-Javadoc)

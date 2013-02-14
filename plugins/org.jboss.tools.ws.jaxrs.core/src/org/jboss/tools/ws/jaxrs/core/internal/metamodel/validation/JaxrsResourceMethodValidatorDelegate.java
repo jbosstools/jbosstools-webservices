@@ -51,16 +51,13 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 
 	private static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]+");
 
-	public JaxrsResourceMethodValidatorDelegate(final TempMarkerManager markerManager,
-			final JaxrsResourceMethod resourceMethod) {
-		super(markerManager, resourceMethod);
-
+	public JaxrsResourceMethodValidatorDelegate(final TempMarkerManager markerManager) {
+		super(markerManager);
 	}
 
 	@Override
-	public void validate() {
-		Logger.debug("Validating element {}", getElement());
-		final JaxrsResourceMethod resourceMethod = getElement();
+	public void validate(final JaxrsResourceMethod resourceMethod) {
+		Logger.debug("Validating element {}", resourceMethod);
 		try {
 			resourceMethod.resetProblemLevel();
 			validatePublicModifierOnJavaMethod(resourceMethod);

@@ -25,15 +25,33 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
  */
 public class ResourceChangedListener implements IResourceChangeListener {
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/** Listener state. */
+	private boolean active = true;
+
+	/**
+	 * Stops processing the incoming {@link IResourceChangeEvent} in the implemented {@link IResourceChangeListener#resourceChanged(IResourceChangeEvent)} method
+	 */
+	public void pause() {
+		this.active = false;
+	}
+
+	/**
+	 * Stops processing the incoming {@link JavaElementDelta}
+	 */
+	public void resume() {
+		this.active = true;
+	}
+	
+	/**
 	 * @see
 	 * org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org
 	 * .eclipse.core.resources.IResourceChangeEvent)
 	 */
 	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
+		if(!active) {
+			return;
+		}
 		try {
 			if (event.getType() == IResourceChangeEvent.PRE_CLOSE && event.getResource() != null
 					&& event.getResource().getType() == IResource.PROJECT) {

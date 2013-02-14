@@ -28,16 +28,15 @@ import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
  */
 public class JaxrsMetamodelValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsMetamodel> {
 
-	public JaxrsMetamodelValidatorDelegate(TempMarkerManager markerManager, JaxrsMetamodel metamodel) {
-		super(markerManager, metamodel);
+	public JaxrsMetamodelValidatorDelegate(final TempMarkerManager markerManager) {
+		super(markerManager);
 	}
 
 	@Override
-	public void validate() throws CoreException {
-		final JaxrsMetamodel metamodel = getElement();
+	public void validate(final JaxrsMetamodel metamodel) throws CoreException {
+		Logger.debug("Validating element {}", metamodel);
 		final IProject project = metamodel.getProject();
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(project);
-		Logger.debug("Validating element {}", getElement());
 		final List<IJaxrsApplication> allApplications = metamodel.getAllApplications();
 		if (allApplications.isEmpty()) {
 			addProblem(JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND,

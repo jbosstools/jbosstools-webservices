@@ -40,7 +40,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.junit.Test;
 
@@ -61,13 +60,13 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		for (IJaxrsApplication application : applications) {
-			if (application.getElementKind() == EnumElementKind.APPLICATION_WEBXML) {
+			if (application.isWebXmlApplication()) {
 				metamodel.remove((JaxrsBaseElement) application);
 			}
 		}
 		deleteJaxrsMarkers(project);
 		assertThat(metamodel.getAllApplications().size(), equalTo(1));
-		assertThat(metamodel.getApplication().getElementKind(), equalTo(EnumElementKind.APPLICATION_JAVA));
+		assertThat(metamodel.getApplication().isJavaApplication(), equalTo(true));
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -80,12 +79,12 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		for (IJaxrsApplication application : applications) {
-			if (application.getElementKind() == EnumElementKind.APPLICATION_JAVA) {
+			if (application.isJavaApplication()) {
 				metamodel.remove((JaxrsBaseElement) application);
 			}
 		}
 		assertThat(metamodel.getAllApplications().size(), equalTo(1));
-		assertThat(metamodel.getApplication().getElementKind(), equalTo(EnumElementKind.APPLICATION_WEBXML));
+		assertThat(metamodel.getApplication().isWebXmlApplication(), equalTo(true));
 		deleteJaxrsMarkers(project);
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
@@ -138,7 +137,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		JaxrsJavaApplication javaApplication = null;
 		// remove web.xml-based application and remove @ApplicationPath annotation on java-based application
 		for (IJaxrsApplication application : applications) {
-			if (application.getElementKind() == EnumElementKind.APPLICATION_WEBXML) {
+			if (application.isWebXmlApplication()) {
 				metamodel.remove((JaxrsBaseElement) application);
 			} else {
 				javaApplication = (JaxrsJavaApplication) application;

@@ -11,9 +11,16 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import java.util.HashMap;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
+
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
@@ -44,39 +51,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
  */
 public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProvider {
 
-	/**
-	 * Internal 'Provider' element builder.
-	 * 
-	 * @author xcoulon
-	 */
-	public static class Builder {
-		final IType javaType;
-		final JaxrsMetamodel metamodel;
-		private final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
-		private final Map<EnumElementKind, IType> providedTypes = new HashMap<EnumElementKind, IType>();
-
-		public Builder(final IType javaType, final JaxrsMetamodel metamodel) {
-			this.javaType = javaType;
-			this.metamodel = metamodel;
-		}
-
-		public Builder providedTypes(final Map<EnumElementKind, IType> providedTypes) {
-			this.providedTypes.putAll(providedTypes);
-			return this;
-		}
-
-		public Builder annotations(final Map<String, Annotation> annotations) {
-			this.annotations.putAll(annotations);
-			return this;
-		}
-
-		public JaxrsProvider build() {
-			return new JaxrsProvider(javaType, annotations, providedTypes, metamodel);
-		}
-
-	}
-
-	private final Map<EnumElementKind, IType> providedKinds;
+	private final Map<EnumElementKind, IType> providedTypes;
 
 	/**
 	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
@@ -86,23 +61,35 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	 * 
 	 * @param builder
 	 */
-	private JaxrsProvider(final IType javaType, final Map<String, Annotation> annotations,
+	public JaxrsProvider(final IType javaType, final Map<String, Annotation> annotations,
 			final Map<EnumElementKind, IType> providedKinds, final JaxrsMetamodel metamodel) {
 		super(javaType, annotations, metamodel);
-		this.providedKinds = providedKinds;
+		this.providedTypes = providedKinds;
 	}
 
 	@Override
 	public EnumElementCategory getElementCategory() {
 		return EnumElementCategory.PROVIDER;
 	}
+	
+	@Override
+	public boolean isMarkedForRemoval() {
+		final boolean isMessageBodyReader = providedTypes.get(EnumElementKind.MESSAGE_BODY_READER) != null;
+		final boolean isMessageBodyWriter = providedTypes.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
+		final boolean isExceptionMapper = providedTypes.get(EnumElementKind.EXCEPTION_MAPPER) != null;
+		final boolean isContextProvider = providedTypes.get(EnumElementKind.CONTEXT_RESOLVER) != null;
+		final boolean hasProviderAnnotation = hasAnnotation(PROVIDER.qualifiedName);
+		// element should be removed if it has no @Provider annotation or it does not implement any of the provider interfaces
+		// (missing annotation is acceptable by some JAX-RS implementation, and Provider can be registered in the JAX-RS application or in the web.xml)
+		return !(hasProviderAnnotation || (isMessageBodyReader || isMessageBodyWriter || isContextProvider || isExceptionMapper));
+	}
 
 	@Override
 	public EnumElementKind getElementKind() {
-		final boolean isMessageBodyReader = providedKinds.get(EnumElementKind.MESSAGE_BODY_READER) != null;
-		final boolean isMessageBodyWriter = providedKinds.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
-		final boolean isExceptionMapper = providedKinds.get(EnumElementKind.EXCEPTION_MAPPER) != null;
-		final boolean isContextProvider = providedKinds.get(EnumElementKind.CONTEXT_PROVIDER) != null;
+		final boolean isMessageBodyReader = providedTypes.get(EnumElementKind.MESSAGE_BODY_READER) != null;
+		final boolean isMessageBodyWriter = providedTypes.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
+		final boolean isExceptionMapper = providedTypes.get(EnumElementKind.EXCEPTION_MAPPER) != null;
+		final boolean isContextProvider = providedTypes.get(EnumElementKind.CONTEXT_RESOLVER) != null;
 		if (isMessageBodyReader && isMessageBodyWriter) {
 			return EnumElementKind.ENTITY_MAPPER;
 		} else if (isMessageBodyReader) {
@@ -112,14 +99,88 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		} else if (isExceptionMapper) {
 			return EnumElementKind.EXCEPTION_MAPPER;
 		} else if (isContextProvider) {
-			return EnumElementKind.CONTEXT_PROVIDER;
+			return EnumElementKind.CONTEXT_RESOLVER;
 		}
-		return null;
+		return EnumElementKind.UNDEFINED;
 	}
 
 	@Override
 	public IType getProvidedType(EnumElementKind providerKind) {
-		return providedKinds.get(providerKind);
+		return providedTypes.get(providerKind);
+	}
+
+	public Map<EnumElementKind, IType> getProvidedTypes() {
+		return providedTypes;
+	}
+	
+	public Annotation getConsumesAnnotation() {
+		return getAnnotation(CONSUMES.qualifiedName);
+	}
+
+	@Override
+	public List<String> getConsumedMediaTypes() {
+		final Annotation consumesAnnotation = getConsumesAnnotation();
+		if (consumesAnnotation == null) {
+			return null;
+		}
+		return consumesAnnotation.getValues("value");
+	}
+
+	public Annotation getProducesAnnotation() {
+		return getAnnotation(PRODUCES.qualifiedName);
+	}
+
+	@Override
+	public List<String> getProducedMediaTypes() {
+		final Annotation producesAnnotation = getProducesAnnotation();
+		if (producesAnnotation == null) {
+			return null;
+		}
+		return producesAnnotation.getValues("value");
+	}
+
+	/**
+	 * Update this provider from the given provider.
+	 * 
+	 * @param transientProvider
+	 * @return flags indicating the nature of the changes
+	 * @throws CoreException
+	 */
+	public int update(final JaxrsProvider transientProvider) throws CoreException {
+		int flags = F_NONE;
+		if (transientProvider != null) {
+			if (!this.getProvidedTypes().equals(transientProvider.getProvidedTypes())) {
+				this.providedTypes.clear();
+				this.providedTypes.putAll(transientProvider.getProvidedTypes());
+				flags += F_PROVIDER_HIERARCHY;
+			}
+			flags += updateAnnotations(transientProvider.getAnnotations());
+		}
+		return flags;
+	}
+
+	/**
+	 * Return {@link JaxrsJavaElement#hashCode()} result based on underlying Java Type. Thus, it does not take the Provider's Type Parameter(s) into account here.
+	 */
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
+
+	/**
+	 * Return {@link JaxrsJavaElement#equals(Object)} result based on underlying Java Type. Thus, it does not take the Provider's Type Parameter(s) into account here.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		return super.equals(obj);
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "JaxrsProvider " + getJavaElement().getElementName() + " [" + providedTypes + "]";
 	}
 
 }

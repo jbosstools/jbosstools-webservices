@@ -41,18 +41,15 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedPublisher;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
-import org.jboss.tools.ws.jaxrs.core.metamodel.validation.JaxrsMetamodelValidationConstants;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -74,7 +71,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	private static final String BUNDLE_NAME = JaxrsMetamodelValidator.class.getPackage().getName() + ".messages";
 
 	public JaxrsMetamodelValidator() {
-		super.setProblemType(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE);
+		super.setProblemType(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE);
 	}
 	
 	/*
@@ -236,7 +233,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 * @param element
 	 * @throws CoreException
 	 */
-	@SuppressWarnings("incomplete-switch")
 	private void validate(IJaxrsElement element) throws CoreException {
 		// skip validation on binary JAX-RS elements (if metamodel contains any)
 		if(element.isBinary()) {
@@ -244,26 +240,20 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		}
 		switch (element.getElementCategory()) {
 		case METAMODEL:
-			new JaxrsMetamodelValidatorDelegate(this, (JaxrsMetamodel)element).validate();
+			new JaxrsMetamodelValidatorDelegate(this).validate((JaxrsMetamodel)element);
 			break;
 		case APPLICATION:
-			switch (element.getElementKind()) {
-			case APPLICATION_JAVA:
-				new JaxrsJavaApplicationValidatorDelegate(this, (JaxrsJavaApplication) element).validate();
-				break;
-			case APPLICATION_WEBXML:
-				new JaxrsWebxmlApplicationValidatorDelegate(this, (JaxrsWebxmlApplication) element).validate();
-				break;
-			}
+			new JaxrsApplicationValidatorDelegate(this).validate((IJaxrsApplication) element);
 			break;
 		case HTTP_METHOD:
-			new JaxrsHttpMethodValidatorDelegate(this, (JaxrsHttpMethod) element).validate();
+			new JaxrsHttpMethodValidatorDelegate(this).validate((JaxrsHttpMethod) element);
 			break;
 		case PROVIDER:
+			new JaxrsProviderValidatorDelegate(this).validate((JaxrsProvider) element); 
 			break;
 		case RESOURCE:
 			// this validator delegate also deals with ResourceMethods and ResourceFields
-			new JaxrsResourceValidatorDelegate(this, (JaxrsResource) element).validate();
+			new JaxrsResourceValidatorDelegate(this).validate((JaxrsResource) element);
 			break;
 		default:
 			// skipping other categories of elements at this validator level. (see above)
@@ -305,7 +295,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		PreferenceInfoManager.register(getProblemType(), new JaxrsPreferenceInfo());
 	}
 	
-	public static void deleteJaxrsMarkers(final JaxrsBaseElement element) throws CoreException {
+	public static void deleteJaxrsMarkers(final IJaxrsElement element) throws CoreException {
 		if (element == null) {
 			return;
 		}
@@ -317,7 +307,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			return;
 		}
 		Logger.debug("Clearing JAX-RS markers for resource " + resource.getName());
-		resource.deleteMarkers(JaxrsMetamodelValidationConstants.JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
+		resource.deleteMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_ONE);
 	}
 
 	class JaxrsPreferenceInfo implements IPreferenceInfo{

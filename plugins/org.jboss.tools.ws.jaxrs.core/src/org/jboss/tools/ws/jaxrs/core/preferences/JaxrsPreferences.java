@@ -34,13 +34,13 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 
 	public static final String HTTP_METHOD_MISSING_RETENTION_ANNOTATION = INSTANCE
 			.createSeverityOption("httpMethodMissingRetentionAnnotation"); //$NON-NLS-1$
-	
+
 	public static final String HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE = INSTANCE
 			.createSeverityOption("httpMethodInvalidRetentionAnnotationValue"); //$NON-NLS-1$
-	
+
 	public static final String HTTP_METHOD_MISSING_TARGET_ANNOTATION = INSTANCE
 			.createSeverityOption("httpMethodMissingTargetAnnotation"); //$NON-NLS-1$
-	
+
 	public static final String HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE = INSTANCE
 			.createSeverityOption("httpMethodInvalidTargetAnnotationValue"); //$NON-NLS-1$
 
@@ -75,6 +75,24 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 	public static final String JAVA_APPLICATION_INVALID_TYPE_HIERARCHY = INSTANCE
 			.createSeverityOption("applicationInvalidTypeHierarchy"); //$NON-NLS-1$
 
+	// Provider Group
+
+	public static final String PROVIDER_MISSING_VALID_CONSTRUCTOR = INSTANCE
+			.createSeverityOption("providerMissingValidConstructor"); //$NON-NLS-1$
+
+	public static String PROVIDER_MISSING_ANNOTATION = INSTANCE.createSeverityOption("providerMissingAnnotation"); //$NON-NLS-1$
+
+	public static String PROVIDER_DUPLICATE_MESSAGE_BODY_READER = INSTANCE
+			.createSeverityOption("providerMessageBodyReader"); //$NON-NLS-1$
+
+	public static String PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER = INSTANCE
+			.createSeverityOption("providerDuplicateMessageBodyWriter"); //$NON-NLS-1$
+
+	public static String PROVIDER_DUPLICATE_EXCEPTION_MAPPER = INSTANCE
+			.createSeverityOption("providerDuplicateExceptionMapper"); //$NON-NLS-1$
+
+	public static String PROVIDER_MISSING_IMPLEMENTATION = INSTANCE
+			.createSeverityOption("providerMissingImplementation"); //$NON-NLS-1$
 
 	/**
 	 * @return the only instance of {@link JaxrsPreferences}
@@ -88,7 +106,9 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.tools.common.validation.ValidationSeverityPreferences#getWarningGroupID()
+	 * 
+	 * @see org.jboss.tools.common.validation.ValidationSeverityPreferences#
+	 * getWarningGroupID()
 	 */
 	@Override
 	public String getWarningGroupID() {
@@ -97,7 +117,10 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.tools.common.preferences.SeverityPreferences#createSeverityOption(java.lang.String)
+	 * 
+	 * @see
+	 * org.jboss.tools.common.preferences.SeverityPreferences#createSeverityOption
+	 * (java.lang.String)
 	 */
 	@Override
 	protected String createSeverityOption(String shortName) {
@@ -108,6 +131,7 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.jboss.tools.common.preferences.SeverityPreferences#getPluginId()
 	 */
 	@Override
@@ -117,7 +141,10 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.jboss.tools.common.preferences.SeverityPreferences#getSeverityOptionNames()
+	 * 
+	 * @see
+	 * org.jboss.tools.common.preferences.SeverityPreferences#getSeverityOptionNames
+	 * ()
 	 */
 	@Override
 	protected Set<String> getSeverityOptionNames() {

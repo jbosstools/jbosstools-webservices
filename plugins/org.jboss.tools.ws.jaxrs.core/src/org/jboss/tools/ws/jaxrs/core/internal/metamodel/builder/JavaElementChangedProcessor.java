@@ -45,6 +45,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
@@ -55,7 +56,6 @@ import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
@@ -66,18 +66,21 @@ public class JavaElementChangedProcessor {
 			IProgressMonitor progressMonitor) {
 		final Map<JaxrsMetamodel, JaxrsMetamodelDelta> affectedMetamodels = new HashMap<JaxrsMetamodel, JaxrsMetamodelDelta>();
 		try {
-			progressMonitor.beginTask("Processing Java " + affectedJavaElements.size() + " change(s)...", affectedJavaElements.size());
+			progressMonitor.beginTask("Processing Java " + affectedJavaElements.size() + " change(s)...",
+					affectedJavaElements.size());
 			Logger.debug("Processing {} change(s)...", affectedJavaElements.size());
 			for (JavaElementDelta affectedJavaElement : affectedJavaElements) {
-				final List<JaxrsElementDelta> affectedJaxrsElement = processAffectedElement(affectedJavaElement, progressMonitor);
+				final List<JaxrsElementDelta> affectedJaxrsElement = processAffectedElement(affectedJavaElement,
+						progressMonitor);
 				for (JaxrsElementDelta jaxrsElementDelta : affectedJaxrsElement) {
-					final JaxrsMetamodel affectedMetamodel = (JaxrsMetamodel) jaxrsElementDelta.getElement().getMetamodel();
-					if(!affectedMetamodels.containsKey(affectedMetamodel)) {
+					final JaxrsMetamodel affectedMetamodel = (JaxrsMetamodel) jaxrsElementDelta.getElement()
+							.getMetamodel();
+					if (!affectedMetamodels.containsKey(affectedMetamodel)) {
 						affectedMetamodels.put(affectedMetamodel, new JaxrsMetamodelDelta(affectedMetamodel, CHANGED));
 					}
 					final JaxrsMetamodelDelta metamodelDelta = affectedMetamodels.get(affectedMetamodel);
 					metamodelDelta.add(jaxrsElementDelta);
-					
+
 				}
 				progressMonitor.worked(1);
 			}
@@ -97,12 +100,11 @@ public class JavaElementChangedProcessor {
 		final IJavaElement element = delta.getElement();
 		final CompilationUnit ast = delta.getCompilationUnitAST();
 		final int deltaKind = delta.getDeltaKind();
-		// final int[] flags = event.getFlags();
 		final int elementType = delta.getElement().getElementType();
 		// if no metamodel existed for the given project, one is automatically
 		// created. Yet, this applies only to project having the JAX-RS Facet
 		final IJavaProject javaProject = element.getJavaProject();
-		if(!javaProject.isOpen() || !javaProject.getProject().isOpen()) {
+		if (!javaProject.isOpen() || !javaProject.getProject().isOpen()) {
 			Logger.debug("***(Java) Project is closed !***");
 			return Collections.emptyList();
 		}
@@ -112,23 +114,23 @@ public class JavaElementChangedProcessor {
 		}
 		switch (deltaKind) {
 		case ADDED:
-				switch (elementType) {
-				case JAVA_PROJECT:
-					return processAddition(element, metamodel, progressMonitor);
-				case PACKAGE_FRAGMENT_ROOT:
-					return processAddition(element, metamodel, progressMonitor);
-				case COMPILATION_UNIT:
-					return processAddition((ICompilationUnit) element, ast, metamodel, progressMonitor);
-				case TYPE:
-					return processAddition((IType) element, ast, metamodel, progressMonitor);
-				case METHOD:
-					return processAddition((IMethod) element, ast, metamodel, progressMonitor);
-				case FIELD:
-					return processAddition((IField) element, ast, metamodel, progressMonitor);
-				case ANNOTATION:
-					return processAddition((IAnnotation) element, ast, metamodel, progressMonitor);
-				}
-			//}
+			switch (elementType) {
+			case JAVA_PROJECT:
+				return processAddition(element, metamodel, progressMonitor);
+			case PACKAGE_FRAGMENT_ROOT:
+				return processAddition(element, metamodel, progressMonitor);
+			case COMPILATION_UNIT:
+				return processAddition((ICompilationUnit) element, ast, metamodel, progressMonitor);
+			case TYPE:
+				return processAddition((IType) element, ast, metamodel, progressMonitor);
+			case METHOD:
+				return processAddition((IMethod) element, ast, metamodel, progressMonitor);
+			case FIELD:
+				return processAddition((IField) element, ast, metamodel, progressMonitor);
+			case ANNOTATION:
+				return processAddition((IAnnotation) element, ast, metamodel, progressMonitor);
+			}
+			// }
 			break;
 		case CHANGED:
 			switch (elementType) {
@@ -161,7 +163,8 @@ public class JavaElementChangedProcessor {
 	}
 
 	/**
-	 * Process the addition of a Java Element (can be a JavaProject or a Java Package Fragment root).
+	 * Process the addition of a Java Element (can be a JavaProject or a Java
+	 * Package Fragment root).
 	 * 
 	 * @param scope
 	 *            the java element that may contain JAX-RS items
@@ -213,7 +216,8 @@ public class JavaElementChangedProcessor {
 					progressMonitor);
 			for (IType matchingType : matchingApplicationTypes) {
 				final CompilationUnit ast = JdtUtils.parse(matchingType, progressMonitor);
-				final JaxrsJavaApplication createdApplication = JaxrsElementFactory.createApplication(matchingType, ast, metamodel);
+				final JaxrsJavaApplication createdApplication = JaxrsElementFactory.createApplication(matchingType,
+						ast, metamodel);
 				if (createdApplication != null) {
 					metamodel.add(createdApplication);
 					changes.add(new JaxrsElementDelta(createdApplication, ADDED));
@@ -261,13 +265,18 @@ public class JavaElementChangedProcessor {
 			metamodel.add(application);
 			changes.add(new JaxrsElementDelta(application, ADDED));
 		}
-		// TODO: now,let's see if the given type can be a Provider
+		// now,let's see if the given type can be a Provider
+		final JaxrsProvider provider = JaxrsElementFactory.createProvider(javaType, ast, metamodel, progressMonitor);
+		if (provider != null) {
+			metamodel.add(provider);
+			changes.add(new JaxrsElementDelta(provider, ADDED));
+		}
 
 		return changes;
 	}
 
-	private List<JaxrsElementDelta> processAddition(IField javaField, CompilationUnit ast,
-			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+	private List<JaxrsElementDelta> processAddition(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel,
+			IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		// let's see if the added field has some JAX-RS annotation on itself.
 		final JaxrsResourceField field = JaxrsElementFactory.createField(javaField, ast, metamodel);
@@ -310,9 +319,11 @@ public class JavaElementChangedProcessor {
 	private List<JaxrsElementDelta> processAddition(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
-		final JaxrsJavaElement<?> existingElement = (JaxrsJavaElement<?>) metamodel.getElement(javaAnnotation.getParent());
+		final JaxrsJavaElement<?> existingElement = (JaxrsJavaElement<?>) metamodel.getElement(javaAnnotation
+				.getParent());
 		if (existingElement == null) {
-			final JaxrsJavaElement<?> createdElement = JaxrsElementFactory.createElement(javaAnnotation, ast, metamodel);
+			final JaxrsJavaElement<?> createdElement = JaxrsElementFactory.createElement(javaAnnotation, ast,
+					metamodel, progressMonitor);
 			if (createdElement != null) {
 				metamodel.add(createdElement);
 				changes.add(new JaxrsElementDelta(createdElement, ADDED));
@@ -337,7 +348,9 @@ public class JavaElementChangedProcessor {
 	}
 
 	/**
-	 * Process changes on the JAX-RS element after the given annotation was changed
+	 * Process changes on the JAX-RS element after the given annotation was
+	 * changed
+	 * 
 	 * @param javaAnnotation
 	 * @param progressMonitor
 	 * @throws CoreException
@@ -348,7 +361,8 @@ public class JavaElementChangedProcessor {
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
 		if (annotation != null) {
 			final JaxrsJavaElement<?> existingElement = (JaxrsJavaElement<?>) metamodel.getElement(annotation);
-			// there's no reason that an annotation *change* could trigger the creation of a new JAX-RS element.
+			// there's no reason that an annotation *change* could trigger the
+			// creation of a new JAX-RS element.
 			if (existingElement != null) {
 				final int flags = existingElement.addOrUpdateAnnotation(annotation);
 				if (flags > 0) {
@@ -360,7 +374,9 @@ public class JavaElementChangedProcessor {
 	}
 
 	/**
-	 * Process changes on the method, trying to find fine-grained changes in the signatures/parameters
+	 * Process changes on the method, trying to find fine-grained changes in the
+	 * signatures/parameters
+	 * 
 	 * @param javaMethod
 	 * @param ast
 	 * @param metamodel
@@ -368,8 +384,8 @@ public class JavaElementChangedProcessor {
 	 * @return
 	 * @throws CoreException
 	 */
-	private List<JaxrsElementDelta> processChange(IMethod javaMethod, CompilationUnit ast,
-			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+	private List<JaxrsElementDelta> processChange(IMethod javaMethod, CompilationUnit ast, JaxrsMetamodel metamodel,
+			IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final IJaxrsElement jaxrsElement = metamodel.getElement(javaMethod);
 		if (jaxrsElement != null && jaxrsElement.getElementCategory() == EnumElementCategory.RESOURCE_METHOD) {
@@ -383,7 +399,9 @@ public class JavaElementChangedProcessor {
 	}
 
 	/**
-	 * Process type change (eg: supertypes changes) and remove it if kind is UNDEFINED
+	 * Process type change (eg: supertypes changes) and remove it if kind is
+	 * UNDEFINED
+	 * 
 	 * @param javaApplication
 	 * @param ast
 	 * @param metamodel
@@ -391,24 +409,39 @@ public class JavaElementChangedProcessor {
 	 * @return
 	 * @throws CoreException
 	 */
-	private List<JaxrsElementDelta> processChange(IType javaType, CompilationUnit ast,
-			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+	private List<JaxrsElementDelta> processChange(final IType javaType, final CompilationUnit ast, final JaxrsMetamodel metamodel,
+			final IProgressMonitor progressMonitor) throws CoreException {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
-		final IJaxrsElement jaxrsElement = metamodel.getElement(javaType);
-		if (jaxrsElement != null && jaxrsElement.getElementKind() == EnumElementKind.APPLICATION_JAVA) {
-			final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) jaxrsElement;
-			final int flag = javaApplication.update(javaType);
-			if(javaApplication.getElementKind() == EnumElementKind.UNDEFINED) {
-				Logger.debug("Removing element {}", javaApplication);
-				metamodel.remove(javaApplication);
-				changes.add(new JaxrsElementDelta(jaxrsElement, REMOVED, flag));
-			}
-			else if (flag != F_NONE) {
-				changes.add(new JaxrsElementDelta(jaxrsElement, CHANGED, flag));
+		@SuppressWarnings("unchecked")
+		final JaxrsJavaElement<IType> jaxrsElement = (JaxrsJavaElement<IType>) metamodel.getElement(javaType);
+		if (jaxrsElement != null) {
+			JaxrsJavaElement<IType> transientElement = JaxrsElementFactory.createElement(
+					jaxrsElement.getElementCategory(), javaType, ast, metamodel, progressMonitor);
+			if (transientElement == null || transientElement.isMarkedForRemoval()) {
+				Logger.debug("Removing element {}", jaxrsElement);
+				metamodel.remove(jaxrsElement);
+				changes.add(new JaxrsElementDelta(jaxrsElement, REMOVED));
+			} else {
+				int jaxrsChangeFlags = F_NONE;
+				switch (transientElement.getElementCategory()) {
+				//TODO: avoid code duplication here: move all this logic into a JaxrsJavaElement#update(..) method?  
+				case APPLICATION:
+					jaxrsChangeFlags = ((JaxrsJavaApplication) jaxrsElement).update((JaxrsJavaApplication) transientElement);
+					break;
+				case PROVIDER:
+					jaxrsChangeFlags = ((JaxrsProvider) jaxrsElement).update((JaxrsProvider) transientElement);
+					break;
+				default:
+					break;
+				}
+				if (jaxrsChangeFlags != F_NONE) {
+					changes.add(new JaxrsElementDelta(jaxrsElement, CHANGED, jaxrsChangeFlags));
+				}
 			}
 		}
 		return changes;
 	}
+
 	/**
 	 * @param element
 	 * @param progressMonitor
@@ -474,10 +507,11 @@ public class JavaElementChangedProcessor {
 		if (element != null) {
 			// The logic is the same for all the kinds of elements
 			final int flag = element.removeAnnotation(javaAnnotation.getHandleIdentifier());
-			if (element.getElementKind() == EnumElementKind.UNDEFINED) {
+			if (element.isMarkedForRemoval()) {
+				//TODO: this could be done inside the element's update() method 
 				metamodel.remove(element);
 				changes.add(new JaxrsElementDelta(element, REMOVED));
-			} else if(flag != 0) {
+			} else if (flag != 0) {
 				changes.add(new JaxrsElementDelta(element, CHANGED, flag));
 			}
 		}
@@ -495,8 +529,8 @@ public class JavaElementChangedProcessor {
 		return changes;
 	}
 
-	private List<JaxrsElementDelta> processRemoval(IMethod method, CompilationUnit ast,
-			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) {
+	private List<JaxrsElementDelta> processRemoval(IMethod method, CompilationUnit ast, JaxrsMetamodel metamodel,
+			IProgressMonitor progressMonitor) {
 		final List<JaxrsElementDelta> changes = new ArrayList<JaxrsElementDelta>();
 		final List<IJaxrsElement> elements = metamodel.getElements(method);
 		for (IJaxrsElement element : elements) {

@@ -355,6 +355,11 @@ public class WorkbenchUtils {
 		saveAndClose(unit);
 	}
 
+	public static void replaceAllOccurrencesOfCode(IType type, String oldContent,
+			String newContent, boolean useWorkingCopy) throws JavaModelException {
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), oldContent, newContent, useWorkingCopy);
+	}
+	
 	public static IMethod removeMethod(ICompilationUnit compilationUnit, String methodName, boolean useWorkingCopy)
 			throws JavaModelException {
 		LOGGER.debug("Removing method " + methodName);
@@ -492,6 +497,17 @@ public class WorkbenchUtils {
 		return annotation;
 	}
 
+	public static IAnnotation removeTypeAnnotation(final IType type, final IAnnotation annotation, final boolean useWorkingCopy)
+			throws JavaModelException {
+		ICompilationUnit compilationUnit = type.getCompilationUnit();
+		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		ISourceRange sourceRange = annotation.getSourceRange();
+		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		buffer.replace(sourceRange.getOffset(), sourceRange.getLength(), "");
+		saveAndClose(unit);
+		return annotation;
+	}
+
 	public static IAnnotation addFieldAnnotation(IField field, String annotationStmt, boolean useWorkingCopy)
 			throws CoreException {
 		LOGGER.info("Adding annotation " + annotationStmt + " on type " + field.getElementName());
@@ -617,6 +633,9 @@ public class WorkbenchUtils {
 		}
 	}
 
+	public static void delete(IResource resource) throws CoreException {
+		resource.delete(true, new NullProgressMonitor());
+	}
 	public static void delete(ICompilationUnit compilationUnit) throws CoreException {
 		compilationUnit.delete(true, new NullProgressMonitor());
 	}
@@ -913,6 +932,8 @@ public class WorkbenchUtils {
 	public static IResource deleteDeploymentDescriptor(IJavaProject javaProject) throws Exception {
 		return replaceDeploymentDescriptorWith(javaProject, null);
 	}
+
+
 
 
 }

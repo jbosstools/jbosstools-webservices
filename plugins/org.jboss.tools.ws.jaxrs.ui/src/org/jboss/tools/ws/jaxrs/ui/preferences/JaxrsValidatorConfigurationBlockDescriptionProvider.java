@@ -68,10 +68,24 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 			JBossJaxrsCorePlugin.PLUGIN_ID
 			);
 
+	private SectionDescription SECTION_PROVIDERS = new SectionDescription(
+			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_providers,
+			new String[][]{
+					{JaxrsPreferences.PROVIDER_MISSING_VALID_CONSTRUCTOR, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerMissingValidConstructor_label},
+					{JaxrsPreferences.PROVIDER_MISSING_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerMissingAnnotation_label},
+					{JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerMissingImplementation_label},
+					{JaxrsPreferences.PROVIDER_DUPLICATE_MESSAGE_BODY_READER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerDuplicateMessageBodyReader_label},
+					{JaxrsPreferences.PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerDuplicateMessageBodyWriter_label},
+					{JaxrsPreferences.PROVIDER_DUPLICATE_EXCEPTION_MAPPER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerDuplicateExceptionMapper_label}
+			},
+			JBossJaxrsCorePlugin.PLUGIN_ID
+			);
+
 	private SectionDescription[] ALL_SECTIONS = new SectionDescription[]{
 			SECTION_ACTIVATORS,
 			SECTION_HTTP_METHODS,
-			SECTION_RESOURCE_METHODS
+			SECTION_RESOURCE_METHODS,
+			SECTION_PROVIDERS
 	};
 
 	public SectionDescription[] getSections() {

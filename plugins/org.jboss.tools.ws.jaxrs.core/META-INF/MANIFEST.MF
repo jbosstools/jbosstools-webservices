@@ -36,11 +36,10 @@ Export-Package: org.jboss.tools.ws.jaxrs.core,
  org.jboss.tools.ws.jaxrs.core.configuration,
  org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
  org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
- org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
+ org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;x-friends:="org.jboss.tools.ws.jaxrs.core.test,org.jboss.tools.ws.jaxrs.ui",
  org.jboss.tools.ws.jaxrs.core.internal.utils;x-friends:="org.jboss.tools.ws.jaxrs.core.test",
  org.jboss.tools.ws.jaxrs.core.jdt,
  org.jboss.tools.ws.jaxrs.core.metamodel,
- org.jboss.tools.ws.jaxrs.core.metamodel.validation,
  org.jboss.tools.ws.jaxrs.core.preferences,
  org.jboss.tools.ws.jaxrs.core.pubsub
 Bundle-ClassPath: .

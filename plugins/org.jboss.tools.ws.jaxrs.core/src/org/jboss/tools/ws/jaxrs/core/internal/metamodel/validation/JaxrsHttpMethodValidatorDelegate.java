@@ -21,7 +21,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.validation.JaxrsMetamodelValidationConstants;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -32,19 +31,18 @@ import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
  */
 public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsHttpMethod> {
 
-	public JaxrsHttpMethodValidatorDelegate(TempMarkerManager markerManager, JaxrsHttpMethod element) {
-		super(markerManager, element);
+	public JaxrsHttpMethodValidatorDelegate(final TempMarkerManager markerManager) {
+		super(markerManager);
 	}
 
 	@Override
-	public void validate() throws CoreException {
-		final JaxrsHttpMethod httpMethod = getElement();
+	public void validate(final JaxrsHttpMethod httpMethod) throws CoreException {
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(httpMethod);
-		Logger.debug("Validating element {}", getElement());
+		Logger.debug("Validating element {}", httpMethod);
 		if (!httpMethod.isBuiltIn()) {
 			validateHttpMethodAnnotation(httpMethod);
-			validateRetentionAnnotation(getElement());
-			validateTargetAnnotation(getElement());
+			validateRetentionAnnotation(httpMethod);
+			validateTargetAnnotation(httpMethod);
 		}
 	}
 
@@ -56,9 +54,8 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	 */
 	private void validateHttpMethodAnnotation(final JaxrsHttpMethod httpMethod) throws JavaModelException {
 		final Annotation httpMethodAnnotation = httpMethod.getHttpMethodAnnotation();
-		if (httpMethodAnnotation != null) { // if annotation is null, the
-											// resource is not a JaxrsHttpMethod
-											// anymore.
+		// if annotation is null, the resource is not a JaxrsHttpMethod anymore.
+		if (httpMethodAnnotation != null) { 
 			final String httpValue = httpMethodAnnotation.getValue("value");
 			if (httpValue == null) {
 				final ISourceRange range = httpMethodAnnotation.getJavaAnnotation().getNameRange();
@@ -88,7 +85,7 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 			addProblem(JaxrsValidationMessages.HTTP_METHOD_MISSING_TARGET_ANNOTATION,
 					JaxrsPreferences.HTTP_METHOD_MISSING_TARGET_ANNOTATION, new String[0], range.getLength(),
 					range.getOffset(), httpMethod.getResource(),
-					JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_TARGET_ANNOTATION_QUICKFIX_ID);
+					JaxrsValidationConstants.HTTP_METHOD_MISSING_TARGET_ANNOTATION_QUICKFIX_ID);
 		} else {
 			final String annotationValue = targetAnnotation.getValue("value");
 			if (annotationValue == null) {
@@ -96,14 +93,14 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE,
 						JaxrsPreferences.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE, new String[0], range.getLength(),
 						range.getOffset(), httpMethod.getResource(),
-						JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_QUICKFIX_ID);
+						JaxrsValidationConstants.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_QUICKFIX_ID);
 			} else if (!annotationValue.equals(ElementType.METHOD.name())) {
 				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(targetAnnotation.getJavaAnnotation(),
 						"value");
 				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE,
 						JaxrsPreferences.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE, new String[0], range.getLength(),
 						range.getOffset(), httpMethod.getResource(),
-						JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_QUICKFIX_ID);
+						JaxrsValidationConstants.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_QUICKFIX_ID);
 
 			}
 		}
@@ -122,7 +119,7 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 			addProblem(JaxrsValidationMessages.HTTP_METHOD_MISSING_RETENTION_ANNOTATION,
 					JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION, new String[0], range.getLength(),
 					range.getOffset(), httpMethod.getResource(),
-					JaxrsMetamodelValidationConstants.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_QUICKFIX_ID);
+					JaxrsValidationConstants.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_QUICKFIX_ID);
 		} else {
 			final String annotationValue = retentionAnnotation.getValue("value");
 			if (annotationValue == null) {
@@ -130,14 +127,14 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE,
 						JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, new String[0],
 						range.getLength(), range.getOffset(), httpMethod.getResource(),
-						JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_QUICKFIX_ID);
+						JaxrsValidationConstants.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_QUICKFIX_ID);
 			} else if (!annotationValue.equals(RetentionPolicy.RUNTIME.name())) {
 				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
 						retentionAnnotation.getJavaAnnotation(), "value");
 				addProblem(JaxrsValidationMessages.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE,
 						JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, new String[0],
 						range.getLength(), range.getOffset(), httpMethod.getResource(),
-						JaxrsMetamodelValidationConstants.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_QUICKFIX_ID);
+						JaxrsValidationConstants.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_QUICKFIX_ID);
 
 			}
 		}

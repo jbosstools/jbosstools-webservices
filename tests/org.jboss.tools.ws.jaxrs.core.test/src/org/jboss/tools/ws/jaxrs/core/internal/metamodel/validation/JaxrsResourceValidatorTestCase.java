@@ -45,6 +45,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFacto
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -259,5 +260,11 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_ERROR));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(4));
+	}
+	
+	@Test
+	@Ignore
+	public void shouldReportWarningIfNoProviderExists() throws CoreException, ValidationException {
+		fail("Not implemented yet");
 	}
 }
