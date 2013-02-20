@@ -9,7 +9,6 @@ import java.io.StringWriter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -18,7 +17,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.eclipse.core.resources.IFile;
@@ -26,7 +24,6 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jst.j2ee.web.componentcore.util.WebArtifactEdit;
@@ -36,7 +33,6 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 public class WtpUtils {
 
@@ -75,15 +71,6 @@ public class WtpUtils {
 		if (webxmlResource == null) {
 			return null;
 		}
-		if (!webxmlResource.exists()) {
-			Logger.debug("No deployment descriptor '{}' does not exists", webxmlResource.getLocation());
-			return null;
-		}
-		if (!webxmlResource.isSynchronized(IResource.DEPTH_INFINITE)) {
-			Logger.debug("Resource is not in sync'");
-			webxmlResource.refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
-		}
-
 		try {
 			final String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName
 					+ "\"]/url-pattern/text()";
@@ -228,14 +215,7 @@ public class WtpUtils {
 			XPathExpression expr = xpath.compile(expression);
 			Node servletMapping = (Node) expr.evaluate(doc, XPathConstants.NODE);
 			return servletMapping;
-		} catch (ParserConfigurationException e) {
-			Logger.error("Error while analyzing web deployment descriptor", e);
-		} catch (SAXException e) {
-			// if xml file is malformed, there should already be some error markers, so no need to fill the error log.
-			Logger.debug("Error while analyzing web deployment descriptor", e);
-		} catch (IOException e) {
-			Logger.error("Error while analyzing web deployment descriptor", e);
-		} catch (XPathExpressionException e) {
+		} catch (Exception e) {
 			Logger.error("Error while analyzing web deployment descriptor", e);
 		} finally {
 			if (fileInputStream != null) {

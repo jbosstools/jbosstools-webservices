@@ -17,8 +17,8 @@ import java.util.List;
 import org.eclipse.debug.ui.actions.ILaunchable;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateMediaTypeMappingElement.EnumCapabilityType;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 

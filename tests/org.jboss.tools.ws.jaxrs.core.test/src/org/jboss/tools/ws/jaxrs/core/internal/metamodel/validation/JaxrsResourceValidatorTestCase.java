@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -45,6 +46,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFacto
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -71,7 +73,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		// preconditions
 		final IType customerJavaType = getType(
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final JaxrsBaseElement customerResource = (JaxrsBaseElement) metamodel.getElement(customerJavaType);
+		final JaxrsBaseElement customerResource = (JaxrsBaseElement) metamodel.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(customerResource.getResource()), project, validationHelper,
@@ -85,7 +87,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportProblemsOnBarResourceMethods() throws CoreException, ValidationException {
 		// preconditions
 		final IType barJavaType = getType("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
-		final JaxrsResource barResource = metamodel.getElement(barJavaType, JaxrsResource.class);
+		final JaxrsResource barResource = metamodel.findResource(barJavaType);
 		deleteJaxrsMarkers(barResource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(barResource.getResource()), project, validationHelper, context,
@@ -104,7 +106,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportProblemsOnBazResourceMethods() throws CoreException, ValidationException {
 		// preconditions
 		final IType barJavaType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		final JaxrsResource barResource = metamodel.getElement(barJavaType, JaxrsResource.class);
+		final JaxrsResource barResource = (JaxrsResource) metamodel.findElement(barJavaType);
 		deleteJaxrsMarkers(barResource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(barResource.getResource()), project, validationHelper, context,
@@ -117,7 +119,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 			final IMarker[] methodMarkers = findJaxrsMarkers(entry.getValue());
 			if (entry.getKey().contains("getContent1")) {
 				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_WARNING));
-				assertThat(methodMarkers.length, equalTo(1));
+				assertThat(methodMarkers.length, equalTo(IMarker.SEVERITY_WARNING));
 				assertThat(methodMarkers, hasPreferenceKey(RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
 			} else if (entry.getKey().contains("getContent2")) {
 				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_ERROR));
@@ -126,7 +128,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_ERROR));
 				assertThat(methodMarkers.length, equalTo(2));
 			} else if (entry.getKey().contains("update2")) {
-				assertThat(entry.getValue().getProblemLevel(), is(0));
+				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_INFO));
 				assertThat(methodMarkers.length, equalTo(0));
 			} else if (entry.getKey().contains("update3")) {
 				assertThat(entry.getValue().getProblemLevel(), is(IMarker.SEVERITY_ERROR));
@@ -142,8 +144,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
-		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
-		metamodel.add(resource);
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
+		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
 		deleteJaxrsMarkers(resource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
@@ -160,8 +162,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "public Response", "private Response", false);
-		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
-		metamodel.add(resource);
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
+		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
+		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
@@ -179,8 +182,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"type\") String type,", false);
-		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
-		metamodel.add(resource);
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
+		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
+		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
@@ -201,8 +205,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
-		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
-		metamodel.add(resource);
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
+		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
+		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
@@ -224,8 +229,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "{format", "{  format", false);
-		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
-		metamodel.add(resource);
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
+		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
+		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
@@ -246,8 +252,9 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "@Path(\"/{id}", "@Path(\"", false);
-		JaxrsResource resource = JaxrsElementFactory.createResource(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel);
-		metamodel.add(resource);
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
+		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
+		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,

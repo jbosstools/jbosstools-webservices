@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.Flags;
@@ -28,15 +27,13 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -117,10 +114,8 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		}
 		if (hasConstructors && validConstructorsCounter == 0) {
 			final ISourceRange nameRange = providerType.getNameRange();
-			final IMarker marker = addProblem(JaxrsValidationMessages.PROVIDER_MISSING_VALID_CONSTRUCTOR,
-					JaxrsPreferences.PROVIDER_MISSING_VALID_CONSTRUCTOR, new String[0], nameRange.getLength(),
-					nameRange.getOffset(), provider.getResource());
-			provider.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
+			addProblem(JaxrsValidationMessages.PROVIDER_MISSING_VALID_CONSTRUCTOR,
+					JaxrsPreferences.PROVIDER_MISSING_VALID_CONSTRUCTOR, new String[0], nameRange, provider);
 		}
 
 	}
@@ -144,7 +139,7 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
 				JdtUtils.parse(method, new NullProgressMonitor()));
 		for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
-			if(parameter.getAnnotations().isEmpty()) {
+			if (parameter.getAnnotations().isEmpty()) {
 				return false;
 			}
 			for (Entry<String, Annotation> annotation : parameter.getAnnotations().entrySet()) {
@@ -160,10 +155,8 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	private void validateAtLeastOneImplementation(final JaxrsProvider provider) throws JavaModelException {
 		if (provider.getProvidedTypes().size() == 0) {
 			final ISourceRange nameRange = provider.getJavaElement().getNameRange();
-			final IMarker marker = addProblem(JaxrsValidationMessages.PROVIDER_MISSING_IMPLEMENTATION,
-					JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, new String[0], nameRange.getLength(),
-					nameRange.getOffset(), provider.getResource());
-			provider.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
+			addProblem(JaxrsValidationMessages.PROVIDER_MISSING_IMPLEMENTATION,
+					JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, new String[0], nameRange, provider);
 		}
 	}
 
@@ -178,10 +171,8 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		final Annotation annotation = provider.getAnnotation(EnumJaxrsClassname.PROVIDER.qualifiedName);
 		if (annotation == null) {
 			final ISourceRange nameRange = provider.getJavaElement().getNameRange();
-			final IMarker marker = addProblem(JaxrsValidationMessages.PROVIDER_MISSING_ANNOTATION,
-					JaxrsPreferences.PROVIDER_MISSING_ANNOTATION, new String[0], nameRange.getLength(),
-					nameRange.getOffset(), provider.getResource());
-			provider.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
+			addProblem(JaxrsValidationMessages.PROVIDER_MISSING_ANNOTATION,
+					JaxrsPreferences.PROVIDER_MISSING_ANNOTATION, new String[0], nameRange, provider);
 		}
 	}
 
@@ -195,59 +186,50 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	@SuppressWarnings("incomplete-switch")
 	private void validateNoDuplicateProvider(final JaxrsProvider provider) throws JavaModelException {
 		final JaxrsMetamodel metamodel = provider.getMetamodel();
-		for (IJaxrsProvider p : metamodel.getAllProviders()) {
-			if (p == provider) {
-				continue;
-			}
-			for (Entry<EnumElementKind, IType> entry : provider.getProvidedTypes().entrySet()) {
-				final EnumElementKind elementKind = entry.getKey();
-				final IType providedType = provider.getProvidedType(elementKind);
-				if (providedType.equals(p.getProvidedType(elementKind))) {
+		for (Entry<EnumElementKind, IType> entry : provider.getProvidedTypes().entrySet()) {
+			final EnumElementKind elementKind = entry.getKey();
+			final IType providedType = provider.getProvidedType(elementKind);
+			final List<JaxrsProvider> providers = metamodel.findProviders(elementKind,
+					providedType.getFullyQualifiedName());
+			for (JaxrsProvider p : providers) {
+				if (p == provider) {
+					continue;
+				}
+				if (provider.collidesWith(p, elementKind)) {
 					switch (elementKind) {
 					case MESSAGE_BODY_READER:
-						// TODO: replace/factorize calls to addProblem() using
-						// the Builder Pattern
-						if (CollectionUtils
-								.hasIntersection(provider.getConsumedMediaTypes(), p.getConsumedMediaTypes())) {
-							final ISourceRange nameRange = getTypeParameterNameRange(provider.getJavaElement(),
-									providedType);
-							final IMarker marker = addProblem(
-									JaxrsValidationMessages.PROVIDER_DUPLICATE_MESSAGE_BODY_READER,
-									JaxrsPreferences.PROVIDER_DUPLICATE_MESSAGE_BODY_READER,
-									new String[] { ((JaxrsProvider) p).getJavaElement().getFullyQualifiedName() },
-									nameRange.getLength(), nameRange.getOffset(), provider.getResource());
-							provider.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
-						}
+						addDuplicateProviderProblem(provider, providedType,
+								JaxrsValidationMessages.PROVIDER_DUPLICATE_MESSAGE_BODY_READER,
+								JaxrsPreferences.PROVIDER_DUPLICATE_MESSAGE_BODY_READER);
+						break;
 					case MESSAGE_BODY_WRITER:
-						if (CollectionUtils
-								.hasIntersection(provider.getProducedMediaTypes(), p.getProducedMediaTypes())) {
-							final ISourceRange nameRange = getTypeParameterNameRange(provider.getJavaElement(),
-									providedType);
-							final IMarker marker = addProblem(
-									JaxrsValidationMessages.PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER,
-									JaxrsPreferences.PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER,
-									new String[] { ((JaxrsProvider) p).getJavaElement().getFullyQualifiedName() },
-									nameRange.getLength(), nameRange.getOffset(), provider.getResource());
-							provider.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
-						}
+						addDuplicateProviderProblem(provider, providedType,
+								JaxrsValidationMessages.PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER,
+								JaxrsPreferences.PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER);
 						break;
 					case EXCEPTION_MAPPER:
-						if (CollectionUtils
-								.hasIntersection(provider.getProducedMediaTypes(), p.getProducedMediaTypes())) {
-							final ISourceRange nameRange = getTypeParameterNameRange(provider.getJavaElement(),
-									providedType);
-							final IMarker marker = addProblem(
-									JaxrsValidationMessages.PROVIDER_DUPLICATE_EXCEPTION_MAPPER,
-									JaxrsPreferences.PROVIDER_DUPLICATE_EXCEPTION_MAPPER,
-									new String[] { ((JaxrsProvider) p).getJavaElement().getFullyQualifiedName() },
-									nameRange.getLength(), nameRange.getOffset(), provider.getResource());
-							provider.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
-						}
+						addDuplicateProviderProblem(provider, providedType,
+								JaxrsValidationMessages.PROVIDER_DUPLICATE_EXCEPTION_MAPPER,
+								JaxrsPreferences.PROVIDER_DUPLICATE_EXCEPTION_MAPPER);
 						break;
 					}
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param provider
+	 * @param providedType
+	 * @param message
+	 * @param preferenceKey
+	 * @throws JavaModelException
+	 */
+	private void addDuplicateProviderProblem(final JaxrsProvider provider, final IType providedType,
+			final String message, final String preferenceKey) throws JavaModelException {
+		final ISourceRange nameRange = getTypeParameterNameRange(provider.getJavaElement(), providedType);
+		addProblem(message, preferenceKey, new String[] { provider.getJavaElement().getFullyQualifiedName() },
+				nameRange, provider);
 	}
 
 	/**

@@ -37,9 +37,9 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 		// project nature installation triggers the project builder
 		// installation, by configuration/association in the plugin.xml file.
 		if (ProjectBuilderUtils.installProjectBuilder(project, JaxrsMetamodelBuilder.BUILDER_ID)) {
-			Logger.info("JAX-RS Builder is now installed.");
+			Logger.debug("JAX-RS Builder is now installed.");
 		} else {
-			Logger.info("JAX-RS Builder was already installed.");
+			Logger.debug("JAX-RS Builder was already installed.");
 		}
 	}
 

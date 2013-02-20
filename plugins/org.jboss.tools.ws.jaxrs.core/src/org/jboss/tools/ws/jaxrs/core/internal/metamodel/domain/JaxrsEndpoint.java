@@ -10,39 +10,49 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_METHOD_PARAMETERS;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.notNullNorEmpty;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_PARAMETERS;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.ObjectUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 
 public class JaxrsEndpoint implements IJaxrsEndpoint {
 
+	/** Unique identifier. */
+	private final String identifier;
+
 	private final JaxrsMetamodel metamodel;
 
-	private JaxrsHttpMethod httpMethod;
+	private final LinkedList<IJaxrsResourceMethod> resourceMethods;
 
-	private final LinkedList<JaxrsResourceMethod> resourceMethods;
+	private IJaxrsHttpMethod httpMethod;
 
 	private IJaxrsApplication application = null;
 
@@ -52,13 +62,9 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	private List<String> producedMediaTypes = null;
 
-	public JaxrsEndpoint(final JaxrsMetamodel metamodel, final JaxrsHttpMethod httpMethod,
-			final JaxrsResourceMethod resourceMethod) {
-		this(metamodel, httpMethod, new LinkedList<JaxrsResourceMethod>(Arrays.asList(resourceMethod)));
-	}
-
-	public JaxrsEndpoint(final JaxrsMetamodel metamodel, final JaxrsHttpMethod httpMethod,
-			final LinkedList<JaxrsResourceMethod> resourceMethods) {
+	public JaxrsEndpoint(final JaxrsMetamodel metamodel, final IJaxrsHttpMethod httpMethod,
+			final LinkedList<IJaxrsResourceMethod> resourceMethods) {
+		this.identifier = UUID.randomUUID().toString();
 		this.metamodel = metamodel;
 		this.application = (metamodel != null ? metamodel.getApplication() : null);
 		this.httpMethod = httpMethod;
@@ -68,8 +74,27 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		refreshProducedMediaTypes();
 	}
 
+	public void joinMetamodel() {
+		if (metamodel != null) {
+			metamodel.add(this);
+		}
+	}
+
+	/**
+	 * @return the identifier
+	 */
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	@Override
+	public EnumElementCategory getElementCategory() {
+		return EnumElementCategory.ENDPOINT;
+	}
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -80,24 +105,19 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				+ javaMethod.getParent().getElementName() + "." + javaMethod.getElementName() + "(...)";
 	}
 
-	/*
-	 * (non-Javadoc)
+	
+	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((consumedMediaTypes == null) ? 0 : consumedMediaTypes.hashCode());
-		result = prime * result + ((httpMethod == null) ? 0 : httpMethod.hashCode());
-		result = prime * result + ((producedMediaTypes == null) ? 0 : producedMediaTypes.hashCode());
-		result = prime * result + ((resourceMethods == null) ? 0 : resourceMethods.hashCode());
-		result = prime * result + ((uriPathTemplate == null) ? 0 : uriPathTemplate.hashCode());
+		result = prime * result + ((identifier == null) ? 0 : identifier.hashCode());
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -112,129 +132,158 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			return false;
 		}
 		JaxrsEndpoint other = (JaxrsEndpoint) obj;
-		if (consumedMediaTypes == null) {
-			if (other.consumedMediaTypes != null) {
+		if (identifier == null) {
+			if (other.identifier != null) {
 				return false;
 			}
-		} else if (!consumedMediaTypes.equals(other.consumedMediaTypes)) {
-			return false;
-		}
-		if (httpMethod == null) {
-			if (other.httpMethod != null) {
-				return false;
-			}
-		} else if (!httpMethod.equals(other.httpMethod)) {
-			return false;
-		}
-		if (producedMediaTypes == null) {
-			if (other.producedMediaTypes != null) {
-				return false;
-			}
-		} else if (!producedMediaTypes.equals(other.producedMediaTypes)) {
-			return false;
-		}
-		if (resourceMethods == null) {
-			if (other.resourceMethods != null) {
-				return false;
-			}
-		} else if (!resourceMethods.equals(other.resourceMethods)) {
-			return false;
-		}
-		if (uriPathTemplate == null) {
-			if (other.uriPathTemplate != null) {
-				return false;
-			}
-		} else if (!uriPathTemplate.equals(other.uriPathTemplate)) {
+		} else if (!identifier.equals(other.identifier)) {
 			return false;
 		}
 		return true;
 	}
 
 	/**
-	 * Triggers a refresh when changes occurred on the application element (whatever operation).
+	 * Triggers a refresh when the given HTTP Method element changed
 	 * 
-	 * @return true if the endpoint is still valid, false otherwise (it should be removed from the metamodel)
+	 * @return true if the endpoint is still valid, false otherwise (it should
+	 *         be removed from the metamodel)
 	 */
-	public boolean refresh(IJaxrsApplication application) {
-		this.application = application;
-		refreshUriPathTemplate();
+	public boolean update(final IJaxrsHttpMethod httpMethod) {
+		metamodel.update(this);
 		return true;
 	}
 
 	/**
-	 * Triggers a refresh when changes occurred on one or more elements (HttpMethod and/or ResourcMethods) of the
-	 * endpoint.
+	 * Triggers a refresh when the given application element changed
 	 * 
-	 * @return true if the endpoint is still valid, false otherwise (it should be removed from the metamodel)
+	 * @return true if the endpoint is still valid, false otherwise (it should
+	 *         be removed from the metamodel)
 	 */
-	public boolean refresh(IJaxrsResourceMethod changedResourceMethod, int flags) {
-		// check if the chain of resource methods still match
-		/*
-		 * if ((flags & F_ELEMENT_KIND) > 0 && changedResourceMethod.getKind() == EnumKind.SUBRESOURCE_LOCATOR) { return
-		 * false; }
-		 */
-
-		if ((flags & F_HTTP_METHOD_ANNOTATION) > 0) {
-			refreshHttpMethod();
-		}
-
-		if ((flags & F_PATH_ANNOTATION) > 0 || (flags & F_QUERY_PARAM_ANNOTATION) > 0 || (flags & F_MATRIX_PARAM_ANNOTATION) > 0 || (flags & F_DEFAULT_VALUE_ANNOTATION) > 0
-				|| (flags & F_METHOD_PARAMETERS) > 0) {
+	public boolean update(final IJaxrsApplication application) {
+		if (application.equals(metamodel.getApplication())) {
+			this.application = application;
 			refreshUriPathTemplate();
+			metamodel.update(this);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Triggers a refresh when the given application element has been removed.
+	 * 
+	 * @return true if the endpoint is still valid, false otherwise (it should
+	 *         be removed from the metamodel)
+	 */
+	public boolean remove(final IJaxrsApplication application) {
+		// replace the current application with the (new) default one from the
+		// metamodel
+		if (this.application.equals(application)) {
+			this.application = metamodel.getApplication();
+			refreshUriPathTemplate();
+			metamodel.update(this);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Triggers a refresh when changes occurred on one or more elements
+	 * (HttpMethod and/or ResourcMethods) of the endpoint.
+	 * 
+	 * @throws CoreException
+	 */
+	public void update(final int flags) throws CoreException {
+		boolean changed = false;
+		if ((flags & F_HTTP_METHOD_ANNOTATION) > 0) {
+			changed = changed || refreshHttpMethod();
+		}
+
+		if ((flags & F_PATH_ANNOTATION) > 0 || (flags & F_QUERY_PARAM_ANNOTATION) > 0
+				|| (flags & F_MATRIX_PARAM_ANNOTATION) > 0 || (flags & F_DEFAULT_VALUE_ANNOTATION) > 0
+				|| (flags & F_METHOD_PARAMETERS) > 0) {
+			changed = changed || refreshUriPathTemplate();
 		}
 
 		// look for mediatype capabilities at the method level, then fall back
 		// at the type level, then "any" otherwise
 		if ((flags & F_CONSUMES_ANNOTATION) > 0 || (flags & F_PRODUCES_ANNOTATION) > 0) {
 			if ((flags & F_CONSUMES_ANNOTATION) > 0) {
-				refreshConsumedMediaTypes();
+				changed = changed || refreshConsumedMediaTypes();
 			}
 			if ((flags & F_PRODUCES_ANNOTATION) > 0) {
-				refreshProducedMediaTypes();
+				changed = changed || refreshProducedMediaTypes();
 			}
 		}
-		return true;
-	}
-
-	private void refreshHttpMethod() {
-		final JaxrsResourceMethod resourceMethod = resourceMethods.getLast();
-		final Annotation httpMethodAnnotation = resourceMethod.getHttpMethodAnnotation();
-		if (httpMethodAnnotation != null) {
-			this.httpMethod = metamodel.getHttpMethod(httpMethodAnnotation);
+		if (changed) {
+			metamodel.update(this);
 		}
 	}
 
-	private void refreshProducedMediaTypes() {
-		final JaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+	private boolean refreshHttpMethod() throws CoreException {
+		final IJaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+		final String httpMethodClassName = resourceMethod.getHttpMethodClassName();
+		if (httpMethodClassName != null) {
+			return setHttpMethod(metamodel.findHttpMethodByTypeName(httpMethodClassName));
+		}
+		return false;
+	}
+
+	private boolean setHttpMethod(final JaxrsHttpMethod newHttpMethod) {
+		if (!ObjectUtils.nullSafeEquals(this.httpMethod, newHttpMethod)) {
+			this.httpMethod = newHttpMethod;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean refreshProducedMediaTypes() {
+		final JaxrsResourceMethod resourceMethod = (JaxrsResourceMethod) resourceMethods.getLast();
 		final JaxrsResource resource = resourceMethod.getParentResource();
-		if (resourceMethod.getProducedMediaTypes() != null) {
-			this.producedMediaTypes = resourceMethod.getProducedMediaTypes();
-		} else if (resourceMethod.getParentResource().getProducedMediaTypes() != null) {
-			this.producedMediaTypes = resource.getProducedMediaTypes();
+		if (notNullNorEmpty(resourceMethod.getProducedMediaTypes())) {
+			return setProducedMediaTypes(resourceMethod.getProducedMediaTypes());
+		} else if (notNullNorEmpty(resourceMethod.getParentResource().getProducedMediaTypes())) {
+			return setProducedMediaTypes(resource.getProducedMediaTypes());
 		} else {
-			this.producedMediaTypes = Arrays.asList("*/*");
+			return setProducedMediaTypes(Arrays.asList("*/*"));
 		}
 	}
 
-	private void refreshConsumedMediaTypes() {
-		final JaxrsResourceMethod resourceMethod = resourceMethods.getLast();
-		final JaxrsResource resource = resourceMethod.getParentResource();
-		if (resourceMethod.getConsumedMediaTypes() != null) {
-			this.consumedMediaTypes = resourceMethod.getConsumedMediaTypes();
-		} else if (resourceMethod.getParentResource().getConsumedMediaTypes() != null) {
-			this.consumedMediaTypes = resource.getConsumedMediaTypes();
+	private boolean setProducedMediaTypes(final List<String> newProducedMediaTypes) {
+		if (!ObjectUtils.nullSafeEquals(this.producedMediaTypes, newProducedMediaTypes)) {
+			this.producedMediaTypes = newProducedMediaTypes;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean refreshConsumedMediaTypes() {
+		final IJaxrsResourceMethod resourceMethod = resourceMethods.getLast();
+		final IJaxrsResource resource = resourceMethod.getParentResource();
+		if (notNullNorEmpty(resourceMethod.getConsumedMediaTypes())) {
+			return setConsumedMediaTypes(resourceMethod.getConsumedMediaTypes());
+		} else if (notNullNorEmpty(resourceMethod.getParentResource().getConsumedMediaTypes())) {
+			return setConsumedMediaTypes(resource.getConsumedMediaTypes());
 		} else {
-			this.consumedMediaTypes = Arrays.asList("*/*");
+			return setConsumedMediaTypes(Arrays.asList("*/*"));
 		}
 	}
 
-	private void refreshUriPathTemplate() {
+	private boolean setConsumedMediaTypes(final List<String> newConsumedMediaTypes) {
+		if (!ObjectUtils.nullSafeEquals(this.consumedMediaTypes, newConsumedMediaTypes)) {
+			this.consumedMediaTypes = newConsumedMediaTypes;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean refreshUriPathTemplate() {
 		// compute the URI Path Template from the chain of Methods/Resources
 		StringBuilder uriPathTemplateBuilder = new StringBuilder();
 		if (application != null && application.getApplicationPath() != null) {
 			uriPathTemplateBuilder.append(application.getApplicationPath());
 		}
-		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
+		for (IJaxrsResourceMethod resourceMethod : resourceMethods) {
 			if (resourceMethod.getParentResource().hasPathTemplate()) {
 				uriPathTemplateBuilder.append("/").append(resourceMethod.getParentResource().getPathTemplate());
 			}
@@ -244,34 +293,45 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			refreshUriTemplateMatrixParams(uriPathTemplateBuilder, resourceMethod);
 			refreshUriTemplateQueryParams(uriPathTemplateBuilder, resourceMethod);
 		}
-		this.uriPathTemplate = uriPathTemplateBuilder.toString();
-		while (uriPathTemplate.indexOf("//") > -1) {
-			this.uriPathTemplate = uriPathTemplate.replace("//", "/");
+		String template = uriPathTemplateBuilder.toString();
+		while (template.indexOf("//") > -1) {
+			template = template.replace("//", "/");
 		}
+		return setUriPathTemplate(template);
 	}
 
-	private void refreshUriTemplateMatrixParams(StringBuilder uriPathTemplateBuilder, JaxrsResourceMethod resourceMethod) {
-		final List<JavaMethodParameter> matrixParameters = resourceMethod
-				.getJavaMethodParametersWithAnnotation(MATRIX_PARAM.qualifiedName);
-		for(JavaMethodParameter matrixParameter : matrixParameters) {
+	private boolean setUriPathTemplate(final String template) {
+		if (!ObjectUtils.nullSafeEquals(this.uriPathTemplate, template)) {
+			this.uriPathTemplate = template;
+			return true;
+		}
+		return false;
+	}
+
+	private void refreshUriTemplateMatrixParams(final StringBuilder uriPathTemplateBuilder,
+			final IJaxrsResourceMethod resourceMethod) {
+		final List<JavaMethodParameter> matrixParameters = ((JaxrsResourceMethod) resourceMethod)
+				.getJavaMethodParametersAnnotatedWith(MATRIX_PARAM.qualifiedName);
+		for (JavaMethodParameter matrixParameter : matrixParameters) {
 			final Annotation matrixParamAnnotation = matrixParameter.getAnnotation(MATRIX_PARAM.qualifiedName);
-			if(matrixParamAnnotation.getValue("value") != null) {
+			if (matrixParamAnnotation.getValue("value") != null) {
 				uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue("value")).append("={")
-				.append(matrixParameter.getTypeName()).append("}");
+						.append(matrixParameter.getTypeName()).append("}");
 			}
 		}
 	}
 
-	private void refreshUriTemplateQueryParams(StringBuilder uriPathTemplateBuilder, JaxrsResourceMethod resourceMethod) {
-		final List<JavaMethodParameter> queryParameters = resourceMethod
-				.getJavaMethodParametersWithAnnotation(QUERY_PARAM.qualifiedName);
+	private void refreshUriTemplateQueryParams(final StringBuilder uriPathTemplateBuilder,
+			final IJaxrsResourceMethod resourceMethod) {
+		final List<JavaMethodParameter> queryParameters = ((JaxrsResourceMethod) resourceMethod)
+				.getJavaMethodParametersAnnotatedWith(QUERY_PARAM.qualifiedName);
 		if (queryParameters.size() > 0) {
 			uriPathTemplateBuilder.append('?');
 			for (Iterator<JavaMethodParameter> iterator = queryParameters.iterator(); iterator.hasNext();) {
 				JavaMethodParameter queryParam = iterator.next();
 				final Annotation queryParamAnnotation = queryParam.getAnnotation(QUERY_PARAM.qualifiedName);
 				final String paramName = queryParamAnnotation.getValue("value");
-				if(paramName != null) {
+				if (paramName != null) {
 					final String paramType = queryParam.getTypeName();
 					uriPathTemplateBuilder.append(paramName).append("={");
 					uriPathTemplateBuilder.append(paramName).append(":").append(paramType);
@@ -280,7 +340,8 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 						uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
 					}
 					uriPathTemplateBuilder.append('}');
-					// prepare for next query param item if there is more to process..
+					// prepare for next query param item if there is more to
+					// process..
 					if (iterator.hasNext()) {
 						uriPathTemplateBuilder.append('&');
 					}
@@ -298,22 +359,14 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		return this.httpMethod.compareTo(other.getHttpMethod());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getHttpMethod()
-	 */
 	@Override
 	public IJaxrsHttpMethod getHttpMethod() {
 		return httpMethod;
 	}
 
-	/**
-	 * Convenient method to check if this endpoint uses this HttpMethod.
-	 * 
-	 * @return true if this endpoint's HttpMethod is the one given in parameter
-	 */
-	public boolean match(IJaxrsHttpMethod httpMethod) {
-		return this.httpMethod.equals(httpMethod);
+	@Override
+	public IJaxrsApplication getApplication() {
+		return application;
 	}
 
 	/** @return the resourceMethods */
@@ -322,37 +375,16 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		return new LinkedList<IJaxrsResourceMethod>(resourceMethods);
 	}
 
-	/**
-	 * Convenient method to check if this endpoint uses this ResourceMethod.
-	 * 
-	 * @return true if this endpoint's ResourceMethod is the one given in parameter
-	 */
-	public boolean match(IJaxrsResourceMethod resourceMethod) {
-		return this.resourceMethods.contains(resourceMethod);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getUriPathTemplate()
-	 */
 	@Override
 	public String getUriPathTemplate() {
 		return uriPathTemplate;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getConsumedMediaTypes()
-	 */
 	@Override
 	public List<String> getConsumedMediaTypes() {
 		return consumedMediaTypes;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.IJaxrsEndpoint #getProducedMediaTypes()
-	 */
 	@Override
 	public List<String> getProducedMediaTypes() {
 		return producedMediaTypes;
@@ -363,9 +395,15 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		return this.metamodel.getJavaProject();
 	}
 
+	@Override
+	public IProject getProject() {
+		return this.metamodel.getProject();
+	}
+	
 	/**
-	 * @return the problem level for this given endpoint. The returned problem level is the highest value
-	 * from all the resource methods this endpoint is made of.
+	 * @return the problem level for this given endpoint. The returned problem
+	 *         level is the highest value from all the resource methods this
+	 *         endpoint is made of.
 	 */
 	@Override
 	public int getProblemLevel() {
@@ -373,6 +411,17 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		for (IJaxrsResourceMethod resourceMethod : getResourceMethods()) {
 			level = Math.max(level, resourceMethod.getProblemLevel());
 		}
+		level = Math.max(level, httpMethod.getProblemLevel());
+		level = Math.max(level, metamodel.getProblemLevel());
+		if(application != null) {
+			level = Math.max(level, application.getProblemLevel());
+		}
 		return level;
 	}
+
+	public void remove() {
+		metamodel.remove(this);
+
+	}
+
 }

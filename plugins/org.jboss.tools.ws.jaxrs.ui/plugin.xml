@@ -4,14 +4,14 @@
    
    <extension
          point="org.eclipse.ui.navigator.viewer">
-      <viewerContentBinding viewerId="org.eclipse.jdt.ui.PackageExplorer">
+      <!--viewerContentBinding viewerId="org.eclipse.jdt.ui.PackageExplorer">
          <includes>
             <contentExtension
                   isRoot="false"
                   pattern="org.jboss.tools.ws.jaxrs.ui.uriMappingsNavigatorContent">
             </contentExtension>
          </includes>
-      </viewerContentBinding>
+      </viewerContentBinding-->
       
       <viewerContentBinding
             viewerId="org.eclipse.ui.navigator.ProjectExplorer">

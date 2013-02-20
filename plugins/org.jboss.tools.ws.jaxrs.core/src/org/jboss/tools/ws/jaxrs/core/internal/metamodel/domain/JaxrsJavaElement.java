@@ -11,32 +11,9 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_ELEMENT_KIND;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PATH_PARAM_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PROVIDER_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_RETENTION_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_TARGET_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
+import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ELEMENT_KIND;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,11 +22,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 
 /**
  * Base class for all elements in the JAX-RS Metamodel.
@@ -78,7 +60,8 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	 * @param annotations
 	 *            the java element annotations
 	 * @param metamodel
-	 *            the associated metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
 	 */
 	public JaxrsJavaElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel) {
 		super(metamodel);
@@ -104,16 +87,20 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	}
 
 	/**
-	 * @param className the fully qualified name of the annotation to retrieve.
-	 * @return the annotation matching the given java fully qualified name, null otherwise. 
+	 * @param className
+	 *            the fully qualified name of the annotation to retrieve.
+	 * @return the annotation matching the given java fully qualified name, null
+	 *         otherwise.
 	 */
 	public Annotation getAnnotation(final String className) {
 		return annotations.get(className);
 	}
 
 	/**
-	 * @param className the fully qualified name of the annotation to check.
-	 * @return true if the given element has the annotation matching the given java fully qualified name, false otherwise. 
+	 * @param className
+	 *            the fully qualified name of the annotation to check.
+	 * @return true if the given element has the annotation matching the given
+	 *         java fully qualified name, false otherwise.
 	 */
 	public boolean hasAnnotation(final String className) {
 		return annotations.get(className) != null;
@@ -125,36 +112,125 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	}
 
 	@Override
+	public String getIdentifier() {
+		return this.javaElement.getHandleIdentifier();
+	}
+
+	@Override
 	public String getName() {
 		return javaElement != null ? javaElement.getElementName() : "*unknown java element*";
 	}
 
+	/**
+	 * @return the Map of {@link Annotation} for the given element, indexed by
+	 *         their fully qualified java name.
+	 */
 	public Map<String, Annotation> getAnnotations() {
 		return annotations;
 	}
 
-	public int addOrUpdateAnnotation(final Annotation annotation) {
+	/**
+	 * Adds or Updates from the given annotation, <strong>without</strong>
+	 * notifying the metamodel.
+	 * 
+	 * @param annotation
+	 * @return
+	 * @throws CoreException
+	 */
+	public void addOrUpdateAnnotation(final Annotation annotation) throws CoreException {
+		if (annotation != null) {
+
+			boolean changed = false;
+			final EnumElementKind previousKind = getElementKind();
+			final String annotationName = annotation.getFullyQualifiedName();
+			if (annotations.containsKey(annotationName)) {
+				changed = annotations.get(annotationName).update(annotation);
+			} else {
+				annotations.put(annotationName, annotation);
+				changed = true;
+			}
+			if (changed) {
+				final int flags = qualifyChange(annotationName, previousKind);
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
+				getMetamodel().update(delta);
+			}
+		}
+	}
+
+	/**
+	 * Adds the given annotation.
+	 * 
+	 * @param annotation
+	 * @throws CoreException
+	 */
+	public void addAnnotation(final Annotation annotation) throws CoreException {
+		final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED);
+		final int addAnnotationFlags = internalAddAnnotation(annotation);
+		delta.addFlag(addAnnotationFlags);
+		if (hasMetamodel()) {
+			// update indexes for this element.
+			getMetamodel().update(delta);
+		}
+	}
+
+	/**
+	 * Updates the given annotation.
+	 * 
+	 * @param annotation
+	 * @return
+	 * @throws CoreException
+	 */
+	public int updateAnnotation(final Annotation annotation) throws CoreException {
+		final int flags = internalUpdateAnnotation(annotation);
+		if (flags != F_NONE) {
+			// update indexes for this element.
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
+			getMetamodel().update(delta);
+		}
+		return flags;
+	}
+
+	/**
+	 * Adds or Updates from the given annotation, <strong>without</strong>
+	 * notifying the metamodel.
+	 * 
+	 * @param annotation
+	 * @return
+	 */
+	private int internalAddAnnotation(final Annotation annotation) {
 		if (annotation == null) {
 			return F_NONE;
 		}
-		boolean changed = false;
 		final EnumElementKind previousKind = getElementKind();
 		final String annotationName = annotation.getFullyQualifiedName();
-		if (annotations.containsKey(annotation.getFullyQualifiedName())) {
-			changed = annotations.get(annotation.getFullyQualifiedName()).update(annotation);
-		} else {
-			annotations.put(annotation.getFullyQualifiedName(), annotation);
-			changed = true;
+		annotations.put(annotationName, annotation);
+		final int flags = qualifyChange(annotationName, previousKind);
+		// update indexes for this element.
+		// getMetamodel().updateIndex(this, flags);
+		return flags;
+	}
+
+	/**
+	 * Adds or Updates from the given annotation, <strong>without</strong>
+	 * notifying the metamodel.
+	 * 
+	 * @param annotation
+	 * @return
+	 */
+	private int internalUpdateAnnotation(final Annotation annotation) {
+		if (annotation == null || !hasAnnotation(annotation.getFullyQualifiedName())) {
+			return F_NONE;
 		}
-		if (changed) {
-			getMetamodel().indexElement(this, annotation);
+		final EnumElementKind previousKind = getElementKind();
+		final String annotationName = annotation.getFullyQualifiedName();
+		if (annotations.get(annotationName).update(annotation)) {
 			return qualifyChange(annotationName, previousKind);
 		}
 		return F_NONE;
 	}
 
-	public int updateAnnotations(Map<String, Annotation> otherAnnotations) {
-		int flags = 0;
+	DeltaFlags updateAnnotations(final Map<String, Annotation> otherAnnotations) {
+		DeltaFlags flags = new DeltaFlags();
 		// added annotations (ie: found in 'otherAnnotation' but not
 		// this.annotations)
 		final Map<String, Annotation> addedAnnotations = CollectionUtils.difference(otherAnnotations, this.annotations);
@@ -167,80 +243,75 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		final Map<String, Annotation> changedAnnotations = CollectionUtils.intersection(otherAnnotations,
 				this.annotations);
 		for (Entry<String, Annotation> entry : addedAnnotations.entrySet()) {
-			flags += this.addOrUpdateAnnotation(entry.getValue());
+			flags.addFlags(internalAddAnnotation(entry.getValue()));
 		}
 		for (Entry<String, Annotation> entry : changedAnnotations.entrySet()) {
-			flags += this.addOrUpdateAnnotation(entry.getValue());
+			flags.addFlags(internalUpdateAnnotation(entry.getValue()));
 		}
 		for (Entry<String, Annotation> entry : removedAnnotations.entrySet()) {
-			flags += this.removeAnnotation(entry.getValue());
+			flags.addFlags(internalRemoveAnnotation(entry.getValue().getJavaAnnotation()));
 		}
+
 		return flags;
 	}
 
 	private int qualifyChange(final String annotationName, EnumElementKind previousKind) {
-		int flag = F_NONE;
 		final EnumElementKind currentKind = getElementKind();
-		if (annotationName.equals(PATH.qualifiedName)) {
-			flag = F_PATH_ANNOTATION;
-		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
-			flag = F_APPLICATION_PATH_ANNOTATION;
-		} else if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
-			flag = F_HTTP_METHOD_ANNOTATION;
-		} else if (annotationName.equals(TARGET.qualifiedName)) {
-			flag = F_TARGET_ANNOTATION;
-		} else if (annotationName.equals(RETENTION.qualifiedName)) {
-			flag = F_RETENTION_ANNOTATION;
-		} else if (annotationName.equals(PROVIDER.qualifiedName)) {
-			flag = F_PROVIDER_ANNOTATION;
-		} else if (annotationName.equals(PATH_PARAM.qualifiedName)) {
-			flag = F_PATH_PARAM_ANNOTATION;
-		} else if (annotationName.equals(QUERY_PARAM.qualifiedName)) {
-			flag = F_QUERY_PARAM_ANNOTATION;
-		} else if (annotationName.equals(MATRIX_PARAM.qualifiedName)) {
-			flag = F_MATRIX_PARAM_ANNOTATION;
-		} else if (annotationName.equals(DEFAULT_VALUE.qualifiedName)) {
-			flag = F_DEFAULT_VALUE_ANNOTATION;
-		} else if (annotationName.equals(CONSUMES.qualifiedName)) {
-			flag = F_CONSUMES_ANNOTATION;
-		} else if (annotationName.equals(PRODUCES.qualifiedName)) {
-			flag = F_PRODUCES_ANNOTATION;
-		} else {
-			for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-				if (httpMethod.getJavaClassName().equals(annotationName)) {
-					flag = F_HTTP_METHOD_ANNOTATION;
-					break;
-				}
-			}
-		}
-
+		int flag = getMetamodel().computeChangeAnnotationFlag(annotationName);
 		if (currentKind != previousKind) {
 			flag += F_ELEMENT_KIND;
 		}
 		return flag;
 	}
 
-	public int removeAnnotation(Annotation annotation) {
-		return removeAnnotation(annotation.getJavaAnnotation().getHandleIdentifier());
-	}
-
-	public int removeAnnotation(final String handleIdentifier) {
-		int flag = F_NONE;
-		for (Iterator<Entry<String, Annotation>> iterator = annotations.entrySet().iterator(); iterator.hasNext();) {
-			Entry<String, Annotation> entry = iterator.next();
-			Annotation annotation = entry.getValue();
-			if (annotation.getJavaAnnotation().getHandleIdentifier().equals(handleIdentifier)) {
-				this.metamodel.unindexElement(this, handleIdentifier);
-				final EnumElementKind previousKind = getElementKind();
-				final String annotationName = entry.getKey();
-				// this removes the annotation, which can cause a change of the
-				// element type as well.
-				iterator.remove();
-				flag = qualifyChange(annotationName, previousKind);
-				break;
+	/**
+	 * Removes the given {@link IAnnotation} annotation and returns a flag to qualify the type of
+	 * annotation that was removed. If the given annotation is null, the
+	 * returned flag is {@link JaxrsElementDelta#F_NONE}
+	 * 
+	 * @param annotation
+	 * @throws CoreException
+	 */
+	public void removeAnnotation(final IAnnotation annotation) throws CoreException {
+		if (annotation != null) {
+			final int flags = internalRemoveAnnotation(annotation);
+			if (isMarkedForRemoval()) {
+				remove();
+			} else {
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
+				getMetamodel().update(delta);
 			}
 		}
-		return flag;
+	}
+
+	/**
+	 * Removes the annotation identified by the given parameter and returns a
+	 * flag to qualify the type of annotation that was removed. If the given
+	 * identifier is null, the returned flag is {@link JaxrsElementDelta#F_NONE}
+	 * 
+	 * @param annotation
+	 * @return the change flag.
+	 */
+	private int internalRemoveAnnotation(final IAnnotation annotation) {
+		int flags = F_NONE;
+		String annotationName = null;
+		if (annotation != null) {
+			final EnumElementKind previousKind = getElementKind();
+			for(Iterator<Entry<String, Annotation>> iterator = annotations.entrySet().iterator(); iterator.hasNext();) {
+				final Entry<String, Annotation> entry = iterator.next();
+				if(entry.getValue().getJavaAnnotation().getHandleIdentifier().equals(annotation.getHandleIdentifier())) {
+					annotationName = entry.getKey();
+					iterator.remove();
+					break;
+				}
+			}
+			// this removes the annotation, which can cause a change of the
+			// element type as well.
+			if(annotationName != null) {
+				flags = qualifyChange(annotationName, previousKind);
+			}
+		}
+		return flags;
 	}
 
 	public IResource getResource() {
@@ -287,47 +358,22 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		return true;
 	}
 
-	public int update(T javaElement) {
-		return 0;
-	}
-
 	/**
-	 * Creates a validation message from the given parameters. The created
-	 * validation messages is of the 'JAX-RS' type.
+	 * Updates the current {@link JaxrsJavaElement} from the given
+	 * {@link IJavaElement}
 	 * 
-	 * @param msg
-	 *            the message to display
-	 * @param severity
-	 *            the severity of the marker
-	 * @param region
-	 *            the region that the validation marker points to
-	 * @return the created validation message.
-	 * @throws JavaModelException
-	 *             ValidatorMessage createValidatorMessage(final String id,
-	 *             final String msg, int severity, final ISourceRange
-	 *             sourceRange) throws JavaModelException { final
-	 *             ValidatorMessage validationMsg = ValidatorMessage.create(msg,
-	 *             this.getResource());
-	 *             validationMsg.setType(JaxrsMetamodelValidator
-	 *             .JAXRS_PROBLEM_TYPE); final ICompilationUnit compilationUnit
-	 *             = this.getJavaElement().getCompilationUnit(); final
-	 *             CompilationUnit ast =
-	 *             CompilationUnitsRepository.getInstance()
-	 *             .getAST(compilationUnit);
-	 *             validationMsg.setAttribute(IMarker.LOCATION,
-	 *             NLS.bind(ValidationMessages.LINE_NUMBER,
-	 *             ast.getLineNumber(sourceRange.getOffset())));
-	 *             validationMsg.setAttribute(IMarker.MARKER,
-	 *             JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
-	 *             validationMsg.setAttribute(IMarker.SEVERITY, severity);
-	 *             validationMsg.setAttribute(IMarker.CHAR_START,
-	 *             sourceRange.getOffset());
-	 *             validationMsg.setAttribute(IMarker.CHAR_END,
-	 *             sourceRange.getOffset() + sourceRange.getLength());
-	 *             Logger.debug("Validation message for {}: {}",
-	 *             this.getJavaElement().getElementName(),
-	 *             validationMsg.getAttribute(IMarker.MESSAGE)); return
-	 *             validationMsg; }
+	 * @param javaElement
+	 * @param ast
+	 * @return
+	 * @throws CoreException
 	 */
+	public abstract void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException;
+
+	public IJavaElement getJavaProject() {
+		if (javaElement != null) {
+			return javaElement.getJavaProject();
+		}
+		return null;
+	}
 
 }

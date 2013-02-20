@@ -76,6 +76,20 @@ public class JavaMethodParameter {
 		return annotations.get(fullyQualifiedName);
 	}
 	
+	public void removeAnnotation(Annotation annotation) {
+		annotations.remove(annotation.getFullyQualifiedName());
+	}
+	
+	public void removeAnnotation(String qualifiedName) {
+		annotations.remove(qualifiedName);
+	}
+
+	
+	public void addAnnotation(Annotation annotation) {
+		annotations.put(annotation.getFullyQualifiedName(), annotation);
+	}
+
+	
 	/**
 	 * @return true if this {@link JavaMethodParameter} is different from the
 	 *         given {@link JavaMethodParameter}, including differences at the

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
@@ -38,9 +39,11 @@ import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.junit.Test;
 
 /**
@@ -61,7 +64,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		for (IJaxrsApplication application : applications) {
 			if (application.isWebXmlApplication()) {
-				metamodel.remove((JaxrsBaseElement) application);
+				((JaxrsWebxmlApplication)application).remove();
 			}
 		}
 		deleteJaxrsMarkers(project);
@@ -80,7 +83,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		for (IJaxrsApplication application : applications) {
 			if (application.isJavaApplication()) {
-				metamodel.remove((JaxrsBaseElement) application);
+				((JaxrsJavaApplication) application).remove();
 			}
 		}
 		assertThat(metamodel.getAllApplications().size(), equalTo(1));
@@ -107,6 +110,9 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
+		for(IJaxrsEndpoint endpoint : metamodel.getAllEndpoints()) {
+			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+		}
 	}
 
 	@Test
@@ -125,6 +131,10 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			assertThat(appMarkers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(appMarkers.length, equalTo(1));
 		}
+		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+		}
+
 	}
 
 	@Test
@@ -143,7 +153,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 				javaApplication = (JaxrsJavaApplication) application;
 				final Annotation appPathAnnotation = javaApplication
 						.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
-				javaApplication.removeAnnotation(appPathAnnotation);
+				javaApplication.removeAnnotation(appPathAnnotation.getJavaAnnotation());
 			}
 		}
 		// operation
@@ -152,6 +162,9 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IMarker[] markers = findJaxrsMarkers(javaApplication);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION));
+		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+		}
 	}
 
 	@Test
@@ -166,6 +179,9 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(javaApplication);
 		assertThat(markers, hasPreferenceKey(JAVA_APPLICATION_INVALID_TYPE_HIERARCHY));
+		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+		}
 	}
 
 	@Test
@@ -174,8 +190,8 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		final Annotation appPathAnnotation = javaApplication
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
-		javaApplication.removeAnnotation(appPathAnnotation);
-		metamodel.remove(metamodel.getWebxmlApplication());
+		javaApplication.removeAnnotation(appPathAnnotation.getJavaAnnotation());
+		metamodel.findWebxmlApplication().remove();
 		createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
 		deleteJaxrsMarkers(project);
 		// operation
@@ -190,7 +206,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			ValidationException {
 		// preconditions
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		metamodel.remove(metamodel.getWebxmlApplication());
+		metamodel.findWebxmlApplication().remove();
 		deleteJaxrsMarkers(project);
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
@@ -204,7 +220,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			throws CoreException, ValidationException {
 		// preconditions operation #1
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		metamodel.remove(metamodel.getWebxmlApplication());
+		metamodel.findWebxmlApplication().remove();
 		deleteJaxrsMarkers(project);
 		// operation #1: remove annotation and validate
 		LOGGER.warn("*** Operation #1 ***");

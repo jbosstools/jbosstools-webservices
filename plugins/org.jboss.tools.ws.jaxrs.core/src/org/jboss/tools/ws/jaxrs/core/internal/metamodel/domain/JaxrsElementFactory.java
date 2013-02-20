@@ -11,54 +11,32 @@ Le * Copyright (c) 2008 Red Hat, Inc.
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import static org.eclipse.jdt.core.IJavaElement.ANNOTATION;
+import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
 import static org.eclipse.jdt.core.IJavaElement.FIELD;
+import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
 import static org.eclipse.jdt.core.IJavaElement.METHOD;
+import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.COOKIE_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HEADER_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeHierarchy;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsAnnotationsScanner;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsElementsSearcher;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 
 /**
  * Factory for JAX-RS elements that should be created from Java elements.
@@ -69,34 +47,209 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
 public class JaxrsElementFactory {
 
 	/**
-	 * Creating a JAX-RS Element of the given kind (dispatching to the proper
-	 * method in this class)
+	 * Dispatch method.
 	 * 
-	 * @param category
-	 * @param type
+	 * @param element
 	 * @param ast
 	 * @param metamodel
 	 * @param progressMonitor
-	 * @return the expected element or null if it could not be created (ie:
-	 *         type/ast not matching the expected JAX-RS element kind)
-	 * @throws CoreException 
+	 * @return
+	 * @throws CoreException
 	 */
-	public static JaxrsJavaElement<IType> createElement(final EnumElementCategory category, final IType javaType,
-			final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor)
-			throws CoreException {
-		switch (category) {
-		case APPLICATION:
-			return JaxrsElementFactory.createApplication(javaType, ast, metamodel);
-		case PROVIDER:
-			return JaxrsElementFactory.createProvider(javaType, ast, metamodel, progressMonitor);
-		default:
-			return null;
+	public static List<IJaxrsElement> createElements(final IJavaElement element, final CompilationUnit ast,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		switch (element.getElementType()) {
+		case JAVA_PROJECT:
+			elements.addAll(createElements(element, metamodel, progressMonitor));
+			break;
+		case PACKAGE_FRAGMENT_ROOT:
+			elements.addAll(createElements(element, metamodel, progressMonitor));
+			break;
+		case COMPILATION_UNIT:
+			final ICompilationUnit compilationUnit = (ICompilationUnit) element;
+			for (IType type : compilationUnit.getTypes()) {
+				elements.addAll(createElements(type, ast, metamodel, progressMonitor));
+			}
+			break;
+		case TYPE:
+			elements.addAll(createElements((IType) element, ast, metamodel, progressMonitor));
+			break;
+		case METHOD:
+			elements.addAll(createElements((IMethod) element, ast, metamodel, progressMonitor));
+			break;
+		case FIELD:
+			elements.addAll(createElements((IField) element, ast, metamodel, progressMonitor));
+			break;
+		case ANNOTATION:
+			elements.addAll(createElements((IAnnotation) element, ast, metamodel,
+					progressMonitor));
+			break;
 		}
+		return elements;
 	}
 
 	/**
-	 * Attempts to create a new JAX-RS element from the given Java annotation,
-	 * <b>without adding it to the given JAX-RS Metamodel</b>
+	 * Creates one or more JAX-RS elements from the given {@link IType}
+	 * 
+	 * @param type
+	 *            the java type
+	 * @param ast
+	 *            the associated {@link CompilationUnit}
+	 * @param metamodel
+	 *            the metamodel
+	 * @param progressMonitor
+	 *            the progress monitor
+	 * @return
+	 * @throws CoreException
+	 */
+	private static List<IJaxrsElement> createElements(final IType type, final CompilationUnit ast,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		// let's see if the given type can be an HTTP Method (ie, is annotated
+		// with @HttpMethod)
+		final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type, ast).withMetamodel(metamodel).build();
+		if (httpMethod != null) {
+			elements.add(httpMethod);
+		}
+		// now,let's see if the given type can be a Resource (with or without
+		// @Path)
+		final JaxrsResource resource = JaxrsResource.from(type, ast, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		if (resource != null) {
+			elements.add(resource);
+			elements.addAll(resource.getAllMethods());
+			elements.addAll(resource.getAllFields());
+		}
+		// now,let's see if the given type can be an Application
+		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type, ast).withMetamodel(metamodel).build();
+		if (application != null) {
+			elements.add(application);
+		}
+		// now,let's see if the given type can be a Provider
+		final JaxrsProvider provider = JaxrsProvider.from(type, ast).withMetamodel(metamodel).build();
+		if (provider != null) {
+			elements.add(provider);
+		}
+
+		return elements;
+	}
+
+	private static List<IJaxrsElement> createElements(final IJavaElement scope,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		if(scope.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)scope).isArchive()) {
+			Logger.debug("Ignoring archive {}", scope.getElementName());
+			return Collections.emptyList();
+		}
+		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		// let's see if the given scope contains JAX-RS HTTP Methods
+		final List<IType> matchingHttpMethodTypes = JaxrsElementsSearcher.findHttpMethodTypes(scope,
+				progressMonitor);
+		for (IType type : matchingHttpMethodTypes) {
+			final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
+			if (httpMethod != null) {
+				elements.add(httpMethod);
+			}
+		}
+		// let's see if the given scope contains JAX-RS HTTP Resources
+		final List<IType> matchingResourceTypes = JaxrsElementsSearcher.findResourceTypes(scope, progressMonitor);
+		for (IType type : matchingResourceTypes) {
+			final JaxrsResource resource = JaxrsResource.from(type, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+			if (resource != null) {
+				elements.add(resource);
+				elements.addAll(resource.getAllMethods());
+				elements.addAll(resource.getAllFields());
+			}
+		}
+		// let's see if the given scope contains JAX-RS Application
+		final List<IType> matchingApplicationTypes = JaxrsElementsSearcher.findApplicationTypes(scope,
+				progressMonitor);
+		for (IType type : matchingApplicationTypes) {
+			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
+			if (application != null) {
+				elements.add(application);
+			}
+		}
+		// let's see if the given scope contains JAX-RS Providers
+		final List<IType> matchingProviderTypes = JaxrsElementsSearcher.findProviderTypes(scope, progressMonitor);
+		for (IType type : matchingProviderTypes) {
+			final JaxrsProvider provider = JaxrsProvider.from(type).withMetamodel(metamodel).build();
+			if (provider != null) {
+				elements.add(provider);
+			}
+		}
+		return elements;
+	}
+
+	/**
+	 * Attempts to create a JAX-RS Resource Method from the given
+	 * {@link IMethod}, and if needed, also creates the parent JAX-RS Resource.
+	 * 
+	 * @param javaMethod
+	 * @param ast
+	 * @param metamodel
+	 * @param progressMonitor
+	 * @return
+	 * @throws CoreException
+	 */
+	private static List<IJaxrsElement> createElements(final IMethod javaMethod,
+			final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		final IType parentType = (IType) javaMethod.getAncestor(IJavaElement.TYPE);
+		if(metamodel.findElement(parentType) == null) {
+			elements.addAll(createElements(parentType, ast, metamodel, progressMonitor));
+		} else {
+			final JaxrsResource parentResource = metamodel.findResource((IType)javaMethod.getAncestor(IJavaElement.TYPE));
+			final JaxrsResourceMethod resourceMethod = JaxrsResourceMethod
+					.from(javaMethod, ast, metamodel.findAllHttpMethods()).withParentResource(parentResource).withMetamodel(metamodel).build();
+			if (resourceMethod != null) {
+				elements.add(resourceMethod);
+				// now, check if the parent resource should also be added to the
+				// metamodel
+				if (resourceMethod.getParentResource() != null && !metamodel.containsElement(resourceMethod.getParentResource())) {
+					elements.add(resourceMethod.getParentResource());
+				}
+			}
+		}
+		return elements;
+	}
+
+	/**
+	 * Attempts to create a JAX-RS Resource Method from the given
+	 * {@link IMethod}, and if needed, also creates the parent JAX-RS Resource.
+	 * 
+	 * @param javaField
+	 * @param ast
+	 * @param metamodel
+	 * @param progressMonitor
+	 * @return
+	 * @throws CoreException
+	 */
+	private static List<IJaxrsElement> createElements(IField javaField, CompilationUnit ast,
+			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		final IType parentType = (IType) javaField.getAncestor(IJavaElement.TYPE);
+		if(metamodel.findElement(parentType) == null) {
+			elements.addAll(createElements(parentType, ast, metamodel, progressMonitor));
+		} else {
+			final JaxrsResourceField resourceField = JaxrsResourceField.from(javaField, ast).withMetamodel(metamodel).build();
+			if (resourceField != null) {
+				elements.add(resourceField);
+				// now, check if the parent resource should also be added to the
+				// metamodel
+				if (!metamodel.containsElement(resourceField.getParentResource())) {
+					final JaxrsResource parentResource = resourceField.getParentResource();
+					elements.add(parentResource);
+				}
+			}
+		}
+		return elements;
+	}
+
+	/**
+	 * Attempts to create a new JAX-RS element from the given {@link Annotation}
+	 * . Multiple elements can be returned, for example if a java method is
+	 * annotated with a JAX-RS annotation (ex: <code>@Path()</code>), the parent
+	 * type becomes a JAX-RS Subresource.
 	 * 
 	 * @param element
 	 * @param ast
@@ -105,463 +258,21 @@ public class JaxrsElementFactory {
 	 *         is not a valid one.
 	 * @throws CoreException
 	 */
-	public static JaxrsJavaElement<?> createElement(final IAnnotation javaAnnotation, final CompilationUnit ast,
+	public static List<IJaxrsElement> createElements(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
-		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
-		// invalid annotation (eg: on package declaration, or underlying java element does not exist or not found) are ignored
-		if (annotation == null) { 
-			return null;
-		}
-		final String annotationName = annotation.getFullyQualifiedName();
-		if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
-			final JaxrsHttpMethod httpMethod = createHttpMethod(annotation, ast, metamodel);
-			return httpMethod;
-		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
-			final JaxrsJavaApplication application = createApplication(annotation, ast, metamodel);
-			return application;
-		} else if (annotationName.equals(PROVIDER.qualifiedName)) {
-			final JaxrsProvider provider = createProvider(annotation, ast, metamodel, progressMonitor);
-			return provider;
-		} else {
+		// unsupported annotation (eg: on package declaration, or underlying java
+		// element does not exist or not found) are ignored
+		if (javaAnnotation != null) {
 			switch (javaAnnotation.getParent().getElementType()) {
-			case TYPE:
-				if (annotationName.equals(PATH.qualifiedName)) {
-					return createResource(annotation, ast, metamodel);
-				}
-				break;
-			case METHOD:
-				final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) metamodel.getHttpMethod(annotationName);
-				if (annotationName.equals(PATH.qualifiedName)) {
-					return createResourceMethod(annotation, ast, metamodel);
-				} else if (httpMethod != null) {
-					return createResourceMethod(annotation, ast, metamodel);
-				}
-				break;
-			case FIELD:
-				if (annotationName.equals(PATH_PARAM.qualifiedName) || annotationName.equals(QUERY_PARAM.qualifiedName)
-						|| annotationName.equals(MATRIX_PARAM.qualifiedName)) {
-					return createField(annotation, ast, metamodel);
-				}
-				break;
+			case IJavaElement.TYPE:
+				return createElements((IType) javaAnnotation.getParent(), ast, metamodel, progressMonitor);
+			case IJavaElement.METHOD:
+				return createElements((IMethod) javaAnnotation.getParent(), ast, metamodel, progressMonitor);
+			case IJavaElement.FIELD:
+				return createElements((IField) javaAnnotation.getParent(), ast, metamodel, progressMonitor);
 			}
 		}
-		return null;
+		return Collections.emptyList();
 	}
 
-	/**
-	 * Creates a JAX-RS Root Resource (including its methods and its fields)
-	 * from the given path annotation and its AST, <b>without adding it to the
-	 * given JAX-RS Metamodel</b>
-	 * 
-	 * @param pathAnnotation
-	 *            the @Path annotation found on the Java Type
-	 * @param ast
-	 *            the AST associated to the annotated java type
-	 * @param metamodel
-	 *            the current metamodel, in which the Root Resource should be
-	 *            added
-	 * @return the created Root Resource
-	 * @throws CoreException
-	 */
-	public static JaxrsResource createResource(final Annotation pathAnnotation, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel) throws CoreException {
-		// create the resource:
-		return createResource((IType) pathAnnotation.getJavaParent(), ast, metamodel);
-	}
-
-	/**
-	 * Creates a JAX-RS Resource (including its methods and its fields) from the
-	 * given type and its AST, <b>without adding it to the given JAX-RS
-	 * Metamodel</b>
-	 * 
-	 * @param javaType
-	 *            the Java Type
-	 * @param ast
-	 *            the AST associated to the java type
-	 * @param metamodel
-	 *            the current metamodel, in which the JAX-RS Resource should be
-	 *            added
-	 * @return the created resource, or null if the java type did not exist.
-	 * @throws CoreException
-	 */
-	public static JaxrsResource createResource(IType javaType, CompilationUnit ast, JaxrsMetamodel metamodel)
-			throws CoreException {
-		if (!javaType.exists()) {
-			return null;
-		}
-		// create the resource:
-		final JaxrsResource resource = internalCreateResource(javaType, ast, metamodel);
-		// find the resource methods, subresource methods and subresource
-		// locators of this resource:
-		final List<IMethod> javaMethods = JaxrsAnnotationsScanner.findResourceMethods(javaType,
-				metamodel.getAllHttpMethods(), new NullProgressMonitor());
-		for (IMethod javaMethod : javaMethods) {
-			internalCreateResourceMethod(javaMethod, ast, metamodel, resource);
-		}
-		// find the available type fields
-		for (IField javaField : javaType.getFields()) {
-			internalCreateField(javaField, ast, metamodel, resource);
-		}
-		// well, sorry.. this is not a valid JAX-RS resource..
-		if (resource.getElementKind() == EnumElementKind.UNDEFINED) {
-			return null;
-		}
-		return resource;
-	}
-
-	private static JaxrsResource internalCreateResource(IType type, CompilationUnit ast, JaxrsMetamodel metamodel)
-			throws JavaModelException {
-		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(type, ast, PATH.qualifiedName,
-				CONSUMES.qualifiedName, PRODUCES.qualifiedName);
-		return new JaxrsResource(type, annotations, metamodel);
-	}
-
-	/**
-	 * Creates a JAX-RS resource method from the given annotation (@Path or an
-	 * HttpMethod) and its AST, <b>without adding it to the given JAX-RS
-	 * Metamodel</b>. If the parent resource did not exist before, its is also
-	 * created.
-	 * 
-	 * @param annotation
-	 * @param ast
-	 * @param metamodel
-	 * @return
-	 * @throws CoreException
-	 */
-	public static JaxrsResourceMethod createResourceMethod(Annotation annotation, CompilationUnit ast,
-			JaxrsMetamodel metamodel) throws CoreException {
-		final IMethod method = (IMethod) annotation.getJavaParent();
-		return createResourceMethod(method, ast, metamodel);
-	}
-
-	/**
-	 * Creates a JAX-RS resource method from the given annotation (@Path or an
-	 * HttpMethod) and its AST, <b>without adding it to the given JAX-RS
-	 * Metamodel</b>
-	 * 
-	 * @param annotation
-	 * @param ast
-	 * @param metamodel
-	 * @return
-	 * @throws CoreException
-	 */
-	public static JaxrsResourceMethod createResourceMethod(IMethod method, CompilationUnit ast, JaxrsMetamodel metamodel)
-			throws CoreException {
-		if (!method.exists()) {
-			return null;
-		}
-		final IType parentType = (IType) method.getParent();
-		JaxrsResource parentResource = (JaxrsResource) metamodel.getElement(parentType);
-		if (parentResource == null) {
-			// create parentResource on-the-fly
-			parentResource = internalCreateResource(parentType, ast, metamodel);
-		}
-		final JaxrsResourceMethod resourceMethod = internalCreateResourceMethod(method, ast, metamodel, parentResource);
-		return resourceMethod;
-	}
-
-	private static JaxrsResourceMethod internalCreateResourceMethod(IMethod javaMethod, CompilationUnit ast,
-			JaxrsMetamodel metamodel, JaxrsResource parentResource) throws JavaModelException {
-		final List<String> httpMethodAnnotationNames = new ArrayList<String>();
-		for (IJaxrsHttpMethod httpMethod : metamodel.getAllHttpMethods()) {
-			httpMethodAnnotationNames.add(httpMethod.getJavaClassName());
-		}
-		final List<String> annotationNames = new ArrayList<String>();
-		annotationNames.addAll(Arrays.asList(PATH.qualifiedName, PRODUCES.qualifiedName, CONSUMES.qualifiedName));
-		annotationNames.addAll(httpMethodAnnotationNames);
-		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaMethod, ast, annotationNames);
-		Annotation httpMethodAnnotation = null;
-		final Annotation pathAnnotation = annotations.get(PATH.qualifiedName);
-		for (String httpMethodAnnotationName : httpMethodAnnotationNames) {
-			if (annotations.containsKey(httpMethodAnnotationName)) {
-				httpMethodAnnotation = annotations.get(httpMethodAnnotationName);
-				break;
-			}
-		}
-		if (httpMethodAnnotation == null && pathAnnotation == null) {
-			Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on method {}.{}()",
-					javaMethod.getParent().getElementName(), javaMethod.getElementName());
-		} else {
-			final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
-			// avoid creating Resource Method when the Java Method cannot be
-			// parsed (ie, syntax/compilation error)P
-			if (methodSignature != null) {
-				final List<JavaMethodParameter> methodParameters = methodSignature.getMethodParameters();
-				final IType returnedType = methodSignature.getReturnedType();
-				return new JaxrsResourceMethod(javaMethod, methodParameters, returnedType, annotations, parentResource,
-						metamodel);
-			}
-		}
-		return null;
-
-	}
-
-	/**
-	 * Creates a JAX-RS HTTP Method from the given
-	 * {@link javax.ws.rs.HttpMethod} annotation and its AST, <b>without adding
-	 * it to the given JAX-RS Metamodel</b>
-	 * 
-	 * @param ast
-	 * @param metamodel
-	 * @param annotation
-	 * @return
-	 * @throws CoreException
-	 */
-	public static JaxrsHttpMethod createHttpMethod(final IType javaType, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel) throws CoreException {
-		if (!javaType.exists()) {
-			return null;
-		}
-		Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, HTTP_METHOD.qualifiedName,
-				TARGET.qualifiedName, RETENTION.qualifiedName);
-		if (annotations == null || annotations.isEmpty()) {
-			return null;
-		}
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(javaType, annotations, metamodel);
-		return httpMethod;
-	}
-
-	/**
-	 * Creates a JAX-RS Application from the given pathAnnotation and its AST,
-	 * <b>without adding it to the given JAX-RS Metamodel</b>.
-	 * 
-	 * @param ast
-	 * @param metamodel
-	 * @param annotation
-	 * @return
-	 * @throws CoreException
-	 */
-	public static JaxrsHttpMethod createHttpMethod(final Annotation annotation, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel) throws CoreException {
-		if (annotation.getJavaParent() != null && annotation.getJavaParent().getElementType() == IJavaElement.TYPE
-				&& annotation.getFullyQualifiedName().equals(HTTP_METHOD.qualifiedName)) {
-			// return new JaxrsHttpMethod.Builder((IType)
-			// annotation.getJavaParent(),
-			// metamodel).httpMethod(annotation).build();
-			return createHttpMethod((IType) annotation.getJavaParent(), ast, metamodel);
-		}
-		return null;
-	}
-
-	/**
-	 * Creates a JAX-RS Application from the given type and its AST, <b>without
-	 * adding it to the given JAX-RS Metamodel</b>
-	 * 
-	 * @param ast
-	 * @param metamodel
-	 * @param annotation
-	 * @return
-	 * @throws CoreException
-	 */
-	public static JaxrsJavaApplication createApplication(final IType javaType, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel) throws CoreException {
-		if (!javaType.exists()) {
-			return null;
-		}
-		Annotation applicationPathAnnotation = JdtUtils
-				.resolveAnnotation(javaType, ast, APPLICATION_PATH.qualifiedName);
-		return createApplication(javaType, applicationPathAnnotation, metamodel);
-	}
-
-	/**
-	 * Creates a JAX-RS Application from the given
-	 * {@link javax.ws.rs.ApplicationPath } annotation and its AST, <b>without
-	 * adding it to the given JAX-RS Metamodel</b>.
-	 * 
-	 * @param ast
-	 * @param metamodel
-	 * @param annotation
-	 * @return
-	 * @throws CoreException
-	 */
-	public static JaxrsJavaApplication createApplication(final Annotation annotation, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel) throws CoreException {
-		final IJavaElement javaParent = annotation.getJavaParent();
-		if (javaParent != null && javaParent.getElementType() == IJavaElement.TYPE
-				&& annotation.getFullyQualifiedName().equals(APPLICATION_PATH.qualifiedName)) {
-			final IType javaType = (IType) javaParent;
-			return createApplication(javaType, annotation, metamodel);
-		}
-		return null;
-	}
-
-	/**
-	 * Creates a JAX-RS Application from the given type and its AST, <b>without
-	 * adding it to the given JAX-RS Metamodel</b>
-	 * 
-	 * @param ast
-	 * @param metamodel
-	 * @param annotation
-	 * @return
-	 * @throws CoreException
-	 */
-	private static JaxrsJavaApplication createApplication(final IType applicationType,
-			final Annotation appPathAnnotation, final JaxrsMetamodel metamodel) throws CoreException {
-		if (!applicationType.exists()) {
-			return null;
-		}
-		final IType applicationSupertype = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName,
-				applicationType.getJavaProject(), new NullProgressMonitor());
-		final boolean isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, applicationType);
-		if (isApplicationSubclass || appPathAnnotation != null) {
-			return new JaxrsJavaApplication(applicationType, appPathAnnotation, isApplicationSubclass, metamodel);
-		}
-		return null;
-	}
-
-	/**
-	 * Create a JAX-RS Resource field from the given annotation, <b>without
-	 * adding it to the given JAX-RS Metamodel</b>
-	 * 
-	 * @param pathParamannotation
-	 * @param ast
-	 * @param metamodel
-	 * @return
-	 * @throws JavaModelException
-	 * @throws CoreException
-	 */
-	public static JaxrsResourceField createField(Annotation annotation, CompilationUnit ast, JaxrsMetamodel metamodel)
-			throws JavaModelException {
-		final IField javaField = (IField) annotation.getJavaParent();
-		return createField(javaField, ast, metamodel);
-	}
-
-	public static JaxrsResourceField createField(IField javaField, CompilationUnit ast, JaxrsMetamodel metamodel)
-			throws JavaModelException {
-		if (!javaField.exists()) {
-			return null;
-		}
-		final IType parentType = (IType) javaField.getParent();
-		IJaxrsElement parentResource = metamodel.getElement(parentType);
-		if (parentResource == null) {
-			// creating the parent resource but not adding it to the metamodel
-			// yet..
-			parentResource = internalCreateResource(parentType, ast, metamodel);
-		}
-		if (parentResource != null && parentResource.getElementCategory() == EnumElementCategory.RESOURCE) {
-			final JaxrsResourceField field = internalCreateField(javaField, ast, metamodel,
-					(JaxrsResource) parentResource);
-			return field;
-		}
-		return null;
-	}
-
-	private static JaxrsResourceField internalCreateField(IField javaField, CompilationUnit ast,
-			JaxrsMetamodel metamodel, final JaxrsResource parentResource) throws JavaModelException {
-		final List<String> supportedFieldAnnotations = Arrays.asList(MATRIX_PARAM.qualifiedName,
-				QUERY_PARAM.qualifiedName, PATH_PARAM.qualifiedName, COOKIE_PARAM.qualifiedName,
-				HEADER_PARAM.qualifiedName, DEFAULT_VALUE.qualifiedName);
-		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaField, ast,
-				supportedFieldAnnotations);
-		if ((annotations.size() == 1 && !annotations.containsKey(DEFAULT_VALUE.qualifiedName))
-				|| (annotations.size() == 2 && annotations.containsKey(DEFAULT_VALUE.qualifiedName))) {
-			final JaxrsResourceField field = new JaxrsResourceField(javaField, annotations, parentResource, metamodel);
-			return field;
-		}
-		return null;
-	}
-
-	public static JaxrsWebxmlApplication createApplication(final String javaClassName, final String applicationPath,
-			final IResource resource, final JaxrsMetamodel metamodel) {
-		return new JaxrsWebxmlApplication(javaClassName, applicationPath, resource, metamodel);
-	}
-
-	/**
-	 * Creates a JAX-RS Provider from the given {@link javax.ws.rs.Provider }
-	 * annotation and its AST, <b>without adding it to the given JAX-RS
-	 * Metamodel</b>.
-	 * 
-	 * @param ast
-	 * @param metamodel
-	 * @param annotation
-	 * @return
-	 * @throws CoreException
-	 */
-	public static JaxrsProvider createProvider(final Annotation annotation, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
-		final IJavaElement javaParent = annotation.getJavaParent();
-		if (javaParent != null && javaParent.getElementType() == IJavaElement.TYPE
-				&& annotation.getFullyQualifiedName().equals(PROVIDER.qualifiedName)) {
-			final IType javaType = (IType) javaParent;
-			return createProvider(javaType, ast, metamodel, progressMonitor);
-		}
-		return null;
-	}
-
-	/**
-	 * Creates a JAX-RS Provider from the given Type. A valid Provider must be
-	 * annotated with <code>javax.ws.rs.ext.MessageBodyReader</code>,
-	 * <code>javax.ws.rs.ext.MessageBodyWriter</code> or
-	 * <code>javax.ws.rs.ext.ExceptionMapper</code>. If the given type is not
-	 * annotated with <code>javax.ws.rs.ext.Provider</code>, a should be
-	 * reported to the user.
-	 * 
-	 * @param javaType
-	 * @param metamodel
-	 * @throws CoreException
-	 *             in case of underlying exception
-	 * @return a representation of the given provider or null in case of invalid
-	 *         type (ie, not a valid JAX-RS Provider)
-	 */
-	public static JaxrsProvider createProvider(final IType javaType, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
-		if (javaType == null || !javaType.exists()) {
-			return null;
-		}
-		// assert that given java type is not abstract
-		if (JdtUtils.isAbstractType(javaType)) {
-			return null;
-		}
-
-		ITypeHierarchy providerTypeHierarchy = JdtUtils.resolveTypeHierarchy(javaType, javaType.getJavaProject(),
-				false, progressMonitor);
-		IType[] subtypes = providerTypeHierarchy.getSubtypes(javaType);
-		// assert that given java type has no sub-type, or continue;
-		if (subtypes != null && subtypes.length > 0) {
-			return null;
-		}
-		Map<EnumElementKind, IType> providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy,
-				progressMonitor);
-
-		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(javaType, ast, PROVIDER.qualifiedName,
-				CONSUMES.qualifiedName, PRODUCES.qualifiedName);
-		if(annotations.get(PROVIDER.qualifiedName) != null || !providedKinds.isEmpty()) {
-			return new JaxrsProvider(javaType, annotations, providedKinds, metamodel);
-		}
-		return null;
-	}
-
-	/**
-	 * @param metamodel
-	 * @param providerType
-	 * @param providerTypeHierarchy
-	 * @param providerInterfaces
-	 * @param progressMonitor
-	 * @param providerTypeHierarchy
-	 * @return
-	 * @throws CoreException
-	 * @throws JavaModelException
-	 */
-	private static Map<EnumElementKind, IType> getProvidedKinds(final IType providerType,
-			final CompilationUnit compilationUnit, final ITypeHierarchy providerTypeHierarchy,
-			final IProgressMonitor progressMonitor) throws CoreException, JavaModelException {
-		final Map<EnumElementKind, IType> providerKinds = new HashMap<EnumElementKind, IType>();
-		List<Pair<EnumJaxrsClassname, EnumElementKind>> pairs = new ArrayList<Pair<EnumJaxrsClassname, EnumElementKind>>();
-		pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_READER, EnumElementKind.MESSAGE_BODY_READER));
-		pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_WRITER, EnumElementKind.MESSAGE_BODY_WRITER));
-		pairs.add(Pair.makePair(EnumJaxrsClassname.EXCEPTION_MAPPER, EnumElementKind.EXCEPTION_MAPPER));
-		pairs.add(Pair.makePair(EnumJaxrsClassname.CONTEXT_RESOLVER, EnumElementKind.CONTEXT_RESOLVER));
-
-		for (Pair<EnumJaxrsClassname, EnumElementKind> pair : pairs) {
-			final IType matchingGenericType = JdtUtils.resolveType(pair.a.qualifiedName, providerType.getJavaProject(),
-					progressMonitor);
-			List<IType> argumentTypes = JdtUtils.resolveTypeArguments(providerType, compilationUnit,
-					matchingGenericType, providerTypeHierarchy, progressMonitor);
-			if (argumentTypes == null || argumentTypes.size() == 0) {
-				continue;
-			}
-			providerKinds.put(pair.b, argumentTypes.get(0));
-		}
-		return providerKinds;
-	}
 }

@@ -11,17 +11,28 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
+import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Map;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 
 /**
  * A request method designator is a runtime annotation that is annotated with
@@ -90,36 +101,116 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 			return OTHER;
 		}
 	}
-	
+
+	/**
+	 * Builder initializer
+	 * 
+	 * @param javaElement
+	 *            the underlying {@link IJavaElement} that on which this JAX-RS
+	 *            Element will be built.
+	 * @return the Builder
+	 * @throws JavaModelException
+	 */
+	public static Builder from(final IJavaElement javaElement) throws JavaModelException {
+		final CompilationUnit ast = JdtUtils.parse(javaElement, new NullProgressMonitor());
+		switch (javaElement.getElementType()) {
+		case IJavaElement.COMPILATION_UNIT:
+			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast);
+		case IJavaElement.TYPE:
+			return new Builder((IType) javaElement, ast);
+		}
+		return null;
+	}
+
+	/**
+	 * Builder initializer
+	 * 
+	 * @param javaElement
+	 *            the underlying {@link IJavaElement} that on which this JAX-RS
+	 *            Element will be built.
+	 * @param ast
+	 *            the associated AST
+	 * @return the Builder
+	 * @throws JavaModelException
+	 */
+	public static Builder from(final IJavaElement javaElement, final CompilationUnit ast) {
+		switch (javaElement.getElementType()) {
+		case IJavaElement.COMPILATION_UNIT:
+			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast);
+		case IJavaElement.TYPE:
+			return new Builder((IType) javaElement, ast);
+		}
+		return null;
+	}
+
+	/**
+	 * Internal Builder
+	 * 
+	 * @author xcoulon
+	 * 
+	 */
+	public static class Builder {
+
+		private final IType javaType;
+		private final CompilationUnit ast;
+		private JaxrsMetamodel metamodel = null;
+		private Map<String, Annotation> annotations;
+
+		private Builder(final IType javaType, final CompilationUnit ast) {
+			this.javaType = javaType;
+			this.ast = ast;
+		}
+
+		public Builder withMetamodel(final JaxrsMetamodel metamodel) {
+			this.metamodel = metamodel;
+			return this;
+		}
+
+		public JaxrsHttpMethod build() throws CoreException {
+			if (javaType == null || !javaType.exists()) {
+				return null;
+			}
+			annotations = JdtUtils.resolveAnnotations(javaType, ast, HTTP_METHOD.qualifiedName, TARGET.qualifiedName,
+					RETENTION.qualifiedName);
+			if (annotations == null || annotations.isEmpty()) {
+				return null;
+			}
+			final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(this);
+			// this operation is only performed after creation
+			httpMethod.joinMetamodel();
+			return httpMethod;
+		}
+	}
+
 	/**
 	 * Full constructor.
 	 * 
-	 * @param annotations
+	 * @param builder
+	 *            the fluent builder
 	 * 
 	 */
-	public JaxrsHttpMethod(IType javaType, Map<String, Annotation> annotations,
+	private JaxrsHttpMethod(final Builder builder) {
+		this(builder.javaType, builder.annotations, builder.metamodel);
+	}
+
+	/**
+	 * Full constructor that can be reused by {@link JaxrsBuiltinHttpMethod}
+	 * 
+	 * @param javaType
+	 *            the underlying java type.
+	 * @param annotations
+	 *            the relevant annotations.
+	 * @param metamodel
+	 *            the metamodel or <code>null</code> if the instance is
+	 *            transient.
+	 */
+	protected JaxrsHttpMethod(final IType javaType, final Map<String, Annotation> annotations,
 			final JaxrsMetamodel metamodel) {
 		super(javaType, annotations, metamodel);
 	}
-	
-	/**
-	 * Full constructor.
-	 * 
-	 * @param annotations
-	 * 
-	public JaxrsHttpMethod(IType javaType, Annotation annotation,
-			final JaxrsMetamodel metamodel) {
-		super(javaType, annotation, metamodel);
-	}
-	 */
-	
+
 	public boolean isBuiltIn() {
 		return false;
-	}
-
-	@Override
-	public EnumElementCategory getElementCategory() {
-		return EnumElementCategory.HTTP_METHOD;
 	}
 
 	@Override
@@ -129,9 +220,8 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	}
 
 	/**
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IHttpMethod#getHttpVerb
-	 * ()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.IHttpMethod#getHttpVerb
+	 *      ()
 	 */
 	@Override
 	public String getHttpVerb() {
@@ -146,12 +236,12 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	public Annotation getHttpMethodAnnotation() {
 		return getAnnotation(HTTP_METHOD.qualifiedName);
 	}
-	
+
 	/** @return the Retention Annotation */
 	public Annotation getRetentionAnnotation() {
 		return getAnnotation(Retention.class.getName());
 	}
-	
+
 	/** @return the Target Annotation */
 	public Annotation getTargetAnnotation() {
 		return getAnnotation(Target.class.getName());
@@ -181,7 +271,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 
 	@Override
 	public final int compareTo(final IJaxrsHttpMethod other) {
-		if(this.getHttpVerb() == null) {
+		if (this.getHttpVerb() == null) {
 			return 1;
 		}
 		if (this.getHttpVerb().equals(other.getHttpVerb())) {
@@ -194,10 +284,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 
 	@Override
 	public EnumElementKind getElementKind() {
-		if (getHttpMethodAnnotation() != null) {
-			return EnumElementKind.HTTP_METHOD;
-		}
-		return EnumElementKind.UNDEFINED;
+		return EnumElementKind.HTTP_METHOD;
 	}
 
 	/**
@@ -206,17 +293,23 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * @param httpMethod
 	 * @return the flags indicating the kind of changes that occurred during the
 	 *         update.
+	 * @throws CoreException
 	 */
-	public int update(final JaxrsHttpMethod httpMethod) {
-		/*int flags = 0;
-		final Annotation annotation = this.getAnnotation(HTTP_METHOD.qualifiedName);
-		final Annotation otherAnnotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
-		if (annotation != null && otherAnnotation != null && !annotation.equals(otherAnnotation)
-				&& annotation.update(otherAnnotation)) {
-			flags += F_HTTP_METHOD_VALUE;
+	public void update(final IJavaElement element, final CompilationUnit ast) throws CoreException {
+		final JaxrsHttpMethod transientHttpMethod = JaxrsHttpMethod.from(element, ast).build();
+		if (transientHttpMethod == null) {
+			remove();
+		} else {
+			final DeltaFlags flags = updateAnnotations(transientHttpMethod.getAnnotations());
+			if (isMarkedForRemoval()) {
+				remove();
+			}
+			// update indexes for this element.
+			else if(hasMetamodel()){
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
+				getMetamodel().update(delta);
+			}
 		}
-		return flags;*/
-		return updateAnnotations(httpMethod.getAnnotations());
 	}
 
 }

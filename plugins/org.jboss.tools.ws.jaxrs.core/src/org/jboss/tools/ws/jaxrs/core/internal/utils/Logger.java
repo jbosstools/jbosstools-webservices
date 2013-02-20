@@ -41,8 +41,14 @@ public final class Logger {
 	/** The 'debug' level name, matching the .options file. */
 	private static final String DEBUG = JBossJaxrsCorePlugin.PLUGIN_ID + "/debug";
 
+	/** The 'debugIndexing' level name, matching the .options file. */
+	private static final String DEBUG_INDEXING = JBossJaxrsCorePlugin.PLUGIN_ID + "/debugIndexing";
+
 	/** The 'trace' level name, matching the .options file. */
 	private static final String TRACE = JBossJaxrsCorePlugin.PLUGIN_ID + "/trace";
+
+	/** The 'traceIndexing' level name, matching the .options file. */
+	private static final String TRACE_INDEXING = JBossJaxrsCorePlugin.PLUGIN_ID + "/traceIndexing";
 
 	private static final ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
 		@Override
@@ -64,14 +70,17 @@ public final class Logger {
 	 *            the message to log
 	 * @param t
 	 *            the throwable cause
+	 * @return
 	 */
-	public static void error(final String message, final Throwable t) {
+	public static Status error(final String message, final Throwable t) {
 		if (JBossJaxrsCorePlugin.getDefault() != null) {
-			JBossJaxrsCorePlugin.getDefault().getLog()
-					.log(new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message, t));
+			final Status status = new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message, t);
+			JBossJaxrsCorePlugin.getDefault().getLog().log(status);
+			return status;
 		} else {
 			// at least write in the .log file
 			t.printStackTrace();
+			return null;
 		}
 	}
 
@@ -111,8 +120,8 @@ public final class Logger {
 	}
 
 	/**
-	 * Logs a message with an 'info' severity, if the 'INFO' tracing option is enabled, to avoid unwanted extra
-	 * messages in the error log.
+	 * Logs a message with an 'info' severity, if the 'INFO' tracing option is
+	 * enabled, to avoid unwanted extra messages in the error log.
 	 * 
 	 * @param message
 	 *            the message to log
@@ -125,8 +134,9 @@ public final class Logger {
 	}
 
 	/**
-	 * Outputs a debug message in the trace file (not the error view of the runtime workbench). Traces must be activated
-	 * for this plugin in order to see the output messages.
+	 * Outputs a debug message in the trace file (not the error view of the
+	 * runtime workbench). Traces must be activated for this plugin in order to
+	 * see the output messages.
 	 * 
 	 * @param message
 	 *            the message to trace.
@@ -137,8 +147,9 @@ public final class Logger {
 	}
 
 	/**
-	 * Outputs a 'debug' level message in the .log file (not the error view of the runtime workbench). Traces must be
-	 * activated for this plugin in order to see the output messages.
+	 * Outputs a 'debug' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
 	 * 
 	 * @param message
 	 *            the message to trace.
@@ -148,8 +159,21 @@ public final class Logger {
 	}
 
 	/**
-	 * Outputs a 'trace' level message in the .log file (not the error view of the runtime workbench). Traces must be
-	 * activated for this plugin in order to see the output messages.
+	 * Outputs a 'debugIndex' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
+	 * 
+	 * @param message
+	 *            the message to trace.
+	 */
+	public static void debugIndexing(final String message, Object... items) {
+		log(DEBUG_INDEXING, message, items);
+	}
+
+	/**
+	 * Outputs a 'trace' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
 	 * 
 	 * @param message
 	 *            the message to trace.
@@ -158,6 +182,28 @@ public final class Logger {
 		log(TRACE, message, items);
 	}
 
+	/**
+	 * Outputs a 'traceIndexing' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
+	 * 
+	 * @param message
+	 *            the message to trace.
+	 */
+	public static void traceIndexing(final String message, final Object... items) {
+		log(TRACE_INDEXING, message, items);
+	}
+
+	/**
+	 * Outputs a message at the given level in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
+	 * 
+	 * @param level the log level
+	 * @param message
+	 *            the message to log.
+	 * @param items the items to use to build the message
+	 */
 	private static void log(final String level, final String message, final Object... items) {
 		try {
 			if (isOptionEnabled(level)) {
@@ -169,7 +215,7 @@ public final class Logger {
 					}
 				}
 				System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName()
-						+ "] " + valuedMessage);
+						+ "] " + toLevel(level) + " " + valuedMessage);
 			}
 		} catch (RuntimeException e) {
 			System.err.println("Failed to write proper debug message with template:\n " + message + "\n and items:");
@@ -177,6 +223,22 @@ public final class Logger {
 				System.err.println(" " + item);
 			}
 		}
+	}
+
+	private static String toLevel(final String level) {
+		if(level.equals(DEBUG)) {
+			return "DEBUG";
+		}
+		if(level.equals(DEBUG_INDEXING)) {
+			return "DEBUG_INDEXING";
+		}
+		if(level.equals(TRACE)) {
+			return "TRACE";
+		}
+		if(level.equals(TRACE_INDEXING)) {
+			return "TRACE_INDEXING";
+		}
+		return "UNKNOWN_LEVEL";
 	}
 
 	private static boolean isOptionEnabled(String level) {

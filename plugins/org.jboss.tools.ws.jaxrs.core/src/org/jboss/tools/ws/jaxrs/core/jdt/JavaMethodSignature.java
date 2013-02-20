@@ -27,10 +27,10 @@ public class JavaMethodSignature {
 	/** Method parameters.*/
 	private final List<JavaMethodParameter> methodParameters;
 
-	public JavaMethodSignature(IMethod javaMethod, IType returnedType, List<JavaMethodParameter> methodParameters) {
+	public JavaMethodSignature(final IMethod javaMethod, IType returnedType, final List<JavaMethodParameter> methodParameters) {
 		this.javaMethod = javaMethod;
 		this.returnedType = returnedType;
-		this.methodParameters = new ArrayList<JavaMethodParameter>(methodParameters.size()*2);
+		this.methodParameters = new ArrayList<JavaMethodParameter>(methodParameters != null ? methodParameters.size()*2 : 0);
 		if (methodParameters != null) {
 			this.methodParameters.addAll(methodParameters);
 		}

@@ -13,7 +13,7 @@ package org.jboss.tools.ws.jaxrs.ui.internal.launcher;
 
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IModuleArtifact;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 
 /**
  * Module Artifact that carries the JAX-RS Endpoint deployed on a server.

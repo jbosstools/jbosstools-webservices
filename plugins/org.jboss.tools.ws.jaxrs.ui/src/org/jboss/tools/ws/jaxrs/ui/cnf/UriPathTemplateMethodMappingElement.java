@@ -13,7 +13,7 @@ package org.jboss.tools.ws.jaxrs.ui.cnf;
 
 import java.util.LinkedList;
 
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 
 public class UriPathTemplateMethodMappingElement {
 

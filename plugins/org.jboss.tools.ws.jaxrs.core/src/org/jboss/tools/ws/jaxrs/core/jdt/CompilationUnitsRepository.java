@@ -104,7 +104,7 @@ public class CompilationUnitsRepository {
 		}
 		CompilationUnit compilationUnitAST = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 		astMap.put(compilationUnit.getResource().getFullPath(), compilationUnitAST);
-		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(compilationUnit);
+		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
 		compilationUnitAST.accept(methodsVisitor);
 		methodDeclarationsMap.put(compilationUnit, methodsVisitor.getMethodSignatures());
 		return compilationUnitAST;
@@ -112,7 +112,7 @@ public class CompilationUnitsRepository {
 
 	public List<JavaMethodSignature> mergeAST(final ICompilationUnit compilationUnit,
 			final CompilationUnit compilationUnitAST, final boolean computeDiffs) {
-		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(compilationUnit);
+		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
 		compilationUnitAST.accept(methodsVisitor);
 		List<JavaMethodSignature> diffs = null;
 		// FIXME: must make sure that the methodDeclarationsMap remains in sync

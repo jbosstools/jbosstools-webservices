@@ -19,11 +19,7 @@ import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +37,6 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 		// WorkbenchUtils.setAutoBuild(ResourcesPlugin.getWorkspace(), false);
 		// project.build(FULL_BUILD, new NullProgressMonitor());
 		WorkbenchTasks.buildProject(project, new NullProgressMonitor());
-		metamodel = JaxrsMetamodelLocator.get(project);
 	}
 
 	@After
@@ -49,14 +44,6 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 		WorkbenchUtils.setAutoBuild(ResourcesPlugin.getWorkspace(), false);
 		// ProjectFacetUtils.uninstallFacet(project, "jst.jaxrs");
 		ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
-	}
-
-	protected IJaxrsMetamodel buildMetamodel(int mode) throws CoreException {
-		LOGGER.info("Building metamodel (mode=" + mode + ")");
-		javaProject.getProject().build(mode, new NullProgressMonitor());
-		JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(javaProject.getProject());
-		Assert.assertNotNull("Metamodel not built", jaxrsMetamodel);
-		return jaxrsMetamodel;
 	}
 
 }

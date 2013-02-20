@@ -11,19 +11,10 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.changeAnnotationValue;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotation;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
-import static org.mockito.Mockito.spy;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,33 +31,31 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -90,7 +79,7 @@ import org.slf4j.LoggerFactory;
  */
 @RunWithProject("org.jboss.tools.ws.jaxrs.tests.sampleproject")
 @SuppressWarnings("restriction")
-public abstract class AbstractCommonTestCase {
+public abstract class AbstractCommonTestCase implements IJaxrsElementChangedListener, IJaxrsEndpointChangedListener {
 
 	@SuppressWarnings("unused")
 	private static final String M2_REPO = "M2_REPO";
@@ -99,17 +88,21 @@ public abstract class AbstractCommonTestCase {
 
 	protected String projectName = null;
 
-	protected IJavaProject javaProject;
+	protected IJavaProject javaProject = null;
 
-	protected IProject project;
+	protected IProject project = null;
 
+	protected List<JaxrsElementDelta> elementChanges = null;
+	
+	protected List<JaxrsEndpointDelta> endpointChanges = null;
+	
 	public final static String DEFAULT_SAMPLE_PROJECT_NAME = WorkbenchUtils
 			.retrieveSampleProjectName(AbstractCommonTestCase.class);
 
 	private ProjectSynchronizator synchronizor;
 
 	protected JaxrsMetamodel metamodel;
-
+	
 	@Rule
 	public TestRule watchman = new TestWatcher() {
 		@Override
@@ -122,7 +115,7 @@ public abstract class AbstractCommonTestCase {
 		@Override
 		public void finished(Description description) {
 			LOGGER.info("**********************************************************************************");
-			LOGGER.info("Test '{}' finished.", description.getMethodName());
+			LOGGER.info("Finished test '{}'.", description.getMethodName());
 			LOGGER.info("**********************************************************************************");
 		}
 	};
@@ -138,7 +131,6 @@ public abstract class AbstractCommonTestCase {
 				description.setAutoBuilding(false);
 				workspace.setDescription(description);
 			}
-
 			workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 			LOGGER.info("Initial Synchronization (@BeforeClass)");
 			WorkbenchTasks.syncSampleProject(DEFAULT_SAMPLE_PROJECT_NAME);
@@ -146,15 +138,11 @@ public abstract class AbstractCommonTestCase {
 			long endTime = new Date().getTime();
 			LOGGER.info("Initial Workspace setup in " + (endTime - startTime) + "ms.");
 		}
-	}
-
-	@BeforeClass
-	public static void unregistrerListeners() {
 		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 	}
 
 	@Before
-	public void bindSampleProject() throws Exception {
+	public void setup() throws Exception {
 		long startTime = new Date().getTime();
 		try {
 			JBossJaxrsCorePlugin.getDefault().pauseListeners();
@@ -169,20 +157,21 @@ public abstract class AbstractCommonTestCase {
 			synchronizor = new ProjectSynchronizator();
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			workspace.addResourceChangeListener(synchronizor);
+			// clear CompilationUnit repository
+			CompilationUnitsRepository.getInstance().clear();
+			
+			//metamodel = spy(JaxrsMetamodel.create(javaProject));
+			// replace the normal metamodel instance with the one spied by Mockito
+			//javaProject.getProject().setSessionProperty(JaxrsMetamodel.METAMODEL_QUALIFIED_NAME, metamodel);
+			metamodel = JaxrsMetamodel.create(javaProject);
+			this.elementChanges = new ArrayList<JaxrsElementDelta>();
+			this.endpointChanges = new ArrayList<JaxrsEndpointDelta>();
+			metamodel.addListener((IJaxrsElementChangedListener)this);
+			metamodel.addListener((IJaxrsEndpointChangedListener)this);
 		} finally {
 			long endTime = new Date().getTime();
 			LOGGER.info("Test Workspace setup in " + (endTime - startTime) + "ms.");
 		}
-		CompilationUnitsRepository.getInstance().clear();
-
-		JBossJaxrsCorePlugin.getDefault().pauseListeners();
-		// metamodel = Mockito.mock(JaxrsMetamodel);
-		// in case an element was attempted to be removed, some impact would be
-		// retrieved
-		// when(metamodel.remove(any(JaxrsElement))).thenReturn(true);
-		metamodel = spy(JaxrsMetamodel.create(javaProject));
-		// replace the normal metamodel instance with the one spied by Mockito
-		javaProject.getProject().setSessionProperty(JaxrsMetamodel.METAMODEL_QUALIFIED_NAME, metamodel);
 	}
 
 	@After
@@ -200,6 +189,13 @@ public abstract class AbstractCommonTestCase {
 		}
 	}
 
+	@After
+	public void tearDownMetamodelListener() {
+		if(metamodel != null) {
+			metamodel.removeListener((IJaxrsElementChangedListener)this);
+			metamodel.removeListener((IJaxrsEndpointChangedListener)this);
+		}
+	}
 	protected IType resolveType(String typeName) throws CoreException {
 		return JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor());
 	}
@@ -228,10 +224,11 @@ public abstract class AbstractCommonTestCase {
 	 */
 	protected JaxrsJavaApplication createJavaApplication(String typeName, boolean isApplicationSubtype) throws CoreException {
 		final IType type = resolveType(typeName);
-		final Map<String, Annotation> annotations = resolveAnnotations(type, APPLICATION_PATH.qualifiedName, SuppressWarnings.class.getName());
-		final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotations, isApplicationSubtype,
-				metamodel);
-		metamodel.add(application);
+		//final Map<String, Annotation> annotations = resolveAnnotations(type, APPLICATION_PATH.qualifiedName, SuppressWarnings.class.getName());
+		//final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotations.get(APPLICATION_PATH.qualifiedName), isApplicationSubtype);
+		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
+		// clear notifications as this method should be called during the test initialization, and thus should not count in the verifications phase
+		application.setJaxrsCoreApplicationSubclass(isApplicationSubtype);
 		return application;
 
 	}
@@ -247,7 +244,7 @@ public abstract class AbstractCommonTestCase {
 	protected JaxrsJavaApplication createJavaApplication(String typeName, String applicationPath) throws CoreException {
 		final JaxrsJavaApplication application = createJavaApplication(typeName, true);
 		final Annotation applicationPathAnnotation = application.getAnnotation(APPLICATION_PATH.qualifiedName);
-		application.addOrUpdateAnnotation(changeAnnotationValue(applicationPathAnnotation, applicationPath));
+		application.addOrUpdateAnnotation(createAnnotation(applicationPathAnnotation, applicationPath));
 		return application;
 	}
 
@@ -256,71 +253,26 @@ public abstract class AbstractCommonTestCase {
 	 * 
 	 * @param applicationPath
 	 * @return
-	 * @throws JavaModelException
+	 * @throws CoreException 
+	 * @throws IOException 
 	 */
 	protected JaxrsWebxmlApplication createWebxmlApplication(final String applicationClassName,
-			final String applicationPath) throws JavaModelException {
+			final String applicationPath) throws CoreException, IOException {
 		final IResource webDeploymentDescriptor = WtpUtils.getWebDeploymentDescriptor(project);
-		final JaxrsWebxmlApplication webxmlApplication = new JaxrsWebxmlApplication(applicationClassName,
-				applicationPath, webDeploymentDescriptor, metamodel);
-		metamodel.add(webxmlApplication);
-		return webxmlApplication;
-	}
-
-	protected JaxrsProviderBuilder providerBuilder(final String typeName) throws CoreException {
-		return new JaxrsProviderBuilder(typeName);
+		WorkbenchUtils.replaceContent(webDeploymentDescriptor, "javax.ws.rs.core.Application", applicationClassName);
+		WorkbenchUtils.replaceContent(webDeploymentDescriptor, "/hello/*", applicationPath);
+		return JaxrsWebxmlApplication.from(webDeploymentDescriptor).inMetamodel(metamodel).build();
 	}
 
 	/**
-	 * 'Provider' element builder.
+	 * 
 	 */
-	public class JaxrsProviderBuilder {
-		final IType javaType;
-		private final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
-		private final Map<EnumElementKind, IType> providedTypes = new HashMap<EnumElementKind, IType>();
-
-		public JaxrsProviderBuilder(final String typeName) throws CoreException {
-			this.javaType = resolveType(typeName);
-		}
-
-		public JaxrsProviderBuilder providedType(final EnumElementKind kind, IType providedType) {
-			this.providedTypes.put(kind, providedType);
-			return this;
-		}
-
-		public JaxrsProviderBuilder providedType(final EnumElementKind kind, String providedTypeName) throws CoreException {
-			this.providedTypes.put(kind, resolveType(providedTypeName));
-			return this;
-		}
-
-		public JaxrsProviderBuilder providedTypes(final Map<EnumElementKind, IType> providedTypes) {
-			this.providedTypes.putAll(providedTypes);
-			return this;
-		}
-		
-		public JaxrsProviderBuilder annotation(final Annotation annotation) throws JavaModelException {
-			final Annotation resolvedAnnotation = resolveAnnotation(javaType, annotation.getFullyQualifiedName());
-			// support for value override
-			if(annotation.getValue() != null && resolvedAnnotation.getValue() != null && !annotation.getValue().equals(resolvedAnnotation.getValue())) {
-				resolvedAnnotation.update(annotation);
-			}
-			this.annotations.put(annotation.getFullyQualifiedName(), resolvedAnnotation);
-			return this;
-		}
-
-		public JaxrsProviderBuilder annotations(final Map<String, Annotation> annotations) {
-			this.annotations.putAll(annotations);
-			return this;
-		}
-
-		public JaxrsProvider build() {
-			final JaxrsProvider jaxrsProvider = new JaxrsProvider(javaType, annotations, providedTypes, metamodel);
-			metamodel.add(jaxrsProvider);
-			return jaxrsProvider;
-		}
-
+	protected void resetElementChangesNotifications() {
+		LOGGER.info("Reseting Changes Notifications before test operation");
+		elementChanges.clear();
+		endpointChanges.clear();
 	}
-
+	
 	/**
 	 * @return
 	 * @throws CoreException
@@ -341,21 +293,15 @@ public abstract class AbstractCommonTestCase {
 		return createHttpMethod(type, httpVerb);
 	}
 
-	protected JaxrsHttpMethod createHttpMethod(IType type) throws JavaModelException {
-		final CompilationUnit ast = JdtUtils.parse(type.getCompilationUnit(), null);
-		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(type, ast, HTTP_METHOD.qualifiedName,
-				TARGET.qualifiedName, RETENTION.qualifiedName, SuppressWarnings.class.getName());
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotations, metamodel);
-		metamodel.add(httpMethod);
+	protected JaxrsHttpMethod createHttpMethod(IType type) throws CoreException {
+		final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
 		return httpMethod;
 	}
 
-	protected JaxrsHttpMethod createHttpMethod(IType type, String httpVerb) throws JavaModelException {
-		final Map<String, Annotation> annotations = resolveAnnotations(type, HTTP_METHOD.qualifiedName, TARGET.qualifiedName, RETENTION.qualifiedName);
-		final Annotation httpMethodAnnotation = annotations.get(HTTP_METHOD.qualifiedName);
-		annotations.put(HTTP_METHOD.qualifiedName, changeAnnotationValue(httpMethodAnnotation, httpVerb));
-		final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(type, annotations, metamodel);
-		metamodel.add(httpMethod);
+	protected JaxrsHttpMethod createHttpMethod(IType type, String httpVerb) throws CoreException {
+		final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
+		final Annotation httpMethodAnnotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
+		httpMethod.addOrUpdateAnnotation(createAnnotation(httpMethodAnnotation, httpVerb));
 		return httpMethod;
 	}
 	
@@ -365,39 +311,15 @@ public abstract class AbstractCommonTestCase {
 	}
 
 	protected JaxrsProvider createProvider(final IType type) throws JavaModelException, CoreException {
-		final JaxrsProvider provider = JaxrsElementFactory.createProvider(type, JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
-		metamodel.add(provider);
-		return provider;
+		return JaxrsProvider.from(type).withMetamodel(metamodel).build();
 	}
 
-	/**
-	 * Creates the JAX-RS Resource for the given type, but
-	 * <strong>WITHOUT</strong> its Method nor its Field children.
-	 * 
-	 * @param typeName
-	 * @return
-	 * @throws CoreException
-	 * @throws JavaModelException
-	 */
-	protected JaxrsResource createSimpleResource(String typeName) throws CoreException, JavaModelException {
-		return createSimpleResource(typeName, PATH.qualifiedName, CONSUMES.qualifiedName, PRODUCES.qualifiedName, ENCODED.qualifiedName);
-	}
-	
-	protected JaxrsResource createSimpleResource(String typeName, String... annotationNames) throws CoreException, JavaModelException {
-		final IType type = resolveType(typeName);
-		final CompilationUnit ast = JdtUtils.parse(type.getCompilationUnit(), new NullProgressMonitor());
-		final Map<String, Annotation> annotations = JdtUtils.resolveAnnotations(type, ast, annotationNames);
-		final JaxrsResource resource = new JaxrsResource(type, annotations, metamodel);
-		metamodel.add(resource);
-		return resource;
+	protected JaxrsResource createResource(String typeName) throws CoreException, JavaModelException {
+		return createResource(JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor()));
 	}
 
-	protected JaxrsResource createFullResource(String typeName) throws CoreException, JavaModelException {
-		final IType type = JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor());
-		final JaxrsResource resource = JaxrsElementFactory.createResource(type,
-				JdtUtils.parse(type.getCompilationUnit(), null), metamodel);
-		metamodel.add(resource);
-		return resource;
+	protected JaxrsResource createResource(IType type) throws CoreException, JavaModelException {
+		return JaxrsResource.from(type, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
 	}
 	
 	protected Annotation createAnnotation(String className) {
@@ -413,109 +335,20 @@ public abstract class AbstractCommonTestCase {
 		values.put("value", Arrays.asList(value));
 		return new Annotation(annotation, name, values);
 	}
-
 	
-	protected JaxrsResourceMethod createResourceMethod(String methodName, JaxrsResource parentResource,
-			String... annotationNames) throws CoreException, JavaModelException {
-		final IType javaType = parentResource.getJavaElement();
-		final ICompilationUnit compilationUnit = javaType.getCompilationUnit();
-		final IMethod javaMethod = getMethod(javaType, methodName);
-		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod,
-				JdtUtils.parse(compilationUnit, new NullProgressMonitor()));
-		final Map<String, Annotation> annotations = resolveAnnotations(javaMethod, (annotationNames.length > 0 ? annotationNames : new String[]{PATH.qualifiedName, CONSUMES.qualifiedName, PRODUCES.qualifiedName}));
-		final IType returnedType = methodSignature.getReturnedType();
-		final List<JavaMethodParameter> methodParameters = methodSignature.getMethodParameters();
-		final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(javaMethod, methodParameters, returnedType, annotations, parentResource, metamodel);
-		metamodel.add(resourceMethod);
-		return resourceMethod;
-	}
-	
-	protected JaxrsResourceMethodBuilder resourceMethodBuilder(JaxrsResource parentResource, String methodName) throws JavaModelException {
-		JaxrsResourceMethodBuilder builder = new JaxrsResourceMethodBuilder(methodName, parentResource);
-		return builder;
-	}
-	
-	public class JaxrsResourceMethodBuilder {
-
-		private final IMethod javaMethod;
-		private final JaxrsResource parentResource;
-		private final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
-		private final List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
-		private IType returnedType;
-		
-		public JaxrsResourceMethodBuilder(String methodName, JaxrsResource parentResource) throws JavaModelException {
-			this.parentResource = parentResource;
-			this.javaMethod = getMethod(parentResource.getJavaElement(), methodName);
-		}
-		
-		public JaxrsResourceMethodBuilder annotation(String annotationName) throws JavaModelException {
-			annotations.putAll(resolveAnnotations(javaMethod, annotationName));
-			return this;
-		}
-
-		public JaxrsResourceMethodBuilder annotation(String annotationName, String annotationValueOverride) throws JavaModelException {
-			final Map<String, Annotation> resolvedAnnotations = resolveAnnotations(javaMethod, annotationName);
-			final Annotation annotation = resolvedAnnotations.get(annotationName);
-			resolvedAnnotations.put(annotationName, changeAnnotationValue(annotation, annotationValueOverride));
-			this.annotations.putAll(resolvedAnnotations);
-			return this;
-		}
-		
-		public JaxrsResourceMethodBuilder methodParameter(String name, String type, Annotation... annotations) {
-			final JavaMethodParameter parameter = new JavaMethodParameter(name, type,
-					Arrays.asList(annotations));
-			this.javaMethodParameters.add(parameter);
-			return this;
-		}
-
-		public JaxrsResourceMethodBuilder returnedType(String typeName) throws CoreException {
-			this.returnedType = resolveType(typeName);
-			return this;
-		}
-
-		public JaxrsResourceMethod build() {
-			final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(javaMethod, this.javaMethodParameters, this.returnedType, annotations, parentResource,  metamodel);
-			metamodel.add(resourceMethod);
-			return resourceMethod;
-		}
+	/**
+	 * Returns a <strong>new annotation</strong> built from the given one, with overriden values
+	 * @param annotation
+	 * @param values
+	 * @return
+	 * @throws JavaModelException
+	 */
+	protected Annotation createAnnotation(final Annotation annotation, final String... values)
+			throws JavaModelException {
+		Map<String, List<String>> elements = CollectionUtils.toMap("value", Arrays.asList(values));
+		return new Annotation(annotation.getJavaAnnotation(), annotation.getFullyQualifiedName(), elements);
 	}
 
-	protected JaxrsResourceFieldBuilder resourceFieldBuilder(JaxrsResource parentResource, String fieldName) throws JavaModelException {
-		JaxrsResourceFieldBuilder builder = new JaxrsResourceFieldBuilder(fieldName, parentResource);
-		return builder;
-	}
-	
-	public class JaxrsResourceFieldBuilder {
-
-		private final IField javaField;
-		private final JaxrsResource parentResource;
-		private final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
-		
-		public JaxrsResourceFieldBuilder(String fieldName, JaxrsResource parentResource) throws JavaModelException {
-			this.parentResource = parentResource;
-			this.javaField = parentResource.getJavaElement().getField(fieldName);
-		}
-		
-		public JaxrsResourceFieldBuilder annotation(String annotationName) throws JavaModelException {
-			annotations.putAll(resolveAnnotations(javaField, annotationName));
-			return this;
-		}
-
-		public JaxrsResourceFieldBuilder annotation(String annotationName, String annotationValueOverride) throws JavaModelException {
-			final Map<String, Annotation> resolvedAnnotations = resolveAnnotations(javaField, annotationName);
-			final Annotation annotation = resolvedAnnotations.get(annotationName);
-			resolvedAnnotations.put(annotationName, changeAnnotationValue(annotation, annotationValueOverride));
-			this.annotations.putAll(resolvedAnnotations);
-			return this;
-		}
-		
-		public JaxrsResourceField build() {
-			final JaxrsResourceField resourceField = new JaxrsResourceField(javaField, annotations, parentResource, metamodel);
-			metamodel.add(resourceField);
-			return resourceField;
-		}
-
-	}
 	protected IType getType(String typeName) throws CoreException {
 		return JdtUtils.resolveType(typeName, javaProject, null);
 	}
@@ -525,7 +358,7 @@ public abstract class AbstractCommonTestCase {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	protected IMethod getMethod(IType type, String name) throws JavaModelException {
+	protected IMethod getJavaMethod(IType type, String name) throws JavaModelException {
 		for (IMethod method : type.getMethods()) {
 			if (method.getElementName().equals(name)) {
 				return method;
@@ -538,6 +371,36 @@ public abstract class AbstractCommonTestCase {
 	protected IPackageFragmentRoot getPackageFragmentRoot(String path) throws JavaModelException {
 		return WorkbenchUtils.getPackageFragmentRoot(javaProject, path,
 				new NullProgressMonitor());
+	}
+	
+	protected static void removeResourceMethod(final JaxrsResource resource, final String methodName) throws CoreException {
+		final List<IJaxrsResourceMethod> allMethods = new ArrayList<IJaxrsResourceMethod>(resource.getAllMethods());
+		for(IJaxrsResourceMethod resourceMethod : allMethods) {
+			if(resourceMethod.getJavaElement().getElementName().equals(methodName)) {
+				resource.removeMethod(resourceMethod);
+				break;
+			}
+		}
+	}
+
+	protected static JaxrsResourceMethod getResourceMethod(final JaxrsResource resource, final String methodName) {
+		for(IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+			if(resourceMethod.getJavaElement().getElementName().equals(methodName)) {
+				return (JaxrsResourceMethod) resourceMethod;
+			}
+		}
+		return null;
+	}
+
+
+	@Override
+	public void notifyElementChanged(final JaxrsElementDelta delta) {
+		elementChanges.add(delta);
+	}
+
+	@Override
+	public void notifyEndpointChanged(final JaxrsEndpointDelta delta) {
+		endpointChanges.add(delta);
 	}
 
 }
