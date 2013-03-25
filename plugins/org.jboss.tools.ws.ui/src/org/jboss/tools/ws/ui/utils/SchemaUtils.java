@@ -184,7 +184,7 @@ public class SchemaUtils {
 		return errorMessages;
 	}
 
-	public static String getSampleSOAPInputMessage ( Definition wsdlDefinition, String serviceName, String portName, String bindingName, String opName ) {
+    public static String getSampleSOAPInputMessage ( Definition wsdlDefinition, String serviceName, String portName, String bindingName, String opName ) {
 
 		try {
 			loadWSDL (wsdlDefinition);

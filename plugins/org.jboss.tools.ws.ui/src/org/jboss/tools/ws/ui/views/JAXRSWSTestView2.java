@@ -127,6 +127,7 @@ import org.jboss.tools.ws.ui.utils.SchemaUtils;
 import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
 import org.jboss.tools.ws.ui.utils.TreeParent;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
+import org.jboss.wise.ui.util.WiseUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -416,9 +417,10 @@ public class JAXRSWSTestView2 extends ViewPart {
 	class ShowInTreeAction extends ToggleAction {
 		public void run() {
 			if (rawRequestAction.isChecked()) rawRequestAction.setChecked(false);
-			if (JAXRSWSTestView2.this.bodyText.getText().length() > 0 ) {
-				JAXRSWSTestView2.this.treeRequestBody.setInput
-				(JAXRSWSTestView2.this.bodyText.getText());
+			String rawRequestBody = JAXRSWSTestView2.this.bodyText.getText();
+
+            if (rawRequestBody.trim().length() > 0 ) {
+				JAXRSWSTestView2.this.treeRequestBody.setInput(rawRequestBody);
 			} else {
 				JAXRSWSTestView2.this.treeRequestBody.setInput(null);
 			}
@@ -545,7 +547,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			getCurrentHistoryEntry().setUrl(wbDialog.getWSDLText());
 			urlCombo.setText(wbDialog.getWSDLText());
 			
-			String output = SchemaUtils.getSampleSOAPInputMessage(wsdlDef, 
+			String output = WiseUtil.getSampleSOAPInputMessage2(wsdlDef, 
 					wbDialog.getServiceTextValue(), 
 					wbDialog.getPortTextValue(), 
 					wbDialog.getBindingValue(), 
@@ -614,7 +616,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 				boolean isRequestSOAP12 = TesterWSDLUtils.isRequestBodySOAP12(getCurrentHistoryEntry().getBody());
 				
 				if (opNameInBody == null || isSOAP12 != isRequestSOAP12 ) {
-					bodyText.setText(soapIn);
+
+		            bodyText.setText(soapIn);
 					treeRequestBody.setInput(soapIn);
 					getCurrentHistoryEntry().setBody(soapIn);
 					getCurrentHistoryEntry().setAction(actionURL);
@@ -626,7 +629,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 							JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
 							
 								bodyText.setText(soapIn);
-								treeRequestBody.setInput(soapIn);
+			                    treeRequestBody.setInput(soapIn);
+			                    
 								getCurrentHistoryEntry().setBody(soapIn);
 								getCurrentHistoryEntry().setAction(actionURL);
 								
@@ -922,7 +926,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 					Object newInput) {
 				if (newInput instanceof String) {
 					text = (String) newInput;
-					SOAPDOMParser parser = new SOAPDOMParser();
+					
+		            SOAPDOMParser parser = new SOAPDOMParser();
 					parser.parseXmlFile(text);
 					if (parser.getRoot().getChildren().length > 0)
 						tree = (TreeParent) parser.getRoot().getChildren()[0];
@@ -1380,6 +1385,12 @@ public class JAXRSWSTestView2 extends ViewPart {
 	}
 
 	private String generateSampleSOAP ( String headerText, String innerText, boolean isSOAP12 ) {
+	    if (innerText != null && !innerText.trim().isEmpty()) {
+	        if (innerText.trim().startsWith("<?xml version=\"1.0\"")) { //$NON-NLS-1$
+	            return innerText;
+	        }
+	    }
+	    
 		String prefix = TesterWSDLUtils.SOAP_PREFIX;
 		String soapURI = TesterWSDLUtils.SOAP_NS_URI;
 		if (isSOAP12) {
@@ -1597,8 +1608,8 @@ public class JAXRSWSTestView2 extends ViewPart {
 		MessageFactory factory = new MessageFactoryImpl();
 		String lookForOpName = null;
 		try {
-			SOAPMessage message =
-				factory.createMessage(null, new ByteArrayInputStream(getCurrentHistoryEntry().getBody().getBytes()));
+            SOAPMessage message =
+				factory.createMessage(null, new ByteArrayInputStream(getCurrentHistoryEntry().getBody().trim().getBytes()));
 			SOAPBody body = message.getSOAPBody();
 			Iterator<?> elements = body.getChildElements();
 			if (elements.hasNext()) {
