@@ -108,6 +108,8 @@ public abstract class AbstractCommonTestCase {
 
 	private ProjectSynchronizator synchronizor;
 
+	protected JaxrsMetamodel metamodel;
+
 	@Rule
 	public TestRule watchman = new TestWatcher() {
 		@Override
@@ -171,17 +173,8 @@ public abstract class AbstractCommonTestCase {
 			long endTime = new Date().getTime();
 			LOGGER.info("Test Workspace setup in " + (endTime - startTime) + "ms.");
 		}
-	}
-
-	@Before
-	public void clearCompilationUnitsRepository() {
 		CompilationUnitsRepository.getInstance().clear();
-	}
 
-	protected JaxrsMetamodel metamodel;
-
-	@Before
-	public void setup() throws CoreException {
 		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		// metamodel = Mockito.mock(JaxrsMetamodel);
 		// in case an element was attempted to be removed, some impact would be
