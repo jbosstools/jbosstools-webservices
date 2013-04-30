@@ -292,27 +292,30 @@ public class JBossWSCreationUtils {
 		// location from project target runtime
 
 		IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
-		org.eclipse.wst.common.project.facet.core.runtime.IRuntime prjFacetRuntime = facetedPrj
+		org.eclipse.wst.common.project.facet.core.runtime.IRuntime prjFacetRuntime = null;
+		if (facetedPrj != null) {
+		    prjFacetRuntime = facetedPrj
 				.getPrimaryRuntime();
 
-		if (prjFacetRuntime != null) {
-			IRuntime serverRuntime = getRuntime(prjFacetRuntime);
-			String runtimeTypeName = serverRuntime.getRuntimeType().getName();
-			if (runtimeTypeName == null) {
-				runtimeTypeName = ""; //$NON-NLS-1$
-			}
-			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0) { //$NON-NLS-1$
-				String runtimeLocation = serverRuntime.getLocation()
-						.toOSString();
-				if (runtimeLocation.endsWith("bin")) { //$NON-NLS-1$
-					return serverRuntime.getLocation().removeLastSegments(1)
-							.toOSString();
-				} else {
-					return runtimeLocation;
-				}
-			}
+    		if (prjFacetRuntime != null) {
+    			IRuntime serverRuntime = getRuntime(prjFacetRuntime);
+    			String runtimeTypeName = serverRuntime.getRuntimeType().getName();
+    			if (runtimeTypeName == null) {
+    				runtimeTypeName = ""; //$NON-NLS-1$
+    			}
+    			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0) { //$NON-NLS-1$
+    				String runtimeLocation = serverRuntime.getLocation()
+    						.toOSString();
+    				if (runtimeLocation.endsWith("bin")) { //$NON-NLS-1$
+    					return serverRuntime.getLocation().removeLastSegments(1)
+    							.toOSString();
+    				} else {
+    					return runtimeLocation;
+    				}
+    			}
+    		}
 		}
-
+		
 		// if no target runtime has been specified, get runtime location from
 		// default jbossws runtime configured at Web Service preference page
 		if (prjFacetRuntime == null) {
