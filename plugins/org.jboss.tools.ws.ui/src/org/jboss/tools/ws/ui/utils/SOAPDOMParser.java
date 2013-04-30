@@ -64,8 +64,12 @@ public class SOAPDOMParser {
 			//Using factory get an instance of document builder
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			
+			// clean up the XML a little
+			String cleanedFileContents = fileContents.trim();
+			cleanedFileContents = cleanedFileContents.replaceAll("(\\r|\\n)", "");  //$NON-NLS-1$//$NON-NLS-2$
+			
 			//parse using builder to get DOM representation of the XML file
-			ByteArrayInputStream bais = new ByteArrayInputStream(fileContents.getBytes());
+			ByteArrayInputStream bais = new ByteArrayInputStream(cleanedFileContents.getBytes());
 			dom = db.parse(bais);
 			dom.getDocumentElement().normalize();
 			
