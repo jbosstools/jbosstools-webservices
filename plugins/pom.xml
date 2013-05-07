@@ -19,7 +19,7 @@
 		<module>org.jboss.tools.ws.ui</module>
 		<module>org.jboss.tools.ws.jaxrs.core</module>
 		<module>org.jboss.tools.ws.jaxrs.ui</module>
-		<module>org.jboss.tools.wise</module>
+		<module>org.jboss.tools.ws.wise.ui</module>
 	</modules>
 </project>
 	

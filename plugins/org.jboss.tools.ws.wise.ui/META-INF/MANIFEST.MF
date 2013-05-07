@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: JBoss Wise
-Bundle-SymbolicName: org.jboss.tools.wise;singleton:=true
+Bundle-Name: JBoss Wise UI Plug-in Wrapper
+Bundle-SymbolicName: org.jboss.tools.ws.wise.ui;singleton:=true
 Bundle-Version: 1.5.0.qualifier
 Bundle-Vendor: JBoss.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -10,7 +10,6 @@ Require-Bundle: org.eclipse.ui,
  javax.wsdl;bundle-version="1.6.2";visibility:=reexport,
  org.apache.xml.resolver;bundle-version="1.2.0"
 Bundle-ActivationPolicy: lazy
-Bundle-Activator: org.jboss.wise.ui.util.Activator
 Bundle-ClassPath: .,
  lib/asm-3.3.1.jar,
  lib/commons-codec-1.2.jar,
@@ -73,4 +72,4 @@ Bundle-ClassPath: .,
  lib/xmlschema-core-2.0.3.jar,
  lib/xpp3_min-1.1.3.4.O.jar,
  lib/xstream-1.2.2.jar
-Export-Package: org.jboss.wise.ui.util
+Export-Package: org.jboss.wise.ui.internal.util
