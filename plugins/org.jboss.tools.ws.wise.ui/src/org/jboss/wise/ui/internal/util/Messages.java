@@ -1,9 +1,9 @@
-package org.jboss.wise.ui.util;
+package org.jboss.wise.ui.internal.util;
 
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-    private static final String BUNDLE_NAME = "org.jboss.wise.ui.util.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "org.jboss.wise.ui.internal.util.messages"; //$NON-NLS-1$
     public static String WiseUtil_Generating_SOAP_task;
     public static String WiseUtil_Job_header;
     public static String WiseUtil_WISE_task;
