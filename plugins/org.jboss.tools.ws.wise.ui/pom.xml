@@ -7,7 +7,7 @@
 		<artifactId>plugins</artifactId>
 		<version>1.5.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>org.jboss.tools.wise</artifactId>
+	<artifactId>org.jboss.tools.ws.wise.ui</artifactId>
 	
 	<packaging>eclipse-plugin</packaging>
   <dependencies>

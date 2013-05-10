@@ -127,7 +127,7 @@ import org.jboss.tools.ws.ui.utils.SchemaUtils;
 import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
 import org.jboss.tools.ws.ui.utils.TreeParent;
 import org.jboss.tools.ws.ui.utils.WSTestUtils;
-import org.jboss.wise.ui.util.WiseUtil;
+import org.jboss.wise.ui.internal.util.WiseUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -547,7 +547,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			getCurrentHistoryEntry().setUrl(wbDialog.getWSDLText());
 			urlCombo.setText(wbDialog.getWSDLText());
 			
-			String output = WiseUtil.getSampleSOAPInputMessage2(wsdlDef, 
+			String output = WiseUtil.getSampleSOAPInputMessageFromWISE(wsdlDef, 
 					wbDialog.getServiceTextValue(), 
 					wbDialog.getPortTextValue(), 
 					wbDialog.getBindingValue(), 

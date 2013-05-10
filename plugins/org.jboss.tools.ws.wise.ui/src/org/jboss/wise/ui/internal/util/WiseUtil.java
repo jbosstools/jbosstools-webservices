@@ -8,7 +8,7 @@
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/
-package org.jboss.wise.ui.util;
+package org.jboss.wise.ui.internal.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -54,7 +54,15 @@ public final class WiseUtil {
         // private constructor
     }
 
-    public static String getSampleSOAPInputMessage2 ( final Definition wsdlDefinition, 
+    /**
+     * @param wsdlDefinition WSDL we're generating the SOAP message from
+     * @param serviceName Name of the service in the WSDL
+     * @param portName Name of the port in the WSDL
+     * @param bindingName Name of the binding in the WSDL
+     * @param opName Name of the operation in the WSDL
+     * @return String containing XML for the SOAP message
+     */
+    public static String getSampleSOAPInputMessageFromWISE ( final Definition wsdlDefinition, 
             final String serviceName, final String portName, final String bindingName, 
             final String opName ) {
         
@@ -82,19 +90,19 @@ public final class WiseUtil {
                         monitor.worked(33);
                         _messagePreview = previewMessage(method, client);
                     } catch (MalformedURLException mfe) {
-                        mfe.printStackTrace();
+                        // ignore
                     } catch (ConnectException ce) {
-                        ce.printStackTrace();
+                        // ignore
                     } catch (IllegalStateException ise) {
-                        ise.printStackTrace();
+                        // ignore
                     } catch (WiseRuntimeException wre) {
-                        wre.printStackTrace();
+                        // ignore
                     } catch (ResourceNotAvailableException rnae) {
-                        rnae.printStackTrace();
+                        // ignore
                     } catch (InvocationException ie) {
-                        ie.printStackTrace();
+                        // ignore
                     } catch (IOException ioe) {
-                        ioe.printStackTrace();
+                        // ignore
                     } finally {
                         current.setContextClassLoader(oldLoader);
                     }
@@ -102,9 +110,9 @@ public final class WiseUtil {
             });
             return _messagePreview;
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            // ignore
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            // ignore
         }
         return null;
     }
