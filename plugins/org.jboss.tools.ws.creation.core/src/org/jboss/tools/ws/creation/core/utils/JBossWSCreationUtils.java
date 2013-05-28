@@ -346,29 +346,33 @@ public class JBossWSCreationUtils {
 			IFacetedProject facetedPrj = ProjectFacetsManager.create(project);
 			IProjectFacet jbossWSFacet = ProjectFacetsManager
 					.getProjectFacet(JBossWSFacetInstallDataModelProvider.JBOSS_WS_FACET_ID);
-			IProjectFacetVersion fpVersion = facetedPrj
-					.getProjectFacetVersion(jbossWSFacet);
-			if (fpVersion != null
-					&& fpVersion.getVersionString().compareTo("3.0") >= 0) { //$NON-NLS-1$
-				return true;
-			}
-
-			// if the project doesn't get JBossWS facet installed, check its
-			// primary target runtime
-			// if the jboss runtime version is 5.0 or higher, return true
-			org.eclipse.wst.common.project.facet.core.runtime.IRuntime targetRuntime = facetedPrj
-					.getPrimaryRuntime();
-			if (targetRuntime != null) {
-				IRuntime runtime = getRuntime(targetRuntime);
-				IRuntimeType rt = runtime.getRuntimeType();
-				if (rt.getName().toUpperCase().indexOf("JBOSS") >= 0) { //$NON-NLS-1$
-					String runtimeVersion = rt.getVersion();
-					if (runtimeVersion != null
-							&& runtimeVersion.compareTo("5.0") >= 0) { //$NON-NLS-1$
-						return true;
-					}
-				}
-
+			if (jbossWSFacet != null && facetedPrj != null) {
+    			IProjectFacetVersion fpVersion = facetedPrj
+    					.getProjectFacetVersion(jbossWSFacet);
+    			if (fpVersion != null
+    					&& fpVersion.getVersionString().compareTo("3.0") >= 0) { //$NON-NLS-1$
+    				return true;
+    			}
+    			
+    			// if the project doesn't get JBossWS facet installed, check its
+    			// primary target runtime
+    			// if the jboss runtime version is 5.0 or higher, return true
+    			org.eclipse.wst.common.project.facet.core.runtime.IRuntime targetRuntime = facetedPrj
+    					.getPrimaryRuntime();
+    			if (targetRuntime != null) {
+    				IRuntime runtime = getRuntime(targetRuntime);
+    				IRuntimeType rt = runtime.getRuntimeType();
+    				if (rt.getName().toUpperCase().indexOf("JBOSS") >= 0) { //$NON-NLS-1$
+    					String runtimeVersion = rt.getVersion();
+    					if (runtimeVersion != null
+    							&& runtimeVersion.compareTo("5.0") >= 0) { //$NON-NLS-1$
+    						return true;
+    					}
+    				}
+    
+    			}
+			} else {
+			    return false;
 			}
 		} catch (CoreException e) {
 			// ignore
