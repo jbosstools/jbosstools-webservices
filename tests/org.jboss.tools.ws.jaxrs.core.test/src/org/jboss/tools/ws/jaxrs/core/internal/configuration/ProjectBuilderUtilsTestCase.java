@@ -11,10 +11,9 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.configuration;
 
-import junit.framework.Assert;
-
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 /** @author Xi */

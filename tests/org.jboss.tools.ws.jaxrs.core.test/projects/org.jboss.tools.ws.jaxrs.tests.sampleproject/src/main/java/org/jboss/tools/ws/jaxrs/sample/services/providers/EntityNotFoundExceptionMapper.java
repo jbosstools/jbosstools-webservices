@@ -24,6 +24,7 @@ import javax.servlet.ServletContext;
 @Provider
 @Produces("application/json")
 @Consumes("application/json")
+// do not remove (used by validation tests)
 @SuppressWarnings("testing")
 public class EntityNotFoundExceptionMapper implements ExceptionMapper<EntityNotFoundException> {
 

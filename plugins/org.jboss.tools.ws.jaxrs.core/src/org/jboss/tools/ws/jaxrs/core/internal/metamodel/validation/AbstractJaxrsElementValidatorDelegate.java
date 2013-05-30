@@ -11,11 +11,14 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.common.validation.TempMarkerManager;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
 
 /**
  * Abstract validator delegate with bits of generics for better readability in subclasses
@@ -23,7 +26,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
  * @author Xavier Coulon
  *
  */
-public abstract class AbstractJaxrsElementValidatorDelegate<T extends IJaxrsElement> {
+public abstract class AbstractJaxrsElementValidatorDelegate<T> {
 	
 	private final TempMarkerManager markerManager;
 	
@@ -37,15 +40,28 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends IJaxrsElem
 		return markerManager;
 	}
 
-
-	public IMarker addProblem(String message, String preferenceKey, String[] messageArguments, int length, int offset, IResource target) {
-		Logger.debug("Reporting problem '{}' on resource '{}'", message, target.getFullPath().toString());
-		return markerManager.addProblem(message, preferenceKey, messageArguments, length, offset, target);
+	public IMarker addProblem(final String message, final String preferenceKey, final String[] messageArguments, final JaxrsMetamodel metamodel) {
+		final IProject project = metamodel.getProject();
+		Logger.debug("Reporting problem '{}' on project '{}'", message, project.getName());
+		final IMarker marker = markerManager.addProblem(message, preferenceKey, messageArguments, 0, 0, project);
+		metamodel.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
+		return marker;
+		
+	}
+	public IMarker addProblem(final String message, final String preferenceKey, final String[] messageArguments, final ISourceRange range, final JaxrsBaseElement element) {
+		final IResource resource = element.getResource();
+		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
+		final IMarker marker = markerManager.addProblem(message, preferenceKey, messageArguments, range.getLength(), range.getOffset(), resource);
+		element.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
+		return marker;
 	}
 
-	public IMarker addProblem(String message, String preferenceKey, String[] messageArguments, int length, int offset, IResource target, int quickFixId) {
-		Logger.debug("Reporting problem '{}' on resource '{}'", message, target.getFullPath().toString());
-		return markerManager.addProblem(message, preferenceKey, messageArguments, length, offset, target, quickFixId);
+	public IMarker addProblem(final String message, final String preferenceKey, final String[] messageArguments, final ISourceRange range, final JaxrsBaseElement element, final int quickFixId) {
+		final IResource resource = element.getResource();
+		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
+		final IMarker marker = markerManager.addProblem(message, preferenceKey, messageArguments, range.getLength(), range.getOffset(), resource, quickFixId);
+		element.setProblemLevel(marker.getAttribute(IMarker.SEVERITY, 0));
+		return marker;
 	}
 
 }

@@ -22,10 +22,11 @@ import org.eclipse.jdt.internal.core.LocalVariable;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 
 /**
- * Annotation wrapper for IAnnotation on types, fields, methods and method parameters as well. Annotation wrappers
- * should follow the same lifecycle as their underlying java elements, which means that in the particular case of the
- * ILocalVariable wrapper (java method parameter), the Annotation maybe destroy/re-created as the ILocalVariable is
- * re-created, too.
+ * Annotation wrapper for IAnnotation on types, fields, methods and method
+ * parameters as well. Annotation wrappers should follow the same lifecycle as
+ * their underlying java elements, which means that in the particular case of
+ * the ILocalVariable wrapper (java method parameter), the Annotation maybe
+ * destroy/re-created as the ILocalVariable is re-created, too.
  * 
  * @author Xavier Coulon
  * 
@@ -55,7 +56,7 @@ public class Annotation {
 	 * @param annotationName
 	 * @param annotationElements
 	 * @param sourceRange
-	 * @throws JavaModelException 
+	 * @throws JavaModelException
 	 */
 	public Annotation(final IAnnotation annotation, final String annotationName,
 			final Map<String, List<String>> annotationElements) {
@@ -71,20 +72,22 @@ public class Annotation {
 	 * @param annotationName
 	 * @param annotationValue
 	 * @param sourceRange
-	 * @throws JavaModelException 
+	 * @throws JavaModelException
 	 */
-	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue)  {
+	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue) {
 		this(annotation, annotationName, CollectionUtils.toMap("value", Arrays.asList(annotationValue)));
 	}
 
 	/**
 	 * Update this Annotation from the given other annotation.
+	 * 
 	 * @param otherAnnotation
-	 * @return true if some updates in the annotation elements (member pair values) were performed, false otherwise.
+	 * @return true if some updates in the annotation elements (member pair
+	 *         values) were performed, false otherwise.
 	 */
 	public boolean update(final Annotation otherAnnotation) {
 		assert otherAnnotation != null;
-		if(!hasChanges(otherAnnotation)) {
+		if (!hasChanges(otherAnnotation)) {
 			return false;
 		}
 		this.javaAnnotationElements.clear();
@@ -93,7 +96,9 @@ public class Annotation {
 	}
 
 	/**
-	 * Returns true if the given 'otherAnnotation' is different from this annotation, false otherwise.
+	 * Returns true if the given 'otherAnnotation' is different from this
+	 * annotation, false otherwise.
+	 * 
 	 * @param otherAnnotation
 	 * @return
 	 */
@@ -103,12 +108,15 @@ public class Annotation {
 		}
 		return true;
 	}
-	
+
 	public IAnnotation getJavaAnnotation() {
 		return javaAnnotation;
 	}
 
 	public IJavaElement getJavaParent() {
+		if (javaAnnotation == null) {
+			return null;
+		}
 		return javaAnnotation.getParent();
 	}
 
@@ -151,6 +159,7 @@ public class Annotation {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -160,6 +169,7 @@ public class Annotation {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -174,6 +184,7 @@ public class Annotation {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -204,6 +215,5 @@ public class Annotation {
 		}
 		return true;
 	}
-	
 
 }

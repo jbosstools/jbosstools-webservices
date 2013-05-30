@@ -21,7 +21,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 import org.junit.Test;
 
 /**
@@ -35,7 +35,7 @@ public class ResourceChangedListenerTestCase extends AbstractMetamodelBuilderTes
 		// pre-conditions
 		final JaxrsMetamodel previousMetamodel = JaxrsMetamodelLocator.get(project);
 		assertThat(previousMetamodel, notNullValue());
-		JBossJaxrsCorePlugin.getDefault().pauseListeners();
+		JBossJaxrsCorePlugin.getDefault().resumeListeners();
 		// operation
 		project.close(new NullProgressMonitor());
 		project.open(new NullProgressMonitor());

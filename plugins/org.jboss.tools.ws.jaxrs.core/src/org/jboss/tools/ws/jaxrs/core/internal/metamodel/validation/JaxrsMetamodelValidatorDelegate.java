@@ -17,7 +17,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -37,10 +37,11 @@ public class JaxrsMetamodelValidatorDelegate extends AbstractJaxrsElementValidat
 		Logger.debug("Validating element {}", metamodel);
 		final IProject project = metamodel.getProject();
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(project);
+		metamodel.resetProblemLevel();
 		final List<IJaxrsApplication> allApplications = metamodel.getAllApplications();
 		if (allApplications.isEmpty()) {
 			addProblem(JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND,
-					JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], 0, 0, project);
+					JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], metamodel);
 
 		}
 	}

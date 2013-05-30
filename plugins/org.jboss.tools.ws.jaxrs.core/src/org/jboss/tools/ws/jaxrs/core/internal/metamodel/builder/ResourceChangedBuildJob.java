@@ -29,8 +29,7 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 
 /** @author xcoulon */
 public class ResourceChangedBuildJob extends Job {
@@ -52,9 +51,6 @@ public class ResourceChangedBuildJob extends Job {
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			Logger.debug("Building JAX-RS Metamodel after resource changed...");
-			if (progressMonitor.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
 			// extract the relevant delta bound to this built (some resources or entire project)
 			final List<ResourceDelta> affectedResources = extractAffectedResources(event.getDelta(), progressMonitor);
 			progressMonitor.worked(SCALE);
@@ -63,7 +59,16 @@ public class ResourceChangedBuildJob extends Job {
 			}
 
 			// compute changes on the JAX-RS Application(s), HttpMethods, Resources, etc.
-			final boolean withReset = (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD || event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD);
+			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			if (metamodel == null) {
+				JaxrsMetamodelLocator.get(project, true).processProject(progressMonitor);
+			} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
+					|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
+				metamodel.processProject(progressMonitor);
+			} else {
+				metamodel.processAffectedResources(affectedResources, progressMonitor);
+			}
+			/*
 			final JaxrsMetamodelDelta metamodelDelta = new ResourceChangedProcessor().processAffectedResources(project,
 					withReset, affectedResources, new SubProgressMonitor(progressMonitor, SCALE));
 			progressMonitor.worked(SCALE);
@@ -78,7 +83,7 @@ public class ResourceChangedBuildJob extends Job {
 			}
 			new JaxrsElementChangedPublisher().publish(metamodelDelta);
 			progressMonitor.worked(SCALE);
-
+			*/
 		} catch (Throwable e) {
 			Logger.error("Failed to build or refresh the JAX-RS metamodel for projet " + project.getName(), e);
 		} finally {
@@ -89,7 +94,7 @@ public class ResourceChangedBuildJob extends Job {
 					final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 					Logger.debug(
 							"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
-							project.getName(), metamodel.getAllHttpMethods().size(),
+							project.getName(), metamodel.findAllHttpMethods().size(),
 							metamodel.getAllResources().size(), metamodel.getAllEndpoints().size());
 				} catch (Throwable e) {
 					// debug level here since the purpose was to display a debug message

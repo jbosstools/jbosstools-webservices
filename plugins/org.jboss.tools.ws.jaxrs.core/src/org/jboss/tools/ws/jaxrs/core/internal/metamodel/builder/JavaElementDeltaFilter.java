@@ -116,7 +116,7 @@ public class JavaElementDeltaFilter {
 			return false;
 		}
 		int elementKind = event.getElement().getElementType();
-		int deltaKind = event.getDeltaKind();
+		int deltaKind = event.getKind();
 		IJavaElement element = event.getElement();
 		// prevent processing java elements in a closed java project
 		// prevent processing of any file named 'package-info.java'

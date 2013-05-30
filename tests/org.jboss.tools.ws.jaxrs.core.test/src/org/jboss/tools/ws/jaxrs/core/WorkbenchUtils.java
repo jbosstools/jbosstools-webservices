@@ -24,7 +24,6 @@ import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +68,6 @@ import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -347,12 +345,17 @@ public class WorkbenchUtils {
 		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
 		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		int offset = 0;
+		boolean atLeastOneMatch = false;
 		while ((offset = buffer.getContents().indexOf(oldContent, offset)) != -1) {
 			buffer.replace(offset, oldContent.length(), newContent);
 			offset = offset + newContent.length();
-
+			atLeastOneMatch = true;
+		}
+		if(!atLeastOneMatch) {
+			fail("No match for '" + oldContent + "' in " + compilationUnit);
 		}
 		saveAndClose(unit);
+		
 	}
 
 	public static void replaceAllOccurrencesOfCode(IType type, String oldContent,
@@ -791,7 +794,7 @@ public class WorkbenchUtils {
 		return found;
 	}
 
-	public static Annotation resolveAnnotation(final IMember member, final String annotationName)
+	public static Annotation getAnnotation(final IMember member, final String annotationName)
 			throws JavaModelException {
 		if (annotationName == null) {
 			return null;
@@ -799,7 +802,7 @@ public class WorkbenchUtils {
 		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
 	}
 
-	public static Map<String, Annotation> resolveAnnotations(final IMember member, final String... annotationNames)
+	public static Map<String, Annotation> getAnnotations(final IMember member, final String... annotationNames)
 			throws JavaModelException {
 		if (annotationNames == null) {
 			return null;
@@ -807,12 +810,6 @@ public class WorkbenchUtils {
 		return JdtUtils.resolveAnnotations(member, JdtUtils.parse(member, null), annotationNames);
 	}
 	
-	public static Annotation changeAnnotationValue(final Annotation annotation, final String... values)
-			throws JavaModelException {
-		Map<String, List<String>> elements = CollectionUtils.toMap("value", Arrays.asList(values));
-		return new Annotation(annotation.getJavaAnnotation(), annotation.getFullyQualifiedName(), elements);
-	}
-
 	/**
 	 * Creates a file with the given name and the given content in the given folder.
 	 * 
@@ -860,6 +857,36 @@ public class WorkbenchUtils {
 			file.delete(true, new NullProgressMonitor());
 		}
 		file.create(stream, true, null);
+		final InputStream contents = file.getContents();
+		final char[] buffer = new char[0x10000];
+		StringBuilder out = new StringBuilder();
+		Reader in = new InputStreamReader(contents, "UTF-8");
+		int read;
+		do {
+			read = in.read(buffer, 0, buffer.length);
+			if (read > 0) {
+				out.append(buffer, 0, read);
+			}
+		} while (read >= 0);
+		LOGGER.debug("Content:\n" + out.toString());
+	}
+	
+
+	/**
+	 * Replaces the content of the given resource with the given stream.
+	 * 
+	 * @param webxmlResource
+	 * @param stream
+	 * @throws CoreException
+	 * @throws IOException
+	 */
+	public static void replaceContent(IResource resource, String oldContent, String newContent) throws CoreException, IOException {
+		final IProject project = resource.getProject();
+		final IFile file = project.getFile(resource.getProjectRelativePath());
+		final String content = IOUtils.toString(file.getContents());
+		final String  modifiedContent = content.replace(oldContent, newContent);
+		file.delete(true, new NullProgressMonitor());
+		file.create(IOUtils.toInputStream(modifiedContent), true, null);
 		final InputStream contents = file.getContents();
 		final char[] buffer = new char[0x10000];
 		StringBuilder out = new StringBuilder();

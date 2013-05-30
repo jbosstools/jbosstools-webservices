@@ -14,7 +14,7 @@ import org.hamcrest.Matcher;
 import org.jboss.tools.common.validation.ValidationErrorManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 
 /**
  * @author Xavier Coulon The class name says it all.
@@ -33,7 +33,7 @@ public class MarkerUtils {
 		for (IJaxrsElement element : elements) {
 			final IMarker[] elementMarkers = element.getResource().findMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, true,
 					IResource.DEPTH_INFINITE);
-			switch (element.getElementCategory()) {
+			switch (element.getElementKind().getCategory()) {
 			case APPLICATION:
 			case HTTP_METHOD:
 			case PROVIDER:

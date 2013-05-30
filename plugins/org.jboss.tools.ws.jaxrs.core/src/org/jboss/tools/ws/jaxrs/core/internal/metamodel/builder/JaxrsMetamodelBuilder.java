@@ -93,7 +93,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	 *            the progress monitor
 	 */
 	private void build(final int buildKind, final IProject project, final IProgressMonitor progressMonitor) {
-		Logger.info("Building JAX-RS metamodel for project " + project.getName());
+		Logger.debug("Building JAX-RS metamodel for project " + project.getName());
 		ResourceChangedBuildJob job = new ResourceChangedBuildJob(project, getResourceChangeEvent(project, buildKind));
 		job.setRule(MutexJobSchedulingRule.getInstance());
 		job.schedule();

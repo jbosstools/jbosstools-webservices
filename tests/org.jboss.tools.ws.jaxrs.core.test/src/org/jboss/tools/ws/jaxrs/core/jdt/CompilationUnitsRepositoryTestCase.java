@@ -43,7 +43,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	private CompilationUnitsRepository repository = null;
 
 	@Before
-	public void setup() {
+	public void setupCompilationUnitsRepository() {
 		repository = CompilationUnitsRepository.getInstance();
 	}
 	
@@ -71,7 +71,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	public void shouldMergeASTWithDiffComputation() throws CoreException {
 		// pre-conditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getMethod(type, "getCustomer");
+		final IMethod method = getJavaMethod(type, "getCustomer");
 		final ICompilationUnit compilationUnit = type.getCompilationUnit();
 		// record the previous version
 		repository.getAST(type.getCompilationUnit());
@@ -88,7 +88,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	public void shouldMergeASTWithoutDiffComputation() throws CoreException {
 		// pre-conditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getMethod(type, "getCustomer");
+		final IMethod method = getJavaMethod(type, "getCustomer");
 		final ICompilationUnit compilationUnit = type.getCompilationUnit();
 		// record the previous version
 		repository.getAST(compilationUnit);

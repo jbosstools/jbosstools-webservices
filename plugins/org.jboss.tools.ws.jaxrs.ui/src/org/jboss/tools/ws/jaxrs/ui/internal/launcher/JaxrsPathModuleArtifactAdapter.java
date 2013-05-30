@@ -14,7 +14,7 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IModuleArtifact;
 import org.eclipse.wst.server.core.ServerUtil;
 import org.eclipse.wst.server.core.model.ModuleArtifactAdapterDelegate;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement;
 
 /**

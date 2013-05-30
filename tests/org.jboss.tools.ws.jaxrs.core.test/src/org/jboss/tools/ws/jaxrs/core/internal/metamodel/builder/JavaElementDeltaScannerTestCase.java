@@ -129,7 +129,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 
 	@SuppressWarnings("unchecked")
 	@Before
-	public void setup() throws CoreException {
+	public void setupTest() throws CoreException {
 		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		Assert.assertNotNull("JavaProject not set");
 		// ElementChangedEvent.POST_RECONCILE is the only case where the
@@ -787,11 +787,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodRenamedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "getEntityManager");
+		IMethod oldMethod = getJavaMethod(type, "getEntityManager");
 		// operation
 		WorkbenchUtils.renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM", WORKING_COPY);
 		// verifications
-		IMethod newMethod = getMethod(type, "getEM");
+		IMethod newMethod = getJavaMethod(type, "getEM");
 		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -804,7 +804,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		IMethod oldMethod = WorkbenchUtils.renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM",
 				PRIMARY_COPY);
 		// verifications
-		IMethod newMethod = getMethod(type, "getEM");
+		IMethod newMethod = getJavaMethod(type, "getEM");
 		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 		verifyEventNotification(newMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -813,7 +813,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "createCustomer");
+		IMethod oldMethod = getJavaMethod(type, "createCustomer");
 		// operation
 		IMethod newMethod = WorkbenchUtils.addMethodParameter(oldMethod, "int i", WORKING_COPY);
 		// verifications
@@ -825,7 +825,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "createCustomer");
+		IMethod oldMethod = getJavaMethod(type, "createCustomer");
 		// operation
 		WorkbenchUtils.addMethodParameter(oldMethod, "int i", PRIMARY_COPY);
 		// verifications
@@ -836,7 +836,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterTypeChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "createCustomer");
+		IMethod oldMethod = getJavaMethod(type, "createCustomer");
 		// operation
 		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod, "Customer customer",
 				"String customer", WORKING_COPY);
@@ -849,7 +849,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterTypeChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "createCustomer");
+		IMethod oldMethod = getJavaMethod(type, "createCustomer");
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod, "Customer customer", "String customer", PRIMARY_COPY);
 		// verifications
@@ -863,7 +863,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		// operation
 		method = WorkbenchUtils
 				.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", WORKING_COPY);
@@ -876,7 +876,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		// operation
 		method = WorkbenchUtils
 				.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", PRIMARY_COPY);
@@ -888,7 +888,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParametersReversedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "getCustomer");
+		IMethod oldMethod = getJavaMethod(type, "getCustomer");
 		// operation
 		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
@@ -902,7 +902,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParametersReversedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "getCustomer");
+		IMethod oldMethod = getJavaMethod(type, "getCustomer");
 		// operation
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
@@ -915,7 +915,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "getCustomer");
+		IMethod oldMethod = getJavaMethod(type, "getCustomer");
 		LOGGER.info("Method signature: " + oldMethod.getSignature());
 		// operation
 		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
@@ -931,7 +931,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getMethod(type, "getCustomer");
+		IMethod oldMethod = getJavaMethod(type, "getCustomer");
 		LOGGER.info("Method signature: " + oldMethod.getSignature());
 		// operation
 		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
@@ -947,7 +947,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 			InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer",
 				"@PathParam(\"id\") Customer customer", WORKING_COPY);
@@ -960,7 +960,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 			InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer",
 				"@PathParam(\"id\") Customer customer", PRIMARY_COPY);
@@ -973,7 +973,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 			InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "getCustomer");
+		IMethod method = getJavaMethod(type, "getCustomer");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
 				WORKING_COPY);
@@ -986,7 +986,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 			InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "getCustomer");
+		IMethod method = getJavaMethod(type, "getCustomer");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
 				PRIMARY_COPY);
@@ -999,7 +999,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 			InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "getCustomer");
+		IMethod method = getJavaMethod(type, "getCustomer");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
 				WORKING_COPY);
@@ -1012,7 +1012,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 			InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "getCustomer");
+		IMethod method = getJavaMethod(type, "getCustomer");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
 				PRIMARY_COPY);
@@ -1024,7 +1024,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodAnnotationAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		// operation
 		IAnnotation addedAnnotation = WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", WORKING_COPY);
 		// verifications
@@ -1035,7 +1035,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodAnnotationAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		// operation
 		WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", PRIMARY_COPY);
 		// verifications
@@ -1046,7 +1046,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodAnnotationChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
@@ -1059,7 +1059,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodAnnotationChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
 		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
@@ -1072,7 +1072,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodAnnotationRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("POST");
 		// operation
 		WorkbenchUtils.removeMethodAnnotation(method, annotation, WORKING_COPY);
@@ -1084,7 +1084,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
 		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getMethod(type, "createCustomer");
+		IMethod method = getJavaMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("POST");
 		// operation
 		WorkbenchUtils.removeMethodAnnotation(method, annotation, PRIMARY_COPY);
@@ -1100,7 +1100,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		WorkbenchUtils.removeField(field, PRIMARY_COPY);
 		// verifications
-		final IMethod method = getMethod(type, "deleteCustomer");
+		final IMethod method = getJavaMethod(type, "deleteCustomer");
 		verifyEventNotification(method.getResource(), CHANGED, POST_RECONCILE, F_MARKER_ADDED, atLeastOnce());
 	}
 

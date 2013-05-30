@@ -16,7 +16,8 @@ import org.eclipse.jdt.core.IMember;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 /**
- * Abstract class holding the parent JAX-RS Resource. 
+ * Abstract class holding the parent JAX-RS Resource.
+ * 
  * @author Xavier Coulon
  * 
  */
@@ -27,16 +28,18 @@ public abstract class JaxrsResourceElement<T extends IMember> extends JaxrsJavaE
 
 	/**
 	 * Full constructor for elements having multiple annotations.
+	 * 
 	 * @param javaElement
 	 * @param annotations
 	 * @param parentResource
-	 * @param metamodel
 	 */
-	public JaxrsResourceElement(final T javaElement, final Map<String, Annotation> annotations, final JaxrsResource parentResource,
-			JaxrsMetamodel metamodel) {
+	protected JaxrsResourceElement(final T javaElement, final Map<String, Annotation> annotations,
+			final JaxrsResource parentResource, final JaxrsMetamodel metamodel) {
 		super(javaElement, annotations, metamodel);
 		this.parentResource = parentResource;
-		this.parentResource.addElement(this);
+		if(this.parentResource != null) {
+			this.parentResource.addElement(this);
+		}
 	}
 
 	/**

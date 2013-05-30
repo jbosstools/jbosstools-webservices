@@ -38,9 +38,9 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
@@ -76,39 +76,14 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			if (metamodel == null) {
 				return Collections.emptyList();
 			}
-			// final IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
-			// context.getInvocationOffset());
-			//
-			// // ICompilationUnit.getElementAt(int) method may return null
-			// if (invocationElement != null && invocationElement.getElementType() == IJavaElement.METHOD) {
-			// IJaxrsResourceMethod resourceMethod = metamodel.getElement(invocationElement,
-			// IJaxrsResourceMethod.class);
-			// // the java method must be associated with a JAX-RS Resource Method.
-			// if (resourceMethod != null) {
-			// for (JavaMethodParameter methodParameter : resourceMethod.getJavaMethodParameters()) {
-			// for (Annotation annotation : methodParameter.getAnnotations().values()) {
-			// final ISourceRange range = annotation.getSourceRange();
-			// if (annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName) && range != null
-			// && context.getInvocationOffset() >= range.getOffset()
-			// && context.getInvocationOffset() < (range.getOffset() + range.getLength())) {
-			// // completion proposal on @PathParam method
-			// // annotation
-			// return internalComputePathParamProposals(javaContext, resourceMethod);
-			// }
-			//
-			// }
-			// }
-			// }
-			// }
-
+			
 			final int invocationOffset = context.getInvocationOffset();
 			final ICompilationUnit compilationUnit = javaContext.getCompilationUnit();
 			final Annotation annotation = JdtUtils.resolveAnnotationAt(invocationOffset, compilationUnit);
 			if (annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName)) {
 				final IJavaElement javaMethod = annotation.getJavaAnnotation().getAncestor(IJavaElement.METHOD);
-				if (javaMethod != null) {
-					final IJaxrsResourceMethod resourceMethod = metamodel.getElement(javaMethod,
-							IJaxrsResourceMethod.class);
+				final IJaxrsResourceMethod resourceMethod = (IJaxrsResourceMethod) metamodel.findElement(javaMethod);
+				if (resourceMethod != null) {
 					return internalComputePathParamProposals(javaContext, resourceMethod);
 				}
 			}

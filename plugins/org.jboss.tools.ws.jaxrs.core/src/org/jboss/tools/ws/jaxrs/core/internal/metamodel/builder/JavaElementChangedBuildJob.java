@@ -21,15 +21,13 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
+import org.eclipse.jdt.core.IJavaProject;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 
 /** @author xcoulon */
 public class JavaElementChangedBuildJob extends Job {
-
-	private final JavaElementChangedProcessor javaElementChangedProcessor = new JavaElementChangedProcessor();
-
-	private final JaxrsMetamodelChangedProcessor jaxrsElementChangedProcessor = new JaxrsMetamodelChangedProcessor();
 
 	private final ElementChangedEvent event;
 	
@@ -58,17 +56,14 @@ public class JavaElementChangedBuildJob extends Job {
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			final List<JaxrsMetamodelDelta> affectedMetamodels = javaElementChangedProcessor.processAffectedJavaElements(affectedJavaElements,
-					new SubProgressMonitor(progressMonitor, SCALE));
-			if (progressMonitor.isCanceled()) {
-				return Status.CANCEL_STATUS;
+			for(JavaElementDelta delta : affectedJavaElements) {
+				final IJavaProject javaProject = delta.getElement().getJavaProject();
+				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+				metamodel.processJavaElementChange(delta, progressMonitor);
+				if (progressMonitor.isCanceled()) {
+					return Status.CANCEL_STATUS;
+				}
 			}
-			jaxrsElementChangedProcessor.processAffectedMetamodels(affectedMetamodels, new SubProgressMonitor(
-					progressMonitor, SCALE));
-			if (progressMonitor.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
-			new JaxrsElementChangedPublisher().publish(affectedMetamodels);
 		} catch (Throwable e) {
 			Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 		} finally {

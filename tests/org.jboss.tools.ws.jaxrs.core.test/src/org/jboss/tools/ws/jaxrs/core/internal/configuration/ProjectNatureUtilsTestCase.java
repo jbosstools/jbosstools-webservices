@@ -11,10 +11,12 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.configuration;
 
-import junit.framework.Assert;
-
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
+import org.jboss.tools.ws.jaxrs.core.configuration.AddNatureAction;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
+import org.jboss.tools.ws.jaxrs.core.configuration.RemoveNatureAction;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -44,5 +46,20 @@ public class ProjectNatureUtilsTestCase extends AbstractCommonTestCase {
 		Assert.assertFalse("Wrong result", ProjectNatureUtils.isProjectNatureInstalled(javaProject.getProject(), ProjectNatureUtils.JAXRS_NATURE_ID));
 	}
 	
+	@Test
+	public void shouldInstallAndUninstallProjectNatureFromActions() throws Exception {
+		// pre-condition
+		final StructuredSelection selection = new StructuredSelection(javaProject.getProject());
+		final AddNatureAction addNatureAction = new AddNatureAction();
+		addNatureAction.selectionChanged(null, selection);
+		final RemoveNatureAction removeNatureAction = new RemoveNatureAction();
+		removeNatureAction.selectionChanged(null, selection);
+		Assert.assertFalse("Wrong result", ProjectNatureUtils.isProjectNatureInstalled(javaProject.getProject(), ProjectNatureUtils.JAXRS_NATURE_ID));
+		// operations and verifications
+		addNatureAction.run(null);
+		Assert.assertTrue("Wrong result", ProjectNatureUtils.isProjectNatureInstalled(javaProject.getProject(), ProjectNatureUtils.JAXRS_NATURE_ID));
+		removeNatureAction.run(null);
+		Assert.assertFalse("Wrong result", ProjectNatureUtils.isProjectNatureInstalled(javaProject.getProject(), ProjectNatureUtils.JAXRS_NATURE_ID));
+	}
 
 }

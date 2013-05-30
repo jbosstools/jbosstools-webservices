@@ -11,21 +11,39 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_NONE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
+import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementCategory;
-import org.jboss.tools.ws.jaxrs.core.metamodel.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 
 /**
  * <p>
@@ -54,33 +72,172 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	private final Map<EnumElementKind, IType> providedTypes;
 
 	/**
-	 * Full constructor using the inner 'MediaTypeCapabilitiesBuilder' static
-	 * class.
+	 * Builder initializer
 	 * 
-	 * @param providedKinds
+	 * @param javaElement
+	 *            the underlying {@link IJavaElement} that on which this JAX-RS
+	 *            Element will be built.
+	 * @return the Builder
+	 * @throws JavaModelException
+	 */
+	public static Builder from(final IJavaElement javaElement) throws JavaModelException {
+		final CompilationUnit ast = JdtUtils.parse(javaElement, new NullProgressMonitor());
+		switch (javaElement.getElementType()) {
+		case IJavaElement.COMPILATION_UNIT:
+			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast);
+		case IJavaElement.TYPE:
+			return new Builder((IType) javaElement, ast);
+		}
+		return null;
+	}
+
+	/**
+	 * Builder initializer
+	 * 
+	 * @param javaElement
+	 *            the underlying {@link IJavaElement} that on which this JAX-RS
+	 *            Element will be built.
+	 * @param ast
+	 *            the associated AST
+	 * @return the Builder
+	 * @throws JavaModelException
+	 */
+	public static Builder from(final IJavaElement javaElement, final CompilationUnit ast) {
+		switch (javaElement.getElementType()) {
+		case IJavaElement.COMPILATION_UNIT:
+			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast);
+		case IJavaElement.TYPE:
+			return new Builder((IType) javaElement, ast);
+		}
+		return null;
+	}
+
+	/**
+	 * {@link JaxrsProvider} Fluent Builder
+	 * 
+	 * @author xcoulon
+	 * 
+	 */
+	public static class Builder {
+
+		private final IType javaType;
+		private final CompilationUnit ast;
+		private Map<String, Annotation> annotations;
+		private Map<EnumElementKind, IType> providedKinds;
+		private JaxrsMetamodel metamodel;
+
+		private Builder(final IType javaType, final CompilationUnit ast) {
+			this.javaType = javaType;
+			this.ast = ast;
+		}
+
+		public Builder withMetamodel(final JaxrsMetamodel metamodel) {
+			this.metamodel = metamodel;
+			return this;
+		}
+
+		/**
+		 * Creates a <strong>transient</strong> JAX-RS Provider from the given
+		 * Type. A valid Provider must be annotated with
+		 * <code>javax.ws.rs.ext.MessageBodyReader</code>,
+		 * <code>javax.ws.rs.ext.MessageBodyWriter</code> or
+		 * <code>javax.ws.rs.ext.ExceptionMapper</code>. If the given type is
+		 * not annotated with <code>javax.ws.rs.ext.Provider</code>, a should be
+		 * reported to the user.
+		 * 
+		 * @param javaType
+		 * @throws CoreException
+		 *             in case of underlying exception
+		 * @return a representation of the given provider or null in case of
+		 *         invalid type (ie, not a valid JAX-RS Provider)
+		 */
+		public JaxrsProvider build() throws CoreException {
+			if (javaType == null || !javaType.exists()) {
+				return null;
+			}
+			// assert that given java type is not abstract
+			if (JdtUtils.isAbstractType(javaType)) {
+				return null;
+			}
+			final ITypeHierarchy providerTypeHierarchy = JdtUtils.resolveTypeHierarchy(javaType,
+					javaType.getJavaProject(), false, new NullProgressMonitor());
+			final IType[] subtypes = providerTypeHierarchy.getSubtypes(javaType);
+			// assert that given java type has no sub-type, or continue;
+			if (subtypes != null && subtypes.length > 0) {
+				return null;
+			}
+			this.providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy, new NullProgressMonitor());
+			this.annotations = JdtUtils.resolveAnnotations(javaType, ast, PROVIDER.qualifiedName,
+					CONSUMES.qualifiedName, PRODUCES.qualifiedName, ENCODED.qualifiedName);
+			if (annotations.get(PROVIDER.qualifiedName) != null || !providedKinds.isEmpty()) {
+				final JaxrsProvider provider = new JaxrsProvider(this);
+				// this operation is only performed after creation
+				provider.joinMetamodel();
+				return provider;
+			}
+			return null;
+		}
+
+		/**
+		 * @param metamodel
+		 * @param providerType
+		 * @param providerTypeHierarchy
+		 * @param providerInterfaces
+		 * @param progressMonitor
+		 * @param providerTypeHierarchy
+		 * @return
+		 * @throws CoreException
+		 * @throws JavaModelException
+		 */
+		// FIXME: [Perf] cache this method call's result, should not happen each
+		// time
+		private static Map<EnumElementKind, IType> getProvidedKinds(final IType providerType,
+				final CompilationUnit compilationUnit, final ITypeHierarchy providerTypeHierarchy,
+				final IProgressMonitor progressMonitor) throws CoreException, JavaModelException {
+			final Map<EnumElementKind, IType> providerKinds = new HashMap<EnumElementKind, IType>();
+			List<Pair<EnumJaxrsClassname, EnumElementKind>> pairs = new ArrayList<Pair<EnumJaxrsClassname, EnumElementKind>>();
+			pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_READER, EnumElementKind.MESSAGE_BODY_READER));
+			pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_WRITER, EnumElementKind.MESSAGE_BODY_WRITER));
+			pairs.add(Pair.makePair(EnumJaxrsClassname.EXCEPTION_MAPPER, EnumElementKind.EXCEPTION_MAPPER));
+			pairs.add(Pair.makePair(EnumJaxrsClassname.CONTEXT_RESOLVER, EnumElementKind.CONTEXT_RESOLVER));
+
+			for (Pair<EnumJaxrsClassname, EnumElementKind> pair : pairs) {
+				final IType matchingGenericType = JdtUtils.resolveType(pair.a.qualifiedName,
+						providerType.getJavaProject(), progressMonitor);
+				List<IType> argumentTypes = JdtUtils.resolveTypeArguments(providerType, compilationUnit,
+						matchingGenericType, providerTypeHierarchy, progressMonitor);
+				if (argumentTypes == null || argumentTypes.size() == 0) {
+					continue;
+				}
+				providerKinds.put(pair.b, argumentTypes.get(0));
+			}
+			return providerKinds;
+		}
+	}
+
+	/**
+	 * Full constructor.
 	 * 
 	 * @param builder
+	 *            the fluent builder
 	 */
-	public JaxrsProvider(final IType javaType, final Map<String, Annotation> annotations,
-			final Map<EnumElementKind, IType> providedKinds, final JaxrsMetamodel metamodel) {
-		super(javaType, annotations, metamodel);
-		this.providedTypes = providedKinds;
+	private JaxrsProvider(final Builder builder) {
+		super(builder.javaType, builder.annotations, builder.metamodel);
+		this.providedTypes = builder.providedKinds;
 	}
 
 	@Override
-	public EnumElementCategory getElementCategory() {
-		return EnumElementCategory.PROVIDER;
-	}
-	
-	@Override
 	public boolean isMarkedForRemoval() {
+		final boolean hasProviderAnnotation = hasAnnotation(PROVIDER.qualifiedName);
 		final boolean isMessageBodyReader = providedTypes.get(EnumElementKind.MESSAGE_BODY_READER) != null;
 		final boolean isMessageBodyWriter = providedTypes.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
 		final boolean isExceptionMapper = providedTypes.get(EnumElementKind.EXCEPTION_MAPPER) != null;
 		final boolean isContextProvider = providedTypes.get(EnumElementKind.CONTEXT_RESOLVER) != null;
-		final boolean hasProviderAnnotation = hasAnnotation(PROVIDER.qualifiedName);
-		// element should be removed if it has no @Provider annotation or it does not implement any of the provider interfaces
-		// (missing annotation is acceptable by some JAX-RS implementation, and Provider can be registered in the JAX-RS application or in the web.xml)
+		// element should be removed if it has no @Provider annotation or it
+		// does not implement any of the provider interfaces
+		// (missing annotation is acceptable by some JAX-RS implementation, and
+		// Provider can be registered in the JAX-RS application or in the
+		// web.xml)
 		return !(hasProviderAnnotation || (isMessageBodyReader || isMessageBodyWriter || isContextProvider || isExceptionMapper));
 	}
 
@@ -101,7 +258,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		} else if (isContextProvider) {
 			return EnumElementKind.CONTEXT_RESOLVER;
 		}
-		return EnumElementKind.UNDEFINED;
+		return EnumElementKind.UNDEFINED_PROVIDER;
 	}
 
 	@Override
@@ -112,7 +269,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	public Map<EnumElementKind, IType> getProvidedTypes() {
 		return providedTypes;
 	}
-	
+
 	public Annotation getConsumesAnnotation() {
 		return getAnnotation(CONSUMES.qualifiedName);
 	}
@@ -120,10 +277,10 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	@Override
 	public List<String> getConsumedMediaTypes() {
 		final Annotation consumesAnnotation = getConsumesAnnotation();
-		if (consumesAnnotation == null) {
-			return null;
+		if (consumesAnnotation != null) {
+			return consumesAnnotation.getValues("value");
 		}
-		return consumesAnnotation.getValues("value");
+		return Collections.emptyList();
 	}
 
 	public Annotation getProducesAnnotation() {
@@ -133,34 +290,49 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	@Override
 	public List<String> getProducedMediaTypes() {
 		final Annotation producesAnnotation = getProducesAnnotation();
-		if (producesAnnotation == null) {
-			return null;
+		if (producesAnnotation != null) {
+			return producesAnnotation.getValues("value");
 		}
-		return producesAnnotation.getValues("value");
+		return Collections.emptyList();
 	}
 
 	/**
-	 * Update this provider from the given provider.
+	 * Update this provider from the given {@link IJavaElement} and its associated {@link CompilationUnit}.
 	 * 
-	 * @param transientProvider
+	 * @param javaElement the underlying {@link IJavaElement}
+	 * @param ast the associated{@link CompilationUnit}
+	 * 
 	 * @return flags indicating the nature of the changes
 	 * @throws CoreException
 	 */
-	public int update(final JaxrsProvider transientProvider) throws CoreException {
-		int flags = F_NONE;
-		if (transientProvider != null) {
+	@Override
+	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
+		final JaxrsProvider transientProvider = JaxrsProvider.from(javaElement, ast).build();
+		// clear this element if the given transient element is null
+		if (transientProvider == null) {
+			remove();
+		} else {
+			final DeltaFlags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
 			if (!this.getProvidedTypes().equals(transientProvider.getProvidedTypes())) {
-				this.providedTypes.clear();
-				this.providedTypes.putAll(transientProvider.getProvidedTypes());
-				flags += F_PROVIDER_HIERARCHY;
+				this.getProvidedTypes().clear();
+				this.getProvidedTypes().putAll(transientProvider.getProvidedTypes());
+				delta.addFlag(F_PROVIDER_HIERARCHY);
 			}
-			flags += updateAnnotations(transientProvider.getAnnotations());
+			if (isMarkedForRemoval()) {
+				remove();
+			}
+			// update indexes for this element.
+			else if(hasMetamodel()){
+				getMetamodel().update(delta);
+			}
 		}
-		return flags;
 	}
 
 	/**
-	 * Return {@link JaxrsJavaElement#hashCode()} result based on underlying Java Type. Thus, it does not take the Provider's Type Parameter(s) into account here.
+	 * Return {@link JaxrsJavaElement#hashCode()} result based on underlying
+	 * Java Type. Thus, it does not take the Provider's Type Parameter(s) into
+	 * account here.
 	 */
 	@Override
 	public int hashCode() {
@@ -168,7 +340,9 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	}
 
 	/**
-	 * Return {@link JaxrsJavaElement#equals(Object)} result based on underlying Java Type. Thus, it does not take the Provider's Type Parameter(s) into account here.
+	 * Return {@link JaxrsJavaElement#equals(Object)} result based on underlying
+	 * Java Type. Thus, it does not take the Provider's Type Parameter(s) into
+	 * account here.
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -180,7 +354,50 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	 */
 	@Override
 	public String toString() {
-		return "JaxrsProvider " + getJavaElement().getElementName() + " [" + providedTypes + "]";
+		final StringBuilder builder = new StringBuilder("JaxrsProvider ").append(getJavaElement().getElementName())
+				.append("[");
+		for (Iterator<Entry<EnumElementKind, IType>> iterator = this.providedTypes.entrySet().iterator(); iterator
+				.hasNext();) {
+			Entry<EnumElementKind, IType> entry = iterator.next();
+			builder.append(entry.getKey().toString().toLowerCase()).append("->");
+			if (entry.getValue() != null && entry.getValue().exists()) {
+				builder.append(entry.getValue().getFullyQualifiedName());
+			} else {
+				builder.append("*unknown*");
+			}
+			if (iterator.hasNext()) {
+				builder.append(", ");
+			}
+			builder.append("]");
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Returns <code>true</code> if this provider and the given provider overlap on supported media types for the given element kind.
+	 * @param otherProvider the provider to compare this one with.
+	 * @param elementKind the kind to compare to.
+	 * @return true if both providers overlap, false otherwise.
+	 */
+	@SuppressWarnings("incomplete-switch")
+	public boolean collidesWith(final JaxrsProvider otherProvider, final EnumElementKind elementKind) {
+		switch(elementKind) {
+		case MESSAGE_BODY_READER:
+			final List<String> otherConsumedMediaTypes = otherProvider.getConsumedMediaTypes();
+			if(otherConsumedMediaTypes.isEmpty() || getConsumedMediaTypes().isEmpty()) {
+				return true;
+			}
+			return CollectionUtils.hasIntersection(otherConsumedMediaTypes, getConsumedMediaTypes());
+		case MESSAGE_BODY_WRITER:
+		case EXCEPTION_MAPPER:
+			final List<String> otherProducedMediaTypes = otherProvider.getProducedMediaTypes();
+			if(otherProducedMediaTypes.isEmpty() || getProducedMediaTypes().isEmpty()) {
+				return true;
+			}
+			return CollectionUtils.hasIntersection(otherProducedMediaTypes, getProducedMediaTypes());
+		}
+		
+		return false;
 	}
 
 }

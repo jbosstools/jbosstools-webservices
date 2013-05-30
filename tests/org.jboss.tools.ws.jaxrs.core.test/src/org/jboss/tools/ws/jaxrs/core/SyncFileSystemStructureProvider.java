@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
@@ -44,6 +45,8 @@ public class SyncFileSystemStructureProvider implements IImportStructureProvider
 	private final IPath destination;
 
 	private final List<String> ignoredRelativePaths = new ArrayList<String>();
+
+	public Object ignoreRelativeSourcePaths;
 
 	/**
 	 * Creates an instance of <code>SyncFileSystemStructureProvider</code>.
@@ -140,5 +143,10 @@ public class SyncFileSystemStructureProvider implements IImportStructureProvider
 	public void ignoreRelativeSourcePath(String relativePath) {
 		this.ignoredRelativePaths.add(relativePath);
 
+	}
+
+	public void ignoreRelativeSourcePaths(String... relativePaths) {
+		this.ignoredRelativePaths.addAll(Arrays.asList(relativePaths));
+		
 	}
 }

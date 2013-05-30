@@ -11,8 +11,6 @@
 
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
-import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,7 +32,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
@@ -166,15 +163,6 @@ public final class JdtUtils {
 		return false;
 	}
 
-	public static IPackageFragmentRoot getPackageFragmentRoot(final IJavaElement element) {
-		IJavaElement e = element;
-		while (e.getElementType() != PACKAGE_FRAGMENT_ROOT) {
-			e = e.getParent();
-		}
-		return (IPackageFragmentRoot) e;
-
-	}
-
 	/**
 	 * Returns the closest Java Element that surrounds the given location in the
 	 * given compilationUnit. This method can return SimpleAnnotation, which the
@@ -254,6 +242,22 @@ public final class JdtUtils {
 		return ast;
 	}
 
+	/**
+	 * Parse the compilation unit of the given {@link IJavaElement} if it is a {@link IMember} or a {@link ICompilationUnit}, null otherwise.
+	 * @param javaElement
+	 * @param progressMonitor
+	 * @return the compilation unit or null if the given java element has no compilation unit (ex: package fragment root).
+	 * @throws JavaModelException 
+	 */
+	public static CompilationUnit parse(final IJavaElement javaElement, IProgressMonitor progressMonitor) throws JavaModelException {
+		if(javaElement instanceof IMember) {
+			return parse(((IMember)javaElement).getCompilationUnit(), progressMonitor);
+		} else if(javaElement instanceof ICompilationUnit) {
+			return parse((ICompilationUnit)javaElement, progressMonitor);
+		}
+		return null ;
+	}
+	
 	/**
 	 * Parse the DOM of the given member, and resolve bindings. If the given
 	 * member is not a type, then its declaring type is used by the parser.
@@ -496,6 +500,65 @@ public final class JdtUtils {
 		return null;
 	}
 
+
+	/**
+	 * Searches and returns all the subtypes of the given superType that do not have themselves other subtypes
+	 * @param scope
+	 * @param progressMonitor
+	 * @param searchScope
+	 * @return a list of subtypes or an empty list if none was found.
+	 * @throws CoreException
+	 * @throws JavaModelException
+	 */
+	public static List<IType> findSubtypes(final IJavaElement scope, final IType superType, final IProgressMonitor progressMonitor) throws CoreException, JavaModelException {
+		final List<IType> types = new ArrayList<IType>();
+		if(superType != null) {
+			final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(superType, scope, false, progressMonitor);
+			final IType[] allSubtypes = hierarchy.getAllSubtypes(superType);
+			for(IType subtype : allSubtypes) {
+				if(subtype.isStructureKnown() && subtype.getJavaProject().equals(scope.getJavaProject())
+						&& hierarchy.getAllSubtypes(subtype).length == 0) {
+					types.add(subtype);
+				}
+			}
+		}
+		return types;
+	}
+	
+	/**
+	 * Returns a list containing the given type and all its subtypes in the current project
+	 * 
+	 * @param progressMonitor
+	 * @param type
+	 * @return the given type and its subtypes
+	 * @throws CoreException
+	 */
+	public static List<IType> findSubtypes(final IType type) throws CoreException {
+		final List<IType> types = new ArrayList<IType>();
+		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false,
+				new NullProgressMonitor());
+		types.addAll(Arrays.asList(returnTypeHierarchy.getAllSubtypes(type)));
+		types.add(type);
+		return types;
+	}
+
+	/**
+	 * Returns a list containing the given type and all its supertypes in the current project
+	 * 
+	 * @param progressMonitor
+	 * @param type
+	 * @return the given type and its subtypes
+	 * @throws CoreException
+	 */
+	public static List<IType> findSupertypes(final IType type) throws CoreException {
+		final List<IType> types = new ArrayList<IType>();
+		types.add(type);
+		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false,
+				new NullProgressMonitor());
+		types.addAll(Arrays.asList(returnTypeHierarchy.getAllSupertypes(type)));
+		return types;
+	}
+	
 	/**
 	 * Resolves the Type Argument for the given parameterizedType against the
 	 * given matchGenericType that is part of the parameterizedTypeHierarchy.
@@ -602,7 +665,7 @@ public final class JdtUtils {
 	}
 
 	public static List<JavaMethodSignature> resolveMethodSignatures(IType type, CompilationUnit ast) {
-		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(type.getCompilationUnit());
+		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
 		ast.accept(methodsVisitor);
 		return methodsVisitor.getMethodSignatures();
 	}
@@ -675,4 +738,5 @@ public final class JdtUtils {
 
 		return name.toString();
 	}
+
 }

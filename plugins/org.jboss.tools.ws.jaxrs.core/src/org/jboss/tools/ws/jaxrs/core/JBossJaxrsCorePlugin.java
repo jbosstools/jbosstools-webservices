@@ -65,7 +65,7 @@ public class JBossJaxrsCorePlugin extends AbstractUIPlugin {
 
 
 	/**
-	 * Register the listeners.
+	 * Register the elementChangedListeners.
 	 */
 	private void registerListeners() {
 		// the java changes are only captured during POST_RECONCILE (ie, during
@@ -79,7 +79,7 @@ public class JBossJaxrsCorePlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Unregister the listeners.
+	 * Unregister the elementChangedListeners.
 	 */
 	private void unregisterListeners() {
 		JavaCore.removeElementChangedListener(javaElementChangedListener);
@@ -87,7 +87,7 @@ public class JBossJaxrsCorePlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Puts the change listeners in 'pause' mode so that they won't process any incoming notification.
+	 * Puts the change elementChangedListeners in 'pause' mode so that they won't process any incoming notification.
 	 */
 	public void pauseListeners() {
 		javaElementChangedListener.pause();
@@ -95,7 +95,7 @@ public class JBossJaxrsCorePlugin extends AbstractUIPlugin {
 	}
 	
 	/**
-	 * Puts the change listeners back in 'normal' mode so that they will process incoming notifications again.
+	 * Puts the change elementChangedListeners back in 'normal' mode so that they will process incoming notifications again.
 	 */
 	public void resumeListeners() {
 		javaElementChangedListener.resume();

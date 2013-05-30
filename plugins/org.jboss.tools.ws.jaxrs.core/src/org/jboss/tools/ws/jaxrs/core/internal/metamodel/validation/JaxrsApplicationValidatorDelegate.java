@@ -10,7 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
@@ -21,7 +20,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
@@ -44,10 +43,6 @@ public class JaxrsApplicationValidatorDelegate extends AbstractJaxrsElementValid
 	 */
 	@Override
 	public void validate(final IJaxrsApplication application) throws CoreException {
-		if (application.isBinary()) {
-			Logger.debug("Skipping validation on binary element {}", application);
-			return;
-		}
 		if (application.isJavaApplication()) {
 			validate((JaxrsJavaApplication) application);
 		} else {
@@ -58,27 +53,25 @@ public class JaxrsApplicationValidatorDelegate extends AbstractJaxrsElementValid
 	public void validate(final JaxrsJavaApplication application) throws CoreException {
 		Logger.debug("Validating element {}", application);
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(application);
+		application.resetProblemLevel();
 		final Annotation applicationPathAnnotation = application
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		final IType appJavaElement = application.getJavaElement();
 		if (!application.isOverriden() && applicationPathAnnotation == null) {
 			addProblem(JaxrsValidationMessages.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION,
 					JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, new String[0],
-					appJavaElement.getNameRange().getLength(), appJavaElement.getNameRange().getOffset(),
-					application.getResource(),
+					appJavaElement.getNameRange(), application,
 					JaxrsValidationConstants.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_QUICKFIX_ID);
 		}
 		if (!application.isJaxrsCoreApplicationSubclass()) {
 			addProblem(JaxrsValidationMessages.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
 					JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
 					new String[] { appJavaElement.getFullyQualifiedName() }, application.getJavaElement()
-							.getSourceRange().getLength(), appJavaElement.getSourceRange().getOffset(),
-					application.getResource(),
+							.getSourceRange(), application,
 					JaxrsValidationConstants.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_QUICKFIX_ID);
 		}
 
 		if (application.getMetamodel().hasMultipleApplications()) {
-			final IResource javaResource = application.getResource();
 			ISourceRange javaNameRange = application.getJavaElement().getNameRange();
 			if (javaNameRange == null) {
 				Logger.warn("Cannot add a problem marker: unable to locate '"
@@ -86,8 +79,7 @@ public class JaxrsApplicationValidatorDelegate extends AbstractJaxrsElementValid
 						+ application.getJavaElement().getResource().getFullPath().toString() + "'. ");
 			} else {
 				addProblem(JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES,
-						JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], javaNameRange.getLength(),
-						javaNameRange.getOffset(), javaResource);
+						JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], javaNameRange, application);
 			}
 		}
 
@@ -96,8 +88,8 @@ public class JaxrsApplicationValidatorDelegate extends AbstractJaxrsElementValid
 	public void validate(final JaxrsWebxmlApplication webxmlApplication) throws CoreException {
 		Logger.debug("Validating element {}", webxmlApplication);
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(webxmlApplication);
+		webxmlApplication.resetProblemLevel();
 		if (webxmlApplication.getMetamodel().hasMultipleApplications()) {
-			final IResource webxmlResource = webxmlApplication.getResource();
 			ISourceRange webxmlNameRange = WtpUtils.getApplicationPathLocation(webxmlApplication.getResource(),
 					webxmlApplication.getJavaClassName());
 			if (webxmlNameRange == null) {
@@ -105,8 +97,8 @@ public class JaxrsApplicationValidatorDelegate extends AbstractJaxrsElementValid
 						+ "' in resource '" + webxmlApplication.getResource().getFullPath().toString() + "'. ");
 			} else {
 				addProblem(JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES,
-						JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], webxmlNameRange.getLength(),
-						webxmlNameRange.getOffset(), webxmlResource);
+						JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], webxmlNameRange,
+						webxmlApplication);
 			}
 		}
 	}

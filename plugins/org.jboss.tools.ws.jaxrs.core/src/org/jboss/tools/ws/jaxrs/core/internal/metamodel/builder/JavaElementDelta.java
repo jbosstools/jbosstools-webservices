@@ -16,7 +16,6 @@ import java.util.EventObject;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
-import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -82,9 +81,6 @@ public class JavaElementDelta extends EventObject {
 		this.element = element;
 		this.deltaKind = deltaKind;
 		this.eventType = eventType;
-		if (element instanceof IMember && deltaKind != IJavaElementDelta.REMOVED) {
-			assert compilationUnitAST != null;
-		}
 		this.compilationUnitAST = compilationUnitAST;
 		this.flags = flags;
 	}
@@ -99,7 +95,7 @@ public class JavaElementDelta extends EventObject {
 	/**
 	 * @return the deltaKind
 	 */
-	public int getDeltaKind() {
+	public int getKind() {
 		return deltaKind;
 	}
 

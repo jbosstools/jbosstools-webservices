@@ -60,11 +60,19 @@ public class WorkbenchTasks {
 	// not published in the junit-workspace...
 	public static void syncProject(IPath projectSourcePath, IWorkspace targetWorkspace, IProgressMonitor monitor)
 			throws InvocationTargetException, InterruptedException, CoreException {
-		IProject project = getTargetWorkspaceProject(projectSourcePath, targetWorkspace, monitor);
-		LOGGER.info("adding missing or modified files in the target workspace...");
 		LOGGER.info("Source path: " + projectSourcePath.toPortableString());
 		LOGGER.info("Target workspace location: " + targetWorkspace.getRoot().getRawLocation());
-		SyncFileSystemStructureProvider syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(
+		IProject project = getTargetWorkspaceProject(projectSourcePath, targetWorkspace, monitor);
+		LOGGER.info("Removing added files from the target workspace");
+		// reverse detection operation
+		SyncFileSystemStructureProvider syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(project.getLocation(), projectSourcePath);
+		syncFileSystemStructureProvider.ignoreRelativeSourcePaths("target", "bin", ".svn", ".git", ".project", ".classpath", ".settings");
+		List<File> filesToRemove = syncFileSystemStructureProvider.getChildren(project.getLocation().toFile());
+		for (File fileToRemove : filesToRemove) {
+			Assert.assertTrue("File not deleted : " + fileToRemove, fileToRemove.delete());
+		}
+		LOGGER.info("adding missing or modified files in the target workspace...");
+		syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(
 				projectSourcePath, project.getLocation());
 		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".svn");
 		syncFileSystemStructureProvider.ignoreRelativeSourcePath("target");
@@ -83,19 +91,6 @@ public class WorkbenchTasks {
 			operation.setOverwriteResources(true);
 			operation.setCreateContainerStructure(false);
 			operation.run(monitor);
-		}
-		LOGGER.info("Removing added files from the target workspace");
-		// reverse detection operation
-		syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(project.getLocation(), projectSourcePath);
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath("target");
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath("bin");
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".svn");
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".project");
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".classpath");
-		syncFileSystemStructureProvider.ignoreRelativeSourcePath(".settings");
-		List<File> filesToRemove = syncFileSystemStructureProvider.getChildren(project.getLocation().toFile());
-		for (File fileToRemove : filesToRemove) {
-			Assert.assertTrue("File not deleted : " + fileToRemove, fileToRemove.delete());
 		}
 		buildProject(project, monitor);
 	}

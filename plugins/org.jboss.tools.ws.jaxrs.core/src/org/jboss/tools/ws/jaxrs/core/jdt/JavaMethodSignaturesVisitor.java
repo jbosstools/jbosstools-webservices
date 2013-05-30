@@ -15,7 +15,6 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -28,9 +27,12 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
+/**
+ * Visitor to retrieve {@link JavaMethodSignature}s one given or all {@link IMethod}(s) in a {@link ICompilationUnit}.
+ * @author xcoulon
+ *
+ */
 public class JavaMethodSignaturesVisitor extends ASTVisitor {
-
-	private final ICompilationUnit compilationUnit;
 
 	private final IMethod method;
 
@@ -42,8 +44,7 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	 * 
 	 * @param method
 	 */
-	public JavaMethodSignaturesVisitor(ICompilationUnit compilationUnit) {
-		this.compilationUnit = compilationUnit;
+	public JavaMethodSignaturesVisitor() {
 		this.method = null;
 	}
 
@@ -53,7 +54,6 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	 * @param method
 	 */
 	public JavaMethodSignaturesVisitor(IMethod method) {
-		this.compilationUnit = method.getCompilationUnit();
 		this.method = method;
 	}
 
@@ -66,46 +66,37 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	@Override
 	public boolean visit(MethodDeclaration declaration) {
 		try {
-			final IJavaElement element = compilationUnit.getElementAt(declaration.getStartPosition());
-			if (element == null || element.getElementType() != IJavaElement.METHOD) {
-				return true;
-			}
-			IMethod method = (IMethod) element;
+			final IMethodBinding methodBinding = declaration.resolveBinding();
+			IMethod method = (IMethod) methodBinding.getJavaElement();
 			if (this.method != null && !this.method.getHandleIdentifier().equals(method.getHandleIdentifier())) {
 				return true;
 			}
-
-			final IMethodBinding methodBinding = declaration.resolveBinding();
-			// sometimes, the binding cannot be resolved
-			if (methodBinding == null) {
-				Logger.debug("Could not resolve bindings form method " + method.getElementName());
-			} else {
-				final IType returnedType = getReturnType(methodBinding);
-						//.getReturnType().getJavaElement() : null;
-				List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
-				@SuppressWarnings("unchecked")
-				List<SingleVariableDeclaration> parameters = declaration.parameters();
-				for (int i = 0; i < parameters.size(); i++) {
-					final SingleVariableDeclaration parameter = parameters.get(i);
-					final String paramName = parameter.getName().getFullyQualifiedName();
-					final IVariableBinding paramBinding = parameter.resolveBinding();
-					final String paramTypeName = paramBinding.getType().getQualifiedName();
-					final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
-					final IAnnotationBinding[] annotationBindings = paramBinding.getAnnotations();
-					for(int j = 0; j < annotationBindings.length; j++) {
-						final ILocalVariable localVariable = method.getParameters()[i];
-						final IAnnotation javaAnnotation = localVariable.getAnnotations()[j];
-						final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
-						paramAnnotations.add(BindingUtils.toAnnotation(javaAnnotationBinding, javaAnnotation));
-					}
-					//final ISourceRange sourceRange = new SourceRange(parameter.getStartPosition(), parameter.getLength());
-					methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations));
+			final IType returnedType = getReturnType(methodBinding);
+			// .getReturnType().getJavaElement() : null;
+			List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
+			@SuppressWarnings("unchecked")
+			List<SingleVariableDeclaration> parameters = declaration.parameters();
+			for (int i = 0; i < parameters.size(); i++) {
+				final SingleVariableDeclaration parameter = parameters.get(i);
+				final String paramName = parameter.getName().getFullyQualifiedName();
+				final IVariableBinding paramBinding = parameter.resolveBinding();
+				final String paramTypeName = paramBinding.getType().getQualifiedName();
+				final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
+				final IAnnotationBinding[] annotationBindings = paramBinding.getAnnotations();
+				for (int j = 0; j < annotationBindings.length; j++) {
+					final ILocalVariable localVariable = method.getParameters()[i];
+					final IAnnotation javaAnnotation = localVariable.getAnnotations()[j];
+					final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
+					paramAnnotations.add(BindingUtils.toAnnotation(javaAnnotationBinding, javaAnnotation));
 				}
-				
-
-				// TODO : add support for thrown exceptions
-				this.methodSignatures.add(new JavaMethodSignature(method, returnedType, methodParameters));
+				// final ISourceRange sourceRange = new
+				// SourceRange(parameter.getStartPosition(),
+				// parameter.getLength());
+				methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations));
 			}
+
+			// TODO : add support for thrown exceptions
+			this.methodSignatures.add(new JavaMethodSignature(method, returnedType, methodParameters));
 		} catch (JavaModelException e) {
 			Logger.error("Failed to analyse compilation unit methods", e);
 		}
@@ -113,7 +104,9 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	}
 
 	/**
-	 * Returns the ReturnType for the given method or null of the return type could not be found or is 'void'
+	 * Returns the ReturnType for the given method or null of the return type
+	 * could not be found or is 'void'
+	 * 
 	 * @param methodBinding
 	 * @return
 	 */

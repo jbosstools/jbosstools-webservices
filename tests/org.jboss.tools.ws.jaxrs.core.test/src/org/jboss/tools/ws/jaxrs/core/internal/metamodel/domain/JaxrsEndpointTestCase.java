@@ -12,26 +12,16 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.resolveAnnotations;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.junit.Assert.assertThat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.junit.Test;
 
 /**
@@ -40,89 +30,114 @@ import org.junit.Test;
  */
 public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 
-	private Annotation createAnnotation(EnumJaxrsClassname clazz, String value) {
-		Map<String, List<String>> values = new HashMap<String, List<String>>();
-		values.put("value", Arrays.asList(value));
-		return new Annotation(null, clazz.qualifiedName, values);
-	}
-	
-	private JavaMethodParameter createMethodParameter(final String paramName, final EnumJaxrsClassname annotationClassName) {
-		Annotation annotation = createAnnotation(annotationClassName, paramName);
-		return new JavaMethodParameter(paramName, String.class.getName(), Arrays.asList(annotation));
+	private static final boolean PRIMARY_COPY = false;
+
+	private static final boolean WORKING_COPY = true;
+
+	private JaxrsResourceMethod getModifiedResourceMethod(final boolean useWorkingCopy) throws CoreException {
+		final String typeName = "org.jboss.tools.ws.jaxrs.sample.services.CustomerResource";
+		final String oldContent = "@PathParam(\"id\") Integer id, @Context UriInfo uriInfo";
+		final String newContent = "@QueryParam(\"queryParam1\") String queryParam1, @QueryParam(\"queryParam2\") String queryParam2, @MatrixParam(\"matrixParam1\") String matrixParam1, @MatrixParam(\"matrixParam2\") String matrixParam2";
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(typeName, javaProject, oldContent, newContent, useWorkingCopy);
+		final IType resourceType = getType(typeName);
+		final IMethod method = getJavaMethod(resourceType, "getCustomer");
+		final JaxrsResource resource = metamodel.findResource(resourceType);
+		return resource.getMethods().get(method.getHandleIdentifier());
 	}
 
-	private JaxrsResourceMethod createResourceMethod() throws CoreException {
-		final IType resourceType = getType(
-				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Map<String, Annotation> annotations = resolveAnnotations(resourceType, PATH.qualifiedName);
-		final JaxrsResource resource = new JaxrsResource(resourceType, annotations, metamodel);
-		final IMethod method = getMethod(resourceType, "getCustomer");
-		final List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
-		methodParameters.add(createMethodParameter("queryParam1", EnumJaxrsClassname.QUERY_PARAM));
-		methodParameters.add(createMethodParameter("queryParam2", EnumJaxrsClassname.QUERY_PARAM));
-		methodParameters.add(createMethodParameter("matrixParam1", EnumJaxrsClassname.MATRIX_PARAM));
-		methodParameters.add(createMethodParameter("matrixParam2", EnumJaxrsClassname.MATRIX_PARAM));
-		return new JaxrsResourceMethod(method, methodParameters, null, null, resource, metamodel);
-	}
-	
-	private JavaMethodSignature modifyJavaMethodSignature(JaxrsResourceMethod resourceMethod) {
+	private IMethod modifyJavaMethodSignature(final JaxrsResourceMethod resourceMethod, final boolean useWorkingCopy) throws CoreException {
 		IMethod javaMethod = resourceMethod.getJavaElement();
-		IType returnedType = resourceMethod.getReturnedType();
-		final JavaMethodParameter queryParam1 = createMethodParameter("queryParam1", EnumJaxrsClassname.QUERY_PARAM);
-		final JavaMethodParameter matrixParam1 = createMethodParameter("matrixParam1", EnumJaxrsClassname.MATRIX_PARAM);
-		final JavaMethodParameter matrixParam2 = createMethodParameter("matrixParam2", EnumJaxrsClassname.MATRIX_PARAM);
-		final JavaMethodParameter matrixParam3 = createMethodParameter("matrixParam3", EnumJaxrsClassname.MATRIX_PARAM);
-		
-		JavaMethodSignature methodSignature = new JavaMethodSignature(javaMethod, returnedType, Arrays.asList(matrixParam1, matrixParam2, matrixParam3, queryParam1));
-		return methodSignature;
+		final String oldContent = "@QueryParam(\"queryParam1\") String queryParam1, @QueryParam(\"queryParam2\") String queryParam2, @MatrixParam(\"matrixParam1\") String matrixParam1, @MatrixParam(\"matrixParam2\") String matrixParam2";
+		final String newContent = "@QueryParam(\"queryParam1\") String queryParam1, @MatrixParam(\"matrixParam1\") String matrixParam1, @MatrixParam(\"matrixParam2\") String matrixParam2, @MatrixParam(\"matrixParam3\") String matrixParam3";
+		return WorkbenchUtils.replaceFirstOccurrenceOfCode(javaMethod, oldContent, newContent, useWorkingCopy);
 	}
-	
+
 	@Test
-	public void shouldDisplayEndpointParametersInOrderAtCreation() throws CoreException {
+	public void shouldDisplayEndpointParametersInOrderAtCreationInWorkingCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResourceMethod resourceMethod = createResourceMethod();
-		final IJaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel,
-				httpMethod, resourceMethod);
+		metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
+		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
+		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
 		// operation
 		String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
-		assertThat(uriPathTemplate, equalTo("/hello/customers;matrixParam1={java.lang.String};matrixParam2={java.lang.String}?queryParam1={queryParam1:java.lang.String}&queryParam2={queryParam2:java.lang.String}"));
+		assertThat(
+				uriPathTemplate,
+				equalTo("/hello/customers/{id};matrixParam1={java.lang.String};matrixParam2={java.lang.String}?queryParam1={queryParam1:java.lang.String}&queryParam2={queryParam2:java.lang.String}"));
 	}
 
 	@Test
-	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdate() throws CoreException {
+	public void shouldDisplayEndpointParametersInOrderAtCreationInPrimaryCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResourceMethod resourceMethod = createResourceMethod();
-		final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel,
-				httpMethod, resourceMethod);
+		metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
+		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
+		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
 		// operation
-		final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
-		final Annotation postAnnotation = createAnnotation(EnumJaxrsClassname.POST, null);
-		annotations.put(postAnnotation.getFullyQualifiedName(),postAnnotation);
-		resourceMethod.updateAnnotations(annotations);
-		endpoint.refresh(resourceMethod, JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION);
+		String uriPathTemplate = endpoint.getUriPathTemplate();
+		// verifications
+		assertThat(
+				uriPathTemplate,
+				equalTo("/hello/customers/{id};matrixParam1={java.lang.String};matrixParam2={java.lang.String}?queryParam1={queryParam1:java.lang.String}&queryParam2={queryParam2:java.lang.String}"));
+	}
+	
+	@Test
+	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdateInPrimaryCopy() throws CoreException {
+		// pre-conditions
+		metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
+		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		// operation
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "@GET", "@POST", false);
 		// verifications
 		assertThat(endpoint.getHttpMethod().getHttpVerb(), equalTo("POST"));
 	}
-	
+
 	@Test
-	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdate() throws CoreException {
+	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdateInWorkingCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = JaxrsBuiltinHttpMethod.GET;
-		final JaxrsResourceMethod resourceMethod = createResourceMethod();
-		final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel,
-				httpMethod, resourceMethod);
+		metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
+		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
 		// operation
-		JavaMethodSignature methodSignature = modifyJavaMethodSignature(resourceMethod);
-		resourceMethod.update(methodSignature);
-		endpoint.refresh(resourceMethod, JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION + JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
-		String uriPathTemplate = endpoint.getUriPathTemplate();
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "@GET", "@POST", false);
 		// verifications
-		assertThat(uriPathTemplate, equalTo("/hello/customers;matrixParam1={java.lang.String};matrixParam2={java.lang.String};matrixParam3={java.lang.String}?queryParam1={queryParam1:java.lang.String}"));
+		assertThat(endpoint.getHttpMethod().getHttpVerb(), equalTo("POST"));
 	}
 
-	
+	@Test
+	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdateInWorkingCopy() throws CoreException {
+		// pre-conditions
+		metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
+		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		// operation
+		final IMethod modifiedResource  = modifyJavaMethodSignature(resourceMethod, WORKING_COPY);
+		resourceMethod.update(modifiedResource, JdtUtils.parse(modifiedResource, null));
+		endpoint.update(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION
+				+ JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
+		String uriPathTemplate = endpoint.getUriPathTemplate();
+		// verifications
+		assertThat(
+				uriPathTemplate,
+				equalTo("/hello/customers/{id};matrixParam1={java.lang.String};matrixParam2={java.lang.String};matrixParam3={java.lang.String}?queryParam1={queryParam1:java.lang.String}"));
+	}
+
+	@Test
+	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdateInPrimaryCopy() throws CoreException {
+		// pre-conditions
+		metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
+		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		// operation
+		final IMethod modifiedResource  = modifyJavaMethodSignature(resourceMethod, PRIMARY_COPY);
+		resourceMethod.update(modifiedResource, JdtUtils.parse(modifiedResource, null));
+		endpoint.update(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION
+				+ JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
+		String uriPathTemplate = endpoint.getUriPathTemplate();
+		// verifications
+		assertThat(
+				uriPathTemplate,
+				equalTo("/hello/customers/{id};matrixParam1={java.lang.String};matrixParam2={java.lang.String};matrixParam3={java.lang.String}?queryParam1={queryParam1:java.lang.String}"));
+	}
 
 }

@@ -2,8 +2,10 @@ package org.jboss.tools.ws.jaxrs.sample.services;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.PUT;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
@@ -50,10 +52,10 @@ public class BazResource {
 	}
 
 	// more than 1 parameter without annotation
-	@PUT
-	@Path("{param2}")
+	@FOO
+	@Path("{param3}")
 	public Response update3(@Context HttpServletRequest requestContext, 
-			@PathParam("param2") String param2, String bar, String foo) throws Exception {
+			@PathParam("param3") String param2, String bar, String foo) throws Exception {
 		return null;
 	}
 

@@ -18,10 +18,8 @@ import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.TypedRegion;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.swt.graphics.Image;
-import org.jboss.tools.ws.jaxrs.core.metamodel.IJaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.JaxrsMetamodelLocator;
-import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
@@ -34,9 +32,6 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  * @author xcoulon
  */
 public class MethodParametersCompletionProposalComputer implements IJavaCompletionProposalComputer {
-
-	/** Icon for completion proposals. */
-	private final Image icon = JBossJaxrsUIPlugin.getDefault().getImage("url_mapping.gif");
 
 	/** {@inheritDoc} */
 	@Override
