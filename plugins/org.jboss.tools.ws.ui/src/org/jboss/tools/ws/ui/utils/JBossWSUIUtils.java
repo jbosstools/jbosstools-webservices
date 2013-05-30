@@ -52,6 +52,7 @@ public class JBossWSUIUtils {
 	private static final String WS_METRO_JAR = "jbossws-metro-client.jar"; //$NON-NLS-1$
 	private static final String CLIENT_FOLDER = "client"; //$NON-NLS-1$
 	private static final String CLIENT_AS7_FOLDER = "modules:org:jboss:ws:jaxws-client:main"; //$NON-NLS-1$
+	private static final String CLIENT_AS71_FOLDER = "modules:system:layers:base:org:jboss:ws:jaxws-client:main"; //$NON-NLS-1$
 	private static final String WS_IMPL = "Implementation-Title"; //$NON-NLS-1$
 	private static final String WS_VERSION = "Implementation-Version"; //$NON-NLS-1$
 	private static final String WS_JAR = "jbossws-client.jar"; //$NON-NLS-1$
@@ -203,23 +204,41 @@ public class JBossWSUIUtils {
 		
         String as7 = JBossWSUIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), CLIENT_AS7_FOLDER.split(":")); //$NON-NLS-1$
         File as7File = new File(as7);
-        if (!as7File.isDirectory()) {
-        	return new String[] {"", ""}; //$NON-NLS-1$ //$NON-NLS-2$; 
+        if (as7File.exists() && as7File.isDirectory()) {
+            File[] files = as7File.listFiles();
+            String jarName = ""; //$NON-NLS-1$
+            for (int i = 0 ; i < files.length ; i++) {
+            	jarName = files[i].getName();
+            	if (jarName.contains(WS_CXF_JAR.substring(0, WS_CXF_JAR.length()-5)) 
+            			|| jarName.contains(WS_CXF_JAR.substring(0, WS_NATIVE_JAR.length()-5))
+            			|| jarName.contains(WS_CXF_JAR.substring(0, WS_METRO_JAR.length()-5))) {
+            		strs = getWSRuntimeDetailFromPath(files[i].getAbsolutePath());
+            		if (strs != null) {
+            			return strs;
+            		}
+            	}
+            }
         }
-        File[] files = as7File.listFiles();
-        String jarName = ""; //$NON-NLS-1$
-        for (int i = 0 ; i < files.length ; i++) {
-        	jarName = files[i].getName();
-        	if (jarName.contains(WS_CXF_JAR.substring(0, WS_CXF_JAR.length()-5)) 
-        			|| jarName.contains(WS_CXF_JAR.substring(0, WS_NATIVE_JAR.length()-5))
-        			|| jarName.contains(WS_CXF_JAR.substring(0, WS_METRO_JAR.length()-5))) {
-        		strs = getWSRuntimeDetailFromPath(files[i].getAbsolutePath());
-        		if (strs != null) {
-        			return strs;
-        		}
-        	}
+
+        String as71 = JBossWSUIUtils.addNodesToPath(jbosswsHomeDir.getAbsolutePath(), CLIENT_AS71_FOLDER.split(":")); //$NON-NLS-1$
+        File as71File = new File(as71);
+        if (as71File.exists() && as71File.isDirectory()) {
+            File[] files71 = as71File.listFiles();
+            String jarName71 = ""; //$NON-NLS-1$
+            for (int i = 0 ; i < files71.length ; i++) {
+                jarName71 = files71[i].getName();
+                if (jarName71.contains(WS_CXF_JAR.substring(0, WS_CXF_JAR.length()-5)) 
+                        || jarName71.contains(WS_CXF_JAR.substring(0, WS_NATIVE_JAR.length()-5))
+                        || jarName71.contains(WS_CXF_JAR.substring(0, WS_METRO_JAR.length()-5))) {
+                    strs = getWSRuntimeDetailFromPath(files71[i].getAbsolutePath());
+                    if (strs != null) {
+                        return strs;
+                    }
+                }
+            }
         }
-		return new String[] {"", ""}; //$NON-NLS-1$ //$NON-NLS-2$;			
+        
+        return new String[] {"", ""}; //$NON-NLS-1$ //$NON-NLS-2$;			
 	}
 	
     public static String[] getWSRuntimeDetailFromPath(String path) {
@@ -228,7 +247,7 @@ public class JBossWSUIUtils {
 			return null;
 		}
 		String[] strs = new String[] {"", ""}; //$NON-NLS-1$ //$NON-NLS-2$
-			JarFile jar;
+			JarFile jar = null;
 			try {
 				jar = new JarFile(jarFile);
 			    Attributes attributes = jar.getManifest().getMainAttributes();
@@ -236,6 +255,14 @@ public class JBossWSUIUtils {
 			    strs[1] = attributes.getValue(WS_VERSION);
 			} catch (IOException e) {
 				return strs;
+			} finally {
+			    if (jar != null) {
+			        try {
+                        jar.close();
+                    } catch (IOException e) {
+                        // ignore
+                    }
+			    }
 			}
 		return strs;
 	}
