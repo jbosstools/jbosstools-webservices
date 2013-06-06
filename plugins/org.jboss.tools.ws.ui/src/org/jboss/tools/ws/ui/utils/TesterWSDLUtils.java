@@ -185,7 +185,8 @@ public class TesterWSDLUtils {
 						Port port = (Port) ports.get( portKey );
 						Binding wsdlBinding = port.getBinding();
 						PortType portType = wsdlBinding.getPortType();
-						String ns = portType.getQName().getNamespaceURI();
+//						String ns = portType.getQName().getNamespaceURI();
+						String ns = service.getQName().getNamespaceURI();
 						List<?> operations = portType.getOperations();
 						for (Iterator<?> it3 = operations.iterator(); it3.hasNext();){
 							Operation operation = (Operation) it3.next();
