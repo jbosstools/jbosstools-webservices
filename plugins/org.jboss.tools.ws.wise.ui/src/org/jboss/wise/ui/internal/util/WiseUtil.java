@@ -89,20 +89,21 @@ public final class WiseUtil {
                         monitor.subTask(Messages.WiseUtil_Generating_SOAP_task);
                         monitor.worked(33);
                         _messagePreview = previewMessage(method, client);
+                        client.close();
                     } catch (MalformedURLException mfe) {
-                        // ignore
+                        mfe.printStackTrace();
                     } catch (ConnectException ce) {
-                        // ignore
+                        ce.printStackTrace();
                     } catch (IllegalStateException ise) {
-                        // ignore
+                        ise.printStackTrace();
                     } catch (WiseRuntimeException wre) {
-                        // ignore
+                        wre.printStackTrace();
                     } catch (ResourceNotAvailableException rnae) {
-                        // ignore
+                        rnae.printStackTrace();
                     } catch (InvocationException ie) {
-                        // ignore
+                        ie.printStackTrace();
                     } catch (IOException ioe) {
-                        // ignore
+                        ioe.printStackTrace();
                     } finally {
                         current.setContextClassLoader(oldLoader);
                     }
