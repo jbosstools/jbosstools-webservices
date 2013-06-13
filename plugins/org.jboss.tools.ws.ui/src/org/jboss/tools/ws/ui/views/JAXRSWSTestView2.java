@@ -1370,7 +1370,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 		toolkit.paintBordersFor(form);
 		form.reflow(true);
 
-		methodCombo.setText(JAX_WS);
+		methodCombo.setText(GET); // changed from JAX-WS to GET via JBIDE-14861
 		setControlsForWSType(getCurrentTestType());
 		setControlsForMethodType(methodCombo.getText());
 		setControlsForSelectedURL();

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/jaxb-impl-2.1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jaxb-xjc-2.1.13.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src/"/>
@@ -35,8 +37,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/dtdparser-1.21.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/freemarker-2.3.11.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/javassist-3.10.0.GA.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jaxb-impl-2.1.13.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jaxb-xjc-2.1.13.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jboss-jaxb-api_2.2_spec-1.0.3.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jboss-jaxws-api_2.2_spec-1.0.0.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jboss-logging-3.1.2.GA.jar"/>
@@ -59,10 +59,10 @@
 	<classpathentry exported="true" kind="lib" path="lib/opencsv-1.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/stax-api-1.0-2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/velocity-1.7.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/wise-core-2.0.1.Final.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/wise-core-cxf-2.0.1.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xmlschema-core-2.0.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xpp3_min-1.1.3.4.O.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xstream-1.2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wise-core-2.0.2.Final.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wise-core-cxf-2.0.2.Final.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
