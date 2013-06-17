@@ -33,6 +33,20 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+						<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tychoVersion}</version>
+				<configuration>
+					<dependencies>
+						<dependency>
+							<type>p2-installable-unit</type>
+							<artifactId>org.eclipse.jpt.jpa.feature.feature.group</artifactId>
+							<version>0.0.0</version>
+						</dependency>
+					</dependencies>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
