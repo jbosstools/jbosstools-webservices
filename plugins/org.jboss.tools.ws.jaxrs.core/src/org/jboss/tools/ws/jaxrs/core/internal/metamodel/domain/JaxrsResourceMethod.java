@@ -98,6 +98,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		private IType returnedJavaType = null;
 		private List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
 		private JaxrsMetamodel metamodel;
+		private JavaMethodSignature methodSignature;
 
 		public Builder(final IMethod javaMethod, final CompilationUnit ast, final List<IJaxrsHttpMethod> httpMethods) {
 			this.javaMethod = javaMethod;
@@ -107,6 +108,11 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 
 		public Builder withMetamodel(final JaxrsMetamodel metamodel) {
 			this.metamodel = metamodel;
+			return this;
+		}
+		
+		public Builder withJavaMethodSignature(final JavaMethodSignature javaMethodSignature) {
+			this.methodSignature = javaMethodSignature;
 			return this;
 		}
 
@@ -138,17 +144,20 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 						javaMethod.getParent().getElementName(), javaMethod.getElementName());
 				return null;
 			}
-			final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
+			// if method signature was not provided before.
+			if(methodSignature == null) {
+				methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
+			}
 			// avoid creating Resource Method when the Java Method cannot be
 			// parsed (ie, syntax/compilation error)
-			if (methodSignature != null) {
-				javaMethodParameters = methodSignature.getMethodParameters();
-				returnedJavaType = methodSignature.getReturnedType();
-				final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(this);
-				resourceMethod.joinMetamodel();
-				return resourceMethod;
+			if (methodSignature == null) {
+				return null;
 			}
-			return null;
+			javaMethodParameters = methodSignature.getMethodParameters();
+			returnedJavaType = methodSignature.getReturnedType();
+			final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(this);
+			resourceMethod.joinMetamodel();
+			return resourceMethod;
 		}
 
 	}

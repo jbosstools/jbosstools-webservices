@@ -412,7 +412,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	private void processJavaElementChange(final IJavaElement element, final int deltaKind, final CompilationUnit ast,
 			final IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
-		// FIXME : refactor/rewrite this method block
 		if (deltaKind == ADDED) {
 			JaxrsElementFactory.createElements(element, ast, this, progressMonitor);
 		} else {
@@ -676,15 +675,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	// ********************************************************************************
 
 	/**
-	 * Adds the given element into the JAX-RS Metamodel, including its
-	 * indexation.
+	 * Adds the given {@link IJaxrsElement} element into the JAX-RS Metamodel, including its
+	 * indexation if the underlying {@link IJavaElement} is not already part of the metamodel (avoiding duplicate elements)
 	 * 
 	 * @param element
 	 *            the element to add
 	 * @throws CoreException
 	 */
 	public void add(final IJaxrsElement element) throws CoreException {
-		if (element == null) {
+		if (element == null || findElementByIdentifier(element.getIdentifier()) != null) {
 			return;
 		}
 		this.elements.put(element.getIdentifier(), element);
@@ -912,6 +911,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return searchJaxrsElement(resourcePathTerm);
 	}
 
+	/**
+	 * Searches and returns the JAX-RS Element matching the given
+	 * Identifier, or null if no element with the same identifier already exists in the Metamodel
+	 * 
+	 * @param identifier
+	 *            the element identifier (as returned by {@link IJaxrsElement#getIdentifier()})
+	 * @return the JAX-RS Element matching the given identifier or <code>null</code>.
+	 */
+	private IJaxrsElement findElementByIdentifier(final String identifier) {
+		return searchJaxrsElement(new Term(FIELD_IDENTIFIER, identifier));
+	}
+	
 	/**
 	 * Searches and returns all JAX-RS Java-based Elements matching the given
 	 * {@link IJavaElement}, which can be {@link Annotation} {@link IProject}, {@link IPackageFragmentRoot}, {@link ICompilationUnit} or an {@link IMember}

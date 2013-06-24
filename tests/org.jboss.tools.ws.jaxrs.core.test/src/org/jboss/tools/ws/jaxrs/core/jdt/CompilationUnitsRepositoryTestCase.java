@@ -17,7 +17,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
@@ -79,7 +78,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
 				"@PathParam(\"ide\") Integer id", true);
 		final CompilationUnit ast = JdtUtils.parse(compilationUnit, progressMonitor);
-		final List<JavaMethodSignature> diffs = repository.mergeAST(compilationUnit, ast, true);
+		final Map<String, JavaMethodSignature> diffs = repository.mergeAST(compilationUnit, ast, true);
 		// verification
 		assertThat(diffs.size(), equalTo(1));
 	}
@@ -96,7 +95,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
 				"@PathParam(\"ide\") Integer id", true);
 		final CompilationUnit ast = JdtUtils.parse(compilationUnit, progressMonitor);
-		final List<JavaMethodSignature> diffs = repository.mergeAST(compilationUnit, ast, false);
+		final Map<String, JavaMethodSignature> diffs = repository.mergeAST(compilationUnit, ast, false);
 		// verification
 		assertThat(diffs.size(), equalTo(0));
 	}

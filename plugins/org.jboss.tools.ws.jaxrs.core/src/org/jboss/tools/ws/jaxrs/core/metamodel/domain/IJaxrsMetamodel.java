@@ -11,14 +11,9 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 public interface IJaxrsMetamodel {
 

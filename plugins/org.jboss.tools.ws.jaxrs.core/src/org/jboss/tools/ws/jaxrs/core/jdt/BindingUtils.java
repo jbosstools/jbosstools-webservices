@@ -48,7 +48,7 @@ public class BindingUtils {
 	 * @param javaAnnotation
 	 * @return
 	 */
-	public static Annotation toAnnotation(IAnnotationBinding annotationBinding, IAnnotation javaAnnotation) {
+	public static Annotation toAnnotation(final IAnnotationBinding annotationBinding, final IAnnotation javaAnnotation) {
 		// return null if underlying java annotation does not exists or is not found (eg: compilation error in the compilation unit)
 		if(javaAnnotation == null) {
 			return null;

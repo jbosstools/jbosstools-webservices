@@ -29,6 +29,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
@@ -230,18 +231,16 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	}
 
 	DeltaFlags updateAnnotations(final Map<String, Annotation> otherAnnotations) {
-		DeltaFlags flags = new DeltaFlags();
+		final DeltaFlags flags = new DeltaFlags();
+		final MapComparison<String, Annotation> annotationsComparison = CollectionUtils.compare(this.annotations, otherAnnotations);
 		// added annotations (ie: found in 'otherAnnotation' but not
 		// this.annotations)
-		final Map<String, Annotation> addedAnnotations = CollectionUtils.difference(otherAnnotations, this.annotations);
+		final Map<String, Annotation> addedAnnotations = annotationsComparison.getAddedItems();
 		// removed annotations (ie: found in this.annotations but not in
 		// 'otherAnnotation')
-		final Map<String, Annotation> removedAnnotations = CollectionUtils.difference(this.annotations,
-				otherAnnotations);
-		// may-be-changed annotations (ie: available in both collections, but
-		// not sure all values are equal)
-		final Map<String, Annotation> changedAnnotations = CollectionUtils.intersection(otherAnnotations,
-				this.annotations);
+		final Map<String, Annotation> removedAnnotations = annotationsComparison.getRemovedItems();
+		// changed annotations 
+		final Map<String, Annotation> changedAnnotations = annotationsComparison.getChangedItems();
 		for (Entry<String, Annotation> entry : addedAnnotations.entrySet()) {
 			flags.addFlags(internalAddAnnotation(entry.getValue()));
 		}

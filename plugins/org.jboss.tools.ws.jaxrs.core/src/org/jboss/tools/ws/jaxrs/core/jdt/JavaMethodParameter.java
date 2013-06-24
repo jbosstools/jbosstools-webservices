@@ -14,7 +14,6 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
@@ -100,19 +99,7 @@ public class JavaMethodParameter {
 	public boolean hasChanges(final JavaMethodParameter otherMethodParameter) {
 		final Map<String, Annotation> otherAnnotations = otherMethodParameter.getAnnotations();
 		final MapComparison<String, Annotation> comparison = CollectionUtils.compare(this.annotations, otherAnnotations);
-		if(!comparison.getAddedItems().isEmpty()) {
-			return true;
-		}
-		if(!comparison.getRemovedItems().isEmpty()) {
-			return true;
-		}
-		// update the remaining annotations'location
-		for (Entry<String, Annotation> entry : comparison.getItemsInCommon().entrySet()) {
-			if(this.annotations.get(entry.getKey()).hasChanges(otherAnnotations.get(entry.getKey()))) {
-				return true;
-			}
-		}
-		return false;
+		return comparison.hasDifferences();
 	}
 	
 	@Override

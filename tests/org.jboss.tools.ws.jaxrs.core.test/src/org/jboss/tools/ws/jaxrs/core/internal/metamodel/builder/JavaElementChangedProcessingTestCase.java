@@ -1849,6 +1849,23 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	}
 
 	@Test
+	public void shouldDoFailWhenDuplicatingJavaMethod() throws CoreException {
+		// pre-conditions
+		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = getJavaMethod(resource.getJavaElement(), "getCustomer");
+		resetElementChangesNotifications();
+		// before operation: metamodel has 6 built-in HTTP Methods + 1 resource + 6 methods
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
+		// operation
+		final IMethod addedMethod = WorkbenchUtils.createMethod(method.getDeclaringType(), method.getSource(), true);
+		processEvent(addedMethod, ADDED);
+		// verifications
+		assertThat(elementChanges.size(), equalTo(0));
+		// after operation: metamodel has still 6 built-in HTTP Methods + 1 resource + 6 methods
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
+	}
+	
+	@Test
 	@Ignore
 	public void shouldUpdateResourceMethodWhenAddingThrowsException() throws CoreException {
 		fail("Not implemented yet - postponed along with support for providers");

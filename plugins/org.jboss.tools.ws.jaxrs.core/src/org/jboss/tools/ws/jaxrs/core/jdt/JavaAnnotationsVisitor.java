@@ -181,7 +181,11 @@ public class JavaAnnotationsVisitor extends ASTVisitor {
 					final String qualifiedName = annotationBinding.getAnnotationType().getQualifiedName();
 					final String name = annotationBinding.getAnnotationType().getName();
 					if (annotationNames.contains(qualifiedName) || annotationNames.contains(name)) {
-						annotations.add(BindingUtils.toAnnotation(annotationBinding));
+						final Annotation annotation = BindingUtils.toAnnotation(annotationBinding);
+						// returned Annotation may be null in case of compilation error in the source code, for example.
+						if(annotation != null) {
+							annotations.add(annotation);
+						}
 					}
 				}
 			}

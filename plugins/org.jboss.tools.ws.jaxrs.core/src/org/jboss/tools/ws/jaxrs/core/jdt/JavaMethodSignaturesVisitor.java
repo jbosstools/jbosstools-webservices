@@ -11,7 +11,9 @@
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -36,7 +38,7 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 
 	private final IMethod method;
 
-	private final List<JavaMethodSignature> methodSignatures = new ArrayList<JavaMethodSignature>();
+	private final Map<String, JavaMethodSignature> methodSignatures = new HashMap<String, JavaMethodSignature>();
 
 	/**
 	 * Constructor to use when you need all Java Method signatures in the given
@@ -67,9 +69,13 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	public boolean visit(MethodDeclaration declaration) {
 		try {
 			final IMethodBinding methodBinding = declaration.resolveBinding();
-			IMethod method = (IMethod) methodBinding.getJavaElement();
+			// method bindings may not be resolved (eg : duplicate method - see JBIDE-13580)
+			if(methodBinding == null) { 
+				return false; // no need to check the children here
+			}
+			final IMethod method = (IMethod) methodBinding.getJavaElement();
 			if (this.method != null && !this.method.getHandleIdentifier().equals(method.getHandleIdentifier())) {
-				return true;
+				return false; // no need to check the children
 			}
 			final IType returnedType = getReturnType(methodBinding);
 			// .getReturnType().getJavaElement() : null;
@@ -96,11 +102,11 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 			}
 
 			// TODO : add support for thrown exceptions
-			this.methodSignatures.add(new JavaMethodSignature(method, returnedType, methodParameters));
+			this.methodSignatures.put(method.getHandleIdentifier(), new JavaMethodSignature(method, returnedType, methodParameters));
 		} catch (JavaModelException e) {
 			Logger.error("Failed to analyse compilation unit methods", e);
 		}
-		return true;
+		return false; // no need to check the children
 	}
 
 	/**
@@ -119,16 +125,16 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 
 	/** @return the methodDeclarations */
 	public JavaMethodSignature getMethodSignature() {
-		if (this.methodSignatures.size() == 0) {
+		if (this.methodSignatures.isEmpty() || this.method == null) {
 			Logger.debug("*** no method signature found ?!? ***");
 			return null;
 		}
-		return this.methodSignatures.get(0);
+		return this.methodSignatures.get(this.method.getHandleIdentifier());
 
 	}
 
-	/** @return the methodDeclarations */
-	public List<JavaMethodSignature> getMethodSignatures() {
+	/** @return the methodDeclarations indexed by the {@link IMethod} identifier */
+	public Map<String, JavaMethodSignature> getMethodSignatures() {
 		return this.methodSignatures;
 	}
 }
