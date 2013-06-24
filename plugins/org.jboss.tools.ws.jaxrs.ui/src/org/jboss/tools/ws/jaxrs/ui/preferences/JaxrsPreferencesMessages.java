@@ -20,9 +20,6 @@ import org.eclipse.osgi.util.NLS;
 public class JaxrsPreferencesMessages extends NLS {
 	private static final String BUNDLE_NAME = "org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferencesMessages"; //$NON-NLS-1$
 
-
-
-
 	public static String JAXRS_SETTINGS_PREFERENCE_PAGE_JAXRS_SUPPORT;
 
 	// Validator Preference page
@@ -61,7 +58,6 @@ public class JaxrsPreferencesMessages extends NLS {
 	// Section Providers
 	public static String JaxrsValidatorConfigurationBlock_section_providers; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerMissingValidConstructor_label;
-	public static String JaxrsValidatorConfigurationBlock_pb_providerValidConstructor_label; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerMissingAnnotation_label; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerMissingImplementation_label; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerDuplicateMessageBodyReader_label; 
