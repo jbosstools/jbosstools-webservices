@@ -108,7 +108,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 	@Override
 	public StyledString getStyledText(Object element) {
 		if (element instanceof UriPathTemplateCategory) {
-			return new StyledString("JAX-RS REST Web Services");
+			return new StyledString(UriMappingsLabelProviderMessages.JAXRS_WEB_SERVICES);
 		}
 
 		if (element instanceof UriPathTemplateElement) {
@@ -131,11 +131,11 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 			int offset = 0;
 			switch (((UriPathTemplateMediaTypeMappingElement) element).getType()) {
 			case CONSUMES:
-				sb.append("consumes: ");
+				sb.append(UriMappingsLabelProviderMessages.CONSUMED_MEDIATYPES);
 				offset = sb.length();
 				break;
 			case PRODUCES:
-				sb.append("produces: ");
+				sb.append(UriMappingsLabelProviderMessages.PRODUCED_MEDIATYPES);
 				offset = sb.length();
 				break;
 			}
@@ -159,7 +159,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 			return new StyledString(sb.toString());
 		}
 		if (element instanceof LoadingStub) {
-			String message = "Loading...";
+			String message = UriMappingsLabelProviderMessages.LOADING_CONTENT;
 			StyledString styledString = new StyledString(message);
 			styledString.setStyle(0, message.length(), StyledString.DECORATIONS_STYLER);
 			return new StyledString(message);
