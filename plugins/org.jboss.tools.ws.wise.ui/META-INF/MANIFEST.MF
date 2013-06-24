@@ -71,7 +71,5 @@ Bundle-ClassPath: .,
  lib/jaxb-impl-2.2.5.1.jar,
  lib/jaxb-xjc-2.2.5.1.jar,
  lib/wise-core-2.0.2.Final.jar,
- lib/wise-core-cxf-2.0.2.Final.jar,
- lib/jaxb-impl-2.1.13.jar,
- lib/jaxb-xjc-2.1.13.jar
+ lib/wise-core-cxf-2.0.2.Final.jar
 Export-Package: org.jboss.wise.ui.internal.util
