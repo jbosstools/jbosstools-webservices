@@ -16,10 +16,6 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreePath;
@@ -46,65 +42,24 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 
 	@Override
 	public Object[] getChildren(final Object parentElement) {
-		try {
-			if (parentElement instanceof IProject) {
-				final IProject project = (IProject) parentElement;
-				if (!uriPathTemplateCategories.containsKey(project)) {
-					final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-					if (metamodel != null) {
-						metamodel.addListener(this);
-					}
-					UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
-					uriPathTemplateCategories.put(project, uriPathTemplateCategory);
-				}
-				Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
-				return new Object[] { uriPathTemplateCategories.get(project) };
+		if (parentElement instanceof IProject) {
+			final IProject project = (IProject) parentElement;
+			if (!uriPathTemplateCategories.containsKey(project)) {
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
+				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
 			}
-			if (parentElement instanceof UriPathTemplateCategory) {
-				final UriPathTemplateCategory uriPathTemplateCategory = (UriPathTemplateCategory) parentElement;
-				final IProject project = uriPathTemplateCategory.getProject();
-				if (JaxrsMetamodelLocator.get(project) == null) {
-					launchLoadingMetamodelJob(uriPathTemplateCategory);
-					// return a stub object that says loading...
-					Logger.debug("Displaying the 'Loading...' stub for project '{}'", project.getName());
-					return new Object[] { new LoadingStub() };
-				}
-				return uriPathTemplateCategory.getChildren();
-			} else if (parentElement instanceof ITreeContentProvider) {
-				Logger.debug("Displaying the children of '{}'", parentElement);
-				return ((ITreeContentProvider) parentElement).getChildren(parentElement);
-			}
-			Logger.debug("*** No children for parent of type '{}' ***", parentElement.getClass().getName());
-		} catch (CoreException e) {
-			Logger.error("Failed to retrieve JAX-RS Metamodel", e);
+			Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
+			return new Object[] { uriPathTemplateCategories.get(project) };
 		}
+		if (parentElement instanceof UriPathTemplateCategory) {
+			final UriPathTemplateCategory uriPathTemplateCategory = (UriPathTemplateCategory) parentElement;
+			return uriPathTemplateCategory.getChildren();
+		} else if (parentElement instanceof ITreeContentProvider) {
+			Logger.debug("Displaying the children of '{}'", parentElement);
+			return ((ITreeContentProvider) parentElement).getChildren(parentElement);
+		}
+		Logger.debug("*** No children for parent of type '{}' ***", parentElement.getClass().getName());
 		return null;
-	}
-
-	private void launchLoadingMetamodelJob(final UriPathTemplateCategory uriPathTemplateCategory) {
-		final IProject project = uriPathTemplateCategory.getProject();
-		Job job = new Job("Loading JAX-RS metamodel for project '" + project.getName() + "'...") {
-
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				monitor.beginTask("Loading JAX-RS metamodel for project '" + project.getName() + "'...",
-						IProgressMonitor.UNKNOWN);
-				monitor.worked(1);
-				refreshViewerObject(uriPathTemplateCategory);
-				monitor.done();
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.LONG);
-		job.schedule();
-	}
-
-	private void refreshViewerObject(final Object object) {
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				viewer.refresh(object);
-			}
-		});
 	}
 
 	@Override
@@ -115,11 +70,14 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	@Override
 	public boolean hasChildren(Object element) {
 		if (element instanceof IProject) {
+			Logger.debug("Project '{}' has children: true", ((IProject)element).getName());
 			return true;
 		} else if (element instanceof ITreeContentProvider) {
-			return ((ITreeContentProvider) element).hasChildren(element);
+			final boolean hasChildren = ((ITreeContentProvider) element).hasChildren(element);
+			Logger.debug("Element {} has children: {}", element, hasChildren);
+			return hasChildren;
 		}
-		Logger.debug("Element {} has not children", element.getClass().getName());
+		Logger.debug("Element {} has not children", element);
 		return false;
 	}
 

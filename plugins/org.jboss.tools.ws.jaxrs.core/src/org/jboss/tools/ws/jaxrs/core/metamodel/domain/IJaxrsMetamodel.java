@@ -22,6 +22,12 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 public interface IJaxrsMetamodel {
 
+	/**
+	 * Returns <code>true</code> if the JAX-RS Metamodel is being initialized, false if it has already been initialized.
+	 * @return <code>true</code> if the JAX-RS Metamodel is being initialized, false if it has already been initialized.
+	 */
+	public abstract boolean isInitializing();
+	
 	public abstract Collection<IJaxrsEndpoint> getAllEndpoints();
 
 	/**
@@ -32,12 +38,12 @@ public interface IJaxrsMetamodel {
 	 *            the Java Element
 	 * @return the JAX-RS Element or null if none matches.
 	 */
-	public IJaxrsElement findElement(final IJavaElement javaElement);
+	public abstract IJaxrsElement findElement(final IJavaElement javaElement);
 	
 	public abstract IProject getProject();
 
 	public abstract void addListener(IJaxrsEndpointChangedListener listener);
 
-	void removeListener(IJaxrsEndpointChangedListener listener);
+	public void removeListener(IJaxrsEndpointChangedListener listener);
 
 }
