@@ -214,7 +214,7 @@ public class CollectionUtilsTestCase {
 	}
 
 	@Test
-	public void shouldNotFindDifferencesInMapsOfSameSizeWithDifferentValues() {
+	public void shouldFindDifferencesInMapsOfSameSizeWithDifferentValues() {
 		// preconditions
 		Map<String, String> control = new HashMap<String, String>() {
 			{
@@ -233,7 +233,8 @@ public class CollectionUtilsTestCase {
 		// operation
 		Map<String, String> diffs = CollectionUtils.difference(control, test);
 		// verifications
-		assertThat(diffs.size(), equalTo(0));
+		assertThat(diffs.size(), equalTo(1));
+		assertThat(diffs.get("a"), equalTo("one+"));
 	}
 
 	@Test
@@ -261,7 +262,7 @@ public class CollectionUtilsTestCase {
 	}
 
 	@Test
-	public void shouldNotFindDifferencesInMapsOfDifferentSizeWithDifferentValues() {
+	public void shouldFindDifferencesInMapsOfDifferentSizeWithDifferentValues() {
 		// preconditions
 		Map<String, String> control = new HashMap<String, String>() {
 			{
@@ -282,7 +283,8 @@ public class CollectionUtilsTestCase {
 		// operation
 		Map<String, String> diffs = CollectionUtils.difference(control, test);
 		// verifications
-		assertThat(diffs.size(), equalTo(0));
+		assertThat(diffs.size(), equalTo(1));
+		assertThat(diffs.get("a"), equalTo("one+"));
 	}
 
 	@Test
@@ -529,8 +531,8 @@ public class CollectionUtilsTestCase {
 		MapComparison<String, String> diffs = CollectionUtils.compare(control, test);
 		// verifications
 		assertThat(diffs.getAddedItems().keySet(), containsInAnyOrder("d"));
-		assertThat(diffs.getItemsInCommon().keySet(), containsInAnyOrder("a", "b"));
-		assertThat(diffs.getItemsInCommon().get("b"), equalTo("2"));
+		assertThat(diffs.getChangedItems().keySet(), containsInAnyOrder("b"));
+		assertThat(diffs.getChangedItems().get("b"), equalTo("two"));
 		assertThat(diffs.getRemovedItems().keySet(), containsInAnyOrder("c"));
 	}
 	

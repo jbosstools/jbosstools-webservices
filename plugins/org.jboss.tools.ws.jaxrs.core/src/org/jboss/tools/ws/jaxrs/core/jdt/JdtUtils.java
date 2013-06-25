@@ -664,7 +664,7 @@ public final class JdtUtils {
 		return arguments;
 	}
 
-	public static List<JavaMethodSignature> resolveMethodSignatures(IType type, CompilationUnit ast) {
+	public static Map<String, JavaMethodSignature> resolveMethodSignatures(IType type, CompilationUnit ast) {
 		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
 		ast.accept(methodsVisitor);
 		return methodsVisitor.getMethodSignatures();

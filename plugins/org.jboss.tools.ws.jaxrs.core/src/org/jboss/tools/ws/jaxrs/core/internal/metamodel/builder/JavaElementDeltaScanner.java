@@ -116,10 +116,11 @@ public class JavaElementDeltaScanner {
 				// FIXME: must make sure that the methodDeclarationsMap remains
 				// in sync with the working copy after each change.
 				boolean computeDiffs = requiresDiffsComputation(flags);
-				List<JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
+				Map<String, JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
 						compilationUnitAST, computeDiffs);
-				for (JavaMethodSignature diff : diffs) {
-					final JavaElementDelta event = new JavaElementDelta(diff.getJavaMethod(), CHANGED, eventType,
+				for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
+					JavaMethodSignature methodSignature = diff.getValue();
+					final JavaElementDelta event = new JavaElementDelta(methodSignature.getJavaMethod(), CHANGED, eventType,
 							compilationUnitAST, F_SIGNATURE);
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);

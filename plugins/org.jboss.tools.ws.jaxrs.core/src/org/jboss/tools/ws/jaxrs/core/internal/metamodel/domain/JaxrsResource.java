@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -134,6 +135,8 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 					PRODUCES.qualifiedName, ENCODED.qualifiedName);
 			// create the resource
 			final JaxrsResource resource = new JaxrsResource(this);
+			// retrieve all JavaMethodSignatures at once
+			final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(javaType, ast);
 			// find the resource methods, subresource methods and
 			// subresource
 			// locators of this resource:
@@ -141,7 +144,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 					new NullProgressMonitor());
 			for (IMethod javaMethod : javaMethods) {
 				JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
-						.withMetamodel(metamodel).build();
+						.withJavaMethodSignature(methodSignatures.get(javaMethod.getHandleIdentifier())).withMetamodel(metamodel).build();
 			}
 			// find the available type fields
 			for (IField javaField : javaType.getFields()) {

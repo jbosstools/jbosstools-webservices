@@ -10,9 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,7 +31,7 @@ public class CompilationUnitsRepository {
 
 	private static final CompilationUnitsRepository instance = new CompilationUnitsRepository();
 
-	private final Map<ICompilationUnit, List<JavaMethodSignature>> methodDeclarationsMap = new HashMap<ICompilationUnit, List<JavaMethodSignature>>();
+	private final Map<ICompilationUnit, Map<String, JavaMethodSignature>> methodDeclarationsMap = new HashMap<ICompilationUnit, Map<String, JavaMethodSignature>>();
 
 	private final Map<IPath, CompilationUnit> astMap = new HashMap<IPath, CompilationUnit>();
 
@@ -110,22 +108,22 @@ public class CompilationUnitsRepository {
 		return compilationUnitAST;
 	}
 
-	public List<JavaMethodSignature> mergeAST(final ICompilationUnit compilationUnit,
+	public Map<String, JavaMethodSignature> mergeAST(final ICompilationUnit compilationUnit,
 			final CompilationUnit compilationUnitAST, final boolean computeDiffs) {
 		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
 		compilationUnitAST.accept(methodsVisitor);
-		List<JavaMethodSignature> diffs = null;
+		Map<String, JavaMethodSignature> diffs = null;
 		// FIXME: must make sure that the methodDeclarationsMap remains in sync
 		// with the working copy after each change.
 		if (computeDiffs) {
-			List<JavaMethodSignature> workingCopyDeclarations = methodsVisitor.getMethodSignatures();
-			List<JavaMethodSignature> controlDeclarations = methodDeclarationsMap.get(compilationUnit);
+			Map<String, JavaMethodSignature> workingCopyDeclarations = methodsVisitor.getMethodSignatures();
+			Map<String, JavaMethodSignature> controlDeclarations = methodDeclarationsMap.get(compilationUnit);
 			diffs = CollectionUtils.difference(workingCopyDeclarations, controlDeclarations);
 			if (diffs.size() > 0) {
 				Logger.trace("Found diffs in method signatures:", diffs);
 			}
 		} else {
-			diffs = new ArrayList<JavaMethodSignature>();
+			diffs = new HashMap<String, JavaMethodSignature>();
 		}
 		// replace old values in "cache"
 		astMap.put(compilationUnit.getResource().getFullPath(), compilationUnitAST);
@@ -136,17 +134,19 @@ public class CompilationUnitsRepository {
 		return diffs;
 	}
 
+	/**
+	 * Returns the known {@link JavaMethodSignature} for the given {@link IMethod} in this repository, or null if it is unknown.
+	 * @param javaMethod the given Java Method
+	 * @return the known JavaMethodSignature or null
+	 * @throws JavaModelException
+	 */
 	public JavaMethodSignature getMethodSignature(final IMethod javaMethod) throws JavaModelException {
 		final ICompilationUnit compilationUnit = javaMethod.getCompilationUnit();
 		if (!methodDeclarationsMap.containsKey(compilationUnit)) {
 			recordAST(compilationUnit);
 		}
-		for (JavaMethodSignature signature : methodDeclarationsMap.get(compilationUnit)) {
-			if (signature.getJavaMethod().getHandleIdentifier().equals(javaMethod.getHandleIdentifier())) {
-				return signature;
-			}
-		}
-		return null;
+		final Map<String, JavaMethodSignature> methodSignatures = methodDeclarationsMap.get(compilationUnit);
+		return methodSignatures.get(javaMethod.getHandleIdentifier());
 	}
 
 	public void removeAST(final ICompilationUnit compilationUnit) {

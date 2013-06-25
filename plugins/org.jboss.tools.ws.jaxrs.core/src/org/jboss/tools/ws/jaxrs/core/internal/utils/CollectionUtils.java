@@ -55,38 +55,63 @@ public class CollectionUtils {
 	 * @param test
 	 *            the 'test' (or 'modified') map
 	 * @return a structure that indicates the items that were added in the
-	 *         'test', removed from 'control' or are in common in the two maps.
-	 *         In case of the 'itemsInCommon', the returned items are those of
-	 *         the 'control' map.
+	 *         'test' (ie: found in 'test' but not in 'control') , removed from 'control' (ie: found in 'control' but not in 'test') or changed in the 'control' map (ie: elements have same key but different values).
 	 */
 	public static <K, V> MapComparison<K, V> compare(Map<K, V> control, Map<K, V> test) {
-		final Map<K, V> addedItems = CollectionUtils.difference(test, control);
-		final Map<K, V> removedItems = CollectionUtils.difference(control, test);
-		final Map<K, V> itemsInCommon = CollectionUtils.intersection(control, test);
-		return new MapComparison<K, V>(addedItems, itemsInCommon, removedItems);
+		// added items
+		final Map<K, V> addedItems = new HashMap<K, V>();
+		final List<K> addedItemKeys = CollectionUtils.difference(test.keySet(), control.keySet());
+		for(K addedItemKey : addedItemKeys) {
+			addedItems.put(addedItemKey, test.get(addedItemKey));
+		}
+		// removed items
+		final List<K> removedItemKeys = CollectionUtils.difference(control.keySet(), test.keySet());
+		final Map<K, V> removedItems = new HashMap<K, V>();
+		for(K removedItemKey : removedItemKeys) {
+			removedItems.put(removedItemKey, control.get(removedItemKey));
+		}
+		// changed items
+		final Collection<K> changedItemKeys = CollectionUtils.intersection(control.keySet(), test.keySet());
+		final Map<K, V> changedItems = new HashMap<K, V>();
+		for(K changedItemKey : changedItemKeys) {
+			if(!control.get(changedItemKey).equals(test.get(changedItemKey))) {
+				changedItems.put(changedItemKey, test.get(changedItemKey));
+			}
+		}
+		return new MapComparison<K, V>(addedItems, changedItems, removedItems);
 	}
 
 	/**
-	 * Compute the difference of elements between the 2 given maps
+	 * Compute the difference of indexed elements between the 2 given maps
 	 * 
 	 * @param control
 	 *            the control collection
 	 * @param test
 	 *            the test collection
 	 * @return the elements of the control map that are not part of the test
-	 *         map. The process works with keys and does not compare the values.
+	 *         map. The process returns &lt;key,value&gt; pairs whose key is missing in the 'test' map, and also the elements that have the same 'key' but different values.
 	 */
-	public static <K, V> Map<K, V> difference(Map<K, V> control, Map<K, V> test) {
+	public static <K, V> Map<K, V> difference(final Map<K, V> control, final Map<K, V> test) {
 		if (control == null) {
 			return null;
 		}
 		if (test == null) {
 			return control;
 		}
-		List<K> keys = difference(control.keySet(), test.keySet());
-		Map<K, V> result = new HashMap<K, V>();
-		for (K key : keys) {
+		final Map<K, V> result = new HashMap<K, V>();
+		// different keys (ie, those not found in 'test')
+		final Collection<K> differentKeys = difference(control.keySet(), test.keySet());
+		for (K key : differentKeys) {
 			result.put(key, control.get(key));
+		}
+		// different values
+		final Collection<K> sameKeys = intersection(control.keySet(), test.keySet());
+		for(K key : sameKeys) {
+			final V controlValue = control.get(key);
+			final V testValue = test.get(key);
+			if(!controlValue.equals(testValue)) {
+				result.put(key, testValue);
+			}
 		}
 		return result;
 	}
@@ -128,7 +153,7 @@ public class CollectionUtils {
 	 *            the 'test' (or 'modified') collection
 	 * @return a structure that indicates the items that were added in the
 	 *         'test', removed from 'control' or are in common in the two
-	 *         collections. In case of the 'itemsInCommon', the returned items
+	 *         collections. In case of the 'changedItems', the returned items
 	 *         are those of the 'control' collection.
 	 */
 	public static <T> CollectionComparison<T> compare(Collection<T> control, Collection<T> test) {
@@ -224,13 +249,13 @@ public class CollectionUtils {
 
 		private final Map<K, V> addedItems;
 
-		private final Map<K, V> itemsInCommon;
+		private final Map<K, V> changedItems;
 
 		private final Map<K, V> removedItems;
 
 		MapComparison(final Map<K, V> addedItems, Map<K, V> itemsInCommon, Map<K, V> removedItems) {
 			this.addedItems = addedItems;
-			this.itemsInCommon = itemsInCommon;
+			this.changedItems = itemsInCommon;
 			this.removedItems = removedItems;
 		}
 
@@ -245,8 +270,8 @@ public class CollectionUtils {
 		/**
 		 * @return the items in common, retrieved from the 'control' map.
 		 */
-		public Map<K, V> getItemsInCommon() {
-			return itemsInCommon;
+		public Map<K, V> getChangedItems() {
+			return changedItems;
 		}
 
 		/**
@@ -255,6 +280,17 @@ public class CollectionUtils {
 		 */
 		public Map<K, V> getRemovedItems() {
 			return removedItems;
+		}
+
+		/**
+		 * Returns true if at least one item was added, changed or removed. Returns false otherwise.
+		 * @return true if at least one item was added, changed or removed. Returns false otherwise.
+		 */
+		public boolean hasDifferences() {
+			if(addedItems.isEmpty() && removedItems.isEmpty() && changedItems.isEmpty()) {
+				return false;
+			}
+			return true;
 		}
 	}
 
