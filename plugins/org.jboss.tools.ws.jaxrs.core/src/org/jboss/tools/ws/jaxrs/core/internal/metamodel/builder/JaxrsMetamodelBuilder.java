@@ -93,9 +93,9 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	 *            the progress monitor
 	 */
 	private void build(final int buildKind, final IProject project, final IProgressMonitor progressMonitor) {
-		Logger.debug("Building JAX-RS metamodel for project " + project.getName());
+		Logger.debug("Building JAX-RS metamodel for project '" + project.getName() + "'");
 		ResourceChangedBuildJob job = new ResourceChangedBuildJob(project, getResourceChangeEvent(project, buildKind));
-		job.setRule(MutexJobSchedulingRule.getInstance());
+		job.setRule(new MutexJobSchedulingRule(project));
 		job.schedule();
 		try {
 			job.join();
@@ -121,7 +121,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	private void logBuild(final int kind, @SuppressWarnings("rawtypes") final Map args, final IProject project) {
 		StringBuilder sb = new StringBuilder("JAX-RS Builder called after '");
 		sb.append(ConstantUtils.getStaticFieldName(IncrementalProjectBuilder.class, kind));
-		sb.append("' on project ").append(project.getName());
+		sb.append("' on project '").append(project.getName()).append("'");
 		Logger.debug(sb.toString());
 	}
 
