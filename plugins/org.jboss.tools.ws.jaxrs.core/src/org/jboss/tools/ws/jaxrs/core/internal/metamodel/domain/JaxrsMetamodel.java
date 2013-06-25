@@ -154,6 +154,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	/** The Listeners for JAX-RS Endpoint changes. */
 	final Set<IJaxrsEndpointChangedListener> endpointChangedListeners = new HashSet<IJaxrsEndpointChangedListener>();
 
+	/** A boolean marker that indicates if the metamodel is being initialized (ie, first/full build).*/
+	private boolean initializing=true;
+
 	/**
 	 * Full constructor.
 	 * 
@@ -170,6 +173,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		indexationService = new JaxrsElementsIndexationDelegate();
 		addBuiltinHttpMethods();
 	}
+	
+	@Override
+	public boolean isInitializing() {
+		return this.initializing;
+	}
+	
 
 	/**
 	 * Resets the problem level for this given element.
@@ -306,7 +315,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	@Override
 	public void addListener(final IJaxrsEndpointChangedListener listener) {
-		this.endpointChangedListeners.add(listener);
+		if(!endpointChangedListeners.contains(listener)) { 
+			this.endpointChangedListeners.add(listener);
+		}
 	}
 
 	/**
@@ -543,6 +554,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void processProject(final IProgressMonitor progressMonitor) throws CoreException {
 		// start with a fresh new metamodel
 		try {
+			this.initializing = true;
 			progressMonitor.beginTask("Processing project '" + getProject().getName() + "'...", 1);
 			this.elements.clear();
 			this.endpoints.clear();
@@ -560,7 +572,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		} finally {
 			progressMonitor.done();
 			Logger.debug("Done processing resource results.");
-
+			this.initializing = false;
 		}
 	}
 
