@@ -18,13 +18,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.ui.cnf.UriMappingsContentProvider.LoadingStub;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 public class UriPathTemplateCategory implements ITreeContentProvider {
@@ -46,7 +55,8 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	public Object[] getChildren(Object parentElement) {
 		try {
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-			if (metamodel != null) {
+			if (metamodel != null && !metamodel.isInitializing()) {
+				metamodel.addListener(parent);
 				final Collection<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
 				Logger.debug("UriPathTemplateCatogory contains {} endpoints", endpoints.size());
 				List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
@@ -68,13 +78,49 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 					uriPathTemplateElements.add(element);
 				}
 				return uriPathTemplateElements.toArray();
+			} else if (metamodel == null || !metamodel.isInitializing()) {
+				launchLoadingMetamodelJob(this);
+				// return a stub object that says loading...
+				Logger.debug("Displaying the 'Loading...' stub for project '{}' and launching a build", project.getName());
+				return new Object[] { new LoadingStub() };
+			} else {
+				launchLoadingMetamodelJob(this);
+				// return a stub object that says loading...
+				Logger.debug("Just displaying the 'Loading...' stub for project '{}'", project.getName());
+				return new Object[] { new LoadingStub() };
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
 		}
+		Logger.debug("* There's no JAX-RS Metamodel for project {} *", project.getName());
 		return new Object[0];
 	}
 
+	private void launchLoadingMetamodelJob(final UriPathTemplateCategory uriPathTemplateCategory) {
+		final IProject project = uriPathTemplateCategory.getProject();
+		Job job = new Job("Loading JAX-RS metamodel for project '" + project.getName() + "'...") {
+
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				monitor.beginTask("Loading JAX-RS metamodel for project '" + project.getName() + "'...",
+						3);
+				try {
+					project.refreshLocal(IResource.DEPTH_INFINITE, new SubProgressMonitor(monitor, 1));
+					project.build(IncrementalProjectBuilder.FULL_BUILD, new SubProgressMonitor(monitor, 1));
+					Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+				} catch (Exception e) {
+					Logger.error("Failed to build project '" + project.getName() + "'", e);
+				}
+				monitor.worked(1);
+				refreshContent();
+				monitor.done();
+				return Status.OK_STATUS;
+			}
+		};
+		job.setPriority(Job.LONG);
+		job.schedule();
+	}
+	
 	@Override
 	public Object getParent(Object element) {
 		return project;
@@ -97,7 +143,8 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
 		}
-		return false;
+		Logger.debug("No JAX-RS Metamodel for project '{}' -> expect to display default 'loading...' stib instead", project.getName());
+		return true;
 	}
 
 	/**
