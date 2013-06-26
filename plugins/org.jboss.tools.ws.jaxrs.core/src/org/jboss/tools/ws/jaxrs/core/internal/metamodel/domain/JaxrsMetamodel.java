@@ -88,6 +88,12 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.common.validation.IProjectValidationContext;
+import org.jboss.tools.common.validation.IValidatingProjectSet;
+import org.jboss.tools.common.validation.IValidatingProjectTree;
+import org.jboss.tools.common.validation.internal.ProjectValidationContext;
+import org.jboss.tools.common.validation.internal.SimpleValidatingProjectTree;
+import org.jboss.tools.common.validation.internal.ValidatingProjectSet;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorDelegate;
@@ -173,7 +179,21 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		indexationService = new JaxrsElementsIndexationDelegate();
 		addBuiltinHttpMethods();
 	}
-	
+
+	IProjectValidationContext rootContext = null;
+
+	public IValidatingProjectTree getValidatingProjectTree(IProject project) {
+		if(rootContext == null) {
+			rootContext = new ProjectValidationContext();
+		}
+
+		Set<IProject> projects = new HashSet<IProject>();
+		projects.add(project);
+
+		IValidatingProjectSet projectSet = new ValidatingProjectSet(project, projects, rootContext);
+		return new SimpleValidatingProjectTree(projectSet);
+	}
+
 	@Override
 	public boolean isInitializing() {
 		return this.initializing;
