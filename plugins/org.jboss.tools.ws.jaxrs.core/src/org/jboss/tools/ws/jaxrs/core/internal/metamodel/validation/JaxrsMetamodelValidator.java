@@ -118,16 +118,18 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			if (!changedFiles.isEmpty()) {
 				Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
 						changedFiles.toString());
-				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
-				if (jaxrsMetamodel != null) { // prevent failure in case
-												// validation would be called at
-												// workbench startup, even
-												// before metamodel is built.
-					final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel,
+				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+				// prevent failure in case validation would be called at
+				// workbench startup, even before metamodel is built.
+				if (metamodel != null) {
+					// validate each JAX-RS element individually
+					final Set<IResource> allResources = completeValidationSet(metamodel,
 							changedFiles.toArray(new IFile[changedFiles.size()]));
 					for (IResource changedResource : allResources) {
-						validate(reporter, changedResource, jaxrsMetamodel);
+						validate(reporter, changedResource, metamodel);
 					}
+					// validate at the metamodel level for cross-elements validation
+					validate(metamodel);
 				}
 				
 			}

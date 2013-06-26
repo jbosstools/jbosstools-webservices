@@ -27,6 +27,7 @@ import java.util.List;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
@@ -244,4 +245,48 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		markers = findJaxrsMarkers(javaApplication);
 		assertThat(markers.length, equalTo(0));
 	}
+	
+	@Test
+	public void shouldReportProblemAfterBuildWhenMetamodelHasMultipleJavaApplicationsAndNoWebxml() throws CoreException, ValidationException, OperationCanceledException, InterruptedException {
+		// preconditions
+		metamodel.findWebxmlApplication().remove();
+		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
+		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
+		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
+		deleteJaxrsMarkers(project);
+		// operation
+		buildMetamodel();
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation
+		for(JaxrsJavaApplication app : new JaxrsJavaApplication[]{javaApplication, javaApplication2}) {
+			final IMarker[] markers = findJaxrsMarkers(app);
+			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+			}
+		}
+	}
+
+	@Test
+	public void shouldReportProblemAfterBuildWhenMetamodelHasMultipleJavaApplicationsAndWebxml() throws CoreException, ValidationException, OperationCanceledException, InterruptedException {
+		// preconditions
+		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
+		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
+		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
+		deleteJaxrsMarkers(project);
+		// operation
+		buildMetamodel();
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation
+		for(JaxrsJavaApplication app : new JaxrsJavaApplication[]{javaApplication, javaApplication2}) {
+			final IMarker[] markers = findJaxrsMarkers(app);
+			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+			}
+		}
+	}
+
 }
