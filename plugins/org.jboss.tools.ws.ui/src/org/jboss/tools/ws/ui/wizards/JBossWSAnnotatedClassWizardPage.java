@@ -576,7 +576,12 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 			}
 			IFacetedProject facetProject =
 					ProjectFacetsManager.create(((JBossWSAnnotatedClassWizard)this.getWizard()).getProject());
-			IProjectFacetVersion version = 
+            if (facetProject == null) {
+                // then we're not a dynamic web project, do nothing
+                return;
+            }
+
+            IProjectFacetVersion version = 
 					facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET);
 			if (version == null) {
 				// then we're not a dynamic web project, do nothing
