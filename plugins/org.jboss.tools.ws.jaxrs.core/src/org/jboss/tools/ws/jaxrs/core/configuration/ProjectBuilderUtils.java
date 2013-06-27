@@ -23,6 +23,8 @@ import org.eclipse.core.runtime.CoreException;
  */
 public final class ProjectBuilderUtils {
 
+	private static final String VALIDATOR_BUILDER_ID = "org.eclipse.wst.validation.validationbuilder";
+	
 	/** Hidden constructor of the utility method. Prevents instantiation. */
 	private ProjectBuilderUtils() {
 		super();
@@ -64,21 +66,43 @@ public final class ProjectBuilderUtils {
 	 *             in case of exception
 	 */
 	public static boolean installProjectBuilder(final IProject project, final String builderId) throws CoreException {
-		IProjectDescription desc = project.getDescription();
-		ICommand[] commands = desc.getBuildSpec();
-
+		final IProjectDescription desc = project.getDescription();
+		final ICommand[] commands = desc.getBuildSpec();
 		if (isProjectBuilderInstalled(project, builderId)) {
 			return false;
 		}
-		
-		ICommand[] newCommands = new ICommand[commands.length + 1];
-		System.arraycopy(commands, 0, newCommands, 0, commands.length);
-		ICommand command = desc.newCommand();
+		// prepare a long array to store the JAX-RS builder id
+		final ICommand command = desc.newCommand();
 		command.setBuilderName(builderId);
-		newCommands[newCommands.length - 1] = command;
+		final ICommand[] newCommands = new ICommand[commands.length + 1];
+		final int validatorBuilderIdIndex = locatorValidatorBuilderId(commands);
+		if(validatorBuilderIdIndex == -1) {
+			System.arraycopy(commands, 0, newCommands, 0, commands.length);
+			newCommands[newCommands.length - 1] = command;
+		} else {
+			System.arraycopy(commands, 0, newCommands, 0, validatorBuilderIdIndex);
+			System.arraycopy(commands, validatorBuilderIdIndex, newCommands, validatorBuilderIdIndex + 1,
+					commands.length - validatorBuilderIdIndex);
+			newCommands[validatorBuilderIdIndex] = command;
+		}
 		desc.setBuildSpec(newCommands);
 		project.setDescription(desc, null);
 		return true;
+	}
+
+	/**
+	 * Locates the validator builder command (using its known Id) in the given array of {@link ICommand}s
+	 * @param commands the builder commands
+	 * @return the location in the array or -1 if not found.
+	 * @see ProjectBuilderUtils#VALIDATOR_BUILDER_ID
+	 */
+	private static int locatorValidatorBuilderId(final ICommand[] commands) {
+		for(int i = 0; i < commands.length; i++) {
+			if(commands[i].getBuilderName().equals(VALIDATOR_BUILDER_ID)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	/**

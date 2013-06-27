@@ -11,6 +11,8 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -880,10 +882,15 @@ public class WorkbenchUtils {
 	 * @throws CoreException
 	 * @throws IOException
 	 */
-	public static void replaceContent(IResource resource, String oldContent, String newContent) throws CoreException, IOException {
+	public static void replaceContent(final IResource resource, final String oldContent, final String newContent) throws CoreException, IOException {
+		// pre-condition: verify that resource exists 
+		assertThat(resource.exists(), is(true));
 		final IProject project = resource.getProject();
 		final IFile file = project.getFile(resource.getProjectRelativePath());
 		final String content = IOUtils.toString(file.getContents());
+		// pre-condition: verify that resource contains old content
+		assertThat(content.indexOf(oldContent), not(-1));
+		// operation
 		final String  modifiedContent = content.replace(oldContent, newContent);
 		file.delete(true, new NullProgressMonitor());
 		file.create(IOUtils.toInputStream(modifiedContent), true, null);
