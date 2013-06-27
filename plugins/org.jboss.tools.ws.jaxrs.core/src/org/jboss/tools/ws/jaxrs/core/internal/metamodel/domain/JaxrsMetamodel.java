@@ -88,6 +88,11 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.common.validation.IValidatingProjectSet;
+import org.jboss.tools.common.validation.IValidatingProjectTree;
+import org.jboss.tools.common.validation.internal.ProjectValidationContext;
+import org.jboss.tools.common.validation.internal.SimpleValidatingProjectTree;
+import org.jboss.tools.common.validation.internal.ValidatingProjectSet;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorDelegate;
@@ -157,6 +162,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	/** A boolean marker that indicates if the metamodel is being initialized (ie, first/full build).*/
 	private boolean initializing=true;
 
+	/** The Project Validation Tree, including the Validation Context. 
+	 *  The reason is that a new validation context should not be created at each validation, it should be kept between builds as it contains information about changed (or cleaned ones in this case) resources.
+	 * */
+	private SimpleValidatingProjectTree validatingProjectTree = null;
+
 	/**
 	 * Full constructor.
 	 * 
@@ -173,7 +183,21 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		indexationService = new JaxrsElementsIndexationDelegate();
 		addBuiltinHttpMethods();
 	}
-	
+
+	/**
+	 * Initializes and returns the {@link IValidatingProjectTree} associated with the undelying {@link IProject} for this {@link JaxrsMetamodel}
+	 * @return the Validating Project Tree 
+	 */
+	public IValidatingProjectTree getValidatingProjectTree() {
+		if(this.validatingProjectTree == null) {
+			final Set<IProject> projects = new HashSet<IProject>();
+			projects.add(javaProject.getProject());
+			final IValidatingProjectSet projectSet = new ValidatingProjectSet(javaProject.getProject(), projects, new ProjectValidationContext());
+			this.validatingProjectTree = new SimpleValidatingProjectTree(projectSet);
+		}
+		return this.validatingProjectTree;
+	}
+
 	@Override
 	public boolean isInitializing() {
 		return this.initializing;
@@ -1302,6 +1326,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void register(final IJaxrsElementChangedListener listener) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	@Override
+	public String toString() {
+		return "JAX-RS Metamodel for project '" + this.javaProject.getElementName() + "'";
 	}
 
 }

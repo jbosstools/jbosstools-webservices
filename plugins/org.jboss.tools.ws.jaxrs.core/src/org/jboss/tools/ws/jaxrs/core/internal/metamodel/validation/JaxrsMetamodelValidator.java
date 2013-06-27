@@ -131,7 +131,9 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 					// validate at the metamodel level for cross-elements validation
 					validate(metamodel);
 				}
-				
+			} else {
+				Logger.debug("*** Validating full project {} because no file changed... ***", project.getName());
+				validateAll(project, validationHelper, context, manager, reporter);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);
@@ -311,6 +313,14 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 
 	@Override
 	public IValidatingProjectTree getValidatingProjects(IProject project) {
+		try {
+			JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			if(metamodel!=null) {
+				return metamodel.getValidatingProjectTree();
+			}
+		} catch (CoreException e) {
+			Logger.error(e.getMessage(), e);
+		}
 		return new SimpleValidatingProjectTree(project);
 	}
 

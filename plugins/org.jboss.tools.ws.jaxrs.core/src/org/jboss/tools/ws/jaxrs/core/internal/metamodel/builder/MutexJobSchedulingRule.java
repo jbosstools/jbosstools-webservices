@@ -12,6 +12,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
  * Mutex Scheduling Rule to avoid concurrent JAX-RS Metamodel Build jobs on the same project.
@@ -41,7 +42,11 @@ public class MutexJobSchedulingRule implements ISchedulingRule {
 	 */
 	@Override
 	public boolean isConflicting(final ISchedulingRule otherRule) {
-		return (otherRule instanceof MutexJobSchedulingRule && ((MutexJobSchedulingRule)otherRule).getProject().equals(this.project));
+		final boolean conflict = otherRule instanceof MutexJobSchedulingRule && ((MutexJobSchedulingRule)otherRule).getProject().equals(this.project);
+		if(conflict) {
+			Logger.trace("Rule conflict between {} and {}", this, otherRule);
+		}
+		return conflict;
 	}
 
 

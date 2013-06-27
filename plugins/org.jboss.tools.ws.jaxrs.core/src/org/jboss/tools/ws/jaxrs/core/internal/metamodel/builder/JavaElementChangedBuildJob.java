@@ -59,9 +59,12 @@ public class JavaElementChangedBuildJob extends Job {
 			for(JavaElementDelta delta : affectedJavaElements) {
 				final IJavaProject javaProject = delta.getElement().getJavaProject();
 				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
-				metamodel.processJavaElementChange(delta, progressMonitor);
-				if (progressMonitor.isCanceled()) {
-					return Status.CANCEL_STATUS;
+				// prevent NPE when opening a closed project (ie, there's no metamodel yet).
+				if(metamodel != null) {
+					metamodel.processJavaElementChange(delta, progressMonitor);
+					if (progressMonitor.isCanceled()) {
+						return Status.CANCEL_STATUS;
+					}
 				}
 			}
 		} catch (Throwable e) {
