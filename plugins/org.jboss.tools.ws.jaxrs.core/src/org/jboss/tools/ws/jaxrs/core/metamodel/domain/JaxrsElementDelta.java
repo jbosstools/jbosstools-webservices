@@ -202,4 +202,5 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 		return elementKind.ordinal() - otherElementKind.ordinal();
 	}
 
+
 }

@@ -19,11 +19,12 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.osgi.framework.BundleContext;
@@ -141,9 +142,9 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 		final ImageDescriptor baseImageDescriptor = ImageDescriptor.createFromURL(imageFileUrl);
 		switch (problemLevel) {
 		case IMarker.SEVERITY_ERROR:
-			return createDecoratedImageDescriptor(baseImageDescriptor, "org.eclipse.jface.fieldassist.IMG_DEC_FIELD_ERROR");
+			return createDecoratedImageDescriptor(baseImageDescriptor, ISharedImages.IMG_DEC_FIELD_ERROR);
 		case IMarker.SEVERITY_WARNING:
-			return createDecoratedImageDescriptor(baseImageDescriptor, "org.eclipse.jface.fieldassist.IMG_DEC_FIELD_WARNING");
+			return createDecoratedImageDescriptor(baseImageDescriptor, ISharedImages.IMG_DEC_FIELD_WARNING);
 
 		default:
 			return baseImageDescriptor;
@@ -160,7 +161,7 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 	 * which returns null for now.
 	 */
 	private ImageDescriptor createDecoratedImageDescriptor(final ImageDescriptor baseImageDescriptor, String decoratorId) {
-		final ImageDescriptor decoratorDescriptor = JFaceResources.getImageRegistry().getDescriptor(decoratorId);
+		final ImageDescriptor decoratorDescriptor = PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(decoratorId); 
 		final Image baseImage = baseImageDescriptor.createImage();
 		final DecorationOverlayIcon result = new DecorationOverlayIcon(baseImage, new ImageDescriptor[] { null, null, decoratorDescriptor, null, null },
 				new Point(16, 16));

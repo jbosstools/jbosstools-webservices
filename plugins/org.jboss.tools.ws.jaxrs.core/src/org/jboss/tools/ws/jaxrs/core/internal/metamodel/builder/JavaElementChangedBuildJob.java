@@ -53,6 +53,9 @@ public class JavaElementChangedBuildJob extends Job {
 			// scan and filter delta, retrieve a list of java changes
 			final List<JavaElementDelta> affectedJavaElements = new JavaElementDeltaScanner().scanAndFilterEvent(event,
 					new SubProgressMonitor(progressMonitor, SCALE));
+			if(affectedJavaElements.isEmpty()) {
+				Logger.debug("No relevant affected element to process");
+			}
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
