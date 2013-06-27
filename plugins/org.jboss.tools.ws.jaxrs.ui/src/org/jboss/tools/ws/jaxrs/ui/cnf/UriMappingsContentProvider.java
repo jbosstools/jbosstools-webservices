@@ -70,11 +70,11 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	@Override
 	public boolean hasChildren(Object element) {
 		if (element instanceof IProject) {
-			Logger.debug("Project '{}' has children: true", ((IProject)element).getName());
+			Logger.trace("Project '{}' has children: true", ((IProject)element).getName());
 			return true;
 		} else if (element instanceof ITreeContentProvider) {
 			final boolean hasChildren = ((ITreeContentProvider) element).hasChildren(element);
-			Logger.debug("Element {} has children: {}", element, hasChildren);
+			Logger.trace("Element {} has children: {}", element, hasChildren);
 			return hasChildren;
 		}
 		Logger.debug("Element {} has not children", element);
@@ -148,11 +148,12 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			refreshContent(project);
 		}
 		final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
-		final Object target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
+		final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
 		Logger.debug("Refreshing navigator view at level: {}", target.getClass().getName());
 		// this piece of code must run in an async manner to avoid reentrant
 		// call while viewer is busy.
 		refreshContent(target);
+		updateContent(uriPathTemplateCategory);
 	}
 
 	/**
@@ -182,6 +183,31 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		});
 	}
 
+	/**
+	 * Updates only the JAX-RS tree node for the given target node, thus skipping its subelements
+	 * 
+	 * @param target
+	 *            the node to refresh
+	 */
+	protected void updateContent(final Object target) {
+		// this piece of code must run in an async manner to avoid reentrant
+		// call while viewer is busy.
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				if (viewer != null) {
+					TreePath[] treePaths = viewer.getExpandedTreePaths();
+					Logger.debug("*** Updating the viewer at target level: {} (viewer busy: {}) ***", target,
+							viewer.isBusy());
+					viewer.update(target, null);
+					viewer.setExpandedTreePaths(treePaths);
+					Logger.debug("*** Refreshing the viewer... done ***");
+				} else {
+					Logger.debug("*** Cannot refresh: viewer is null :-( ***");
+				}
+			}
+		});
+	}
 	public static class LoadingStub {
 		public LoadingStub() {
 		}

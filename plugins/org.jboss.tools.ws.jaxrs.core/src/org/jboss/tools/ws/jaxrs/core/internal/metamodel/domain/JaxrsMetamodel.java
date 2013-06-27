@@ -81,6 +81,7 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -365,7 +366,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * 
 	 * @see {@link JaxrsElementDelta}
 	 */
-	private void notifyJaxrsElementChangedListeners(final JaxrsElementDelta delta) {
+	private void notifyListeners(final JaxrsElementDelta delta) {
 		Logger.trace("Notify elementChangedListeners after {}", delta);
 		for (IJaxrsElementChangedListener listener : elementChangedListeners) {
 			listener.notifyElementChanged(delta);
@@ -724,7 +725,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 		this.elements.put(element.getIdentifier(), element);
 		indexationService.indexElement(element);
-		notifyJaxrsElementChangedListeners(new JaxrsElementDelta(element, ADDED));
+		notifyListeners(new JaxrsElementDelta(element, ADDED));
 		processElementChange(new JaxrsElementDelta(element, ADDED));
 	}
 
@@ -752,8 +753,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void update(final JaxrsElementDelta delta) throws CoreException {
 		if (delta.isRelevant()) {
 			indexationService.reindexElement(delta.getElement());
-			notifyJaxrsElementChangedListeners(delta);
+			notifyListeners(delta);
 			processElementChange(delta);
+		}
+	}
+	
+	public void notifyProblemLevelChange(final IJaxrsElement element) {
+		final List<JaxrsEndpoint> affectedEndpoints = findEndpoints(element);
+		for (JaxrsEndpoint affectedEndpoint : affectedEndpoints) {
+			notifyListeners(affectedEndpoint, IJavaElementDelta.CHANGED);
 		}
 	}
 
@@ -785,7 +793,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (element == null) {
 			return;
 		}
-		notifyJaxrsElementChangedListeners(new JaxrsElementDelta(element, REMOVED));
+		notifyListeners(new JaxrsElementDelta(element, REMOVED));
 		processElementChange(new JaxrsElementDelta(element, REMOVED));
 		// actual removal and unindexing should be done at the end
 		elements.remove(element.getIdentifier());
