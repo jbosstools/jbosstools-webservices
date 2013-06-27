@@ -311,7 +311,19 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 
 	@Override
 	public IValidatingProjectTree getValidatingProjects(IProject project) {
-		return new SimpleValidatingProjectTree(project);
+		IValidatingProjectTree tree = null;
+		try {
+			JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			if(metamodel!=null) {
+				tree = metamodel.getValidatingProjectTree(project);
+			}
+		} catch (CoreException e) {
+			Logger.error(e.getMessage(), e);
+		}
+		if(tree==null) {
+			tree = new SimpleValidatingProjectTree(project);
+		}
+		return tree;
 	}
 
 	@Override
