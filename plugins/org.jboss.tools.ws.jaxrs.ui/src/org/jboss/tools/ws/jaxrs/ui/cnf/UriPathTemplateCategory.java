@@ -84,7 +84,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 				Logger.debug("Displaying the 'Loading...' stub for project '{}' and launching a build", project.getName());
 				return new Object[] { new LoadingStub() };
 			} else {
-				launchLoadingMetamodelJob(this);
+				//launchLoadingMetamodelJob(this);
 				// return a stub object that says loading...
 				Logger.debug("Just displaying the 'Loading...' stub for project '{}'", project.getName());
 				return new Object[] { new LoadingStub() };
