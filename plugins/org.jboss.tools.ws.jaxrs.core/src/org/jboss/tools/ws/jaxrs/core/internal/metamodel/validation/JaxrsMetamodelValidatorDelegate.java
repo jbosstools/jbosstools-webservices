@@ -28,14 +28,14 @@ import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
  * @author Xavier Coulon
  * 
  */
-public class JaxrsMetamodelValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsMetamodel> {
+public class JaxrsMetamodelValidatorDelegate extends AbstractValidatorDelegate<JaxrsMetamodel> {
 
 	public JaxrsMetamodelValidatorDelegate(final TempMarkerManager markerManager) {
 		super(markerManager);
 	}
 
 	@Override
-	public void validate(final JaxrsMetamodel metamodel) throws CoreException {
+	void validate(JaxrsMetamodel metamodel) throws CoreException {
 		Logger.debug("Validating element {}", metamodel);
 		final IProject project = metamodel.getProject();
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(project);
@@ -53,5 +53,7 @@ public class JaxrsMetamodelValidatorDelegate extends AbstractJaxrsElementValidat
 			}
 		}
 	}
+
+	
 
 }

@@ -61,7 +61,6 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	 */
 	public void setProblemLevel(final int problemLevel) {
 		this.problemLevel = Math.max(this.problemLevel, problemLevel);
-		metamodel.notifyProblemLevelChange(this);
 	}
 
 	/**

@@ -35,8 +35,12 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 		super(markerManager);
 	}
 
+	/**
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.
+	 * AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
+	 */
 	@Override
-	public void validate(final JaxrsHttpMethod httpMethod) throws CoreException {
+	void internalValidate(final JaxrsHttpMethod httpMethod) throws CoreException {
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(httpMethod);
 		httpMethod.resetProblemLevel();
 		Logger.debug("Validating element {}", httpMethod);

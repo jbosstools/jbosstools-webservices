@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
@@ -66,6 +67,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(0));
+		assertThat(metamodelProblemLevelChanges.size(), is(0));
 	}
 	
 	

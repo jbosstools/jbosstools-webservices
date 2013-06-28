@@ -10,7 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 
 /**
@@ -19,17 +18,11 @@ import org.eclipse.core.resources.IResource;
  * @author Xavier Coulon
  * 
  */
-public interface IJaxrsElement {
+public interface IJaxrsElement extends IJaxrsStatus {
 
 	public abstract IJaxrsMetamodel getMetamodel();
 
 	public abstract EnumElementKind getElementKind();
-
-	/**
-	 * @return the highest level problem this resource method has.
-	 * @see {@link IMarker} for severity levels and values.
-	 */
-	abstract int getProblemLevel();
 
 	/**
 	 * The unique identifier for the JAX-RS Element is:

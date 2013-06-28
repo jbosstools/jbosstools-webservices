@@ -67,6 +67,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.lucene.index.CorruptIndexException;
@@ -81,7 +82,6 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -115,6 +115,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsStatus;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
 
@@ -224,12 +225,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * @return the problem level.
+	 * @return <code>Math.max</code> between the internal problem level and all its endpoints problem level.
 	 * @see IMarker for the severity level (value "0" meaning
 	 *      "no problem, dude")
 	 */
 	public final int getProblemLevel() {
-		return problemLevel;
+		int globalLevel = problemLevel;
+		for(Entry<String, IJaxrsElement> entry : this.elements.entrySet()) {
+			globalLevel = Math.max(globalLevel, entry.getValue().getProblemLevel());
+		}
+		return globalLevel;
 	}
 
 	/**
@@ -758,10 +763,25 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 	}
 	
-	public void notifyProblemLevelChange(final IJaxrsElement element) {
+	/**
+	 * Notifies all registered listeners that the problem level of the given {@link IJaxrsElement} changed
+	 * @param element the JAX-RS element whose problem level changed
+	 */
+	public void notifyElementProblemLevelChanged(final IJaxrsElement element) {
 		final List<JaxrsEndpoint> affectedEndpoints = findEndpoints(element);
 		for (JaxrsEndpoint affectedEndpoint : affectedEndpoints) {
-			notifyListeners(affectedEndpoint, IJavaElementDelta.CHANGED);
+			for (IJaxrsEndpointChangedListener listener : endpointChangedListeners) {
+				listener.notifyEndpointProblemLevelChanged(affectedEndpoint);
+			}
+		}
+	}
+
+	/**
+	 * Notifies all registered listeners that the problem level of this {@link JaxrsMetamodel} changed
+	 */
+	public void notifyMetamodelProblemLevelChanged() {
+		for (IJaxrsEndpointChangedListener listener : endpointChangedListeners) {
+			listener.notifyMetamodelProblemLevelChanged(this);
 		}
 	}
 
@@ -905,7 +925,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends IJaxrsElement> T searchJaxrsElement(Term... terms) {
+	private <T extends IJaxrsStatus> T searchJaxrsElement(Term... terms) {
 		final String matchingIdentifier = indexationService.searchSingle(terms);
 		final T element = (T) this.elements.get(matchingIdentifier);
 		if (element == null) {
@@ -963,7 +983,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            the element identifier (as returned by {@link IJaxrsElement#getIdentifier()})
 	 * @return the JAX-RS Element matching the given identifier or <code>null</code>.
 	 */
-	private IJaxrsElement findElementByIdentifier(final String identifier) {
+	private IJaxrsStatus findElementByIdentifier(final String identifier) {
 		return searchJaxrsElement(new Term(FIELD_IDENTIFIER, identifier));
 	}
 	
@@ -996,7 +1016,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IJaxrsElement findElement(final IJavaElement javaElement) {
+	public IJaxrsStatus findElement(final IJavaElement javaElement) {
 		if (javaElement == null) {
 			return null;
 		}

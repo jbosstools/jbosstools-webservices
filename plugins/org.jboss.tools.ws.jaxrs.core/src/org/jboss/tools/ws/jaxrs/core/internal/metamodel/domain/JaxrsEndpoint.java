@@ -412,7 +412,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			level = Math.max(level, resourceMethod.getProblemLevel());
 		}
 		level = Math.max(level, httpMethod.getProblemLevel());
-		level = Math.max(level, metamodel.getProblemLevel());
 		if(application != null) {
 			level = Math.max(level, application.getProblemLevel());
 		}

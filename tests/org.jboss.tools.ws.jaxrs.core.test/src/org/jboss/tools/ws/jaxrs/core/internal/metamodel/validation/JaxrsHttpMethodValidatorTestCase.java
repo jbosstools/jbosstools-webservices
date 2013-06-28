@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
@@ -75,6 +76,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final JaxrsBaseElement httpMethod = (JaxrsBaseElement) metamodel.findElement(fooType);
 		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -83,7 +85,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), equalTo(0));
 		}
-
+		assertThat(metamodelProblemLevelChanges.size(), is(0));
 	}
 
 	@Test
@@ -94,11 +96,13 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		//metamodel.add(httpMethod);
 		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
+		assertThat(metamodelProblemLevelChanges.size(), is(0));
 	}
 
 	@Test
@@ -109,6 +113,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final Annotation httpMethodAnnotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
 		httpMethod.addOrUpdateAnnotation(createAnnotation(httpMethodAnnotation, new String()));
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -119,6 +124,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -130,6 +137,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		httpMethod.addOrUpdateAnnotation(createAnnotation(httpMethodAnnotation, (String) null));
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@HttpMethod(\"FOO\")", "@HttpMethod", true);
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -140,6 +148,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -151,6 +161,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		httpMethod.removeAnnotation(targetAnnotation.getJavaAnnotation());
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Target(value=ElementType.METHOD)", "", true);
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -161,6 +172,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -173,6 +186,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		httpMethod.addOrUpdateAnnotation(createAnnotation(targetAnnotation, (String) null));
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Target(value=ElementType.METHOD)", "@Target", true);
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -183,6 +197,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -195,6 +211,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		httpMethod.addOrUpdateAnnotation(createAnnotation(targetAnnotation, "FOO"));
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Target(value=ElementType.METHOD)", "@Target(value=ElementType.FIELD)", true);
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -205,6 +222,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -216,6 +235,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		httpMethod.removeAnnotation(targetAnnotation.getJavaAnnotation());
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.RUNTIME)", "", true);
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -226,6 +246,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 	
 	@Test
@@ -238,6 +260,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		httpMethod.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, (String)null));
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.RUNTIME)", "@Retention", true);
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -248,6 +271,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 	
 	@Test
@@ -260,6 +285,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		httpMethod.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, "FOO"));
 		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.RUNTIME)", "@Retention(value=RetentionPolicy.SOURCE)", true);
 		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -270,6 +296,8 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 }

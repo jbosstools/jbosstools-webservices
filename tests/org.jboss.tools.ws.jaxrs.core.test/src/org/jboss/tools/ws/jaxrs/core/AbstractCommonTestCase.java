@@ -52,7 +52,9 @@ import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
@@ -95,6 +97,10 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 	protected List<JaxrsElementDelta> elementChanges = null;
 	
 	protected List<JaxrsEndpointDelta> endpointChanges = null;
+	
+	protected List<IJaxrsEndpoint> endpointProblemLevelChanges = null;
+
+	protected List<IJaxrsMetamodel> metamodelProblemLevelChanges = null;
 	
 	public final static String DEFAULT_SAMPLE_PROJECT_NAME = WorkbenchUtils
 			.retrieveSampleProjectName(AbstractCommonTestCase.class);
@@ -166,6 +172,8 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 			metamodel = JaxrsMetamodel.create(javaProject);
 			this.elementChanges = new ArrayList<JaxrsElementDelta>();
 			this.endpointChanges = new ArrayList<JaxrsEndpointDelta>();
+			this.endpointProblemLevelChanges = new ArrayList<IJaxrsEndpoint>();
+			this.metamodelProblemLevelChanges = new ArrayList<IJaxrsMetamodel>();
 			metamodel.addListener((IJaxrsElementChangedListener)this);
 			metamodel.addListener((IJaxrsEndpointChangedListener)this);
 		} finally {
@@ -196,6 +204,13 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 			metamodel.removeListener((IJaxrsEndpointChangedListener)this);
 		}
 	}
+	
+	void resetProblemLevelChangeNotifications() {
+		this.endpointProblemLevelChanges.clear();
+		this.metamodelProblemLevelChanges.clear();
+	}
+
+	
 	protected IType resolveType(String typeName) throws CoreException {
 		return JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor());
 	}
@@ -402,5 +417,19 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 	public void notifyEndpointChanged(final JaxrsEndpointDelta delta) {
 		endpointChanges.add(delta);
 	}
+
+	@Override
+	public void notifyEndpointProblemLevelChanged(IJaxrsEndpoint endpoint) {
+		endpointProblemLevelChanges.add(endpoint);
+		
+	}
+
+	@Override
+	public void notifyMetamodelProblemLevelChanged(IJaxrsMetamodel metamodel) {
+		metamodelProblemLevelChanges.add(metamodel);
+		
+	}
+	
+	
 
 }
