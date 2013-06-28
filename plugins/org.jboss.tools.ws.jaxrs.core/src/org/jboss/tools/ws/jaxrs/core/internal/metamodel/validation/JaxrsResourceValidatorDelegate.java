@@ -12,9 +12,9 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.common.validation.TempMarkerManager;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 
 /**
@@ -23,14 +23,18 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
  * @author Xavier Coulon
  * 
  */
-public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<IJaxrsResource> {
+public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsResource> {
 
 	public JaxrsResourceValidatorDelegate(final TempMarkerManager markerManager) {
 		super(markerManager);
 	}
 
+	/**
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.
+	 * AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
+	 */
 	@Override
-	public void validate(final IJaxrsResource resource) throws CoreException {
+	void internalValidate(final JaxrsResource resource) throws CoreException {
 		Logger.debug("Validating element {}", resource);
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(resource);
 		for(IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {

@@ -15,7 +15,7 @@ import java.util.Collection;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 
-public interface IJaxrsMetamodel {
+public interface IJaxrsMetamodel extends IJaxrsStatus {
 
 	/**
 	 * Returns <code>true</code> if the JAX-RS Metamodel is being initialized, false if it has already been initialized.
@@ -33,10 +33,16 @@ public interface IJaxrsMetamodel {
 	 *            the Java Element
 	 * @return the JAX-RS Element or null if none matches.
 	 */
-	public abstract IJaxrsElement findElement(final IJavaElement javaElement);
+	public abstract IJaxrsStatus findElement(final IJavaElement javaElement);
 	
 	public abstract IProject getProject();
 
+	/**
+	 * Adds the given {@link IJaxrsEndpointChangedListener} listener to the metamodel. Has no effect if 
+	 * the same listener has already been registered.
+	 * 
+	 * @param listener
+	 */
 	public abstract void addListener(IJaxrsEndpointChangedListener listener);
 
 	public void removeListener(IJaxrsEndpointChangedListener listener);

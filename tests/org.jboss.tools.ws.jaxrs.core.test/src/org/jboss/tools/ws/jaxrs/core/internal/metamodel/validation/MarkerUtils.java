@@ -94,6 +94,7 @@ public class MarkerUtils {
 	}
 
 	/**
+	 * Reset JAX-RS Markers
 	 * @param element
 	 * @throws CoreException
 	 */

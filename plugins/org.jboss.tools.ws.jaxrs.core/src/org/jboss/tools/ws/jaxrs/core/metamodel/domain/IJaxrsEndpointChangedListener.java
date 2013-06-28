@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
 
+
 /**
  * Interface to get notified of the JAX-RS Endpoint changes.
  * 
@@ -28,5 +29,17 @@ public interface IJaxrsEndpointChangedListener {
 	 * @param delta
 	 */
 	public void notifyEndpointChanged(JaxrsEndpointDelta delta);
+
+	/**
+	 * Method called when the problem level of the given {@link IJaxrsEndpoint} changed
+	 * @param affectedEndpoint the endpoint whose problem level changed
+	 */
+	public void notifyEndpointProblemLevelChanged(IJaxrsEndpoint affectedEndpoint);
+
+	/**
+	 * Method called when the problem level of the given {@link IJaxrsMetamodel} changed
+	 * @param metamodel the metamodel whose problem level changed
+	 */
+	public void notifyMetamodelProblemLevelChanged(IJaxrsMetamodel jaxrsMetamodel);
 
 }

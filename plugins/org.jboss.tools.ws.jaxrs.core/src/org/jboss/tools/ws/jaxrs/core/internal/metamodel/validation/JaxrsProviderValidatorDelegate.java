@@ -58,10 +58,11 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	}
 
 	/**
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.AbstractJaxrsElementValidatorDelegate#validate()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.
+	 * AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	public void validate(JaxrsProvider provider) throws CoreException {
+	void internalValidate(JaxrsProvider provider) throws CoreException {
 		Logger.debug("Validating element {}", provider);
 		try {
 			provider.resetProblemLevel();

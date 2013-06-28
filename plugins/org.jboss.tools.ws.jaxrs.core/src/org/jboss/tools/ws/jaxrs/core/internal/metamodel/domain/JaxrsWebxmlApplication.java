@@ -30,10 +30,15 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 
-public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsApplication {
+/**
+ * JAX-RS Application defined as part of a web deployment descriptor.
+ * 
+ * @author xcoulon
+ *
+ */
+public class JaxrsWebxmlApplication extends JaxrsApplication {
 
 	/**
 	 * Initialize the JaxrsWebxmlApplication builder with the given {@link IResource}

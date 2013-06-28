@@ -56,8 +56,12 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		super(markerManager);
 	}
 
+	/**
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.
+	 * AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
+	 */
 	@Override
-	public void validate(final JaxrsResourceMethod resourceMethod) throws JavaModelException {
+	void internalValidate(final JaxrsResourceMethod resourceMethod) throws JavaModelException {
 		Logger.debug("Validating element {}", resourceMethod);
 		resourceMethod.resetProblemLevel();
 		validatePublicModifierOnJavaMethod(resourceMethod);

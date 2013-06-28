@@ -10,8 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.hasPreferenceKey;
@@ -75,12 +75,14 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsBaseElement customerResource = (JaxrsBaseElement) metamodel.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(customerResource.getResource()), project, validationHelper,
 				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
+		assertThat(metamodelProblemLevelChanges.size(), is(0));
 	}
 
 	@Test
@@ -89,6 +91,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final IType barJavaType = getType("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
 		final JaxrsResource barResource = metamodel.findResource(barJavaType);
 		deleteJaxrsMarkers(barResource);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(barResource.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -98,6 +101,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 			LOGGER.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER), marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(8));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 	
 	
@@ -108,6 +113,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final IType barJavaType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
 		final JaxrsResource barResource = (JaxrsResource) metamodel.findElement(barJavaType);
 		deleteJaxrsMarkers(barResource);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(barResource.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -137,6 +143,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 				fail("Unexpected method " + entry.getKey());
 			}
 		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 	
 	@Test
@@ -147,6 +155,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(), JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
 		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
 		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -154,6 +163,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final IMarker[] markers = findJaxrsMarkers(resource);
 		// verification
 		assertThat(markers.length, equalTo(0));
+		assertThat(metamodelProblemLevelChanges.size(), is(0));
 	}
 
 	@Test
@@ -166,6 +176,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
 		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -174,6 +185,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		// verification
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -186,6 +199,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
 		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -197,6 +211,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(9));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(6));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -209,6 +225,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
 		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -220,6 +237,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(13));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(26));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
 	@Test
@@ -233,6 +252,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
 		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -244,6 +264,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(13));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(28));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 	
 	@Test
@@ -256,6 +278,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final JaxrsResource resource = (JaxrsResource) elements.get(0); 
 		//metamodel.add(resource);
 		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
 		// operation: remove the @PathParam, so that some @Path value has no counterpart
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -267,6 +290,8 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_ERROR));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(4));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 	
 	@Test

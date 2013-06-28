@@ -43,13 +43,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	@Override
 	public Object[] getChildren(final Object parentElement) {
 		if (parentElement instanceof IProject) {
-			final IProject project = (IProject) parentElement;
-			if (!uriPathTemplateCategories.containsKey(project)) {
-				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
-				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
-			}
-			Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
-			return new Object[] { uriPathTemplateCategories.get(project) };
+			return getChildren((IProject)parentElement);
 		}
 		if (parentElement instanceof UriPathTemplateCategory) {
 			final UriPathTemplateCategory uriPathTemplateCategory = (UriPathTemplateCategory) parentElement;
@@ -59,7 +53,34 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			return ((ITreeContentProvider) parentElement).getChildren(parentElement);
 		}
 		Logger.debug("*** No children for parent of type '{}' ***", parentElement.getClass().getName());
-		return null;
+		return new Object[0];
+	}
+	
+	/**
+	 * Return the children elements for the given {@link IProject}. Returned array should contain a single
+	 * entry, the {@link UriPathTemplateCategory}.
+	 * @param project
+	 * @return an array with a single {@link UriPathTemplateCategory} item, or an empty array if an exception occurred
+	 */
+	private Object[] getChildren(final IProject project) {
+		try {
+			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			// let's make sure this listener is registered
+			if (metamodel != null) {
+				// metamode.addListener() avoids duplicate entries
+				metamodel.addListener(this);
+			}
+			if (!uriPathTemplateCategories.containsKey(project)) {
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
+				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
+			}
+			Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
+			return new Object[] { uriPathTemplateCategories.get(project) };
+		} catch (CoreException e) {
+			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
+		}
+		return new Object[0];
+		
 	}
 
 	@Override
@@ -115,13 +136,52 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			break;
 		}
 	}
+	
+	@Override
+	public void notifyEndpointProblemLevelChanged(final IJaxrsEndpoint endpoint) {
+		// check if the viewer is already having the appropriate
+		// UriPathTemplateCategory for the given project. If not,
+		// it is a WaitWhileBuildingElement item, and the project itself must be
+		// refresh to replace this temporary
+		// element with the expected category.
+		final IProject project = endpoint.getProject();
+		if (!uriPathTemplateCategories.containsKey(project)) {
+			refreshContent(project);
+		}
+		final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
+		final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
+		if(target != null) {
+			Logger.debug("Refreshing navigator view at level: {}", target.getClass().getName());
+			// this piece of code must run in an async manner to avoid reentrant
+			// call while viewer is busy.
+			updateContent(target);
+		}
+	}
+
+	@Override
+	public void notifyMetamodelProblemLevelChanged(final IJaxrsMetamodel metamodel) {
+		if(metamodel == null) {
+			return;
+		}
+		final IProject project= metamodel.getProject();
+		if (uriPathTemplateCategories != null) {
+			if (!uriPathTemplateCategories.containsKey(project)) {
+				Logger.debug("Adding a UriPathTemplateCategory for project {} (case #1)", project.getName());
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
+				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
+				refreshContent(uriPathTemplateCategories.get(project));
+			}
+			updateContent(uriPathTemplateCategories.get(project));
+		}
+	}
+
 
 	/**
 	 * Refresh the whole JAX-RS Content tree for the given Project
 	 * 
 	 * @param project
 	 */
-	protected void refreshContent(final IProject project) {
+	public void refreshContent(final IProject project) {
 		if (uriPathTemplateCategories != null) {
 			if (!uriPathTemplateCategories.containsKey(project)) {
 				Logger.debug("Adding a UriPathTemplateCategory for project {} (case #1)", project.getName());
@@ -137,7 +197,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	 * 
 	 * @param project
 	 */
-	protected void refreshContent(final IJaxrsEndpoint endpoint) {
+	private void refreshContent(final IJaxrsEndpoint endpoint) {
 		// check if the viewer is already having the appropriate
 		// UriPathTemplateCategory for the given project. If not,
 		// it is a WaitWhileBuildingElement item, and the project itself must be
@@ -149,11 +209,13 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		}
 		final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
 		final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
-		Logger.debug("Refreshing navigator view at level: {}", target.getClass().getName());
-		// this piece of code must run in an async manner to avoid reentrant
-		// call while viewer is busy.
-		refreshContent(target);
-		updateContent(uriPathTemplateCategory);
+		// during initialization, UI may not be available yet.
+		if(target != null) {
+			Logger.debug("Refreshing navigator view at level: {}", target.getClass().getName());
+			// this piece of code must run in an async manner to avoid reentrant
+			// call while viewer is busy.
+			refreshContent(target);
+		}
 	}
 
 	/**
@@ -163,7 +225,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	 * @param target
 	 *            the node to refresh
 	 */
-	protected void refreshContent(final Object target) {
+	private void refreshContent(final Object target) {
 		// this piece of code must run in an async manner to avoid reentrant
 		// call while viewer is busy.
 		Display.getDefault().asyncExec(new Runnable() {
@@ -212,5 +274,5 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		public LoadingStub() {
 		}
 	}
-
+	
 }
