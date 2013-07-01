@@ -184,7 +184,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		final IMarker[] markers = findJaxrsMarkers(resource);
 		// verification
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0].getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
+		assertThat(markers[0].getAttribute(IMarker.LINE_NUMBER, 0), equalTo(15));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
@@ -209,7 +209,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(markers.length, equalTo(1));
 		final IMarker marker = markers[0];
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
-		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(9));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(10));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(6));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 		assertThat(metamodelProblemLevelChanges.size(), is(1));
@@ -235,7 +235,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(markers.length, equalTo(1));
 		final IMarker marker = markers[0];
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
-		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(13));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(26));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 		assertThat(metamodelProblemLevelChanges.size(), is(1));
@@ -262,7 +262,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(markers.length, equalTo(1));
 		final IMarker marker = markers[0];
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
-		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(13));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(28));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 		assertThat(metamodelProblemLevelChanges.size(), is(1));
@@ -288,7 +288,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		assertThat(markers.length, equalTo(1));
 		final IMarker marker = markers[0];
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_ERROR));
-		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(15));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(4));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 		assertThat(metamodelProblemLevelChanges.size(), is(1));
@@ -299,4 +299,33 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportWarningIfNoProviderExists() throws CoreException, ValidationException {
 		fail("Not implemented yet");
 	}
+	
+	@Test
+	public void shouldReportErrorWhenUnauthorizedContextAnnotationOnJavaMethodParameters() throws CoreException, ValidationException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(compilationUnit, "@QueryParam(\"start\")", "@Context", false);
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(compilationUnit.findPrimaryType(),
+				JdtUtils.parse(compilationUnit, null), metamodel, new NullProgressMonitor());
+		final JaxrsResource resource = (JaxrsResource) elements.get(0);
+		// metamodel.add(resource);
+		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
+		// operation: remove the @PathParam, so that some @Path value has no
+		// counterpart
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(1));
+		final IMarker marker = markers[0];
+		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_ERROR));
+		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(19));
+		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(8));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelProblemLevelChanges.size(), is(1));
+	}
+	
 }
