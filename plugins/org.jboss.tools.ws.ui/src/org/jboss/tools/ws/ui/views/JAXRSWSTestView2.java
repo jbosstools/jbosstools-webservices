@@ -1919,7 +1919,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 			body = EMPTY_STRING;
 
 		// if no actual text in the request body, set to null
-		if (body.trim().length() == 0) body = null;
+		if (body != null && body.trim().length() == 0) body = null;
 
 		monitor.worked(10);
 
