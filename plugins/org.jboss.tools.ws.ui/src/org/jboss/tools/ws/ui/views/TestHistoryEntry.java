@@ -15,7 +15,7 @@ public class TestHistoryEntry implements Cloneable{
 	private String url;
 	private String action;
 	private String body;
-	private String method;
+	private String method = "GET"; //$NON-NLS-1$
 	private String headers;
 	private String parms;
 	private String[] resultHeadersList;
