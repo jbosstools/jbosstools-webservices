@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
@@ -29,10 +28,10 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
@@ -137,16 +136,19 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		}
 		// only accepting constructors with parameters annotated with
 		// @javax.ws.rs.core.Context
-		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
-				JdtUtils.parse(method, new NullProgressMonitor()));
-		for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
-			if (parameter.getAnnotations().isEmpty()) {
-				return false;
-			}
-			for (Entry<String, Annotation> annotation : parameter.getAnnotations().entrySet()) {
-				if (!annotation.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.CONTEXT.qualifiedName)
-						|| !CONTEXT_TYPE_NAMES.contains(parameter.getTypeName())) {
+		//final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
+		//		JdtUtils.parse(method, new NullProgressMonitor()));
+		final JavaMethodSignature methodSignature = CompilationUnitsRepository.getInstance().getMethodSignature(method);
+		if(methodSignature != null) {
+			for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
+				if (parameter.getAnnotations().isEmpty()) {
 					return false;
+				}
+				for (Entry<String, Annotation> annotation : parameter.getAnnotations().entrySet()) {
+					if (!annotation.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.CONTEXT.qualifiedName)
+							|| !CONTEXT_TYPE_NAMES.contains(parameter.getTypeName())) {
+						return false;
+					}
 				}
 			}
 		}

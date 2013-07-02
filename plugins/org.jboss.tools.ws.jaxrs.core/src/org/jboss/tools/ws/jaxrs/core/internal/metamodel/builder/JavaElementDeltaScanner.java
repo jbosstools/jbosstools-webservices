@@ -115,11 +115,11 @@ public class JavaElementDeltaScanner {
 
 				// FIXME: must make sure that the methodDeclarationsMap remains
 				// in sync with the working copy after each change.
-				boolean computeDiffs = requiresDiffsComputation(flags);
-				Map<String, JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
+				final boolean computeDiffs = requiresDiffsComputation(flags);
+				final Map<String, JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
 						compilationUnitAST, computeDiffs);
 				for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
-					JavaMethodSignature methodSignature = diff.getValue();
+					final JavaMethodSignature methodSignature = diff.getValue();
 					final JavaElementDelta event = new JavaElementDelta(methodSignature.getJavaMethod(), CHANGED, eventType,
 							compilationUnitAST, F_SIGNATURE);
 					if (javaElementChangedEventFilter.apply(event)) {
@@ -129,10 +129,10 @@ public class JavaElementDeltaScanner {
 				// FIXME: why solved only ??
 				// looking for removed (ie solved) problems
 				final IProblem[] problems = compilationUnitAST.getProblems();
-				Map<IProblem, IJavaElement> solvedProblems = compilationUnitsRepository.mergeProblems(compilationUnit,
+				final Map<IProblem, IJavaElement> solvedProblems = compilationUnitsRepository.mergeProblems(compilationUnit,
 						problems);
 				for (Entry<IProblem, IJavaElement> solvedProblem : solvedProblems.entrySet()) {
-					IJavaElement solvedElement = solvedProblem.getValue();
+					final IJavaElement solvedElement = solvedProblem.getValue();
 					final JavaElementDelta event = new JavaElementDelta(solvedElement, CHANGED, eventType,
 							compilationUnitAST, F_PROBLEM_SOLVED);
 					if (javaElementChangedEventFilter.apply(event)) {
@@ -141,7 +141,7 @@ public class JavaElementDeltaScanner {
 				}
 
 			}
-		} else {
+		} else if(compilationUnitAST != null){
 			final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType, compilationUnitAST,
 					flags);
 			if (javaElementChangedEventFilter.apply(event)) {
@@ -159,19 +159,25 @@ public class JavaElementDeltaScanner {
 		return events;
 	}
 
-	private CompilationUnit getCompilationUnitAST(IJavaElementDelta delta) throws JavaModelException {
+	/**
+	 * Returns the {@link CompilationUnit} associated with the
+	 * {@link IJavaElement} of the given {@link IJavaElementDelta}.
+	 * 
+	 * @param delta the given Java Element Delta
+	 * @return the associated Compilation Unit AST or null
+	 * @throws JavaModelException
+	 */
+	private CompilationUnit getCompilationUnitAST(final IJavaElementDelta delta) throws JavaModelException {
 		CompilationUnit compilationUnitAST = null;
 		IJavaElement element = delta.getElement();
 		int elementKind = element.getElementType();
 		int deltaKind = retrieveDeltaKind(delta);
-
 		if (elementKind == COMPILATION_UNIT) {
 			ICompilationUnit compilationUnit = (ICompilationUnit) element;
 			switch (deltaKind) {
 			case ADDED:
 				compilationUnitAST = compilationUnitsRepository.getAST(compilationUnit);
 				break;
-
 			case CHANGED:
 				if (compilationUnit.isWorkingCopy()) {
 					compilationUnitAST = delta.getCompilationUnitAST();

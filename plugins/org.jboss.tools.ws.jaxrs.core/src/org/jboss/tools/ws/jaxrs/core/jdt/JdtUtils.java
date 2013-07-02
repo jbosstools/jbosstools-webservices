@@ -664,7 +664,12 @@ public final class JdtUtils {
 		return arguments;
 	}
 
-	public static Map<String, JavaMethodSignature> resolveMethodSignatures(IType type, CompilationUnit ast) {
+	/**
+	 * Returns the method signatures for <strong> all the methods within the given AST</strong>.
+	 * @param ast the Compilation Unit AST
+	 * @return the JavaMethodSignatures or empty map if the given AST is null or has no method.
+	 */
+	public static Map<String, JavaMethodSignature> resolveMethodSignatures(final CompilationUnit ast) {
 		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
 		ast.accept(methodsVisitor);
 		return methodsVisitor.getMethodSignatures();
@@ -676,7 +681,7 @@ public final class JdtUtils {
 	 * @param ast the associated Compilation Unit AST
 	 * @return the JavaMethodSignature or null if the given AST is null.
 	 */
-	public static JavaMethodSignature resolveMethodSignature(IMethod method, CompilationUnit ast) {
+	public static JavaMethodSignature resolveMethodSignature(final IMethod method, final CompilationUnit ast) {
 		if(ast == null) {
 			return null;
 		}

@@ -78,7 +78,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -169,6 +171,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * */
 	private SimpleValidatingProjectTree validatingProjectTree = null;
 
+	/** The last known build status for this metamodel. */
+	private IStatus buildStatus = Status.OK_STATUS;
+
 	/**
 	 * Full constructor.
 	 * 
@@ -185,6 +190,24 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		indexationService = new JaxrsElementsIndexationDelegate();
 		addBuiltinHttpMethods();
 	}
+
+	/**
+	 * Sets the last known build {@link IStatus} for this JAX-RS Metamodel.
+	 * This allows external classes to know if the last build completed successfully or not.
+	 * @param buildStatus the last known build status
+	 */
+	public void setBuildStatus(final IStatus buildStatus) {
+		this.buildStatus = buildStatus;
+	}
+	
+	/**
+	 * Returns the last known build {@link IStatus} for this JAX-RS Metamodel.
+	 * This allows external classes to know if the last build completed successfully or not.
+	 */
+	public IStatus getBuildStatus() {
+		return this.buildStatus;
+	}
+
 
 	/**
 	 * Initializes and returns the {@link IValidatingProjectTree} associated with the undelying {@link IProject} for this {@link JaxrsMetamodel}

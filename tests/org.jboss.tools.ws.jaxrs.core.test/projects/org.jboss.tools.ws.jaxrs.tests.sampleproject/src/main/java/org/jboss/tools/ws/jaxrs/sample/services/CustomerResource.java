@@ -77,6 +77,11 @@ public class CustomerResource {
 		entityManager.remove(customer);
 	}
 
+	// DO NOT REMOVE: https://issues.jboss.org/browse/JBIDE-15084
+	private Response.ResponseBuilder createViolationResponse() {
+		return null;
+	}
+	
 	/**
 	 * @return the entityManager
 	 */
