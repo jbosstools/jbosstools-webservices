@@ -184,7 +184,36 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		// explicitly trigger the project build
 		//javaProject.getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
 		// verifications: no exception should have been thrown
-	
 	}
-	
+
+	@Test
+	public void shouldNotFailBuildingJaxrsProjectWhenMissingLibraries() throws CoreException, OperationCanceledException,
+			InterruptedException {
+		// pre-conditions
+		if (JaxrsMetamodelLocator.get(javaProject) != null) {
+			JaxrsMetamodelLocator.get(javaProject).remove();
+		}
+		WorkbenchUtils.removeClasspathEntry(javaProject, "jaxrs-api-2.0.1.GA.jar", null);
+		// operation: built the project, including the jaxrs metamodel
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+		// verification
+		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+		assertThat(metamodel, notNullValue());
+		assertThat(metamodel.getBuildStatus().isOK(), equalTo(true));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldNotFailRebuildingJaxrsProjectWhenMissingLibraries() throws CoreException, OperationCanceledException,
+	InterruptedException {
+		// pre-conditions
+		WorkbenchUtils.removeClasspathEntry(javaProject, "jaxrs-api-2.0.1.GA.jar", null);
+		// operation: call the JAX-RS builer for the project
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
+		// verification
+		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+		assertThat(metamodel, notNullValue());
+		assertThat(metamodel.getBuildStatus().isOK(), equalTo(true));
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(0));
+	}
 }

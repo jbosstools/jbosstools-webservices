@@ -55,6 +55,7 @@ public class JavaElementChangedBuildJob extends Job {
 					new SubProgressMonitor(progressMonitor, SCALE));
 			if(affectedJavaElements.isEmpty()) {
 				Logger.debug("No relevant affected element to process");
+				return Status.OK_STATUS;
 			}
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -64,14 +65,21 @@ public class JavaElementChangedBuildJob extends Job {
 				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 				// prevent NPE when opening a closed project (ie, there's no metamodel yet).
 				if(metamodel != null) {
-					metamodel.processJavaElementChange(delta, progressMonitor);
-					if (progressMonitor.isCanceled()) {
-						return Status.CANCEL_STATUS;
+					try {
+						metamodel.processJavaElementChange(delta, progressMonitor);
+						if (progressMonitor.isCanceled()) {
+							return Status.CANCEL_STATUS;
+						}
+						metamodel.setBuildStatus(Status.OK_STATUS);
+					} catch(Throwable e) {
+						final IStatus status = Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
+						metamodel.setBuildStatus(status);
+						return status;
 					}
 				}
 			}
 		} catch (Throwable e) {
-			Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
+			return Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 		} finally {
 			progressMonitor.done();
 		}

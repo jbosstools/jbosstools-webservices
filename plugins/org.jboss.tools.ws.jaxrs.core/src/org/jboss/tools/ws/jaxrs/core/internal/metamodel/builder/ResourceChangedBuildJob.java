@@ -37,7 +37,7 @@ public class ResourceChangedBuildJob extends Job {
 	private final IResourceChangeEvent event;
 
 	private final IProject project;
-
+	
 	public ResourceChangedBuildJob(final IProject project, final IResourceChangeEvent event) {
 		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
@@ -56,36 +56,30 @@ public class ResourceChangedBuildJob extends Job {
 			progressMonitor.worked(SCALE);
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
-			}
-
+			} 
 			// compute changes on the JAX-RS Application(s), HttpMethods, Resources, etc.
-			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-			if (metamodel == null) {
-				JaxrsMetamodelLocator.get(project, true).processProject(progressMonitor);
-			} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
-					|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
-				metamodel.processProject(progressMonitor);
-			} else {
-				metamodel.processAffectedResources(affectedResources, progressMonitor);
+			JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			try {
+				if (metamodel == null) {
+					metamodel = JaxrsMetamodelLocator.get(project, true);
+					metamodel.processProject(progressMonitor);
+				} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
+						|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
+					metamodel.processProject(progressMonitor);
+				} else {
+					metamodel.processAffectedResources(affectedResources, progressMonitor);
+				}
+				metamodel.setBuildStatus(Status.OK_STATUS);
+			} catch(Throwable e) {
+				final IStatus status = Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + project.getName(), e);
+				if(metamodel != null) {
+					metamodel.setBuildStatus(status);
+				}
+				return status;
 			}
-			/*
-			final JaxrsMetamodelDelta metamodelDelta = new ResourceChangedProcessor().processAffectedResources(project,
-					withReset, affectedResources, new SubProgressMonitor(progressMonitor, SCALE));
-			progressMonitor.worked(SCALE);
-			if (progressMonitor.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
-			new JaxrsMetamodelChangedProcessor().processAffectedMetamodel(metamodelDelta, new SubProgressMonitor(
-					progressMonitor, SCALE));
-			progressMonitor.worked(SCALE);
-			if (progressMonitor.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
-			new JaxrsElementChangedPublisher().publish(metamodelDelta);
-			progressMonitor.worked(SCALE);
-			*/
+			return Status.OK_STATUS;
 		} catch (Throwable e) {
-			Logger.error("Failed to build or refresh the JAX-RS metamodel for projet " + project.getName(), e);
+			return Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + project.getName(), e);
 		} finally {
 			long endTime = new Date().getTime();
 			if (Logger.isDebugEnabled()) {
@@ -103,7 +97,6 @@ public class ResourceChangedBuildJob extends Job {
 			}
 			progressMonitor.done();
 		}
-		return Status.OK_STATUS;
 	}
 
 	private List<ResourceDelta> extractAffectedResources(final IResourceDelta delta, final IProgressMonitor progressMonitor)
