@@ -624,7 +624,7 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 			try {
 				IFacetedProject facetProject =
 						ProjectFacetsManager.create(((JBossWSAnnotatedClassWizard)this.getWizard()).getProject());
-				if (facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET) == null) {
+				if (facetProject == null || facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET) == null) {
 					// then we're not a dynamic web project
 					setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
 					return false;
