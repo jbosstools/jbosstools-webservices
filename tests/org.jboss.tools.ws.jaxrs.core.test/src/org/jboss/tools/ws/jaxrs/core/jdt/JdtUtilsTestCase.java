@@ -514,10 +514,10 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type,
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(
 				JdtUtils.parse(type, progressMonitor));
 		// verification
-		Assert.assertEquals(7, methodSignatures.size());
+		Assert.assertEquals(8, methodSignatures.size());
 		for (JavaMethodSignature methodSignature : methodSignatures.values()) {
 			for (JavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
 				for (Entry<String, Annotation> annotationEntry : methodParameter.getAnnotations().entrySet()) {
@@ -555,7 +555,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ParameterizedResource");
 		// operation
-		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type,
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(
 				JdtUtils.parse(type, progressMonitor));
 		// verification
 		Assert.assertEquals(1, methodSignatures.size());

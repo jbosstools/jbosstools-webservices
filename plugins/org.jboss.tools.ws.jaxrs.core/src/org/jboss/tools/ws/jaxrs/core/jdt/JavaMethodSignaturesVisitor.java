@@ -117,8 +117,15 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 	 * @return
 	 */
 	private IType getReturnType(final IMethodBinding methodBinding) {
-		if (methodBinding.getReturnType() != null && methodBinding.getReturnType().getJavaElement() != null) {
-			return (IType) methodBinding.getReturnType().getJavaElement().getAdapter(IType.class);
+		try {
+			if (methodBinding.getReturnType() != null && methodBinding.getReturnType().getJavaElement() != null) {
+				return (IType) methodBinding.getReturnType().getJavaElement().getAdapter(IType.class);
+			}
+		} 
+		// https://issues.jboss.org/browse/JBIDE-15084: when compilation error (not syntax), retrieving return type may result in
+		// an IllegalArgumentException
+		catch(IllegalArgumentException e) {
+			Logger.debug("Caught an IllegalArgumentException while trying to retrieve return type on method {}", methodBinding);
 		}
 		return null;
 	}

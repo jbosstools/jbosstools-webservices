@@ -136,7 +136,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 			// create the resource
 			final JaxrsResource resource = new JaxrsResource(this);
 			// retrieve all JavaMethodSignatures at once
-			final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(javaType, ast);
+			final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(ast);
 			// find the resource methods, subresource methods and
 			// subresource
 			// locators of this resource:

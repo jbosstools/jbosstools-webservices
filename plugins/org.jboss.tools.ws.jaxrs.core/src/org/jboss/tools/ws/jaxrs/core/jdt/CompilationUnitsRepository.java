@@ -110,13 +110,12 @@ public class CompilationUnitsRepository {
 
 	public Map<String, JavaMethodSignature> mergeAST(final ICompilationUnit compilationUnit,
 			final CompilationUnit compilationUnitAST, final boolean computeDiffs) {
-		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
-		compilationUnitAST.accept(methodsVisitor);
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(compilationUnitAST);
 		Map<String, JavaMethodSignature> diffs = null;
 		// FIXME: must make sure that the methodDeclarationsMap remains in sync
 		// with the working copy after each change.
 		if (computeDiffs) {
-			Map<String, JavaMethodSignature> workingCopyDeclarations = methodsVisitor.getMethodSignatures();
+			Map<String, JavaMethodSignature> workingCopyDeclarations = methodSignatures;
 			Map<String, JavaMethodSignature> controlDeclarations = methodDeclarationsMap.get(compilationUnit);
 			diffs = CollectionUtils.difference(workingCopyDeclarations, controlDeclarations);
 			if (diffs.size() > 0) {
@@ -130,7 +129,7 @@ public class CompilationUnitsRepository {
 		// TODO : improve performances here : do not override all method
 		// declaration, but only those that changed, because reparsing method
 		// signatures (annotated parameters, etc.) may be expensive.
-		methodDeclarationsMap.put(compilationUnit, methodsVisitor.getMethodSignatures());
+		methodDeclarationsMap.put(compilationUnit, methodSignatures);
 		return diffs;
 	}
 

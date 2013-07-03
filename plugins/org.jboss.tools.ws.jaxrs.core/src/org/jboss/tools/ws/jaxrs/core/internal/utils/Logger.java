@@ -73,15 +73,14 @@ public final class Logger {
 	 * @return
 	 */
 	public static Status error(final String message, final Throwable t) {
+		final Status status = new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message, t);
 		if (JBossJaxrsCorePlugin.getDefault() != null) {
-			final Status status = new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message, t);
 			JBossJaxrsCorePlugin.getDefault().getLog().log(status);
-			return status;
 		} else {
 			// at least write in the .log file
 			t.printStackTrace();
-			return null;
 		}
+		return status;
 	}
 
 	/**
