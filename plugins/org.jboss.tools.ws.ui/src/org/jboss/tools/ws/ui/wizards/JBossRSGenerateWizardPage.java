@@ -398,6 +398,11 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 		try {
 			IFacetedProject facetProject =
 					ProjectFacetsManager.create(((JBossRSGenerateWizard)this.getWizard()).getProject());
+            if (facetProject == null) {
+                // then we're not a dynamic web project
+                setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
+                return false;
+            }
 			IProjectFacetVersion version = 
 					facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET);
 			if (version == null) {
