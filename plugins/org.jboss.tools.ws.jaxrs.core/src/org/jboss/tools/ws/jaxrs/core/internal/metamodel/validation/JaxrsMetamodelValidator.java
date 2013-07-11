@@ -384,4 +384,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 
 	}
 
+	@Override
+	public boolean shouldValidateAsYouType(IProject project) {
+		return shouldValidate(project);
+	}
 }
