@@ -294,7 +294,7 @@ public class TesterWSDLUtils {
 	
 	public static boolean isRequestBodySOAP12 ( String body ) {
 		boolean isSOAP12 = false;
-		if (body.indexOf('<' + SOAP12_PREFIX + ":Envelope") > -1) { //$NON-NLS-1$
+		if (body.indexOf(SOAP12_ENVELOPE_NS_URI) > -1){
 			isSOAP12 = true;
 		}
 		return isSOAP12;
