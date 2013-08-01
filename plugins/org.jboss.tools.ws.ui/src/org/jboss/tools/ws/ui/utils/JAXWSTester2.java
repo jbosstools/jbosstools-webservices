@@ -146,7 +146,7 @@ public class JAXWSTester2 {
 		MessageFactory mf = MessageFactory.newInstance();
 		if (isSOAP12) {
 			mf = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
-		} else {
+		} else if (actionurl != null && !actionurl.trim().isEmpty()){
 			d.getRequestContext().put(BindingProvider.SOAPACTION_USE_PROPERTY, true);
 			d.getRequestContext().put(BindingProvider.SOAPACTION_URI_PROPERTY, actionurl); //"http://www.ecubicle.net/webservices/GetSearchResults");
 		}
