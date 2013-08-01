@@ -463,7 +463,11 @@ public class JAXRSWSTestView2 extends ViewPart {
 							Iterator<?> iter2 = binding.getBindingOperations().iterator();
 							while (iter2.hasNext()) {
 								BindingOperation bindOp = (BindingOperation) iter2.next();
-								if (bindOp.getName().contentEquals(opNameInBody)) {
+								String tempOpName = opNameInBody;
+								if (tempOpName.indexOf(':') > -1) {
+								    tempOpName = tempOpName.substring(tempOpName.indexOf(':') + 1);
+								}
+								if (bindOp.getName().contentEquals(opNameInBody) || bindOp.getName().contentEquals(tempOpName)) {
 									Iterator<?> iter3 = bindOp.getExtensibilityElements().iterator();
 									while (iter3.hasNext()) {
 										ExtensibilityElement extEl = (ExtensibilityElement) iter3.next();
@@ -495,8 +499,10 @@ public class JAXRSWSTestView2 extends ViewPart {
 															String serviceName = service.getQName().getLocalPart();
 															String portName = port.getName();
 															nsArray =  new String[] {ns, serviceName, portName};
-															if (actionURL != null && nsArray != null) {
-																getCurrentHistoryEntry().setAction(actionURL);
+                                                            if (actionURL != null) {
+                                                                getCurrentHistoryEntry().setAction(actionURL);
+                                                            }
+															if (nsArray != null) {
 																getCurrentHistoryEntry().setServiceNSMessage(nsArray);
 															    return true;
 															}
@@ -529,7 +535,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 		if (rtnCode == Window.OK){
 			
 			getCurrentHistoryEntry().setServiceNSMessage(null);
-			getCurrentHistoryEntry().setAction(null);
+			getCurrentHistoryEntry().setAction(""); //$NON-NLS-1$
 			getCurrentHistoryEntry().setWsdlDef(null);
 			getCurrentHistoryEntry().setServiceName(null);
 			getCurrentHistoryEntry().setPortName(null);
