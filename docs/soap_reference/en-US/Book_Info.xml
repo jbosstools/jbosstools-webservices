@@ -5,9 +5,8 @@
 	<title>JBoss SOAP Web Services User Guide</title>
 	<subtitle>Provides information relating to SOAP Web Services for JBoss.</subtitle>
 	<productname>JBoss Developer Studio</productname>
-	<productnumber>5.0</productnumber>
-	<edition>5.0.0</edition>
-	<pubsnumber>7</pubsnumber>
+	<productnumber>6.0</productnumber>
+	<edition>6.0.0</edition>
 	<abstract>
 		<para>The JBoss SOAP Web Services User Guide explains how to use the JBoss Web Services module to implement SOAP web services in Java.</para>
 	</abstract>
