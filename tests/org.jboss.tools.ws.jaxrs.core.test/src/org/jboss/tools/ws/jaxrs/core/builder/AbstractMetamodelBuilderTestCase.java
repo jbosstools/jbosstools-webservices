@@ -11,6 +11,8 @@
 
 package org.jboss.tools.ws.jaxrs.core.builder;
 
+import java.util.List;
+
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -19,6 +21,9 @@ import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
@@ -44,6 +49,19 @@ public abstract class AbstractMetamodelBuilderTestCase extends AbstractCommonTes
 		WorkbenchUtils.setAutoBuild(ResourcesPlugin.getWorkspace(), false);
 		// ProjectFacetUtils.uninstallFacet(project, "jst.jaxrs");
 		ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
+	}
+	
+	/**
+	 * Utility method to remove the given {@link IJaxrsApplication}s from the {@link JaxrsMetamodel}.
+	 * @param applications
+	 * @throws CoreException
+	 */
+	protected void removeApplications(final List<? extends IJaxrsApplication> applications) throws CoreException {
+		for (IJaxrsApplication application : applications) {
+			if (application.isJavaApplication()) {
+				((JaxrsJavaApplication) application).remove();
+			}
+		}
 	}
 
 }

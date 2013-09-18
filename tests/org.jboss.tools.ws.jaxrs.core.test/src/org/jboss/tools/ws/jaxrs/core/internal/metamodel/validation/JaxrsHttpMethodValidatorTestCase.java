@@ -49,6 +49,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -67,6 +68,11 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		final Set<IFile> changedFiles = new HashSet<IFile>();
 		changedFiles.add((IFile) resource);
 		return changedFiles;
+	}
+	
+	@Before
+	public void removeExtraJaxrsJavaApplications() throws CoreException {
+		removeApplications(metamodel.getJavaApplications());
 	}
 
 	@Test

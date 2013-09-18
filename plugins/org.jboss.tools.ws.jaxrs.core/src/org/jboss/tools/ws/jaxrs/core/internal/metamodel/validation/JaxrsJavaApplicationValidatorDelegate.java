@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
@@ -57,19 +56,6 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 							.getSourceRange(), application,
 					JaxrsValidationConstants.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_QUICKFIX_ID);
 		}
-
-		if (application.getMetamodel().hasMultipleApplications()) {
-			ISourceRange javaNameRange = application.getJavaElement().getNameRange();
-			if (javaNameRange == null) {
-				Logger.warn("Cannot add a problem marker: unable to locate '"
-						+ application.getJavaElement().getElementName() + "' in resource '"
-						+ application.getJavaElement().getResource().getFullPath().toString() + "'. ");
-			} else {
-				addProblem(JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES,
-						JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], javaNameRange, application);
-			}
-		}
-
 	}
 
 }

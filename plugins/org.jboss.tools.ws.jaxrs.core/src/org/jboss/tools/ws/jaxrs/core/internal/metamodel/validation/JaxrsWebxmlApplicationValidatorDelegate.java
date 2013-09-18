@@ -11,12 +11,9 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
-import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 
 /**
  * Java-based JAX-RS Application validator
@@ -39,18 +36,6 @@ public class JaxrsWebxmlApplicationValidatorDelegate extends AbstractJaxrsElemen
 		Logger.debug("Validating element {}", webxmlApplication);
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(webxmlApplication);
 		webxmlApplication.resetProblemLevel();
-		if (webxmlApplication.getMetamodel().hasMultipleApplications()) {
-			ISourceRange webxmlNameRange = WtpUtils.getApplicationPathLocation(webxmlApplication.getResource(),
-					webxmlApplication.getJavaClassName());
-			if (webxmlNameRange == null) {
-				Logger.warn("Cannot add a problem marker: unable to locate '" + webxmlApplication.getJavaClassName()
-						+ "' in resource '" + webxmlApplication.getResource().getFullPath().toString() + "'. ");
-			} else {
-				addProblem(JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES,
-						JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], webxmlNameRange,
-						webxmlApplication);
-			}
-		}
 	}
 
 }
