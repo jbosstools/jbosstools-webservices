@@ -47,6 +47,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -133,6 +134,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		assertThat(markers.length, equalTo(0));
 		for (IJaxrsApplication application : metamodel.getAllApplications()) {
 			final IMarker[] appMarkers = findJaxrsMarkers(application);
+			assertThat(appMarkers.length, equalTo(1));
 			assertThat(appMarkers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(appMarkers.length, equalTo(1));
 		}
@@ -272,6 +274,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		for(JaxrsJavaApplication app : new JaxrsJavaApplication[]{javaApplication, javaApplication2}) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers.length, equalTo(1));
 			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
 				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 			}
@@ -295,6 +298,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		for(JaxrsJavaApplication app : new JaxrsJavaApplication[]{javaApplication, javaApplication2}) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers.length, equalTo(1));
 			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
 				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 			}
