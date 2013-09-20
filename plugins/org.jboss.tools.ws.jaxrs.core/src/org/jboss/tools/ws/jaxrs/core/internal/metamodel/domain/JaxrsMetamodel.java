@@ -14,21 +14,20 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_CATEGORY;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_COMPILATION_UNIT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_APPLICATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_APPLICATION_OVERRIDEN;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_CLASS_NAME;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_ELEMENT;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_PROJECT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAXRS_ELEMENT;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_MARKER_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PROVIDER_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_RESOURCE_PATH;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_RETURNED_TYPE_NAME;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_WEBXML_APPLICATION;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_WEBXML_APPLICATION_OVERRIDES_JAVA_APPLICATION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
@@ -101,6 +100,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorDelegate;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.JaxrsElementsIndexationDelegate;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -233,18 +233,32 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * Resets the problem level for this given element.
 	 */
 	public void resetProblemLevel() {
+		indexationService.unindexMarkers(getProject());
 		this.problemLevel = 0;
 	}
 
 	/**
-	 * Sets the problem level for this element. If this element already has a
-	 * problem level, the highest value is kept.
+	 * Registers a marker (from the underlying {@link IResource}) and potentially raises the
+	 * problem level on the metamodel itself. If this metamodel already has an higher problem
+	 * level, that later value is kept.
+	 * Also, the marker is indexed on the underlying resource and the custom JAX-RS Problem type
+	 * @param marker: the marker that has been added to the underlying project.
+	 *            
+	 * @throws CoreException
 	 * 
-	 * @param problem
-	 *            level: the incoming new problem level.
+	 * @see {@link JaxrsMetamodelValidator#JAXRS_PROBLEM_TYPE}
 	 */
-	public void setProblemLevel(final int problemLevel) {
-		this.problemLevel = Math.max(this.problemLevel, problemLevel);
+	public void registerMarker(final IMarker marker) {
+		indexationService.indexMarker(marker);
+		this.problemLevel = Math.max(this.problemLevel, marker.getAttribute(IMarker.SEVERITY, 0));
+	}
+	
+	/**
+	 * Unindexes the markers for the{@link IResource}.
+	 * @param resource a JAX-RS Element's underlying resource.
+	 */
+	public void unregisterMarkers(final IResource resource) {
+		indexationService.unindexMarkers(resource);
 	}
 
 	/**
@@ -479,7 +493,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (deltaKind == ADDED) {
 			JaxrsElementFactory.createElements(element, ast, this, progressMonitor);
 		} else {
-			final List<IJaxrsElement> jaxrsElements = searchElements(element);
+			final List<IJaxrsElement> jaxrsElements = searchJaxrsElements(element);
 			if (deltaKind == CHANGED) {
 				if (jaxrsElements.isEmpty()) {
 					JaxrsElementFactory.createElements(element, ast, this, progressMonitor);
@@ -832,7 +846,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	// FIXME: make protected instead of public
-	public void remove(final IJaxrsElement element) throws CoreException {
+	protected void remove(final IJaxrsElement element) throws CoreException {
 		if (element == null) {
 			return;
 		}
@@ -874,7 +888,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         element matched in the metamodel.
 	 * @throws JavaModelException
 	 */
-	private List<IJaxrsElement> searchElements(final IJavaElement element) throws JavaModelException {
+	private List<IJaxrsElement> searchJaxrsElements(final IJavaElement element) throws JavaModelException {
 		if (element == null) {
 			return Collections.emptyList();
 		}
@@ -1034,12 +1048,34 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return searchJaxrsElements(new Term(FIELD_IDENTIFIER, identifier));
 		}
 	}
+	
+	/**
+	 * Finds and returns a list of {@link IResource}s that have the given problemType as an {@link IMarker} attached
+	 * to them.
+	 * @param problemType the problem type to look for
+	 * @return the resources having the given problem type.
+	 */
+	public List<IResource> findResourcesWithProblemOfType(final String problemType) {
+		Logger.debug("Looking for JAX-RS elements with problem {}", problemType);
+		final List<IResource> matchingResources = new ArrayList<IResource>();
+		final Term categoryTerm = new Term(FIELD_TYPE, IMarker.class.getSimpleName());
+		final Term probleTypeTerm = new Term(FIELD_MARKER_TYPE, problemType);
+		final List<String> resourcePaths = indexationService.searchAll(categoryTerm, probleTypeTerm);
+		for(String resourcePath : resourcePaths) {
+			final IResource resource = getProject().getWorkspace().getRoot().findMember(resourcePath);
+			if(resource != null) {
+				matchingResources.add(resource);
+			}
+		}
+		return matchingResources;
+	}
+
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IJaxrsStatus findElement(final IJavaElement javaElement) {
+	public IJaxrsElement findElement(final IJavaElement javaElement) {
 		if (javaElement == null) {
 			return null;
 		}
@@ -1062,36 +1098,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         separate unmodifiable list
 	 */
 	public final List<IJaxrsApplication> getAllApplications() {
-		Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
+		Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 		return searchJaxrsElements(categoryTerm);
-	}
-
-	/**
-	 * @return true if the metamodel holds more than 1 <strong>real</strong>
-	 *         application, that is, excluding all application overrides
-	 *         configured in the web deployment descriptor. Returns false
-	 *         otherwise.
-	 */
-	public boolean hasMultipleApplications() {
-		final Term applicationCategoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
-		final Term webxmlApplicationTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
-		final Term javaApplicationTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
-		int count = 0;
-		// count Java Application that are not overriden
-		final Term javaApplicationOverridenTerm = new Term(FIELD_JAVA_APPLICATION_OVERRIDEN, Boolean.FALSE.toString());
-		count += indexationService.count(applicationCategoryTerm, javaApplicationTerm, javaApplicationOverridenTerm);
-		// count Web.xml Application that override
-		final Term overridesJavaApplicationTerm = new Term(FIELD_WEBXML_APPLICATION_OVERRIDES_JAVA_APPLICATION,
-				Boolean.TRUE.toString());
-		count += indexationService.count(applicationCategoryTerm, webxmlApplicationTerm, overridesJavaApplicationTerm);
-		// count Web.xml Application bound to default
-		// javax.ws.rs.core.Application
-		final Term defaultContainerApplicationTerm = new Term(FIELD_WEBXML_APPLICATION_OVERRIDES_JAVA_APPLICATION,
-				Boolean.FALSE.toString());
-		count += indexationService.count(applicationCategoryTerm, webxmlApplicationTerm,
-				defaultContainerApplicationTerm);
-		// check if sum > 1
-		return count > 1;
 	}
 
 	/**
@@ -1134,7 +1142,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final Term resourceTerm = new Term(FIELD_RESOURCE_PATH, resource.getFullPath().toPortableString());
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 		return searchJaxrsElement(resourceTerm, categoryTerm);
 	}
 
@@ -1143,7 +1151,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
 	public final List<JaxrsJavaApplication> getJavaApplications() {
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 		final Term kindTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
 		return searchJaxrsElements(categoryTerm, kindTerm);
 	}
@@ -1154,7 +1162,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	public final JaxrsJavaApplication findJavaApplicationByTypeName(final String typeName) {
 		final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, typeName);
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 		final Term kindTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
 		final String matchingIdentifier = indexationService.searchSingle(classNameTerm, categoryTerm, kindTerm);
 		return (JaxrsJavaApplication) elements.get(matchingIdentifier);
@@ -1165,7 +1173,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
 	public final List<JaxrsWebxmlApplication> findWebxmlApplications() {
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 		final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
 		return searchJaxrsElements(categoryTerm, kindTerm);
 	}
@@ -1179,7 +1187,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         <strong>will not be returned</strong> by this method.
 	 */
 	public final JaxrsWebxmlApplication findWebxmlApplication() {
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 		final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
 		final String elementIdentifier = indexationService.searchSingle(categoryTerm, kindTerm);
 		return (JaxrsWebxmlApplication) elements.get(elementIdentifier);
@@ -1191,7 +1199,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	public final JaxrsWebxmlApplication findWebxmlApplicationByClassName(final String className) {
 		final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, className);
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.APPLICATION.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 		final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
 		final String matchingIdentifier = indexationService.searchSingle(classNameTerm, categoryTerm, kindTerm);
 		return (JaxrsWebxmlApplication) elements.get(matchingIdentifier);
@@ -1203,7 +1211,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS HTTP Methods
 	 */
 	public final List<IJaxrsHttpMethod> findAllHttpMethods() {
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.HTTP_METHOD.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.HTTP_METHOD.toString());
 		return searchJaxrsElements(categoryTerm);
 	}
 
@@ -1220,7 +1228,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (typeName == null) {
 			return null;
 		}
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.HTTP_METHOD.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.HTTP_METHOD.toString());
 		final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, typeName);
 		return searchJaxrsElement(categoryTerm, typeTerm);
 	}
@@ -1237,7 +1245,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.PROVIDER.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
 		final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, providerType.getFullyQualifiedName());
 		return searchJaxrsElement(projectTerm, categoryTerm, typeTerm);
 	}
@@ -1254,7 +1262,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.RESOURCE.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE.toString());
 		final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, resourceType.getFullyQualifiedName());
 		return searchJaxrsElement(projectTerm, categoryTerm, typeTerm);
 	}
@@ -1271,7 +1279,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.RESOURCE_METHOD.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE_METHOD.toString());
 		final Term typeTerm = new Term(FIELD_RETURNED_TYPE_NAME, returnedType.getFullyQualifiedName());
 		return searchJaxrsElements(projectTerm, categoryTerm, typeTerm);
 	}
@@ -1296,7 +1304,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.PROVIDER.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
 		final Term providerKindTerm = new Term(FIELD_PROVIDER_KIND + providerKind.toString(), providedClassName);
 		return searchJaxrsElements(projectTerm, categoryTerm, providerKindTerm);
 	}
@@ -1315,7 +1323,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.ENDPOINT.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.ENDPOINT.toString());
 		final Term jaxrsElementTerm = new Term(FIELD_JAXRS_ELEMENT, element.getIdentifier());
 		return searchJaxrsEndpoints(projectTerm, categoryTerm, jaxrsElementTerm);
 	}
@@ -1326,7 +1334,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS Resources
 	 */
 	public final List<IJaxrsResource> getAllResources() {
-		final Term categoryTerm = new Term(FIELD_CATEGORY, EnumElementCategory.RESOURCE.toString());
+		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE.toString());
 		return searchJaxrsElements(categoryTerm);
 	}
 
@@ -1374,11 +1382,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return false;
 	}
 
-	public void register(final IJaxrsElementChangedListener listener) {
-		// TODO Auto-generated method stub
-
-	}
-	
 	@Override
 	public String toString() {
 		return "JAX-RS Metamodel for project '" + this.javaProject.getElementName() + "'";

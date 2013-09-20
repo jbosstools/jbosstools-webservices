@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import org.eclipse.core.runtime.CoreException;
-import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
@@ -23,8 +22,11 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
  */
 public class JaxrsWebxmlApplicationValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsWebxmlApplication> {
 
-	public JaxrsWebxmlApplicationValidatorDelegate(final TempMarkerManager markerManager) {
-		super(markerManager);
+	@SuppressWarnings("unused")
+	private final IMarkerManager markerManager;
+	
+	public JaxrsWebxmlApplicationValidatorDelegate(final IMarkerManager markerManager) {
+		this.markerManager = markerManager;
 	}
 
 	/**
@@ -35,7 +37,7 @@ public class JaxrsWebxmlApplicationValidatorDelegate extends AbstractJaxrsElemen
 	void internalValidate(final JaxrsWebxmlApplication webxmlApplication) throws CoreException {
 		Logger.debug("Validating element {}", webxmlApplication);
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(webxmlApplication);
-		webxmlApplication.resetProblemLevel();
+		webxmlApplication.resetMarkers();
 	}
 
 }

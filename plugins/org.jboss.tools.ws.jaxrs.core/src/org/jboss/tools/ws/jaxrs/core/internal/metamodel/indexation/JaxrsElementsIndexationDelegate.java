@@ -15,9 +15,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -36,10 +39,11 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Status;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
@@ -113,7 +117,7 @@ public class JaxrsElementsIndexationDelegate {
 			Logger.debugIndexing("Adding JAX-RS Element into index with following fields: {}", doc.getFields());
 			indexWriter.addDocument(doc);
 			indexWriter.commit();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to index the JAX-RS Element " + element, e);
 		} finally {
 			Logger.traceIndexing(" Done indexing {}.", element.getName());
@@ -127,7 +131,7 @@ public class JaxrsElementsIndexationDelegate {
 			Logger.debugIndexing("Adding JAX-RS Endpoint into index with following fields: {}", doc.getFields());
 			indexWriter.addDocument(doc);
 			indexWriter.commit();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to index the JAX-RS Endpoint " + endpoint, e);
 		} finally {
 			Logger.traceIndexing(" Done indexing {}.", endpoint);
@@ -143,7 +147,7 @@ public class JaxrsElementsIndexationDelegate {
 			indexWriter.commit();
 			Logger.debugIndexing("Updated JAX-RS Element index with following fields: {}. Writer.hasDeletions={}",
 					doc.getFields(), indexWriter.hasDeletions());
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to re-index the JAX-RS Element " + element, e);
 		} finally {
 			Logger.traceIndexing(" Done re-indexing {}.", element);
@@ -159,7 +163,7 @@ public class JaxrsElementsIndexationDelegate {
 			indexWriter.commit();
 			Logger.debugIndexing("Updated JAX-RS Endpoint index with following fields: {}. Writer.hasDeletions={}",
 					doc.getFields(), indexWriter.hasDeletions());
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to re-index the JAX-RS Endpoint " + endpoint, e);
 		} finally {
 			Logger.traceIndexing(" Done re-indexing {}.", endpoint);
@@ -167,7 +171,7 @@ public class JaxrsElementsIndexationDelegate {
 	}
 
 	/**
-	 * Removes the given element from the index.
+	 * Removes the given {@link IJaxrsElement} from the index.
 	 * 
 	 * @param element
 	 */
@@ -177,7 +181,7 @@ public class JaxrsElementsIndexationDelegate {
 			final Term identifierTerm = LuceneDocumentFactory.getIdentifierTerm(element);
 			indexWriter.deleteDocuments(identifierTerm);
 			indexWriter.commit();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to unindex the JAX-RS Element " + element, e);
 		} finally {
 			Logger.traceIndexing("Done unindexing {}.", element.getName());
@@ -185,24 +189,71 @@ public class JaxrsElementsIndexationDelegate {
 	}
 
 	/**
-	 * Removes the given Endpoint from the index.
+	 * Removes the given {@link IJaxrsEndpoint} from the index.
 	 * 
 	 * @param element
 	 */
 	// TODO: avoid code duplication with unindexElement(IJaxrsElement) above
-	public void unindexEndpoint(final JaxrsEndpoint endpoint) {
+	public void unindexEndpoint(final IJaxrsEndpoint endpoint) {
 		try {
 			Logger.debugIndexing("Unindexing {} after removal...", endpoint);
 			final Term identifierTerm = LuceneDocumentFactory.getIdentifierTerm(endpoint);
 			indexWriter.deleteDocuments(identifierTerm);
 			indexWriter.commit();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to unindex the JAX-RS Element " + endpoint, e);
 		} finally {
 			Logger.traceIndexing("Done unindexing {}.", endpoint);
 		}
 	}
 
+	/**
+	 * Index the given {@link IMarker} 
+	 * @param marker the marker to index
+	 */
+	public void indexMarker(final IMarker marker) {
+		try {
+			Logger.traceIndexing("Indexing {} after addition...", marker);
+			final Document doc = LuceneDocumentFactory.createDocument(marker);
+			Logger.debugIndexing("Adding Marker into index with following fields: {}", doc.getFields());
+			indexWriter.addDocument(doc);
+			indexWriter.commit();
+		} catch (IOException e) {
+			Logger.error("Failed to index the JAX-RS Endpoint " + marker, e);
+		} finally {
+			Logger.traceIndexing(" Done indexing {}.", marker);
+		}
+
+		
+	}
+
+	/**
+	 * Unindex the markers on the given {@link IResource}, whatever their associated {@link LuceneFields#FIELD_MARKER_TYPE}
+	 * @param the resource on which markers should be removed from the index
+	 */
+	public void unindexMarkers(final IResource resource) {
+		// skip this step for built-in elements (ie: not associated with an IResource)
+		if(resource == null) {
+			return;
+		}
+		try {
+			Logger.debugIndexing("Unindexing markers on {} after removal...", resource.getFullPath());
+			final Term elementTypeTerm = LuceneDocumentFactory.getMarkerTypeTerm();
+			final Term resourcePathTerm = LuceneDocumentFactory.getResourcePathTerm(resource);
+			final BooleanQuery deleteResourceMarkersQuery = new BooleanQuery();
+			deleteResourceMarkersQuery.add(new BooleanClause(new TermQuery(elementTypeTerm), Occur.MUST));
+			deleteResourceMarkersQuery.add(new BooleanClause(new TermQuery(resourcePathTerm), Occur.MUST));
+			//Logger.debugIndexing("Removing {} documents from index", searchAll(elementTypeTerm, resourcePathTerm).size());
+			indexWriter.deleteDocuments(deleteResourceMarkersQuery);
+			indexWriter.commit();
+		} catch (IOException e) {
+			Logger.error("Failed to unindex the Resource " + resource.getFullPath(), e);
+		} finally {
+			Logger.traceIndexing("Done unindexing {}.", resource.getFullPath());
+		}
+		
+	}
+	
 	/**
 	 * Performs a {@link BooleanQuery} based on the given {@link TermQuery},
 	 * assuming that each query element is mandatory. This method returns a
@@ -233,7 +284,7 @@ public class JaxrsElementsIndexationDelegate {
 				// docIdentifier);
 				return docIdentifier;
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to search for JAX-RS element in index", e);
 		}
 		Logger.traceIndexing(" Not document matched the query.");
@@ -261,12 +312,12 @@ public class JaxrsElementsIndexationDelegate {
 				}
 			}
 			Logger.traceIndexing("Searching documents matching {}", query.toString());
-			final AllResultsCollector collector = new AllResultsCollector(searcher);
-			searcher.search(query, collector);
-			final List<String> docIdentifiers = collector.getDocIdentifiers();
+			final AllResultsCollector docIdsCollector = new AllResultsCollector(searcher);
+			searcher.search(query, docIdsCollector);
+			final List<String> docIdentifiers = new ArrayList<String>(docIdsCollector.getDocIdentifiers());
 			Logger.traceIndexing(" Found {} matching documents", docIdentifiers.size());
 			return docIdentifiers;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to search for JAX-RS element in index", e);
 		}
 		return Collections.emptyList();
@@ -294,7 +345,7 @@ public class JaxrsElementsIndexationDelegate {
 			final int totalHits = collector.getTotalHits();
 			Logger.traceIndexing(" Found {} matching documents", totalHits);
 			return totalHits;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to search for JAX-RS element in index", e);
 		}
 		return 0;
@@ -311,11 +362,23 @@ public class JaxrsElementsIndexationDelegate {
 		return this.indexSearcher;
 	}
 
+	/**
+	 * Document IDs Collector. Collectd the mathcing {@link Document}'s
+	 * {@code LuceneDocumentFactory#FIELD_IDENTIFIER} {@link Field} in a
+	 * {@link Set} to avoid duplicate results.
+	 * 
+	 * @author xcoulon
+	 * 
+	 */
 	static class AllResultsCollector extends Collector {
 
 		private IndexReader indexReader;
 
-		final List<String> docIdentifiers = new ArrayList<String>();
+		/**
+		 * Set of doc identifiers matching the query. Using a {@link TreeSet} to
+		 * keep order of returned elements.
+		 */
+		final Set<String> docIdentifiers = new TreeSet<String>();
 
 		private int docBase;
 
@@ -333,7 +396,7 @@ public class JaxrsElementsIndexationDelegate {
 					indexReader.isDeleted(docId));
 			final Document document = indexReader.document(docId);
 			final String docIdentifier = document.get(LuceneFields.FIELD_IDENTIFIER);
-			final String docCategory = document.get(LuceneFields.FIELD_CATEGORY);
+			final String docCategory = document.get(LuceneFields.FIELD_TYPE);
 			Logger.traceIndexing("  Retrieved document #{} ({})", docIdentifier, docCategory);
 			docIdentifiers.add(docIdentifier);
 		}
@@ -349,7 +412,7 @@ public class JaxrsElementsIndexationDelegate {
 			return true;
 		}
 
-		public List<String> getDocIdentifiers() throws CorruptIndexException, IOException {
+		public Set<String> getDocIdentifiers() throws CorruptIndexException, IOException {
 			return docIdentifiers;
 		}
 

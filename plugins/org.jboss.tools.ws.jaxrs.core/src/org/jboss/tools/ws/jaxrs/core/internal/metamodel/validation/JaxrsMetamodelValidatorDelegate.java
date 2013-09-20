@@ -15,7 +15,6 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
-import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
@@ -30,22 +29,23 @@ import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
  * @author Xavier Coulon
  * 
  */
-public class JaxrsMetamodelValidatorDelegate extends AbstractValidatorDelegate<JaxrsMetamodel> {
+public class JaxrsMetamodelValidatorDelegate {
 
-	public JaxrsMetamodelValidatorDelegate(final TempMarkerManager markerManager) {
-		super(markerManager);
+	private final IMarkerManager markerManager;
+	
+	public JaxrsMetamodelValidatorDelegate(final IMarkerManager markerManager) {
+		this.markerManager = markerManager;
 	}
 
-	@Override
 	void validate(JaxrsMetamodel metamodel) throws CoreException {
 		Logger.debug("Validating element {}", metamodel);
 		final IProject project = metamodel.getProject();
-		JaxrsMetamodelValidator.deleteJaxrsMarkers(project);
+		JaxrsMetamodelValidator.deleteJaxrsMarkers(metamodel, project);
 		metamodel.resetProblemLevel();
 		final List<IJaxrsApplication> allApplications = metamodel.getAllApplications();
 		if (allApplications.isEmpty()) {
-			addProblem(JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND,
-					JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], metamodel);
+			markerManager.addMarker(metamodel,
+					JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND);
 		} else if (allApplications.size() > 1) {
 			for(IJaxrsApplication application: allApplications) {
 				if(application.isJavaApplication()) {
@@ -55,8 +55,8 @@ public class JaxrsMetamodelValidatorDelegate extends AbstractValidatorDelegate<J
 						continue;
 					}
 					final ISourceRange javaNameRange = javaApplication.getJavaElement().getNameRange();
-					addProblem(JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES,
-							JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], javaNameRange, javaApplication);
+					markerManager.addMarker(javaApplication,
+							javaNameRange, JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
 				} else {
 					final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) application;
 					final ISourceRange webxmlNameRange = WtpUtils.getApplicationPathLocation(webxmlApplication.getResource(),
@@ -65,9 +65,9 @@ public class JaxrsMetamodelValidatorDelegate extends AbstractValidatorDelegate<J
 						Logger.warn("Cannot add a problem marker: unable to locate '" + webxmlApplication.getJavaClassName()
 								+ "' in resource '" + webxmlApplication.getResource().getFullPath().toString() + "'. ");
 					} else {
-						addProblem(JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES,
-								JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], webxmlNameRange,
-								webxmlApplication);
+						markerManager.addMarker(webxmlApplication,
+								webxmlNameRange, JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES, new String[0],
+								JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
 					}
 				}
 			}
