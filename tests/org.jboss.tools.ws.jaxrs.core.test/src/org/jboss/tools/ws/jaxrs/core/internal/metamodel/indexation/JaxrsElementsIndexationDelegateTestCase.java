@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.lucene.index.CorruptIndexException;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
@@ -31,6 +32,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
@@ -255,4 +257,73 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 		assertThat(javaApplication, notNullValue());
 	}
 
+	@Test
+	public void shouldIndexAndRetrieveResourceByMarkers() throws JavaModelException, CoreException {
+		// pre-condition
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
+		metamodel.registerMarker(marker);
+		// operation: search with same problem type
+		final List<IResource> resources = metamodel.findResourcesWithProblemOfType("foo");
+		// verifications
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(),equalTo(1));
+		assertThat(resources.get(0), equalTo(type.getResource()));
+	}
+	
+	@Test
+	public void shouldIndexAndNotRetrieveResourceByMarkers() throws JavaModelException, CoreException {
+		// pre-condition
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "fo");
+		metamodel.registerMarker(marker);
+		// operation: search with another problem type
+		final List<IResource> resources = metamodel.findResourcesWithProblemOfType("bar");
+		// verifications
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(),equalTo(0));
+	}
+	
+	@Test
+	public void shouldIndexAndUnindexAndNotRetrieveResourceByMarkers() throws JavaModelException, CoreException {
+		// pre-condition
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
+		metamodel.registerMarker(marker);
+		metamodel.unregisterMarkers(application.getResource());
+		// operation: search with correct problem type
+		final List<IResource> resources = metamodel.findResourcesWithProblemOfType("foo");
+		// verifications
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(),equalTo(0));
+	}
+
+
+	@Test
+	public void shouldStillRetrieveResourceByMarkersAfterJaxrsElementRemoval() throws JavaModelException, CoreException {
+		// pre-condition
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
+		metamodel.registerMarker(marker);
+		// operation: search with correct problem type
+		List<IResource> resources = metamodel.findResourcesWithProblemOfType("foo");
+		// verifications: resource should 
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(),equalTo(1));
+		assertThat(resources.get(0), equalTo(type.getResource()));
+		// operation 2: now, remove the application (this would be caused by resource deletion for example)
+		application.remove();
+		// verification 2: the underlying resource still holds the marker (it will be removed by the validation
+		// phase, no tested here)
+		resources = metamodel.findResourcesWithProblemOfType("foo");
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(),equalTo(1));
+		assertThat(resources.get(0), equalTo(type.getResource()));
+	}
 }

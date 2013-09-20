@@ -13,7 +13,6 @@ package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
@@ -32,6 +31,7 @@ public interface IJaxrsResourceMethod extends IJaxrsElement {
 	 * 
 	 * @see {@link IMarker} for severity levels and values.
 	 */
+	@Deprecated
 	abstract void setProblemLevel(final int level);
 
 	abstract String getPathTemplate();

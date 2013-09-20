@@ -18,7 +18,6 @@ import org.eclipse.jdt.core.IJavaElement;
 public interface IJaxrsMetamodel extends IJaxrsStatus {
 
 	/**
-	 * Returns <code>true</code> if the JAX-RS Metamodel is being initialized, false if it has already been initialized.
 	 * @return <code>true</code> if the JAX-RS Metamodel is being initialized, false if it has already been initialized.
 	 */
 	public abstract boolean isInitializing();

@@ -12,7 +12,6 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -27,8 +26,10 @@ import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
  */
 public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsJavaApplication> {
 
-	public JaxrsJavaApplicationValidatorDelegate(final TempMarkerManager markerManager) {
-		super(markerManager);
+	private final IMarkerManager markerManager;
+	
+	public JaxrsJavaApplicationValidatorDelegate(final IMarkerManager markerManager) {
+		this.markerManager = markerManager;
 	}
 
 	/**
@@ -39,21 +40,21 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 	void internalValidate(final JaxrsJavaApplication application) throws CoreException {
 		Logger.debug("Validating element {}", application);
 		JaxrsMetamodelValidator.deleteJaxrsMarkers(application);
-		application.resetProblemLevel();
+		application.resetMarkers();
 		final Annotation applicationPathAnnotation = application
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		final IType appJavaElement = application.getJavaElement();
 		if (!application.isOverriden() && applicationPathAnnotation == null) {
-			addProblem(JaxrsValidationMessages.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION,
-					JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, new String[0],
-					appJavaElement.getNameRange(), application,
+			markerManager.addMarker(application,
+					appJavaElement.getNameRange(), JaxrsValidationMessages.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION,
+					new String[0], JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION,
 					JaxrsValidationConstants.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_QUICKFIX_ID);
 		}
 		if (!application.isJaxrsCoreApplicationSubclass()) {
-			addProblem(JaxrsValidationMessages.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
-					JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
-					new String[] { appJavaElement.getFullyQualifiedName() }, application.getJavaElement()
-							.getSourceRange(), application,
+			markerManager.addMarker(application,
+					application.getJavaElement()
+							.getSourceRange(),
+					JaxrsValidationMessages.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY, new String[] { appJavaElement.getFullyQualifiedName() }, JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
 					JaxrsValidationConstants.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_QUICKFIX_ID);
 		}
 	}

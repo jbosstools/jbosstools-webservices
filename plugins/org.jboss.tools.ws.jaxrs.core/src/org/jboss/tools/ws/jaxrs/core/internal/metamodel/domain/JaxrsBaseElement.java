@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
@@ -47,7 +48,8 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	/**
 	 * Resets the problem level for this given element.
 	 */
-	public void resetProblemLevel() {
+	public void resetMarkers() {
+		metamodel.unregisterMarkers(getResource());
 		this.problemLevel = 0;
 	}
 
@@ -59,8 +61,23 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	 *            level: the incoming new problem level.
 	 * @throws CoreException 
 	 */
+	@Deprecated
 	public void setProblemLevel(final int problemLevel) {
 		this.problemLevel = Math.max(this.problemLevel, problemLevel);
+	}
+	
+	/**
+	 * Registers a marker (from the underlying {@link IResource}) and sets the
+	 * problem level on this element. If this element already has a problem
+	 * level, the highest value is kept.
+	 * 
+	 * @param marker: the marker that has been added to the underlying resource.
+	 *            
+	 * @throws CoreException
+	 */
+	public void registerMarker(final IMarker marker) {
+		metamodel.registerMarker(marker);
+		this.problemLevel = Math.max(this.problemLevel, marker.getAttribute(IMarker.SEVERITY, 0));
 	}
 
 	/**

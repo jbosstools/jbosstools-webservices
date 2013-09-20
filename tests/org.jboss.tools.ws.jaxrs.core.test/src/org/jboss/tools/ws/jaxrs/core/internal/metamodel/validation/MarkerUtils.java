@@ -31,7 +31,7 @@ public class MarkerUtils {
 	public static IMarker[] findJaxrsMarkers(final IJaxrsElement... elements) throws CoreException {
 		List<IMarker> markers = new ArrayList<IMarker>();
 		for (IJaxrsElement element : elements) {
-			final IMarker[] elementMarkers = element.getResource().findMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, true,
+ 			final IMarker[] elementMarkers = element.getResource().findMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, true,
 					IResource.DEPTH_INFINITE);
 			switch (element.getElementKind().getCategory()) {
 			case APPLICATION:
