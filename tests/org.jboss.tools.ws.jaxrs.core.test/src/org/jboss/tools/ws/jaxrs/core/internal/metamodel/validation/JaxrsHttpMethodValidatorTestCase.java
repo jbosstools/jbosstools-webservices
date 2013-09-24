@@ -300,4 +300,28 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
+
+	/**
+	 * @see 
+	 * @throws CoreException
+	 * @throws ValidationException
+	 */
+	@Test
+	public void shouldNotReportProblemWhenRefactoringUnrelatedAnnotation() throws CoreException,
+	ValidationException {
+		// preconditions
+		final IType customQualifierType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomCDIQualifier");
+		assertThat(customQualifierType.exists(), is(true));
+		resetElementChangesNotifications();
+		// operations: rename the Java type and attempt to create an HttpMethod and validate its underlying resource.
+		customQualifierType.rename("FOOBAR", true, new NullProgressMonitor());
+		final IType foobarType = getType("org.jboss.tools.ws.jaxrs.sample.services.FOOBAR");
+		createHttpMethod(foobarType);
+		new JaxrsMetamodelValidator().validate(toSet(foobarType.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = foobarType.getResource().findMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
+		assertThat(markers.length, equalTo(0));
+	}
+
 }

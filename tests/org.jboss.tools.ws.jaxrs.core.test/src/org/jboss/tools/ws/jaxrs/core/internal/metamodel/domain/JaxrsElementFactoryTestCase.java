@@ -128,6 +128,17 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
+	public void shouldNotCreateHttpMethodFromType() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomCDIQualifier");
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(type,
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(0));
+	}
+
+	@Test
 	public void shouldNotCreateElementFromOtherType() throws CoreException {
 		// pre-conditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.domain.Customer");
