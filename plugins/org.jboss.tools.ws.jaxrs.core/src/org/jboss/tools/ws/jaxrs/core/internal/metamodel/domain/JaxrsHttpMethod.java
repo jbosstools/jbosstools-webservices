@@ -172,7 +172,9 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 			}
 			annotations = JdtUtils.resolveAnnotations(javaType, ast, HTTP_METHOD.qualifiedName, TARGET.qualifiedName,
 					RETENTION.qualifiedName);
-			if (annotations == null || annotations.isEmpty()) {
+			// Element *MUST* at least have the @HttpMethod annotation to be an HTTP Method.
+			// Problems will be reported by validation if other annotations are missing.
+			if (annotations == null || annotations.isEmpty() || !annotations.containsKey(HTTP_METHOD.qualifiedName)) {
 				return null;
 			}
 			final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(this);
