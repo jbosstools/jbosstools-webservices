@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
@@ -43,6 +44,7 @@ public class JavaElementChangedBuildJob extends Job {
 	
 	@Override
 	protected IStatus run(final IProgressMonitor progressMonitor) {
+		IJavaElement element = null;
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			progressMonitor.worked(SCALE);
@@ -61,7 +63,8 @@ public class JavaElementChangedBuildJob extends Job {
 				return Status.CANCEL_STATUS;
 			}
 			for(JavaElementDelta delta : affectedJavaElements) {
-				final IJavaProject javaProject = delta.getElement().getJavaProject();
+				element = delta.getElement();
+				final IJavaProject javaProject = element.getJavaProject();
 				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 				// prevent NPE when opening a closed project (ie, there's no metamodel yet).
 				if(metamodel != null) {
@@ -79,7 +82,11 @@ public class JavaElementChangedBuildJob extends Job {
 				}
 			}
 		} catch (Throwable e) {
-			return Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
+			if(element != null) {
+				return Logger.error("Failed to build or refresh the JAX-RS metamodel while processing " + element.getElementName() + " in project " + element.getAncestor(IJavaElement.JAVA_PROJECT).getElementName(), e);
+			} else {
+				return Logger.error("Failed to build or refresh the JAX-RS metamodel while processing a change in the Java Model", e);
+			}
 		} finally {
 			progressMonitor.done();
 		}
