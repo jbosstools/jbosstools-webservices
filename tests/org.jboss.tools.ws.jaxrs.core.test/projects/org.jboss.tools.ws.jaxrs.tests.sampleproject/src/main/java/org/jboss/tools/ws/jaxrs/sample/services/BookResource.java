@@ -25,7 +25,7 @@ public class BookResource {
 	@GET
 	@Path("/{id}")
 	@Produces({ "image/jpeg" })
-	public Object getPicture(@PathParam("id") Integer id, @MatrixParam("color") String color) {
+	public Object getPicture(@PathParam("id") Integer id, @MatrixParam("color") String c) {
 		return null;
 	}
 	

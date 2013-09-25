@@ -1391,13 +1391,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @param resourceMethod
 	 *            the resource method used by the searched Endpoints
 	 * @return a collection containing zero or more matches, or
-	 *         <code>null</code> if the input was <code>null</null>.
+	 *         an empty list if the input was {@code null}.
 	 */
 	public List<JaxrsEndpoint> findEndpoints(final IJaxrsElement element) {
 		try {
 			readWriteLock.readLock().lock();
 			if (element == null) {
-				return null;
+				return Collections.emptyList();
 			}
 			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.ENDPOINT.toString());

@@ -11,9 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.notNullNorEmpty;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
@@ -23,6 +20,7 @@ import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -34,8 +32,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ObjectUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
@@ -50,7 +47,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	private final JaxrsMetamodel metamodel;
 
-	private final LinkedList<IJaxrsResourceMethod> resourceMethods;
+	private final LinkedList<JaxrsResourceMethod> resourceMethods;
 
 	private IJaxrsHttpMethod httpMethod;
 
@@ -63,7 +60,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	private List<String> producedMediaTypes = null;
 
 	public JaxrsEndpoint(final JaxrsMetamodel metamodel, final IJaxrsHttpMethod httpMethod,
-			final LinkedList<IJaxrsResourceMethod> resourceMethods) {
+			final LinkedList<JaxrsResourceMethod> resourceMethods) {
 		this.identifier = UUID.randomUUID().toString();
 		this.metamodel = metamodel;
 		this.application = (metamodel != null ? metamodel.getApplication() : null);
@@ -198,13 +195,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		if ((flags & F_HTTP_METHOD_ANNOTATION) > 0) {
 			changed = changed || refreshHttpMethod();
 		}
-
 		if ((flags & F_PATH_ANNOTATION) > 0 || (flags & F_QUERY_PARAM_ANNOTATION) > 0
 				|| (flags & F_MATRIX_PARAM_ANNOTATION) > 0 || (flags & F_DEFAULT_VALUE_ANNOTATION) > 0
 				|| (flags & F_METHOD_PARAMETERS) > 0) {
 			changed = changed || refreshUriPathTemplate();
 		}
-
 		// look for mediatype capabilities at the method level, then fall back
 		// at the type level, then "any" otherwise
 		if ((flags & F_CONSUMES_ANNOTATION) > 0 || (flags & F_PRODUCES_ANNOTATION) > 0) {
@@ -277,21 +272,37 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		return false;
 	}
 
+	/**
+	 * Refresh the URI Path Template
+	 * @return
+	 */
 	private boolean refreshUriPathTemplate() {
 		// compute the URI Path Template from the chain of Methods/Resources
 		StringBuilder uriPathTemplateBuilder = new StringBuilder();
 		if (application != null && application.getApplicationPath() != null) {
 			uriPathTemplateBuilder.append(application.getApplicationPath());
 		}
-		for (IJaxrsResourceMethod resourceMethod : resourceMethods) {
-			if (resourceMethod.getParentResource().hasPathTemplate()) {
-				uriPathTemplateBuilder.append("/").append(resourceMethod.getParentResource().getPathTemplate());
+		final List<String> queryParams = new ArrayList<String>();
+		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
+			final Pair<String, List<String>> displayableResourcePathTemplate = resourceMethod.getParentResource().getDisplayablePathTemplate(resourceMethod);
+			if(!displayableResourcePathTemplate.left.isEmpty()) {
+				uriPathTemplateBuilder.append("/").append(displayableResourcePathTemplate.left);
 			}
-			if (resourceMethod.hasPathTemplate()) {
-				uriPathTemplateBuilder.append("/").append(resourceMethod.getPathTemplate());
+			queryParams.addAll(displayableResourcePathTemplate.right);
+			final Pair<String, List<String>> displayableResourceMethodPathTemplate = resourceMethod.getDisplayablePathTemplate();
+			if(!displayableResourceMethodPathTemplate.left.isEmpty()) {
+				uriPathTemplateBuilder.append("/").append(displayableResourceMethodPathTemplate.left);
 			}
-			refreshUriTemplateMatrixParams(uriPathTemplateBuilder, resourceMethod);
-			refreshUriTemplateQueryParams(uriPathTemplateBuilder, resourceMethod);
+			queryParams.addAll(displayableResourceMethodPathTemplate.right);
+		}
+		if(!queryParams.isEmpty()) {
+			uriPathTemplateBuilder.append('?');
+			for(Iterator<String> iterator = queryParams.iterator(); iterator.hasNext();) {
+				uriPathTemplateBuilder.append(iterator.next());
+				if(iterator.hasNext()) {
+					uriPathTemplateBuilder.append('&');
+				}
+			}
 		}
 		String template = uriPathTemplateBuilder.toString();
 		while (template.indexOf("//") > -1) {
@@ -306,48 +317,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			return true;
 		}
 		return false;
-	}
-
-	private void refreshUriTemplateMatrixParams(final StringBuilder uriPathTemplateBuilder,
-			final IJaxrsResourceMethod resourceMethod) {
-		final List<JavaMethodParameter> matrixParameters = ((JaxrsResourceMethod) resourceMethod)
-				.getJavaMethodParametersAnnotatedWith(MATRIX_PARAM.qualifiedName);
-		for (JavaMethodParameter matrixParameter : matrixParameters) {
-			final Annotation matrixParamAnnotation = matrixParameter.getAnnotation(MATRIX_PARAM.qualifiedName);
-			if (matrixParamAnnotation.getValue("value") != null) {
-				uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue("value")).append("={")
-						.append(matrixParameter.getTypeName()).append("}");
-			}
-		}
-	}
-
-	private void refreshUriTemplateQueryParams(final StringBuilder uriPathTemplateBuilder,
-			final IJaxrsResourceMethod resourceMethod) {
-		final List<JavaMethodParameter> queryParameters = ((JaxrsResourceMethod) resourceMethod)
-				.getJavaMethodParametersAnnotatedWith(QUERY_PARAM.qualifiedName);
-		if (queryParameters.size() > 0) {
-			uriPathTemplateBuilder.append('?');
-			for (Iterator<JavaMethodParameter> iterator = queryParameters.iterator(); iterator.hasNext();) {
-				JavaMethodParameter queryParam = iterator.next();
-				final Annotation queryParamAnnotation = queryParam.getAnnotation(QUERY_PARAM.qualifiedName);
-				final String paramName = queryParamAnnotation.getValue("value");
-				if (paramName != null) {
-					final String paramType = queryParam.getTypeName();
-					uriPathTemplateBuilder.append(paramName).append("={");
-					uriPathTemplateBuilder.append(paramName).append(":").append(paramType);
-					final Annotation defaultValueAnnotation = queryParam.getAnnotation(DEFAULT_VALUE.qualifiedName);
-					if (defaultValueAnnotation != null) {
-						uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
-					}
-					uriPathTemplateBuilder.append('}');
-					// prepare for next query param item if there is more to
-					// process..
-					if (iterator.hasNext()) {
-						uriPathTemplateBuilder.append('&');
-					}
-				}
-			}
-		}
 	}
 
 	@Override

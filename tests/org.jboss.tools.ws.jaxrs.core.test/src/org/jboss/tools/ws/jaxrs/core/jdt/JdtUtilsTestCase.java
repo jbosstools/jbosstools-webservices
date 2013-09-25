@@ -605,6 +605,43 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	}
 
 	@Test
+	public void shouldResolveJavaFieldType() throws CoreException {
+		// preconditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IField field = type.getField("_foo");
+		// operation
+		final String fieldType = JdtUtils.resolveFieldType(field,
+				JdtUtils.parse(type, progressMonitor));
+		// verification
+		assertThat(fieldType, equalTo(String.class.getName()));
+	}
+	
+	@Test
+	public void shouldResolveJavaFieldPrimitiveType() throws CoreException {
+		// preconditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "String _foo", "int _foo", false);
+		final IField field = type.getField("_foo");
+		// operation
+		final String fieldType = JdtUtils.resolveFieldType(field,
+				JdtUtils.parse(type, progressMonitor));
+		// verification
+		assertThat(fieldType, equalTo("int"));
+	}
+	
+	@Test
+	public void shouldNotResolveJavaFieldType() throws CoreException {
+		// preconditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IField field = type.getField("unknown");
+		// operation
+		final String fieldType = JdtUtils.resolveFieldType(field,
+				JdtUtils.parse(type, progressMonitor));
+		// verification
+		assertThat(fieldType, nullValue());
+	}
+	
+	@Test
 	public void shouldConfirmSuperType() throws CoreException {
 		// preconditions
 		final IType bookType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
@@ -753,7 +790,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldRetrieveFieldAnnotationFromNameLocation() throws CoreException {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IField field = getField(type, "foo");
+		final IField field = getField(type, "_foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
@@ -767,7 +804,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldRetrieveFieldAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IField field = getField(type, "foo");
+		final IField field = getField(type, "_foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset() + CONSUMES.simpleName.length()
 				+ 3;
@@ -817,7 +854,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldNotRetrieveAnnotationFromFieldNameLocation() throws CoreException {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IField field = getField(type, "foo");
+		final IField field = getField(type, "_foo");
 		final int offset = field.getSourceRange().getOffset();
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, type.getCompilationUnit());
@@ -874,7 +911,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldRetrieveFieldAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IField field = getField(type, "foo");
+		final IField field = getField(type, "_foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
@@ -921,7 +958,19 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// verification
 		assertThat(element, notNullValue());
 		assertThat((IMethod)element, equalTo(method));
-		
 	}
+
+	@Test
+	public void shouldFindSubtypesInProjectOnly() throws CoreException {
+		// preconditions
+		final IType objectType = getType("java.lang.Object");
+		final IType bookType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		// operation
+		final List<IType> subtypes = JdtUtils.findSubtypes(objectType);
+		// verification
+		assertThat(subtypes.size(), greaterThan(1));
+		assertThat(subtypes.contains(bookType), is(true));
+	}
+
 
 }

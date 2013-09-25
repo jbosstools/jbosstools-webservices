@@ -26,6 +26,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -161,14 +162,130 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elements.size(), equalTo(2));
 		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
 		assertThat(element.getParentResource(), notNullValue());
+		assertThat(element.getDisplayablePathTemplate().left, equalTo("/{id:Integer}"));
+		assertThat(element.getDisplayablePathTemplate().right, equalTo(Collections.EMPTY_LIST));
 	}
 
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpPathParamFromJavaMethod() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = getJavaMethod(type, "getOrder");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "/{id:[1-9]+}", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		assertThat(element.getDisplayablePathTemplate().left, equalTo("/{id:[1-9]+}"));
+		assertThat(element.getDisplayablePathTemplate().right, equalTo(Collections.EMPTY_LIST));
+	}
+
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpPathAndNoHeadingParamFromJavaMethod() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = getJavaMethod(type, "getOrder");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "{id:[1-9]+}", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		assertThat(element.getDisplayablePathTemplate().left, equalTo("{id:[1-9]+}"));
+		assertThat(element.getDisplayablePathTemplate().right, equalTo(Collections.EMPTY_LIST));
+	}
+	
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpPathAndTailParamFromJavaMethod() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = getJavaMethod(type, "getOrder");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "{id:[1-9]+}/foo", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		assertThat(element.getDisplayablePathTemplate().left, equalTo("{id:[1-9]+}/foo"));
+		assertThat(element.getDisplayablePathTemplate().right, equalTo(Collections.EMPTY_LIST));
+	}
+
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpAndUnboundPathParamFromJavaMethod() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = getJavaMethod(type, "getOrder");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "/foo{id:[1-9]+}/{foo}bar", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		assertThat(element.getDisplayablePathTemplate().left, equalTo("/foo{id:[1-9]+}/{foo:.*}bar"));
+		assertThat(element.getDisplayablePathTemplate().right, equalTo(Collections.EMPTY_LIST));
+	}
+
+	@Test
+	public void shouldCreateRootResourceWithRegexpAndUnboundPathParamAndResourceMethodFromJavaMethod() throws CoreException {
+		// pre-conditions
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = getJavaMethod(type, "getOrder");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "/orders", "/orders{id:[1-9]+}/{foo}bar", false);
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "/", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, progressMonitor), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResource parentResource = (JaxrsResource) elements.get(0);
+		final JaxrsResourceMethod resourceMethod = (JaxrsResourceMethod) elements.get(1);
+		assertThat(parentResource.getDisplayablePathTemplate(resourceMethod).left, equalTo("/orders{id:[1-9]+}/{foo:.*}bar"));
+		assertThat(parentResource.getDisplayablePathTemplate(resourceMethod).right, equalTo(Collections.EMPTY_LIST));
+		assertThat(resourceMethod.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(resourceMethod.getAnnotations().size(), equalTo(3));
+		assertThat(resourceMethod.getAnnotations().size(), equalTo(3));
+		assertThat(resourceMethod.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(resourceMethod.getParentResource(), notNullValue());
+		assertThat(resourceMethod.getDisplayablePathTemplate().left, equalTo("/"));
+		assertThat(resourceMethod.getDisplayablePathTemplate().right, equalTo(Collections.EMPTY_LIST));
+	}
+	
 	@Test
 	public void shouldCreateSubesourceAndResourceMethodsFromJavaMethod() throws CoreException {
 		// pre-conditions
@@ -198,7 +315,7 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		JaxrsHttpMethod.from(httpType).withMetamodel(metamodel).build();
 		// metamodel.add(httpMethod);
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		IField field = type.getField("foo");
+		IField field = type.getField("_foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		// operation
 		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
@@ -206,11 +323,11 @@ public class JaxrsElementFactoryTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elements.size(), equalTo(5));
 		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("foo");
+		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("_foo");
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());
 		assertThat(element.getQueryParamAnnotation().getValue("value"), equalTo("foo"));

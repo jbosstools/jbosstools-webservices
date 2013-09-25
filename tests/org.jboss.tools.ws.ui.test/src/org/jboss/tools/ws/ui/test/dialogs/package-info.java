@@ -8,16 +8,9 @@
  * Contributors: 
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
-import org.eclipse.jdt.core.IField;
-
-public interface IJaxrsResourceField extends IJaxrsElement {
-
-	IField getJavaElement();
-
-	String getDisplayableTypeName();
-
-	String getTypeName();
-
-}
+/**
+ * @author xcoulon
+ *
+ */
+package org.jboss.tools.ws.ui.test.dialogs;

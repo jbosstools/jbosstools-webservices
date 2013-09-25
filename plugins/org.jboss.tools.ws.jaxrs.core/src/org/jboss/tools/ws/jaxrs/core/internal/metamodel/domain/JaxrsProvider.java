@@ -202,14 +202,14 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			pairs.add(Pair.makePair(EnumJaxrsClassname.CONTEXT_RESOLVER, EnumElementKind.CONTEXT_RESOLVER));
 
 			for (Pair<EnumJaxrsClassname, EnumElementKind> pair : pairs) {
-				final IType matchingGenericType = JdtUtils.resolveType(pair.a.qualifiedName,
+				final IType matchingGenericType = JdtUtils.resolveType(pair.left.qualifiedName,
 						providerType.getJavaProject(), progressMonitor);
 				List<IType> argumentTypes = JdtUtils.resolveTypeArguments(providerType, compilationUnit,
 						matchingGenericType, providerTypeHierarchy, progressMonitor);
 				if (argumentTypes == null || argumentTypes.size() == 0) {
 					continue;
 				}
-				providerKinds.put(pair.b, argumentTypes.get(0));
+				providerKinds.put(pair.right, argumentTypes.get(0));
 			}
 			return providerKinds;
 		}

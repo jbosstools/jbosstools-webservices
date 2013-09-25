@@ -12,8 +12,12 @@ package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
 import java.util.List;
 
+import org.eclipse.jdt.core.IType;
+
 public interface IJaxrsResource extends IJaxrsElement {
 
+	IType getJavaElement();
+	
 	String getPathTemplate();
 
 	boolean hasPathTemplate();
