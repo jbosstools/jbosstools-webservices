@@ -14,7 +14,6 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_ANNOTATION_NAME;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_BUILT_IN_HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_CATEGORY;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_COMPILATION_UNIT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_CONSUMED_MEDIA_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_HTTP_VERB;
@@ -25,12 +24,15 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.Lucene
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_ELEMENT;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_PROJECT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAXRS_ELEMENT;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_MARKER_IDENTIFIER;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_MARKER_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PARENT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PRODUCED_MEDIA_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PROVIDER_KIND;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_RESOURCE_PATH;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_RETURNED_TYPE_NAME;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_URI_PATH_TEMPLATE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_WEBXML_APPLICATION;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_WEBXML_APPLICATION_OVERRIDES_JAVA_APPLICATION;
@@ -41,6 +43,8 @@ import java.util.Map.Entry;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.Term;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
@@ -51,6 +55,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -74,8 +79,34 @@ public class LuceneDocumentFactory {
 		return new Term(FIELD_IDENTIFIER, element.getIdentifier());
 	}
 	
+	public static Term getResourcePathTerm(final IResource resource) {
+		return new Term(FIELD_IDENTIFIER, resource.getFullPath().toPortableString());
+	}
+	
+	public static Term getMarkerTypeTerm() {
+		return new Term(FIELD_TYPE, IMarker.class.getSimpleName());
+	}
+
 	/**
-	 * Creates a Lucene document from the given JAX-RS element.
+	 * Creates a Lucene {@link Document} from the given {@link IMarker}.
+	 * 
+	 * @param element
+	 * @return the Lucene document or null if the given element is supposed to
+	 *         be indexed.
+	 */
+	public static Document createDocument(final IMarker marker) {
+		final Document document = new Document();
+		// we use the resource path as an identifier 
+		addFieldToDocument(document, FIELD_IDENTIFIER, marker.getResource().getFullPath().toPortableString());
+		addFieldToDocument(document, FIELD_MARKER_IDENTIFIER, Long.toString(marker.getId()));
+		addFieldToDocument(document, FIELD_TYPE, IMarker.class.getSimpleName());
+		addFieldToDocument(document, FIELD_MARKER_TYPE, marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, null));
+		return document;
+	}
+
+	
+	/**
+	 * Creates a Lucene {@link Document} from the given {@link IJaxrsElement}.
 	 * 
 	 * @param element
 	 * @return the Lucene document or null if the given element is supposed to
@@ -105,17 +136,16 @@ public class LuceneDocumentFactory {
 		return null;
 	}
 	/**
-	 * Creates a Lucene document from the given JAX-RS Endpoint.
+	 * Creates a Lucene document from the given {@link IJaxrsEndpoint}.
 	 * 
-	 * @param element
-	 * @return the Lucene document or null if the given element is supposed to
-	 *         be indexed.
+	 * @param element the JAX-RS endpoint to index.
+	 * @return the Lucene document used to index the given JAX-RS endpoint.
 	 */
 	public static Document createDocument(final IJaxrsEndpoint endpoint) {
 		final Document document = new Document();
 		addFieldToDocument(document, FIELD_IDENTIFIER, endpoint.getIdentifier());
 		addFieldToDocument(document, FIELD_JAVA_PROJECT_IDENTIFIER, getHandleIdentifier(endpoint.getJavaProject()));
-		addFieldToDocument(document, FIELD_CATEGORY, endpoint.getElementCategory().toString());
+		addFieldToDocument(document, FIELD_TYPE, endpoint.getElementCategory().toString());
 		addFieldToDocument(document, FIELD_CONSUMED_MEDIA_TYPE, endpoint.getConsumedMediaTypes());
 		addFieldToDocument(document, FIELD_PRODUCED_MEDIA_TYPE, endpoint.getProducedMediaTypes());
 		addFieldToDocument(document, FIELD_URI_PATH_TEMPLATE, endpoint.getUriPathTemplate());
@@ -195,7 +225,7 @@ public class LuceneDocumentFactory {
 	private static Document createBaseDocument(JaxrsJavaElement<?> element) {
 		final Document document = new Document();
 		addFieldToDocument(document, FIELD_JAVA_PROJECT_IDENTIFIER, getHandleIdentifier(element.getMetamodel().getJavaProject()));
-		addFieldToDocument(document, FIELD_CATEGORY, element.getElementKind().getCategory().toString());
+		addFieldToDocument(document, FIELD_TYPE, element.getElementKind().getCategory().toString());
 		addFieldToDocument(document, FIELD_IDENTIFIER, element.getIdentifier());
 		if (element.getJavaElement() != null) {
 			addFieldToDocument(document, FIELD_JAVA_ELEMENT, Boolean.TRUE.toString());
@@ -247,7 +277,7 @@ public class LuceneDocumentFactory {
 		final Document document = new Document();
 		addFieldToDocument(document, FIELD_JAVA_PROJECT_IDENTIFIER, webxmlApplication.getMetamodel().getJavaProject()
 				.getHandleIdentifier());
-		addFieldToDocument(document, FIELD_CATEGORY, webxmlApplication.getElementKind().getCategory().toString());
+		addFieldToDocument(document, FIELD_TYPE, webxmlApplication.getElementKind().getCategory().toString());
 		addFieldToDocument(document, FIELD_IDENTIFIER, webxmlApplication.getIdentifier());
 		addFieldToDocument(document, FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
 		addFieldToDocument(document, FIELD_WEBXML_APPLICATION_OVERRIDES_JAVA_APPLICATION, Boolean.toString(webxmlApplication.isOverride()));

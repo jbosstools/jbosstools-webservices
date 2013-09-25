@@ -2,6 +2,9 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation;
 
 public interface LuceneFields {
 
+	/** The type of indexed element.*/
+	public static final String FIELD_TYPE = "type";
+	public static final String FIELD_IDENTIFIER = "elementIdentifier";
 	public static final String FIELD_PRODUCED_MEDIA_TYPE = "producedMediaType";
 	public static final String FIELD_CONSUMED_MEDIA_TYPE = "consumedMediaType";
 	public static final String FIELD_HTTP_VERB = "httpVerb";
@@ -9,9 +12,7 @@ public interface LuceneFields {
 	public static final String FIELD_APPLICATION_PATH = "applicationPath";
 	public static final String FIELD_JAVA_CLASS_NAME = "javaClassName";
 	public static final String FIELD_RESOURCE_PATH = "resource";
-	public static final String FIELD_IDENTIFIER = "elementIdentifier";
 	public static final String FIELD_COMPILATION_UNIT_IDENTIFIER = "compilationUnitIdentifier";
-	public static final String FIELD_CATEGORY = "category";
 	public static final String FIELD_ANNOTATION_NAME = "annotationName";
 	public static final String FIELD_PARENT_IDENTIFIER = "parentIdentifier";
 	public static final String FIELD_WEBXML_APPLICATION = "webXmlApplication";
@@ -26,5 +27,7 @@ public interface LuceneFields {
 	public static final String FIELD_RETURNED_TYPE_NAME = "returnedTypeName";
 	// special field with is used in conjunction with an EnumProviderKind enum item
 	public static final String FIELD_PROVIDER_KIND = "providerKind:";
-
+	/** The type of problem associated with a marker.*/
+	public static final String FIELD_MARKER_IDENTIFIER = "markerIdentifier";
+	public static final String FIELD_MARKER_TYPE = "markerType";
 }

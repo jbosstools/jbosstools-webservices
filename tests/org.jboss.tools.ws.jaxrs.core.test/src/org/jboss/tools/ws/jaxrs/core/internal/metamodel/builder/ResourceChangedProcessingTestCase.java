@@ -1154,14 +1154,14 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications: 1 resource and its 2 methods removed
 		assertThat(elementChanges.size(), equalTo(3));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
-				equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(((JaxrsResource) elementChanges.get(0).getElement()), equalTo(resource));
 		assertThat(elementChanges.get(1).getDeltaKind(), equalTo(REMOVED));
 		assertThat(elementChanges.get(1).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(elementChanges.get(2).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(2).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(((JaxrsResource) elementChanges.get(2).getElement()), equalTo(resource));
+		assertThat(elementChanges.get(2).getElement().getElementKind().getCategory(),
+				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 6 built-in HttpMethods left only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}

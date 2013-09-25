@@ -21,12 +21,12 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.SourceRange;
-import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -52,18 +52,21 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 
 	private static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]+");
 
-	public JaxrsResourceMethodValidatorDelegate(final TempMarkerManager markerManager) {
-		super(markerManager);
+	private final IMarkerManager markerManager;
+	
+	public JaxrsResourceMethodValidatorDelegate(final IMarkerManager markerManager) {
+		this.markerManager = markerManager;
 	}
 
 	/**
+	 * @throws CoreException 
 	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.
 	 * AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsResourceMethod resourceMethod) throws JavaModelException {
+	void internalValidate(final JaxrsResourceMethod resourceMethod) throws CoreException {
 		Logger.debug("Validating element {}", resourceMethod);
-		resourceMethod.resetProblemLevel();
+		resourceMethod.resetMarkers();
 		validatePublicModifierOnJavaMethod(resourceMethod);
 		validateNoUnboundPathAnnotationTemplateParameters(resourceMethod);
 		validateNoUnboundPathParamAnnotationValues(resourceMethod);
@@ -78,10 +81,10 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 * {@link MesssageBodyReader}.
 	 * 
 	 * @return
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
 	private void validateAtMostOneMethodParameterWithoutAnnotation(final JaxrsResourceMethod resourceMethod)
-			throws JavaModelException {
+			throws CoreException {
 		int counter = 0;
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			// Should count parameters annotated with:
@@ -94,9 +97,9 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		}
 		if (counter > 1) {
 			final ISourceRange nameRange = resourceMethod.getJavaElement().getNameRange();
-			addProblem(JaxrsValidationMessages.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER,
-					JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, new String[0],
-					nameRange, resourceMethod);
+			markerManager.addMarker(resourceMethod,
+					nameRange, JaxrsValidationMessages.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER,
+					new String[0], JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER);
 		}
 	}
 
@@ -109,19 +112,19 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 * <code>@link Response</code>.
 	 * 
 	 * @return
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
 	private void validateNoUnauthorizedContextAnnotationOnJavaMethodParameters(final JaxrsResourceMethod resourceMethod)
-			throws JavaModelException {
+			throws CoreException {
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation contextAnnotation = parameter.getAnnotation(CONTEXT.qualifiedName);
 			final String typeName = parameter.getTypeName();
 			if (contextAnnotation != null && typeName != null && !CONTEXT_TYPE_NAMES.contains(typeName)) {
 				final ISourceRange range = contextAnnotation.getJavaAnnotation().getSourceRange();
-				addProblem(JaxrsValidationMessages.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
-						JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION,
-						new String[] { CONTEXT_TYPE_NAMES.toString() }, range,
-						resourceMethod);
+				markerManager.addMarker(resourceMethod,
+						range,
+						JaxrsValidationMessages.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION, new String[] { CONTEXT_TYPE_NAMES.toString() },
+						JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION);
 			}
 		}
 	}
@@ -133,10 +136,10 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 * no equivalent in the java method's parameters.
 	 * 
 	 * @return errors in case of mismatch, empty list otherwise.
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
 	private void validateNoUnboundPathAnnotationTemplateParameters(final JaxrsResourceMethod resourceMethod)
-			throws JavaModelException {
+			throws CoreException {
 		final Map<String, Annotation> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
 		final List<String> pathParamValues = new ArrayList<String>();
 		// retrieve all @Path
@@ -153,12 +156,12 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 				// look-up source range for annotation value
 				final ISourceRange range = resolveAnnotationParamSourceRange(pathTemplateParameterAnnotation,
 						pathTemplateParameter);
-				addProblem(
+				markerManager.addMarker(
+						resourceMethod,
+						range,
 						JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
-						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
 						new String[] { pathTemplateParameter,
-								JdtUtils.getReadableMethodSignature(resourceMethod.getJavaElement()) },
-						range, resourceMethod);
+								JdtUtils.getReadableMethodSignature(resourceMethod.getJavaElement()) }, JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER);
 			}
 		}
 	}
@@ -168,10 +171,10 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 * have no counterpart in the <code>@Path</code> template parameters.
 	 * 
 	 * @return
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
 	private void validateNoUnboundPathParamAnnotationValues(final JaxrsResourceMethod resourceMethod)
-			throws JavaModelException {
+			throws CoreException {
 		final Map<String, Annotation> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation pathParamAnnotation = parameter.getAnnotation(PATH_PARAM.qualifiedName);
@@ -181,19 +184,19 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 					if (!alphaNumPattern.matcher(pathParamValue).matches()) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
 								pathParamAnnotation.getJavaAnnotation(), "value");
-						addProblem(
-								JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
-								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
-								new String[] { pathParamValue }, range,
-								resourceMethod);
+						markerManager.addMarker(
+								resourceMethod,
+								range,
+								JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, new String[] { pathParamValue },
+								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
 					} else if (!pathParamValueProposals.keySet().contains(pathParamValue)) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
 								pathParamAnnotation.getJavaAnnotation(), "value");
-						addProblem(
-								JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
-								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
-								new String[] { pathParamValue }, range,
-								resourceMethod);
+						markerManager.addMarker(
+								resourceMethod,
+								range,
+								JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, new String[] { pathParamValue },
+								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
 					}
 				}
 			}
@@ -235,14 +238,14 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 * As per specification, the java method should have a public modifier.
 	 * 
 	 * @param resourceMethod
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
-	private void validatePublicModifierOnJavaMethod(final JaxrsResourceMethod resourceMethod) throws JavaModelException {
+	private void validatePublicModifierOnJavaMethod(final JaxrsResourceMethod resourceMethod) throws CoreException {
 		final IMethod javaMethod = resourceMethod.getJavaElement();
 		if (javaMethod != null && !Flags.isPublic(javaMethod.getFlags())) {
 			final ISourceRange nameRange = javaMethod.getNameRange();
-			addProblem(JaxrsValidationMessages.RESOURCE_METHOD_NO_PUBLIC_MODIFIER,
-					JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, new String[0], nameRange, resourceMethod);
+			markerManager.addMarker(resourceMethod,
+					nameRange, JaxrsValidationMessages.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, new String[0], JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER);
 		}
 	}
 

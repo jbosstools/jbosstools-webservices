@@ -23,7 +23,6 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
@@ -47,13 +46,15 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 			"javax.ws.rs.core.UriInfo", "javax.servlet.ServletConfig", "javax.servlet.ServletContext",
 			"javax.ws.rs.core.SecurityContext"));
 
+	private final IMarkerManager markerManager;
+	
 	/**
 	 * Constructor.
 	 * 
 	 * @param markerManager
 	 */
-	public JaxrsProviderValidatorDelegate(final TempMarkerManager markerManager) {
-		super(markerManager);
+	public JaxrsProviderValidatorDelegate(final IMarkerManager markerManager) {
+		this.markerManager = markerManager;
 	}
 
 	/**
@@ -61,10 +62,10 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	 * AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(JaxrsProvider provider) throws CoreException {
+	void internalValidate(final JaxrsProvider provider) throws CoreException {
 		Logger.debug("Validating element {}", provider);
 		try {
-			provider.resetProblemLevel();
+			provider.resetMarkers();
 			validateAtLeastOneValidConstructor(provider);
 			validateNoMissingProviderAnnotation(provider);
 			validateNoDuplicateProvider(provider);
@@ -94,10 +95,9 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	 * parameters is implementation specific, implementations SHOULD generate a
 	 * warning about such ambiguity.
 	 * </p>
-	 * 
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 * */
-	private void validateAtLeastOneValidConstructor(JaxrsProvider provider) throws JavaModelException {
+	private void validateAtLeastOneValidConstructor(JaxrsProvider provider) throws CoreException {
 		final IType providerType = provider.getJavaElement();
 		final IMethod[] methods = providerType.getMethods();
 		int validConstructorsCounter = 0;
@@ -114,8 +114,8 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		}
 		if (hasConstructors && validConstructorsCounter == 0) {
 			final ISourceRange nameRange = providerType.getNameRange();
-			addProblem(JaxrsValidationMessages.PROVIDER_MISSING_VALID_CONSTRUCTOR,
-					JaxrsPreferences.PROVIDER_MISSING_VALID_CONSTRUCTOR, new String[0], nameRange, provider);
+			markerManager.addMarker(provider,
+					nameRange, JaxrsValidationMessages.PROVIDER_MISSING_VALID_CONSTRUCTOR, new String[0], JaxrsPreferences.PROVIDER_MISSING_VALID_CONSTRUCTOR);
 		}
 
 	}
@@ -155,11 +155,11 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		return true;
 	}
 
-	private void validateAtLeastOneImplementation(final JaxrsProvider provider) throws JavaModelException {
+	private void validateAtLeastOneImplementation(final JaxrsProvider provider) throws CoreException {
 		if (provider.getProvidedTypes().size() == 0) {
 			final ISourceRange nameRange = provider.getJavaElement().getNameRange();
-			addProblem(JaxrsValidationMessages.PROVIDER_MISSING_IMPLEMENTATION,
-					JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, new String[0], nameRange, provider);
+			markerManager.addMarker(provider,
+					nameRange, JaxrsValidationMessages.PROVIDER_MISSING_IMPLEMENTATION, new String[0], JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION);
 		}
 	}
 
@@ -168,14 +168,14 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	 * <code>@Provider</code> annotation.
 	 * 
 	 * @param provider
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
-	private void validateNoMissingProviderAnnotation(final JaxrsProvider provider) throws JavaModelException {
+	private void validateNoMissingProviderAnnotation(final JaxrsProvider provider) throws CoreException {
 		final Annotation annotation = provider.getAnnotation(EnumJaxrsClassname.PROVIDER.qualifiedName);
 		if (annotation == null) {
 			final ISourceRange nameRange = provider.getJavaElement().getNameRange();
-			addProblem(JaxrsValidationMessages.PROVIDER_MISSING_ANNOTATION,
-					JaxrsPreferences.PROVIDER_MISSING_ANNOTATION, new String[0], nameRange, provider);
+			markerManager.addMarker(provider,
+					nameRange, JaxrsValidationMessages.PROVIDER_MISSING_ANNOTATION, new String[0], JaxrsPreferences.PROVIDER_MISSING_ANNOTATION);
 		}
 	}
 
@@ -184,10 +184,10 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	 * <code>@Provider</code> annotation.
 	 * 
 	 * @param provider
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
 	@SuppressWarnings("incomplete-switch")
-	private void validateNoDuplicateProvider(final JaxrsProvider provider) throws JavaModelException {
+	private void validateNoDuplicateProvider(final JaxrsProvider provider) throws CoreException {
 		final JaxrsMetamodel metamodel = provider.getMetamodel();
 		for (Entry<EnumElementKind, IType> entry : provider.getProvidedTypes().entrySet()) {
 			final EnumElementKind elementKind = entry.getKey();
@@ -226,13 +226,13 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	 * @param providedType
 	 * @param message
 	 * @param preferenceKey
-	 * @throws JavaModelException
+	 * @throws CoreException 
 	 */
 	private void addDuplicateProviderProblem(final JaxrsProvider provider, final IType providedType,
-			final String message, final String preferenceKey) throws JavaModelException {
+			final String message, final String preferenceKey) throws CoreException {
 		final ISourceRange nameRange = getTypeParameterNameRange(provider.getJavaElement(), providedType);
-		addProblem(message, preferenceKey, new String[] { provider.getJavaElement().getFullyQualifiedName() },
-				nameRange, provider);
+		markerManager.addMarker(provider, nameRange, message,
+				new String[] { provider.getJavaElement().getFullyQualifiedName() }, preferenceKey);
 	}
 
 	/**
