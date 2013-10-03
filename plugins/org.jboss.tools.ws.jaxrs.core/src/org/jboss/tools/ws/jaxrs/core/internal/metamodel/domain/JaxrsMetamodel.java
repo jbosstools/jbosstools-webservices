@@ -321,7 +321,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			return null;
 		}
 		final JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
-		Logger.debug("JAX-RS Metamodel created for project " + javaProject.getElementName());
+		Logger.debug("JAX-RS Metamodel created for project {}", javaProject.getElementName());
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, metamodel);
 		return metamodel;
 	}
@@ -383,6 +383,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	@Override
 	public void addListener(final IJaxrsEndpointChangedListener listener) {
 		if(!endpointChangedListeners.contains(listener)) { 
+			Logger.debug("*** Registering EndpointChangedListener for project {} ***", javaProject.getElementName());
 			this.endpointChangedListeners.add(listener);
 		}
 	}
@@ -427,12 +428,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            no change occurred)
 	 */
 	private void notifyListeners(final IJaxrsEndpoint endpoint, final int deltaKind) {
-		if (endpoint != null) {
+		if (endpoint != null && !endpointChangedListeners.isEmpty()) {
 			JaxrsEndpointDelta delta = new JaxrsEndpointDelta(endpoint, deltaKind);
-			Logger.trace("Notify elementChangedListeners after {}", delta);
+			Logger.trace("Notify project '{}' elementChangedListeners after {}", javaProject.getElementName(), delta);
 			for (IJaxrsEndpointChangedListener listener : endpointChangedListeners) {
 				listener.notifyEndpointChanged(delta);
 			}
+		} else if(endpointChangedListeners.isEmpty()) {
+			Logger.debug("*** No Listener for project '{}' to notify after endpoint changes: {} (change={}) ***", javaProject.getElementName(), endpoint, deltaKind);
 		}
 	}
 

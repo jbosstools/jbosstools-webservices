@@ -67,8 +67,10 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 			// let's make sure this listener is registered
 			if (metamodel != null) {
-				// metamode.addListener() avoids duplicate entries
+				// metamodel.addListener() avoids duplicate entries
 				metamodel.addListener(this);
+			} else {
+				Logger.debug("*** No JAX-RS Metamodel available for project '{}' yet :-( ***", project.getName());
 			}
 			if (!uriPathTemplateCategories.containsKey(project)) {
 				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
@@ -98,7 +100,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			Logger.trace("Element {} has children: {}", element, hasChildren);
 			return hasChildren;
 		}
-		Logger.debug("Element {} has not children", element);
+		Logger.debug("Element '{}' has not children", element);
 		return false;
 	}
 
@@ -117,7 +119,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 						metamodel.removeListener(this);
 					}
 				} catch (CoreException e) {
-					Logger.error("Failed to remove listener on JAX-RS Metamodel", e);
+					Logger.error("Failed to remove listener on JAX-RS Metamodel '" + project.getName() + "'", e);
 				}
 			}
 		}
@@ -153,7 +155,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
 		final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
 		if(target != null) {
-			Logger.debug("Refreshing navigator view at level: {}", target.getClass().getName());
+			Logger.debug("Refreshing navigator view at level: '{}'", target.getClass().getName());
 			// this piece of code must run in an async manner to avoid reentrant
 			// call while viewer is busy.
 			updateContent(target);
@@ -168,7 +170,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		final IProject project= metamodel.getProject();
 		if (uriPathTemplateCategories != null) {
 			if (!uriPathTemplateCategories.containsKey(project)) {
-				Logger.debug("Adding a UriPathTemplateCategory for project {} (case #1)", project.getName());
+				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", project.getName());
 				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
 				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
 				refreshContent(uriPathTemplateCategories.get(project));
@@ -186,7 +188,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	public void refreshContent(final IProject project) {
 		if (uriPathTemplateCategories != null) {
 			if (!uriPathTemplateCategories.containsKey(project)) {
-				Logger.debug("Adding a UriPathTemplateCategory for project {} (case #1)", project.getName());
+				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", project.getName());
 				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
 				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
 			}
@@ -213,7 +215,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
 		// during initialization, UI may not be available yet.
 		if(target != null) {
-			Logger.debug("Refreshing navigator view at level: {}", target.getClass().getName());
+			Logger.debug("Refreshing navigator view at level: '{}'", target.getClass().getName());
 			// this piece of code must run in an async manner to avoid reentrant
 			// call while viewer is busy.
 			refreshContent(target);
@@ -235,7 +237,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			public void run() {
 				if (viewer != null) {
 					TreePath[] treePaths = viewer.getExpandedTreePaths();
-					Logger.debug("*** Refreshing the viewer at target level: {} (viewer busy: {}) ***", target,
+					Logger.debug("*** Refreshing the viewer at target level: '{}' (viewer busy: {}) ***", target,
 							viewer.isBusy());
 					viewer.refresh(target, true);
 					viewer.setExpandedTreePaths(treePaths);
