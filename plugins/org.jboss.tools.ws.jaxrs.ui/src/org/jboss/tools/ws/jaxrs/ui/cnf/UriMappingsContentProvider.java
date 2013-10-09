@@ -113,7 +113,9 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			for (IProject project : uriPathTemplateCategories.keySet()) {
 				try {
 					final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-					metamodel.removeListener(this);
+					if(metamodel != null) {
+						metamodel.removeListener(this);
+					}
 				} catch (CoreException e) {
 					Logger.error("Failed to remove listener on JAX-RS Metamodel", e);
 				}
