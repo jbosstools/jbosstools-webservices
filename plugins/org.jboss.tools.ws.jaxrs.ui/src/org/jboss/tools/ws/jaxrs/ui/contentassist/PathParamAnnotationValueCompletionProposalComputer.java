@@ -76,7 +76,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			if (metamodel == null) {
 				return Collections.emptyList();
 			}
-			
+			synchronized(metamodel) {
 			final int invocationOffset = context.getInvocationOffset();
 			final ICompilationUnit compilationUnit = javaContext.getCompilationUnit();
 			final Annotation annotation = JdtUtils.resolveAnnotationAt(invocationOffset, compilationUnit);
@@ -86,6 +86,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 				if (resourceMethod != null) {
 					return internalComputePathParamProposals(javaContext, resourceMethod);
 				}
+			}
 			}
 
 		} catch (Exception e) {

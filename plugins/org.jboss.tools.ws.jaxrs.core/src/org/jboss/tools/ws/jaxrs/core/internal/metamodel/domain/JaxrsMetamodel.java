@@ -28,33 +28,6 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.Lucene
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_RETURNED_TYPE_NAME;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_WEBXML_APPLICATION;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ENCODED_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_PARAM_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_RETENTION_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_TARGET_ANNOTATION;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.Term;
@@ -173,6 +147,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/** The last known build status for this metamodel. */
 	private IStatus buildStatus = Status.OK_STATUS;
+
+	/** A Read/Write Lock to avoid concurrent access to the elements while changes are being processed. */
+	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
 	/**
 	 * Full constructor.
@@ -312,14 +289,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * 
 	 * @param javaProject
 	 *            the java project
-	 * @return the metamodel or null if none was found
+	 * @return the metamodel or null if none was found or if the given javaProject was null or closed
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
 	public static JaxrsMetamodel create(final IJavaProject javaProject) throws CoreException {
-		if (javaProject == null || javaProject.getProject() == null) {
-			return null;
-		}
+		Logger.debug("*** Returning a new Metamodel for project {} ***", javaProject.getElementName());
 		final JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
 		Logger.debug("JAX-RS Metamodel created for project {}", javaProject.getElementName());
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, metamodel);
@@ -334,12 +309,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	public final void remove() {
 		try {
+			readWriteLock.writeLock().lock();
 			javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
 			indexationService.dispose();
 		} catch (Exception e) {
 			Logger.error("Failed to remove JAX-RS Metamodel for project " + javaProject.getElementName(), e);
+		} finally {
+			Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());
+			readWriteLock.writeLock().unlock();
 		}
-		Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());
 	}
 
 	@Override
@@ -453,23 +431,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void processJavaElementChange(final JavaElementDelta delta, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		try {
-			Logger.debug("Processing {} Java change", delta);
+			Logger.debug("Processing {}", delta);
+			readWriteLock.writeLock().lock();
 			final IJavaElement element = delta.getElement();
 			final CompilationUnit ast = delta.getCompilationUnitAST();
 			final int deltaKind = delta.getKind();
-			// final int elementType = delta.getElement().getElementType();
-			// if no metamodel existed for the given project, one is
-			// automatically
-			// created. Yet, this applies only to project having the JAX-RS
-			// Facet
-			final IJavaProject javaProject = element.getJavaProject();
-			if (!javaProject.isOpen() || !javaProject.getProject().isOpen()) {
-				Logger.debug("***(Java) Project is closed !***");
-				return;
-			}
-			// doesn't work with change on annotation: there should be a search
-			// based on the annotation, not
-			// a look-up based on the element identifier
 			if (element.getElementType() == IJavaElement.ANNOTATION) {
 				processJavaAnnotationChange((IAnnotation) element, deltaKind, ast, progressMonitor);
 			} else {
@@ -477,6 +443,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			}
 		} finally {
 			progressMonitor.done();
+			readWriteLock.writeLock().unlock();
+			setBuildStatus(Status.OK_STATUS);
 			Logger.debug("Done processing Java changes.");
 		}
 	}
@@ -551,64 +519,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 	}
 
-	/**
-	 * Verifies if the given {@link Annotation} is relevant in the JAX-RS
-	 * Metamodel
-	 * 
-	 * @param annotation
-	 *            the annotation to check
-	 * @return true if the annotation is relevant, false otherwise
-	 */
-	protected boolean isJaxrsAnnotation(final Annotation annotation) {
-		return computeChangeAnnotationFlag(annotation.getFullyQualifiedName()) != JaxrsElementDelta.F_NONE;
-	}
-
-	/**
-	 * Computes the flag associated with the given annotation name
-	 * 
-	 * @param annotationName
-	 *            the annotation fully qualified name
-	 * @return the flag, or {@link JaxrsElementDelta#F_NONE} if the given
-	 *         annotation name is not relevant in the JAX-RS Metamodel
-	 * @see {@link JaxrsElementDelta}
-	 */
-	protected int computeChangeAnnotationFlag(final String annotationName) {
-		if (annotationName.equals(PATH.qualifiedName)) {
-			return F_PATH_ANNOTATION;
-		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
-			return F_APPLICATION_PATH_ANNOTATION;
-		} else if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
-			return F_HTTP_METHOD_ANNOTATION;
-		} else if (annotationName.equals(TARGET.qualifiedName)) {
-			return F_TARGET_ANNOTATION;
-		} else if (annotationName.equals(RETENTION.qualifiedName)) {
-			return F_RETENTION_ANNOTATION;
-		} else if (annotationName.equals(PROVIDER.qualifiedName)) {
-			return F_PROVIDER_ANNOTATION;
-		} else if (annotationName.equals(PATH_PARAM.qualifiedName)) {
-			return F_PATH_PARAM_ANNOTATION;
-		} else if (annotationName.equals(QUERY_PARAM.qualifiedName)) {
-			return F_QUERY_PARAM_ANNOTATION;
-		} else if (annotationName.equals(MATRIX_PARAM.qualifiedName)) {
-			return F_MATRIX_PARAM_ANNOTATION;
-		} else if (annotationName.equals(DEFAULT_VALUE.qualifiedName)) {
-			return F_DEFAULT_VALUE_ANNOTATION;
-		} else if (annotationName.equals(ENCODED.qualifiedName)) {
-			return F_ENCODED_ANNOTATION;
-		} else if (annotationName.equals(CONSUMES.qualifiedName)) {
-			return F_CONSUMES_ANNOTATION;
-		} else if (annotationName.equals(PRODUCES.qualifiedName)) {
-			return F_PRODUCES_ANNOTATION;
-		} else {
-			for (IJaxrsHttpMethod httpMethod : findAllHttpMethods()) {
-				if (httpMethod.getJavaClassName().equals(annotationName)) {
-					return F_HTTP_METHOD_ANNOTATION;
-				}
-			}
-		}
-		return F_NONE;
-	}
-
 	// ********************************************************************************
 	// Processing ResourceDelta (after ResourceChangedEvent)
 	// ********************************************************************************
@@ -622,10 +532,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	public void processProject(final IProgressMonitor progressMonitor) throws CoreException {
-		// start with a fresh new metamodel
 		try {
+			readWriteLock.writeLock().lock();
 			this.initializing = true;
 			progressMonitor.beginTask("Processing project '" + getProject().getName() + "'...", 1);
+			// start with a fresh new metamodel
 			this.elements.clear();
 			this.endpoints.clear();
 			this.indexationService.clear();
@@ -641,6 +552,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			Logger.error("Failed while processing resource results", e);
 		} finally {
 			progressMonitor.done();
+			readWriteLock.writeLock().unlock();
+			setBuildStatus(Status.OK_STATUS);
 			Logger.debug("Done processing resource results.");
 			this.initializing = false;
 		}
@@ -657,6 +570,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void processAffectedResources(final List<ResourceDelta> affectedResources,
 			final IProgressMonitor progressMonitor) {
 		try {
+			readWriteLock.writeLock().lock();
 			progressMonitor.beginTask("Processing Resource " + affectedResources.size() + " change(s)...",
 					affectedResources.size());
 			Logger.debug("Processing {} Resource change(s)...", affectedResources.size());
@@ -668,6 +582,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			Logger.error("Failed while processing Resource results", e);
 		} finally {
 			progressMonitor.done();
+			readWriteLock.writeLock().unlock();
+			setBuildStatus(Status.OK_STATUS);
 			Logger.debug("Done processing Resource results.");
 		}
 	}
@@ -765,13 +681,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	public void add(final IJaxrsElement element) throws CoreException {
-		if (element == null || findElementByIdentifier(element.getIdentifier()) != null) {
-			return;
+		try {
+			readWriteLock.writeLock().lock();
+			if (element == null || findElementByIdentifier(element.getIdentifier()) != null) {
+				return;
+			}
+			this.elements.put(element.getIdentifier(), element);
+			indexationService.indexElement(element);
+			notifyListeners(new JaxrsElementDelta(element, ADDED));
+			processElementChange(new JaxrsElementDelta(element, ADDED));
+		} finally {
+			readWriteLock.writeLock().unlock();
 		}
-		this.elements.put(element.getIdentifier(), element);
-		indexationService.indexElement(element);
-		notifyListeners(new JaxrsElementDelta(element, ADDED));
-		processElementChange(new JaxrsElementDelta(element, ADDED));
 	}
 
 	/**
@@ -784,7 +705,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	public void processElementChange(final JaxrsElementDelta delta) throws CoreException {
-		JaxrsElementChangedProcessorDelegate.processEvent(delta);
+		try {
+			readWriteLock.writeLock().lock();
+			JaxrsElementChangedProcessorDelegate.processEvent(delta);
+		} finally {
+			readWriteLock.writeLock().unlock();
+		}
+
 	}
 
 	/**
@@ -797,9 +724,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	public void update(final JaxrsElementDelta delta) throws CoreException {
 		if (delta.isRelevant()) {
-			indexationService.reindexElement(delta.getElement());
-			notifyListeners(delta);
-			processElementChange(delta);
+			try {
+				readWriteLock.writeLock().lock();
+				indexationService.reindexElement(delta.getElement());
+				notifyListeners(delta);
+				processElementChange(delta);
+			} finally {
+				readWriteLock.writeLock().unlock();
+			}
 		}
 	}
 	
@@ -836,8 +768,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (endpoint == null) {
 			return;
 		}
-		indexationService.reindexElement(endpoint);
-		notifyListeners(endpoint, CHANGED);
+		try {
+			readWriteLock.writeLock().lock();
+			indexationService.reindexElement(endpoint);
+			notifyListeners(endpoint, CHANGED);
+		} finally {
+			readWriteLock.writeLock().unlock();
+		}
 	}
 
 	/**
@@ -853,11 +790,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (element == null) {
 			return;
 		}
-		notifyListeners(new JaxrsElementDelta(element, REMOVED));
-		processElementChange(new JaxrsElementDelta(element, REMOVED));
-		// actual removal and unindexing should be done at the end
-		elements.remove(element.getIdentifier());
-		indexationService.unindexElement(element);
+		try {
+			readWriteLock.writeLock().lock();
+			processElementChange(new JaxrsElementDelta(element, REMOVED));
+			// actual removal and unindexing should be done at the end
+			elements.remove(element.getIdentifier());
+			indexationService.unindexElement(element);
+			notifyListeners(new JaxrsElementDelta(element, REMOVED));
+		} finally {
+			readWriteLock.writeLock().unlock();
+		}
 	}
 
 	/**
@@ -872,9 +814,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (endpoint == null) {
 			return;
 		}
-		endpoints.remove(endpoint.getIdentifier());
-		indexationService.unindexEndpoint(endpoint);
-		notifyListeners(endpoint, REMOVED);
+		try {
+			readWriteLock.writeLock().lock();
+			endpoints.remove(endpoint.getIdentifier());
+			indexationService.unindexEndpoint(endpoint);
+			notifyListeners(endpoint, REMOVED);
+		} finally {
+			readWriteLock.writeLock().unlock();
+		}
 	}
 
 	// ********************************************************************************
@@ -895,28 +842,34 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (element == null) {
 			return Collections.emptyList();
 		}
-		final List<IJaxrsElement> result = new ArrayList<IJaxrsElement>();
-		final Term javaElementTerm = new Term(FIELD_JAVA_ELEMENT, Boolean.TRUE.toString());
-		switch (element.getElementType()) {
-		case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-			final Term packageFragmentRootIdentifier = new Term(FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER,
-					element.getHandleIdentifier());
-			result.addAll(searchJaxrsElements(javaElementTerm, packageFragmentRootIdentifier));
-			break;
-		case IJavaElement.COMPILATION_UNIT:
-			final Term compilationUnitTerm = new Term(FIELD_COMPILATION_UNIT_IDENTIFIER, element.getHandleIdentifier());
-			result.addAll(searchJaxrsElements(javaElementTerm, compilationUnitTerm));
-			break;
-		case IJavaElement.TYPE:
-		case IJavaElement.FIELD:
-		case IJavaElement.METHOD:
-			final IJaxrsElement foundElement = this.elements.get(element.getHandleIdentifier());
-			if (foundElement != null) {
-				result.add(foundElement);
+		try {
+			readWriteLock.readLock().lock();
+			final List<IJaxrsElement> result = new ArrayList<IJaxrsElement>();
+			final Term javaElementTerm = new Term(FIELD_JAVA_ELEMENT, Boolean.TRUE.toString());
+			switch (element.getElementType()) {
+			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+				final Term packageFragmentRootIdentifier = new Term(FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER,
+						element.getHandleIdentifier());
+				result.addAll(searchJaxrsElements(javaElementTerm, packageFragmentRootIdentifier));
+				break;
+			case IJavaElement.COMPILATION_UNIT:
+				final Term compilationUnitTerm = new Term(FIELD_COMPILATION_UNIT_IDENTIFIER, element.getHandleIdentifier());
+				result.addAll(searchJaxrsElements(javaElementTerm, compilationUnitTerm));
+				break;
+			case IJavaElement.TYPE:
+			case IJavaElement.FIELD:
+			case IJavaElement.METHOD:
+				final IJaxrsElement foundElement = this.elements.get(element.getHandleIdentifier());
+				if (foundElement != null) {
+					result.add(foundElement);
+				}
+				break;
 			}
-			break;
+			return result;
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		return result;
+
 	}
 
 	/**
@@ -980,7 +933,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return
 	 */
 	public Collection<IJaxrsElement> getAllElements() {
-		return elements.values();
+		try {
+			readWriteLock.readLock().lock();
+			return elements.values();
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -995,8 +953,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (resource == null) {
 			return Collections.emptyList();
 		}
-		Term resourcePathTerm = new Term(FIELD_RESOURCE_PATH, resource.getFullPath().toPortableString());
-		return searchJaxrsElements(resourcePathTerm);
+		try {
+			readWriteLock.readLock().lock();
+			Term resourcePathTerm = new Term(FIELD_RESOURCE_PATH, resource.getFullPath().toPortableString());
+			return searchJaxrsElements(resourcePathTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1039,16 +1002,21 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (javaElement == null) {
 			return Collections.emptyList();
 		}
-		final String identifier = javaElement.getHandleIdentifier();
-		switch (javaElement.getElementType()) {
-		case IJavaElement.JAVA_PROJECT:
-			return searchJaxrsElements(new Term(FIELD_JAVA_PROJECT_IDENTIFIER, identifier));
-		case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-			return searchJaxrsElements(new Term(FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER, identifier));
-		case IJavaElement.COMPILATION_UNIT:
-			return searchJaxrsElements(new Term(FIELD_COMPILATION_UNIT_IDENTIFIER, identifier));
-		default:
-			return searchJaxrsElements(new Term(FIELD_IDENTIFIER, identifier));
+		try {
+			readWriteLock.readLock().lock();
+			final String identifier = javaElement.getHandleIdentifier();
+			switch (javaElement.getElementType()) {
+			case IJavaElement.JAVA_PROJECT:
+				return searchJaxrsElements(new Term(FIELD_JAVA_PROJECT_IDENTIFIER, identifier));
+			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+				return searchJaxrsElements(new Term(FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER, identifier));
+			case IJavaElement.COMPILATION_UNIT:
+				return searchJaxrsElements(new Term(FIELD_COMPILATION_UNIT_IDENTIFIER, identifier));
+			default:
+				return searchJaxrsElements(new Term(FIELD_IDENTIFIER, identifier));
+			}
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
 	}
 	
@@ -1059,18 +1027,23 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the resources having the given problem type.
 	 */
 	public List<IResource> findResourcesWithProblemOfType(final String problemType) {
-		Logger.debug("Looking for JAX-RS elements with problem {}", problemType);
-		final List<IResource> matchingResources = new ArrayList<IResource>();
-		final Term categoryTerm = new Term(FIELD_TYPE, IMarker.class.getSimpleName());
-		final Term probleTypeTerm = new Term(FIELD_MARKER_TYPE, problemType);
-		final List<String> resourcePaths = indexationService.searchAll(categoryTerm, probleTypeTerm);
-		for(String resourcePath : resourcePaths) {
-			final IResource resource = getProject().getWorkspace().getRoot().findMember(resourcePath);
-			if(resource != null) {
-				matchingResources.add(resource);
+		try {
+			readWriteLock.readLock().lock();
+			Logger.debug("Looking for JAX-RS elements with problem {}", problemType);
+			final List<IResource> matchingResources = new ArrayList<IResource>();
+			final Term categoryTerm = new Term(FIELD_TYPE, IMarker.class.getSimpleName());
+			final Term probleTypeTerm = new Term(FIELD_MARKER_TYPE, problemType);
+			final List<String> resourcePaths = indexationService.searchAll(categoryTerm, probleTypeTerm);
+			for(String resourcePath : resourcePaths) {
+				final IResource resource = getProject().getWorkspace().getRoot().findMember(resourcePath);
+				if(resource != null) {
+					matchingResources.add(resource);
+				}
 			}
+			return matchingResources;
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		return matchingResources;
 	}
 
 
@@ -1079,11 +1052,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	@Override
 	public IJaxrsElement findElement(final IJavaElement javaElement) {
-		if (javaElement == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (javaElement == null) {
+				return null;
+			}
+			final String identifier = javaElement.getHandleIdentifier();
+			return searchJaxrsElement(new Term(FIELD_IDENTIFIER, identifier));
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final String identifier = javaElement.getHandleIdentifier();
-		return searchJaxrsElement(new Term(FIELD_IDENTIFIER, identifier));
 	}
 
 	/**
@@ -1093,7 +1071,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return
 	 */
 	public boolean containsElement(JaxrsBaseElement element) {
-		return this.elements.containsKey(element.getIdentifier());
+		try {
+			readWriteLock.readLock().lock();
+			return this.elements.containsKey(element.getIdentifier());
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1101,8 +1084,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         separate unmodifiable list
 	 */
 	public final List<IJaxrsApplication> getAllApplications() {
-		Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
-		return searchJaxrsElements(categoryTerm);
+		try {
+			readWriteLock.readLock().lock();
+			Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
+			return searchJaxrsElements(categoryTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1118,19 +1106,24 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the application or null if none exist yet.
 	 */
 	public final IJaxrsApplication getApplication() {
-		// try to return pure web.xml first
-		final JaxrsWebxmlApplication webxmlApplication = findWebxmlApplication();
-		if (webxmlApplication != null && webxmlApplication.exists()) {
-			return webxmlApplication;
-		}
-		// otherwise, return first existing java-based application
-		final List<JaxrsJavaApplication> javaApplications = getJavaApplications();
-		for (JaxrsJavaApplication application : javaApplications) {
-			if (application.exists()) {
-				return application;
+		try {
+			readWriteLock.readLock().lock();
+			// try to return pure web.xml first
+			final JaxrsWebxmlApplication webxmlApplication = findWebxmlApplication();
+			if (webxmlApplication != null && webxmlApplication.exists()) {
+				return webxmlApplication;
 			}
+			// otherwise, return first existing java-based application
+			final List<JaxrsJavaApplication> javaApplications = getJavaApplications();
+			for (JaxrsJavaApplication application : javaApplications) {
+				if (application.exists()) {
+					return application;
+				}
+			}
+			return null;
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		return null;
 	}
 
 	/**
@@ -1141,12 +1134,17 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the associated application or null
 	 */
 	public final IJaxrsApplication getApplication(final IResource resource) {
-		if (resource == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (resource == null) {
+				return null;
+			}
+			final Term resourceTerm = new Term(FIELD_RESOURCE_PATH, resource.getFullPath().toPortableString());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
+			return searchJaxrsElement(resourceTerm, categoryTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final Term resourceTerm = new Term(FIELD_RESOURCE_PATH, resource.getFullPath().toPortableString());
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
-		return searchJaxrsElement(resourceTerm, categoryTerm);
 	}
 
 	/**
@@ -1154,9 +1152,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
 	public final List<JaxrsJavaApplication> getJavaApplications() {
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
-		final Term kindTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
-		return searchJaxrsElements(categoryTerm, kindTerm);
+		try {
+			readWriteLock.readLock().lock();
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
+			final Term kindTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
+			return searchJaxrsElements(categoryTerm, kindTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1164,11 +1167,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         none was found.
 	 */
 	public final JaxrsJavaApplication findJavaApplicationByTypeName(final String typeName) {
-		final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, typeName);
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
-		final Term kindTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
-		final String matchingIdentifier = indexationService.searchSingle(classNameTerm, categoryTerm, kindTerm);
-		return (JaxrsJavaApplication) elements.get(matchingIdentifier);
+		try {
+			readWriteLock.readLock().lock();
+			final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, typeName);
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
+			final Term kindTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
+			final String matchingIdentifier = indexationService.searchSingle(classNameTerm, categoryTerm, kindTerm);
+			return (JaxrsJavaApplication) elements.get(matchingIdentifier);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1176,9 +1184,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
 	public final List<JaxrsWebxmlApplication> findWebxmlApplications() {
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
-		final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
-		return searchJaxrsElements(categoryTerm, kindTerm);
+		try {
+			readWriteLock.readLock().lock();
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
+			final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
+			return searchJaxrsElements(categoryTerm, kindTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1190,10 +1203,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         <strong>will not be returned</strong> by this method.
 	 */
 	public final JaxrsWebxmlApplication findWebxmlApplication() {
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
-		final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
-		final String elementIdentifier = indexationService.searchSingle(categoryTerm, kindTerm);
-		return (JaxrsWebxmlApplication) elements.get(elementIdentifier);
+		try {
+			readWriteLock.readLock().lock();
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
+			final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
+			final String elementIdentifier = indexationService.searchSingle(categoryTerm, kindTerm);
+			return (JaxrsWebxmlApplication) elements.get(elementIdentifier);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1201,11 +1219,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         if none was found.
 	 */
 	public final JaxrsWebxmlApplication findWebxmlApplicationByClassName(final String className) {
-		final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, className);
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
-		final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
-		final String matchingIdentifier = indexationService.searchSingle(classNameTerm, categoryTerm, kindTerm);
-		return (JaxrsWebxmlApplication) elements.get(matchingIdentifier);
+		try {
+			readWriteLock.readLock().lock();
+			final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, className);
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
+			final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
+			final String matchingIdentifier = indexationService.searchSingle(classNameTerm, categoryTerm, kindTerm);
+			return (JaxrsWebxmlApplication) elements.get(matchingIdentifier);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1214,8 +1237,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS HTTP Methods
 	 */
 	public final List<IJaxrsHttpMethod> findAllHttpMethods() {
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.HTTP_METHOD.toString());
-		return searchJaxrsElements(categoryTerm);
+		try {
+			readWriteLock.readLock().lock();
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.HTTP_METHOD.toString());
+			return searchJaxrsElements(categoryTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1228,12 +1256,17 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	public JaxrsHttpMethod findHttpMethodByTypeName(final String typeName) throws CoreException {
-		if (typeName == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (typeName == null) {
+				return null;
+			}
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.HTTP_METHOD.toString());
+			final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, typeName);
+			return searchJaxrsElement(categoryTerm, typeTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.HTTP_METHOD.toString());
-		final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, typeName);
-		return searchJaxrsElement(categoryTerm, typeTerm);
 	}
 
 	/**
@@ -1244,13 +1277,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS Provider or null if not found
 	 */
 	public IJaxrsProvider findProvider(final IType providerType) {
-		if (providerType == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (providerType == null) {
+				return null;
+			}
+			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
+			final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, providerType.getFullyQualifiedName());
+			return searchJaxrsElement(projectTerm, categoryTerm, typeTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
-		final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, providerType.getFullyQualifiedName());
-		return searchJaxrsElement(projectTerm, categoryTerm, typeTerm);
 	}
 
 	/**
@@ -1261,13 +1299,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS Resource or null if not found
 	 */
 	public JaxrsResource findResource(IType resourceType) {
-		if (resourceType == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (resourceType == null) {
+				return null;
+			}
+			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE.toString());
+			final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, resourceType.getFullyQualifiedName());
+			return searchJaxrsElement(projectTerm, categoryTerm, typeTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE.toString());
-		final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, resourceType.getFullyQualifiedName());
-		return searchJaxrsElement(projectTerm, categoryTerm, typeTerm);
 	}
 
 	/**
@@ -1278,13 +1321,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS Resource or null if not found
 	 */
 	public List<IJaxrsResourceMethod> findResourceMethodsByReturnedType(final IType returnedType) {
-		if (returnedType == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (returnedType == null) {
+				return null;
+			}
+			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE_METHOD.toString());
+			final Term typeTerm = new Term(FIELD_RETURNED_TYPE_NAME, returnedType.getFullyQualifiedName());
+			return searchJaxrsElements(projectTerm, categoryTerm, typeTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE_METHOD.toString());
-		final Term typeTerm = new Term(FIELD_RETURNED_TYPE_NAME, returnedType.getFullyQualifiedName());
-		return searchJaxrsElements(projectTerm, categoryTerm, typeTerm);
 	}
 
 	/**
@@ -1303,13 +1351,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS Providers or empty list if no match
 	 */
 	public List<JaxrsProvider> findProviders(final EnumElementKind providerKind, final String providedClassName) {
-		if (providerKind == null || providedClassName == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (providerKind == null || providedClassName == null) {
+				return null;
+			}
+			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
+			final Term providerKindTerm = new Term(FIELD_PROVIDER_KIND + providerKind.toString(), providedClassName);
+			return searchJaxrsElements(projectTerm, categoryTerm, providerKindTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
-		final Term providerKindTerm = new Term(FIELD_PROVIDER_KIND + providerKind.toString(), providedClassName);
-		return searchJaxrsElements(projectTerm, categoryTerm, providerKindTerm);
 	}
 
 	/**
@@ -1322,13 +1375,18 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *         <code>null</code> if the input was <code>null</null>.
 	 */
 	public List<JaxrsEndpoint> findEndpoints(final IJaxrsElement element) {
-		if (element == null) {
-			return null;
+		try {
+			readWriteLock.readLock().lock();
+			if (element == null) {
+				return null;
+			}
+			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.ENDPOINT.toString());
+			final Term jaxrsElementTerm = new Term(FIELD_JAXRS_ELEMENT, element.getIdentifier());
+			return searchJaxrsEndpoints(projectTerm, categoryTerm, jaxrsElementTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
 		}
-		final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.ENDPOINT.toString());
-		final Term jaxrsElementTerm = new Term(FIELD_JAXRS_ELEMENT, element.getIdentifier());
-		return searchJaxrsEndpoints(projectTerm, categoryTerm, jaxrsElementTerm);
 	}
 
 	/**
@@ -1337,24 +1395,39 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS Resources
 	 */
 	public final List<IJaxrsResource> getAllResources() {
-		final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE.toString());
-		return searchJaxrsElements(categoryTerm);
+		try {
+			readWriteLock.readLock().lock();
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE.toString());
+			return searchJaxrsElements(categoryTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	public boolean add(JaxrsEndpoint endpoint) {
-		// skip
-		if (endpoint == null || this.endpoints.containsValue(endpoint)) {
-			return false;
+		try {
+			readWriteLock.writeLock().lock();
+			// skip
+			if (endpoint == null || this.endpoints.containsValue(endpoint)) {
+				return false;
+			}
+			this.endpoints.put(endpoint.getIdentifier(), endpoint);
+			indexationService.indexElement(endpoint);
+			notifyListeners(endpoint, ADDED);
+			return true;
+		} finally {
+			readWriteLock.writeLock().unlock();
 		}
-		this.endpoints.put(endpoint.getIdentifier(), endpoint);
-		indexationService.indexElement(endpoint);
-		notifyListeners(endpoint, ADDED);
-		return true;
 	}
 
 	@Override
 	public Collection<IJaxrsEndpoint> getAllEndpoints() {
-		return this.endpoints.values();
+		try {
+			readWriteLock.readLock().lock();
+			return this.endpoints.values();
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -1363,9 +1436,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @param resourceMethod
 	 */
 	public void removeEndpoints(final IJaxrsElement removedElement) {
-		final List<JaxrsEndpoint> endpoints = findEndpoints(removedElement);
-		for (JaxrsEndpoint endpoint : endpoints) {
-			endpoint.remove();
+		try {
+			readWriteLock.writeLock().lock();
+			final List<JaxrsEndpoint> endpoints = findEndpoints(removedElement);
+			for (JaxrsEndpoint endpoint : endpoints) {
+				endpoint.remove();
+			}
+		} finally {
+			readWriteLock.writeLock().unlock();
 		}
 	}
 

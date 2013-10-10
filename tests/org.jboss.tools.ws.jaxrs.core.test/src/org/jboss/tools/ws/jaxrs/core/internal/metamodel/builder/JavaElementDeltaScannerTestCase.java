@@ -41,6 +41,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -143,10 +144,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	}
 
 	@After
-	public void removeAndRestoreListeners() {
+	public void removeAndRestoreListeners() throws CoreException, OperationCanceledException, InterruptedException {
+		project.open(new NullProgressMonitor());
+		javaProject.open(new NullProgressMonitor());
+		WorkbenchTasks.buildProject(project, null);
 		JavaCore.removeElementChangedListener(elementChangeListener);
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
-		// JBossJaxrsCorePlugin.getDefault().registerListeners();
 	}
 
 	private void verifyEventNotification(IJavaElement element, int deltaKind, int eventType, int flags,
@@ -1143,5 +1146,23 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		for (IMethod method : type.getMethods()) {
 			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_SIGNATURE, atLeastOnce());
 		}
+	}
+	
+	@Test
+	public void shoudIgnoreEventOnCloseProject() throws CoreException {
+		// pre-condition
+		// operation
+		project.close(new NullProgressMonitor());
+		// verification
+		verify(resourceEvents, never());
+	}
+
+	@Test
+	public void shoudIgnoreEventOnCloseJavaProject() throws CoreException {
+		// pre-condition
+		// operation
+		javaProject.close();
+		// verification
+		verify(resourceEvents, never());
 	}
 }

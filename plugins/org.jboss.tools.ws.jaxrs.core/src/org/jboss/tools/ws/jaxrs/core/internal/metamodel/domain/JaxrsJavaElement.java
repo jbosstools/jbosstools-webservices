@@ -12,8 +12,34 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ELEMENT_KIND;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ENCODED_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_PARAM_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_RETENTION_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_TARGET_ANNOTATION;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +58,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 
 /**
@@ -256,11 +283,57 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 
 	private int qualifyChange(final String annotationName, EnumElementKind previousKind) {
 		final EnumElementKind currentKind = getElementKind();
-		int flag = getMetamodel().computeChangeAnnotationFlag(annotationName);
+		int flag = computeChangeAnnotationFlag(annotationName);
 		if (currentKind != previousKind) {
 			flag += F_ELEMENT_KIND;
 		}
 		return flag;
+	}
+	
+	/**
+	 * Computes the flag associated with the given annotation name
+	 * 
+	 * @param annotationName
+	 *            the annotation fully qualified name
+	 * @return the flag, or {@link JaxrsElementDelta#F_NONE} if the given
+	 *         annotation name is not relevant in the JAX-RS Metamodel
+	 * @see {@link JaxrsElementDelta}
+	 */
+	private int computeChangeAnnotationFlag(final String annotationName) {
+		if (annotationName.equals(PATH.qualifiedName)) {
+			return F_PATH_ANNOTATION;
+		} else if (annotationName.equals(APPLICATION_PATH.qualifiedName)) {
+			return F_APPLICATION_PATH_ANNOTATION;
+		} else if (annotationName.equals(HTTP_METHOD.qualifiedName)) {
+			return F_HTTP_METHOD_ANNOTATION;
+		} else if (annotationName.equals(TARGET.qualifiedName)) {
+			return F_TARGET_ANNOTATION;
+		} else if (annotationName.equals(RETENTION.qualifiedName)) {
+			return F_RETENTION_ANNOTATION;
+		} else if (annotationName.equals(PROVIDER.qualifiedName)) {
+			return F_PROVIDER_ANNOTATION;
+		} else if (annotationName.equals(PATH_PARAM.qualifiedName)) {
+			return F_PATH_PARAM_ANNOTATION;
+		} else if (annotationName.equals(QUERY_PARAM.qualifiedName)) {
+			return F_QUERY_PARAM_ANNOTATION;
+		} else if (annotationName.equals(MATRIX_PARAM.qualifiedName)) {
+			return F_MATRIX_PARAM_ANNOTATION;
+		} else if (annotationName.equals(DEFAULT_VALUE.qualifiedName)) {
+			return F_DEFAULT_VALUE_ANNOTATION;
+		} else if (annotationName.equals(ENCODED.qualifiedName)) {
+			return F_ENCODED_ANNOTATION;
+		} else if (annotationName.equals(CONSUMES.qualifiedName)) {
+			return F_CONSUMES_ANNOTATION;
+		} else if (annotationName.equals(PRODUCES.qualifiedName)) {
+			return F_PRODUCES_ANNOTATION;
+		} else {
+			for (IJaxrsHttpMethod httpMethod : getMetamodel().findAllHttpMethods()) {
+				if (httpMethod.getJavaClassName().equals(annotationName)) {
+					return F_HTTP_METHOD_ANNOTATION;
+				}
+			}
+		}
+		return F_NONE;
 	}
 
 	/**

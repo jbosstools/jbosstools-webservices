@@ -105,6 +105,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		} catch (CoreException e) {
 			Logger.error("Failed to check if JAX-RS validation is required for project '" + project.getName() + "'", e);
 		}
+		Logger.debug("*** Skipping JAX-RS validation for project {}", project.getName());
 		return false;
 	}
 
@@ -181,8 +182,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				// the removal of an application may fix that problem on other applications
 				final List<IResource> duplicateAppResources = metamodel.findResourcesWithProblemOfType(JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
 				if(!changedResource.exists()) {
+					Logger.debug("Adding all applications after changed resource was removed...");
 					resources.addAll(duplicateAppResources);
 				} else if(duplicateAppResources.contains(changedResource)) {
+					Logger.debug("Adding all applications since they are related to the resource that changed...");
 					resources.addAll(duplicateAppResources);
 				}
 			}
@@ -235,11 +238,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE, new String[] { changedFile.getProject().getName(),
 				changedFile.getName() });
 		try {
-			final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
-			final Set<IResource> allResources = completeValidationSet(jaxrsMetamodel, changedFile);
-			for (IResource changedResource : allResources) {
-				validate(changedResource, jaxrsMetamodel, reporter);
-				//FIXME: notify UI
+			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
+			if(metamodel != null) {
+				final Set<IResource> allResources = completeValidationSet(metamodel, changedFile);
+				for (IResource changedResource : allResources) {
+					validate(changedResource, metamodel, reporter);
+				}
 			}
 		} catch (CoreException e) {
 			Logger.error(
@@ -363,7 +367,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	public IValidatingProjectTree getValidatingProjects(IProject project) {
 		try {
 			JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-			if(metamodel!=null) {
+			if (metamodel != null) {				
 				return metamodel.getValidatingProjectTree();
 			}
 		} catch (CoreException e) {

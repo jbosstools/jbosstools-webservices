@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -48,9 +49,9 @@ public class MethodParametersCompletionProposalComputer implements IJavaCompleti
 			IProgressMonitor monitor) {
 		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		final JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
+		final IJavaProject javaProject = javaContext.getProject();
 		try {
-			final IJavaProject project = javaContext.getProject();
-			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 			// skip if the JAX-RS Nature is not configured for this project
 			if (metamodel == null) {
 				return Collections.emptyList();
@@ -61,7 +62,7 @@ public class MethodParametersCompletionProposalComputer implements IJavaCompleti
 					final ITypedRegion region = new TypedRegion(javaContext.getInvocationOffset(), 0, null);
 					//proposals.add(new MethodParametersCompletionProposal("Foo !", new StyledString("Foo!"), region, icon, (IMember) invocationElement));
 			}
-		} catch (Exception e) {
+		} catch (CoreException e) {
 			Logger.error("Failed to compute completion proposal", e);
 		}
 		return proposals; 

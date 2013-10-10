@@ -15,7 +15,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
+/**
+ * Utility class to retrieve the {@link JaxrsMetamodel} of a given {@link IProject} or {@link IJavaProject}
+ * 
+ * @author xcoulon
+ *
+ */
 public class JaxrsMetamodelLocator {
 
 	/** Singleton constructor */
@@ -28,7 +35,7 @@ public class JaxrsMetamodelLocator {
 	 * 
 	 * @param javaProject
 	 *            the java project
-	 * @return the metamodel or null if none was found
+	 * @return the metamodel or null if none was found or if the given javaProject was null or closed
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
@@ -39,61 +46,57 @@ public class JaxrsMetamodelLocator {
 	/**
 	 * Accessor to the metamodel from the given project's session properties.
 	 * 
-	 * @param javaProject
-	 *            the java project
-	 * @param createIfMissing
-	 *            create the JAX-RS Metamodel if none already exists for the
-	 *            given JavaProject
-	 * @return the metamodel or null if none was found
-	 * @throws CoreException
-	 *             in case of underlying exception
-	 */
-	public static JaxrsMetamodel get(final IJavaProject javaProject, final boolean createIfMissing)
-			throws CoreException {
-		if (javaProject == null || javaProject.getProject() == null) {
-			return null;
-		}
-		return get(javaProject.getProject(), createIfMissing);
-	}
-
-	/**
-	 * Accessor to the metamodel from the given project's session properties.
-	 * 
 	 * @param project
 	 *            the project
-	 * @return the metamodel or null if none was found
+	 * @return the metamodel or null if none was found or if the given project was null or closed
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
 	public static JaxrsMetamodel get(final IProject project) throws CoreException {
-		if (project == null || !project.isOpen()) {
+		if (project == null) {
 			return null;
 		}
-		return get(project, false);
+		if (!project.isOpen()) {
+			Logger.debug("*** Returning a null Metamodel because the given project is closed (or not opened yet) ***");
+			return null;
+		}
+		
+		return get(JavaCore.create(project), false);
 	}
-
+	
 	/**
-	 * Accessor to the metamodel from the given project's session properties.
+	 * Accessor to the {@link JaxrsMetamodel} from the given project's session
+	 * properties.
 	 * 
-	 * @param project
-	 *            the project
-	 * @param createIfMissing
+	 * @param javaProject
+	 *            the java project
+	 * @param force
 	 *            create the JAX-RS Metamodel if none already exists for the
-	 *            given JavaProject
-	 * @return the metamodel or null if none was found
+	 *            given JavaProject, even if the given {@link IJavaProject} is
+	 *            not yet open.
+	 * @return the metamodel or null if none was found or the given javaProject
+	 *         was null or closed and the {@code force} arg was set to
+	 *         {@code false}
 	 * @throws CoreException
 	 *             in case of underlying exception
 	 */
-	public static JaxrsMetamodel get(final IProject project, final boolean createIfMissing) throws CoreException {
-		if (project == null || !project.isOpen()) {
+	public static JaxrsMetamodel get(final IJavaProject javaProject, final boolean force)
+			throws CoreException {
+		if (javaProject == null) {
 			return null;
 		}
-		final JaxrsMetamodel metamodel = (JaxrsMetamodel) project.getSessionProperty(
-				JaxrsMetamodel.METAMODEL_QUALIFIED_NAME);
-		if (metamodel == null && createIfMissing) {
-			return JaxrsMetamodel.create(JavaCore.create(project));
+		if (!force && !javaProject.isOpen()) {
+			Logger.debug("*** Returning a null Metamodel because the given javaProject is closed (or not opened yet) ***");
+			return null;
 		}
-		return metamodel;
+
+		final JaxrsMetamodel metamodel = (JaxrsMetamodel) javaProject.getProject().getSessionProperty(
+				JaxrsMetamodel.METAMODEL_QUALIFIED_NAME);
+		if (metamodel == null && force) {
+			return JaxrsMetamodel.create(javaProject);
+		}
+		return metamodel;	
 	}
+
 
 }
