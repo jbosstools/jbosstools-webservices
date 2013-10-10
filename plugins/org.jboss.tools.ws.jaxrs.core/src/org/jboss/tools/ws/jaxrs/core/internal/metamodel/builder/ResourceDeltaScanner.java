@@ -68,6 +68,10 @@ public class ResourceDeltaScanner {
 	 */
 	private List<ResourceDelta> scanDelta(final IResourceDelta delta) throws CoreException {
 		final List<ResourceDelta> events = new ArrayList<ResourceDelta>();
+		if (delta == null) {
+			return Collections.emptyList();
+		}
+		
 		final IResource resource = delta.getResource();
 		// skip as the project is closed
 		if (resource.getType() == IResource.PROJECT && !((IProject) resource).isOpen()) {

@@ -62,15 +62,13 @@ public class JavaElementDelta extends EventObject {
 	 * 
 	 * @param element
 	 *            The java element that changed.
+	 * @param deltaKind
+	 *            The kind of change (ADDED, CHANGED, REMOVED).
+	 * @param eventType
+	 *            The type of event (POST_CHANGE or POST_RECONCILE).
 	 * @param compilationUnitAST
 	 *            The associated compilation unit AST (or null if it does not
 	 *            apply to the given element)
-	 * @param elementType
-	 *            The (detailed) Java Element kind.
-	 * @param deltaKind
-	 *            The kind of change.
-	 * @param compilationUnitAST
-	 *            the associated compilation unit AST
 	 * @param flags
 	 *            the detailed kind of change.
 	 * @see IJavaElementDelta for element change kind values.

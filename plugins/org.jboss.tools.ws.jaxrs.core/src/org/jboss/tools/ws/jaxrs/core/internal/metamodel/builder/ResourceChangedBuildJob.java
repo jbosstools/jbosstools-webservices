@@ -27,6 +27,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
@@ -47,7 +49,7 @@ public class ResourceChangedBuildJob extends Job {
 
 	@Override
 	protected IStatus run(final IProgressMonitor progressMonitor) {
-		long startTime = new Date().getTime();
+		final long startTime = new Date().getTime();
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			Logger.debug("Building JAX-RS Metamodel after resource changed...");
@@ -58,19 +60,21 @@ public class ResourceChangedBuildJob extends Job {
 				return Status.CANCEL_STATUS;
 			} 
 			// compute changes on the JAX-RS Application(s), HttpMethods, Resources, etc.
-			JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+			final IJavaProject javaProject = JavaCore.create(project);
+			JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 			try {
 				if (metamodel == null) {
-					metamodel = JaxrsMetamodelLocator.get(project, true);
-					metamodel.processProject(progressMonitor);
+					metamodel = JaxrsMetamodelLocator.get(javaProject, true);
+					if(metamodel != null) {
+						metamodel.processProject(progressMonitor);
+					}
 				} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
 						|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
 					metamodel.processProject(progressMonitor);
 				} else {
 					metamodel.processAffectedResources(affectedResources, progressMonitor);
 				}
-				metamodel.setBuildStatus(Status.OK_STATUS);
-			} catch(Throwable e) {
+			} catch(CoreException e) {
 				final IStatus status = Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + project.getName(), e);
 				if(metamodel != null) {
 					metamodel.setBuildStatus(status);
@@ -83,13 +87,15 @@ public class ResourceChangedBuildJob extends Job {
 		} finally {
 			long endTime = new Date().getTime();
 			if (Logger.isDebugEnabled()) {
-				Logger.debug("JAX-RS Metamodel for project '{}' fully built in {} ms.", project.getName(), (endTime - startTime));
+				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms.", project.getName(), (endTime - startTime));
 				try {
 					final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-					Logger.debug(
-							"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
-							project.getName(), metamodel.findAllHttpMethods().size(),
-							metamodel.getAllResources().size(), metamodel.getAllEndpoints().size());
+					if(metamodel != null) {
+						Logger.debug(
+								"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
+								project.getName(), metamodel.findAllHttpMethods().size(),
+								metamodel.getAllResources().size(), metamodel.getAllEndpoints().size());
+					}
 				} catch (Throwable e) {
 					// debug level here since the purpose was to display a debug message
 					Logger.debug("Error occurred: {}", e);

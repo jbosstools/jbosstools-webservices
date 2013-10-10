@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
@@ -51,18 +52,18 @@ public class ResourceChangedListener implements IResourceChangeListener {
 		if(!active) {
 			return;
 		}
-		try {
-			if (event.getType() == IResourceChangeEvent.PRE_CLOSE && event.getResource() != null
-					&& event.getResource().getType() == IResource.PROJECT) {
-				final IProject project = (IProject) event.getResource();
-				final JaxrsMetamodel jaxrsMetamodel = JaxrsMetamodelLocator.get(project);
-				if (jaxrsMetamodel != null) {
+		if (event.getType() == IResourceChangeEvent.PRE_CLOSE && event.getResource() != null
+				&& event.getResource().getType() == IResource.PROJECT) {
+			final IProject project = (IProject) event.getResource();
+			try {
+				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+				if (metamodel != null) {
 					Logger.debug("Removing JAX-RS Metamodel before closing project " + project.getName());
-					jaxrsMetamodel.remove();
+					metamodel.remove();
 				}
+			} catch (CoreException e) {
+				Logger.error("Error while removing JAX-RS Metamodel", e);
 			}
-		} catch (Exception e) {
-			Logger.error("Error while removing JAX-RS Metamodel", e);
 		}
 
 	}

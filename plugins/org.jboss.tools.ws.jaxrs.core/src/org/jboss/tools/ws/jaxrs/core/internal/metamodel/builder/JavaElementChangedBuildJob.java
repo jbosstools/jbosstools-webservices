@@ -12,6 +12,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder.SCALE;
 
+import java.util.Date;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -44,6 +45,7 @@ public class JavaElementChangedBuildJob extends Job {
 	
 	@Override
 	protected IStatus run(final IProgressMonitor progressMonitor) {
+		final long startTime = new Date().getTime();
 		IJavaElement element = null;
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
@@ -73,11 +75,15 @@ public class JavaElementChangedBuildJob extends Job {
 						if (progressMonitor.isCanceled()) {
 							return Status.CANCEL_STATUS;
 						}
-						metamodel.setBuildStatus(Status.OK_STATUS);
 					} catch(Throwable e) {
 						final IStatus status = Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 						metamodel.setBuildStatus(status);
 						return status;
+					} finally {
+						Logger.debug(
+								"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
+								javaProject.getElementName(), metamodel.findAllHttpMethods().size(),
+								metamodel.getAllResources().size(), metamodel.getAllEndpoints().size());
 					}
 				}
 			}
@@ -89,6 +95,11 @@ public class JavaElementChangedBuildJob extends Job {
 			}
 		} finally {
 			progressMonitor.done();
+			long endTime = new Date().getTime();
+			if (Logger.isDebugEnabled()) {
+				Logger.debug("Java element changes processed in {} ms.", (endTime - startTime));
+			}
+			
 		}
 		return Status.OK_STATUS;
 	}

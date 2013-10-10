@@ -770,6 +770,8 @@ public class WorkbenchUtils {
 			classpathEntries = (IClasspathEntry[]) ArrayUtils.remove(classpathEntries, index);
 			javaProject.setRawClasspath(classpathEntries, progressMonitor);
 		}
+		// needs to explicitely reopen the java project after setting the new classpath entries
+		javaProject.open(progressMonitor);
 		WorkbenchTasks.buildProject(javaProject.getProject(), progressMonitor);
 		return fragments;
 	}
