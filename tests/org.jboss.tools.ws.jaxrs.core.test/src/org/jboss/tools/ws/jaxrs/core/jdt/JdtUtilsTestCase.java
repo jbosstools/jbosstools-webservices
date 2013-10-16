@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -523,8 +524,29 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 				for (Entry<String, Annotation> annotationEntry : methodParameter.getAnnotations().entrySet()) {
 					assertNotNull("JavaAnnotation for " + methodParameter.getName() + "." + annotationEntry.getKey()
 							+ " is null", annotationEntry.getValue().getJavaAnnotation());
+					assertNotNull(methodSignature.toString());
 				}
 			}
+		}
+		// testing equals() and hashcode() methods here.
+		for(Iterator<Entry<String, JavaMethodSignature>> iterator1 = methodSignatures.entrySet().iterator(); iterator1.hasNext();) {
+			final Entry<String, JavaMethodSignature> entry1 = iterator1.next();
+			final String key1 = entry1.getKey();
+			final JavaMethodSignature methodSignature1 = entry1.getValue();
+			for(Iterator<Entry<String, JavaMethodSignature>> iterator2 = methodSignatures.entrySet().iterator(); iterator2.hasNext();) {
+				final Entry<String, JavaMethodSignature> entry2 = iterator2.next();
+				final String key2 = entry2.getKey();
+				final JavaMethodSignature methodSignature2 = entry2.getValue();
+				if(key1.equals(key2)) {
+					assertThat(methodSignature1.equals(methodSignature2), equalTo(true));
+					assertThat(methodSignature1.hashCode() == methodSignature2.hashCode(), equalTo(true));
+				} else {
+					assertThat(methodSignature1.equals(methodSignature2), equalTo(false));
+					assertThat(methodSignature1.hashCode() == methodSignature2.hashCode(), equalTo(false));
+				}
+			}
+			
+			
 		}
 	}
 

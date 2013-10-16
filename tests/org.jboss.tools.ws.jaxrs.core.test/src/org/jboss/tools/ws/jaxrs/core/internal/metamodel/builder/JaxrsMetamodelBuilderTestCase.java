@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
@@ -33,6 +34,7 @@ import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -53,6 +55,13 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		ProjectNatureUtils.installProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
 	}
 
+	@After
+	public void reopenJavaProject() throws JavaModelException {
+		if(javaProject !=null && !javaProject.isOpen()) {
+			javaProject.open(new NullProgressMonitor());
+		}
+		
+	}
 	@Test
 	public void shouldFullBuildJaxrsProjectWithExistingMetamodel() throws CoreException, OperationCanceledException,
 			InterruptedException {
@@ -91,6 +100,24 @@ public class JaxrsMetamodelBuilderTestCase extends AbstractCommonTestCase {
 		assertThat(metamodel.getAllEndpoints().size(), equalTo(22));
 	}
 
+	@Test
+	public void shouldFullBuildJaxrsProjectWithoutExistingMetamodelWithCloseJavaProject() throws CoreException, OperationCanceledException,
+	InterruptedException {
+		// pre-conditions
+		if (JaxrsMetamodelLocator.get(javaProject) != null) {
+			JaxrsMetamodelLocator.get(javaProject).remove();
+		}
+		javaProject.close();
+		assertThat(JaxrsMetamodelLocator.get(javaProject), nullValue());
+		// operation
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
+		WorkbenchTasks.buildProject(project, IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+		// verification
+		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+		assertThat(metamodel, notNullValue());
+		assertThat(metamodel.getAllEndpoints().size(), equalTo(22));
+	}
+	
 	@Test
 	public void shouldNotFullBuildNonJaxrsProject() throws CoreException, OperationCanceledException,
 			InterruptedException {

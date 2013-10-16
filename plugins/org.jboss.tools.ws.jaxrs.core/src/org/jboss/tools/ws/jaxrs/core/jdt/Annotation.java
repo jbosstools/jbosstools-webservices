@@ -86,8 +86,7 @@ public class Annotation {
 	 *         values) were performed, false otherwise.
 	 */
 	public boolean update(final Annotation otherAnnotation) {
-		assert otherAnnotation != null;
-		if (!hasChanges(otherAnnotation)) {
+		if (otherAnnotation == null || !hasChanges(otherAnnotation)) {
 			return false;
 		}
 		this.javaAnnotationElements.clear();

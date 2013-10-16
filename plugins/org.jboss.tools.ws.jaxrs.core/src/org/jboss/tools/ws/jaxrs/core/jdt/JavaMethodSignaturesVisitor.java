@@ -125,7 +125,7 @@ public class JavaMethodSignaturesVisitor extends ASTVisitor {
 		// https://issues.jboss.org/browse/JBIDE-15084: when compilation error (not syntax), retrieving return type may result in
 		// an IllegalArgumentException
 		catch(IllegalArgumentException e) {
-			Logger.debug("Caught an IllegalArgumentException while trying to retrieve return type on method {}", methodBinding);
+			Logger.debug("Caught an IllegalArgumentException while trying to retrieve return type on method {}: {}", methodBinding, e.getMessage());
 		}
 		return null;
 	}

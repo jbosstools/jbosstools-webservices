@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
+import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
 import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
@@ -66,7 +67,7 @@ public class JavaElementDeltaScanner {
 			throws CoreException {
 		try {
 			progressMonitor.beginTask("Analysing changes", 1);
-			Logger.debug("Some java elements changed:[{}] ",
+			Logger.debug("Some java elements changed on a {} event ",
 					ConstantUtils.getStaticFieldName(ElementChangedEvent.class, event.getType()));
 			return scanDelta(event.getDelta(), event.getType());
 		} finally {
@@ -84,9 +85,13 @@ public class JavaElementDeltaScanner {
 	 */
 	private List<JavaElementDelta> scanDelta(final IJavaElementDelta delta, final int eventType) throws CoreException {
 		final List<JavaElementDelta> events = new ArrayList<JavaElementDelta>();
-		IJavaElement element = delta.getElement();
+		final IJavaElement element = delta.getElement();
 		// skip as the project is closed
-		if (element == null || (element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen())) {
+		if (element == null) {
+			Logger.debug("** skipping this build because the delta element is null **");
+			return Collections.emptyList();
+		} else if(element.getElementType() == IJavaElement.JAVA_PROJECT && !element.getJavaProject().isOpen()) {
+			Logger.debug("** skipping this build because the java project is null or closed (or not open yet)... **");
 			return Collections.emptyList();
 		} else if ((element.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT)) {
 			final IPackageFragmentRoot packageFragmentRoot = (IPackageFragmentRoot) element;
@@ -97,10 +102,18 @@ public class JavaElementDeltaScanner {
 		} else if (element.getResource() == null || !element.getResource().exists()) {
 			return Collections.emptyList();
 		}
-		int elementKind = element.getElementType();
-		int deltaKind = retrieveDeltaKind(delta);
-		int flags = delta.getFlags();
-		CompilationUnit compilationUnitAST = getCompilationUnitAST(delta);
+		final int elementKind = element.getElementType();
+		final int deltaKind = retrieveDeltaKind(delta);
+		final int flags = delta.getFlags();
+		if(elementKind == JAVA_PROJECT ){
+			final JavaElementDelta event = new JavaElementDelta(element, delta.getKind(), eventType, null, delta.getFlags());
+			if (javaElementChangedEventFilter.apply(event)) {
+				events.add(event);
+				// skip anything below
+				return events;
+			}
+		}
+		final CompilationUnit compilationUnitAST = getCompilationUnitAST(delta);
 		if (elementKind == COMPILATION_UNIT) {
 			ICompilationUnit compilationUnit = (ICompilationUnit) element;
 			// compilationUnitAST is null when the given compilation unit'w

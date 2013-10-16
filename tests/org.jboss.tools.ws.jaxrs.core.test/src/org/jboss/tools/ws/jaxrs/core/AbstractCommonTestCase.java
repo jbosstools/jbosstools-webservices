@@ -198,7 +198,7 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 	}
 
 	@After
-	public void tearDownMetamodelListener() {
+	public void removeMetamodelListener() {
 		if(metamodel != null) {
 			metamodel.removeListener((IJaxrsElementChangedListener)this);
 			metamodel.removeListener((IJaxrsEndpointChangedListener)this);
