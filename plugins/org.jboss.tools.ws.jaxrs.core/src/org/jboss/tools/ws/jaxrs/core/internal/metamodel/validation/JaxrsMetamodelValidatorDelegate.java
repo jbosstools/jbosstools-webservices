@@ -12,9 +12,12 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import java.util.List;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
@@ -40,38 +43,71 @@ public class JaxrsMetamodelValidatorDelegate {
 	void validate(JaxrsMetamodel metamodel) throws CoreException {
 		Logger.debug("Validating element {}", metamodel);
 		final IProject project = metamodel.getProject();
-		JaxrsMetamodelValidator.deleteJaxrsMarkers(metamodel, project);
+		JaxrsMetamodelValidator.removeMarkers(metamodel, project);
 		metamodel.resetProblemLevel();
-		final List<IJaxrsApplication> allApplications = metamodel.getAllApplications();
-		if (allApplications.isEmpty()) {
+		final List<JaxrsJavaApplication> javaApplications = metamodel.getJavaApplications();
+		final List<JaxrsWebxmlApplication> webxmlApplications = metamodel.findWebxmlApplications();
+		if (javaApplications.isEmpty() && webxmlApplications.isEmpty()) {
 			markerManager.addMarker(metamodel,
 					JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND);
-		} else if (allApplications.size() > 1) {
-			for(IJaxrsApplication application: allApplications) {
-				if(application.isJavaApplication()) {
-					final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) application;
-					// skip if the application is overridden
-					if(javaApplication.isOverriden()) {
-						continue;
-					}
-					final ISourceRange javaNameRange = javaApplication.getJavaElement().getNameRange();
-					markerManager.addMarker(javaApplication,
-							javaNameRange, JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
-				} else {
-					final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) application;
+		} else if (javaApplications.size() >= 2 || (javaApplications.size() >= 1 && webxmlApplications.size() >= 1)) {
+			for(JaxrsJavaApplication javaApplication: javaApplications) {
+				// remove previous marker of type APPLICATION_TOO_MANY_OCCURRENCES
+				removeMarkers(javaApplication, JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
+				if(javaApplication.isOverriden()) {
+					continue;
+				}
+				final ISourceRange javaNameRange = javaApplication.getJavaElement().getNameRange();
+				addTooManyOccurrencesMarker(javaApplication, javaNameRange);
+			}
+			for(IJaxrsApplication webxmlapplication: webxmlApplications) {
+				final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) webxmlapplication;
+				// remove previous marker of type APPLICATION_TOO_MANY_OCCURRENCES
+				removeMarkers(webxmlapplication, JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
+				if((webxmlApplication.isOverride() && javaApplications.size() >= 2)
+						|| (!webxmlApplication.isOverride() && javaApplications.size() >= 1)) {
 					final ISourceRange webxmlNameRange = WtpUtils.getApplicationPathLocation(webxmlApplication.getResource(),
 							webxmlApplication.getJavaClassName());
 					if (webxmlNameRange == null) {
 						Logger.warn("Cannot add a problem marker: unable to locate '" + webxmlApplication.getJavaClassName()
 								+ "' in resource '" + webxmlApplication.getResource().getFullPath().toString() + "'. ");
 					} else {
-						markerManager.addMarker(webxmlApplication,
-								webxmlNameRange, JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES, new String[0],
-								JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
+						addTooManyOccurrencesMarker(webxmlApplication, webxmlNameRange);
+						if(webxmlApplication.isOverride()) {
+							final JaxrsJavaApplication javaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
+							final ISourceRange javaNameRange = javaApplication.getJavaElement().getNameRange();
+							addTooManyOccurrencesMarker(javaApplication, javaNameRange);
+						}
 					}
 				}
 			}
 		}
+	}
+
+	/**
+	 * Removes all {@link IMarker} whose {@link JaxrsMetamodelValidator#JAXRS_PROBLEM_TYPE} attribute is equal to the given problemType argument.
+	 * @param application the {@link IJaxrsApplication}
+	 * @param problemType the problem type attribute value of the marker to remove.
+	 * @throws CoreException
+	 */
+	public void removeMarkers(final IJaxrsApplication application, final String problemType) throws CoreException {
+		final IMarker[] jaxrsMarkers = application.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
+		for(IMarker marker : jaxrsMarkers) { 
+			if(marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE).equals(problemType)) {
+				((JaxrsMetamodel)application.getMetamodel()).removeMarker(marker);
+			}
+		}
+	}
+
+	/**
+	 * @param application
+	 * @param javaNameRange
+	 * @throws CoreException
+	 */
+	public void addTooManyOccurrencesMarker(final JaxrsBaseElement application, final ISourceRange javaNameRange)
+			throws CoreException {
+		markerManager.addMarker(application,
+				javaNameRange, JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);
 	}
 
 	

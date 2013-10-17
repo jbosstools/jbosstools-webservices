@@ -1,9 +1,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
-public class JaxrsValidationConstants {
-
-	/** The custom 'JAX-RS Problem' marker type. */
-	public static final String JAXRS_PROBLEM_TYPE = "org.jboss.tools.ws.jaxrs.metamodelMarker";
+public class JaxrsMarkerResolutionIds {
 
 	/** QuickFix for missing <code>@Retention</code> annotation.*/
 	public static final int HTTP_METHOD_MISSING_RETENTION_ANNOTATION_QUICKFIX_ID = 1;

@@ -43,7 +43,7 @@ public class JavaElementChangedListenerTestCase extends AbstractMetamodelBuilder
 	@Test
 	public void shouldRemoveApplicationWhenRemovingUnderlyingType() throws JavaModelException {
 		// pre-conditions
-		final IType applicationType = metamodel.getJavaApplications().get(0).getJavaElement();
+		final IType applicationType = metamodel.getJavaApplications().iterator().next().getJavaElement();
 		// operation
 		final ICompilationUnit workingCopy = applicationType.getCompilationUnit().getWorkingCopy(new NullProgressMonitor());
 		workingCopy.findPrimaryType().delete(true, new NullProgressMonitor());

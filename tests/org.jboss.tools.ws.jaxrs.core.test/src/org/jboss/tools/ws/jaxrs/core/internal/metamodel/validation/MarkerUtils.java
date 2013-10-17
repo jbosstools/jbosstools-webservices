@@ -29,9 +29,9 @@ public class MarkerUtils {
 	 * @throws CoreException
 	 */
 	public static IMarker[] findJaxrsMarkers(final IJaxrsElement... elements) throws CoreException {
-		List<IMarker> markers = new ArrayList<IMarker>();
+		final List<IMarker> markers = new ArrayList<IMarker>();
 		for (IJaxrsElement element : elements) {
- 			final IMarker[] elementMarkers = element.getResource().findMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, true,
+ 			final IMarker[] elementMarkers = element.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true,
 					IResource.DEPTH_INFINITE);
 			switch (element.getElementKind().getCategory()) {
 			case APPLICATION:
@@ -44,18 +44,15 @@ public class MarkerUtils {
 				break;
 			case RESOURCE_METHOD:
 				final IMarker[] resourceMarkers = elementMarkers;
-				final List<IMarker> resourceMethodMarkers = new ArrayList<IMarker>();
 				final ISourceRange methodSourceRange = ((JaxrsResourceMethod) element).getJavaElement()
 						.getSourceRange();
-
 				for (IMarker marker : resourceMarkers) {
 					final int markerCharStart = marker.getAttribute(IMarker.CHAR_START, -1);
 					if (markerCharStart >= methodSourceRange.getOffset()
 							&& markerCharStart <= (methodSourceRange.getOffset() + methodSourceRange.getLength())) {
-						resourceMethodMarkers.add(marker);
+						markers.add(marker);
 					}
 				}
-				markers.addAll(resourceMethodMarkers);
 				break;
 			default:
 				break;
@@ -73,7 +70,7 @@ public class MarkerUtils {
 	 * @throws CoreException
 	 */
 	public static IMarker[] findJaxrsMarkers(IProject project) throws CoreException {
-		return project.findMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, false, 0);
+		return project.findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false, 0);
 	}
 
 	/**
@@ -81,7 +78,7 @@ public class MarkerUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final JaxrsBaseElement element) throws CoreException {
-		element.getResource().deleteMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, false,
+		element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false,
 				IResource.DEPTH_INFINITE);
 	}
 
@@ -90,7 +87,7 @@ public class MarkerUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final IResource resource) throws CoreException {
-		resource.deleteMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
+		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
 	}
 
 	/**
@@ -99,7 +96,7 @@ public class MarkerUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final IProject project) throws CoreException {
-		project.deleteMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
+		project.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
 	}
 
 	public static Matcher<IMarker[]> hasPreferenceKey(String javaApplicationInvalidTypeHierarchy) {

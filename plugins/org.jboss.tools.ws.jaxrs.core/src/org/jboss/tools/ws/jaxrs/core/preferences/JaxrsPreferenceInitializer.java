@@ -35,7 +35,7 @@ public class JaxrsPreferenceInitializer extends AbstractPreferenceInitializer {
 			defaultPreferences.put(name, SeverityPreferences.ERROR);
 		}
 		defaultPreferences.put(JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferences.WARNING);
-		defaultPreferences.put(JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, JaxrsPreferences.WARNING);
+		defaultPreferences.put(JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY, JaxrsPreferences.ERROR);
 

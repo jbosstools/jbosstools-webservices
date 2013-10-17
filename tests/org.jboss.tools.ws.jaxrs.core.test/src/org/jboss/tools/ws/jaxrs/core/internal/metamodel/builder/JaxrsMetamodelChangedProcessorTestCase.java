@@ -332,7 +332,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
-		JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		resetElementChangesNotifications();
 		// operation
@@ -354,7 +354,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("javax.ws.rs.core.Application", "/foo");
-		JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
 		resetElementChangesNotifications();
 		// operation
@@ -375,7 +375,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
-		JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		resetElementChangesNotifications();
 		// operation: the JavaApplication is overridden
@@ -384,8 +384,8 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		assertThat(endpointChanges.size(), equalTo(6));
 		final JaxrsEndpointDelta change = endpointChanges.get(0);
 		assertThat(change.getKind(), equalTo(CHANGED));
-		endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+		final JaxrsEndpoint changedEndpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
+		assertThat(changedEndpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
 	}
 
 	@Test
@@ -398,7 +398,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(javaApplication.getJavaClassName(),
 				"/foo");
 		javaApplication.setApplicationPathOverride("/foo");
-		JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
 		resetElementChangesNotifications();
 		// operation
@@ -407,8 +407,8 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		assertThat(endpointChanges.size(), equalTo(6));
 		final JaxrsEndpointDelta change = endpointChanges.get(0);
 		assertThat(change.getKind(), equalTo(CHANGED));
-		endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		final JaxrsEndpoint changedEndpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
+		assertThat(changedEndpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 	}
 
 	@Test
@@ -528,7 +528,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsJavaApplication application = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
-		JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
 		resetElementChangesNotifications();
 		// operation : no 'application' left in the metamodel

@@ -17,9 +17,9 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -63,7 +63,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		for (IJaxrsElement element : elementsToKeep) {
 			resourcesToKeep.add(element.getIdentifier());
 		}
-		final Collection<IJaxrsElement> allElements = new ArrayList<IJaxrsElement>(metamodel.getAllElements());
+		final List<IJaxrsElement> allElements = new ArrayList<IJaxrsElement>(metamodel.getAllElements());
 		for (Iterator<IJaxrsElement> iterator = allElements.iterator(); iterator.hasNext();) {
 			JaxrsBaseElement element = (JaxrsBaseElement)iterator.next();
 			if (element.getResource() == null || !resourcesToKeep.contains(element.getIdentifier())) {

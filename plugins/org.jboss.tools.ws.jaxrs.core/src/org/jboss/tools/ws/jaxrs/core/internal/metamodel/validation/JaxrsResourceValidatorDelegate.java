@@ -37,7 +37,7 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 	@Override
 	void internalValidate(final JaxrsResource resource) throws CoreException {
 		Logger.debug("Validating element {}", resource);
-		JaxrsMetamodelValidator.deleteJaxrsMarkers(resource);
+		resource.removeMarkers();
 		for(IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
 			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod);
 		}

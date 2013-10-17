@@ -34,7 +34,6 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
@@ -187,7 +186,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		// pre-conditions
 		resetElementChangesNotifications();
 		// operation
-		metamodel.add((IJaxrsElement)null);
+		metamodel.add((JaxrsBaseElement)null);
 		// verifications
 		assertThat(elementChanges.size(), equalTo(0));
 	}

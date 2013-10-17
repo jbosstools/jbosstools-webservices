@@ -39,8 +39,7 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 	@Override
 	void internalValidate(final JaxrsJavaApplication application) throws CoreException {
 		Logger.debug("Validating element {}", application);
-		JaxrsMetamodelValidator.deleteJaxrsMarkers(application);
-		application.resetMarkers();
+		application.removeMarkers();
 		final Annotation applicationPathAnnotation = application
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		final IType appJavaElement = application.getJavaElement();
@@ -48,14 +47,14 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 			markerManager.addMarker(application,
 					appJavaElement.getNameRange(), JaxrsValidationMessages.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION,
 					new String[0], JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION,
-					JaxrsValidationConstants.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_QUICKFIX_ID);
+					JaxrsMarkerResolutionIds.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION_QUICKFIX_ID);
 		}
 		if (!application.isJaxrsCoreApplicationSubclass()) {
 			markerManager.addMarker(application,
 					application.getJavaElement()
 							.getSourceRange(),
 					JaxrsValidationMessages.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY, new String[] { appJavaElement.getFullyQualifiedName() }, JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY,
-					JaxrsValidationConstants.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_QUICKFIX_ID);
+					JaxrsMarkerResolutionIds.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_QUICKFIX_ID);
 		}
 	}
 
