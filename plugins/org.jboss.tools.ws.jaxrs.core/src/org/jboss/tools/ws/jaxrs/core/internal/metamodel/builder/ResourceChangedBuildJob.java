@@ -90,11 +90,8 @@ public class ResourceChangedBuildJob extends Job {
 				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms.", project.getName(), (endTime - startTime));
 				try {
 					final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-					if(metamodel != null) {
-						Logger.debug(
-								"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
-								project.getName(), metamodel.findAllHttpMethods().size(),
-								metamodel.getAllResources().size(), metamodel.getAllEndpoints().size());
+					if(metamodel != null && Logger.isDebugEnabled()) {
+						Logger.debug(metamodel.getStatus());
 					}
 				} catch (Throwable e) {
 					// debug level here since the purpose was to display a debug message

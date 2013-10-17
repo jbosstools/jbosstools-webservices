@@ -48,7 +48,7 @@ import static org.junit.Assert.fail;
 import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
@@ -1199,7 +1199,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	public void shouldRemoveResourceWhenNoMethodAndRemovingPathAnnotations() throws CoreException {
 		// pre-conditions
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Collection<JaxrsResourceMethod> resourceMethods = new ArrayList<JaxrsResourceMethod>(resource
+		final List<JaxrsResourceMethod> resourceMethods = new ArrayList<JaxrsResourceMethod>(resource
 				.getMethods().values());
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
 			resource.removeMethod(resourceMethod);

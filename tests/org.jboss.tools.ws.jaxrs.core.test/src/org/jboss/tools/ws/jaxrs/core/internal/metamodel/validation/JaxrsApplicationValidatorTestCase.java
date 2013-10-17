@@ -23,6 +23,7 @@ import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.JAVA_AP
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -137,7 +138,6 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			final IMarker[] appMarkers = findJaxrsMarkers(application);
 			assertThat(appMarkers.length, equalTo(1));
 			assertThat(appMarkers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
-			assertThat(appMarkers.length, equalTo(1));
 		}
 		final List<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(metamodel.getApplication());
 		for(IJaxrsEndpoint endpoint : affectedEndpoints) {
@@ -146,6 +146,33 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 	}
 
+	@Test
+	public void shouldNotDuplicateProblemsOnApplicationsIfMultipleOnesExistWhenValidatingOtherFiles() throws CoreException, ValidationException {
+		// preconditions
+		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
+		assertThat(applications, hasSize(2));
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation: validate one app twice
+		final IFile file1 = (IFile)project.findMember(".project");
+		final IFile file2 = (IFile)project.findMember(".classpath");
+		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(file1), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(file2), project, validationHelper, context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(project);
+		assertThat(markers.length, equalTo(0));
+		for (IJaxrsApplication application : metamodel.getAllApplications()) {
+			final IMarker[] appMarkers = findJaxrsMarkers(application);
+			assertThat(appMarkers.length, equalTo(1));
+			assertThat(appMarkers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+		}
+		final List<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(metamodel.getApplication());
+		for(IJaxrsEndpoint endpoint : affectedEndpoints) {
+			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+	}
+	
 	@Test
 	public void shouldReportProblemOnJavaApplicationIfMissingApplicationPathAnnotationWithoutOverride()
 			throws CoreException, ValidationException, OperationCanceledException, InterruptedException {
@@ -351,6 +378,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 	@Test
 	public void shouldReportProblemAfterBuildWhenMetamodelHasMultipleJavaApplicationsAndWebxml() throws CoreException, ValidationException, OperationCanceledException, InterruptedException {
 		// preconditions
+		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
 				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
@@ -361,7 +389,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		buildMetamodel();
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
-		for(JaxrsJavaApplication app : new JaxrsJavaApplication[]{javaApplication, javaApplication2}) {
+		for(IJaxrsApplication app : new IJaxrsApplication[]{webxmlApplication, javaApplication, javaApplication2}) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers.length, equalTo(1));
@@ -371,5 +399,160 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		}
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 	}
+	
+	@Test
+	public void shouldReportAndRemoveProblemAfterUnderlyingJavaApplicationResourceRemovalWhenMetamodelHasOneJavaApplicationAndOneWebxml() throws CoreException, ValidationException, OperationCanceledException, InterruptedException {
+		// preconditions
+		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
+		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation 1: validate when there are 2 applications, expecting markers
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation
+		for(IJaxrsApplication app : new IJaxrsApplication[]{javaApplication, webxmlApplication}) {
+			final IMarker[] markers = findJaxrsMarkers(app);
+			assertThat(markers.length, equalTo(1));
+			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+			}
+		}
+		// operation 2: remove JAX-RS application
+		javaApplication.remove();
+		final IFile appResource = (IFile) javaApplication.getResource();
+		appResource.delete(true, new NullProgressMonitor());
+		// then validate again, only the *changed files* (and without reset). Expect marker on we.xml application definition to be removed
+		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(appResource), project, validationHelper, context, validatorManager, reporter);
+		// validation
+		assertThat(findJaxrsMarkers(webxmlApplication).length, equalTo(0));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+	}
 
+	@Test
+	public void shouldReportAndRemoveProblemAfterUnderlyingWebxmlApplicationResourceRemovalWhenMetamodelHasOneJavaApplicationAndOneWebxml() throws CoreException, ValidationException, OperationCanceledException, InterruptedException {
+		// preconditions
+		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
+		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation 1: validate when there are 2 applications, expecting markers
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation
+		for(IJaxrsApplication app : new IJaxrsApplication[]{javaApplication, webxmlApplication}) {
+			final IMarker[] markers = findJaxrsMarkers(app);
+			assertThat(markers.length, equalTo(1));
+			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+			}
+		}
+		// operation 2: remove web.xml application definition
+		webxmlApplication.remove();
+		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
+		webxmlResource.delete(true, new NullProgressMonitor());
+		// then validate again, only the *changed files* (and without reset). Expect marker on first application to be removed
+		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
+		// validation
+		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(0));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+	}
+
+	@Test
+	public void shouldStillReportProblemAfterUnderlyingWebxmlApplicationResourceRemovalWhenMetamodelHasTwoJavaApplicationsAndWebxmlOverride() throws CoreException, ValidationException, OperationCanceledException, InterruptedException, IOException {
+		// preconditions
+		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
+		WorkbenchUtils.replaceContent(webxmlApplication.getResource(), "javax.ws.rs.core.Application", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2");
+		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
+		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(restApplication2Type, "@ApplicationPath(\"/app2\")", "", false);
+		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation 1: validate when there are 2 applications, expecting markers
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation: markers are on first javaapp and one web.xml only
+		for(IJaxrsApplication app : new IJaxrsApplication[]{javaApplication, javaApplication2, webxmlApplication}) {
+			final IMarker[] markers = findJaxrsMarkers(app);
+			assertThat(markers.length, equalTo(1));
+			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+			}
+		}
+		// operation 2: remove Web.xml override
+		webxmlApplication.remove();
+		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
+		webxmlResource.delete(true, new NullProgressMonitor());
+		// then validate again, only the *changed files* (and without reset). Expect marker on both applications to be still there
+		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
+		// validation
+		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(1));
+		// restApplication2 has 2 markers: missing annotation and duplicate application
+		assertThat(findJaxrsMarkers(javaApplication2).length, equalTo(2));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+	}
+	
+	@Test
+	public void shouldStillReportProblemAfterUnderlyingWebxmlApplicationResourceEditWhenMetamodelHasTwoJavaApplicationsAndWebxmlOverride() throws Exception {
+		// preconditions
+		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
+		WorkbenchUtils.replaceContent(webxmlApplication.getResource(), "javax.ws.rs.core.Application", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2");
+		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
+		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(restApplication2Type, "@ApplicationPath(\"/app2\")", "", false);
+		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation 1: validate when there are 2 applications, expecting markers
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation: markers are on first javaapp and one web.xml only
+		for(IJaxrsApplication app : new IJaxrsApplication[]{javaApplication, webxmlApplication}) {
+			final IMarker[] markers = findJaxrsMarkers(app);
+			assertThat(markers.length, equalTo(1));
+			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
+				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+			}
+		}
+		// operation 2: remove Web.xml override
+		webxmlApplication.remove();
+		IFile webxmlResource = (IFile) webxmlApplication.getResource();
+		// remove content, no remove resource
+		webxmlResource = (IFile) WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml");
+		// then validate again, only the *changed files* (and without reset). Expect marker on both applications to be still there
+		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
+		// validation
+		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(1));
+		// restApplication2 has 2 markers: missing annotation and duplicate application
+		assertThat(findJaxrsMarkers(javaApplication2).length, equalTo(2));
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+	}
+	
+	@Test
+	public void shouldReportProblemOnApplicationsIfMultipleOnesExistWhenValidatingUnrelatedFile() throws CoreException, ValidationException {
+		// preconditions
+		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
+		assertThat(applications, hasSize(2));
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet((IFile)project.findMember(".project")), project, validationHelper, context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(project);
+		assertThat(markers.length, equalTo(0));
+		for (IJaxrsApplication application : metamodel.getAllApplications()) {
+			final IMarker[] appMarkers = findJaxrsMarkers(application);
+			assertThat(appMarkers.length, equalTo(1));
+		}
+		final List<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(metamodel.getApplication());
+		for(IJaxrsEndpoint endpoint : affectedEndpoints) {
+			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
+		}
+		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+	}
+
+	
 }

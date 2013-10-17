@@ -13,11 +13,11 @@ package org.jboss.tools.ws.jaxrs.core.configuration;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsValidationConstants;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 
 /**
  * Class to configure (add/remove) the JAX-RS Metamodel Builder on a project.
@@ -53,8 +53,11 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 		} else {
 			Logger.debug("JAX-RS Metamodel Builder was not installed.");
 		}
-		project.deleteMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, true, IResource.DEPTH_INFINITE);
-		Logger.debug("JAX-RS Problem markers removed.");
+		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+		if (metamodel != null) {
+			Logger.info("Removing JAX-RS Metamodel from project '" + project.getName() + "'");
+			metamodel.remove();
+		}
 	}
 
 	/** {@inheritDoc} */

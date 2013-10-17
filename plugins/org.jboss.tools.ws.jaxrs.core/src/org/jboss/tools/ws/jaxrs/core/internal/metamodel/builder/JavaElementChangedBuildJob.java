@@ -80,10 +80,9 @@ public class JavaElementChangedBuildJob extends Job {
 						metamodel.setBuildStatus(status);
 						return status;
 					} finally {
-						Logger.debug(
-								"JAX-RS Metamodel for project '{}' now has {} HttpMethods, {} Resources and {} Endpoints.",
-								javaProject.getElementName(), metamodel.findAllHttpMethods().size(),
-								metamodel.getAllResources().size(), metamodel.getAllEndpoints().size());
+						if(Logger.isDebugEnabled()) {
+							Logger.debug(metamodel.getStatus());
+						}
 					}
 				}
 			}

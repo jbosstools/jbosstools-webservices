@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.core.configuration;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 
 /**
  * Wrapper around the Project Nature management APIs.
@@ -85,7 +86,9 @@ public final class ProjectNatureUtils {
 	}
 
 	/**
-	 * Remove the given nature identified by its ID on the given project.
+	 * Remove the given nature identified by its ID on the given project and
+	 * removes the {@link JaxrsMetamodel} associated with the given project (if
+	 * it already existed)
 	 * 
 	 * @param project
 	 *            the project from which the nature should be removed
@@ -96,9 +99,8 @@ public final class ProjectNatureUtils {
 	 *             in case of exception
 	 */
 	public static boolean uninstallProjectNature(final IProject project, final String natureId) throws CoreException {
-		IProjectDescription desc = project.getDescription();
-		String[] natures = desc.getNatureIds();
-
+		final IProjectDescription desc = project.getDescription();
+		final String[] natures = desc.getNatureIds();
 		for (int i = 0; i < natures.length; i++) {
 			if (natures[i].equals(natureId)) {
 				// remove builder from project

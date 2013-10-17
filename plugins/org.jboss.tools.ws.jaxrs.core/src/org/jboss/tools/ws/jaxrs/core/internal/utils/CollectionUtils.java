@@ -57,15 +57,15 @@ public class CollectionUtils {
 	 * @return a structure that indicates the items that were added in the
 	 *         'test' (ie: found in 'test' but not in 'control') , removed from 'control' (ie: found in 'control' but not in 'test') or changed in the 'control' map (ie: elements have same key but different values).
 	 */
-	public static <K, V> MapComparison<K, V> compare(Map<K, V> control, Map<K, V> test) {
+	public static <K, V> MapComparison<K, V> compare(final Map<K, V> control, final Map<K, V> test) {
 		// added items
 		final Map<K, V> addedItems = new HashMap<K, V>();
-		final List<K> addedItemKeys = CollectionUtils.difference(test.keySet(), control.keySet());
+		final Collection<K> addedItemKeys = CollectionUtils.difference(test.keySet(), control.keySet());
 		for(K addedItemKey : addedItemKeys) {
 			addedItems.put(addedItemKey, test.get(addedItemKey));
 		}
 		// removed items
-		final List<K> removedItemKeys = CollectionUtils.difference(control.keySet(), test.keySet());
+		final Collection<K> removedItemKeys = CollectionUtils.difference(control.keySet(), test.keySet());
 		final Map<K, V> removedItems = new HashMap<K, V>();
 		for(K removedItemKey : removedItemKeys) {
 			removedItems.put(removedItemKey, control.get(removedItemKey));
@@ -127,7 +127,7 @@ public class CollectionUtils {
 	 *         test map. The process works with keys and does not compare the
 	 *         values.
 	 */
-	public static <K, V> Map<K, V> intersection(Map<K, V> control, Map<K, V> test) {
+	public static <K, V> Map<K, V> intersection(final Map<K, V> control, final Map<K, V> test) {
 		if (control == null) {
 			return null;
 		}
@@ -156,10 +156,10 @@ public class CollectionUtils {
 	 *         collections. In case of the 'changedItems', the returned items
 	 *         are those of the 'control' collection.
 	 */
-	public static <T> CollectionComparison<T> compare(Collection<T> control, Collection<T> test) {
-		final Collection<T> addedItems = CollectionUtils.difference(test, control);
-		final Collection<T> removedItems = CollectionUtils.difference(control, test);
-		final Collection<T> itemsInCommon = CollectionUtils.intersection(control, test);
+	public static <T> CollectionComparison<T> compare(final List<T> control, final List<T> test) {
+		final List<T> addedItems = CollectionUtils.difference(test, control);
+		final List<T> removedItems = CollectionUtils.difference(control, test);
+		final List<T> itemsInCommon = CollectionUtils.intersection(control, test);
 		return new CollectionComparison<T>(addedItems, itemsInCommon, removedItems);
 	}
 
@@ -173,7 +173,7 @@ public class CollectionUtils {
 	 * @return the elements of the control collection that are not part of the
 	 *         test collection.
 	 */
-	public static <T> List<T> difference(Collection<T> control, Collection<T> test) {
+	public static <T> List<T> difference(final Collection<T> control, final Collection<T> test) {
 		if (control == null) {
 			return null;
 		}
@@ -194,7 +194,7 @@ public class CollectionUtils {
 	 * @return the elements of the control collection that are also part of the
 	 *         test collection.
 	 */
-	public static <T> Collection<T> intersection(Collection<T> control, Collection<T> test) {
+	public static <T> List<T> intersection(final Collection<T> control, final Collection<T> test) {
 		if (control == null) {
 			return null;
 		}
@@ -213,7 +213,7 @@ public class CollectionUtils {
 	 * @return true if the intersection of both collections is not empty (ie,
 	 *         collections have values in common), false otherwise.
 	 */
-	public static boolean hasIntersection(final Collection<String> collection, final Collection<String> otherCollection) {
+	public static boolean hasIntersection(final List<String> collection, final List<String> otherCollection) {
 		return !intersection(collection, otherCollection).isEmpty();
 	}
 
@@ -233,7 +233,7 @@ public class CollectionUtils {
 	 *            the element to find in the array
 	 * @return true if found, false otherwise
 	 */
-	public static <T> boolean contains(T[] source, T element) {
+	public static <T> boolean contains(final T[] source, final T element) {
 		if (element == null || source == null) {
 			return false;
 		}
@@ -253,7 +253,7 @@ public class CollectionUtils {
 
 		private final Map<K, V> removedItems;
 
-		MapComparison(final Map<K, V> addedItems, Map<K, V> itemsInCommon, Map<K, V> removedItems) {
+		MapComparison(final Map<K, V> addedItems, final Map<K, V> itemsInCommon, final Map<K, V> removedItems) {
 			this.addedItems = addedItems;
 			this.changedItems = itemsInCommon;
 			this.removedItems = removedItems;
@@ -296,13 +296,13 @@ public class CollectionUtils {
 
 	public static class CollectionComparison<T> {
 
-		private final Collection<T> addedItems;
+		private final List<T> addedItems;
 
-		private final Collection<T> itemsInCommon;
+		private final List<T> itemsInCommon;
 
-		private final Collection<T> removedItems;
+		private final List<T> removedItems;
 
-		CollectionComparison(final Collection<T> addedItems, Collection<T> itemsInCommon, Collection<T> removedItems) {
+		CollectionComparison(final List<T> addedItems, final List<T> itemsInCommon, final List<T> removedItems) {
 			this.addedItems = addedItems;
 			this.itemsInCommon = itemsInCommon;
 			this.removedItems = removedItems;
@@ -312,14 +312,14 @@ public class CollectionUtils {
 		 * @return the items found in the 'test' collection, but which were not
 		 *         in the 'control' one.
 		 */
-		public Collection<T> getAddedItems() {
+		public List<T> getAddedItems() {
 			return addedItems;
 		}
 
 		/**
 		 * @return the items in common, retrieved from the 'control' collection.
 		 */
-		public Collection<T> getItemsInCommon() {
+		public List<T> getItemsInCommon() {
 			return itemsInCommon;
 		}
 
@@ -327,7 +327,7 @@ public class CollectionUtils {
 		 * @return the items that were in the 'control' collection, but not in
 		 *         the 'test' collection.
 		 */
-		public Collection<T> getRemovedItems() {
+		public List<T> getRemovedItems() {
 			return removedItems;
 		}
 
@@ -339,7 +339,7 @@ public class CollectionUtils {
 	 * @param elements
 	 * @return the set containing the given elements
 	 */
-	public static <T> Set<T> toSet(T... elements) {
+	public static <T> Set<T> toSet(final T... elements) {
 		final Set<T> result = new HashSet<T>();
 		for (T element : elements) {
 			result.add(element);
@@ -348,50 +348,11 @@ public class CollectionUtils {
 	}
 
 	/**
-	 * <p>
-	 * Filters the given elements using the given predicate and cast the result
-	 * into the expected subtype. <strong>This method may throw
-	 * {@link ClassCastException} if one of the filtered elements are not a
-	 * subtype of B !</strong>
-	 * </p>
-	 * 
-	 * @param elements
-	 * @param predicate
-	 * @return the subtype list of matching elements.
-	@SuppressWarnings("unchecked")
-	public static <A, B extends A> List<B> filter(final Collection<A> elements, Predicate<A> predicate) {
-		final Collection<A> filteredElements = Collections2.filter(elements, predicate);
-		List<B> typedElements = new ArrayList<B>(filteredElements.size());
-		for (A filteredElement : filteredElements) {
-			typedElements.add((B) filteredElement);
-		}
-		return typedElements;
-	}
-	 */
-
-	/**
-	 * <p>
-	 * Find the given element using the given predicate and cast the result
-	 * into the expected subtype. <strong>This method may throw
-	 * {@link ClassCastException} if the found element is not a
-	 * subtype of B !</strong>
-	 * </p>
-	 * 
-	 * @param elements
-	 * @param predicate
-	 * @return the subtype list of matching elements.
-	@SuppressWarnings("unchecked")
-	public static <A, B extends A> B find(final Collection<A> elements, Predicate<A> predicate) {
-		return (B)(Iterables.find(elements, predicate, null));
-	}
-	 */
-	
-	/**
 	 * Returns <code>true</code> if the given collection is not null and not empty, <code>false</code> otherwise.
 	 * @param elements the collection to check
 	 * @return true or false...
 	 */
-	public static boolean notNullNorEmpty(final Collection<?> elements) {
+	public static boolean notNullNorEmpty(final List<?> elements) {
 		return elements != null && !elements.isEmpty();
 	}
 
