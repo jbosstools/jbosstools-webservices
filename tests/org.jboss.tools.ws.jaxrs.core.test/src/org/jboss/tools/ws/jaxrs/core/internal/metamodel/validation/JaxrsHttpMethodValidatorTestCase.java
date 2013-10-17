@@ -326,7 +326,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		new JaxrsMetamodelValidator().validate(toSet(foobarType.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		final IMarker[] markers = foobarType.getResource().findMarkers(JaxrsValidationConstants.JAXRS_PROBLEM_TYPE, false, IResource.DEPTH_INFINITE);
+		final IMarker[] markers = foobarType.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
 		assertThat(markers.length, equalTo(0));
 	}
 

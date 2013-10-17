@@ -199,7 +199,7 @@ public class JaxrsWebxmlApplication extends JaxrsApplication {
 				}	
 				final JaxrsJavaApplication nextJavaApplication = getMetamodel().findJavaApplicationByTypeName(eventJavaClassName);
 				if(nextJavaApplication != null) {
-					previousJavaApplication.setApplicationPathOverride(applicationPath);
+					nextJavaApplication.setApplicationPathOverride(applicationPath);
 				}	
 				this.javaClassName = eventJavaClassName;
 				delta.addFlag(F_APPLICATION_CLASS_NAME);
