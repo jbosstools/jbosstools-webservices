@@ -46,10 +46,13 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	}
 	
 	/**
-	 * Resets the problem level for this given element.
+	 * Removes the JAX-RS {@link IMarker} and resets the problem level for this
+	 * given element.
+	 * 
+	 * @throws CoreException
 	 */
-	public void resetMarkers() {
-		metamodel.unregisterMarkers(getResource());
+	public void removeMarkers() throws CoreException {
+		metamodel.removeMarkers(getResource());
 		this.problemLevel = 0;
 	}
 

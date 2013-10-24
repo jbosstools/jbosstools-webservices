@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.lucene.index.CorruptIndexException;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -52,7 +53,7 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 
 	@Before
 	public void setupIndex() throws CoreException {
-		indexationService = new JaxrsElementsIndexationDelegate();
+		indexationService = new JaxrsElementsIndexationDelegate(metamodel);
 	}
 
 	@After
@@ -258,10 +259,10 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 	}
 
 	@Test
-	public void shouldIndexAndRetrieveResourceByMarkers() throws JavaModelException, CoreException {
+	public void shouldIndexAndRetrieveJavaApplicationResourceByMarkers() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
 		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
 		metamodel.registerMarker(marker);
 		// operation: search with same problem type
@@ -273,11 +274,27 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 	}
 	
 	@Test
+	public void shouldIndexAndRetrieveWebxmlApplicationResourceByMarkers() throws JavaModelException, CoreException {
+		// pre-condition
+		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
+		IResource webxmlResource = webInfFolder.findMember("web.xml");
+		final IMarker marker = webxmlResource.createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
+		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
+		metamodel.registerMarker(marker);
+		// operation: search with same problem type
+		final List<IResource> resources = metamodel.findResourcesWithProblemOfType("foo");
+		// verifications
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(),equalTo(1));
+		assertThat(resources.get(0), equalTo(webxmlResource));
+	}
+	
+	@Test
 	public void shouldIndexAndNotRetrieveResourceByMarkers() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
-		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "fo");
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
+		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
 		metamodel.registerMarker(marker);
 		// operation: search with another problem type
 		final List<IResource> resources = metamodel.findResourcesWithProblemOfType("bar");
@@ -291,10 +308,10 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 		// pre-condition
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
-		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
 		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
 		metamodel.registerMarker(marker);
-		metamodel.unregisterMarkers(application.getResource());
+		metamodel.removeMarkers(application.getResource());
 		// operation: search with correct problem type
 		final List<IResource> resources = metamodel.findResourcesWithProblemOfType("foo");
 		// verifications
@@ -308,12 +325,12 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 		// pre-condition
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
-		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE);
+		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
 		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, "foo");
 		metamodel.registerMarker(marker);
 		// operation: search with correct problem type
 		List<IResource> resources = metamodel.findResourcesWithProblemOfType("foo");
-		// verifications: resource should 
+		// verifications
 		assertThat(resources, notNullValue());
 		assertThat(resources.size(),equalTo(1));
 		assertThat(resources.get(0), equalTo(type.getResource()));

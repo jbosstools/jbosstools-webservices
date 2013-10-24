@@ -206,7 +206,7 @@ public final class JaxrsElementsSearcher {
 	 * 
 	 * @param scope
 	 *            the search scope
-	 * @param list
+	 * @param httpMethods
 	 *            the types annotated with <code>javax.ws.rs.HttpMethod</code> annotation
 	 * @param progressMonitor
 	 *            the progress monitor
@@ -216,9 +216,9 @@ public final class JaxrsElementsSearcher {
 	 */
 	public static List<IMethod> findResourceMethods(final IJavaElement scope, final List<IJaxrsHttpMethod> httpMethods,
 			final IProgressMonitor progressMonitor) throws CoreException {
-		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
+		final IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
 				IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
-		List<String> annotations = new ArrayList<String>(httpMethods.size() + 1);
+		final List<String> annotations = new ArrayList<String>(httpMethods.size() + 1);
 		annotations.add(PATH.qualifiedName);
 		for (IJaxrsHttpMethod httpMethod : httpMethods) {
 			annotations.add(httpMethod.getJavaClassName());

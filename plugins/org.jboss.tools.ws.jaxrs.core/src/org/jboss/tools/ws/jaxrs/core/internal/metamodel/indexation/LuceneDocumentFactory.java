@@ -10,7 +10,6 @@
  ******************************************************************************/
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation;
-
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_ANNOTATION_NAME;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_BUILT_IN_HTTP_METHOD;
@@ -24,8 +23,8 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.Lucene
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_ELEMENT;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAVA_PROJECT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAXRS_ELEMENT;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_JAXRS_PROBLEM_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_MARKER_IDENTIFIER;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_MARKER_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PARENT_IDENTIFIER;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation.LuceneFields.FIELD_PRODUCED_MEDIA_TYPE;
@@ -71,16 +70,99 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
  */
 public class LuceneDocumentFactory {
 
-	public static Term getIdentifierTerm(final IJaxrsElement element) {
-		return new Term(FIELD_IDENTIFIER, element.getIdentifier());
+	/**
+	 * Returns the Identifier {@link Term} for the given {@link IMarker}.
+	 * 
+	 * @param marker
+	 *            the marker to identify in the index
+	 * @return the identifier term
+	 */
+	public static Term getIdentifierTerm(final IMarker marker) {
+		return new Term(FIELD_MARKER_IDENTIFIER, getIdentifierValue(marker));
 	}
 
-	public static Term getIdentifierTerm(final IJaxrsEndpoint element) {
-		return new Term(FIELD_IDENTIFIER, element.getIdentifier());
+	/**
+	 * Returns the identifier value to use in index {@link Field} and query
+	 * {@link Term}s for the given {@link IMarker}.
+	 * 
+	 * @param marker
+	 *            the marker to identify
+	 * @return the identifier value
+	 */
+	private static String getIdentifierValue(final IMarker marker) {
+		return IndexedObjectType.PROBLEM_MARKER.getPrefix() + Long.toString(marker.getId());
+	}
+	
+	/**
+	 * Returns the Identifier {@link Term} for the given {@link IJaxrsElement}.
+	 * 
+	 * @param element
+	 *            the element to identify in the index
+	 * @return the identifier term
+	 */
+	public static Term getIdentifierTerm(final IJaxrsElement element) {
+		return new Term(FIELD_IDENTIFIER, getIdentifierValue(element));
+	}
+
+	/**
+	 * Returns the identifier value to use in index {@link Field} and query
+	 * {@link Term}s for the given {@link IJaxrsElement}.
+	 * 
+	 * @param element
+	 *            the element to identify
+	 * @return the identifier value
+	 */
+	private static String getIdentifierValue(final IJaxrsElement element) {
+		return IndexedObjectType.JAX_RS_ELEMENT.getPrefix() + element.getIdentifier();
+	}
+	
+	/**
+	 * Returns the Identifier {@link Term} for the given {@link IJavaElement}.
+	 * 
+	 * @param element
+	 *            the element to identify in the index
+	 * @return the identifier term
+	 */
+	public static Term getIdentifierTerm(final IJavaElement element) {
+		return new Term(FIELD_IDENTIFIER, getIdentifierValue(element));
+	}
+	
+	/**
+	 * Returns the identifier value to use in index {@link Field} and query
+	 * {@link Term}s for the given {@link IJavaElement}.
+	 * 
+	 * @param element
+	 *            the element to identify
+	 * @return the identifier value
+	 */
+	private static String getIdentifierValue(final IJavaElement element) {
+		return IndexedObjectType.JAX_RS_ELEMENT.getPrefix() + element.getHandleIdentifier();
+	}
+	
+	/**
+	 * Returns the Identifier {@link Term} for the given {@link IJaxrsEndpoint}. 
+	 * 
+	 * @param endpoint the endpoint to identify in the index
+	 * @return the identifier term
+	 */
+	public static Term getIdentifierTerm(final IJaxrsEndpoint endpoint) {
+		return new Term(FIELD_IDENTIFIER, getIdentifierValue(endpoint));
+	}
+	
+	/**
+	 * Returns the identifier value to use in index {@link Field} and query
+	 * {@link Term}s for the given {@link IJaxrsEndpoint}.
+	 * 
+	 * @param endpoint
+	 *            the endpoint to identify
+	 * @return the identifier value
+	 */
+	public static String getIdentifierValue(final IJaxrsEndpoint endpoint) {
+		return IndexedObjectType.JAX_RS_ENDPOINT.getPrefix() + endpoint.getIdentifier();
 	}
 	
 	public static Term getResourcePathTerm(final IResource resource) {
-		return new Term(FIELD_IDENTIFIER, resource.getFullPath().toPortableString());
+		return new Term(FIELD_RESOURCE_PATH, resource.getFullPath().toPortableString());
 	}
 	
 	public static Term getMarkerTypeTerm() {
@@ -90,17 +172,18 @@ public class LuceneDocumentFactory {
 	/**
 	 * Creates a Lucene {@link Document} from the given {@link IMarker}.
 	 * 
-	 * @param element
+	 * @param marker the {@link IMarker} to index.
 	 * @return the Lucene document or null if the given element is supposed to
 	 *         be indexed.
 	 */
 	public static Document createDocument(final IMarker marker) {
 		final Document document = new Document();
 		// we use the resource path as an identifier 
-		addFieldToDocument(document, FIELD_IDENTIFIER, marker.getResource().getFullPath().toPortableString());
+		addFieldToDocument(document, FIELD_IDENTIFIER, getIdentifierValue(marker));
 		addFieldToDocument(document, FIELD_MARKER_IDENTIFIER, Long.toString(marker.getId()));
 		addFieldToDocument(document, FIELD_TYPE, IMarker.class.getSimpleName());
-		addFieldToDocument(document, FIELD_MARKER_TYPE, marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, null));
+		addFieldToDocument(document, FIELD_RESOURCE_PATH, marker.getResource().getFullPath().toString());
+		addFieldToDocument(document, FIELD_JAXRS_PROBLEM_TYPE, marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, null));
 		return document;
 	}
 
@@ -143,13 +226,15 @@ public class LuceneDocumentFactory {
 	 */
 	public static Document createDocument(final IJaxrsEndpoint endpoint) {
 		final Document document = new Document();
-		addFieldToDocument(document, FIELD_IDENTIFIER, endpoint.getIdentifier());
+		addFieldToDocument(document, FIELD_IDENTIFIER, getIdentifierValue(endpoint));
 		addFieldToDocument(document, FIELD_JAVA_PROJECT_IDENTIFIER, getHandleIdentifier(endpoint.getJavaProject()));
 		addFieldToDocument(document, FIELD_TYPE, endpoint.getElementCategory().toString());
 		addFieldToDocument(document, FIELD_CONSUMED_MEDIA_TYPE, endpoint.getConsumedMediaTypes());
 		addFieldToDocument(document, FIELD_PRODUCED_MEDIA_TYPE, endpoint.getProducedMediaTypes());
 		addFieldToDocument(document, FIELD_URI_PATH_TEMPLATE, endpoint.getUriPathTemplate());
-		addFieldToDocument(document, FIELD_HTTP_VERB, endpoint.getHttpMethod().getHttpVerb());
+		if(endpoint.getHttpMethod() != null) {
+			addFieldToDocument(document, FIELD_HTTP_VERB, endpoint.getHttpMethod().getHttpVerb());
+		}
 		if(endpoint.getApplication() != null) {
 			addFieldToDocument(document, FIELD_JAXRS_ELEMENT, endpoint.getApplication().getIdentifier());
 		}
@@ -226,7 +311,7 @@ public class LuceneDocumentFactory {
 		final Document document = new Document();
 		addFieldToDocument(document, FIELD_JAVA_PROJECT_IDENTIFIER, getHandleIdentifier(element.getMetamodel().getJavaProject()));
 		addFieldToDocument(document, FIELD_TYPE, element.getElementKind().getCategory().toString());
-		addFieldToDocument(document, FIELD_IDENTIFIER, element.getIdentifier());
+		addFieldToDocument(document, FIELD_IDENTIFIER, getIdentifierValue(element));
 		if (element.getJavaElement() != null) {
 			addFieldToDocument(document, FIELD_JAVA_ELEMENT, Boolean.TRUE.toString());
 			addFieldToDocument(document, FIELD_COMPILATION_UNIT_IDENTIFIER, getHandleIdentifier(element.getJavaElement()
@@ -278,7 +363,7 @@ public class LuceneDocumentFactory {
 		addFieldToDocument(document, FIELD_JAVA_PROJECT_IDENTIFIER, webxmlApplication.getMetamodel().getJavaProject()
 				.getHandleIdentifier());
 		addFieldToDocument(document, FIELD_TYPE, webxmlApplication.getElementKind().getCategory().toString());
-		addFieldToDocument(document, FIELD_IDENTIFIER, webxmlApplication.getIdentifier());
+		addFieldToDocument(document, FIELD_IDENTIFIER, getIdentifierValue(webxmlApplication));
 		addFieldToDocument(document, FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
 		addFieldToDocument(document, FIELD_WEBXML_APPLICATION_OVERRIDES_JAVA_APPLICATION, Boolean.toString(webxmlApplication.isOverride()));
 		addFieldToDocument(document, FIELD_RESOURCE_PATH, webxmlApplication.getResource().getFullPath()

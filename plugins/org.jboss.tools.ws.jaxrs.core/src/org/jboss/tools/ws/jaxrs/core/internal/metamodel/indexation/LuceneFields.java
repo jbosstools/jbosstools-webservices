@@ -29,5 +29,5 @@ public interface LuceneFields {
 	public static final String FIELD_PROVIDER_KIND = "providerKind:";
 	/** The type of problem associated with a marker.*/
 	public static final String FIELD_MARKER_IDENTIFIER = "markerIdentifier";
-	public static final String FIELD_MARKER_TYPE = "markerType";
+	public static final String FIELD_JAXRS_PROBLEM_TYPE = "markerType";
 }

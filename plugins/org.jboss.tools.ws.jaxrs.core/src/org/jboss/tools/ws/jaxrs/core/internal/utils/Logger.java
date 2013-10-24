@@ -249,4 +249,8 @@ public final class Logger {
 	public static boolean isDebugEnabled() {
 		return isOptionEnabled(DEBUG);
 	}
+
+	public static boolean isDebugIndexingEnabled() {
+		return isOptionEnabled(DEBUG_INDEXING);
+	}
 }
