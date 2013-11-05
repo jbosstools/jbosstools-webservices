@@ -417,8 +417,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final IProject project = metamodel.getProject();
 		Logger.debug("Reporting problem '{}' on project '{}'", message, project.getName());
 		final IMarker marker = addProblem(message, preferenceKey, messageArguments, 0, 0, project);
-		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
-		metamodel.registerMarker(marker);
+		if(marker != null) { 
+			marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
+			metamodel.registerMarker(marker);
+		}
 		return marker;
 	}
 	
@@ -430,8 +432,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final IResource resource = element.getResource();
 		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
 		final IMarker marker = addProblem(message, preferenceKey, messageArguments, range.getLength(), range.getOffset(), resource);
-		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
-		element.registerMarker(marker);
+		if(marker != null) {
+			marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
+			element.registerMarker(marker);
+		}
 		return marker;
 	}
 
@@ -443,8 +447,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final IResource resource = element.getResource();
 		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
 		final IMarker marker = addProblem(message, preferenceKey, messageArguments, range.getLength(), range.getOffset(), resource, quickFixId);
-		marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
-		element.registerMarker(marker);
+		if(marker != null) {
+			marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
+			element.registerMarker(marker);
+		}
 		return marker;
 	}
 

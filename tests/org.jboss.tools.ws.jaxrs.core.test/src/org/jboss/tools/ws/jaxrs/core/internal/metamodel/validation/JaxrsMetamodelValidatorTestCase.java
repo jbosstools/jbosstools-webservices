@@ -70,5 +70,4 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 		assertThat(metamodelProblemLevelChanges.size(), is(0));
 	}
 	
-	
 }
