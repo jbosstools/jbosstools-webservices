@@ -26,6 +26,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.preferences.DefaultScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ReporterHelper;
@@ -35,6 +38,7 @@ import org.jboss.tools.common.validation.ContextValidationHelper;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
@@ -43,6 +47,8 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
+import org.junit.After;
 import org.junit.Test;
 
 /**
@@ -70,6 +76,12 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 				element.remove();
 			}
 		}
+	}
+	
+	@After
+	public void resetProblemLevelPreferences() {
+		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
+		defaultPreferences.put(JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, JaxrsPreferences.ERROR);
 	}
 
 	@Test
@@ -455,4 +467,25 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		}
 		assertThat(markers.length, equalTo(1));
 	}
+
+	@Test
+	public void shouldNotFailOnProblemIfSeverityLevelIsIgnore() throws CoreException, ValidationException {
+		// preconditions
+		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
+				"ExceptionMapper<Foobar>", false);
+		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
+		removeAllElementsExcept(provider);
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
+		defaultPreferences.put(JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, JaxrsPreferences.IGNORE);
+		// operation
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(provider);
+		assertThat(markers.length, equalTo(0));
+	}
+
+
 }
