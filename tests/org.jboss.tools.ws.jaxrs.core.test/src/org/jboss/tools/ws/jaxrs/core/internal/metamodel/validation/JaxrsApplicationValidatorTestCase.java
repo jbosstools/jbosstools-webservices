@@ -31,6 +31,9 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.preferences.DefaultScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
@@ -39,6 +42,7 @@ import org.jboss.tools.common.validation.ContextValidationHelper;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
@@ -50,6 +54,8 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
+import org.junit.After;
 import org.junit.Test;
 
 /**
@@ -63,6 +69,12 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
 	private final IProjectValidationContext context = new ProjectValidationContext();
 	private final ValidatorManager validatorManager = new ValidatorManager();
+
+	@After
+	public void resetProblemLevelPreferences() {
+		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
+		defaultPreferences.put(JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferences.ERROR);
+	}
 
 	@Test
 	public void shouldNotReportProblemIfOneJavaApplicationExists() throws CoreException, ValidationException {
@@ -552,6 +564,24 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+	}
+	
+	@Test
+	public void shouldNotFailOnProblemIfSeverityLevelIsIgnore() throws CoreException, ValidationException {
+		// preconditions
+		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
+		for (IJaxrsApplication application : applications) {
+			((JaxrsBaseElement) application).remove();
+		}
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
+		defaultPreferences.put(JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferences.IGNORE);
+		// operation
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(project);
+		assertThat(markers.length, equalTo(0));
 	}
 
 	
