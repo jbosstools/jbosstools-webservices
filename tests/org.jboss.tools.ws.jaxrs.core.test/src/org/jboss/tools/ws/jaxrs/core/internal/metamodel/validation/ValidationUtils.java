@@ -1,8 +1,11 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -19,8 +22,22 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 /**
  * @author Xavier Coulon The class name says it all.
  */
-public class MarkerUtils {
+public class ValidationUtils {
 
+	/**
+	 * Converts the given {@link IResource} elements into a set of {@link IFile}s
+	 * 
+	 * @param elements
+	 * @return the set containing the given elements
+	 */
+	public static Set<IFile> toSet(final IResource... elements) {
+		final Set<IFile> result = new HashSet<IFile>();
+		for (IResource element : elements) {
+			result.add((IFile)element);
+		}
+		return result;
+	}
+	
 	/**
 	 * find JAX-RS Markers on the given resources.
 	 * 

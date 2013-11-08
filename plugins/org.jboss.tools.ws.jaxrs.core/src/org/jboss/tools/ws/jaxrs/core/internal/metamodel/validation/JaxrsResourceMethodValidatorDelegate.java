@@ -66,6 +66,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	@Override
 	void internalValidate(final JaxrsResourceMethod resourceMethod) throws CoreException {
 		Logger.debug("Validating element {}", resourceMethod);
+		resourceMethod.resetProblemLevel();
 		validatePublicModifierOnJavaMethod(resourceMethod);
 		validateNoUnboundPathAnnotationTemplateParameters(resourceMethod);
 		validateNoUnboundPathParamAnnotationValues(resourceMethod);

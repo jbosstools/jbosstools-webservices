@@ -62,11 +62,17 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	 * 
 	 * @param problem
 	 *            level: the incoming new problem level.
-	 * @throws CoreException 
 	 */
 	@Deprecated
 	public void setProblemLevel(final int problemLevel) {
 		this.problemLevel = Math.max(this.problemLevel, problemLevel);
+	}
+	
+	/**
+	 * Sets the problem level to {@code 0} for this element.
+	 */
+	public void resetProblemLevel() {
+		this.problemLevel = 0;
 	}
 	
 	/**

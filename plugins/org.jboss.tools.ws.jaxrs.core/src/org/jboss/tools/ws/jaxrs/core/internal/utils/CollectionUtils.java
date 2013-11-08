@@ -13,10 +13,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Collections utility class.
@@ -331,20 +329,6 @@ public class CollectionUtils {
 			return removedItems;
 		}
 
-	}
-
-	/**
-	 * Converts the given elements into a set
-	 * 
-	 * @param elements
-	 * @return the set containing the given elements
-	 */
-	public static <T> Set<T> toSet(final T... elements) {
-		final Set<T> result = new HashSet<T>();
-		for (T element : elements) {
-			result.add(element);
-		}
-		return result;
 	}
 
 	/**
