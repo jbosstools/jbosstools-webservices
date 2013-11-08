@@ -14,9 +14,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
@@ -27,10 +28,6 @@ import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_ME
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.HTTP_METHOD_MISSING_TARGET_ANNOTATION;
 import static org.junit.Assert.assertThat;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -70,12 +67,6 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 	private final IProjectValidationContext context = new ProjectValidationContext();
 	private final ValidatorManager validatorManager = new ValidatorManager();
 
-	private Set<IFile> toSet(IResource resource) {
-		final Set<IFile> changedFiles = new HashSet<IFile>();
-		changedFiles.add((IFile) resource);
-		return changedFiles;
-	}
-	
 	@Before
 	public void removeExtraJaxrsJavaApplications() throws CoreException {
 		removeApplications(metamodel.getJavaApplications());
@@ -295,7 +286,7 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 	
 	@Test
 	public void shouldReportProblemWhenHttpMethodTypeRetentionAnnotationHasWrongValue() throws CoreException,
-	ValidationException {
+		ValidationException {
 		// preconditions
 		final IType fooType = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) metamodel.findElement(fooType);
@@ -360,6 +351,30 @@ public class JaxrsHttpMethodValidatorTestCase extends AbstractMetamodelBuilderTe
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldIncreaseAndResetProblemLevelOnHttpMethod() throws CoreException, ValidationException {
+		// preconditions
+		final IType fooType = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) metamodel.findElement(fooType);
+		final Annotation retentionAnnotation = httpMethod.getAnnotation(RETENTION.qualifiedName);
+		httpMethod.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, "FOO"));
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.RUNTIME)", "@Retention(value=RetentionPolicy.SOURCE)", true);
+		deleteJaxrsMarkers(httpMethod);
+		resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// verification: problem level is set to '2'
+		assertThat(httpMethod.getProblemLevel(), equalTo(2));
+		// now, fix the problem 
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.SOURCE)", "@Retention(value=RetentionPolicy.RUNTIME)", true);
+		// revalidate
+		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// verification: problem level is set to '0'
+		assertThat(httpMethod.getProblemLevel(), equalTo(0));
 	}
 
 }
