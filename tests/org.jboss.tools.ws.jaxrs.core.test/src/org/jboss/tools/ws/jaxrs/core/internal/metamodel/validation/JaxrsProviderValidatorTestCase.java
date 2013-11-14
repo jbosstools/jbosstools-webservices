@@ -11,8 +11,9 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
 import static org.junit.Assert.assertThat;
 
@@ -43,7 +44,6 @@ import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
@@ -93,7 +93,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -119,7 +119,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -143,7 +143,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -170,7 +170,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -197,7 +197,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -224,7 +224,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -251,7 +251,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -279,7 +279,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource(),
+		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
@@ -308,7 +308,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource(),
+		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
@@ -337,7 +337,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource(),
+		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
@@ -367,7 +367,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource(),
+		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
@@ -391,7 +391,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -414,7 +414,7 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		final Set<IFile> changedResources = CollectionUtils.toSet((IFile) provider.getResource());
+		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
 				reporter);
 		// validation
@@ -485,6 +485,31 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		assertThat(markers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldIncreaseAndResetProblemLevelOnHttpMethod() throws CoreException, ValidationException {
+		// preconditions
+		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
+				"ExceptionMapper<Foobar>", false);
+		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
+		removeAllElementsExcept(provider);
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(provider.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// verification: problem level is set to '2'
+		assertThat(provider.getProblemLevel(), equalTo(2));
+		// now, fix the problem 
+		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<Foobar>",
+				"ExceptionMapper<EntityNotFoundException>", false);
+		// revalidate
+		new JaxrsMetamodelValidator().validate(toSet(provider.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// verification: problem level is set to '0'
+		assertThat(provider.getProblemLevel(), equalTo(0));
 	}
 
 

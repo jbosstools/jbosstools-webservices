@@ -12,8 +12,8 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.findJaxrsMarkers;
 import static org.junit.Assert.assertThat;
 
 import org.eclipse.core.resources.IFile;

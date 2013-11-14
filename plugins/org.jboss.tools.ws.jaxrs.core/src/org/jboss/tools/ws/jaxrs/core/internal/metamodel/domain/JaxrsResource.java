@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -250,6 +251,18 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 			}
 		}
 
+	}
+	
+	/**
+	 * Removes the JAX-RS {@link IMarker} and resets the problem level for this
+	 * {@link IJaxrsResource}, and at the same time, sets the problem level to
+	 * {@code zero} for all its {@link IJaxrsResourceField}s and
+	 * {@link IJaxrsResourceMethod}s children.
+	 * 
+	 * @throws CoreException
+	 */
+	public void removeMarkers() throws CoreException {
+		super.removeMarkers();
 	}
 
 	/**

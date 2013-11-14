@@ -14,9 +14,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.deleteJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.findJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.MarkerUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY;
@@ -49,7 +50,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -168,8 +168,8 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// operation: validate one app twice
 		final IFile file1 = (IFile)project.findMember(".project");
 		final IFile file2 = (IFile)project.findMember(".classpath");
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(file1), project, validationHelper, context, validatorManager, reporter);
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(file2), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(file1), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(file2), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(0));
@@ -348,7 +348,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IFile app2Resource = (IFile) restApplication2Type.getResource();
 		//app2Resource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset). Expect marker on first application to be removed
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(app2Resource), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(app2Resource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(0));
 		assertThat(findJaxrsMarkers(javaApplication2).length, equalTo(0));
@@ -381,7 +381,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IFile app2Resource = (IFile) restApplication2Type.getResource();
 		app2Resource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset). Expect marker on first application to be removed
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(app2Resource), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(app2Resource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(0));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
@@ -435,7 +435,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IFile appResource = (IFile) javaApplication.getResource();
 		appResource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset). Expect marker on we.xml application definition to be removed
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(appResource), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(appResource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(webxmlApplication).length, equalTo(0));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
@@ -464,7 +464,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
 		webxmlResource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset). Expect marker on first application to be removed
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(0));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
@@ -498,7 +498,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
 		webxmlResource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset). Expect marker on both applications to be still there
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(1));
 		// restApplication2 has 2 markers: missing annotation and duplicate application
@@ -535,7 +535,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// remove content, no remove resource
 		webxmlResource = (IFile) WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml");
 		// then validate again, only the *changed files* (and without reset). Expect marker on both applications to be still there
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(1));
 		// restApplication2 has 2 markers: missing annotation and duplicate application
@@ -551,7 +551,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		deleteJaxrsMarkers(project);
 		resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(CollectionUtils.toSet((IFile)project.findMember(".project")), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(project.findMember(".project")), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(0));
@@ -584,5 +584,27 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		assertThat(markers.length, equalTo(0));
 	}
 
+	@Test
+	public void shouldIncreaseAndResetProblemLevelOnApplication() throws CoreException, ValidationException {
+		// preconditions
+		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
+		webxmlApplication.remove();
+		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Application", "extends Object", false);
+		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
+		deleteJaxrsMarkers(project);
+		resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// verification: problem level is set to '2'
+		assertThat(javaApplication.getProblemLevel(), equalTo(2));
+		// now, fix the problem 
+		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Object", "extends Application", false);
+		// revalidate
+		new JaxrsMetamodelValidator().validate(toSet(javaApplication.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
+		// verification: problem level is set to '0'
+		assertThat(javaApplication.getProblemLevel(), equalTo(0));
+	}
 	
 }
