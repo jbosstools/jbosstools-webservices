@@ -4,10 +4,8 @@
 <bookinfo>
 	<title>JBoss SOAP Web Services User Guide</title>
 	<subtitle>Provides information relating to SOAP Web Services for JBoss.</subtitle>
-	<productname>JBoss Developer Studio</productname>
-	<productnumber>6.0</productnumber>
-	<edition>6.0.0</edition>
-	<pubsnumber>1</pubsnumber>
+	<productname>Red Hat JBoss Developer Studio</productname>
+	<productnumber>7.1</productnumber>
 	<abstract>
 		<para>The JBoss SOAP Web Services User Guide explains how to use the JBoss Web Services module to implement SOAP web services in Java.</para>
 	</abstract>
