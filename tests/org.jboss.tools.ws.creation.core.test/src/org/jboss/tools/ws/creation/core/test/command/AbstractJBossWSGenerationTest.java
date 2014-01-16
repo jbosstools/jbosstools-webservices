@@ -10,7 +10,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
@@ -42,23 +41,24 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	private String RuntimeName = "testjbosswsruntime";
 	public String wsdlFileName = "hello_world.wsdl";
 	public ServiceModel model;
-	private String JBOSS_AS_42_HOME = ASTest.JBOSS_AS_42_HOME;
-	private String JBOSS_WS_HOME = JBOSS_AS_42_HOME;
+
+	private String JBOSS_AS_51_HOME = ASTest.JBOSS_AS_51_HOME;
+	private String JBOSS_WS_HOME = JBOSS_AS_51_HOME;
 	public String wsHomePath;
 	IFacetedProject fproject;
 	public IFile wsdlFile;
 	
 	public void setUp() throws Exception{
 		super.setUp();
-		assertNotNull(ASTest.JRE_5_HOME, "No JRE5 property in System");
-		assertTrue("The JRE5 location is not right", new Path(ASTest.JRE_5_HOME).toFile().exists());
+//		assertNotNull(ASTest.JRE_5_HOME, "No JRE5 property in System");
+//		assertTrue("The JRE5 location is not right", new Path(ASTest.JRE_5_HOME).toFile().exists());
 		createWSServer();
 		wsHomePath = getJBossWSHomeFolder().toString();
 		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName,wsHomePath, "", true);
 	}
 	
 	public void createWSServer() throws Exception {
-		currentServer = createServer(IJBossToolingConstants.AS_42, IJBossToolingConstants.SERVER_AS_42, ASTest.JBOSS_AS_42_HOME, DEFAULT_CONFIG,JREUtils.createJRE());		
+		currentServer = createServer(IJBossToolingConstants.AS_51, IJBossToolingConstants.SERVER_AS_51, ASTest.JBOSS_AS_51_HOME, DEFAULT_CONFIG,JREUtils.createJRE());		
 	}
 
 	public IProject createProject(String prjName) throws CoreException {
