@@ -962,18 +962,18 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 			CoreException {
 		// pre-conditions
 		final IType productResourceLocatorType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResource productResourceLocator = createResource(productResourceLocatorType);
-		final JaxrsResourceMethod productResourceLocatorMethod = getResourceMethod(productResourceLocator,
+		final JaxrsResourceMethod productResourceLocatorMethod = getResourceMethod(createResource(productResourceLocatorType),
 				"getProductResourceLocator");
 		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		// adding an extra subresource that should be affected later
 		final JaxrsResource gameResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(productResourceLocatorType,
+		final IType changedType = WorkbenchUtils.replaceFirstOccurrenceOfCode(productResourceLocatorType,
 				"public Object getProductResourceLocator", "public BookResource getProductResourceLocator", false);
-		productResourceLocatorMethod.update(productResourceLocatorMethod.getJavaElement(),
-				JdtUtils.parse(productResourceLocatorType, null));
+		// method changed, we need to look it up again, without changing the Resource associated with the IType, though...
+		final IMethod changedMethod = resolveMethod(changedType, "getProductResourceLocator");
+		productResourceLocatorMethod.update(changedMethod, JdtUtils.parse(productResourceLocatorType, null));
 		// verifications: 5 removed and then 3 added
 		assertThat(endpointChanges.size(), equalTo(8));
 		assertThat(metamodel.findEndpoints(gameResource).size(), equalTo(0));

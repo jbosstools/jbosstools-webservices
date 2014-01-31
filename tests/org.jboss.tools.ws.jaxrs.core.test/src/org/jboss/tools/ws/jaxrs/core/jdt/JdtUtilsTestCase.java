@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -411,8 +412,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
-				JdtUtils.parse(type, progressMonitor), PATH.qualifiedName, CONSUMES.qualifiedName,
-				PRODUCES.qualifiedName, ENCODED.qualifiedName);
+				JdtUtils.parse(type, progressMonitor), Arrays.asList(PATH.qualifiedName, CONSUMES.qualifiedName,
+				PRODUCES.qualifiedName, ENCODED.qualifiedName));
 		// verifications
 		assertThat(javaAnnotations.size(), equalTo(4));
 		for (Entry<String, Annotation> entry : javaAnnotations.entrySet()) {
@@ -470,7 +471,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
-				JdtUtils.parse(type, progressMonitor), HTTP_METHOD.qualifiedName);
+				JdtUtils.parse(type, progressMonitor), Arrays.asList(HTTP_METHOD.qualifiedName));
 		// verifications
 		assertThat(javaAnnotations.size(), equalTo(1));
 		Annotation javaAnnotation = javaAnnotations.get(HTTP_METHOD.qualifiedName);
@@ -515,7 +516,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type, 
 				JdtUtils.parse(type, progressMonitor));
 		// verification
 		Assert.assertEquals(8, methodSignatures.size());
@@ -577,7 +578,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		// preconditions
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ParameterizedResource");
 		// operation
-		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type, 
 				JdtUtils.parse(type, progressMonitor));
 		// verification
 		Assert.assertEquals(1, methodSignatures.size());
@@ -746,6 +747,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification
 		assertThat(foundAnnotation, notNullValue());
+		assertThat(foundAnnotation.getFullyQualifiedName(), equalTo("javax.ws.rs.PathParam"));
 		assertThat(foundAnnotation.getJavaAnnotation(), notNullValue());
 	}
 
@@ -760,6 +762,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, type.getCompilationUnit());
 		// verification
 		assertThat(foundAnnotation, notNullValue());
+		assertThat(foundAnnotation.getFullyQualifiedName(), equalTo("javax.ws.rs.QueryParam"));
 		assertThat(foundAnnotation.getJavaAnnotation(), notNullValue());
 	}
 

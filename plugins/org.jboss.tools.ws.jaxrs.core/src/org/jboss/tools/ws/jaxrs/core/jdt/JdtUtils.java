@@ -27,8 +27,10 @@ import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
@@ -38,11 +40,25 @@ import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
+import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IAnnotationBinding;
+import org.eclipse.jdt.core.dom.IMemberValuePairBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.MemberValuePair;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.NodeFinder;
+import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -89,9 +105,10 @@ public final class JdtUtils {
 	public static ICompilationUnit getCompilationUnit(final IJavaElement element) {
 		if (element instanceof IMember) {
 			return ((IMember) element).getCompilationUnit();
-		} else if (element instanceof IAnnotation 
-				// ignore annotations on PackageDeclaration, such as in package-info.java
-				&& element.getParent() instanceof IMember) { 
+		} else if (element instanceof IAnnotation
+		// ignore annotations on PackageDeclaration, such as in
+		// package-info.java
+				&& element.getParent() instanceof IMember) {
 			return ((IMember) (element.getParent())).getCompilationUnit();
 		} else if (element instanceof ICompilationUnit) {
 			return (ICompilationUnit) element;
@@ -109,7 +126,8 @@ public final class JdtUtils {
 	 *             the underlying JavaModelException thrown by the manipulated
 	 *             JDT APIs
 	 */
-	public static boolean isAbstractType(final IType type) throws JavaModelException {
+	public static boolean isAbstractType(final IType type)
+			throws JavaModelException {
 		return Flags.isAbstract(type.getFlags());
 	}
 
@@ -124,9 +142,11 @@ public final class JdtUtils {
 	 * @throws JavaModelException
 	 *             in case of exception
 	 */
-	public static IType resolveTopLevelType(final ICompilationUnit compilationUnit) throws JavaModelException {
+	public static IType resolveTopLevelType(
+			final ICompilationUnit compilationUnit) throws JavaModelException {
 
-		if (compilationUnit != null && compilationUnit.exists() && compilationUnit.getTypes() != null
+		if (compilationUnit != null && compilationUnit.exists()
+				&& compilationUnit.getTypes() != null
 				&& compilationUnit.getTypes().length > 0) {
 			if (compilationUnit.getTypes()[0].getDeclaringType() != null) {
 				return compilationUnit.getTypes()[0].getDeclaringType();
@@ -173,13 +193,15 @@ public final class JdtUtils {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	public static IJavaElement getElementAt(ICompilationUnit compilationUnit, int location) throws JavaModelException {
+	public static IJavaElement getElementAt(ICompilationUnit compilationUnit,
+			int location) throws JavaModelException {
 		if (compilationUnit == null) {
 			return null;
 		}
 		final IJavaElement element = compilationUnit.getElementAt(location);
 		if (element instanceof IAnnotatable) {
-			for (IAnnotation annotation : ((IAnnotatable) element).getAnnotations()) {
+			for (IAnnotation annotation : ((IAnnotatable) element)
+					.getAnnotations()) {
 				final int length = annotation.getSourceRange().getLength();
 				final int offset = annotation.getSourceRange().getOffset();
 				if (offset <= location && location < (offset + length)) {
@@ -189,11 +211,12 @@ public final class JdtUtils {
 		}
 		return element;
 	}
-	
+
 	/**
-	 * Returns the closest Java Element of the expected type that surrounds the given location in the
-	 * given compilationUnit. This method can return SimpleAnnotation, which the
-	 * default JDT ICompilationUnit implementation does not support.
+	 * Returns the closest Java Element of the expected type that surrounds the
+	 * given location in the given compilationUnit. This method can return
+	 * SimpleAnnotation, which the default JDT ICompilationUnit implementation
+	 * does not support.
 	 * 
 	 * @param sourceRange
 	 * @param location
@@ -201,13 +224,11 @@ public final class JdtUtils {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	public static IJavaElement getElementAt(ICompilationUnit compilationUnit, int location, int type) throws JavaModelException {
-		IJavaElement element = getElementAt(compilationUnit, location);
-		while (element != null && element.exists()) {
-			if (element.getElementType() == type) {
-				return element;
-			}
-			element = element.getParent();
+	public static IJavaElement getElementAt(ICompilationUnit compilationUnit,
+			int location, int type) throws JavaModelException {
+		final IJavaElement element = getElementAt(compilationUnit, location);
+		if(element != null && element.exists()) {
+			return element.getAncestor(type);
 		}
 		return null;
 	}
@@ -226,8 +247,8 @@ public final class JdtUtils {
 	 * @throws JavaModelException
 	 *             in case of exception underneath...
 	 */
-	public static CompilationUnit parse(final ICompilationUnit compilationUnit, final IProgressMonitor progressMonitor)
-			throws JavaModelException {
+	public static CompilationUnit parse(final ICompilationUnit compilationUnit,
+			final IProgressMonitor progressMonitor) throws JavaModelException {
 		if (compilationUnit == null || !compilationUnit.exists()) {
 			return null;
 		}
@@ -238,46 +259,30 @@ public final class JdtUtils {
 		parser.setResolveBindings(true);
 		parser.setEnvironment(null, null, null, true);
 		parser.setBindingsRecovery(true);
-		final CompilationUnit ast = (CompilationUnit) parser.createAST(progressMonitor);
+		final CompilationUnit ast = (CompilationUnit) parser
+				.createAST(progressMonitor);
 		return ast;
 	}
 
 	/**
-	 * Parse the compilation unit of the given {@link IJavaElement} if it is a {@link IMember} or a {@link ICompilationUnit}, null otherwise.
+	 * Parse the compilation unit of the given {@link IJavaElement} if it is a
+	 * {@link IMember} or a {@link ICompilationUnit}, null otherwise.
+	 * 
 	 * @param javaElement
 	 * @param progressMonitor
-	 * @return the compilation unit or null if the given java element has no compilation unit (ex: package fragment root).
-	 * @throws JavaModelException 
-	 */
-	public static CompilationUnit parse(final IJavaElement javaElement, IProgressMonitor progressMonitor) throws JavaModelException {
-		if(javaElement instanceof IMember) {
-			return parse(((IMember)javaElement).getCompilationUnit(), progressMonitor);
-		} else if(javaElement instanceof ICompilationUnit) {
-			return parse((ICompilationUnit)javaElement, progressMonitor);
-		}
-		return null ;
-	}
-	
-	/**
-	 * Parse the DOM of the given member, and resolve bindings. If the given
-	 * member is not a type, then its declaring type is used by the parser.
-	 * 
-	 * @param member
-	 *            the type to parse
-	 * @param progressMonitor
-	 *            the progress monitor
-	 * @return compilationUnit the DOM CompilationUnit returned by the parse()
-	 *         method. This operation is expensive and should be performed only
-	 *         once for each type. Returns null if the given member was null.
+	 * @return the compilation unit or null if the given java element has no
+	 *         compilation unit (ex: package fragment root).
 	 * @throws JavaModelException
-	 *             in case of exception underneath...
 	 */
-	public static CompilationUnit parse(final IMember member, final IProgressMonitor progressMonitor)
-			throws JavaModelException {
-		if (member == null) {
-			return null;
+	public static CompilationUnit parse(final IJavaElement javaElement,
+			IProgressMonitor progressMonitor) throws JavaModelException {
+		if (javaElement instanceof IMember) {
+			return parse(((IMember) javaElement).getCompilationUnit(),
+					progressMonitor);
+		} else if (javaElement instanceof ICompilationUnit) {
+			return parse((ICompilationUnit) javaElement, progressMonitor);
 		}
-		return parse(member.getCompilationUnit(), progressMonitor);
+		return null;
 	}
 
 	/**
@@ -289,13 +294,17 @@ public final class JdtUtils {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	public static Annotation resolveAnnotation(IMember member, CompilationUnit ast, String annotationName)
+	public static Annotation resolveAnnotation(final IMember member,
+			final CompilationUnit ast, final String annotationName)
 			throws JavaModelException {
 		if (member.isBinary()) {
 			IAnnotatable javaElement = (IAnnotatable) member;
-			final IAnnotation javaAnnotation = javaElement.getAnnotation(annotationName);
+			final IAnnotation javaAnnotation = javaElement
+					.getAnnotation(annotationName);
 			if (javaAnnotation != null && javaAnnotation.exists()) {
-				return new Annotation(javaAnnotation, javaAnnotation.getElementName(), resolveAnnotationElements(javaAnnotation));
+				return new Annotation(javaAnnotation,
+						javaAnnotation.getElementName(),
+						resolveAnnotationElements(javaAnnotation));
 			}
 			return null;
 		}
@@ -303,57 +312,44 @@ public final class JdtUtils {
 		if (ast == null) {
 			return null;
 		}
-		// TODO : do we really need to resolve the annotation binding ?
-		JavaAnnotationsVisitor visitor = new JavaAnnotationsVisitor(member, annotationName);
-		ast.accept(visitor);
-		return visitor.getResolvedAnnotation();
+		final ASTNode memberNode = findDeclaringNode(member, ast);
+		final List<?> memberModifiers = getNodeModifiers(memberNode);
+		return findAnnotation(memberModifiers, annotationName);
 	}
 
 	/**
-	 * Resolves the annotation given its type.
+	 * Resolves the annotations with the given names on the given member.
 	 * 
-	 * @param type
-	 * @param ast
-	 * @param annotationClass
-	 * @return
+	 * @param member the annotated member
+	 * @param ast its associated {@link CompilationUnit}
+	 * @param annotationNames the fully qualified names of the annotations to look for.
+	 * @return a map with all annotations index by their fully qualified name, or empty map if none was found
 	 * @throws JavaModelException
 	 */
-	public static Map<String, Annotation> resolveAnnotations(IMember member, CompilationUnit ast,
-			String... annotationNames) throws JavaModelException {
-		return resolveAnnotations(member, ast, Arrays.asList(annotationNames));
-
-	}
-
-	/**
-	 * Resolves the annotation given its type.
-	 * 
-	 * @param type
-	 * @param ast
-	 * @param annotationClass
-	 * @return
-	 * @throws JavaModelException
-	 */
-	public static Map<String, Annotation> resolveAnnotations(IMember member, CompilationUnit ast,
-			List<String> annotationNames) throws JavaModelException {
+	public static Map<String, Annotation> resolveAnnotations(final IMember member,
+			final CompilationUnit ast, final List<String> annotationNames)
+			throws JavaModelException {
 		if (member.isBinary()) {
 			IAnnotatable javaElement = (IAnnotatable) member;
 			final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
 			for (String annotationName : annotationNames) {
-				if(annotationName == null) {
+				if (annotationName == null) {
 					continue;
 				}
-				final IAnnotation javaAnnotation = javaElement.getAnnotation(annotationName);
+				final IAnnotation javaAnnotation = javaElement
+						.getAnnotation(annotationName);
 				if (javaAnnotation.exists()) {
-					annotations.put(annotationName, new Annotation(javaAnnotation, javaAnnotation.getElementName(),
+					annotations.put(annotationName, new Annotation(
+							javaAnnotation, javaAnnotation.getElementName(),
 							resolveAnnotationElements(javaAnnotation)));
 				}
 			}
 			return annotations;
 		}
-		// TODO : do we really need to resolve the annotation binding ?
-		JavaAnnotationsVisitor visitor = new JavaAnnotationsVisitor(member, annotationNames);
-		ast.accept(visitor);
-		return visitor.getResolvedAnnotations();
+		final ASTNode memberNode = findDeclaringNode(member, ast);
+		final List<?> memberModifiers = getNodeModifiers(memberNode);
+		return findAnnotations(memberModifiers, annotationNames);
+
 	}
 
 	/**
@@ -365,7 +361,8 @@ public final class JdtUtils {
 	 * @return
 	 * @throws JavaModelException
 	 */
-	public static Annotation resolveAnnotation(final IAnnotation javaAnnotation, final CompilationUnit ast)
+	public static Annotation resolveAnnotation(
+			final IAnnotation javaAnnotation, final CompilationUnit ast)
 			throws JavaModelException {
 		if (javaAnnotation.getParent() instanceof IMember) {
 			return resolveAnnotation((IMember) javaAnnotation.getParent(), ast,
@@ -373,53 +370,361 @@ public final class JdtUtils {
 		}
 		return null;
 	}
-	
+
 	/**
-	 * Locates the annotation located at the given position in the compilation unit, with a hint on the search scope provided by the given eponym parameter. 
+	 * Locates the annotation located at the given position in the compilation
+	 * unit, with a hint on the search scope provided by the given eponym
+	 * parameter.
+	 * 
 	 * @param location
 	 * @param scope
-	 * @return the {@link IAnnotation} or null if the element at the given location is not an IJavaAnnotation
+	 * @return the {@link IAnnotation} or null if the element at the given
+	 *         location is not an IJavaAnnotation
+	 * @throws JavaModelException
+	 */
+	public static Annotation resolveAnnotationAt(final int location,
+			final ICompilationUnit compilationUnit) throws JavaModelException {
+		final CompilationUnit ast = CompilationUnitsRepository.getInstance()
+				.getAST(compilationUnit);
+		if (ast != null) {
+			return findAnnotation(NodeFinder.perform(ast, location, 1), location);
+		}
+		return null;
+	}
+
+	private static List<?> getNodeModifiers(final ASTNode node) {
+		if (node == null) {
+			return null;
+		}
+		switch (node.getNodeType()) {
+		case ASTNode.TYPE_DECLARATION:
+			return (List<?>) node
+					.getStructuralProperty(TypeDeclaration.MODIFIERS2_PROPERTY);
+		case ASTNode.ANNOTATION_TYPE_DECLARATION:
+			return (List<?>) node
+					.getStructuralProperty(AnnotationTypeDeclaration.MODIFIERS2_PROPERTY);
+		case ASTNode.METHOD_DECLARATION:
+			return (List<?>) node
+					.getStructuralProperty(MethodDeclaration.MODIFIERS2_PROPERTY);
+		case ASTNode.FIELD_DECLARATION:
+			return (List<?>) node
+					.getStructuralProperty(FieldDeclaration.MODIFIERS2_PROPERTY);
+		default:
+			return null;
+		}
+	}
+
+	/**
+	 * Finds the declaring {@link ASTNode} for the given {@link IMember}, using
+	 * the {@link NodeFinder} if the member was not resolved.
+	 * 
+	 * @param member
+	 *            the member to find
+	 * @param ast
+	 *            the Compilation Unit
+	 * @return the associated declaring node
+	 * @throws JavaModelException
+	 */
+	private static ASTNode findDeclaringNode(final IMember member,
+			final CompilationUnit ast) throws JavaModelException {
+		switch (member.getElementType()) {
+		case IJavaElement.TYPE:
+			final IType type = (IType) member;
+			if (type.isResolved()) {
+				return ast.findDeclaringNode(type.getKey());
+			}
+			break;
+		case IJavaElement.METHOD:
+			final IMethod method = (IMethod) member;
+			if (method.isResolved()) {
+				return ast.findDeclaringNode(method.getKey());
+			}
+			break;
+		case IJavaElement.FIELD:
+			final IField field = (IField) member;
+			if (field.isResolved()) {
+				// in the case of a Field, the
+				// CompilationUnit#findDeclaringNode(String key) method returns
+				// a VariableDeclarationFragment in a FieldDeclaration
+				final ASTNode variableDeclarationFragment = ast
+						.findDeclaringNode(field.getKey());
+				if (variableDeclarationFragment != null) {
+					return variableDeclarationFragment.getParent();
+				}
+			}
+			break;
+		default:
+		}
+		return NodeFinder.perform(ast, member.getSourceRange().getOffset(),
+				member.getSourceRange().getLength(), ast.getTypeRoot());
+	}
+
+	/**
+	 * @return an {@link Annotation} from the given node if it is an
+	 *         {@link org.eclipse.jdt.core.dom.Annotation}, or recursively calls
+	 *         with the given node's parent until match, or return null
+	 * @param node
+	 *            the current node
+	 * @param location the location in the Root {@link ASTNode}
 	 * @throws JavaModelException 
 	 */
-	public static Annotation resolveAnnotationAt(final int location, final ICompilationUnit compilationUnit) throws JavaModelException {
-		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
-		if (ast != null) {
-			final IJavaElement element = compilationUnit.getElementAt(location);
-			final ASTNode astChildNode = DOMUtils.getASTNodeByTypeAndLocation(ast, element.getElementType(), location);
-			if (astChildNode != null) {
-				final JavaAnnotationLocator annotationLocator = new JavaAnnotationLocator(element, location);
-				astChildNode.accept(annotationLocator);
-				return annotationLocator.getLocatedAnnotation();
+	private static Annotation findAnnotation(final ASTNode node, final int location) throws JavaModelException {
+		if(node == null) {
+			return null;
+		} else if (!(node instanceof org.eclipse.jdt.core.dom.Annotation)) {
+			return findAnnotation(node.getParent(), location);
+		} 
+		final IAnnotationBinding annotationBinding = ((org.eclipse.jdt.core.dom.Annotation) node).resolveAnnotationBinding();
+		if(annotationBinding.getJavaElement() != null && annotationBinding.getJavaElement().getElementType() == IJavaElement.ANNOTATION) {
+			return toAnnotation(annotationBinding, (IAnnotation) annotationBinding.getJavaElement());
+		}
+		if(node.getParent().getNodeType() == ASTNode.SINGLE_VARIABLE_DECLARATION) {
+			final SingleVariableDeclaration variableDeclaration = (SingleVariableDeclaration) node.getParent();
+			final IVariableBinding variableDeclarationBinding = variableDeclaration.resolveBinding();
+			final IAnnotationBinding[] annotationBindings = variableDeclarationBinding.getAnnotations();
+			// retrieve the parameter index in the parent method
+			final IMethod parentMethod = (IMethod) variableDeclarationBinding.getDeclaringMethod().getJavaElement();
+			final ILocalVariable localVariable = getLocalVariable(variableDeclarationBinding, parentMethod);
+			if (localVariable != null) {
+				final IAnnotation[] variableAnnotations = localVariable.getAnnotations();
+				for (int j = 0; j < annotationBindings.length; j++) {
+					final IAnnotation javaAnnotation = variableAnnotations[j];
+					if (RangeUtils.matches(javaAnnotation.getSourceRange(), location)) {
+						final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
+						return toAnnotation(javaAnnotationBinding, javaAnnotation);
+					}
+				}
 			}
+	
+		}
+		return null;
+	}
+
+	/**
+	 * Visits the modifiers and find the annotation whose name is the given annotationName
+	 * 
+	 * @param modifiers
+	 *            the modifiers
+	 * @param annotationName the annotation name to look for
+	 * @return the {@link Annotation}
+	 */
+	private static Annotation findAnnotation(final List<?> modifiers,
+			final String annotationName) {
+		if (modifiers == null) {
+			return null;
+		}
+		for (Object modifier : modifiers) {
+			if (modifier instanceof org.eclipse.jdt.core.dom.Annotation) {
+				final IAnnotationBinding annotationBinding = ((org.eclipse.jdt.core.dom.Annotation) modifier)
+						.resolveAnnotationBinding();
+				if (annotationBinding != null) {
+					final String qualifiedName = annotationBinding
+							.getAnnotationType().getQualifiedName();
+					final String name = annotationBinding.getAnnotationType()
+							.getName();
+					if (annotationName.equals(qualifiedName)
+							|| annotationName.equals(name)) {
+						final Annotation annotation = toAnnotation(annotationBinding, (IAnnotation) annotationBinding.getJavaElement());
+						// returned Annotation may be null in case of
+						// compilation error in the source code, for example.
+						if (annotation != null) {
+							return annotation;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Visits the modifiers and find the annotations whose names are in the given annotationNames list
+	 * 
+	 * @param modifiers
+	 *            the modifiers
+	 * @param annotationNames the list of annotation to look for
+	 * @return a map of the found {@link Annotation}, indexed by their fully qualified names.
+	 */
+	private static Map<String, Annotation> findAnnotations(final List<?> modifiers,
+			final List<String> annotationNames) {
+		if (modifiers == null) {
+			return Collections.emptyMap();
+		}
+		final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
+		for (Object modifier : modifiers) {
+			if (modifier instanceof org.eclipse.jdt.core.dom.Annotation) {
+				final IAnnotationBinding annotationBinding = ((org.eclipse.jdt.core.dom.Annotation) modifier)
+						.resolveAnnotationBinding();
+				if (annotationBinding != null) {
+					final String qualifiedName = annotationBinding
+							.getAnnotationType().getQualifiedName();
+					final String name = annotationBinding.getAnnotationType()
+							.getName();
+					for(String annotationName : annotationNames) {
+						if (annotationName.equals(qualifiedName)
+								|| annotationName.equals(name)) {
+							final Annotation annotation = toAnnotation(annotationBinding, (IAnnotation) annotationBinding.getJavaElement());
+							// returned Annotation may be null in case of
+							// compilation error in the source code, for example.
+							if (annotation != null) {
+								annotations.put(qualifiedName, annotation);
+							}
+						}
+					}
+				}
+			}
+		}
+		return annotations;
+	}
+
+	/**
+	 * Returns the localVariable associated with the given variable declaration binding, or null if it could not be found
+	 * @param variableDeclarationBinding
+	 * @return
+	 * @throws JavaModelException
+	 */
+	private static ILocalVariable getLocalVariable(final IVariableBinding variableDeclarationBinding, final IMethod parentMethod)
+			throws JavaModelException {
+		int i = -1;
+		for (String paramName : parentMethod.getParameterNames()) {
+			i++;
+			if (paramName.equals(variableDeclarationBinding.getName())) {
+				break;
+			}
+		}
+		if(i>=0) {
+			return parentMethod.getParameters()[i];
 		}
 		return null;
 	}
 	
 	/**
-	 * Returns the source range for the MemberValuePair whose name is the given memberName, in the given annotation.
+	 * Creates a instance of {@link Annotation} from the given annotation binding, specifically using the given javaAnnotation instead of the one that could be retrieved from the binding.
+	 * @param annotationBinding
+	 * @param javaAnnotation
+	 * @return
+	 */
+	private static Annotation toAnnotation(final IAnnotationBinding annotationBinding, final IAnnotation javaAnnotation) {
+		// return null if underlying java annotation does not exists or is not found (eg: compilation error in the compilation unit)
+		if(javaAnnotation == null) {
+			return null;
+		}
+		final String annotationName = annotationBinding.getAnnotationType().getQualifiedName();
+		final Map<String, List<String>> annotationElements = resolveAnnotationElements(annotationBinding);
+		return new Annotation(javaAnnotation, annotationName, annotationElements);
+	}
+
+	
+	private static Map<String, List<String>> resolveAnnotationElements(IAnnotationBinding annotationBinding) {
+		final Map<String, List<String>> annotationElements = new HashMap<String, List<String>>();
+		try {
+			for (IMemberValuePairBinding binding : annotationBinding.getAllMemberValuePairs()) {
+				final List<String> values = new ArrayList<String>();
+				if(binding.getValue() != null) {
+					if (binding.getValue() instanceof Object[]) {
+					for (Object v : (Object[]) binding.getValue()) {
+						values.add(toString(v));
+					}
+				} else {
+					values.add(toString(binding.getValue()));
+				}
+				}
+				annotationElements.put(binding.getName(), values);
+			}
+			// if the code is not valid, the underlying DefaultValuePairBinding
+			// may throw a NPE:
+			// at
+			// org.eclipse.jdt.core.dom.DefaultValuePairBinding.<init>(DefaultValuePairBinding.java:31)
+			// at
+			// org.eclipse.jdt.core.dom.AnnotationBinding.getAllMemberValuePairs(AnnotationBinding.java:98)
+		} catch (Throwable e) {
+			// silently ignore
+		}
+		return annotationElements;
+	}
+
+	/**
+	 * Converts the given value into String. The actual types that are supported are:
+	 * java.lang.Class - the ITypeBinding for the class object
+	 * java.lang.String - the string value itself
+	 * enum type - the IVariableBinding for the enum constant
+	 * annotation type - an IAnnotationBinding
+	 * for other types, the <code>java.lang.Object{@link #toString()}</code> method is used.
+	 * @param value the binding value to read
+	 * @return litteral value
+	 */
+	public static String toString(Object value) {
+		if(value instanceof ITypeBinding) {
+			return ((ITypeBinding)value).getQualifiedName();
+		} else if(value instanceof IVariableBinding) {
+			return ((IVariableBinding)value).getName();
+		} else if(value instanceof IAnnotationBinding) {
+			return ((IAnnotationBinding)value).getName();
+		} 
+		return value.toString();
+	}
+	
+	/**
+	 * Returns the source range for the MemberValuePair whose name is the given
+	 * memberName, in the given annotation.
+	 * 
 	 * @param annotation
 	 * @param memberName
 	 * @return the sourceRange or null if it could not be evaluated.
-	 * @throws JavaModelException 
+	 * @throws JavaModelException
 	 */
-	public static ISourceRange resolveMemberPairValueRange(final IAnnotation annotation, 
-			final String memberName) throws JavaModelException {
+	public static ISourceRange resolveMemberPairValueRange(
+			final IAnnotation annotation, final String memberName)
+			throws JavaModelException {
 		final IType ancestor = (IType) annotation.getAncestor(IJavaElement.TYPE);
-		if(ancestor != null && ancestor.exists()) {
-			final ICompilationUnit compilationUnit = ancestor.getCompilationUnit();
-			final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
-			if (ast != null) {
-				MemberValuePairLocationRetriever locationRetriever = new MemberValuePairLocationRetriever(annotation, memberName);
-				ast.accept(locationRetriever);
-				return locationRetriever.getMemberValuePairSourceRange();
+		if (ancestor != null && ancestor.exists()) {
+			final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(ancestor.getCompilationUnit());
+			final ASTNode node = findMemberValuePair(annotation, memberName, ast);
+			if(node != null) {
+				return new SourceRange(node.getStartPosition(), node.getLength());
 			}
 		}
 		return null;
 	}
 
+	/**
+	 * @return the {@link ASTNode} (an instance of {@link MemberValuePair} or {@link QualifiedName}) in the given 
+	 * annotation with the given name, or null if none was found.
+	 * 
+	 * @param annotation the annotation to analyze
+	 * @param memberName the member name to find
+	 * @param ast the associated AST
+	 * @throws JavaModelException
+	 */
+	public static ASTNode findMemberValuePair(final IAnnotation annotation, final String memberName, final CompilationUnit ast) throws JavaModelException {
+		if (annotation != null && ast != null) {
+			final ASTNode node = NodeFinder.perform(ast, annotation.getSourceRange());
+			if (node instanceof NormalAnnotation) {
+				@SuppressWarnings("unchecked")
+				final List<MemberValuePair> allMemberValuePairs = (List<MemberValuePair>) node
+						.getStructuralProperty(NormalAnnotation.VALUES_PROPERTY);
+				for (MemberValuePair memberValuePair : allMemberValuePairs) {
+					if (memberValuePair.getName().getFullyQualifiedName().equals(memberName)) {
+						return memberValuePair;
+					}
+				}
+			}
+			if (node instanceof SingleMemberAnnotation) {
+				return ((SingleMemberAnnotation)node).getValue();
+			}
+		}
+		return null;
+	}
 
-	private static Map<String, List<String>> resolveAnnotationElements(IAnnotation annotation)
-			throws JavaModelException {
+	/**
+	 * @return a {@link Map} of annotation values (in a {@link List}), indexed
+	 *         by annotation their associated name, or empty map is none was
+	 *         found.
+	 * @param annotation the annotation to analyze
+	 * @throws JavaModelException
+	 */
+	private static Map<String, List<String>> resolveAnnotationElements(
+			IAnnotation annotation) throws JavaModelException {
 		final Map<String, List<String>> annotationElements = new HashMap<String, List<String>>();
 		for (IMemberValuePair element : annotation.getMemberValuePairs()) {
 			final List<String> values = new ArrayList<String>();
@@ -451,21 +756,24 @@ public final class JdtUtils {
 	 *             the underlying CoreException thrown by the manipulated JDT
 	 *             APIs
 	 */
-	public static IType resolveType(final String qName, final IJavaProject javaProject,
+	public static IType resolveType(final String qName,
+			final IJavaProject javaProject,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		if (qName == null) {
 			return null;
 		}
 		IType findType = javaProject.findType(qName, progressMonitor);
 		if (findType == null) {
-			Logger.debug("Unable to find type with fully qualified name '" + qName + "' in Java Project '"
+			Logger.debug("Unable to find type with fully qualified name '"
+					+ qName + "' in Java Project '"
 					+ javaProject.getProject().getName() + "'");
 		}
 		return findType;
 	}
 
 	/**
-	 * Returns the hierarchy for the given type, or null if it could not be 'computed'.
+	 * Returns the hierarchy for the given type, or null if it could not be
+	 * 'computed'.
 	 * 
 	 * @param baseType
 	 *            the base type for the hierarchy
@@ -478,7 +786,8 @@ public final class JdtUtils {
 	 *             the underlying CoreException thrown by the manipulated JDT
 	 *             APIs
 	 */
-	public static ITypeHierarchy resolveTypeHierarchy(final IType baseType, final IJavaElement scope, final boolean includeLibraries,
+	public static ITypeHierarchy resolveTypeHierarchy(final IType baseType,
+			final IJavaElement scope, final boolean includeLibraries,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		// create type hierarchy
 		// FIXME : restrict operation scope to sources only, exclude application
@@ -488,21 +797,24 @@ public final class JdtUtils {
 			appLibs = IJavaSearchScope.APPLICATION_LIBRARIES;
 		}
 		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(
-				new IJavaElement[] { scope }, IJavaSearchScope.SOURCES | appLibs
-						| IJavaSearchScope.REFERENCED_PROJECTS);
-		CreateTypeHierarchyOperation operation = new CreateTypeHierarchyOperation(baseType, null, searchScope, true);
+				new IJavaElement[] { scope }, IJavaSearchScope.SOURCES
+						| appLibs | IJavaSearchScope.REFERENCED_PROJECTS);
+		CreateTypeHierarchyOperation operation = new CreateTypeHierarchyOperation(
+				baseType, null, searchScope, true);
 		ITypeHierarchy hierarchy = operation.getResult();
 		if (hierarchy != null && hierarchy.exists()) {
 			hierarchy.refresh(progressMonitor);
 			return hierarchy;
 		}
-		Logger.warn("No type hierarchy found for " + baseType.getFullyQualifiedName());
+		Logger.warn("No type hierarchy found for "
+				+ baseType.getFullyQualifiedName());
 		return null;
 	}
 
-
 	/**
-	 * Searches and returns all the subtypes of the given superType that do not have themselves other subtypes
+	 * Searches and returns all the subtypes of the given superType that do not
+	 * have themselves other subtypes
+	 * 
 	 * @param scope
 	 * @param progressMonitor
 	 * @param searchScope
@@ -510,13 +822,18 @@ public final class JdtUtils {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	public static List<IType> findSubtypes(final IJavaElement scope, final IType superType, final IProgressMonitor progressMonitor) throws CoreException, JavaModelException {
+	public static List<IType> findSubtypes(final IJavaElement scope,
+			final IType superType, final IProgressMonitor progressMonitor)
+			throws CoreException, JavaModelException {
 		final List<IType> types = new ArrayList<IType>();
-		if(superType != null) {
-			final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(superType, scope, false, progressMonitor);
+		if (superType != null) {
+			final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(
+					superType, scope, false, progressMonitor);
 			final IType[] allSubtypes = hierarchy.getAllSubtypes(superType);
-			for(IType subtype : allSubtypes) {
-				if(subtype.isStructureKnown() && subtype.getJavaProject().equals(scope.getJavaProject())
+			for (IType subtype : allSubtypes) {
+				if (subtype.isStructureKnown()
+						&& subtype.getJavaProject().equals(
+								scope.getJavaProject())
 						&& hierarchy.getAllSubtypes(subtype).length == 0) {
 					types.add(subtype);
 				}
@@ -524,41 +841,47 @@ public final class JdtUtils {
 		}
 		return types;
 	}
-	
+
 	/**
-	 * Returns a list containing the given type and all its subtypes in the current project
+	 * Returns a list containing the given type and all its subtypes in the
+	 * current project
 	 * 
 	 * @param progressMonitor
 	 * @param type
 	 * @return the given type and its subtypes
 	 * @throws CoreException
 	 */
-	public static List<IType> findSubtypes(final IType type) throws CoreException {
+	public static List<IType> findSubtypes(final IType type)
+			throws CoreException {
 		final List<IType> types = new ArrayList<IType>();
-		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false,
-				new NullProgressMonitor());
+		final ITypeHierarchy returnTypeHierarchy = JdtUtils
+				.resolveTypeHierarchy(type, type.getJavaProject(), false,
+						new NullProgressMonitor());
 		types.addAll(Arrays.asList(returnTypeHierarchy.getAllSubtypes(type)));
 		types.add(type);
 		return types;
 	}
 
 	/**
-	 * Returns a list containing the given type and all its supertypes in the current project
+	 * Returns a list containing the given type and all its supertypes in the
+	 * current project
 	 * 
 	 * @param progressMonitor
 	 * @param type
 	 * @return the given type and its subtypes
 	 * @throws CoreException
 	 */
-	public static List<IType> findSupertypes(final IType type) throws CoreException {
+	public static List<IType> findSupertypes(final IType type)
+			throws CoreException {
 		final List<IType> types = new ArrayList<IType>();
 		types.add(type);
-		final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false,
-				new NullProgressMonitor());
+		final ITypeHierarchy returnTypeHierarchy = JdtUtils
+				.resolveTypeHierarchy(type, type.getJavaProject(), false,
+						new NullProgressMonitor());
 		types.addAll(Arrays.asList(returnTypeHierarchy.getAllSupertypes(type)));
 		return types;
 	}
-	
+
 	/**
 	 * Resolves the Type Argument for the given parameterizedType against the
 	 * given matchGenericType that is part of the parameterizedTypeHierarchy.
@@ -593,20 +916,24 @@ public final class JdtUtils {
 	 *             APIs
 	 */
 	@SuppressWarnings("unchecked")
-	public static List<IType> resolveTypeArguments(final IType parameterizedType,
-			final CompilationUnit compilationUnit, final IType matchGenericType,
-			final ITypeHierarchy parameterizedTypeHierarchy, final IProgressMonitor progressMonitor)
-			throws CoreException {
+	public static List<IType> resolveTypeArguments(
+			final IType parameterizedType,
+			final CompilationUnit compilationUnit,
+			final IType matchGenericType,
+			final ITypeHierarchy parameterizedTypeHierarchy,
+			final IProgressMonitor progressMonitor) throws CoreException {
 		if (compilationUnit == null) {
-			Logger.warn("Unable to retrieve the Compilation Unit for type '" + parameterizedType
+			Logger.warn("Unable to retrieve the Compilation Unit for type '"
+					+ parameterizedType
 					+ "'. Check the library sources attachement.");
 			return null;
 		}
 		// find path to the matchGenericType (class or interface)
 		// ITypeHierarchy parameterizedTypeHierarchy =
 		// getTypeHierarchy(parameterizedType, false, progressMonitor);
-		List<IType> pathToParameterizedType = new ArrayList<IType>(Arrays.asList(parameterizedTypeHierarchy
-				.getAllSubtypes(matchGenericType)));
+		List<IType> pathToParameterizedType = new ArrayList<IType>(
+				Arrays.asList(parameterizedTypeHierarchy
+						.getAllSubtypes(matchGenericType)));
 		// skip the last values as they are the parameterized type and its
 		// optionally sub types
 		int index = pathToParameterizedType.indexOf(parameterizedType);
@@ -623,7 +950,8 @@ public final class JdtUtils {
 		// reverse the path, for easier comprehension of the code below
 		Collections.reverse(pathToParameterizedType);
 		List<IType> arguments = null;
-		for (TypeDeclaration typeDeclaration : (List<TypeDeclaration>) compilationUnit.types()) {
+		for (TypeDeclaration typeDeclaration : (List<TypeDeclaration>) compilationUnit
+				.types()) {
 			// ohoh, everything is resolved with bindings :-)
 			ITypeBinding typeBinding = typeDeclaration.resolveBinding();
 			if (typeBinding.getJavaElement().equals(parameterizedType)) {
@@ -632,9 +960,12 @@ public final class JdtUtils {
 					IType superType = pathToParameterizedType.get(i);
 					// lookup in the type's interfaces
 					if (superType.isInterface()) {
-						for (ITypeBinding superInterfaceBinding : typeBinding.getInterfaces()) {
-							String superInterfaceErasureQName = superInterfaceBinding.getErasure().getQualifiedName();
-							if (superInterfaceErasureQName.equals(superType.getFullyQualifiedName())) {
+						for (ITypeBinding superInterfaceBinding : typeBinding
+								.getInterfaces()) {
+							String superInterfaceErasureQName = superInterfaceBinding
+									.getErasure().getQualifiedName();
+							if (superInterfaceErasureQName.equals(superType
+									.getFullyQualifiedName())) {
 								typeBinding = superInterfaceBinding;
 								break;
 							}
@@ -649,9 +980,11 @@ public final class JdtUtils {
 				ITypeBinding[] typeArgBindings = typeBinding.getTypeArguments();
 				arguments = new ArrayList<IType>(typeArgBindings.length);
 				for (ITypeBinding typeArgBinding : typeArgBindings) {
-					Logger.debug("Resolving Java ElementKind for type argument '" + typeArgBinding.getName() + "'");
+					Logger.debug("Resolving Java ElementKind for type argument '"
+							+ typeArgBinding.getName() + "'");
 					IJavaElement javaElement = typeArgBinding.getJavaElement();
-					if (javaElement.getElementType() == IJavaElement.TYPE && javaElement.exists()) {
+					if (javaElement.getElementType() == IJavaElement.TYPE
+							&& javaElement.exists()) {
 						arguments.add((IType) javaElement);
 					}
 				}
@@ -665,29 +998,107 @@ public final class JdtUtils {
 	}
 
 	/**
-	 * Returns the method signatures for <strong> all the methods within the given AST</strong>.
-	 * @param ast the Compilation Unit AST
-	 * @return the JavaMethodSignatures or empty map if the given AST is null or has no method.
+	 * Returns the method signatures for <strong> all the methods within the
+	 * given type</strong>, indexed by their handleIdentifier.
+	 * 
+	 * @param type the type containing methods to analyze.
+	 * @param ast
+	 *            the Compilation Unit AST.
+	 * @return the JavaMethodSignatures or empty map if the given type or AST is null or
+	 *         has no method.
+	 * @throws JavaModelException 
 	 */
-	public static Map<String, JavaMethodSignature> resolveMethodSignatures(final CompilationUnit ast) {
-		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
-		ast.accept(methodsVisitor);
-		return methodsVisitor.getMethodSignatures();
+	public static Map<String, JavaMethodSignature> resolveMethodSignatures(
+			final IType type, final CompilationUnit ast) throws JavaModelException {
+ 		if(type == null || ast == null) {
+			return Collections.emptyMap();
+		}
+		final Map<String, JavaMethodSignature> signatures = new HashMap<String, JavaMethodSignature>();
+		for(IMethod method : type.getMethods()) {
+			signatures.put(method.getHandleIdentifier(), resolveMethodSignature(method, ast));
+		}
+		return signatures;
 	}
 
 	/**
 	 * Returns the method signature for the given method with the given AST.
-	 * @param method the java method 
-	 * @param ast the associated Compilation Unit AST
+	 * 
+	 * @param method
+	 *            the java method
+	 * @param ast
+	 *            the associated Compilation Unit AST
 	 * @return the JavaMethodSignature or null if the given AST is null.
+	 * @throws JavaModelException 
 	 */
-	public static JavaMethodSignature resolveMethodSignature(final IMethod method, final CompilationUnit ast) {
-		if(ast == null) {
+	public static JavaMethodSignature resolveMethodSignature(
+			final IMethod method, final CompilationUnit ast) throws JavaModelException {
+		if (ast == null) {
 			return null;
 		}
-		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(method);
+		/*JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor(
+				method);
 		ast.accept(methodsVisitor);
-		return methodsVisitor.getMethodSignature();
+		return methodsVisitor.getMethodSignature();*/
+		final ASTNode matchNode = NodeFinder.perform(ast, method.getNameRange());
+		if(matchNode == null || matchNode.getParent() == null || matchNode.getParent().getNodeType() != ASTNode.METHOD_DECLARATION) {
+			return null;
+		}
+		final MethodDeclaration methodDeclaration = ((MethodDeclaration)matchNode.getParent());
+		final IMethodBinding methodBinding = methodDeclaration.resolveBinding();
+		// method bindings may not be resolved (eg : duplicate method - see JBIDE-13580)
+		if(methodBinding == null) { 
+			return null; 
+		}
+		final IType returnedType = getReturnType(methodBinding);
+		// .getReturnType().getJavaElement() : null;
+		final List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
+		@SuppressWarnings("unchecked")
+		final List<SingleVariableDeclaration> parameters = methodDeclaration.parameters();
+		for (int i = 0; i < parameters.size(); i++) {
+			final SingleVariableDeclaration parameter = parameters.get(i);
+			final ILocalVariable localVariable = method.getParameters()[i];
+			final String paramName = parameter.getName().getFullyQualifiedName();
+			final IVariableBinding paramBinding = parameter.resolveBinding();
+			final List<Annotation> paramAnnotations = resolveParameterAnnotations(
+					localVariable, paramBinding);
+			final String paramTypeName = paramBinding.getType().getQualifiedName();
+			methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations));
+		}
+		return new JavaMethodSignature(method, returnedType, methodParameters);
+	}
+
+	private static List<Annotation> resolveParameterAnnotations(
+			final ILocalVariable localVariable,
+			final IVariableBinding paramBinding) throws JavaModelException {
+		final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
+		final IAnnotationBinding[] annotationBindings = paramBinding.getAnnotations();
+		for (int j = 0; j < annotationBindings.length; j++) {
+			final IAnnotation javaAnnotation = localVariable.getAnnotations()[j];
+			final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
+			paramAnnotations.add(JdtUtils.toAnnotation(javaAnnotationBinding, javaAnnotation));
+		}
+		return paramAnnotations;
+	}
+	
+	/**
+	 * Returns the ReturnType for the given method or null of the return type
+	 * could not be found or is 'void'
+	 * 
+	 * @param methodBinding
+	 * @return
+	 */
+	private static IType getReturnType(final IMethodBinding methodBinding) {
+		try {
+			if (methodBinding.getReturnType() != null && methodBinding.getReturnType().getJavaElement() != null) {
+				return (IType) methodBinding.getReturnType().getJavaElement().getAdapter(IType.class);
+			}
+		} 
+		// https://issues.jboss.org/browse/JBIDE-15084: when compilation error (not syntax), retrieving return type may result in
+		// an IllegalArgumentException
+		catch(IllegalArgumentException e) {
+			Logger.debug("Caught an IllegalArgumentException while trying to retrieve return type on method {}: {}", methodBinding, e.getMessage());
+		}
+		return null;
 	}
 
 	/**
@@ -702,17 +1113,22 @@ public final class JdtUtils {
 	 * @return true or false
 	 * @throws CoreException
 	 */
-	public static boolean isTypeOrSuperType(IType superType, IType subType) throws CoreException {
+	public static boolean isTypeOrSuperType(IType superType, IType subType)
+			throws CoreException {
 		if (subType == null || superType == null) {
 			return false;
 		}
-		if (superType.getHandleIdentifier().equals(subType.getHandleIdentifier())) {
+		if (superType.getHandleIdentifier().equals(
+				subType.getHandleIdentifier())) {
 			return true;
 		}
-		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(subType, subType.getJavaProject(), true, new NullProgressMonitor());
-		final List<IType> allSuperclasses = Arrays.asList(hierarchy.getAllSuperclasses(subType));
+		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(subType,
+				subType.getJavaProject(), true, new NullProgressMonitor());
+		final List<IType> allSuperclasses = Arrays.asList(hierarchy
+				.getAllSuperclasses(subType));
 		for (IType type : allSuperclasses) {
-			if (type.getHandleIdentifier().equals(superType.getHandleIdentifier())) {
+			if (type.getHandleIdentifier().equals(
+					superType.getHandleIdentifier())) {
 				return true;
 			}
 		}
@@ -722,9 +1138,7 @@ public final class JdtUtils {
 
 	public static String getReadableMethodSignature(final IMethod method) {
 		StringBuilder name = new StringBuilder();
-		name.append(method.getElementName());
-		name.append("(");
-
+		name.append(method.getElementName()).append("(");
 		String comma = "";
 		String[] parameterTypes = method.getParameterTypes();
 		try {

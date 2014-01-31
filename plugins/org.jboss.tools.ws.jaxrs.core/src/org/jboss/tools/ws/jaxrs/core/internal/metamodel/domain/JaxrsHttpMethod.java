@@ -18,6 +18,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
@@ -170,8 +171,8 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 			if (javaType == null || !javaType.exists()) {
 				return null;
 			}
-			annotations = JdtUtils.resolveAnnotations(javaType, ast, HTTP_METHOD.qualifiedName, TARGET.qualifiedName,
-					RETENTION.qualifiedName);
+			annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(HTTP_METHOD.qualifiedName, TARGET.qualifiedName,
+					RETENTION.qualifiedName));
 			// Element *MUST* at least have the @HttpMethod annotation to be an HTTP Method.
 			// Problems will be reported by validation if other annotations are missing.
 			if (annotations == null || annotations.isEmpty() || !annotations.containsKey(HTTP_METHOD.qualifiedName)) {
