@@ -50,7 +50,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			"javax.servlet.http.HttpServletRequest", "javax.servlet.http.HttpServletResponse",
 			"javax.servlet.ServletConfig", "javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext"));
 
-	private static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]+");
+	private static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]([a-zA-Z1-9]|\\.|-|_)*");
 
 	private final IMarkerManager markerManager;
 	
@@ -187,8 +187,8 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 						markerManager.addMarker(
 								resourceMethod,
 								range,
-								JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, new String[] { pathParamValue },
-								JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
+								JaxrsValidationMessages.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE, new String[] { pathParamValue },
+								JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE);
 					} else if (!pathParamValueProposals.keySet().contains(pathParamValue)) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
 								pathParamAnnotation.getJavaAnnotation(), "value");
