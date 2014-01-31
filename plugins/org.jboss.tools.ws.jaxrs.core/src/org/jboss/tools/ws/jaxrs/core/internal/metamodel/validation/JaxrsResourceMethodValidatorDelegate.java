@@ -25,8 +25,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.SourceRange;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -242,10 +244,14 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 */
 	private void validatePublicModifierOnJavaMethod(final JaxrsResourceMethod resourceMethod) throws CoreException {
 		final IMethod javaMethod = resourceMethod.getJavaElement();
-		if (javaMethod != null && !Flags.isPublic(javaMethod.getFlags())) {
+		final JaxrsResource parentResource = resourceMethod.getParentResource();
+		if(javaMethod == null || parentResource == null || parentResource.getJavaElement() == null) {
+			return;
+		}
+		if (!parentResource.getJavaElement().isInterface() && !Flags.isPublic(javaMethod.getFlags())) {
 			final ISourceRange nameRange = javaMethod.getNameRange();
 			markerManager.addMarker(resourceMethod,
-					nameRange, JaxrsValidationMessages.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, new String[0], JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER);
+					nameRange, JaxrsValidationMessages.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, new String[]{resourceMethod.getName()}, JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER);
 		}
 	}
 

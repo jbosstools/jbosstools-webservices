@@ -11,7 +11,9 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.hasPreferenceKey;
@@ -157,7 +159,7 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 	}
 
 	@Test
-	public void shouldReportProblemOnNonPublicJavaMethod() throws CoreException, ValidationException {
+	public void shouldReportProblemOnNonPublicJavaMethodInImplementationClass() throws CoreException, ValidationException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
@@ -173,10 +175,28 @@ public class JaxrsResourceValidatorTestCase extends AbstractMetamodelBuilderTest
 		// verification
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.LINE_NUMBER, 0), equalTo(15));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{0}")));
 		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
 		assertThat(metamodelProblemLevelChanges.size(), is(1));
 	}
 
+	@Test
+	public void shouldNotReportProblemOnNonPublicJavaMethodInInterface() throws CoreException, ValidationException {
+		// pre-conditions
+		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "IValidationResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "IValidationResource.java");
+		final JaxrsResource resource = (JaxrsResource) metamodel.findElement(compilationUnit.findPrimaryType());
+		deleteJaxrsMarkers(resource);
+		resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		// verification
+		assertThat(markers.length, equalTo(0));
+	}
+	
 	@Test
 	public void shouldReportProblemOnUnboundTypePathArgument() throws ValidationException, CoreException {
 		// pre-conditions
