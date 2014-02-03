@@ -461,7 +461,7 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 								parms[i].name = buildname;
 								parms[i].value = "";//$NON-NLS-1$
 //								parms[i].value = parms[i].datatype;
-							} else {
+//							} else {
 								// move on
 							}
 						}

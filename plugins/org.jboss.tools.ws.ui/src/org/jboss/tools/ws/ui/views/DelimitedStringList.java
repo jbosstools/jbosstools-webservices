@@ -398,10 +398,7 @@ public class DelimitedStringList extends Composite {
 						this.mPropsList.add(value_a);
 						this.mPropsList.add(value_b);
 					}
-					else if (counter == destination) {
-						// empty
-					}
-					else {
+					else if (counter != destination) {
 						this.mPropsList.add(items[counter]);
 					}
 					counter++;

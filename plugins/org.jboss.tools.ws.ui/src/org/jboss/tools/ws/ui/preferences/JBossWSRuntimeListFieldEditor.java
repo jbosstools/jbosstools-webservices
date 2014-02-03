@@ -14,6 +14,7 @@ package org.jboss.tools.ws.ui.preferences;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -779,7 +780,11 @@ public class JBossWSRuntimeListFieldEditor extends BaseFieldEditor {
 		 */
 		public ActionPanel(Composite parent, int style, BaseAction[] actions) {
 			super(parent, style);
-			this.actions = actions;
+			if (actions == null) {
+				this.actions = new BaseAction[0];
+			} else {
+				this.actions = Arrays.copyOf(actions, actions.length);
+			}
 			setLayout(new GridLayout(1, false));
 			for (BaseAction action : this.actions) {
 				new ActionButton(this, SWT.PUSH, action);

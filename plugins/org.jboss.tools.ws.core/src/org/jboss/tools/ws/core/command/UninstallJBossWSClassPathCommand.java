@@ -40,20 +40,7 @@ public class UninstallJBossWSClassPathCommand {
 			boolean isServerSupplied = Boolean
 					.getBoolean(project
 							.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME));
-			if (isServerSupplied) {
-//				project
-//						.getPersistentProperties()
-//						.remove(
-//								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_SERVER_SUPPLIED_RUNTIME);
-			} else {
-//				project
-//						.getPersistentProperties()
-//						.remove(
-//								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
-//				project
-//						.getPersistentProperties()
-//						.remove(
-//								IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_RNTIME_LOCATION);
+			if (!isServerSupplied) {
 				String runtimeName = project
 						.getPersistentProperty(IJBossWSFacetDataModelProperties.PERSISTENCE_PROPERTY_QNAME_RUNTIME_NAME);
 

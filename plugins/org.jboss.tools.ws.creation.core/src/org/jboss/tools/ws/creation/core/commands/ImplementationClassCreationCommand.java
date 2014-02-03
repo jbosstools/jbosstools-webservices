@@ -367,10 +367,8 @@ public class ImplementationClassCreationCommand extends
 					PrimitiveType.BOOLEAN)) {
 				BooleanLiteral bl = ast.newBooleanLiteral(false);
 				rs.setExpression(bl);
-			} else if (((PrimitiveType) returnType).getPrimitiveTypeCode()
+			} else if (!((PrimitiveType) returnType).getPrimitiveTypeCode()
 					.equals(PrimitiveType.VOID)) {
-				// do nothing
-			} else {
 				NumberLiteral nl = ast.newNumberLiteral();
 				nl.setToken("0"); //$NON-NLS-1$
 				rs.setExpression(nl);

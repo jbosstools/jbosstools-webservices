@@ -601,9 +601,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 						treeRequestBody.setInput(soapIn);
 						getCurrentHistoryEntry().setBody(soapIn);
 						getCurrentHistoryEntry().setAction(actionURL);
-					} else if (opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())) {
-						// ignore
-					} else {
+					} else if (!opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())){
 						if (MessageDialog.openQuestion(getSite().getShell(),
 								JBossWSUIMessages.JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date, 
 								JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
@@ -627,9 +625,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 					treeRequestBody.setInput(soapIn);
 					getCurrentHistoryEntry().setBody(soapIn);
 					getCurrentHistoryEntry().setAction(actionURL);
-				} else if (opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())) {
-					// ignore
-				} else {
+				} else if (!opNameInBody.contentEquals(getCurrentHistoryEntry().getOperationName())) {
 					if (MessageDialog.openQuestion(getSite().getShell(),
 							JBossWSUIMessages.JAXRSWSTestView2_Title_Msg_May_Be_Out_of_Date, 
 							JBossWSUIMessages.JAXRSWSTestView2_Text_Msg_May_Be_Out_of_Date)) {
@@ -666,9 +662,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 					if (getCurrentHistoryEntry() != null && getCurrentHistoryEntry().getUrl() != null && getCurrentHistoryEntry().getUrl().trim().length() > 0) {
 						oldURL = getCurrentHistoryEntry().getUrl();
 					}
-					if (newURL != null && oldURL != null && newURL.contentEquals(oldURL)) {
-						// ignore it - they're the same
-					} else if (newURL != null && oldURL == null) {
+					if (newURL != null && oldURL == null) {
 						setControlsForSelectedURL();
 						getCurrentHistoryEntry().setUrl(newURL);
 						getCurrentHistoryEntry().setAction(null);

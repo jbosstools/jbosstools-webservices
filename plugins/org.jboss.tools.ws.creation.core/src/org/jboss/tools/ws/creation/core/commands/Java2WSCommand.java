@@ -92,7 +92,7 @@ public class Java2WSCommand extends AbstractGenerateCodeCommand {
 				cpBF.append(cpArray[i]).append(" "); //$NON-NLS-1$
 			}
 			cpStr = cpBF.toString();
-			cpStr.trim();
+			cpStr = cpStr.trim();
 
 			mf.getMainAttributes().put(Attributes.Name.CLASS_PATH, cpStr);
 			mf.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.2"); //$NON-NLS-1$
