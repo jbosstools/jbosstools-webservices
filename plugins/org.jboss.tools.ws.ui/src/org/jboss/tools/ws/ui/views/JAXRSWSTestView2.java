@@ -684,7 +684,7 @@ public class JAXRSWSTestView2 extends ViewPart {
 				setControlsForSelectedURL();
 				getCurrentHistoryEntry().setUrl(urlCombo.getText());
 				getCurrentHistoryEntry().setAction(null);
-				if (e.keyCode == SWT.CR && e.stateMask == SWT.CTRL) {
+				if (e.keyCode == SWT.CR) {
 					handleTest(getCurrentTestType());
 				}
 			}
