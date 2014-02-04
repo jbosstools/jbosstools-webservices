@@ -91,16 +91,20 @@ public class WSTesterClientDelegate extends ClientDelegate {
 	 * @return
 	 */
 	private String computeEndpointURI(final IModule module, final IJaxrsEndpoint endpoint) {
-		String uriPathTemplate = module.getName() + endpoint.getUriPathTemplate();
+		String uriPathTemplate = endpoint.getUriPathTemplate();
+		if (!uriPathTemplate.startsWith("/")) { //$NON-NLS-1$
+			uriPathTemplate = "/"+uriPathTemplate; //$NON-NLS-1$
+		}
+		String fullUriPathTemplate = module.getName() + uriPathTemplate;
 		// check to see if this project has been deployed...
 		IServer[] servers = ServerUtil.getServersByModule(module, null);
 		if (servers == null || servers.length == 0) {
-			return "http://[domain]:[port]/" + uriPathTemplate; //$NON-NLS-1$
+			return "http://[domain]:[port]/" + fullUriPathTemplate; //$NON-NLS-1$
 		}
 		// if it's been deployed, we can grab the domain and web port
 		String domain = servers[0].getHost();
 		String webport = servers[0].getAttribute("org.jboss.ide.eclipse.as.core.server.webPort", "8080");//$NON-NLS-1$ //$NON-NLS-2$
-		return "http://" + domain + ':' + webport + "/" + uriPathTemplate; //$NON-NLS-1$
+		return "http://" + domain + ':' + webport + "/" + fullUriPathTemplate; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 	}
 }
