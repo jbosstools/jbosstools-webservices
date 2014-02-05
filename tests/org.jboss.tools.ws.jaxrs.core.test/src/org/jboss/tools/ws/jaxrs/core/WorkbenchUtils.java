@@ -26,6 +26,7 @@ import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -811,7 +812,7 @@ public class WorkbenchUtils {
 		if (annotationNames == null) {
 			return null;
 		}
-		return JdtUtils.resolveAnnotations(member, JdtUtils.parse(member, null), annotationNames);
+		return JdtUtils.resolveAnnotations(member, JdtUtils.parse(member, null), Arrays.asList(annotationNames));
 	}
 	
 	/**

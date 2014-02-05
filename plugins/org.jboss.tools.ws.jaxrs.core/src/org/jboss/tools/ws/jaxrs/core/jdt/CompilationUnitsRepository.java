@@ -102,15 +102,14 @@ public class CompilationUnitsRepository {
 		}
 		CompilationUnit compilationUnitAST = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 		astMap.put(compilationUnit.getResource().getFullPath(), compilationUnitAST);
-		JavaMethodSignaturesVisitor methodsVisitor = new JavaMethodSignaturesVisitor();
-		compilationUnitAST.accept(methodsVisitor);
-		methodDeclarationsMap.put(compilationUnit, methodsVisitor.getMethodSignatures());
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(compilationUnit.findPrimaryType(), compilationUnitAST);
+		methodDeclarationsMap.put(compilationUnit, methodSignatures);
 		return compilationUnitAST;
 	}
 
 	public Map<String, JavaMethodSignature> mergeAST(final ICompilationUnit compilationUnit,
-			final CompilationUnit compilationUnitAST, final boolean computeDiffs) {
-		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(compilationUnitAST);
+			final CompilationUnit compilationUnitAST, final boolean computeDiffs) throws JavaModelException {
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(compilationUnit.findPrimaryType(), compilationUnitAST);
 		Map<String, JavaMethodSignature> diffs = null;
 		// FIXME: must make sure that the methodDeclarationsMap remains in sync
 		// with the working copy after each change.

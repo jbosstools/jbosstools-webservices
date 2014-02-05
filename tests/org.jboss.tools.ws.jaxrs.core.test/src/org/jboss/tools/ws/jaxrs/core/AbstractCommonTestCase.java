@@ -214,6 +214,20 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 	protected IType resolveType(String typeName) throws CoreException {
 		return JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor());
 	}
+	
+	protected IMethod resolveMethod(final String typeName, final String methodName) throws CoreException {
+		final IType type = resolveType(typeName);
+		return resolveMethod(type, methodName);
+	}
+
+	protected IMethod resolveMethod(final IType type, final String methodName) throws CoreException {
+		for(IMethod method : type.getMethods()) {
+			if(method.getElementName().equals(methodName)) {
+				return method;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Creates a java annotated type based JAX-RS Application element

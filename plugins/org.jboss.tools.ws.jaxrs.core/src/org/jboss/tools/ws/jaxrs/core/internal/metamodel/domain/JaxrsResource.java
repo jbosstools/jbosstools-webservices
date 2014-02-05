@@ -18,6 +18,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -132,12 +133,12 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 			if (javaType == null || !javaType.exists()) {
 				return null;
 			}
-			annotations = JdtUtils.resolveAnnotations(javaType, ast, PATH.qualifiedName, CONSUMES.qualifiedName,
-					PRODUCES.qualifiedName, ENCODED.qualifiedName);
+			annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PATH.qualifiedName, CONSUMES.qualifiedName,
+					PRODUCES.qualifiedName, ENCODED.qualifiedName));
 			// create the resource
 			final JaxrsResource resource = new JaxrsResource(this);
 			// retrieve all JavaMethodSignatures at once
-			final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(ast);
+			final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(javaType, ast);
 			// find the resource methods, subresource methods and
 			// subresource
 			// locators of this resource:

@@ -19,6 +19,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -167,8 +168,8 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 				return null;
 			}
 			this.providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy, new NullProgressMonitor());
-			this.annotations = JdtUtils.resolveAnnotations(javaType, ast, PROVIDER.qualifiedName,
-					CONSUMES.qualifiedName, PRODUCES.qualifiedName, ENCODED.qualifiedName);
+			this.annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PROVIDER.qualifiedName,
+					CONSUMES.qualifiedName, PRODUCES.qualifiedName, ENCODED.qualifiedName));
 			if (annotations.get(PROVIDER.qualifiedName) != null || !providedKinds.isEmpty()) {
 				final JaxrsProvider provider = new JaxrsProvider(this);
 				// this operation is only performed after creation
