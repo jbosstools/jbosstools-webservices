@@ -40,7 +40,11 @@ public class TestHistoryEntry implements Cloneable{
 		this.url = url;
 	}
 	public void setResultHeadersList(String[] resultHeadersList) {
-		this.resultHeadersList = resultHeadersList;
+		if (resultHeadersList == null) {
+			this.resultHeadersList = new String[0];
+		} else {
+			this.resultHeadersList = Arrays.copyOf(resultHeadersList, resultHeadersList.length);
+		}
 	}
 
 	public String[] getResultHeadersList() {
@@ -148,7 +152,11 @@ public class TestHistoryEntry implements Cloneable{
 	}
 
 	public void setServiceNSMessage(String[] serviceNSMessage) {
-		this.serviceNSMessage = serviceNSMessage;
+		if (serviceNSMessage == null) {
+			this.serviceNSMessage = new String[0];
+		} else {
+			this.serviceNSMessage = Arrays.copyOf(serviceNSMessage, serviceNSMessage.length);
+		}
 	}
 
 	public String[] getServiceNSMessage() {

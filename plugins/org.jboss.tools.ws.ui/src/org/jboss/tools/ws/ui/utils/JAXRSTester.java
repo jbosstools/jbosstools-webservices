@@ -305,9 +305,7 @@ public class JAXRSTester {
 	    	
 	    	for (int i = 0; i < input.length(); i++) {
 	    		char ch = input.charAt(i);
-	    		if (ch == cr || ch == lf) {
-	    			// do nothing
-	    		} else {
+	    		if (!(ch == cr) && !(ch == lf)) {
 	    			output.append(ch);
 	    		}
 	    	}

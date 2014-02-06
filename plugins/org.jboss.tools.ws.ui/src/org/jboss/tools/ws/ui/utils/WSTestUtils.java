@@ -50,9 +50,9 @@ public class WSTestUtils {
 			String find = "(>)\n\\s*+(<)";//$NON-NLS-1$
 			outgoing = incoming.replaceAll(find, "><");//$NON-NLS-1$
 			if (outgoing.contains("\n"))//$NON-NLS-1$ 
-				outgoing.replaceAll("\n"," ");//$NON-NLS-1$ //$NON-NLS-2$
+				outgoing = outgoing.replaceAll("\n"," ");//$NON-NLS-1$ //$NON-NLS-2$
 			if (outgoing.contains("\r"))//$NON-NLS-1$ 
-				outgoing.replaceAll("\r"," ");//$NON-NLS-1$ //$NON-NLS-2$
+				outgoing = outgoing.replaceAll("\r"," ");//$NON-NLS-1$ //$NON-NLS-2$
 		}
 		return outgoing;
 	}
