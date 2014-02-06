@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation;
 
+import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONTEXT;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 
@@ -25,7 +26,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.SourceRange;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
@@ -181,11 +181,11 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation pathParamAnnotation = parameter.getAnnotation(PATH_PARAM.qualifiedName);
 			if (pathParamAnnotation != null) {
-				final String pathParamValue = pathParamAnnotation.getValue("value");
+				final String pathParamValue = pathParamAnnotation.getValue();
 				if (pathParamValue != null) {
 					if (!alphaNumPattern.matcher(pathParamValue).matches()) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
-								pathParamAnnotation.getJavaAnnotation(), "value");
+								pathParamAnnotation.getJavaAnnotation(), VALUE);
 						markerManager.addMarker(
 								resourceMethod,
 								range,
@@ -193,7 +193,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 								JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE);
 					} else if (!pathParamValueProposals.keySet().contains(pathParamValue)) {
 						final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
-								pathParamAnnotation.getJavaAnnotation(), "value");
+								pathParamAnnotation.getJavaAnnotation(), VALUE);
 						markerManager.addMarker(
 								resourceMethod,
 								range,
@@ -224,13 +224,13 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		// refine source range for path parameter in the value (including
 		// whitespaces between starting curly bracket and param name)
 		final ISourceRange valueRange = JdtUtils.resolveMemberPairValueRange(
-				pathTemplateParameterAnnotation.getJavaAnnotation(), "value");
+				pathTemplateParameterAnnotation.getJavaAnnotation(), VALUE);
 		final String annotationValue = pathTemplateParameterAnnotation.getValue();
 		final Pattern p = Pattern.compile("\\{\\s*" + Pattern.quote(pathTemplateParameter));
 		final Matcher matcher = p.matcher(annotationValue);
 		if (matcher.find()) {
 			final int start = matcher.start();
-			final int end = annotationValue.indexOf("}", start);
+			final int end = annotationValue.indexOf('}', start);
 			return new SourceRange(valueRange.getOffset() + start + 1, end - start + 1);
 		}
 		return valueRange;

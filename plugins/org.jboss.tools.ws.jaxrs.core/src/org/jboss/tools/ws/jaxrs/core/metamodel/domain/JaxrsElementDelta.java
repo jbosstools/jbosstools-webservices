@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
@@ -76,7 +76,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
 	private final int deltaKind;
 
-	private DeltaFlags flags;
+	private Flags flags;
 
 	/**
 	 * Full constructor.
@@ -98,7 +98,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	public JaxrsElementDelta(final IJaxrsElement element, final int deltaKind, final int flags) {
 		this.element = element;
 		this.deltaKind = deltaKind;
-		this.flags = new DeltaFlags(flags);
+		this.flags = new Flags(flags);
 		if (this.deltaKind == CHANGED && !this.flags.hasValue()) {
 			Logger.debug("*** No flag to describe the change ?!? ***");
 		}
@@ -111,7 +111,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	 * @param deltaKind
 	 * @param flags
 	 */
-	public JaxrsElementDelta(final IJaxrsElement element, final int deltaKind, final DeltaFlags flags) {
+	public JaxrsElementDelta(final IJaxrsElement element, final int deltaKind, final Flags flags) {
 		this.element = element;
 		this.deltaKind = deltaKind;
 		this.flags = flags;
@@ -144,8 +144,8 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	}
 
 	/** @return the flags */
-	public int getFlags() {
-		return flags.getValue();
+	public Flags getFlags() {
+		return flags;
 	}
 
 	/**

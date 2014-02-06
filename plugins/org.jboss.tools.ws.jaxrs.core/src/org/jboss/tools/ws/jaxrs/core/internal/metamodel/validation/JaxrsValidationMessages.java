@@ -21,7 +21,6 @@ public class JaxrsValidationMessages {
 
 	private static final String BUNDLE_NAME = JaxrsValidationMessages.class.getName(); //$NON-NLS-1$
 
-
 	public static String SEARCHING_RESOURCES;
 	public static String VALIDATING_RESOURCE;
 	public static String VALIDATING_PROJECT;
@@ -51,10 +50,14 @@ public class JaxrsValidationMessages {
 	public static String PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER;
 	public static String PROVIDER_DUPLICATE_EXCEPTION_MAPPER;
 
-
-
-	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JaxrsValidationMessages.class);
+	}
+	
+	/**
+	 * Private constructor for the utility class.
+	 */
+	private JaxrsValidationMessages() {
+		super();
 	}
 }

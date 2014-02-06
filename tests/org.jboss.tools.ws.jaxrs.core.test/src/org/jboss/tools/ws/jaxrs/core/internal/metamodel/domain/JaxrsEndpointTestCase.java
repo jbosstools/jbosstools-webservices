@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
@@ -113,8 +114,8 @@ public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 		// operation
 		final IMethod modifiedResource  = modifyJavaMethodSignature(resourceMethod, WORKING_COPY);
 		resourceMethod.update(modifiedResource, JdtUtils.parse(modifiedResource, null));
-		endpoint.update(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION
-				+ JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
+		endpoint.update(new Flags(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION
+				+ JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION));
 		String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
 		assertThat(
@@ -131,8 +132,8 @@ public class JaxrsEndpointTestCase extends AbstractMetamodelBuilderTestCase {
 		// operation
 		final IMethod modifiedResource  = modifyJavaMethodSignature(resourceMethod, PRIMARY_COPY);
 		resourceMethod.update(modifiedResource, JdtUtils.parse(modifiedResource, null));
-		endpoint.update(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION
-				+ JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
+		endpoint.update(new Flags(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION
+				+ JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION));
 		String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
 		assertThat(

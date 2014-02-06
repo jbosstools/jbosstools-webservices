@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
@@ -36,7 +37,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -279,7 +280,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	public List<String> getConsumedMediaTypes() {
 		final Annotation consumesAnnotation = getConsumesAnnotation();
 		if (consumesAnnotation != null) {
-			return consumesAnnotation.getValues("value");
+			return consumesAnnotation.getValues(VALUE);
 		}
 		return Collections.emptyList();
 	}
@@ -292,7 +293,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	public List<String> getProducedMediaTypes() {
 		final Annotation producesAnnotation = getProducesAnnotation();
 		if (producesAnnotation != null) {
-			return producesAnnotation.getValues("value");
+			return producesAnnotation.getValues(VALUE);
 		}
 		return Collections.emptyList();
 	}
@@ -313,7 +314,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		if (transientProvider == null) {
 			remove();
 		} else {
-			final DeltaFlags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
+			final Flags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
 			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
 			if (!this.getProvidedTypes().equals(transientProvider.getProvidedTypes())) {
 				this.getProvidedTypes().clear();

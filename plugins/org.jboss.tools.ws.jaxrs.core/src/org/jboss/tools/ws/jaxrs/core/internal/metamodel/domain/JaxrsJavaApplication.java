@@ -24,7 +24,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
@@ -238,7 +238,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		}
 		final Annotation applicationPathAnnotation = getApplicationPathAnnotation();
 		if (applicationPathAnnotation != null) {
-			return applicationPathAnnotation.getValue("value");
+			return applicationPathAnnotation.getValue();
 		}
 		return null;
 	}
@@ -273,7 +273,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		if (transientApplication == null) {
 			remove();
 		} else {
-			final DeltaFlags updateAnnotationsFlag = updateAnnotations(transientApplication.getAnnotations());
+			final Flags updateAnnotationsFlag = updateAnnotations(transientApplication.getAnnotations());
 			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlag);
 			if (this.isJaxrsCoreApplicationSubclass() != transientApplication.isJaxrsCoreApplicationSubclass()) {
 				this.isApplicationSubclass = transientApplication.isJaxrsCoreApplicationSubclass();

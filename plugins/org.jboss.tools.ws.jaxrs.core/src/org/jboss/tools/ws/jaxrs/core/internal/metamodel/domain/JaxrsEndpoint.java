@@ -33,6 +33,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ObjectUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
@@ -193,27 +194,24 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * 
 	 * @throws CoreException
 	 */
-	public void update(final int flags) throws CoreException {
+	public void update(final Flags flags) throws CoreException {
 		boolean changed = false;
-		if ((flags & F_HTTP_METHOD_ANNOTATION) > 0) {
+		if (flags.hasValue(F_HTTP_METHOD_ANNOTATION)) {
 			changed = changed || refreshHttpMethod();
 		}
 
-		if ((flags & F_PATH_ANNOTATION) > 0 || (flags & F_QUERY_PARAM_ANNOTATION) > 0
-				|| (flags & F_MATRIX_PARAM_ANNOTATION) > 0 || (flags & F_DEFAULT_VALUE_ANNOTATION) > 0
-				|| (flags & F_METHOD_PARAMETERS) > 0) {
+		if (flags.hasValue(F_PATH_ANNOTATION, F_QUERY_PARAM_ANNOTATION, F_MATRIX_PARAM_ANNOTATION,
+				F_DEFAULT_VALUE_ANNOTATION, F_METHOD_PARAMETERS)) {
 			changed = changed || refreshUriPathTemplate();
 		}
 
 		// look for mediatype capabilities at the method level, then fall back
 		// at the type level, then "any" otherwise
-		if ((flags & F_CONSUMES_ANNOTATION) > 0 || (flags & F_PRODUCES_ANNOTATION) > 0) {
-			if ((flags & F_CONSUMES_ANNOTATION) > 0) {
-				changed = changed || refreshConsumedMediaTypes();
-			}
-			if ((flags & F_PRODUCES_ANNOTATION) > 0) {
-				changed = changed || refreshProducedMediaTypes();
-			}
+		if (flags.hasValue(F_CONSUMES_ANNOTATION)) {
+			changed = changed || refreshConsumedMediaTypes();
+		}
+		if (flags.hasValue(F_PRODUCES_ANNOTATION)) {
+			changed = changed || refreshProducedMediaTypes();
 		}
 		if (changed) {
 			metamodel.update(this);
@@ -314,8 +312,8 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				.getJavaMethodParametersAnnotatedWith(MATRIX_PARAM.qualifiedName);
 		for (JavaMethodParameter matrixParameter : matrixParameters) {
 			final Annotation matrixParamAnnotation = matrixParameter.getAnnotation(MATRIX_PARAM.qualifiedName);
-			if (matrixParamAnnotation.getValue("value") != null) {
-				uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue("value")).append("={")
+			if (matrixParamAnnotation.getValue() != null) {
+				uriPathTemplateBuilder.append(";").append(matrixParamAnnotation.getValue()).append("={")
 						.append(matrixParameter.getTypeName()).append("}");
 			}
 		}
@@ -330,14 +328,14 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			for (Iterator<JavaMethodParameter> iterator = queryParameters.iterator(); iterator.hasNext();) {
 				JavaMethodParameter queryParam = iterator.next();
 				final Annotation queryParamAnnotation = queryParam.getAnnotation(QUERY_PARAM.qualifiedName);
-				final String paramName = queryParamAnnotation.getValue("value");
+				final String paramName = queryParamAnnotation.getValue();
 				if (paramName != null) {
 					final String paramType = queryParam.getTypeName();
 					uriPathTemplateBuilder.append(paramName).append("={");
 					uriPathTemplateBuilder.append(paramName).append(":").append(paramType);
 					final Annotation defaultValueAnnotation = queryParam.getAnnotation(DEFAULT_VALUE.qualifiedName);
 					if (defaultValueAnnotation != null) {
-						uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue("value"));
+						uriPathTemplateBuilder.append('=').append(defaultValueAnnotation.getValue());
 					}
 					uriPathTemplateBuilder.append('}');
 					// prepare for next query param item if there is more to

@@ -21,19 +21,6 @@ public interface IJaxrsResourceMethod extends IJaxrsElement {
 
 	abstract IMethod getJavaElement();
 
-	/**
-	 * Sets the severity level for the given resource method. If the resource
-	 * method already has problem with higher severity, the given one is
-	 * ignored. On the other side, if the given problem severity is higher than
-	 * the current one, it is kept.
-	 * 
-	 * @param level the severity level.
-	 * 
-	 * @see {@link IMarker} for severity levels and values.
-	 */
-	@Deprecated
-	abstract void setProblemLevel(final int level);
-
 	abstract String getPathTemplate();
 
 	abstract String getHttpMethodClassName();

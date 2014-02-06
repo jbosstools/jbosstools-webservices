@@ -95,13 +95,4 @@ public enum EnumJaxrsClassname {
 		this.simpleName = simpleName;
 	}
 	
-	/**
-	 * Compares the enum element's {@link qualifiedName} attribute with the given value.
-	 * @param qualifiedName
-	 * @return true or false
-	 */
-	public boolean equals(final String qualifiedName) {
-		return this.qualifiedName.equals(qualifiedName);
-	}
-
 }

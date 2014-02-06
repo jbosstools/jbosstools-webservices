@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
@@ -25,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -35,7 +35,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
@@ -55,7 +55,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
+public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
 
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 
@@ -110,7 +110,7 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	 * @author xcoulon
 	 * 
 	 */
-	public static class Builder {
+	public static final class Builder {
 
 		private final IType javaType;
 		private final CompilationUnit ast;
@@ -201,71 +201,83 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethods()).build();
 		if (transientResource == null) {
 			remove();
-		} else {
-			final DeltaFlags updateAnnotationsFlags = updateAnnotations(transientResource.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			final List<IJaxrsResourceMethod> addedMethods = CollectionUtils.difference(
-					transientResource.getAllMethods(), this.getAllMethods());
-			for (IJaxrsResourceMethod addedMethod : addedMethods) {
-				// create the Resource Method by attaching it to the metamodel
-				// and this parent resource.
-				JaxrsResourceMethod.from(addedMethod.getJavaElement(), ast, getMetamodel().findAllHttpMethods())
-						.withMetamodel(getMetamodel()).withParentResource(this).build();
-			}
-			final Collection<IJaxrsResourceMethod> changedMethods = CollectionUtils.intersection(this.getAllMethods(),
-					transientResource.getAllMethods());
-			for (IJaxrsResourceMethod changedMethod : changedMethods) {
-				((JaxrsResourceMethod) changedMethod).update(transientResource.getMethods().get(
-						changedMethod.getIdentifier()));
-			}
-			final List<IJaxrsResourceMethod> removedMethods = CollectionUtils.difference(this.getAllMethods(),
-					transientResource.getAllMethods());
-			for (IJaxrsResourceMethod removedMethod : removedMethods) {
-				this.removeMethod(removedMethod);
-			}
-			final List<IJaxrsResourceField> addedFields = CollectionUtils.difference(transientResource.getAllFields(),
-					this.getAllFields());
-			for (IJaxrsResourceField addedField : addedFields) {
-				// create the Resource Field by attaching it to the metamodel
-				// and to this parent resource.
-				JaxrsResourceField.from(addedField.getJavaElement(), ast).withMetamodel(getMetamodel())
-						.withParentResource(this).build();
-			}
-			final Collection<IJaxrsResourceField> changedFields = CollectionUtils.intersection(this.getAllFields(),
-					transientResource.getAllFields());
-			for (IJaxrsResourceField changedField : changedFields) {
-				((JaxrsResourceField) changedField).update(transientResource.getFields().get(
-						changedField.getIdentifier()));
-			}
-			final List<IJaxrsResourceField> removedFields = CollectionUtils.difference(this.getAllFields(),
-					transientResource.getAllFields());
-			for (IJaxrsResourceField removedField : removedFields) {
-				this.removeField(removedField);
-			}
+			return;
+		} 
+		final Flags updateAnnotationsFlags = updateAnnotations(transientResource.getAnnotations());
+		final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+		updateMethods(transientResource, ast);
+		updateFields(transientResource, ast);
 
-			if (isMarkedForRemoval()) {
-				remove();
-			}
-			// update indexes for this element.
-			else if (hasMetamodel()) {
-				getMetamodel().update(delta);
-			}
+		if (isMarkedForRemoval()) {
+			remove();
 		}
-
+		// update indexes for this element.
+		else if (hasMetamodel()) {
+			getMetamodel().update(delta);
+		}
 	}
-	
+
 	/**
-	 * Removes the JAX-RS {@link IMarker} and resets the problem level for this
-	 * {@link IJaxrsResource}, and at the same time, sets the problem level to
-	 * {@code zero} for all its {@link IJaxrsResourceField}s and
-	 * {@link IJaxrsResourceMethod}s children.
-	 * 
+	 * Updates the {@link IJaxrsResourceField}s of {@code this} from the ones provided by the given {@link JaxrsResource}
+	 * @param transientResource the resource to analyze
+	 * @param ast its associated AST.
 	 * @throws CoreException
 	 */
-	public void removeMarkers() throws CoreException {
-		super.removeMarkers();
+	private void updateFields(final JaxrsResource transientResource, final CompilationUnit ast) throws CoreException {
+		final List<IJaxrsResourceField> allTransientInstanceFields = transientResource.getAllFields();
+		final List<IJaxrsResourceField> allCurrentFields = this.getAllFields();
+		final List<IJaxrsResourceField> addedFields = CollectionUtils.difference(allTransientInstanceFields,
+				allCurrentFields);
+		for (IJaxrsResourceField addedField : addedFields) {
+			// create the Resource Field by attaching it to the metamodel
+			// and to this parent resource.
+			JaxrsResourceField.from(addedField.getJavaElement(), ast).withMetamodel(getMetamodel())
+					.withParentResource(this).build();
+		}
+		final Collection<IJaxrsResourceField> changedFields = CollectionUtils.intersection(allCurrentFields,
+				allTransientInstanceFields);
+		for (IJaxrsResourceField changedField : changedFields) {
+			((JaxrsResourceField) changedField).update(transientResource.getFields().get(
+					changedField.getIdentifier()));
+		}
+		final List<IJaxrsResourceField> removedFields = CollectionUtils.difference(allCurrentFields,
+				allTransientInstanceFields);
+		for (IJaxrsResourceField removedField : removedFields) {
+			this.removeField(removedField);
+		}
 	}
 
+	/**
+	 * Updates the {@link IJaxrsResourceMethod}s of {@code this} from the ones provided by the given {@link JaxrsResource}
+	 * @param transientResource the resource to analyze
+	 * @param ast its associated AST.
+	 * @throws CoreException
+	 */
+	private void updateMethods(final JaxrsResource transientResource, final CompilationUnit ast)
+			throws CoreException {
+		final List<IJaxrsResourceMethod> allTransientInstanceMethods = transientResource.getAllMethods();
+		final List<IJaxrsResourceMethod> allCurrentMethods = this.getAllMethods();
+		final List<IJaxrsResourceMethod> addedMethods = CollectionUtils.difference(
+				allTransientInstanceMethods, allCurrentMethods);
+		for (IJaxrsResourceMethod addedMethod : addedMethods) {
+			// create the Resource Method by attaching it to the metamodel
+			// and this parent resource.
+			JaxrsResourceMethod.from(addedMethod.getJavaElement(), ast, getMetamodel().findAllHttpMethods())
+					.withMetamodel(getMetamodel()).withParentResource(this).build();
+		}
+		final Collection<IJaxrsResourceMethod> changedMethods = CollectionUtils.intersection(allCurrentMethods,
+				allTransientInstanceMethods);
+		for (IJaxrsResourceMethod changedMethod : changedMethods) {
+			((JaxrsResourceMethod) changedMethod).update(transientResource.getMethods().get(
+					changedMethod.getIdentifier()));
+		}
+		final List<IJaxrsResourceMethod> removedMethods = CollectionUtils.difference(allCurrentMethods,
+				allTransientInstanceMethods);
+		for (IJaxrsResourceMethod removedMethod : removedMethods) {
+			this.removeMethod(removedMethod);
+		}
+	}
+	
 	/**
 	 * @return true if the current element has no <code>javax.ws.rs.Path</code>
 	 *         annotation AND no JAX-RS Resource Method nor JAX-RS Resource
@@ -302,25 +314,24 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 		if (pathAnnotation == null) {
 			return null;
 		}
-		return pathAnnotation.getValue("value");
+		return pathAnnotation.getValue();
 	}
 
 	@Override
 	public boolean hasPathTemplate() {
 		final Annotation pathAnnotation = getPathAnnotation();
-		return pathAnnotation != null && pathAnnotation.getValue("value") != null;
+		return pathAnnotation != null && pathAnnotation.getValue() != null;
 	}
 
 	public Annotation getPathAnnotation() {
-		final Annotation pathAnnotation = getAnnotation(PATH.qualifiedName);
-		return pathAnnotation;
+		return getAnnotation(PATH.qualifiedName);
 	}
 
 	@Override
 	public List<String> getConsumedMediaTypes() {
 		final Annotation consumesAnnotation = getAnnotation(CONSUMES.qualifiedName);
 		if (consumesAnnotation != null) {
-			return consumesAnnotation.getValues("value");
+			return consumesAnnotation.getValues(VALUE);
 		}
 		return Collections.emptyList();
 	}
@@ -329,14 +340,13 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 	public List<String> getProducedMediaTypes() {
 		final Annotation producesAnnotation = getAnnotation(PRODUCES.qualifiedName);
 		if (producesAnnotation != null) {
-			return producesAnnotation.getValues("value");
+			return producesAnnotation.getValues(VALUE);
 		}
 		return Collections.emptyList();
 	}
 
 	public Annotation getProducesAnnotation() {
-		final Annotation producesAnnotation = getAnnotation(PRODUCES.qualifiedName);
-		return producesAnnotation;
+		return getAnnotation(PRODUCES.qualifiedName);
 	}
 
 	@Override

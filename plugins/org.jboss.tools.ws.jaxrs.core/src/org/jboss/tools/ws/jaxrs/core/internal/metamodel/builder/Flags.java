@@ -22,14 +22,14 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
  * 
  * 
  */
-public class DeltaFlags {
+public class Flags {
 
 	int flags;
 
 	/**
 	 * Default constructor. Starting with <code>flags=0</code>.
 	 */
-	public DeltaFlags() {
+	public Flags() {
 		this.flags = 0;
 	}
 
@@ -38,7 +38,7 @@ public class DeltaFlags {
 	 * 
 	 * @param flags
 	 */
-	public DeltaFlags(final int flags) {
+	public Flags(final int flags) {
 		this.flags = flags;
 	}
 
@@ -71,7 +71,7 @@ public class DeltaFlags {
 	 * @param otherFlags
 	 *            the flags to add.
 	 */
-	public void addFlags(final DeltaFlags otherFlags) {
+	public void addFlags(final Flags otherFlags) {
 		if (otherFlags != null) {
 			addFlags(otherFlags.getValue());
 		}
@@ -89,14 +89,17 @@ public class DeltaFlags {
 	}
 
 	/**
-	 * Returns
-	 * <code>true<code> if the internal flags have been set to the given value
-	 * , false otherwise.
-	 * 
-	 * @return true or false.
+	 * @return {@code true} if the internal flags have been set to at least one
+	 *         of the given values , {@code false} otherwise.
+	 * @param values the values to check 
 	 */
-	public boolean hasValue(int flag) {
-		return (this.flags & flag) > 0;
+	public boolean hasValue(int... values) {
+		for(int value : values) {
+			if((this.flags & value) > 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

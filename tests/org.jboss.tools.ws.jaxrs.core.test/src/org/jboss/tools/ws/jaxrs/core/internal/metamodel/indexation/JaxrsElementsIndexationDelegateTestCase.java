@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
@@ -159,6 +160,14 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 	}
 
 	@Test
+	public void shouldNotRetrieveResourceMethodFromNull() throws CoreException {
+		// operation
+		List<IJaxrsResourceMethod> resourceMethods = metamodel.findResourceMethodsByReturnedType(null);
+		// verification
+		assertThat(resourceMethods.size(), equalTo(0));
+	}
+
+	@Test
 	public void shouldIndexAndRetrieveProviderByProviderType() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
@@ -167,6 +176,17 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 		final IJaxrsProvider provider = metamodel.findProvider(type);
 		// verifications
 		assertThat(provider, notNullValue());
+	}
+
+	@Test
+	public void shouldNotIndexAndRetrieveNullProvider() throws JavaModelException, CoreException {
+		// pre-condition
+		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		JaxrsProvider.from(type).withMetamodel(metamodel).build();
+		// operation
+		final IJaxrsProvider provider = metamodel.findProvider(null);
+		// verifications
+		assertThat(provider, nullValue());
 	}
 
 	@Test
@@ -203,6 +223,15 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 		assertThat(provider, notNullValue());
 	}
 
+	@Test
+	public void shouldNotRetrieveProviderByNullExceptionTypeName() throws JavaModelException, CoreException {
+		// operation
+		final List<JaxrsProvider> providers = metamodel.findProviders(EnumElementKind.EXCEPTION_MAPPER,
+				null);
+		// verifications
+		assertThat(providers.size(), equalTo(0));
+	}
+	
 	@Test
 	public void shouldIndexAndRetrieveCustomHttpMethodByTypeName() throws CoreException {
 		// pre-condition
@@ -259,7 +288,7 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 	}
 
 	@Test
-	public void shouldIndexAndRetrieveJavaApplicationResourceByMarkers() throws JavaModelException, CoreException {
+	public void shouldIndexAndRetrieveJavaApplicationResourceByMarker() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
@@ -274,7 +303,7 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 	}
 	
 	@Test
-	public void shouldIndexAndRetrieveWebxmlApplicationResourceByMarkers() throws JavaModelException, CoreException {
+	public void shouldIndexAndRetrieveWebxmlApplicationResourceByMarker() throws JavaModelException, CoreException {
 		// pre-condition
 		IFolder webInfFolder = WtpUtils.getWebInfFolder(javaProject.getProject());
 		IResource webxmlResource = webInfFolder.findMember("web.xml");
@@ -290,7 +319,7 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 	}
 	
 	@Test
-	public void shouldIndexAndNotRetrieveResourceByMarkers() throws JavaModelException, CoreException {
+	public void shouldIndexAndNotRetrieveResourceByMarker() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final IMarker marker = type.getResource().createMarker(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
@@ -298,6 +327,15 @@ public class JaxrsElementsIndexationDelegateTestCase extends AbstractCommonTestC
 		metamodel.registerMarker(marker);
 		// operation: search with another problem type
 		final List<IResource> resources = metamodel.findResourcesWithProblemOfType("bar");
+		// verifications
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(),equalTo(0));
+	}
+	
+	@Test
+	public void shouldNotRetrieveResourceByNullMarker() throws JavaModelException, CoreException {
+		// pre-condition
+		final List<IResource> resources = metamodel.findResourcesWithProblemOfType(null);
 		// verifications
 		assertThat(resources, notNullValue());
 		assertThat(resources.size(),equalTo(0));

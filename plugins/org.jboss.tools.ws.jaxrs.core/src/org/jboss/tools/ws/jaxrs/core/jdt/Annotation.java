@@ -33,6 +33,9 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
  */
 @SuppressWarnings("restriction")
 public class Annotation {
+	
+	/** Default name of the attribute when it is alone in the annotation. */
+	public static final String VALUE = "value";
 
 	/**
 	 * Underlying java annotation, which may change in the case of method
@@ -75,7 +78,7 @@ public class Annotation {
 	 * @throws JavaModelException
 	 */
 	public Annotation(final IAnnotation annotation, final String annotationName, final String annotationValue) {
-		this(annotation, annotationName, CollectionUtils.toMap("value", Arrays.asList(annotationValue)));
+		this(annotation, annotationName, CollectionUtils.toMap(VALUE, Arrays.asList(annotationValue)));
 	}
 
 	/**
@@ -134,14 +137,7 @@ public class Annotation {
 
 	/** @return the default value */
 	public String getValue() {
-		final List<String> values = javaAnnotationElements.get("value");
-		if (values != null) {
-			assert !(values.size() > 1);
-			if (values.size() == 1) {
-				return values.get(0);
-			}
-		}
-		return null;
+		return getValue(VALUE);
 	}
 
 	/** @return the value */
