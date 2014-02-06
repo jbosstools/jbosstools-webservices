@@ -20,4 +20,10 @@ public class JaxrsMarkerResolutionIds {
 	/** QuickFix for invalid <code>javax.ws.rs.core.Application</code> subclass hierarchy .*/
 	public static final int JAVA_APPLICATION_INVALID_TYPE_HIERARCHY_QUICKFIX_ID = 6;
 
+	/**
+	 * Private constructor for the utility class.
+	 */
+	private JaxrsMarkerResolutionIds() {
+		super();
+	}
 }

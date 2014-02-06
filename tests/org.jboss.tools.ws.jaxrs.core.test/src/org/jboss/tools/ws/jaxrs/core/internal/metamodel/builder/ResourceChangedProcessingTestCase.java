@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import static org.jboss.tools.ws.jaxrs.core.internal.utils.HamcrestExtras.flagMatches;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
@@ -1653,7 +1654,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(CONSUMES.qualifiedName), notNullValue());
 	}
@@ -1672,7 +1673,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(CONSUMES.qualifiedName).getValue(), equalTo("application/foo"));
 	}
@@ -1690,7 +1691,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(CONSUMES.qualifiedName), nullValue());
 	}
@@ -1708,7 +1709,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(PRODUCES.qualifiedName), notNullValue());
 	}
@@ -1727,7 +1728,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(PRODUCES.qualifiedName).getValue(), equalTo("application/foo"));
 	}
@@ -1745,7 +1746,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(PRODUCES.qualifiedName), nullValue());
 	}
@@ -1770,7 +1771,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER), notNullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(),
@@ -1791,7 +1792,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER).getFullyQualifiedName(),
 				equalTo("java.lang.Integer"));
@@ -1813,7 +1814,7 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(),

@@ -30,7 +30,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -153,7 +153,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		if (transientField == null) {
 			remove();
 		} else {
-			final DeltaFlags upateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
+			final Flags upateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
 			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, upateAnnotationsFlags);
 			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
 				remove();

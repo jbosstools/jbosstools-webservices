@@ -40,7 +40,7 @@ public class JaxrsElementChangedProcessorDelegate {
 	public static void processEvent(final JaxrsElementDelta event) throws CoreException {
 		final IJaxrsElement element = event.getElement();
 		final EnumElementCategory elementKind = element.getElementKind().getCategory();
-		final int flags = event.getFlags();
+		final Flags flags = event.getFlags();
 		switch (event.getDeltaKind()) {
 		case ADDED:
 			switch (elementKind) {
@@ -161,7 +161,7 @@ public class JaxrsElementChangedProcessorDelegate {
 		JaxrsEndpointFactory.createEndpointsFromSubresourceMethod(resourceMethod);
 	}
 
-	private static void processChange(final IJaxrsApplication application, int flags) {
+	private static void processChange(final IJaxrsApplication application, final Flags flags) {
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) application.getMetamodel();
 		if (application.equals(metamodel.getApplication())) {
 			for (Iterator<IJaxrsEndpoint> iterator = metamodel.getAllEndpoints().iterator(); iterator.hasNext();) {
@@ -174,16 +174,16 @@ public class JaxrsElementChangedProcessorDelegate {
 		}
 	}
 
-	private static void processChange(final JaxrsHttpMethod httpMethod, int flags) {
+	private static void processChange(final JaxrsHttpMethod httpMethod, final Flags flags) {
 		final List<JaxrsEndpoint> endpoints = ((JaxrsMetamodel) httpMethod.getMetamodel()).findEndpoints(httpMethod);
 		for (JaxrsEndpoint endpoint : endpoints) {
 			endpoint.update(httpMethod);
 		}
 	}
 
-	private static void processChange(final JaxrsResource resource, int flags) throws CoreException {
+	private static void processChange(final JaxrsResource resource, final Flags flags) throws CoreException {
 		// no structural change in the resource: refresh its methods
-		if ((flags & F_ELEMENT_KIND) == 0) {
+		if (!flags.hasValue(F_ELEMENT_KIND)) {
 			for (JaxrsResourceMethod resourceMethod : resource.getMethods().values()) {
 				processChange(resourceMethod, flags);
 			}
@@ -198,15 +198,15 @@ public class JaxrsElementChangedProcessorDelegate {
 		}
 	}
 
-	private static void processChange(final JaxrsResourceMethod changedResourceMethod, int flags) throws CoreException {
+	private static void processChange(final JaxrsResourceMethod changedResourceMethod, final Flags flags) throws CoreException {
 		final JaxrsMetamodel metamodel = changedResourceMethod.getMetamodel();
-		if ((flags & F_ELEMENT_KIND) > 0) {
+		if (flags.hasValue(F_ELEMENT_KIND)) {
 			// remove endpoints using this resoureMethod:
 			metamodel.removeEndpoints(changedResourceMethod);
 			// create endpoints using this resourceMethod:
 			processAddition(changedResourceMethod);
 		} else if (changedResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR
-				&& (flags & F_METHOD_RETURN_TYPE) > 0) {
+				&& flags.hasValue(F_METHOD_RETURN_TYPE)) {
 			// remove endpoints using this resoureMethod:
 			metamodel.removeEndpoints(changedResourceMethod);
 			// create endpoints using this resourceMethod:

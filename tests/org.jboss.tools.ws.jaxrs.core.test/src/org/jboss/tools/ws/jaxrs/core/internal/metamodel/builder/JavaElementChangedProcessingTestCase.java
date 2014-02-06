@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
+import static org.jboss.tools.ws.jaxrs.core.internal.utils.HamcrestExtras.flagMatches;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONTEXT;
@@ -459,7 +460,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_TARGET_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_TARGET_ANNOTATION));
 		// one call, during pre-conditions
 		// 6 Built-in HTTP Methods + 1 custom one
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
@@ -698,7 +699,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_ELEMENT_KIND + F_PATH_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_ELEMENT_KIND + F_PATH_ANNOTATION));
 	}
 
 	@Test
@@ -728,7 +729,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PATH_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PATH_ANNOTATION));
 		assertThat((JaxrsResource) elementChanges.get(0).getElement(), equalTo(resource));
 		// 6 built-in HTTP Methods + 1 Resource + 6 Resource Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
@@ -746,7 +747,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Resource + 6 Resource Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -764,7 +765,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Resource + 6 Resource Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -779,7 +780,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Resource + 6 Resource Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -796,7 +797,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Resource + 6 Resource Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -814,7 +815,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Resource + 6 Resource Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -829,7 +830,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Resource + 6 Resource Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1241,7 +1242,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_ELEMENT_KIND + F_PATH_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_ELEMENT_KIND + F_PATH_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1359,7 +1360,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PATH_ANNOTATION + F_ELEMENT_KIND));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PATH_ANNOTATION + F_ELEMENT_KIND));
 		// 6 built-in HTTP Methods + 1 resource + 5 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1375,7 +1376,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PATH_ANNOTATION + F_ELEMENT_KIND));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PATH_ANNOTATION + F_ELEMENT_KIND));
 		// 6 built-in HTTP Methods + 1 resource + 5 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1391,7 +1392,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_HTTP_METHOD_ANNOTATION + F_ELEMENT_KIND));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_HTTP_METHOD_ANNOTATION + F_ELEMENT_KIND));
 		// 6 built-in HTTP Methods + 1 resource + 5 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1424,7 +1425,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PATH_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PATH_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1442,7 +1443,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1460,7 +1461,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1476,7 +1477,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1494,7 +1495,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1512,7 +1513,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1529,7 +1530,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1553,7 +1554,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1573,7 +1574,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1593,7 +1594,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1612,7 +1613,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
@@ -1632,7 +1633,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 6 built-in HTTP Methods + 1 resource + 3 methods
@@ -1652,7 +1653,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1673,7 +1674,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1694,7 +1695,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -1712,7 +1713,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 3 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(10));
 	}
@@ -1733,7 +1734,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 3 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(10));
 	}
@@ -1753,7 +1754,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_PARAMETERS));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_PARAMETERS));
 		// 6 built-in HTTP Methods + 1 resource + 3 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(10));
 	}
@@ -1774,7 +1775,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
 		// annotations were not provided but are retrieved...
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_METHOD_RETURN_TYPE));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_METHOD_RETURN_TYPE));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
@@ -2150,7 +2151,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -2168,7 +2169,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -2183,7 +2184,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_CONSUMES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -2200,7 +2201,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -2218,7 +2219,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -2234,7 +2235,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -2251,7 +2252,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PRODUCES_ANNOTATION));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -2272,7 +2273,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER), notNullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(),
 				equalTo("javax.persistence.NoResultException"));
@@ -2293,7 +2294,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER).getFullyQualifiedName(),
 				equalTo("java.lang.Number"));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(),
@@ -2316,7 +2317,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1));
 		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), equalTo(F_PROVIDER_HIERARCHY));
+		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(),
 				equalTo("java.lang.Number"));

@@ -136,8 +136,6 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		}
 		// only accepting constructors with parameters annotated with
 		// @javax.ws.rs.core.Context
-		//final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
-		//		JdtUtils.parse(method, new NullProgressMonitor()));
 		final JavaMethodSignature methodSignature = CompilationUnitsRepository.getInstance().getMethodSignature(method);
 		if(methodSignature != null) {
 			for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {

@@ -50,6 +50,7 @@ public class ResourceChangedBuildJob extends Job {
 	@Override
 	protected IStatus run(final IProgressMonitor progressMonitor) {
 		final long startTime = new Date().getTime();
+		JaxrsMetamodel metamodel = null;
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			Logger.debug("Building JAX-RS Metamodel after resource changed...");
@@ -61,42 +62,30 @@ public class ResourceChangedBuildJob extends Job {
 			} 
 			// compute changes on the JAX-RS Application(s), HttpMethods, Resources, etc.
 			final IJavaProject javaProject = JavaCore.create(project);
-			JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
-			try {
-				if (metamodel == null) {
-					metamodel = JaxrsMetamodelLocator.get(javaProject, true);
-					if(metamodel != null) {
-						metamodel.processProject(progressMonitor);
-					}
-				} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
-						|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
-					metamodel.processProject(progressMonitor);
-				} else {
-					metamodel.processAffectedResources(affectedResources, progressMonitor);
-				}
-			} catch(CoreException e) {
-				final IStatus status = Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + project.getName(), e);
+			metamodel = JaxrsMetamodelLocator.get(javaProject);
+			if (metamodel == null) {
+				metamodel = JaxrsMetamodelLocator.get(javaProject, true);
 				if(metamodel != null) {
-					metamodel.setBuildStatus(status);
+					metamodel.processProject(progressMonitor);
 				}
-				return status;
+			} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
+					|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
+				metamodel.processProject(progressMonitor);
+			} else {
+				metamodel.processAffectedResources(affectedResources, progressMonitor);
 			}
 			return Status.OK_STATUS;
-		} catch (Throwable e) {
-			return Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + project.getName(), e);
+		} catch (Exception e) {
+			final IStatus status = Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + project.getName(), e);
+			if(metamodel != null) {
+				metamodel.setBuildStatus(status);
+			}
+			return status;
 		} finally {
 			long endTime = new Date().getTime();
 			if (Logger.isDebugEnabled()) {
-				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms.", project.getName(), (endTime - startTime));
-				try {
-					final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-					if(metamodel != null && Logger.isDebugEnabled()) {
-						Logger.debug(metamodel.getStatus());
-					}
-				} catch (Throwable e) {
-					// debug level here since the purpose was to display a debug message
-					Logger.debug("Error occurred: {}", e);
-				}
+				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms, ended with status {}.", project
+						.getName(), (endTime - startTime), (metamodel != null ? metamodel.getStatus() : "unknown"));
 			}
 			progressMonitor.done();
 		}

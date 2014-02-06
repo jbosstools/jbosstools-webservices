@@ -34,6 +34,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
@@ -52,6 +53,11 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		assertThat(metamodel.findHttpMethodByTypeName(javaType.getFullyQualifiedName()), notNullValue());
 	}
 
+	@Test
+	public void shouldnotFindHttpMethodByNullType() throws CoreException {
+		assertThat(metamodel.findHttpMethodByTypeName(null), nullValue());
+	}
+	
 	@Test
 	public void shouldNotFindHttpMethodByType() throws CoreException {
 		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
@@ -115,8 +121,28 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		assertThat(metamodel.findWebxmlApplications().size(), equalTo(1));
 		assertThat(metamodel.getJavaApplications().size(), equalTo(1));
 		assertThat(metamodel.getApplication().getApplicationPath(), equalTo("/hello"));
+		assertThat(metamodel.findWebxmlApplicationByClassName(null), nullValue());
+		assertThat(metamodel.findJavaApplicationByTypeName(null), nullValue());
+		assertThat(metamodel.findJavaApplicationByTypeName(null), nullValue());
 	}
 
+	@Test
+	public void shouldNotRetrieveElementFromNull() throws CoreException {
+		final IJaxrsElement element = metamodel.findElement((IType)null);
+		assertThat(element, nullValue());
+	}
+
+	@Test
+	public void shouldNotRetrieveElementsFromNull() throws CoreException {
+		final List<IJaxrsElement> elements = metamodel.findElements((IType)null);
+		assertThat(elements.size(), equalTo(0));
+	}
+
+	@Test
+	public void shouldNotRetrieveEndpointsFromNull() throws CoreException {
+		final List<JaxrsEndpoint> elements = metamodel.findEndpoints((IJaxrsElement)null);
+		assertThat(elements.size(), equalTo(0));
+	}
 	@Test
 	public void shouldRetrieveCustomerResource() throws CoreException {
 		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
@@ -124,7 +150,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 		Assert.assertNotNull("CustomerResource not found", customerType);
 		Assert.assertEquals("Wrong number of resource resourceMethods", 6, customerResource.getAllMethods().size());
 	}
-
+	
 	@Test
 	public void shouldRetrieveCustomerResourceMethodProposals() throws CoreException {
 		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");

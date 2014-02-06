@@ -53,7 +53,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
@@ -257,8 +257,8 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		return F_NONE;
 	}
 
-	DeltaFlags updateAnnotations(final Map<String, Annotation> otherAnnotations) {
-		final DeltaFlags flags = new DeltaFlags();
+	Flags updateAnnotations(final Map<String, Annotation> otherAnnotations) {
+		final Flags flags = new Flags();
 		final MapComparison<String, Annotation> annotationsComparison = CollectionUtils.compare(this.annotations, otherAnnotations);
 		// added annotations (ie: found in 'otherAnnotation' but not
 		// this.annotations)

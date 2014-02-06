@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
@@ -86,11 +87,15 @@ public class JavaElementChangedBuildJob extends Job {
 					}
 				}
 			}
-		} catch (Throwable e) {
-			if(element != null) {
-				return Logger.error("Failed to build or refresh the JAX-RS metamodel while processing " + element.getElementName() + " in project " + element.getAncestor(IJavaElement.JAVA_PROJECT).getElementName(), e);
+		} catch (Exception e) {
+			if (element != null) {
+				return new Status(IStatus.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID,
+						"Failed to build or refresh the JAX-RS metamodel while processing " + element.getElementName()
+								+ " in project " + element.getAncestor(IJavaElement.JAVA_PROJECT).getElementName(), e);
 			} else {
-				return Logger.error("Failed to build or refresh the JAX-RS metamodel while processing a change in the Java Model", e);
+				return new Status(IStatus.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID,
+						"Failed to build or refresh the JAX-RS metamodel while processing a change in the Java Model",
+						e);
 			}
 		} finally {
 			progressMonitor.done();

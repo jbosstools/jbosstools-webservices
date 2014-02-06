@@ -28,7 +28,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -230,7 +230,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	public String getHttpVerb() {
 		final Annotation httpVerbAnnotation = getHttpMethodAnnotation();
 		if (httpVerbAnnotation != null) {
-			return httpVerbAnnotation.getValue("value");
+			return httpVerbAnnotation.getValue();
 		}
 		return null;
 	}
@@ -303,7 +303,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		if (transientHttpMethod == null) {
 			remove();
 		} else {
-			final DeltaFlags flags = updateAnnotations(transientHttpMethod.getAnnotations());
+			final Flags flags = updateAnnotations(transientHttpMethod.getAnnotations());
 			if (isMarkedForRemoval()) {
 				remove();
 			}

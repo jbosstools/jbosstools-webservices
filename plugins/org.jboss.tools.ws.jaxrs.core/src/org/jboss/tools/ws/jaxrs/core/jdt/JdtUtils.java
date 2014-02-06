@@ -34,6 +34,7 @@ import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
@@ -114,6 +115,19 @@ public final class JdtUtils {
 			return (ICompilationUnit) element;
 		}
 		return null;
+	}
+
+	/**
+	 * @return {@code true} if the given {@link IJavaElement} is an Archive (ie,
+	 *         its type equals {@code IJavaElement#PACKAGE_FRAGMENT_ROOT} and
+	 *         call to {@code IPackageFragmentRoot#isArchive()} return true. Otherwise,
+	 *         returns false.
+	 * @param javaElement
+	 *            the {@link IJavaElement} to analyze.
+	 */
+	public static boolean isArchive(final IJavaElement javaElement) {
+		return (javaElement.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot) javaElement)
+				.isArchive());
 	}
 
 	/**
@@ -637,7 +651,7 @@ public final class JdtUtils {
 			// org.eclipse.jdt.core.dom.DefaultValuePairBinding.<init>(DefaultValuePairBinding.java:31)
 			// at
 			// org.eclipse.jdt.core.dom.AnnotationBinding.getAllMemberValuePairs(AnnotationBinding.java:98)
-		} catch (Throwable e) {
+		} catch (RuntimeException e) {
 			// silently ignore
 		}
 		return annotationElements;
