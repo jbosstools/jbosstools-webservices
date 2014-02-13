@@ -11,17 +11,10 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -30,32 +23,15 @@ import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
 import org.junit.After;
@@ -81,10 +57,8 @@ import org.slf4j.LoggerFactory;
  */
 @RunWithProject("org.jboss.tools.ws.jaxrs.tests.sampleproject")
 @SuppressWarnings("restriction")
+@Deprecated
 public abstract class AbstractCommonTestCase implements IJaxrsElementChangedListener, IJaxrsEndpointChangedListener {
-
-	@SuppressWarnings("unused")
-	private static final String M2_REPO = "M2_REPO";
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(AbstractCommonTestCase.class);
 
@@ -105,7 +79,7 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 	public final static String DEFAULT_SAMPLE_PROJECT_NAME = WorkbenchUtils
 			.retrieveSampleProjectName(AbstractCommonTestCase.class);
 
-	private ProjectSynchronizator synchronizor;
+	private TestProjectSynchronizator synchronizor;
 
 	protected JaxrsMetamodel metamodel;
 	
@@ -139,7 +113,6 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 			}
 			workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 			LOGGER.info("Initial Synchronization (@BeforeClass)");
-			WorkbenchTasks.syncSampleProject(DEFAULT_SAMPLE_PROJECT_NAME);
 		} finally {
 			long endTime = new Date().getTime();
 			LOGGER.info("Initial Workspace setup in " + (endTime - startTime) + "ms.");
@@ -160,7 +133,7 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 			Assert.assertNotNull("JavaProject not found", javaProject.exists());
 			Assert.assertNotNull("Project not found", javaProject.getProject().exists());
 			Assert.assertTrue("Project is not a JavaProject", JavaProject.hasJavaNature(javaProject.getProject()));
-			synchronizor = new ProjectSynchronizator();
+			synchronizor = new TestProjectSynchronizator(DEFAULT_SAMPLE_PROJECT_NAME);
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			workspace.addResourceChangeListener(synchronizor);
 			// clear CompilationUnit repository
@@ -174,8 +147,8 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 			this.endpointChanges = new ArrayList<JaxrsEndpointDelta>();
 			this.endpointProblemLevelChanges = new ArrayList<IJaxrsEndpoint>();
 			this.metamodelProblemLevelChanges = new ArrayList<IJaxrsMetamodel>();
-			metamodel.addListener((IJaxrsElementChangedListener)this);
-			metamodel.addListener((IJaxrsEndpointChangedListener)this);
+			metamodel.addJaxrsElementChangedListener((IJaxrsElementChangedListener)this);
+			metamodel.addJaxrsEndpointChangedListener((IJaxrsEndpointChangedListener)this);
 		} finally {
 			long endTime = new Date().getTime();
 			LOGGER.info("Test Workspace setup in " + (endTime - startTime) + "ms.");
@@ -211,216 +184,7 @@ public abstract class AbstractCommonTestCase implements IJaxrsElementChangedList
 	}
 
 	
-	protected IType resolveType(String typeName) throws CoreException {
-		return JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor());
-	}
 	
-	protected IMethod resolveMethod(final String typeName, final String methodName) throws CoreException {
-		final IType type = resolveType(typeName);
-		return resolveMethod(type, methodName);
-	}
-
-	protected IMethod resolveMethod(final IType type, final String methodName) throws CoreException {
-		for(IMethod method : type.getMethods()) {
-			if(method.getElementName().equals(methodName)) {
-				return method;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Creates a java annotated type based JAX-RS Application element
-	 * @param isApplicationSubtype TODO
-	 * @param type
-	 * @param applicationPath
-	 * 
-	 * @return
-	 * @throws CoreException
-	 */
-	protected JaxrsJavaApplication createJavaApplication(String typeName) throws CoreException {
-		return createJavaApplication(typeName, true);
-		
-	}
-	/**
-	 * Creates a java annotated type based JAX-RS Application element
-	 * @param isApplicationSubtype TODO
-	 * @param type
-	 * @param applicationPath
-	 * 
-	 * @return
-	 * @throws CoreException
-	 */
-	protected JaxrsJavaApplication createJavaApplication(String typeName, boolean isApplicationSubtype) throws CoreException {
-		final IType type = resolveType(typeName);
-		//final Map<String, Annotation> annotations = resolveAnnotations(type, APPLICATION_PATH.qualifiedName, SuppressWarnings.class.getName());
-		//final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotations.get(APPLICATION_PATH.qualifiedName), isApplicationSubtype);
-		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
-		// clear notifications as this method should be called during the test initialization, and thus should not count in the verifications phase
-		application.setJaxrsCoreApplicationSubclass(isApplicationSubtype);
-		return application;
-
-	}
-
-	/**
-	 * Creates a java annotated type based JAX-RS Application element
-	 * 
-	 * @param type
-	 * @param applicationPath
-	 * @return
-	 * @throws CoreException
-	 */
-	protected JaxrsJavaApplication createJavaApplication(String typeName, String applicationPath) throws CoreException {
-		final JaxrsJavaApplication application = createJavaApplication(typeName, true);
-		final Annotation applicationPathAnnotation = application.getAnnotation(APPLICATION_PATH.qualifiedName);
-		application.addOrUpdateAnnotation(createAnnotation(applicationPathAnnotation, applicationPath));
-		return application;
-	}
-
-	/**
-	 * Creates a web.xml based JAX-RS Application element
-	 * 
-	 * @param applicationPath
-	 * @return
-	 * @throws CoreException 
-	 * @throws IOException 
-	 */
-	protected JaxrsWebxmlApplication createWebxmlApplication(final String applicationClassName,
-			final String applicationPath) throws CoreException, IOException {
-		final IResource webDeploymentDescriptor = WtpUtils.getWebDeploymentDescriptor(project);
-		WorkbenchUtils.replaceContent(webDeploymentDescriptor, "javax.ws.rs.core.Application", applicationClassName);
-		WorkbenchUtils.replaceContent(webDeploymentDescriptor, "/hello/*", applicationPath);
-		return JaxrsWebxmlApplication.from(webDeploymentDescriptor).inMetamodel(metamodel).build();
-	}
-
-	/**
-	 * 
-	 */
-	protected void resetElementChangesNotifications() {
-		LOGGER.info("Reseting Changes Notifications before test operation");
-		elementChanges.clear();
-		endpointChanges.clear();
-	}
-	
-	/**
-	 * @return
-	 * @throws CoreException
-	 * @throws JavaModelException
-	 */
-	protected JaxrsHttpMethod createHttpMethod(EnumJaxrsClassname httpMethodElement) throws CoreException,
-			JavaModelException {
-		return createHttpMethod(httpMethodElement.qualifiedName);
-	}
-	
-	protected JaxrsHttpMethod createHttpMethod(String typeName) throws CoreException, JavaModelException {
-		final IType type = resolveType(typeName);
-		return createHttpMethod(type);
-	}
-
-	protected JaxrsHttpMethod createHttpMethod(String typeName, String httpVerb) throws CoreException, JavaModelException {
-		final IType type = resolveType(typeName);
-		return createHttpMethod(type, httpVerb);
-	}
-
-	protected JaxrsHttpMethod createHttpMethod(IType type) throws CoreException {
-		final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
-		return httpMethod;
-	}
-
-	protected JaxrsHttpMethod createHttpMethod(IType type, String httpVerb) throws CoreException {
-		final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
-		final Annotation httpMethodAnnotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
-		httpMethod.addOrUpdateAnnotation(createAnnotation(httpMethodAnnotation, httpVerb));
-		return httpMethod;
-	}
-	
-	protected JaxrsProvider createProvider(final String typeName) throws JavaModelException, CoreException {
-		final IType type = resolveType(typeName);
-		return createProvider(type);
-	}
-
-	protected JaxrsProvider createProvider(final IType type) throws JavaModelException, CoreException {
-		return JaxrsProvider.from(type).withMetamodel(metamodel).build();
-	}
-
-	protected JaxrsResource createResource(String typeName) throws CoreException, JavaModelException {
-		return createResource(JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor()));
-	}
-
-	protected JaxrsResource createResource(IType type) throws CoreException, JavaModelException {
-		return JaxrsResource.from(type, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
-	}
-	
-	protected Annotation createAnnotation(String className) {
-		return createAnnotation(null, className, null);
-	}
-
-	protected Annotation createAnnotation(String className, String value) {
-		return createAnnotation(null, className, value);
-	}
-
-	protected Annotation createAnnotation(IAnnotation annotation, String name, String value) {
-		Map<String, List<String>> values = new HashMap<String, List<String>>();
-		values.put("value", Arrays.asList(value));
-		return new Annotation(annotation, name, values);
-	}
-	
-	/**
-	 * Returns a <strong>new annotation</strong> built from the given one, with overriden values
-	 * @param annotation
-	 * @param values
-	 * @return
-	 * @throws JavaModelException
-	 */
-	protected Annotation createAnnotation(final Annotation annotation, final String... values)
-			throws JavaModelException {
-		Map<String, List<String>> elements = CollectionUtils.toMap("value", Arrays.asList(values));
-		return new Annotation(annotation.getJavaAnnotation(), annotation.getFullyQualifiedName(), elements);
-	}
-
-	protected IType getType(String typeName) throws CoreException {
-		return JdtUtils.resolveType(typeName, javaProject, null);
-	}
-
-	/**
-	 * @param type
-	 * @return
-	 * @throws JavaModelException
-	 */
-	protected IMethod getJavaMethod(IType type, String name) throws JavaModelException {
-		for (IMethod method : type.getMethods()) {
-			if (method.getElementName().equals(name)) {
-				return method;
-			}
-		}
-		Assert.fail("Failed to locate method named '" + name + "'");
-		return null;
-	}
-
-	protected IPackageFragmentRoot getPackageFragmentRoot(String path) throws JavaModelException {
-		return WorkbenchUtils.getPackageFragmentRoot(javaProject, path,
-				new NullProgressMonitor());
-	}
-	
-	protected static void removeResourceMethod(final JaxrsResource resource, final String methodName) throws CoreException {
-		final List<IJaxrsResourceMethod> allMethods = new ArrayList<IJaxrsResourceMethod>(resource.getAllMethods());
-		for(IJaxrsResourceMethod resourceMethod : allMethods) {
-			if(resourceMethod.getJavaElement().getElementName().equals(methodName)) {
-				resource.removeMethod(resourceMethod);
-				break;
-			}
-		}
-	}
-
-	protected static JaxrsResourceMethod getResourceMethod(final JaxrsResource resource, final String methodName) {
-		for(IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
-			if(resourceMethod.getJavaElement().getElementName().equals(methodName)) {
-				return (JaxrsResourceMethod) resourceMethod;
-			}
-		}
-		return null;
-	}
-
 
 	@Override
 	public void notifyElementChanged(final JaxrsElementDelta delta) {

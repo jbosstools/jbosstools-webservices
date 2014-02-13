@@ -62,7 +62,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 			if (metamodel != null && !metamodel.isInitializing()) {
 				// register for endpoint changes against the metamodel (in case it's not already done)
-				metamodel.addListener(parent);
+				metamodel.addJaxrsEndpointChangedListener(parent);
 				
 				final Collection<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
 				Logger.debug("UriPathTemplateCategory contains {} endpoints", endpoints.size());
@@ -205,7 +205,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 			// let's make sure this listener is registered
 			if (metamodel != null) {
 				// metamodel.addListener() avoids duplicate entries
-				metamodel.addListener(this.parent);
+				metamodel.addJaxrsEndpointChangedListener(this.parent);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve the JAX-RS Metamodel for project '" + project.getName() + "'", e);

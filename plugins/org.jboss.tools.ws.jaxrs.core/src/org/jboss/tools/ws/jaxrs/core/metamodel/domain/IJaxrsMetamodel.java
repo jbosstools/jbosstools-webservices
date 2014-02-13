@@ -42,7 +42,7 @@ public interface IJaxrsMetamodel extends IJaxrsStatus {
 	 * 
 	 * @param listener
 	 */
-	public abstract void addListener(IJaxrsEndpointChangedListener listener);
+	public abstract void addJaxrsEndpointChangedListener(IJaxrsEndpointChangedListener listener);
 
 	public void removeListener(IJaxrsEndpointChangedListener listener);
 

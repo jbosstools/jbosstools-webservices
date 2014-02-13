@@ -32,7 +32,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
@@ -41,15 +43,34 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
-public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
+public class JaxrsMetamodelTestCase {
 
 	final IProgressMonitor progressMonitor = new NullProgressMonitor();
+	
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
+	
+	@Rule
+	public TestWatcher watcher = new TestWatcher();
+	
+	private JaxrsMetamodel metamodel = null;
 
+	@Before
+	public void setup() throws CoreException {
+		metamodel = metamodelMonitor.getMetamodel();
+	}
+	
 	@Test
 	public void shouldFindHttpMethodByType() throws CoreException {
-		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		IType javaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		assertThat(metamodel.findHttpMethodByTypeName(javaType.getFullyQualifiedName()), notNullValue());
 	}
 
@@ -60,7 +81,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	
 	@Test
 	public void shouldNotFindHttpMethodByType() throws CoreException {
-		IType javaType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType javaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		assertThat(metamodel.findHttpMethodByTypeName(javaType.getFullyQualifiedName()), nullValue());
 	}
 
@@ -145,7 +166,7 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	}
 	@Test
 	public void shouldRetrieveCustomerResource() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IJaxrsResource customerResource = (IJaxrsResource) metamodel.findElement(customerType);
 		Assert.assertNotNull("CustomerResource not found", customerType);
 		Assert.assertEquals("Wrong number of resource resourceMethods", 6, customerResource.getAllMethods().size());
@@ -153,8 +174,8 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	
 	@Test
 	public void shouldRetrieveCustomerResourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod customerMethod = getJavaMethod(customerType, "getCustomers");
+		IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod customerMethod = metamodelMonitor.resolveMethod(customerType, "getCustomers");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
 		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().size(), equalTo(0));
@@ -162,8 +183,8 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveCustomerSubresourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod customerMethod = getJavaMethod(customerType, "getCustomer");
+		IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod customerMethod = metamodelMonitor.resolveMethod(customerType, "getCustomer");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
 		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().keySet(), containsInAnyOrder("id"));
@@ -171,8 +192,8 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveBookResourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		IMethod customerMethod = getJavaMethod(customerType, "getAllProducts");
+		IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		IMethod customerMethod = metamodelMonitor.resolveMethod(customerType, "getAllProducts");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
 		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().size(), equalTo(0));
@@ -180,8 +201,8 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveBookSubresourceMethodProposals() throws CoreException {
-		IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		IMethod customerMethod = getJavaMethod(customerType, "getProduct");
+		IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		IMethod customerMethod = metamodelMonitor.resolveMethod(customerType, "getProduct");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
 		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().keySet(), containsInAnyOrder("id"));
@@ -189,8 +210,8 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldRetrieveBarResourceMethodProposals() throws CoreException {
-		IType bazType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		IMethod bazMethod = getJavaMethod(bazType, "getContent2");
+		IType bazType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
+		IMethod bazMethod = metamodelMonitor.resolveMethod(bazType, "getContent2");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(bazMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
 		final Set<String> pathParamValueProposals = customerResourceMethod.getPathParamValueProposals().keySet();
@@ -210,54 +231,54 @@ public class JaxrsMetamodelTestCase extends AbstractMetamodelBuilderTestCase {
 	@Test
 	public void shouldDoNothingWhenAddingNullElement() throws CoreException {
 		// pre-conditions
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodel.add((JaxrsBaseElement)null);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
 
 	@Test
 	public void shouldDoNothingWhenUpdatingNullElement() throws CoreException {
 		// pre-conditions
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodel.update(new JaxrsElementDelta(null, 0));
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
 	
 	@Test
 	public void shouldDoNothingWhenUpdatingUnchangedElement() throws CoreException {
 		// pre-conditions
-		IType bazType = getType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		IMethod bazMethod = getJavaMethod(bazType, "getContent2");
+		IType bazType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
+		IMethod bazMethod = metamodelMonitor.resolveMethod(bazType, "getContent2");
 		final IJaxrsResourceMethod bazResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(bazMethod);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodel.update(new JaxrsElementDelta(bazResourceMethod, CHANGED, JaxrsElementDelta.F_NONE));
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
 	
 	@Test
 	public void shouldDoNothingWhenAddingNullEndpoint() throws CoreException {
 		// pre-conditions
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodel.add((JaxrsEndpoint)null);
 		// verifications
-		assertThat(endpointChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(0));
 	}
 	
 	@Test
 	public void shouldDoNothingWhenUpdatingNullEndpoint() throws CoreException {
 		// pre-conditions
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodel.update((JaxrsEndpoint)null);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
 
 }

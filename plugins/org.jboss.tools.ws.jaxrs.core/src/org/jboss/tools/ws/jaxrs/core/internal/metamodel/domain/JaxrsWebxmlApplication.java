@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -74,31 +75,37 @@ public class JaxrsWebxmlApplication extends JaxrsApplication {
 		}
 
 		public JaxrsWebxmlApplication build() throws CoreException {
-			final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, javaProject,
-					new NullProgressMonitor());
-			// occurs when the project has the jax-rs nature (the builder is
-			// called), but no jaxrs library is in the classpath
-			if (applicationType == null) {
-				return null;
-			}
-			final List<IType> applicationClasses = JdtUtils.findSubtypes(applicationType);
-			// web.xml-based JAX-RS applications declared in the web deployment
-			// descriptor
-			for (IType applicationClass : applicationClasses) {
-				javaClassName = applicationClass.getFullyQualifiedName();
-				applicationPath = WtpUtils.getApplicationPath(webxmlResource, javaClassName);
-				if (applicationPath != null) {
-					final JaxrsWebxmlApplication webxmlApplication = new JaxrsWebxmlApplication(this);
-					webxmlApplication.joinMetamodel();
-					final JaxrsJavaApplication overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
-					if(overridenJaxrsJavaApplication != null) {
-						overridenJaxrsJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
-					}
-					return webxmlApplication;
+			final long start = System.currentTimeMillis();
+			try {
+				final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, javaProject,
+						new NullProgressMonitor());
+				// occurs when the project has the jax-rs nature (the builder is
+				// called), but no jaxrs library is in the classpath
+				if (applicationType == null) {
+					return null;
 				}
+				final List<IType> applicationClasses = JdtUtils.findSubtypes(applicationType);
+				// web.xml-based JAX-RS applications declared in the web deployment
+				// descriptor
+				for (IType applicationClass : applicationClasses) {
+					javaClassName = applicationClass.getFullyQualifiedName();
+					applicationPath = WtpUtils.getApplicationPath(webxmlResource, javaClassName);
+					if (applicationPath != null) {
+						final JaxrsWebxmlApplication webxmlApplication = new JaxrsWebxmlApplication(this);
+						webxmlApplication.joinMetamodel();
+						final JaxrsJavaApplication overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
+						if(overridenJaxrsJavaApplication != null) {
+							overridenJaxrsJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
+						}
+						return webxmlApplication;
+					}
+				}
+				// no match found
+				return null;
+			} finally {
+				final long end = System.currentTimeMillis();
+				Logger.tracePerf("Built JAX-RS WebXmlApplication in {}ms", (end - start));
 			}
-			// no match found
-			return null;
 		}
 	}
 

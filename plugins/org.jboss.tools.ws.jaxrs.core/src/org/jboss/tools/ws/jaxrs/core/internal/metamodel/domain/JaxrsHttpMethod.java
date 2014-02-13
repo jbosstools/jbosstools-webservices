@@ -29,6 +29,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -168,20 +169,27 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		}
 
 		public JaxrsHttpMethod build() throws CoreException {
-			if (javaType == null || !javaType.exists()) {
-				return null;
+			final long start = System.currentTimeMillis();
+			try {
+				if (javaType == null || !javaType.exists()) {
+					return null;
+				}
+				annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(HTTP_METHOD.qualifiedName, TARGET.qualifiedName,
+						RETENTION.qualifiedName));
+				// Element *MUST* at least have the @HttpMethod annotation to be an HTTP Method.
+				// Problems will be reported by validation if other annotations are missing.
+				if (annotations == null || annotations.isEmpty() || !annotations.containsKey(HTTP_METHOD.qualifiedName)) {
+					return null;
+				}
+				final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(this);
+				// this operation is only performed after creation
+				httpMethod.joinMetamodel();
+				return httpMethod;
+			} finally {
+				final long end = System.currentTimeMillis();
+				Logger.tracePerf("Built JAX-RS HTTP Method in {}ms", (end - start));
 			}
-			annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(HTTP_METHOD.qualifiedName, TARGET.qualifiedName,
-					RETENTION.qualifiedName));
-			// Element *MUST* at least have the @HttpMethod annotation to be an HTTP Method.
-			// Problems will be reported by validation if other annotations are missing.
-			if (annotations == null || annotations.isEmpty() || !annotations.containsKey(HTTP_METHOD.qualifiedName)) {
-				return null;
-			}
-			final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(this);
-			// this operation is only performed after creation
-			httpMethod.joinMetamodel();
-			return httpMethod;
+
 		}
 	}
 

@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
@@ -29,6 +28,10 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RESPONSE;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getField;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getLocalVariable;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -49,6 +52,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
@@ -58,28 +62,45 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class JdtUtilsTestCase extends AbstractCommonTestCase {
+public class JdtUtilsTestCase {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(JdtUtilsTestCase.class);
+	
 	private final IProgressMonitor progressMonitor = new NullProgressMonitor();
 
-	private IField getField(IType parentType, String fieldName) throws CoreException {
-		return WorkbenchUtils.getField(parentType, fieldName);
-	}
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule();
+	
+	@Rule
+	public TestWatcher testWatcher = new TestWatcher();
+	
+	@Rule
+	public TestProjectMonitor projectMonitor = new TestProjectMonitor();
 
-	private ILocalVariable getLocalVariable(IMethod method, String variableName) throws JavaModelException {
-		return WorkbenchUtils.getLocalVariable(method, variableName);
+	private IJavaProject javaProject = null;
+	
+	@Before
+	public void setup() {
+		javaProject = projectMonitor.getJavaProject();
 	}
+	
 
 	@Test
 	public void shouldResolveTypeByQNameInSourceCode() throws CoreException {
 		// preconditions
 		// operation
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// verification
 		Assert.assertNotNull("Type not found", type);
 	}
@@ -88,7 +109,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldResolveTypeByQNameInLibrary() throws CoreException {
 		// preconditions
 		// operation
-		final IType type = resolveType("javax.persistence.PersistenceException");
+		final IType type = projectMonitor.resolveType("javax.persistence.PersistenceException");
 		// verification
 		Assert.assertNotNull("Type not found", type);
 	}
@@ -97,7 +118,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldNotResolveTypeByUnknownQName() throws CoreException {
 		// preconditions
 		// operation
-		final IType type = resolveType("unknown.class");
+		final IType type = projectMonitor.resolveType("unknown.class");
 		// verification
 		Assert.assertNull("No Type expected", type);
 	}
@@ -106,7 +127,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldResolveTypeByVeryQName() throws CoreException {
 		// preconditions
 		// operation
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedException.TestException");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedException.TestException");
 		// verification
 		Assert.assertNotNull("Type not found", type);
 	}
@@ -115,7 +136,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldAssertTypeIsAbstract() throws CoreException {
 		// preconditions
 		// operation
-		IType type = resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider");
+		IType type = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider");
 		// verification
 		Assert.assertNotNull("Type not found", type);
 		Assert.assertTrue("Type is abstract", JdtUtils.isAbstractType(type));
@@ -125,7 +146,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldNotAssertTypeIsAbstract() throws CoreException {
 		// preconditions
 		// operation
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// verification
 		Assert.assertNotNull("Type not found", type);
 		Assert.assertFalse("Type is not abstract", JdtUtils.isAbstractType(type));
@@ -135,7 +156,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldNotResolveTypeWithNullQName() throws CoreException {
 		// preconditions
 		// operation
-		IType type = resolveType(null);
+		IType type = projectMonitor.resolveType(null);
 		// verification
 		Assert.assertNull("No type was expected", type);
 	}
@@ -144,7 +165,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldResolveTypeHierarchyOnClass() throws CoreException {
 		// preconditions
 		// operation
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// verification
 		Assert.assertNotNull("Type not found", type);
 		Assert.assertNotNull("Type hierarchy not found",
@@ -155,7 +176,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldResolveTypeHierarchyOnInterface() throws CoreException {
 		// preconditions
 		// operation
-		IType type = resolveType("javax.ws.rs.ext.MessageBodyReader");
+		IType type = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
 		// verification
 		Assert.assertNotNull("Type not found", type);
 		Assert.assertNotNull("Type hierarchy not found",
@@ -165,7 +186,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveTypeHierarchyOnLibrariesWithSubclasses() throws CoreException {
 		// preconditions
-		IType type = resolveType("javax.ws.rs.core.Application");
+		IType type = projectMonitor.resolveType("javax.ws.rs.core.Application");
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), true,
@@ -178,10 +199,9 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveTypeHierarchyOnLibrariesWithNoSubclass() throws CoreException {
 		// preconditions
-		IType type = resolveType("javax.ws.rs.core.Application");
+		IType type = projectMonitor.resolveType("javax.ws.rs.core.Application");
 		Assert.assertNotNull("Type not found", type);
-		final IPackageFragmentRoot lib = WorkbenchUtils.getPackageFragmentRoot(javaProject,
-				"lib/jaxrs-api-2.0.1.GA.jar", new NullProgressMonitor());
+		final IPackageFragmentRoot lib = projectMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
 		Assert.assertNotNull("Lib not found", lib);
 		// operation
 		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, lib, true,
@@ -194,7 +214,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotResolveTypeHierarchyOnRemovedClass() throws CoreException {
 		// preconditions
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		type.delete(true, new NullProgressMonitor());
@@ -208,14 +228,14 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	public void shouldResolveConcreteTypeArgumentsOnBinaryTypesWithoutSources() throws CoreException,
 			OperationCanceledException, InterruptedException {
 		// preconditions
-		IType parameterizedType = resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
+		IType parameterizedType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
 		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
-		IType matchSuperInterfaceType = resolveType("javax.ws.rs.ext.MessageBodyReader");
+		IType matchSuperInterfaceType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
 		Assert.assertNotNull("Interface Type not found", matchSuperInterfaceType);
 		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType,
 				parameterizedType.getJavaProject(), false, progressMonitor);
-		boolean removedReferencedLibrarySourceAttachment = WorkbenchUtils.removeReferencedLibrarySourceAttachment(
-				javaProject, "resteasy-jaxb-provider-2.0.1.GA.jar", progressMonitor);
+		boolean removedReferencedLibrarySourceAttachment = projectMonitor.removeReferencedLibrarySourceAttachment(
+				"resteasy-jaxb-provider-2.0.1.GA.jar");
 		Assert.assertTrue("Source attachment was not removed (not found?)", removedReferencedLibrarySourceAttachment);
 		// operation
 		CompilationUnit compilationUnit = JdtUtils.parse(parameterizedType, null);
@@ -228,9 +248,9 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotResolveTypeArgumentsOnBinaryImplementation() throws CoreException {
 		// preconditions
-		IType parameterizedType = resolveType("org.jboss.resteasy.plugins.providers.jaxb.AbstractJAXBProvider");
+		IType parameterizedType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.jaxb.AbstractJAXBProvider");
 		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
-		IType matchGenericType = resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider");
+		IType matchGenericType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider");
 		Assert.assertNotNull("Interface Type not found", matchGenericType);
 		// operation
 		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType,
@@ -245,11 +265,11 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveMultipleConcreteTypeArgumentsOnSourceImplementation() throws CoreException {
 		// preconditions
-		IType parameterizedType = resolveType("org.jboss.tools.ws.jaxrs.sample.extra.AnotherDummyProvider");
+		IType parameterizedType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.AnotherDummyProvider");
 		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
 
 		// MessageBodyReader
-		IType matchGenericType = resolveType("javax.ws.rs.ext.MessageBodyReader");
+		IType matchGenericType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
 		Assert.assertNotNull("Interface Type not found", matchGenericType);
 		CompilationUnit compilationUnit = JdtUtils.parse(parameterizedType, null);
 		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType,
@@ -262,7 +282,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Assert.assertEquals("Wrong type parameter found", "java.lang.Double", resolvedTypeParameters.get(0)
 				.getFullyQualifiedName());
 		// MessageBodyWriter
-		matchGenericType = resolveType("javax.ws.rs.ext.MessageBodyWriter");
+		matchGenericType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyWriter");
 		Assert.assertNotNull("Interface Type not found", matchGenericType);
 		resolvedTypeParameters = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit, matchGenericType,
 				parameterizedTypeHierarchy, new NullProgressMonitor());
@@ -271,7 +291,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 		Assert.assertEquals("Wrong type parameter found", "java.math.BigDecimal", resolvedTypeParameters.get(0)
 				.getFullyQualifiedName());
 		// ExceptionMapper
-		matchGenericType = resolveType("javax.ws.rs.ext.ExceptionMapper");
+		matchGenericType = projectMonitor.resolveType("javax.ws.rs.ext.ExceptionMapper");
 		Assert.assertNotNull("Interface Type not found", matchGenericType);
 		resolvedTypeParameters = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit, matchGenericType,
 				parameterizedTypeHierarchy, new NullProgressMonitor());
@@ -284,11 +304,11 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotResolveTypeArgumentsOnWrongHierarchy() throws CoreException {
 		// preconditions
-		IType parameterizedType = resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
-		IType unrelatedType = resolveType("javax.ws.rs.ext.ExceptionMapper");
+		IType parameterizedType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
+		IType unrelatedType = projectMonitor.resolveType("javax.ws.rs.ext.ExceptionMapper");
 		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
 		// operation
-		IType matchSuperInterfaceType = resolveType("javax.ws.rs.ext.MessageBodyReader");
+		IType matchSuperInterfaceType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
 		// verification
 		Assert.assertNotNull("Interface Type not found", matchSuperInterfaceType);
 		// operation
@@ -304,7 +324,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveTopLevelTypeFromSourceType() throws JavaModelException, CoreException {
 		// preconditions
-		IType resourceType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType resourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("ResourceType not found", resourceType);
 		// operation
 		final IType topLevelType = JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit());
@@ -315,7 +335,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotResolveTopLevelTypeOnBinaryType() throws JavaModelException, CoreException {
 		// preconditions
-		IType resourceType = resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
+		IType resourceType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
 		Assert.assertNotNull("ResourceType not found", resourceType);
 		// operation
 		final IType topLevelType = JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit());
@@ -326,7 +346,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldGetTopLevelTypeOKNoneInSourceType() throws JavaModelException, CoreException {
 		// preconditions
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "Empty.txt",
+		ICompilationUnit compilationUnit = projectMonitor.createCompilationUnit("Empty.txt",
 				"org.jboss.tools.ws.jaxrs.sample", "PersistenceExceptionMapper.java");
 		Assert.assertNotNull("Resource not found", compilationUnit);
 		// operation
@@ -338,7 +358,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveTopLevelTypeOnSourceWithMultipleTypes() throws JavaModelException, CoreException {
 		// preconditions
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "Multi.txt",
+		ICompilationUnit compilationUnit= projectMonitor.createCompilationUnit("Multi.txt",
 				"org.jboss.tools.ws.jaxrs.sample", "PersistenceExceptionMapper.java");
 		Assert.assertNotNull("Resource not found", compilationUnit);
 		// operation
@@ -350,8 +370,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldReturnTrueOnTopLevelTypeDetection() throws JavaModelException, CoreException {
 		// preconditions
-
-		IType resourceType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType resourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("ResourceType not found", resourceType);
 		// operation
 		final boolean isTopLevelType = JdtUtils.isTopLevelType(resourceType);
@@ -362,7 +381,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldGetCompiltationUnitFromType() throws CoreException {
 		// preconditions
-		IResource resource = project
+		IResource resource = javaProject.getProject()
 				.findMember("src/main/java/org/jboss/tools/ws/jaxrs/sample/services/BookResource.java");
 		Assert.assertNotNull("Resource not found", resource);
 		// operation
@@ -374,7 +393,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldGetCompiltationUnitFromProject() {
 		// preconditions
-		IResource resource = project.findMember("src/main/resources/log4j.xml");
+		IResource resource = javaProject.getProject().findMember("src/main/resources/log4j.xml");
 		Assert.assertNotNull("Resource not found", resource);
 		// operation
 		final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(resource);
@@ -394,7 +413,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveSourceTypeAnnotationFromName() throws CoreException {
 		// pre-conditions
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor), "Path");
@@ -408,7 +427,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveSourceTypeAnnotationsFromNames() throws CoreException {
 		// pre-conditions
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
@@ -425,7 +444,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveSourceTypeAnnotationFromElement() throws CoreException {
 		// pre-conditions
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("Type not found", type);
 		IAnnotation annotation = type.getAnnotation("Path");
 		Assert.assertNotNull("Annotation not found", annotation);
@@ -441,7 +460,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudNotResolveUnknownSourceTypeAnnotationFromClassName() throws CoreException {
 		// pre-conditions
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
@@ -452,7 +471,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveBinaryTypeAnnotationFromClassName() throws CoreException {
 		// pre-conditions
-		IType type = resolveType(GET.qualifiedName);
+		IType type = projectMonitor.resolveType(GET.qualifiedName);
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor),
@@ -467,7 +486,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveBinaryTypeAnnotationsFromClassNames() throws CoreException {
 		// pre-conditions
-		IType type = resolveType(GET.qualifiedName);
+		IType type = projectMonitor.resolveType(GET.qualifiedName);
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
@@ -485,7 +504,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudResolveBinaryTypeAnnotationFromElement() throws CoreException {
 		// pre-conditions
-		IType type = resolveType(GET.qualifiedName);
+		IType type = projectMonitor.resolveType(GET.qualifiedName);
 		Assert.assertNotNull("Type not found", type);
 		IAnnotation javaAnnotation = type.getAnnotation(HTTP_METHOD.qualifiedName);
 		Assert.assertTrue("Annotation not found", javaAnnotation.exists());
@@ -501,7 +520,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shoudNotResolveBinaryTypeUnknownAnnotationFromElement() throws CoreException {
 		// pre-conditions
-		IType type = resolveType(GET.qualifiedName);
+		IType type = projectMonitor.resolveType(GET.qualifiedName);
 		Assert.assertNotNull("Type not found", type);
 		IAnnotation javaAnnotation = type.getAnnotation(PATH.qualifiedName);
 		Assert.assertFalse("Annotation not expected", javaAnnotation.exists());
@@ -514,7 +533,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveJavaMethodSignatures() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
 		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type, 
 				JdtUtils.parse(type, progressMonitor));
@@ -554,9 +573,9 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveJavaMethodSignaturesWithNullAnnotationValue() throws CoreException {
 		// pre-condition
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "getCustomer");
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = projectMonitor.resolveMethod(type, "getCustomer");
+		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
 				"@PathParam() Integer id", false);
 		// operation
 		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
@@ -576,7 +595,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveJavaMethodSignaturesForParameterizedType() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ParameterizedResource");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterizedResource");
 		// operation
 		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type, 
 				JdtUtils.parse(type, progressMonitor));
@@ -587,8 +606,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldResolveJavaMethodSignature() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(type, "getCustomers");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(type, "getCustomers");
 		// operation
 		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
 				JdtUtils.parse(type, progressMonitor));
@@ -608,8 +627,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldConfirmSuperType() throws CoreException {
 		// preconditions
-		final IType bookType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final IType objectType = getType(Object.class.getName());
+		final IType bookType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final IType objectType = projectMonitor.resolveType(Object.class.getName());
 		// operation
 		final boolean typeOrSuperType = JdtUtils.isTypeOrSuperType(objectType, bookType);
 		// verification
@@ -619,8 +638,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldConfirmSuperTypeWhenSameType() throws CoreException {
 		// preconditions
-		final IType subType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final IType superType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final IType subType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final IType superType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		// operation
 		final boolean typeOrSuperType = JdtUtils.isTypeOrSuperType(superType, subType);
 		// verification
@@ -630,8 +649,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotConfirmSuperType() throws CoreException {
 		// preconditions
-		final IType bookType = getType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final IType objectType = getType(RESPONSE.qualifiedName);
+		final IType bookType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final IType objectType = projectMonitor.resolveType(RESPONSE.qualifiedName);
 		// operation
 		final boolean typeOrSuperType = JdtUtils.isTypeOrSuperType(objectType, bookType);
 		// verification
@@ -641,7 +660,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveTypeAnnotationFromNameLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerType, PATH.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
@@ -654,7 +673,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveTypeAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerType, PATH.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset() + PATH.qualifiedName.length()
 				+ 3;
@@ -668,7 +687,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveAnnotationTypeAnnotationFromNameLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = getAnnotation(customerType, HTTP_METHOD.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
@@ -681,7 +700,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveAnnotationTypeAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = getAnnotation(customerType, HTTP_METHOD.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset()
 				+ HTTP_METHOD.qualifiedName.length() + 3;
@@ -695,8 +714,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveMethodAnnotationFromNameLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "createCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "createCustomer");
 		final Annotation annotation = getAnnotation(method, CONSUMES.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
@@ -709,8 +728,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveMethodAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "createCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "createCustomer");
 		final Annotation annotation = getAnnotation(method, CONSUMES.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset()
 				+ CONSUMES.qualifiedName.length() + 3;
@@ -724,8 +743,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveLocalVariableAnnotationFromNameLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "getCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final ILocalVariable localVariable = getLocalVariable(method, "id");
 		final int offset = localVariable.getAnnotations()[0].getNameRange().getOffset();
 		// operation
@@ -738,8 +757,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveLocalVariableAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "getCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final ILocalVariable localVariable = getLocalVariable(method, "id");
 		final int offset = localVariable.getAnnotations()[0].getNameRange().getOffset()
 				+ PATH_PARAM.simpleName.length() + 3;
@@ -754,7 +773,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveFieldAnnotationFromNameLocation() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
@@ -769,7 +788,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveFieldAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset() + CONSUMES.simpleName.length()
@@ -784,7 +803,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveAnnotationFromTypeNameLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final int offset = customerType.getNameRange().getOffset();
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
@@ -795,8 +814,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveAnnotationFromMethodNameLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "getCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final int offset = method.getNameRange().getOffset();
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
@@ -807,10 +826,12 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveAnnotationFromMethodBodyLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "getCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final int offset = method.getSourceRange().getOffset() + method.getSourceRange().getLength() - 2;
 		// operation
+		LOGGER.info("Compilation unit: \n{}", CompilationUnitsRepository.getInstance()
+				.getAST(customerType.getCompilationUnit()));
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification
 		assertThat(foundAnnotation, nullValue());
@@ -819,7 +840,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveAnnotationFromFieldNameLocation() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "foo");
 		final int offset = field.getSourceRange().getOffset();
 		// operation
@@ -831,7 +852,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveTypeAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerType, PATH.qualifiedName);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
@@ -846,7 +867,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveTypeSingleMemberAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerType, CONSUMES.qualifiedName);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
@@ -861,8 +882,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveMethodAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "getCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final Annotation annotation = getAnnotation(method, PATH.qualifiedName);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
@@ -876,7 +897,7 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveFieldAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		// operation
@@ -891,8 +912,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveLocalVariableAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "getCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final ILocalVariable localVariable = getLocalVariable(method, "id");
 		final IAnnotation annotation = localVariable.getAnnotations()[0];
 		// operation
@@ -917,8 +938,8 @@ public class JdtUtilsTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveMethodAtLocation() throws CoreException {
 		// preconditions
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(customerType, "getCustomer");
+		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		// operation
 		final IJavaElement element = JdtUtils.getElementAt(customerType.getCompilationUnit(), method.getSourceRange().getOffset(), IJavaElement.METHOD);
 		// verification

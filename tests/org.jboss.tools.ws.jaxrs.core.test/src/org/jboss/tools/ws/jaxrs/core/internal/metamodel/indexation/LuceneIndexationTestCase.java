@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.indexation;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.createAnnotation;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
@@ -32,18 +33,20 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -52,7 +55,7 @@ import org.junit.Test;
  * @author xcoulon
  * 
  */
-public class LuceneIndexationTestCase extends AbstractCommonTestCase {
+public class LuceneIndexationTestCase {
 
 	private Directory index;
 	private IndexWriter w;
@@ -61,8 +64,15 @@ public class LuceneIndexationTestCase extends AbstractCommonTestCase {
 	private Map<String, IJaxrsElement> elements = new HashMap<String, IJaxrsElement>();
 	private IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_35, analyzer);
 
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", false);
+	
 	@Before
-	public void setupLuceneIndex() throws CorruptIndexException, LockObtainFailedException, IOException {
+	public void setup() throws CoreException, CorruptIndexException, IOException {
+		metamodelMonitor.getMetamodel();
 		analyzer = new StandardAnalyzer(Version.LUCENE_35);
 		index = new RAMDirectory();
 		w = new IndexWriter(index, config);
@@ -133,7 +143,7 @@ public class LuceneIndexationTestCase extends AbstractCommonTestCase {
 	public void shouldRetrieveJaxrsHttpMethodFromVerb() throws IOException, JavaModelException, CoreException,
 			ParseException {
 		// pre-condition
-		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 		// operations
@@ -147,7 +157,7 @@ public class LuceneIndexationTestCase extends AbstractCommonTestCase {
 	public void shouldRetrieveJaxrsHttpMethodFromVerbAfterUpdate() throws IOException, JavaModelException,
 			CoreException, ParseException {
 		// pre-condition
-		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 		index(httpMethod);
@@ -167,7 +177,7 @@ public class LuceneIndexationTestCase extends AbstractCommonTestCase {
 	public void shouldNotRetrieveJaxrsHttpMethodFromVerbAfterRemoval() throws IOException, JavaModelException,
 			CoreException, ParseException {
 		// pre-condition
-		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 		index(httpMethod);

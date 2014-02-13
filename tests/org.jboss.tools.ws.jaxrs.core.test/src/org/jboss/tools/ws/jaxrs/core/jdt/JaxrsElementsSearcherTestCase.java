@@ -2,7 +2,8 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
@@ -11,16 +12,33 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
-public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
+public class JaxrsElementsSearcherTestCase {
 
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public TestProjectMonitor projectMonitor = new TestProjectMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+
+	private IJavaProject javaProject = null;
+	
+	@Before
+	public void setup() {
+		javaProject = projectMonitor.getJavaProject();
+	}
+	
 	@Test
 	public void shouldRetrieveAllResourcesInTheProject() throws CoreException {
 		// pre-conditions
@@ -33,7 +51,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveOneResourceInType() throws CoreException {
 		// pre-conditions
-		IType customerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		assertThat(customerType, notNullValue());
 		// operation
 		final List<IType> resources = JaxrsElementsSearcher.findResourceTypes(customerType, new NullProgressMonitor());
@@ -44,7 +62,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveResourceInOtherType() throws CoreException {
 		// pre-conditions
-		IType customerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		assertThat(customerType, notNullValue());
 		// operation
 		final List<IType> resources = JaxrsElementsSearcher.findResourceTypes(customerType, new NullProgressMonitor());
@@ -66,7 +84,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveAllResourceMethodsInType() throws CoreException {
 		// pre-conditions
-		IType customerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		assertThat(customerType, notNullValue());
 		// operation
 		final List<IMethod> resourceMethods = JaxrsElementsSearcher.findResourceMethods(customerType,
@@ -89,7 +107,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveOneHttpMethodsInType() throws CoreException {
 		// pre-conditions
-		IType fooType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		IType fooType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		assertThat(fooType, notNullValue());
 		// operation
 		final List<IType> resourceMethods = JaxrsElementsSearcher.findHttpMethodTypes(fooType,
@@ -111,7 +129,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveAllProvidersInSourceFolder() throws CoreException {
 		// pre-conditions
-		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
+		final IPackageFragmentRoot sourceFolder = projectMonitor.resolvePackageFragmentRoot("src/main/java");
 		// operation
 		final List<IType> providerTypes = JaxrsElementsSearcher.findProviderTypes(sourceFolder,
 				new NullProgressMonitor());
@@ -122,8 +140,8 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveProviderWithoutAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Provider", false);
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		removeFirstOccurrenceOfCode(type, "@Provider", false);
 		// operation
 		final List<IType> providerTypes = JaxrsElementsSearcher.findProviderTypes(type,
 				new NullProgressMonitor());
@@ -134,8 +152,8 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveProviderWithoutHierarchy() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", false);
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		removeFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", false);
 		// operation
 		final List<IType> providerTypes = JaxrsElementsSearcher.findProviderTypes(type, new NullProgressMonitor());
 		// verifications
@@ -145,7 +163,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveProviderInSourceType() throws CoreException {
 		// pre-conditions
-		final IType sourceType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
 		final List<IType> providerTypes = JaxrsElementsSearcher
 				.findProviderTypes(sourceType, new NullProgressMonitor());
@@ -156,7 +174,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveProviderInSourceTypeWithMissingProviderAnnotation() throws CoreException {
 		// pre-conditions
-		final IType sourceType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		replaceFirstOccurrenceOfCode(sourceType, "@Provider", "", false);
 		// operation
 		final List<IType> providerTypes = JaxrsElementsSearcher
@@ -168,7 +186,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveProviderInSourceTypeWithMissingTypeHierarchy() throws CoreException {
 		// pre-conditions
-		final IType sourceType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		replaceFirstOccurrenceOfCode(sourceType, "implements ExceptionMapper<EntityNotFoundException>", "", false);
 		// operation
 		final List<IType> providerTypes = JaxrsElementsSearcher
@@ -180,7 +198,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveProviderInSourceType() throws CoreException {
 		// pre-conditions
-		final IType sourceType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		// operation
 		final List<IType> providerTypes = JaxrsElementsSearcher
 				.findProviderTypes(sourceType, new NullProgressMonitor());
@@ -201,7 +219,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRetrieveOneApplicationInType() throws CoreException {
 		// pre-conditions
-		IType restType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		IType restType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		assertThat(restType, notNullValue());
 		// operation
 		final List<IType> applicationTypes = JaxrsElementsSearcher.findApplicationTypes(restType,
@@ -247,8 +265,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationsWithSupertypeOnlyOnScopeLibrary() throws CoreException {
 		// pre-conditions
-		final IPackageFragmentRoot lib = WorkbenchUtils.getPackageFragmentRoot(javaProject,
-				"lib/jaxrs-api-2.0.1.GA.jar", new NullProgressMonitor());
+		final IPackageFragmentRoot lib = projectMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
 		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
 				"@ApplicationPath(\"/app\")", "", false);
 		// operation
@@ -260,7 +277,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRetrieveApplicationsOnScopeOtherType() throws CoreException {
 		// pre-conditions
-		IType fooType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		IType fooType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		assertThat(fooType, notNullValue());
 		// operation
 		final List<IType> applications = JaxrsElementsSearcher.findApplicationTypes(fooType, new NullProgressMonitor());
@@ -272,7 +289,7 @@ public class JaxrsElementsSearcherTestCase extends AbstractCommonTestCase {
 	public void shouldNotFailWhenJaxrsCoreApplicationTypeIsMissing() throws CoreException, OperationCanceledException,
 			InterruptedException {
 		// pre-conditions: remove Appllication from project classpath
-		WorkbenchUtils.removeClasspathEntry(javaProject, "jaxrs-api-2.0.1.GA.jar", null);
+		projectMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
 		// operation
 		final List<IType> applications = JaxrsElementsSearcher.findApplicationTypes(javaProject,
 				new NullProgressMonitor());

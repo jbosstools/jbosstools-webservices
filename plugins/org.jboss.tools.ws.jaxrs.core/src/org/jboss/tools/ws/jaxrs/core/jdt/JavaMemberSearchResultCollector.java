@@ -62,12 +62,6 @@ public class JavaMemberSearchResultCollector extends SearchRequestor {
 		}
 		// check that the element matches the expected kind, and avoid duplicate
 		// results
-		/*
-		 * IMember member = null; while (member != null &&
-		 * member.getElementType() != kind) { if (member.getParent() instanceof
-		 * IMember) { member = (IMember) member.getParent(); } else { member =
-		 * null; } }
-		 */
 		IMember member = (IMember) element.getAncestor(kind);
 		if (member != null && !resultMembers.contains(member)) {
 			resultMembers.add(member);

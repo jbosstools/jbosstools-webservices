@@ -107,24 +107,30 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		}
 
 		public JaxrsJavaApplication build() throws CoreException {
-			if (javaType == null || !javaType.exists()) {
+			final long start = System.currentTimeMillis();
+			try {
+				if (javaType == null || !javaType.exists()) {
+					return null;
+				}
+				final CompilationUnit compilationUnit = ast != null ? ast : JdtUtils.parse(javaType,
+						new NullProgressMonitor());
+				final IType applicationSupertype = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName,
+						javaType.getJavaProject(), new NullProgressMonitor());
+				final Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, compilationUnit,
+						APPLICATION_PATH.qualifiedName);
+				isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, javaType);
+				if (isApplicationSubclass || applicationPathAnnotation != null) {
+					this.annotations = singleToMap(applicationPathAnnotation);
+					final JaxrsJavaApplication application = new JaxrsJavaApplication(this);
+					// this operation is only performed after creation
+					application.joinMetamodel();
+					return application;
+				}
 				return null;
+			} finally {
+				final long end = System.currentTimeMillis();
+				Logger.tracePerf("Built JAX-RS JavaApplication in {}ms", (end - start));
 			}
-			final CompilationUnit compilationUnit = ast != null ? ast : JdtUtils.parse(javaType,
-					new NullProgressMonitor());
-			final IType applicationSupertype = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName,
-					javaType.getJavaProject(), new NullProgressMonitor());
-			final Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, compilationUnit,
-					APPLICATION_PATH.qualifiedName);
-			isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, javaType);
-			if (isApplicationSubclass || applicationPathAnnotation != null) {
-				this.annotations = singleToMap(applicationPathAnnotation);
-				final JaxrsJavaApplication application = new JaxrsJavaApplication(this);
-				// this operation is only performed after creation
-				application.joinMetamodel();
-				return application;
-			}
-			return null;
 		}
 
 	}

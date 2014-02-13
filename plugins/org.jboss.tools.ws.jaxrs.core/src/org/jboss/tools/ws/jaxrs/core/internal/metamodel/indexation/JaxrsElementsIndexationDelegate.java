@@ -120,6 +120,7 @@ public class JaxrsElementsIndexationDelegate {
 	}
 
 	public void indexElement(final IJaxrsElement element) {
+		final long start = System.currentTimeMillis();
 		try {
 			Logger.traceIndexing("Indexing {} after addition...", element.getName());
 			final Document doc = LuceneDocumentFactory.createDocument(element);
@@ -130,6 +131,8 @@ public class JaxrsElementsIndexationDelegate {
 			Logger.error("Failed to index the JAX-RS Element " + element, e);
 		} finally {
 			Logger.traceIndexing(" Done indexing {}.", element.getName());
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Element indexed in {}ms", (end - start));
 		}
 	}
 
