@@ -50,6 +50,9 @@ public final class Logger {
 	/** The 'traceIndexing' level name, matching the .options file. */
 	private static final String TRACE_INDEXING = JBossJaxrsCorePlugin.PLUGIN_ID + "/traceIndexing";
 
+	/** The 'tracePerf' level name, matching the .options file. */
+	private static final String TRACE_PERF = JBossJaxrsCorePlugin.PLUGIN_ID + "/tracePerf";
+	
 	private static final ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
 		@Override
 		protected DateFormat initialValue() {
@@ -194,6 +197,18 @@ public final class Logger {
 	}
 
 	/**
+	 * Outputs a 'tracePerf' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
+	 * 
+	 * @param message
+	 *            the message to trace.
+	 */
+	public static void tracePerf(final String message, final Object... items) {
+		log(TRACE_PERF, message, items);
+	}
+	
+	/**
 	 * Outputs a message at the given level in the .log file (not the error view of
 	 * the runtime workbench). Traces must be activated for this plugin in order
 	 * to see the output messages.
@@ -236,6 +251,9 @@ public final class Logger {
 		}
 		if(level.equals(TRACE_INDEXING)) {
 			return "TRACE_INDEXING";
+		}
+		if(level.equals(TRACE_PERF)) {
+			return "TRACE_PERF";
 		}
 		return "UNKNOWN_LEVEL";
 	}

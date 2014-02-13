@@ -26,6 +26,23 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElem
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta.NO_FLAG;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addFieldAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addMethodAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addMethodParameter;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addTypeAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.appendCompilationUnitType;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.createField;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.createMethod;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.delete;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeField;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeFieldAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeMethod;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeMethodAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeType;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.renameMethod;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
@@ -35,6 +52,7 @@ import static org.mockito.Mockito.verify;
 import java.util.EventObject;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -48,6 +66,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
@@ -56,26 +75,67 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IEditorPart;
-import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchTasks;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
+public class JavaElementDeltaScannerTestCase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaElementDeltaScannerTestCase.class);
 
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", false);
+	
+	private JaxrsMetamodel metamodel = null;
+	
+	private IProject project = null;
+	
+	private IJavaProject javaProject = null;
+	
+	@SuppressWarnings("unchecked")
+	@Before
+	public void setup() throws CoreException {
+		metamodel = metamodelMonitor.getMetamodel();
+		javaProject = metamodel.getJavaProject();
+		project = metamodel.getProject();
+		
+		JBossJaxrsCorePlugin.getDefault().pauseListeners();
+		Assert.assertNotNull("JavaProject not set");
+		// ElementChangedEvent.POST_RECONCILE is the only case where the
+		// CompilationUnitAST is retrieved
+		astRepository.clear();
+		// JBossJaxrsCorePlugin.getDefault().unregisterListeners();
+		JavaCore.addElementChangedListener(elementChangeListener);
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener);
+		javaElementEvents = Mockito.mock(List.class);
+		resourceEvents = Mockito.mock(List.class);
+	}
+	
+	@After
+	public void removeAndRestoreListeners() throws CoreException, OperationCanceledException, InterruptedException {
+		project.open(new NullProgressMonitor());
+		javaProject.open(new NullProgressMonitor());
+		JavaCore.removeElementChangedListener(elementChangeListener);
+		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
+	}
+	
 	private final CompilationUnitsRepository astRepository = CompilationUnitsRepository.getInstance();
 
 	private static final boolean PRIMARY_COPY = false;
@@ -128,30 +188,6 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	@Before
-	public void setupTest() throws CoreException {
-		JBossJaxrsCorePlugin.getDefault().pauseListeners();
-		Assert.assertNotNull("JavaProject not set");
-		// ElementChangedEvent.POST_RECONCILE is the only case where the
-		// CompilationUnitAST is retrieved
-		astRepository.clear();
-		// JBossJaxrsCorePlugin.getDefault().unregisterListeners();
-		JavaCore.addElementChangedListener(elementChangeListener);
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener);
-		javaElementEvents = Mockito.mock(List.class);
-		resourceEvents = Mockito.mock(List.class);
-	}
-
-	@After
-	public void removeAndRestoreListeners() throws CoreException, OperationCanceledException, InterruptedException {
-		project.open(new NullProgressMonitor());
-		javaProject.open(new NullProgressMonitor());
-		WorkbenchTasks.buildProject(project, null);
-		JavaCore.removeElementChangedListener(elementChangeListener);
-		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
-	}
-
 	private void verifyEventNotification(IJavaElement element, int deltaKind, int eventType, int flags,
 			VerificationMode numberOfTimes) throws JavaModelException {
 		LOGGER.info("Verifying method calls..");
@@ -182,7 +218,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenEmptyCompilationUnitAdded() throws JavaModelException {
 		// operation
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"EmptyCompilationUnit.txt", "org.jboss.tools.ws.jaxrs.sample.services", "FOO2.java");
 		// verifications:
 		verifyEventNotification(compilationUnit.getResource(), ADDED, POST_CHANGE, NO_FLAG, times(1));
@@ -191,10 +227,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotNotifyWhenCompilationUnitChangedInWorkingCopy() throws CoreException {
 		// pre-condition
-		ICompilationUnit compilationUnit = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
 		// operation
-		WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", WORKING_COPY);
+		appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", WORKING_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit, CHANGED, POST_RECONCILE, NO_FLAG, never());
 	}
@@ -202,10 +238,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenCompilationUnitChangedInPrimaryCopy() throws CoreException {
 		// pre-condition
-		ICompilationUnit compilationUnit = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
 		// operation
-		WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", PRIMARY_COPY);
+		appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, NO_FLAG, atLeastOnce());
 	}
@@ -213,7 +249,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenCompilationUnitAddedInPrimaryCopy() throws CoreException {
 		// operation
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject, "FooResource.txt",
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit( "FooResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java");
 		// verifications: 1 times
 		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -222,10 +258,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenCompilationUnitRemovedInPrimaryCopy() throws CoreException {
 		// pre-condition
-		ICompilationUnit compilationUnit = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
 		// operation
-		WorkbenchUtils.delete(compilationUnit);
+		delete(compilationUnit);
 		// verifications:
 		verifyEventNotification(compilationUnit.getResource(), REMOVED, POST_CHANGE, MARKERS, times(1));
 	}
@@ -234,7 +270,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Ignore("can't produce the right test conditions here")
 	public void shouldNotifyWhenResourceRemovedInWorkingCopy() throws CoreException {
 		// pre-condition
-		ICompilationUnit compilationUnit = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit().getWorkingCopy(new NullProgressMonitor());
 		compilationUnit.open(new NullProgressMonitor());
 		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
@@ -250,7 +286,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenResourceRemovedInPrimaryCopy() throws CoreException {
 		// pre-condition
-		ICompilationUnit compilationUnit = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
 		// operation
 		compilationUnit.getResource().delete(true, null);
@@ -261,10 +297,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
 		// operations
-		IType addedType = WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooResourceMember.txt",
+		IType addedType = appendCompilationUnitType(compilationUnit, "FooResourceMember.txt",
 				WORKING_COPY);
 		// verifications:
 		verifyEventNotification(addedType, ADDED, POST_RECONCILE, NO_FLAG, times(1));
@@ -273,10 +309,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
 		// operations
-		IType addedType = WorkbenchUtils.appendCompilationUnitType(compilationUnit, "FooResourceMember.txt",
+		IType addedType = appendCompilationUnitType(compilationUnit, "FooResourceMember.txt",
 				PRIMARY_COPY);
 		// verifications: one call PostReconcile + one call on PostChange
 		verifyEventNotification(addedType.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -285,9 +321,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		WorkbenchUtils.removeType(type, WORKING_COPY);
+		removeType(type, WORKING_COPY);
 		// verifications
 		verifyEventNotification(type, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -295,9 +331,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		WorkbenchUtils.removeType(type, PRIMARY_COPY);
+		removeType(type, PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
 	}
@@ -305,12 +341,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeParameterAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapperEmptyParameter.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
 		LOGGER.info("Performing Test Operation(s)...");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
+		replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", WORKING_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
@@ -319,12 +355,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeParameterAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapperEmptyParameter.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
 		LOGGER.info("Performing Test Operation(s)...");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
+		replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -333,9 +369,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeInterfaceAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
+		type = replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
 				WORKING_COPY);
 		// verifications
 		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
@@ -344,9 +380,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeInterfaceAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
+		type = replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -355,9 +391,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeInterfaceRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
+		type = replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
 				"", WORKING_COPY);
 		// verifications
 		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
@@ -366,9 +402,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeInterfaceRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
+		type = replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
 				"", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -377,9 +413,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeSuperclassAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
+		type = replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
 				WORKING_COPY);
 		// verifications
 		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
@@ -388,9 +424,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeSuperclassAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
+		type = replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -399,9 +435,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeSuperclassRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Product", "", WORKING_COPY);
+		type = replaceFirstOccurrenceOfCode(type, "extends Product", "", WORKING_COPY);
 		// verifications
 		verifyEventNotification(type, CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
@@ -409,9 +445,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeSuperclassRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "extends Product", "", PRIMARY_COPY);
+		type = replaceFirstOccurrenceOfCode(type, "extends Product", "", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -419,12 +455,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeParameterChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
 		LOGGER.info("Performing Test Operation(s)...");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
+		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				WORKING_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
@@ -433,12 +469,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeParameterChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
 		LOGGER.info("Performing Test Operation(s)...");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
+		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -447,12 +483,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeParameterRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
 		LOGGER.info("Performing Test Operation(s)...");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", WORKING_COPY);
+		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", WORKING_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
 	}
@@ -460,12 +496,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeParameterRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
 		LOGGER.info("Performing Test Operation(s)...");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", PRIMARY_COPY);
+		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -473,9 +509,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
 		// operation
-		IAnnotation addedAnnotation = WorkbenchUtils.addTypeAnnotation(type,
+		IAnnotation addedAnnotation = addTypeAnnotation(type,
 				"import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
@@ -484,9 +520,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
 		// operation
-		WorkbenchUtils.addTypeAnnotation(type, "import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", PRIMARY_COPY);
+		addTypeAnnotation(type, "import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -494,9 +530,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)",
+		type = replaceFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)",
 				"@Path(\"/foo\")", WORKING_COPY);
 		IAnnotation annotation = type.getAnnotation("Path");
 		// verifications
@@ -506,9 +542,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		type = WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)",
+		type = replaceFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)",
 				"@Path(\"/foo\")", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -517,10 +553,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
 		IAnnotation annotation = type.getAnnotation("Path");
-		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", WORKING_COPY);
+		removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", WORKING_COPY);
 		// verifications
 		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -528,9 +564,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		WorkbenchUtils.removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", PRIMARY_COPY);
+		removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -538,8 +574,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotNotifyWhenLibraryAddedInClasspath() throws CoreException, InterruptedException {
 		// operation
-		IPackageFragmentRoot addedEntry = WorkbenchTasks.addClasspathEntry(javaProject, "slf4j-api-1.5.2.jar",
-				new NullProgressMonitor());
+		IPackageFragmentRoot addedEntry = metamodelMonitor.addClasspathEntry("slf4j-api-1.5.2.jar");
 		// verifications
 		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(0));
 	}
@@ -547,8 +582,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotNotifyWhenUnexistingLibraryAddedInClasspath() throws CoreException, InterruptedException {
 		// operation
-		IPackageFragmentRoot addedEntry = WorkbenchTasks.addClasspathEntry(javaProject, "slf4j-api-1.5.xyz.jar",
-				new NullProgressMonitor());
+		IPackageFragmentRoot addedEntry = metamodelMonitor.addClasspathEntry("slf4j-api-1.5.xyz.jar");
 		// verifications
 		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(0));
 	}
@@ -556,8 +590,8 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotNotifyWhenLibraryRemovedFromClasspath() throws CoreException, InterruptedException {
 		// operation
-		List<IPackageFragmentRoot> removedEntries = WorkbenchUtils.removeClasspathEntry(javaProject,
-				"jaxrs-api-2.0.1.GA.jar", null);
+		List<IPackageFragmentRoot> removedEntries = metamodelMonitor.removeClasspathEntry(
+				"jaxrs-api-2.0.1.GA.jar");
 		// verifications
 		for (IPackageFragmentRoot removedEntry : removedEntries) {
 			verifyEventNotification(removedEntry, REMOVED, POST_CHANGE, F_REMOVED_FROM_CLASSPATH, times(0));
@@ -567,9 +601,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IField addedField = WorkbenchUtils.createField(type, "private int i", WORKING_COPY);
+		IField addedField = createField(type, "private int i", WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -577,9 +611,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		WorkbenchUtils.createField(type, "private int i", PRIMARY_COPY);
+		createField(type, "private int i", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -587,9 +621,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenAnnotatedFieldAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IField addedField = WorkbenchUtils.createField(type, "@PathParam() private int i", WORKING_COPY);
+		IField addedField = createField(type, "@PathParam() private int i", WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -597,9 +631,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenAnnotatedFieldAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IField addedField = WorkbenchUtils.createField(type, "@PathParam() private int i", PRIMARY_COPY);
+		IField addedField = createField(type, "@PathParam() private int i", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(addedField.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -607,10 +641,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldNameChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField oldField = type.getField("entityManager");
 		// operation
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", WORKING_COPY);
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", WORKING_COPY);
 		IField newField = type.getField("em");
 		// verifications
 		verifyEventNotification(oldField, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
@@ -620,9 +654,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldNameChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", PRIMARY_COPY);
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -630,10 +664,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldTypeChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
 				"private HibernateEntityManager", WORKING_COPY);
 		// verifications
 		verifyEventNotification(field, CHANGED, POST_RECONCILE, F_CONTENT, times(1));
@@ -642,9 +676,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldTypeChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
 				"private HibernateEntityManager", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -653,10 +687,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		WorkbenchUtils.removeField(field, WORKING_COPY);
+		removeField(field, WORKING_COPY);
 		// verifications
 		verifyEventNotification(field, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -664,10 +698,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		WorkbenchUtils.removeField(field, PRIMARY_COPY);
+		removeField(field, PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -675,10 +709,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAnnotationAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		IAnnotation addedAnnotation = WorkbenchUtils.addFieldAnnotation(field, "@PathParam()", WORKING_COPY);
+		IAnnotation addedAnnotation = addFieldAnnotation(field, "@PathParam()", WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -686,10 +720,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAnnotationAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		WorkbenchUtils.addFieldAnnotation(field, "@PathParam()", PRIMARY_COPY);
+		addFieldAnnotation(field, "@PathParam()", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -697,10 +731,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAnnotationChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		field = WorkbenchUtils.replaceFirstOccurrenceOfCode(field, "@PersistenceContext",
+		field = replaceFirstOccurrenceOfCode(field, "@PersistenceContext",
 				"@PersistenceContext(value=\"foo\")", WORKING_COPY);
 		// verifications
 		IAnnotation annotation = field.getAnnotation("PersistenceContext");
@@ -710,10 +744,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAnnotationChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		field = WorkbenchUtils.replaceFirstOccurrenceOfCode(field, "@PersistenceContext",
+		field = replaceFirstOccurrenceOfCode(field, "@PersistenceContext",
 				"@PersistenceContext(value=\"foo\")", PRIMARY_COPY);
 		// verifications
 		IAnnotation annotation = field.getAnnotation("PersistenceContext");
@@ -723,11 +757,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAnnotationRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		IAnnotation annotation = field.getAnnotation("PersistenceContext");
 		// operation
-		WorkbenchUtils.removeFieldAnnotation(field, "@PersistenceContext", WORKING_COPY);
+		removeFieldAnnotation(field, "@PersistenceContext", WORKING_COPY);
 		// verifications
 		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -735,11 +769,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenFieldAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		IAnnotation annotation = field.getAnnotation("PersistenceContext");
 		// operation
-		WorkbenchUtils.removeFieldAnnotation(field, "@PersistenceContext", PRIMARY_COPY);
+		removeFieldAnnotation(field, "@PersistenceContext", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -747,9 +781,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IMethod addedMethod = WorkbenchUtils.createMethod(type, "public Object fooLocator() { return null; }",
+		IMethod addedMethod = createMethod(type, "public Object fooLocator() { return null; }",
 				WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
@@ -758,9 +792,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IMethod addedMethod = WorkbenchUtils.createMethod(type, "public Object fooLocator() { return null; }",
+		IMethod addedMethod = createMethod(type, "public Object fooLocator() { return null; }",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(addedMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -769,9 +803,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IMethod method = WorkbenchUtils.removeMethod(type.getCompilationUnit(), "createCustomer", WORKING_COPY);
+		IMethod method = removeMethod(type.getCompilationUnit(), "createCustomer", WORKING_COPY);
 		// verifications
 		verifyEventNotification(method, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -779,9 +813,9 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IMethod method = WorkbenchUtils.removeMethod(type.getCompilationUnit(), "createCustomer", PRIMARY_COPY);
+		IMethod method = removeMethod(type.getCompilationUnit(), "createCustomer", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -789,12 +823,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodRenamedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "getEntityManager");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "getEntityManager");
 		// operation
-		WorkbenchUtils.renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM", WORKING_COPY);
+		renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM", WORKING_COPY);
 		// verifications
-		IMethod newMethod = getJavaMethod(type, "getEM");
+		IMethod newMethod = metamodelMonitor.resolveMethod(type, "getEM");
 		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -802,12 +836,12 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodRenamedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IMethod oldMethod = WorkbenchUtils.renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM",
+		IMethod oldMethod = renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM",
 				PRIMARY_COPY);
 		// verifications
-		IMethod newMethod = getJavaMethod(type, "getEM");
+		IMethod newMethod = metamodelMonitor.resolveMethod(type, "getEM");
 		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 		verifyEventNotification(newMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -815,10 +849,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParameterAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		IMethod newMethod = WorkbenchUtils.addMethodParameter(oldMethod, "int i", WORKING_COPY);
+		IMethod newMethod = addMethodParameter(oldMethod, "int i", WORKING_COPY);
 		// verifications
 		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
@@ -827,10 +861,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParameterAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		WorkbenchUtils.addMethodParameter(oldMethod, "int i", PRIMARY_COPY);
+		addMethodParameter(oldMethod, "int i", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -838,10 +872,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParameterTypeChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod, "Customer customer",
+		IMethod newMethod = replaceFirstOccurrenceOfCode(oldMethod, "Customer customer",
 				"String customer", WORKING_COPY);
 		// verifications
 		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
@@ -851,10 +885,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParameterTypeChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod, "Customer customer", "String customer", PRIMARY_COPY);
+		replaceFirstOccurrenceOfCode(oldMethod, "Customer customer", "String customer", PRIMARY_COPY);
 		// verifications
 		// 1 invocation for both the old method removal and the new method
 		// addition
@@ -864,12 +898,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParameterNameChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		method = WorkbenchUtils
-				.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", WORKING_COPY);
+		method = replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", WORKING_COPY);
 		// verifications
 		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
 	}
@@ -877,12 +910,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotNotifyWhenMethodParameterNameChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		method = WorkbenchUtils
-				.replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", PRIMARY_COPY);
+		method = replaceFirstOccurrenceOfCode(method, "Customer customer", "Customer cust", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(0));
 	}
@@ -890,10 +922,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParametersReversedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "getCustomer");
 		// operation
-		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
+		IMethod newMethod = replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
 				"@Context UriInfo uriInfo, @PathParam(\"id\") Integer id", WORKING_COPY);
 		// verifications
@@ -904,10 +936,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParametersReversedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "getCustomer");
 		// operation
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
+		replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
 				"@Context UriInfo uriInfo, @PathParam(\"id\") Integer id", PRIMARY_COPY);
 		// verifications
@@ -917,11 +949,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParameterRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "getCustomer");
 		LOGGER.info("Method signature: " + oldMethod.getSignature());
 		// operation
-		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
+		IMethod newMethod = replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo", "@PathParam(\"id\") Integer id",
 				WORKING_COPY);
 		LOGGER.info("Method signature: " + newMethod.getSignature());
@@ -933,11 +965,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodParameterRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod oldMethod = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "getCustomer");
 		LOGGER.info("Method signature: " + oldMethod.getSignature());
 		// operation
-		IMethod newMethod = WorkbenchUtils.replaceFirstOccurrenceOfCode(oldMethod,
+		IMethod newMethod = replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo", "@PathParam(\"id\") Integer id",
 				PRIMARY_COPY);
 		LOGGER.info("Method signature: " + newMethod.getSignature());
@@ -949,10 +981,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAnnotationAddedInWorkingCopy() throws CoreException,
 			InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer",
+		method = replaceFirstOccurrenceOfCode(method, "Customer customer",
 				"@PathParam(\"id\") Customer customer", WORKING_COPY);
 		// verifications
 		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
@@ -962,10 +994,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAnnotationAddedInPrimaryCopy() throws CoreException,
 			InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "Customer customer",
+		method = replaceFirstOccurrenceOfCode(method, "Customer customer",
 				"@PathParam(\"id\") Customer customer", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -975,10 +1007,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAnnotationChangedInWorkingCopy() throws CoreException,
 			InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "getCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
+		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
 				WORKING_COPY);
 		// verifications
 		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
@@ -988,10 +1020,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAnnotationChangedInPrimaryCopy() throws CoreException,
 			InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "getCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
+		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -1001,10 +1033,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAnnotationRemovedInWorkingCopy() throws CoreException,
 			InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "getCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
+		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
 				WORKING_COPY);
 		// verifications
 		verifyEventNotification(method, CHANGED, POST_RECONCILE, F_SIGNATURE, times(1));
@@ -1014,10 +1046,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	public void shouldNotifyWhenMethodParameterAnnotationRemovedInPrimaryCopy() throws CoreException,
 			InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "getCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "getCustomer");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
+		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -1026,10 +1058,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAnnotationAddedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		IAnnotation addedAnnotation = WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", WORKING_COPY);
+		IAnnotation addedAnnotation = addMethodAnnotation(method, "@Path(\"/foo\")", WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -1037,10 +1069,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAnnotationAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		// operation
-		WorkbenchUtils.addMethodAnnotation(method, "@Path(\"/foo\")", PRIMARY_COPY);
+		addMethodAnnotation(method, "@Path(\"/foo\")", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -1048,11 +1080,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAnnotationChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
+		method = replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
 				WORKING_COPY);
 		// verifications
 		verifyEventNotification(annotation, CHANGED, POST_RECONCILE, F_CONTENT, times(1));
@@ -1061,11 +1093,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAnnotationChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
-		method = WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
+		method = replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
 				PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -1074,11 +1106,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAnnotationRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("POST");
 		// operation
-		WorkbenchUtils.removeMethodAnnotation(method, annotation, WORKING_COPY);
+		removeMethodAnnotation(method, annotation, WORKING_COPY);
 		// verifications
 		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -1086,11 +1118,11 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenMethodAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod method = getJavaMethod(type, "createCustomer");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("POST");
 		// operation
-		WorkbenchUtils.removeMethodAnnotation(method, annotation, PRIMARY_COPY);
+		removeMethodAnnotation(method, annotation, PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
@@ -1098,23 +1130,23 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenResourceMarkerAddedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IField field = type.getField("entityManager");
 		// operation
-		WorkbenchUtils.removeField(field, PRIMARY_COPY);
+		removeField(field, PRIMARY_COPY);
 		// verifications
-		final IMethod method = getJavaMethod(type, "deleteCustomer");
+		final IMethod method = metamodelMonitor.resolveMethod(type, "deleteCustomer");
 		verifyEventNotification(method.getResource(), CHANGED, POST_RECONCILE, F_MARKER_ADDED, atLeastOnce());
 	}
 
 	@Test
 	public void shouldNotifyWhenResourceMarkerRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operations
 		IField field = type.getField("entityManager");
-		WorkbenchUtils.removeField(field, PRIMARY_COPY);
-		WorkbenchUtils.createField(type, "private EntityManager entityManager;", PRIMARY_COPY);
+		removeField(field, PRIMARY_COPY);
+		createField(type, "private EntityManager entityManager;", PRIMARY_COPY);
 		// verifications
 		for (IMethod method : type.getMethods()) {
 			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_MARKER_ADDED, atLeastOnce());
@@ -1125,10 +1157,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenParameterTypeChangedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operations
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "import javax.persistence.EntityNotFoundException;", "import javax.persistence.NoResultException;", false);
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "ExceptionMapper<EntityNotFoundException>", "ExceptionMapper<NoResultException>", false);
+		replaceAllOccurrencesOfCode(type, "import javax.persistence.EntityNotFoundException;", "import javax.persistence.NoResultException;", false);
+		replaceAllOccurrencesOfCode(type, "ExceptionMapper<EntityNotFoundException>", "ExceptionMapper<NoResultException>", false);
 		// verifications
 		for (IMethod method : type.getMethods()) {
 			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_SIGNATURE, atLeastOnce());
@@ -1138,10 +1170,10 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotifyWhenParameterTypeChangedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operations
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "import javax.persistence.EntityNotFoundException;", "import javax.persistence.NoResultException;", true);
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type, "ExceptionMapper<EntityNotFoundException>", "ExceptionMapper<NoResultException>", true);
+		replaceAllOccurrencesOfCode(type, "import javax.persistence.EntityNotFoundException;", "import javax.persistence.NoResultException;", true);
+		replaceAllOccurrencesOfCode(type, "ExceptionMapper<EntityNotFoundException>", "ExceptionMapper<NoResultException>", true);
 		// verifications
 		for (IMethod method : type.getMethods()) {
 			verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, F_SIGNATURE, atLeastOnce());
@@ -1154,7 +1186,7 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		project.close(new NullProgressMonitor());
 		// verification
-		verify(resourceEvents, never());
+		verify(resourceEvents, never()).add(new ResourceDelta(project, CHANGED, 0));
 	}
 
 	@Test
@@ -1163,6 +1195,6 @@ public class JavaElementDeltaScannerTestCase extends AbstractCommonTestCase {
 		// operation
 		javaProject.close();
 		// verification
-		verify(resourceEvents, never());
+		verify(resourceEvents, never()).add(new ResourceDelta(project, CHANGED, 0));
 	}
 }

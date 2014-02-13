@@ -105,33 +105,40 @@ public class JaxrsElementFactory {
 	 */
 	private static List<IJaxrsElement> createElements(final IType type, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		final long start = System.currentTimeMillis();
 		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
-		// let's see if the given type can be an HTTP Method (ie, is annotated
-		// with @HttpMethod)
-		final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type, ast).withMetamodel(metamodel).build();
-		if (httpMethod != null) {
-			elements.add(httpMethod);
+		try {
+			// let's see if the given type can be an HTTP Method (ie, is annotated
+			// with @HttpMethod)
+			final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type, ast).withMetamodel(metamodel).build();
+			if (httpMethod != null) {
+				elements.add(httpMethod);
+			}
+			// now,let's see if the given type can be a Resource (with or without
+			// @Path)
+			final JaxrsResource resource = JaxrsResource.from(type, ast, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+			if (resource != null) {
+				elements.add(resource);
+				elements.addAll(resource.getAllMethods());
+				elements.addAll(resource.getAllFields());
+			}
+			// now,let's see if the given type can be an Application
+			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type, ast).withMetamodel(metamodel).build();
+			if (application != null) {
+				elements.add(application);
+			}
+			// now,let's see if the given type can be a Provider
+			final JaxrsProvider provider = JaxrsProvider.from(type, ast).withMetamodel(metamodel).build();
+			if (provider != null) {
+				elements.add(provider);
+			}
+	
+			return elements;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("{} JAX-RS elements created in {}ms:", elements.size(), (end - start), elements);
+			
 		}
-		// now,let's see if the given type can be a Resource (with or without
-		// @Path)
-		final JaxrsResource resource = JaxrsResource.from(type, ast, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
-		if (resource != null) {
-			elements.add(resource);
-			elements.addAll(resource.getAllMethods());
-			elements.addAll(resource.getAllFields());
-		}
-		// now,let's see if the given type can be an Application
-		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type, ast).withMetamodel(metamodel).build();
-		if (application != null) {
-			elements.add(application);
-		}
-		// now,let's see if the given type can be a Provider
-		final JaxrsProvider provider = JaxrsProvider.from(type, ast).withMetamodel(metamodel).build();
-		if (provider != null) {
-			elements.add(provider);
-		}
-
-		return elements;
 	}
 
 	private static List<IJaxrsElement> createElements(final IJavaElement scope,
@@ -141,6 +148,15 @@ public class JaxrsElementFactory {
 			return Collections.emptyList();
 		}
 		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		// let's see if the given scope contains JAX-RS Application
+		final List<IType> matchingApplicationTypes = JaxrsElementsSearcher.findApplicationTypes(scope,
+				progressMonitor);
+		for (IType type : matchingApplicationTypes) {
+			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
+			if (application != null) {
+				elements.add(application);
+			}
+		}
 		// let's see if the given scope contains JAX-RS HTTP Methods
 		final List<IType> matchingHttpMethodTypes = JaxrsElementsSearcher.findHttpMethodTypes(scope,
 				progressMonitor);
@@ -158,15 +174,6 @@ public class JaxrsElementFactory {
 				elements.add(resource);
 				elements.addAll(resource.getAllMethods());
 				elements.addAll(resource.getAllFields());
-			}
-		}
-		// let's see if the given scope contains JAX-RS Application
-		final List<IType> matchingApplicationTypes = JaxrsElementsSearcher.findApplicationTypes(scope,
-				progressMonitor);
-		for (IType type : matchingApplicationTypes) {
-			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
-			if (application != null) {
-				elements.add(application);
 			}
 		}
 		// let's see if the given scope contains JAX-RS Providers

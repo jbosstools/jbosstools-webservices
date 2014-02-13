@@ -37,6 +37,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsElementsSearcher;
@@ -130,36 +131,43 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		}
 
 		public JaxrsResource build() throws CoreException {
-			if (javaType == null || !javaType.exists()) {
-				return null;
+			final long start = System.currentTimeMillis();
+			try {
+				if (javaType == null || !javaType.exists()) {
+					return null;
+				}
+				annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PATH.qualifiedName, CONSUMES.qualifiedName,
+						PRODUCES.qualifiedName, ENCODED.qualifiedName));
+				// create the resource
+				final JaxrsResource resource = new JaxrsResource(this);
+				// retrieve all JavaMethodSignatures at once
+				final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(javaType, ast);
+				// find the resource methods, subresource methods and
+				// subresource
+				// locators of this resource:
+				final List<IMethod> javaMethods = JaxrsElementsSearcher.findResourceMethods(javaType, this.httpMethods,
+						new NullProgressMonitor());
+				for (IMethod javaMethod : javaMethods) {
+					JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
+							.withJavaMethodSignature(methodSignatures.get(javaMethod.getHandleIdentifier())).withMetamodel(metamodel).build();
+				}
+				// find the available type fields
+				for (IField javaField : javaType.getFields()) {
+					JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
+				}
+				// well, sorry.. this is not a valid JAX-RS resource..
+				if (resource.isSubresource() && resource.resourceFields.isEmpty() && resource.resourceMethods.isEmpty()) {
+					return null;
+				}
+				// this operation is only performed if the resource is acceptable
+				// (ie, not UNDEFINED)
+				resource.joinMetamodel();
+				return resource;
+			} finally {
+				final long end = System.currentTimeMillis();
+				Logger.tracePerf("Built JAX-RS Resource in {}ms", (end - start));
 			}
-			annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PATH.qualifiedName, CONSUMES.qualifiedName,
-					PRODUCES.qualifiedName, ENCODED.qualifiedName));
-			// create the resource
-			final JaxrsResource resource = new JaxrsResource(this);
-			// retrieve all JavaMethodSignatures at once
-			final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(javaType, ast);
-			// find the resource methods, subresource methods and
-			// subresource
-			// locators of this resource:
-			final List<IMethod> javaMethods = JaxrsElementsSearcher.findResourceMethods(javaType, this.httpMethods,
-					new NullProgressMonitor());
-			for (IMethod javaMethod : javaMethods) {
-				JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
-						.withJavaMethodSignature(methodSignatures.get(javaMethod.getHandleIdentifier())).withMetamodel(metamodel).build();
-			}
-			// find the available type fields
-			for (IField javaField : javaType.getFields()) {
-				JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
-			}
-			// well, sorry.. this is not a valid JAX-RS resource..
-			if (resource.isSubresource() && resource.resourceFields.isEmpty() && resource.resourceMethods.isEmpty()) {
-				return null;
-			}
-			// this operation is only performed if the resource is acceptable
-			// (ie, not UNDEFINED)
-			resource.joinMetamodel();
-			return resource;
+
 		}
 
 	}

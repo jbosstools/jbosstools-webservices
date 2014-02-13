@@ -39,6 +39,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
@@ -154,30 +155,36 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		 *         invalid type (ie, not a valid JAX-RS Provider)
 		 */
 		public JaxrsProvider build() throws CoreException {
-			if (javaType == null || !javaType.exists()) {
+			final long start = System.currentTimeMillis();
+			try {
+				if (javaType == null || !javaType.exists()) {
+					return null;
+				}
+				// assert that given java type is not abstract
+				if (JdtUtils.isAbstractType(javaType)) {
+					return null;
+				}
+				final ITypeHierarchy providerTypeHierarchy = JdtUtils.resolveTypeHierarchy(javaType,
+						javaType.getJavaProject(), false, new NullProgressMonitor());
+				final IType[] subtypes = providerTypeHierarchy.getSubtypes(javaType);
+				// assert that given java type has no sub-type, or continue;
+				if (subtypes != null && subtypes.length > 0) {
+					return null;
+				}
+				this.providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy, new NullProgressMonitor());
+				this.annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PROVIDER.qualifiedName,
+						CONSUMES.qualifiedName, PRODUCES.qualifiedName, ENCODED.qualifiedName));
+				if (annotations.get(PROVIDER.qualifiedName) != null || !providedKinds.isEmpty()) {
+					final JaxrsProvider provider = new JaxrsProvider(this);
+					// this operation is only performed after creation
+					provider.joinMetamodel();
+					return provider;
+				}
 				return null;
+			} finally {
+				final long end = System.currentTimeMillis();
+				Logger.tracePerf("Built JAX-RS Provider in {}ms", (end - start));
 			}
-			// assert that given java type is not abstract
-			if (JdtUtils.isAbstractType(javaType)) {
-				return null;
-			}
-			final ITypeHierarchy providerTypeHierarchy = JdtUtils.resolveTypeHierarchy(javaType,
-					javaType.getJavaProject(), false, new NullProgressMonitor());
-			final IType[] subtypes = providerTypeHierarchy.getSubtypes(javaType);
-			// assert that given java type has no sub-type, or continue;
-			if (subtypes != null && subtypes.length > 0) {
-				return null;
-			}
-			this.providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy, new NullProgressMonitor());
-			this.annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PROVIDER.qualifiedName,
-					CONSUMES.qualifiedName, PRODUCES.qualifiedName, ENCODED.qualifiedName));
-			if (annotations.get(PROVIDER.qualifiedName) != null || !providedKinds.isEmpty()) {
-				final JaxrsProvider provider = new JaxrsProvider(this);
-				// this operation is only performed after creation
-				provider.joinMetamodel();
-				return provider;
-			}
-			return null;
 		}
 
 		/**

@@ -18,6 +18,7 @@ import static org.junit.Assert.assertThat;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.Document;
@@ -31,8 +32,12 @@ import org.jboss.tools.common.validation.EditorValidationContext;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
-import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -40,7 +45,7 @@ import org.junit.Test;
  * 
  */
 @SuppressWarnings("restriction")
-public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTestCase {
+public class JaxrsMetamodelValidatorTestCase {
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final IProjectValidationContext projectValidationContext = new ProjectValidationContext();
@@ -49,8 +54,20 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 	private final ValidatorManager validatorManager = new ValidatorManager();
 	private JaxrsMetamodelValidator metamodelValidator;
 	
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
+	
+	private JaxrsMetamodel metamodel = null;
+
+	private IProject project = null;
+
 	@Before
-	public void setupValidator() {
+	public void setup() throws CoreException {
+		metamodel = metamodelMonitor.getMetamodel();
+		project = metamodel.getProject();
 		metamodelValidator = new JaxrsMetamodelValidator();
 	}
 
@@ -67,7 +84,7 @@ public class JaxrsMetamodelValidatorTestCase extends AbstractMetamodelBuilderTes
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelProblemLevelChanges.size(), is(0));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
 	}
 	
 }

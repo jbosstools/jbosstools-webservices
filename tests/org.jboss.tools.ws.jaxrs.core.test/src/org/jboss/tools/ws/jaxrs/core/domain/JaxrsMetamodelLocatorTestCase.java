@@ -19,35 +19,49 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
-import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
  * @author xcoulon
  * 
  */
-public class JaxrsMetamodelLocatorTestCase extends AbstractCommonTestCase {
+public class JaxrsMetamodelLocatorTestCase {
+
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", false);
+	
+	private JaxrsMetamodel metamodel = null;
+
+	private IJavaProject javaProject = null;
 
 	@Before
-	public void removeMetamodel() {
+	public void setup() throws CoreException {
+		metamodel = metamodelMonitor.getMetamodel();
+		javaProject = metamodel.getJavaProject();
 		metamodel.remove();
 	}
-
+	
 	@After
 	public void reopenProjects() throws CoreException {
-		project.open(new NullProgressMonitor());
-		javaProject.open(new NullProgressMonitor());
+		//javaProject.open(new NullProgressMonitor());
 	}
 
 	@Test
 	public void shouldNotGetMetamodelFromProjectIfMissing() throws CoreException {
 		// pre-condition
 		// operation
-		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		// validation
 		assertThat(metamodel, nullValue());
 	}
@@ -66,7 +80,7 @@ public class JaxrsMetamodelLocatorTestCase extends AbstractCommonTestCase {
 		// pre-condition
 		JaxrsMetamodelLocator.get(javaProject, true);
 		// operation
-		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		// validation
 		assertThat(metamodel, notNullValue());
 	}
@@ -93,9 +107,9 @@ public class JaxrsMetamodelLocatorTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotGetMetamodelFromClosedProject() throws CoreException {
 		// pre-condition
-		this.project.close(new NullProgressMonitor());
+		javaProject.getProject().close(new NullProgressMonitor());
 		// operation
-		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		// validation
 		assertThat(metamodel, nullValue());
 
@@ -106,7 +120,7 @@ public class JaxrsMetamodelLocatorTestCase extends AbstractCommonTestCase {
 		// pre-condition
 		javaProject.close();
 		// operation
-		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		// validation
 		assertThat(metamodel, nullValue());
 	}

@@ -65,10 +65,8 @@ public class JaxrsEndpointFactory {
 				break;
 			default:
 				Logger.info("Unable to create endpoint from undefined JAX-RS Resource Method: " + resourceMethod);
-
 			}
 		}
-
 		return endpoints;
 	}
 
@@ -78,13 +76,19 @@ public class JaxrsEndpointFactory {
 	 */
 	public static IJaxrsEndpoint createEndpointFromRootResourceMethod(final JaxrsResourceMethod resourceMethod)
 			throws CoreException {
-		final IJaxrsHttpMethod httpMethod = resourceMethod.getMetamodel().findHttpMethodByTypeName(
-				resourceMethod.getHttpMethodAnnotation().getFullyQualifiedName());
-		final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>();
-		resourceMethods.add(resourceMethod);
-		final JaxrsEndpoint endpoint = new JaxrsEndpoint(resourceMethod.getMetamodel(), httpMethod, resourceMethods);
-		endpoint.joinMetamodel();
-		return endpoint;
+		final long start = System.currentTimeMillis();
+		try {
+			final IJaxrsHttpMethod httpMethod = resourceMethod.getMetamodel().findHttpMethodByTypeName(
+					resourceMethod.getHttpMethodAnnotation().getFullyQualifiedName());
+			final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>();
+			resourceMethods.add(resourceMethod);
+			final JaxrsEndpoint endpoint = new JaxrsEndpoint(resourceMethod.getMetamodel(), httpMethod, resourceMethods);
+			endpoint.joinMetamodel();
+			return endpoint;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Created JAX-RS Endpoint from JAX-RS Resource Method in {}ms", (end - start));
+		}
 	}
 
 	/**
@@ -93,62 +97,76 @@ public class JaxrsEndpointFactory {
 	 */
 	public static List<IJaxrsEndpoint> createEndpointsFromSubresourceMethod(final JaxrsResourceMethod resourceMethod)
 			throws CoreException {
-		final List<IJaxrsEndpoint> endpoints = new ArrayList<IJaxrsEndpoint>();
-		final JaxrsMetamodel metamodel = resourceMethod.getMetamodel();
-		final IType resourceType = resourceMethod.getParentResource().getJavaElement();
-		final List<IType> superTypes = JdtUtils.findSupertypes(resourceType);
-		for (IType superType : superTypes) {
-			final List<IJaxrsResourceMethod> subresourceLocators = metamodel
-					.findResourceMethodsByReturnedType(superType);
-			for (IJaxrsResourceMethod subresourceLocator : subresourceLocators) {
-				if (subresourceLocator.getParentResource().isRootResource()) {
-					final IJaxrsHttpMethod httpMethod = resourceMethod.getMetamodel().findHttpMethodByTypeName(
-							resourceMethod.getHttpMethodAnnotation().getFullyQualifiedName());
-					final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>();
-					resourceMethods.add(subresourceLocator);
-					resourceMethods.add(resourceMethod);
-					final JaxrsEndpoint endpoint = new JaxrsEndpoint(resourceMethod.getMetamodel(), httpMethod,
-							resourceMethods);
-					endpoint.joinMetamodel();
-					endpoints.add(endpoint);
+		final long start = System.currentTimeMillis();
+		try {
+			final List<IJaxrsEndpoint> endpoints = new ArrayList<IJaxrsEndpoint>();
+			final JaxrsMetamodel metamodel = resourceMethod.getMetamodel();
+			final IType resourceType = resourceMethod.getParentResource().getJavaElement();
+			final List<IType> superTypes = JdtUtils.findSupertypes(resourceType);
+			for (IType superType : superTypes) {
+				final List<IJaxrsResourceMethod> subresourceLocators = metamodel
+						.findResourceMethodsByReturnedType(superType);
+				for (IJaxrsResourceMethod subresourceLocator : subresourceLocators) {
+					if (subresourceLocator.getParentResource().isRootResource()) {
+						final IJaxrsHttpMethod httpMethod = resourceMethod.getMetamodel().findHttpMethodByTypeName(
+								resourceMethod.getHttpMethodAnnotation().getFullyQualifiedName());
+						final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>();
+						resourceMethods.add(subresourceLocator);
+						resourceMethods.add(resourceMethod);
+						final JaxrsEndpoint endpoint = new JaxrsEndpoint(resourceMethod.getMetamodel(), httpMethod,
+								resourceMethods);
+						endpoint.joinMetamodel();
+						endpoints.add(endpoint);
+					}
 				}
 			}
+			return endpoints;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Created JAX-RS Endpoint from JAX-RS Subresource Method in {}ms", (end - start));
 		}
-		return endpoints;
+
 	}
 
 	// FIXME: support chain of subresource locators
 	@SuppressWarnings("incomplete-switch")
 	public static List<JaxrsEndpoint> createEndpointsFromSubresourceLocator(
 			final JaxrsResourceMethod subresourceLocator) throws CoreException {
-		final List<JaxrsEndpoint> endpoints = new ArrayList<JaxrsEndpoint>();
-		final JaxrsMetamodel metamodel = subresourceLocator.getMetamodel();
-		final IType returnedType = subresourceLocator.getReturnedType();
-		if (returnedType != null) {
-			final List<IType> returnedTypes = JdtUtils.findSubtypes(returnedType);
-			for (IType subtype : returnedTypes) {
-				final JaxrsResource matchingResource = metamodel.findResource(subtype);
-				if (matchingResource != null && matchingResource.isSubresource()) {
-					for (IJaxrsResourceMethod method : matchingResource.getAllMethods()) {
-						switch (method.getElementKind()) {
-						case RESOURCE_METHOD:
-						case SUBRESOURCE_METHOD:
-							final JaxrsHttpMethod httpMethod = metamodel.findHttpMethodByTypeName(method
-									.getHttpMethodClassName());
-							final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>(
-									Arrays.asList(subresourceLocator, method));
-							final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, resourceMethods);
-							endpoint.joinMetamodel();
-							endpoints.add(endpoint);
-							break;
+		final long start = System.currentTimeMillis();
+		try {
+			final List<JaxrsEndpoint> endpoints = new ArrayList<JaxrsEndpoint>();
+			final JaxrsMetamodel metamodel = subresourceLocator.getMetamodel();
+			final IType returnedType = subresourceLocator.getReturnedType();
+			if (returnedType != null) {
+				final List<IType> returnedTypes = JdtUtils.findSubtypes(returnedType);
+				for (IType subtype : returnedTypes) {
+					final JaxrsResource matchingResource = metamodel.findResource(subtype);
+					if (matchingResource != null && matchingResource.isSubresource()) {
+						for (IJaxrsResourceMethod method : matchingResource.getAllMethods()) {
+							switch (method.getElementKind()) {
+							case RESOURCE_METHOD:
+							case SUBRESOURCE_METHOD:
+								final JaxrsHttpMethod httpMethod = metamodel.findHttpMethodByTypeName(method
+										.getHttpMethodClassName());
+								final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>(
+										Arrays.asList(subresourceLocator, method));
+								final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, resourceMethods);
+								endpoint.joinMetamodel();
+								endpoints.add(endpoint);
+								break;
+							}
 						}
+
 					}
 
 				}
-
 			}
+			return endpoints;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Created JAX-RS Endpoint from JAX-RS Subresource Locator in {}ms", (end - start));
 		}
-		return endpoints;
+
 	}
 
 }

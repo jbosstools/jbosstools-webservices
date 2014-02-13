@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -20,7 +21,6 @@ import static org.mockito.Mockito.when;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -30,26 +30,32 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
-public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
+public class CompilationUnitsRepositoryTestCase {
 
-	protected static final IProgressMonitor progressMonitor = new NullProgressMonitor();
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public TestProjectMonitor projectMonitor = new TestProjectMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject");
 
 	private CompilationUnitsRepository repository = null;
-
+	
 	@Before
-	public void setupCompilationUnitsRepository() {
+	public void setup() {
 		repository = CompilationUnitsRepository.getInstance();
 	}
 	
 	@Test
 	public void shouldGetASTByCompilationUnit() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
 		final CompilationUnit ast = repository.getAST(type.getCompilationUnit());
 		// verification
@@ -59,7 +65,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldGetASTByResource() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
 		final CompilationUnit ast = repository.getAST(type.getResource());
 		// verification
@@ -69,15 +75,14 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldMergeASTWithDiffComputation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(type, "getCustomer");
-		final ICompilationUnit compilationUnit = type.getCompilationUnit();
+		final IMethod method = projectMonitor.resolveMethod("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", "getCustomer");
+		final ICompilationUnit compilationUnit = method.getCompilationUnit();
 		// record the previous version
-		repository.getAST(type.getCompilationUnit());
+		repository.getAST(compilationUnit);
 		// operation
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
+		replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
 				"@PathParam(\"ide\") Integer id", true);
-		final CompilationUnit ast = JdtUtils.parse(compilationUnit, progressMonitor);
+		final CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 		final Map<String, JavaMethodSignature> diffs = repository.mergeAST(compilationUnit, ast, true);
 		// verification
 		assertThat(diffs.size(), equalTo(1));
@@ -86,15 +91,14 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldMergeASTWithoutDiffComputation() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod method = getJavaMethod(type, "getCustomer");
-		final ICompilationUnit compilationUnit = type.getCompilationUnit();
+		final IMethod method = projectMonitor.resolveMethod("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", "getCustomer");
+		final ICompilationUnit compilationUnit = method.getCompilationUnit();
 		// record the previous version
 		repository.getAST(compilationUnit);
 		// operation
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
+		replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
 				"@PathParam(\"ide\") Integer id", true);
-		final CompilationUnit ast = JdtUtils.parse(compilationUnit, progressMonitor);
+		final CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 		final Map<String, JavaMethodSignature> diffs = repository.mergeAST(compilationUnit, ast, false);
 		// verification
 		assertThat(diffs.size(), equalTo(0));
@@ -103,7 +107,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveAST() throws CoreException {
 		// pre-conditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final ICompilationUnit compilationUnit = type.getCompilationUnit();
 		// record the previous version
 		repository.getAST(compilationUnit);
@@ -116,7 +120,7 @@ public class CompilationUnitsRepositoryTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldMergeProblemsAndReturnSomeFixedOnes() throws CoreException {
 		// preconditions
-		final IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final ICompilationUnit compilationUnit = type.getCompilationUnit();
 		final IAnnotation annotation = type.getAnnotations()[0];
 		IProblem problem1 = createProblem(1, annotation);

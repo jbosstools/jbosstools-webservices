@@ -68,7 +68,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			// let's make sure this listener is registered
 			if (metamodel != null) {
 				// metamodel.addListener() avoids duplicate entries
-				metamodel.addListener(this);
+				metamodel.addJaxrsEndpointChangedListener(this);
 			} else {
 				Logger.debug("*** No JAX-RS Metamodel available for project '{}' yet :-( ***", project.getName());
 			}

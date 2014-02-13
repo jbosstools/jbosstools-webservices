@@ -123,42 +123,48 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		}
 
 		public JaxrsResourceMethod build() throws CoreException {
-			final List<String> httpMethodAnnotationNames = new ArrayList<String>();
-			for (IJaxrsHttpMethod httpMethod : httpMethods) {
-				httpMethodAnnotationNames.add(httpMethod.getJavaClassName());
-			}
-			final List<String> annotationNames = new ArrayList<String>();
-			annotationNames.addAll(Arrays.asList(PATH.qualifiedName, PRODUCES.qualifiedName, CONSUMES.qualifiedName,
-					ENCODED.qualifiedName));
-			annotationNames.addAll(httpMethodAnnotationNames);
-			annotations = JdtUtils.resolveAnnotations(javaMethod, ast, annotationNames);
-			Annotation httpMethodAnnotation = null;
-			final Annotation pathAnnotation = annotations.get(PATH.qualifiedName);
-			for (String httpMethodAnnotationName : httpMethodAnnotationNames) {
-				if (annotations.containsKey(httpMethodAnnotationName)) {
-					httpMethodAnnotation = annotations.get(httpMethodAnnotationName);
-					break;
+			final long start = System.currentTimeMillis();
+			try {
+				final List<String> httpMethodAnnotationNames = new ArrayList<String>();
+				for (IJaxrsHttpMethod httpMethod : httpMethods) {
+					httpMethodAnnotationNames.add(httpMethod.getJavaClassName());
 				}
+				final List<String> annotationNames = new ArrayList<String>();
+				annotationNames.addAll(Arrays.asList(PATH.qualifiedName, PRODUCES.qualifiedName, CONSUMES.qualifiedName,
+						ENCODED.qualifiedName));
+				annotationNames.addAll(httpMethodAnnotationNames);
+				annotations = JdtUtils.resolveAnnotations(javaMethod, ast, annotationNames);
+				Annotation httpMethodAnnotation = null;
+				final Annotation pathAnnotation = annotations.get(PATH.qualifiedName);
+				for (String httpMethodAnnotationName : httpMethodAnnotationNames) {
+					if (annotations.containsKey(httpMethodAnnotationName)) {
+						httpMethodAnnotation = annotations.get(httpMethodAnnotationName);
+						break;
+					}
+				}
+				if (httpMethodAnnotation == null && pathAnnotation == null) {
+					Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on method {}.{}()",
+							javaMethod.getParent().getElementName(), javaMethod.getElementName());
+					return null;
+				}
+				// if method signature was not provided before.
+				if(methodSignature == null) {
+					methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
+				}
+				// avoid creating Resource Method when the Java Method cannot be
+				// parsed (ie, syntax/compilation error)
+				if (methodSignature == null) {
+					return null;
+				}
+				javaMethodParameters = methodSignature.getMethodParameters();
+				returnedJavaType = methodSignature.getReturnedType();
+				final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(this);
+				resourceMethod.joinMetamodel();
+				return resourceMethod;
+			} finally {
+				final long end = System.currentTimeMillis();
+				Logger.tracePerf("Built JAX-RS Resource Field in {}ms", (end - start));
 			}
-			if (httpMethodAnnotation == null && pathAnnotation == null) {
-				Logger.debug("Cannot create ResourceMethod: no Path annotation nor HttpMethod found on method {}.{}()",
-						javaMethod.getParent().getElementName(), javaMethod.getElementName());
-				return null;
-			}
-			// if method signature was not provided before.
-			if(methodSignature == null) {
-				methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
-			}
-			// avoid creating Resource Method when the Java Method cannot be
-			// parsed (ie, syntax/compilation error)
-			if (methodSignature == null) {
-				return null;
-			}
-			javaMethodParameters = methodSignature.getMethodParameters();
-			returnedJavaType = methodSignature.getReturnedType();
-			final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(this);
-			resourceMethod.joinMetamodel();
-			return resourceMethod;
 		}
 
 	}

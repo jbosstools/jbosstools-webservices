@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 
 /**
@@ -66,18 +67,24 @@ public final class JaxrsElementsSearcher {
 	 */
 	public static List<IType> findApplicationTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
-		//FIXME: need correct usage of progressmonitor/subprogress monitor
-		
-		// first, search for type annotated with <code>javax.ws.rs.ApplicationPath</code>
-		IJavaSearchScope searchScope = null;
-		searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope }, IJavaSearchScope.SOURCES
-				| IJavaSearchScope.REFERENCED_PROJECTS);
-		
-		final List<IType> applicationTypes = searchForAnnotatedTypes(APPLICATION_PATH.qualifiedName, searchScope, progressMonitor);
-		// the search result also includes all subtypes of javax.ws.rs.core.Application (while avoiding duplicate results)
-		final List<IType> applicationSubtypes = findSubtypes(scope, APPLICATION.qualifiedName, progressMonitor);
-		applicationTypes.addAll(CollectionUtils.difference(applicationSubtypes, applicationTypes));
-		return applicationTypes;
+		final long start = System.currentTimeMillis();
+		try {
+			// FIXME: need correct usage of progressmonitor/subprogress monitor
+
+			// first, search for type annotated with
+			// <code>javax.ws.rs.ApplicationPath</code>
+			final IJavaSearchScope searchScope = createSearchScope(scope);
+			final List<IType> applicationTypes = searchForAnnotatedTypes(APPLICATION_PATH.qualifiedName, searchScope,
+					progressMonitor);
+			// the search result also includes all subtypes of
+			// javax.ws.rs.core.Application (while avoiding duplicate results)
+			final List<IType> applicationSubtypes = findSubtypes(scope, APPLICATION.qualifiedName, progressMonitor);
+			applicationTypes.addAll(CollectionUtils.difference(applicationSubtypes, applicationTypes));
+			return applicationTypes;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Found Application types in scope {} in {}ms", scope.getElementName(), (end - start));
+		}
 	}
 
 	/**
@@ -97,20 +104,28 @@ public final class JaxrsElementsSearcher {
 	 */
 	public static List<IType> findProviderTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
-		final List<IType> providerTypes = new ArrayList<IType>();
-		final IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope }, IJavaSearchScope.SOURCES
-					| IJavaSearchScope.REFERENCED_PROJECTS);
-		final List<IType> annotatedTypes = searchForAnnotatedTypes(PROVIDER.qualifiedName, searchScope, progressMonitor);
-		providerTypes.addAll(annotatedTypes);
-		// also search for one or more provider subtypes
-		final List<IType> messageBodyReaderSubtypes = findSubtypes(scope, MESSAGE_BODY_READER.qualifiedName, progressMonitor);
-		providerTypes.addAll(CollectionUtils.difference(messageBodyReaderSubtypes, providerTypes));
-		final List<IType> messageBodyWriterSubtypes = findSubtypes(scope, MESSAGE_BODY_WRITER.qualifiedName, progressMonitor);
-		providerTypes.addAll(CollectionUtils.difference(messageBodyWriterSubtypes, providerTypes));
-		final List<IType> exceptionMapperSubtypes = findSubtypes(scope, EXCEPTION_MAPPER.qualifiedName, progressMonitor);
-		providerTypes.addAll(CollectionUtils.difference(exceptionMapperSubtypes, providerTypes));
-		
-		return providerTypes;
+		final long start = System.currentTimeMillis();
+		try {
+			final List<IType> providerTypes = new ArrayList<IType>();
+			final IJavaSearchScope searchScope = createSearchScope(scope);
+			final List<IType> annotatedTypes = searchForAnnotatedTypes(PROVIDER.qualifiedName, searchScope,
+					progressMonitor);
+			providerTypes.addAll(annotatedTypes);
+			// also search for one or more provider subtypes
+			final List<IType> messageBodyReaderSubtypes = findSubtypes(scope, MESSAGE_BODY_READER.qualifiedName,
+					progressMonitor);
+			providerTypes.addAll(CollectionUtils.difference(messageBodyReaderSubtypes, providerTypes));
+			final List<IType> messageBodyWriterSubtypes = findSubtypes(scope, MESSAGE_BODY_WRITER.qualifiedName,
+					progressMonitor);
+			providerTypes.addAll(CollectionUtils.difference(messageBodyWriterSubtypes, providerTypes));
+			final List<IType> exceptionMapperSubtypes = findSubtypes(scope, EXCEPTION_MAPPER.qualifiedName,
+					progressMonitor);
+			providerTypes.addAll(CollectionUtils.difference(exceptionMapperSubtypes, providerTypes));
+			return providerTypes;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Found Provider types in scope {} in {}ms", scope.getElementName(), (end - start));
+		}
 	}
 
 	/**
@@ -145,9 +160,14 @@ public final class JaxrsElementsSearcher {
 	 */
 	public static List<IType> findResourceTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
-		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
-				IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
-		return searchForAnnotatedTypes(PATH.qualifiedName, searchScope, progressMonitor);
+		final long start = System.currentTimeMillis();
+		try {
+			final IJavaSearchScope searchScope = createSearchScope(scope);
+			return searchForAnnotatedTypes(PATH.qualifiedName, searchScope, progressMonitor);
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Found Resource types in scope {} in {}ms", scope.getElementName(), (end - start));
+		}
 	}
 
 	/**
@@ -164,14 +184,31 @@ public final class JaxrsElementsSearcher {
 	 */
 	public static List<IType> findHttpMethodTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
-		IJavaSearchScope searchScope = null;
+		final long start = System.currentTimeMillis();
+		try {
+			final IJavaSearchScope searchScope = createSearchScope(scope);
+			return searchForAnnotatedTypes(HTTP_METHOD.qualifiedName, searchScope, progressMonitor);
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Found HTTP Method types in scope {} in {}ms", scope.getElementName(), (end - start));
+		}
+	}
+
+	/**
+	 * Creates and returns an IJavaSearchScope from the given {@link IJavaElement} scope
+	 * @param scope the Java Element that will serve as a scope for an upcoming search
+	 * @return the search scope
+	 * @throws JavaModelException
+	 */
+	private static IJavaSearchScope createSearchScope(final IJavaElement scope) throws JavaModelException {
+		IJavaSearchScope searchScope;
 		if (scope instanceof IJavaProject) {
 			searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
 					IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
 		} else {
 			searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope });
 		}
-		return searchForAnnotatedTypes(HTTP_METHOD.qualifiedName, searchScope, progressMonitor);
+		return searchScope;
 	}
 
 	/**
@@ -189,8 +226,8 @@ public final class JaxrsElementsSearcher {
 	 */
 	private static List<IType> searchForAnnotatedTypes(final String annotationName, final IJavaSearchScope searchScope,
 			final IProgressMonitor progressMonitor) throws CoreException {
-		JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.TYPE, searchScope);
-		SearchPattern pattern = SearchPattern.createPattern(annotationName, IJavaSearchConstants.ANNOTATION_TYPE,
+		final JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.TYPE, searchScope);
+		final SearchPattern pattern = SearchPattern.createPattern(annotationName, IJavaSearchConstants.ANNOTATION_TYPE,
 				IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE | IJavaSearchConstants.TYPE, SearchPattern.R_EXACT_MATCH
 						| SearchPattern.R_CASE_SENSITIVE);
 		// perform search, results are added/filtered by the custom
@@ -216,8 +253,7 @@ public final class JaxrsElementsSearcher {
 	 */
 	public static List<IMethod> findResourceMethods(final IJavaElement scope, final List<IJaxrsHttpMethod> httpMethods,
 			final IProgressMonitor progressMonitor) throws CoreException {
-		final IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(new IJavaElement[] { scope },
-				IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS);
+		final IJavaSearchScope searchScope = createSearchScope(scope);
 		final List<String> annotations = new ArrayList<String>(httpMethods.size() + 1);
 		annotations.add(PATH.qualifiedName);
 		for (IJaxrsHttpMethod httpMethod : httpMethods) {

@@ -15,6 +15,9 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.Valida
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
@@ -25,6 +28,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.preferences.DefaultScope;
@@ -40,24 +44,32 @@ import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
-import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Xi
  * 
  */
 @SuppressWarnings("restriction")
-public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTestCase {
+public class JaxrsProviderValidatorTestCase {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(JaxrsHttpMethodValidatorTestCase.class);
+	
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
 	private final IProjectValidationContext context = new ProjectValidationContext();
@@ -78,6 +90,22 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 		}
 	}
 	
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
+	
+	private JaxrsMetamodel metamodel = null;
+
+	private IProject project = null;
+
+	@Before
+	public void setup() throws CoreException {
+		metamodel = metamodelMonitor.getMetamodel();
+		project = metamodel.getProject();
+	}
+	
 	@After
 	public void resetProblemLevelPreferences() {
 		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
@@ -87,11 +115,11 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldNotReportErrorIfNoExplicitConstructor() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -107,17 +135,16 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldNotReportErrorIfExplicitEmptyConstructor() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
-		WorkbenchUtils
-				.replaceFirstOccurrenceOfCode(
+		replaceFirstOccurrenceOfCode(
 						providerType,
 						"public Response toResponse(EntityNotFoundException exception)",
 						"public EntityNotFoundExceptionMapper() {} public Response toResponse(EntityNotFoundException exception)",
 						false);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -133,15 +160,15 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportErrorIfExplicitNonPublicEmptyConstructor() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType,
+		replaceFirstOccurrenceOfCode(providerType,
 				"public Response toResponse(EntityNotFoundException exception)",
 				"EntityNotFoundExceptionMapper() {} public Response toResponse(EntityNotFoundException exception)",
 				false);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -158,17 +185,16 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportErrorIfConstructorWithNonAnnotatedParameter() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
-		WorkbenchUtils
-				.replaceFirstOccurrenceOfCode(
+		replaceFirstOccurrenceOfCode(
 						providerType,
 						"public Response toResponse(EntityNotFoundException exception)",
 						"public EntityNotFoundExceptionMapper(String foo) {} public Response toResponse(EntityNotFoundException exception)",
 						false);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -185,17 +211,16 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportErrorIfConstructorWithInvalidAnnotatedParameterType() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
-		WorkbenchUtils
-				.replaceFirstOccurrenceOfCode(
+		replaceFirstOccurrenceOfCode(
 						providerType,
 						"public Response toResponse(EntityNotFoundException exception)",
 						"public EntityNotFoundExceptionMapper(@Context HttpServletRequest request) {} public Response toResponse(EntityNotFoundException exception)",
 						false);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -212,17 +237,16 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldNotReportErrorIfValidContextConstructor() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
-		WorkbenchUtils
-				.replaceFirstOccurrenceOfCode(
+		replaceFirstOccurrenceOfCode(
 						providerType,
 						"public Response toResponse(EntityNotFoundException exception)",
 						"public EntityNotFoundExceptionMapper(@Context ServletContext context) {} public Response toResponse(EntityNotFoundException exception)",
 						false);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -239,17 +263,16 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportErrorIfConstructorWithMixedParams() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
-		WorkbenchUtils
-		.replaceFirstOccurrenceOfCode(
+		replaceFirstOccurrenceOfCode(
 				providerType,
 				"public Response toResponse(EntityNotFoundException exception)",
 				"public EntityNotFoundExceptionMapper(@Context ServletContext context, String foo) {} public Response toResponse(EntityNotFoundException exception)",
 				false);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -267,17 +290,17 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportWarningIfTwoSameExceptionMappersExist() throws CoreException, ValidationException {
 		// preconditions
 		// adding another Provider with same characteristics
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
 		// adding a new compilation unit automatically triggers a project build
 		// which creates a new JAX-RS Provider
-		final ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"EntityNotFoundExceptionMapper2.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"EntityNotFoundExceptionMapper2.java");
 		final IJaxrsProvider otherProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		removeAllElementsExcept(provider, otherProvider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
@@ -296,17 +319,17 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportWarningIfTwoSameEntityMappersWithIdenticalMediaTypesExist() throws CoreException, ValidationException {
 		// preconditions
 		// adding another Provider with same characteristics
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
 		// adding a new compilation unit automatically triggers a project build
 		// which creates a new JAX-RS Provider
-		final ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"DummyProvider2.txt", "org.jboss.tools.ws.jaxrs.sample.services",
 				"DummyProvider2.java");
 		final IJaxrsProvider otherProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		removeAllElementsExcept(provider, otherProvider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
@@ -325,17 +348,17 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportWarningIfTwoSameEntityMappersWithOverlappingMediasTypeExist() throws CoreException, ValidationException {
 		// preconditions
 		// adding another Provider with same characteristics
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
 		// adding a new compilation unit automatically triggers a project build
 		// which creates a new JAX-RS Provider
-		final ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"DummyProvider4.txt", "org.jboss.tools.ws.jaxrs.sample.services",
 				"DummyProvider4.java");
 		final IJaxrsProvider otherProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		removeAllElementsExcept(provider, otherProvider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
@@ -355,17 +378,17 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldNotReportWarningIfTwoSameEntityMappersWithDifferentMediaTypesExist() throws CoreException, ValidationException {
 		// preconditions
 		// adding another Provider with same characteristics
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
 		final IJaxrsProvider provider = metamodel.findProvider(providerType);
 		// adding a new compilation unit automatically triggers a project build
 		// which creates a new JAX-RS Provider
-		final ICompilationUnit compilationUnit = WorkbenchUtils.createCompilationUnit(javaProject,
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"DummyProvider3.txt", "org.jboss.tools.ws.jaxrs.sample.services",
 				"DummyProvider3.java");
 		final IJaxrsProvider otherProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		removeAllElementsExcept(provider, otherProvider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource(),
 				(IFile) otherProvider.getResource());
@@ -383,13 +406,13 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportWarningIfProviderAnnotationIsMissing() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
 		final Annotation providerAnnotation = provider.getAnnotation(PROVIDER.qualifiedName);
 		provider.removeAnnotation(providerAnnotation.getJavaAnnotation());
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -407,12 +430,12 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	public void shouldReportWarningIfProviderInterfaceImplementationIsMissing() throws CoreException,
 			ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.removeFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>", false);
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		removeFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>", false);
 		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Set<IFile> changedResources = toSet( provider.getResource());
 		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
@@ -429,13 +452,13 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportWarningIfImplementedTypesAreUnknown() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(providerType, "AbstractEntityProvider<String, Number>",
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
+		replaceAllOccurrencesOfCode(providerType, "AbstractEntityProvider<String, Number>",
 				"AbstractEntityProvider<Foo, Bar>", false);
 		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -450,13 +473,13 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldReportWarningIfImplementedTypeIsUnknown() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
 				"ExceptionMapper<Foobar>", false);
 		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -471,13 +494,13 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldNotFailOnProblemIfSeverityLevelIsIgnore() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
 				"ExceptionMapper<Foobar>", false);
 		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
 		defaultPreferences.put(JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, JaxrsPreferences.IGNORE);
 		// operation
@@ -490,20 +513,20 @@ public class JaxrsProviderValidatorTestCase extends AbstractMetamodelBuilderTest
 	@Test
 	public void shouldIncreaseAndResetProblemLevelOnHttpMethod() throws CoreException, ValidationException {
 		// preconditions
-		final IType providerType = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
+		final IType providerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<EntityNotFoundException>",
 				"ExceptionMapper<Foobar>", false);
 		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(providerType);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(provider.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// verification: problem level is set to '2'
 		assertThat(provider.getProblemLevel(), equalTo(2));
 		// now, fix the problem 
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<Foobar>",
+		replaceFirstOccurrenceOfCode(providerType, "ExceptionMapper<Foobar>",
 				"ExceptionMapper<EntityNotFoundException>", false);
 		// revalidate
 		new JaxrsMetamodelValidator().validate(toSet(provider.getResource()), project, validationHelper, context,

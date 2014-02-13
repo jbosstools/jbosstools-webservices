@@ -10,7 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
-import static org.jboss.tools.ws.jaxrs.core.internal.utils.HamcrestExtras.flagMatches;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
@@ -21,8 +20,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.getAnnotation;
-import static org.jboss.tools.ws.jaxrs.core.WorkbenchUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.internal.utils.HamcrestExtras.flagMatches;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONTEXT;
@@ -33,6 +31,15 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.POST;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addTypeAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.delete;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeTypeAnnotation;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.delete;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceContent;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
@@ -48,16 +55,14 @@ import java.util.List;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.hamcrest.Matchers;
-import org.jboss.tools.ws.jaxrs.core.AbstractCommonTestCase;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -70,46 +75,65 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
-public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
+public class ResourceChangedProcessingTestCase {
 
 	public final static int NO_FLAG = 0;
 
-	public static final IProgressMonitor progressMonitor = new NullProgressMonitor();
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", false);
+	
+	private JaxrsMetamodel metamodel = null;
 
+	private IJavaProject javaProject = null;
+
+	@Before
+	public void setup() throws CoreException {
+		metamodel = metamodelMonitor.getMetamodel();
+		javaProject = metamodel.getJavaProject();
+	}
+	
 	protected ResourceDelta createResourceDelta(IResource resource, int deltaKind) {
 		return new ResourceDelta(resource, deltaKind, NO_FLAG);
 	}
 
-	protected void processAffectedResources(ResourceDelta event, IProgressMonitor progressmonitor) throws CoreException {
-		metamodel.processAffectedResources(Arrays.asList(event), progressmonitor);
+	protected void processAffectedResources(ResourceDelta event) throws CoreException {
+		metamodel.processAffectedResources(Arrays.asList(event), new NullProgressMonitor());
 	}
 
-	protected void processProject(IProgressMonitor progressmonitor) throws CoreException {
-		metamodel.processProject(progressmonitor);
+	protected void processProject() throws CoreException {
+		metamodel.processProject(new NullProgressMonitor());
 	}
 
 	@Test
 	public void shouldAddApplicationHttpMethodsResourcesAndProvidersWhenAddingSourceFolderWithExistingMetamodel()
 			throws CoreException {
 		// pre-conditions
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
 		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		// 1 application + 1 HttpMethod + 7 Resources and their methods + 2
 		// Providers
-		assertThat(elementChanges.size(), equalTo(37));
-		assertThat(elementChanges, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(37));
+		assertThat(metamodelMonitor.getElementChanges(), everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all HttpMethods, Resources, ResourceMethods and ResourceFields. only
 		// application is available: the java-based
 		// one found in src/main/java
@@ -120,15 +144,15 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	public void shouldAddApplicationHttpMethodsResourcesAndProvidersWhenAddingSourceFolderWithExistingMetamodelWithReset()
 			throws CoreException {
 		// pre-conditions
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		processProject(progressMonitor);
+		processProject();
 		// verifications
 		// 2 applications (java/webxml) + 6 built-in HttpMethods + 1 custom
 		// HttpMethod + 7 Resources and their methods + 5 Providers: the whole
 		// project is used to build the metamodel.
-		assertThat(elementChanges.size(), equalTo(47));
-		assertThat(elementChanges, everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(47));
+		assertThat(metamodelMonitor.getElementChanges(), everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all project-specific Applications, HttpMethods, Resources,
 		// ResourceMethods and ResourceFields (built-in
 		// HttpMethods are not bound to a project)
@@ -145,16 +169,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// remove the metamodel
 		metamodel.remove();
 		metamodel = JaxrsMetamodel.create(javaProject);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
 		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		// 1 application + 1 HttpMethod + 3 RootResources + 2 Subresources + 5
 		// Providers: the whole project is used to build the metamodel.
 		assertThat(metamodel, notNullValue());
-		assertThat(elementChanges.size(), equalTo(14));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(14));
 		// all Applications, HttpMethods, Resources, ResourceMethods and
 		// ResourceFields specific to the project
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(41));
@@ -163,28 +187,28 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotAddAnythingAddingBinaryLib() throws CoreException {
 		// pre-conditions
-		final IPackageFragmentRoot lib = getPackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
-		resetElementChangesNotifications();
+		final IPackageFragmentRoot lib = metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(lib.getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: jar should not be taken into account, even if if it
 		// contains matching elements...
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
 
 	@Test
 	public void shouldAddHttpMethodWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(type.getCompilationUnit().getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
 		// 6 built-in HTTP Methods + 1 custom one
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -192,17 +216,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddJavaApplicationWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final Annotation annotation = getAnnotation(type, APPLICATION_PATH.qualifiedName);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((IJaxrsApplication) elementChanges.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		// 6 built-in HTTP Methods + 1 app
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -210,17 +234,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeJavaApplicationWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication javaApplication = createJavaApplication(
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication(
 				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/bar");
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((IJaxrsApplication) elementChanges.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		// 6 built-in HTTP Methods + 1 app
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -228,18 +252,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeJavaApplicationWhenRemovingAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final Annotation annotation = javaApplication.getAnnotation(APPLICATION_PATH.qualifiedName);
-		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
-		resetElementChangesNotifications();
+		delete(annotation.getJavaAnnotation(), false);
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((IJaxrsApplication) elementChanges.get(0).getElement()).getApplicationPath(), nullValue());
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement()).getApplicationPath(), nullValue());
 		// 6 built-in HTTP Methods + 1 app
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -247,18 +271,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeJavaApplicationWhenRemovingSupertype() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.replaceAllOccurrencesOfCode(javaApplication.getJavaElement().getCompilationUnit(),
+		replaceAllOccurrencesOfCode(javaApplication.getJavaElement().getCompilationUnit(),
 				"extends Application", "", false);
 		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((IJaxrsApplication) elementChanges.get(0).getElement()).getApplicationPath(), equalTo("/app"));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement()).getApplicationPath(), equalTo("/app"));
 		// 6 built-in HTTP Methods + 1 app
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -266,16 +290,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveJavaApplicationWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsJavaApplication) elementChanges.get(0).getElement()), equalTo(javaApplication));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsJavaApplication) metamodelMonitor.getElementChanges().get(0).getElement()), equalTo(javaApplication));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -283,16 +307,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveJavaApplicationWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(javaApplication.getJavaElement());
+		delete(javaApplication.getJavaElement());
 		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -300,17 +324,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveJavaApplicationWhenRemovingSourceFolder() throws CoreException {
 		// pre-conditions
-		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
 		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getElement(), is(notNullValue()));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -318,17 +342,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddWebxmlApplicationWhenAddingWebxml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsWebxmlApplication) elementChanges.get(0).getElement()).getApplicationPath(),
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement()).getApplicationPath(),
 				equalTo("/hello"));
 		// 6 built-in HTTP Methods + 1 app
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
@@ -337,14 +361,14 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotAddWebxmlApplicationWhenAddingEmptyWebxml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-without-servlet-mapping.xml");
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -352,17 +376,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddWebxmlApplicationWhenChangingWebxml() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(((IJaxrsApplication) elementChanges.get(0).getElement()).isWebXmlApplication(), equalTo(true));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((JaxrsWebxmlApplication) elementChanges.get(0).getElement()).getApplicationPath(),
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(((IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement()).isWebXmlApplication(), equalTo(true));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement()).getApplicationPath(),
 				equalTo("/hello"));
 		// 6 built-in HTTP Methods + 1 app
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
@@ -373,19 +397,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// in this test, the java-application exists first, and then a web.xml
 		// application is added -> it should immediately override the java-one
 		// pre-conditions
-		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-custom-servlet-mapping.xml");
 		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: the Web Application is created and the Java
 		// Application is impacted
-		assertThat(elementChanges.size(), equalTo(2));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(0).getElement(), instanceOf(JaxrsWebxmlApplication.class));
-		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsWebxmlApplication.class));
+		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(webxmlApplication.getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
 		// custom web.xml override DOES override the java based JAX-RS
@@ -402,18 +426,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldOverrideJavaApplicationWhenAddingAnnotatedJavaApplication() throws Exception {
 		// precondition
-		createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
-		resetElementChangesNotifications();
+		metamodelMonitor.createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: the JAVA Application is the sole element to be really
 		// changed
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
-		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
+		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(javaApplication.getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(javaApplication.getApplicationPath(), equalTo("/hello"));
 		// 6 built-in HTTP Methods + 2 apps (java + xml)
@@ -429,19 +453,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldOverrideJavaApplicationWhenAddingUnannotatedJavaApplication() throws Exception {
 		// precondition
-		createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
-		resetElementChangesNotifications();
+		metamodelMonitor.createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "@ApplicationPath(\"/app\")", "", false);
 		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: the JAVA Application is the sole element to be really
 		// changed
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
-		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
+		final JaxrsJavaApplication javaApplication = (JaxrsJavaApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(javaApplication.getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(javaApplication.getApplicationPath(), equalTo("/hello"));
 		// 6 built-in HTTP Methods + 2 apps (java + xml)
@@ -457,21 +481,21 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUnoverrideAnnotatedJavaApplicationWhenRemovingCustomWebxml() throws Exception {
 		// precondition
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+		final JaxrsWebxmlApplication webxmlApplication = metamodelMonitor.createWebxmlApplication(
 				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		assertThat(javaApplication.isOverriden(), equalTo(true));
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlApplication.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(2));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
-		assertThat(elementChanges.get(1).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(1).getElement(), instanceOf(JaxrsWebxmlApplication.class));
-		final JaxrsJavaApplication application = (JaxrsJavaApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
+		assertThat(metamodelMonitor.getElementChanges().get(1).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(1).getElement(), instanceOf(JaxrsWebxmlApplication.class));
+		final JaxrsJavaApplication application = (JaxrsJavaApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(application.getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(application.getApplicationPath(), equalTo("/app"));
 		// 6 built-in HTTP Methods + 1 app (java)
@@ -481,23 +505,23 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUnoverrideUnannotatedJavaApplicationWhenRemovingCustomWebxml() throws Exception {
 		// precondition
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+		final JaxrsWebxmlApplication webxmlApplication = metamodelMonitor.createWebxmlApplication(
 				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/hello");
 		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
 				"@ApplicationPath(\"/app\")", "", false);
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		assertThat(javaApplication.isOverriden(), equalTo(true));
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlApplication.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(2));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
-		assertThat(elementChanges.get(1).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(1).getElement(), instanceOf(JaxrsWebxmlApplication.class));
-		final JaxrsJavaApplication application = (JaxrsJavaApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
+		assertThat(metamodelMonitor.getElementChanges().get(1).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(1).getElement(), instanceOf(JaxrsWebxmlApplication.class));
+		final JaxrsJavaApplication application = (JaxrsJavaApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(application.getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(application.getApplicationPath(), nullValue());
 		// 6 built-in HTTP Methods + 1 app (java)
@@ -507,18 +531,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotOverrideJavaApplicationWhenAddingDefaultServletMapping() throws Exception {
 		// pre-conditions
-		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
 		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(webxmlApplication.getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
 		// web.xml based application precedes any other java based JAX-RS
 		// Application element
@@ -542,18 +566,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// application is added -> it should
 		// immediately override the java-one
 		// pre-conditions
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
 		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((IJaxrsApplication)elementChanges.get(0).getElement()).isWebXmlApplication(), equalTo(true));
-		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((IJaxrsApplication)metamodelMonitor.getElementChanges().get(0).getElement()).isWebXmlApplication(), equalTo(true));
+		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(webxmlApplication.getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
 		assertThat(webxmlApplication.getApplicationPath(), equalTo("/hello"));
 		// Java-based application configuration should not be changed
@@ -569,17 +593,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// application is added -> it should
 		// immediately override the java-one
 		// pre-conditions
-		final JaxrsJavaApplication javaApplication = createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication(
+		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		final JaxrsWebxmlApplication webxmlApplication = metamodelMonitor.createWebxmlApplication(
 				EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlApplication.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((IJaxrsApplication)elementChanges.get(0).getElement()).isWebXmlApplication(), equalTo(true));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((IJaxrsApplication)metamodelMonitor.getElementChanges().get(0).getElement()).isWebXmlApplication(), equalTo(true));
 		// Java-based application configuration should not be changed
 		assertThat(javaApplication.getApplicationPath(), equalTo("/app"));
 		assertThat(metamodel.getApplication(), equalTo((IJaxrsApplication) javaApplication));
@@ -592,17 +616,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
 				"extends Application", "", false);
-		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/bar");
-		resetElementChangesNotifications();
+		metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/bar");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "@ApplicationPath(\"/app\")", "", false);
 		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -612,17 +636,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
 				"@ApplicationPath(\"/app\")", "", false);
-		createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		resetElementChangesNotifications();
+		metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "extends Application", "", false);
 		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -630,22 +654,22 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeWebxmlApplicationWhenChangingApplicationClassName() throws Exception {
 		// pre-conditions
-		WorkbenchUtils.createCompilationUnit(javaProject, "RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java");
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		metamodelMonitor.createCompilationUnit("RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java");
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
-		createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication2", "/hello/*");
-		resetElementChangesNotifications();
+		metamodelMonitor.createWebxmlApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication2", "/hello/*");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.replaceContent(webxmlResource, "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		replaceContent(webxmlResource, "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: 1 webxml app added and the old one (with
 		// "org..RestApplication"
 		// classname) removed.
-		assertThat(elementChanges.size(), equalTo(1));
-		final IJaxrsApplication app = (IJaxrsApplication) elementChanges.get(0).getElement();
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		final IJaxrsApplication app = (IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(app.isWebXmlApplication(), equalTo(true));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(app.getApplicationPath(), equalTo("/hello"));
 		// 6 built-in HTTP Methods + 1 app (java)
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
@@ -660,18 +684,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeWebxmlApplicationWhenChangingApplicationPathValue() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
-		createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/foo");
-		resetElementChangesNotifications();
+		metamodelMonitor.createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/foo");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-with-default-servlet-mapping.xml");
+		metamodelMonitor.replaceDeploymentDescriptorWith( "web-3_0-with-default-servlet-mapping.xml");
 		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		final IJaxrsApplication app = (IJaxrsApplication) elementChanges.get(0).getElement();
+		final IJaxrsApplication app = (IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(app.isWebXmlApplication(), equalTo(true));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(app.getApplicationPath(), equalTo("/hello"));
 
 		// 6 built-in HTTP Methods + 1 app (java)
@@ -681,16 +705,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotFailWhenWebxmlWithUnknownServletClass() throws Exception {
 		// pre-conditions
-		List<IPackageFragmentRoot> removedEntries = WorkbenchUtils.removeClasspathEntry(javaProject,
-				"jaxrs-api-2.0.1.GA.jar", null);
+		List<IPackageFragmentRoot> removedEntries = metamodelMonitor.removeClasspathEntry(
+				"jaxrs-api-2.0.1.GA.jar");
 		assertFalse(removedEntries.isEmpty());
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-invalid-servlet-mapping.xml");
 		// //metamodel.add(createApplication("/foo"));
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
@@ -699,18 +723,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveWebxmlApplicationWhenChangingWebxml() throws Exception {
 		// pre-conditions
-		createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		metamodelMonitor.createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-without-servlet-mapping.xml");
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsWebxmlApplication) elementChanges.get(0).getElement()).getApplicationPath(),
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement()).getApplicationPath(),
 				equalTo("/hello"));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
@@ -720,20 +744,20 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	public void shouldRemoveWebxmlApplicationWhenRemovingWebxml() throws Exception {
 		// pre-conditions
 		// JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
-		final JaxrsWebxmlApplication application = createWebxmlApplication(
+		final JaxrsWebxmlApplication application = metamodelMonitor.createWebxmlApplication(
 				EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		webxmlResource.delete(true, progressMonitor);
+		webxmlResource.delete(true, new NullProgressMonitor());
 		final ResourceDelta event = createResourceDelta(webxmlResource, REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsWebxmlApplication) elementChanges.get(0).getElement()), equalTo(application));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement()), equalTo(application));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -742,20 +766,20 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Ignore()
 	public void shouldRemoveWebxmlApplicationWhenRemovingWebInfFolder() throws Exception {
 		// pre-conditions
-		final IResource webxmlResource = WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject,
+		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-servlet-mapping.xml");
-		createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
-		resetElementChangesNotifications();
+		metamodelMonitor.createWebxmlApplication(EnumJaxrsClassname.APPLICATION.qualifiedName, "/hello");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IContainer webInfFolder = webxmlResource.getParent();
-		webInfFolder.delete(IResource.FORCE, progressMonitor);
+		webInfFolder.delete(IResource.FORCE, new NullProgressMonitor());
 		final ResourceDelta event = createResourceDelta(webInfFolder, REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(elementChanges.get(0).getElement(), is(notNullValue()));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -765,14 +789,14 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 		// pre-conditions
 		// this jar also contains the 6 built-in HTTP Method, but its removal
 		// should have no effect
-		final IPackageFragmentRoot lib = getPackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
+		final IPackageFragmentRoot lib = metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(lib.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -780,16 +804,15 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddHttpMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(createResourceDelta(type.getResource(), CHANGED));
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(((IJaxrsHttpMethod) elementChanges.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(((IJaxrsHttpMethod) metamodelMonitor.getElementChanges().get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		// 6 built-in HTTP Methods + 1 custom one
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -797,16 +820,15 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeHttpMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO", "bar");
-		resetElementChangesNotifications();
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO", "bar");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(httpMethod.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(createResourceDelta(httpMethod.getResource(), CHANGED));
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((IJaxrsHttpMethod) elementChanges.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsHttpMethod) metamodelMonitor.getElementChanges().get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 		// 6 built-in HTTP Methods + 1 custom one
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
@@ -815,18 +837,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeHttpMethodWhenRemovingTargetAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = httpMethod.getAnnotation(TARGET.qualifiedName);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
+		delete(annotation.getJavaAnnotation(), false);
 		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((IJaxrsHttpMethod) elementChanges.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((IJaxrsHttpMethod) metamodelMonitor.getElementChanges().get(0).getElement()).getHttpVerb(), equalTo("FOO"));
 		assertNull(httpMethod.getAnnotations().get(TARGET.qualifiedName));
 		// 6 built-in HTTP Methods + 1 custom one
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
@@ -835,15 +857,15 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotChangeHttpMethodWhenAddingDeprecatedAnnotation() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		createHttpMethod(type);
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		metamodelMonitor.createHttpMethod(type);
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.addTypeAnnotation(type, "@Deprecated", false);
+		addTypeAnnotation(type, "@Deprecated", false);
 		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 		// 6 built-in HTTP Methods + 1 custom one
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -851,19 +873,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveHttpMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsHttpMethod httpMethod = createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
+		delete(annotation.getJavaAnnotation(), false);
 		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// assertThat(((IJaxrsHttpMethod)
-		// elementChanges.get(0).getElement()).getHttpVerb(),
+		// metamodelMonitor.getElementChanges().get(0).getElement()).getHttpVerb(),
 		// equalTo("FOO")); <- verb was removed
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
@@ -872,17 +894,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveHttpMethodWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		final JaxrsHttpMethod httpMethod = createHttpMethod(type);
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod(type);
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(type.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsHttpMethod) elementChanges.get(0).getElement()), equalTo(httpMethod));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsHttpMethod) metamodelMonitor.getElementChanges().get(0).getElement()), equalTo(httpMethod));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -890,19 +912,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveHttpMethodWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		final JaxrsHttpMethod httpMethod = createHttpMethod(type);
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod(type);
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(type);
+		delete(type);
 		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((IJaxrsHttpMethod) elementChanges.get(0).getElement()).getHttpVerb(), equalTo("FOO"));
-		assertThat(((JaxrsHttpMethod) elementChanges.get(0).getElement()), equalTo(httpMethod));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((IJaxrsHttpMethod) metamodelMonitor.getElementChanges().get(0).getElement()).getHttpVerb(), equalTo("FOO"));
+		assertThat(((JaxrsHttpMethod) metamodelMonitor.getElementChanges().get(0).getElement()), equalTo(httpMethod));
 
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
@@ -911,19 +933,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveHttpMethodWhenRemovingSourceFolder() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
 		// metamodel.add(httpMethod);
-		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
-		resetElementChangesNotifications();
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(elementChanges.get(0).getElement(), is(notNullValue()));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -931,16 +953,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		IType type = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(7)); // 1 resource + 6
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7)); // 1 resource + 6
 														// methods
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(6).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(6).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		// HttpMethods, Resource, ResourceMethods and ResourceFields
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
@@ -949,17 +971,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceWhenChangingResource() throws CoreException {
 		// pre-conditions
-		createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		// metamodel.add();
-		final IType customerType = getType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		resetElementChangesNotifications();
+		final IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(customerType.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(7)); // 1 resource + 6
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7)); // 1 resource + 6
 														// methods
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
 		// 6 built-in HTTP Methods + 2 resource + (3 + 6) methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(17));
 	}
@@ -967,18 +989,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeExistingResourceWhenChangingResource() throws CoreException {
 		// pre-conditions
-		createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		// metamodel.add();
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		customerResource.removeAnnotation(customerResource.getProducesAnnotation().getJavaAnnotation());
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 resource
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(((JaxrsResource) elementChanges.get(0).getElement()), equalTo(customerResource));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(((JaxrsResource) metamodelMonitor.getElementChanges().get(0).getElement()), equalTo(customerResource));
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(17));
 	}
@@ -986,16 +1008,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		final JaxrsResource bookResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		bookResource.removeMethod(bookResource.getAllMethods().get(0));
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 resource method
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource method
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 6 built-in HttpMethods + 1 resource (including its methods and
 		// fields)
@@ -1005,27 +1027,27 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		resetElementChangesNotifications();
+		final JaxrsResource bookResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		for (Iterator<JaxrsResourceMethod> iterator = bookResource.getMethods().values().iterator(); iterator.hasNext();) {
 			JaxrsResourceMethod resourceMethod = iterator.next();
 			if (resourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_METHOD) {
 				replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "@Path(\"/{id}\")", "@Path(\"/{foo}\")",
 						false);
-				WorkbenchUtils.delete(resourceMethod.getHttpMethodAnnotation().getJavaAnnotation(), false);
+				delete(resourceMethod.getHttpMethodAnnotation().getJavaAnnotation(), false);
 			}
 		}
 		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(2)); // 2 resource
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2)); // 2 resource
 														// methods
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
-		assertThat(elementChanges.get(1).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(1).getElement().getElementKind().getCategory(),
+		assertThat(metamodelMonitor.getElementChanges().get(1).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(1).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 6 built-in HttpMethods + 1 resources (including its methods and
 		// fields)
@@ -1035,21 +1057,21 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource bookResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		resetElementChangesNotifications();
+		final JaxrsResource bookResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		for (Iterator<JaxrsResourceMethod> iterator = bookResource.getMethods().values().iterator(); iterator.hasNext();) {
 			JaxrsResourceMethod resourceMethod = iterator.next();
 			if (resourceMethod.getElementKind() == EnumElementKind.RESOURCE_METHOD) {
-				WorkbenchUtils.delete(resourceMethod.getHttpMethodAnnotation().getJavaAnnotation(), false);
+				delete(resourceMethod.getHttpMethodAnnotation().getJavaAnnotation(), false);
 			}
 		}
 		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 resource method
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource method
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 6 HttpMethods + 1 resource (including its remaining 2 methods and
 		// fields)
@@ -1059,16 +1081,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		productResourceLocator.removeField(productResourceLocator.getAllFields().get(0));
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 resource field
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource field
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 6 built-in HttpMethods + 1 resource (including its 1 method and 3
 		// fields)
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(11));
@@ -1077,8 +1099,8 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldChangeResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resetElementChangesNotifications();
+		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		for (Iterator<JaxrsResourceField> iterator = productResourceLocator.getFields().values().iterator(); iterator
 				.hasNext();) {
@@ -1089,11 +1111,11 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 			}
 		}
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 resource field
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource field
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 6 built-in HttpMethods + 1 resource (including its 1 method and 3
 		// fields)
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(11));
@@ -1102,22 +1124,22 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource productResourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resetElementChangesNotifications();
+		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		for (Iterator<JaxrsResourceField> iterator = productResourceLocator.getFields().values().iterator(); iterator
 				.hasNext();) {
 			JaxrsResourceField resourceField = iterator.next();
 			if (resourceField.getQueryParamAnnotation() != null) {
-				WorkbenchUtils.delete(resourceField.getQueryParamAnnotation().getJavaAnnotation(), false);
+				delete(resourceField.getQueryParamAnnotation().getJavaAnnotation(), false);
 			}
 		}
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 resource field
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource field
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 6 built-in HttpMethods + 1 resource (including its 1 method and 2
 		// fields)
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(10));
@@ -1126,19 +1148,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveExistingResourceWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		resetElementChangesNotifications();
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		for (IMethod method : resource.getJavaElement().getMethods()) {
-			WorkbenchUtils.delete(method);
+			delete(method);
 		}
 		final ResourceDelta event = createResourceDelta(resource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(3)); // 1 resource + 2
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(3)); // 1 resource + 2
 														// methods
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		// 6 HttpMethods left only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1146,23 +1168,23 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceWhenRemovingCompilationUnit() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		resetElementChangesNotifications();
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(resource.getJavaElement().getResource());
+		delete(resource.getJavaElement().getResource());
 		final ResourceDelta event = createResourceDelta(resource.getJavaElement().getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: 1 resource and its 2 methods removed
-		assertThat(elementChanges.size(), equalTo(3));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(3));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
-		assertThat(elementChanges.get(1).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(1).getElement().getElementKind().getCategory(),
+		assertThat(metamodelMonitor.getElementChanges().get(1).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(1).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
-		assertThat(elementChanges.get(2).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(2).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(((JaxrsResource) elementChanges.get(2).getElement()), equalTo(resource));
+		assertThat(metamodelMonitor.getElementChanges().get(2).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(2).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(((JaxrsResource) metamodelMonitor.getElementChanges().get(2).getElement()), equalTo(resource));
 		// 6 built-in HttpMethods left only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1170,17 +1192,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		resetElementChangesNotifications();
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(resource.getJavaElement());
+		delete(resource.getJavaElement());
 		final ResourceDelta event = createResourceDelta(resource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: 1 resource and its 2 methods removed
-		assertThat(elementChanges.size(), equalTo(3));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(((JaxrsResource) elementChanges.get(0).getElement()), equalTo(resource));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(3));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(((JaxrsResource) metamodelMonitor.getElementChanges().get(0).getElement()), equalTo(resource));
 		// 6 built-in HttpMethods left only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1188,14 +1210,14 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceWhenRemovingSourceFolder() throws CoreException {
 		// pre-conditions
-		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
-		createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		resetElementChangesNotifications();
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(7));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7));
 		// only built-in HTTP Methods left
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1209,29 +1231,29 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveResourceWhenRemovingMethodsFieldsAndAnnotations() throws CoreException {
 		// pre-conditions
-		final JaxrsResource resourceLocator = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resetElementChangesNotifications();
+		final JaxrsResource resourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		for (Iterator<JaxrsResourceMethod> iterator = resourceLocator.getMethods().values().iterator(); iterator
 				.hasNext();) {
 			JaxrsResourceMethod resourceMethod = iterator.next();
-			WorkbenchUtils.delete(resourceMethod.getJavaElement());
+			delete(resourceMethod.getJavaElement());
 		}
 		for (Iterator<JaxrsResourceField> iterator = resourceLocator.getFields().values().iterator(); iterator
 				.hasNext();) {
 			JaxrsResourceField resourceField = iterator.next();
-			WorkbenchUtils.delete(resourceField.getJavaElement());
+			delete(resourceField.getJavaElement());
 		}
 		for (Iterator<Annotation> iterator = resourceLocator.getAnnotations().values().iterator(); iterator.hasNext();) {
 			Annotation annotation = iterator.next();
-			WorkbenchUtils.delete(annotation.getJavaAnnotation(), false);
+			delete(annotation.getJavaAnnotation(), false);
 		}
 		final ResourceDelta event = createResourceDelta(resourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: 1 resource, its 1 method and 3 fields removed
-		assertThat(elementChanges.size(), equalTo(5));
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(5));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		// 6 built-in HttpMethods left only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1244,19 +1266,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateTypeAnnotationLocationAfterCodeChangeAbove() throws CoreException {
 		// pre-condition: using the CustomerResource type
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation pathAnnotation = customerResource.getAnnotation(PATH.qualifiedName);
 		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
 				pathAnnotation.getJavaAnnotation(), "value");
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @Encoded *before* the CustomerResource type
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
 				pathAnnotation.getJavaAnnotation(), "value");
@@ -1272,19 +1294,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateMethodAnnotationLocationAfterCodeChangeAbove() throws CoreException {
 		// pre-condition: using the CustomerResource type
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final JaxrsResourceMethod resourceMethod = getResourceMethod(customerResource, "createCustomer");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "createCustomer");
 		final ISourceRange beforeChangeSourceRange = resourceMethod.getAnnotation(POST.qualifiedName)
 				.getJavaAnnotation().getSourceRange();
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @Encoded *before* the createCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		final ISourceRange afterChangeSourceRange = resourceMethod.getAnnotation(POST.qualifiedName)
 				.getJavaAnnotation().getSourceRange();
@@ -1300,8 +1322,8 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateMethodParameterAnnotationLocationAfterCodeChangeAbove() throws CoreException {
 		// pre-condition: using the CustomerResource type
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod javaMethod = getJavaMethod(customerResource.getJavaElement(), "getCustomer");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomer");
 		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
 		Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
 				.get(PATH_PARAM.qualifiedName);
@@ -1309,13 +1331,13 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 				pathParamAnnotation.getJavaAnnotation(), "value");
 		final int beforeLength = beforeChangeSourceRange.getLength();
 		final int beforeOffset = beforeChangeSourceRange.getOffset();
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @Encoded *before* the getCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		// reference has changed (local variable)
 		pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
@@ -1336,25 +1358,25 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateMethodParameterAnnotationLocationAfterPreviousMethodParamRemoved() throws CoreException {
 		// pre-condition: using the CustomerResource type
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		IMethod javaMethod = getJavaMethod(customerResource.getJavaElement(), "getCustomer");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		IMethod javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomer");
 		JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
 		Annotation contextAnnotation = resourceMethod.getJavaMethodParameters().get(1).getAnnotations()
 				.get(CONTEXT.qualifiedName);
 		final ISourceRange beforeChangeSourceRange = contextAnnotation.getJavaAnnotation().getSourceRange();
 		final int beforeLength = beforeChangeSourceRange.getLength();
 		final int beforeOffset = beforeChangeSourceRange.getOffset();
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing "@PathParam("id") Integer id" parameter in the
 		// getCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@PathParam(\"id\") Integer id, ", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: java method has changed, so all references must be
 		// looked-up again
-		javaMethod = getJavaMethod(customerResource.getJavaElement(), "getCustomer");
+		javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomer");
 		resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
 		contextAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations().get(CONTEXT.qualifiedName);
 		final ISourceRange afterChangeSourceRange = contextAnnotation.getJavaAnnotation().getSourceRange();
@@ -1372,19 +1394,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotUpdateTypeAnnotationLocationAfterCodeChangeBelow() throws CoreException {
 		// pre-condition: using the CustomerResource type
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation pathAnnotation = customerResource.getAnnotation(PATH.qualifiedName);
 		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
 				pathAnnotation.getJavaAnnotation(), "value");
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @DELETE *after* the CustomerResource type
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
 				pathAnnotation.getJavaAnnotation(), "value");
@@ -1400,19 +1422,19 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotUpdateMethodAnnotationLocationAfterCodeChangeBelow() throws CoreException {
 		// pre-condition: using the CustomerResource type
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final JaxrsResourceMethod resourceMethod = getResourceMethod(customerResource, "createCustomer");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "createCustomer");
 		final Annotation postAnnotation = resourceMethod.getAnnotation(POST.qualifiedName);
 		final ISourceRange beforeChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @DELETE, after the createCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		final ISourceRange afterChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
 		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
@@ -1427,8 +1449,8 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotUpdateMethodParameterAnnotationLocationAfterCodeChangeBelow() throws CoreException {
 		// pre-condition: using the CustomerResource type
-		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final IMethod javaMethod = getJavaMethod(customerResource.getJavaElement(), "getCustomer");
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomer");
 		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
 		final Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
 				.get(PATH_PARAM.qualifiedName);
@@ -1436,13 +1458,13 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 				pathParamAnnotation.getJavaAnnotation(), "value");
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @DELETE, *after* the getCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
 				pathParamAnnotation.getJavaAnnotation(), "value");
@@ -1453,13 +1475,13 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddProviderWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
 		// 6 built-in HTTP Methods and 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -1467,15 +1489,15 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldAddProviderWhenChangingResource() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
 		// 6 built-in HTTP Methods and 1 Provider
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 	}
@@ -1483,43 +1505,43 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotChangeProviderWhenAddingDeprecatedAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.addTypeAnnotation(provider.getJavaElement(), "@Deprecated", false);
+		addTypeAnnotation(provider.getJavaElement(), "@Deprecated", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
 
 	@Test
 	public void shouldDoNothingWhenChangingUnrelatedProviderAnnotationValue() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement().getCompilationUnit(),
+		replaceAllOccurrencesOfCode(provider.getJavaElement().getCompilationUnit(),
 				"@SuppressWarnings(\"testing\")", "@SuppressWarnings(\"test\")", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
 
 	@Test
 	public void shouldRemoveProviderWhenRemovingResource() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(provider.getResource());
+		delete(provider.getResource());
 		final ResourceDelta event = createResourceDelta(provider.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
 		// 6 built-in HTTP Methods only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1527,16 +1549,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveProviderWhenCompilationUnit() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(provider.getJavaElement().getCompilationUnit());
+		delete(provider.getJavaElement().getCompilationUnit());
 		final ResourceDelta event = createResourceDelta(provider.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
 		// 6 built-in HTTP Methods only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1544,16 +1566,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveProviderWhenRemovingSourceType() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(provider.getJavaElement());
+		delete(provider.getJavaElement());
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
 		// 6 built-in HTTP Methods only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1561,50 +1583,50 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRemoveProviderWhenRemovingAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IType type = provider.getJavaElement();
 		final IAnnotation annotation = provider.getAnnotation(PROVIDER.qualifiedName).getJavaAnnotation();
-		WorkbenchUtils.removeTypeAnnotation(type, annotation, false);
+		removeTypeAnnotation(type, annotation, false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
 		// no change (validation warning may occur, though)
-		assertThat(elementChanges.size(), equalTo(1));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 	}
 
 	@Test
 	public void shouldCreateProviderEvenIfHierarchyIsMissing() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", "",
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", "",
 				false);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications: 1 provider should be created
-		assertThat(elementChanges.size(), equalTo(1));
-		assertThat(((JaxrsProvider) elementChanges.get(0).getElement()).getProvidedTypes().size(), equalTo(0));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
+		assertThat(((JaxrsProvider) metamodelMonitor.getElementChanges().get(0).getElement()).getProvidedTypes().size(), equalTo(0));
 	}
 
 	@Test
 	public void shouldRemoveProviderWhenRemovingHierarchyAndAnnotationAlreadyMissing() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@Provider", "", false);
-		final JaxrsProvider provider = createProvider(type);
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		replaceFirstOccurrenceOfCode(type, "@Provider", "", false);
+		final JaxrsProvider provider = metamodelMonitor.createProvider(type);
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", "",
+		replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", "",
 				false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
 		// 6 built-in HTTP Methods only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1612,31 +1634,31 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldDoNothingWhenRemovingUnrelatedAnnotationOnProvider() throws CoreException {
 		// pre-conditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		final JaxrsProvider provider = createProvider(type);
-		resetElementChangesNotifications();
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = metamodelMonitor.createProvider(type);
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(type, "@SuppressWarnings(\"testing\")", "", false);
+		replaceFirstOccurrenceOfCode(type, "@SuppressWarnings(\"testing\")", "", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(0)); // no change
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0)); // no change
 	}
 
 	@Test
 	public void shouldRemoveProviderWhenRemovingSourceFolder() throws CoreException {
 		// pre-conditions
-		createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		final IPackageFragmentRoot sourceFolder = getPackageFragmentRoot("src/main/java");
-		resetElementChangesNotifications();
+		metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		WorkbenchUtils.delete(sourceFolder.getResource());
+		delete(sourceFolder.getResource());
 		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.PROVIDER));
 		// 6 built-in HTTP Methods only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1644,17 +1666,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenAddingConsumesAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		provider.removeAnnotation(provider.getAnnotation(CONSUMES.qualifiedName).getJavaAnnotation());
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(CONSUMES.qualifiedName), notNullValue());
 	}
@@ -1662,18 +1684,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenChangingConsumesAnnotationValue() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(provider.getJavaElement(), "@Consumes(\"application/json\")",
+		replaceFirstOccurrenceOfCode(provider.getJavaElement(), "@Consumes(\"application/json\")",
 				"@Consumes(\"application/foo\")", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(CONSUMES.qualifiedName).getValue(), equalTo("application/foo"));
 	}
@@ -1681,17 +1703,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenRemovingConsumesAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
-		WorkbenchUtils.removeFirstOccurrenceOfCode(provider.getJavaElement(), "@Consumes(\"application/json\")", false);
+		removeFirstOccurrenceOfCode(provider.getJavaElement(), "@Consumes(\"application/json\")", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_CONSUMES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(CONSUMES.qualifiedName), nullValue());
 	}
@@ -1699,17 +1721,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenAddingProducesAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		provider.removeAnnotation(provider.getAnnotation(PRODUCES.qualifiedName).getJavaAnnotation());
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(PRODUCES.qualifiedName), notNullValue());
 	}
@@ -1717,18 +1739,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenChangingProducesAnnotationValue() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Produces annotation that was just changed
 		// from the model entity
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(provider.getJavaElement(), "@Produces(\"application/json\")",
+		replaceFirstOccurrenceOfCode(provider.getJavaElement(), "@Produces(\"application/json\")",
 				"@Produces(\"application/foo\")", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(PRODUCES.qualifiedName).getValue(), equalTo("application/foo"));
 	}
@@ -1736,17 +1758,17 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenRemovingProducesAnnotation() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Produces annotation that was just removed
 		// from the model entity
-		WorkbenchUtils.removeFirstOccurrenceOfCode(provider.getJavaElement(), "@Produces(\"application/json\")", false);
+		removeFirstOccurrenceOfCode(provider.getJavaElement(), "@Produces(\"application/json\")", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_PRODUCES_ANNOTATION));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getAnnotation(PRODUCES.qualifiedName), nullValue());
 	}
@@ -1754,24 +1776,24 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenProvidedTypeChanged() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the provider type that was just changed
 		// from the model entity
-		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(),
+		replaceAllOccurrencesOfCode(provider.getJavaElement(),
 				"import javax.persistence.EntityNotFoundException;", "import javax.persistence.NoResultException;",
 				false);
-		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(),
+		replaceAllOccurrencesOfCode(provider.getJavaElement(),
 				"ExceptionMapper<EntityNotFoundException>", "ExceptionMapper<NoResultException>", false);
-		// WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(),
+		// replaceAllOccurrencesOfCode(provider.getJavaElement(),
 		// "(EntityNotFoundException exception)",
 		// "(NoResultException exception)", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER), notNullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(),
@@ -1781,18 +1803,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldUpdateProviderWhenProvidedTypeChangedWithInterfacesInheritance() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
-		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
+		replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
 				"AbstractEntityProvider<Integer, Number>", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER).getFullyQualifiedName(),
 				equalTo("java.lang.Integer"));
@@ -1803,18 +1825,18 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldRemoveMessageBodyReaderWhenProvidedTypeDoesNotExist() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
-		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
+		replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
 				"AbstractEntityProvider<Foo, Number>", false);
 		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(event);
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(elementChanges.get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getFlags(), flagMatches(F_PROVIDER_HIERARCHY));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER).getFullyQualifiedName(),
@@ -1824,17 +1846,16 @@ public class ResourceChangedProcessingTestCase extends AbstractCommonTestCase {
 	@Test
 	public void shouldNotRemoveProviderWhenProvidedTypesDoNotExist() throws CoreException {
 		// pre-conditions
-		final JaxrsProvider provider = createProvider("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
-		resetElementChangesNotifications();
+		final JaxrsProvider provider = metamodelMonitor.createProvider("org.jboss.tools.ws.jaxrs.sample.extra.DummyProvider");
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
-		WorkbenchUtils.replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
+		replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
 				"AbstractEntityProvider<Foo, Bar>", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event, progressMonitor);
+		processAffectedResources(createResourceDelta(provider.getResource(), CHANGED));
 		// verifications
-		assertThat(elementChanges.size(), equalTo(1)); // 1 provider
-		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER), nullValue());

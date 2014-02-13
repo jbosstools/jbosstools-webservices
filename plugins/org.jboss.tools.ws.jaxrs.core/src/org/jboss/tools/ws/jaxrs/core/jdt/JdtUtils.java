@@ -561,10 +561,10 @@ public final class JdtUtils {
 	 */
 	private static Map<String, Annotation> findAnnotations(final List<?> modifiers,
 			final List<String> annotationNames) {
-		if (modifiers == null) {
-			return Collections.emptyMap();
-		}
 		final Map<String, Annotation> annotations = new HashMap<String, Annotation>();
+		if (modifiers == null) {
+			return annotations;
+		}
 		for (Object modifier : modifiers) {
 			if (modifier instanceof org.eclipse.jdt.core.dom.Annotation) {
 				final IAnnotationBinding annotationBinding = ((org.eclipse.jdt.core.dom.Annotation) modifier)
@@ -994,7 +994,7 @@ public final class JdtUtils {
 				ITypeBinding[] typeArgBindings = typeBinding.getTypeArguments();
 				arguments = new ArrayList<IType>(typeArgBindings.length);
 				for (ITypeBinding typeArgBinding : typeArgBindings) {
-					Logger.debug("Resolving Java ElementKind for type argument '"
+					Logger.trace("Resolving Java ElementKind for type argument '"
 							+ typeArgBinding.getName() + "'");
 					IJavaElement javaElement = typeArgBinding.getJavaElement();
 					if (javaElement.getElementType() == IJavaElement.TYPE

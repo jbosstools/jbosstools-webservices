@@ -18,6 +18,9 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.Valida
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.hasPreferenceKey;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.ValidationUtils.toSet;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceContent;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES;
 import static org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY;
@@ -29,6 +32,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -44,18 +48,22 @@ import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
-import org.jboss.tools.ws.jaxrs.core.WorkbenchUtils;
-import org.jboss.tools.ws.jaxrs.core.builder.AbstractMetamodelBuilderTestCase;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
 import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -63,13 +71,29 @@ import org.junit.Test;
  * 
  */
 @SuppressWarnings("restriction")
-public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderTestCase {
+public class JaxrsApplicationValidatorTestCase {
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
 	private final IProjectValidationContext context = new ProjectValidationContext();
 	private final ValidatorManager validatorManager = new ValidatorManager();
 
+	@ClassRule
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	
+	@Rule
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
+	
+	private JaxrsMetamodel metamodel = null;
+
+	private IProject project = null;
+	
+	@Before
+	public void setup() throws CoreException {
+		metamodel = metamodelMonitor.getMetamodel();
+		project = metamodel.getProject();
+	}
+	
 	@After
 	public void resetProblemLevelPreferences() {
 		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
@@ -86,7 +110,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			}
 		}
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		assertThat(metamodel.getAllApplications().size(), equalTo(1));
 		assertThat(metamodel.getApplication().isJavaApplication(), equalTo(true));
 		// operation
@@ -108,7 +132,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		assertThat(metamodel.getAllApplications().size(), equalTo(1));
 		assertThat(metamodel.getApplication().isWebXmlApplication(), equalTo(true));
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -124,14 +148,14 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			((JaxrsBaseElement) application).remove();
 		}
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -140,7 +164,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		assertThat(applications, hasSize(2));
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -155,7 +179,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		for(IJaxrsEndpoint endpoint : affectedEndpoints) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -164,7 +188,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		assertThat(applications, hasSize(2));
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation: validate one app twice
 		final IFile file1 = (IFile)project.findMember(".project");
 		final IFile file2 = (IFile)project.findMember(".classpath");
@@ -182,7 +206,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		for(IJaxrsEndpoint endpoint : affectedEndpoints) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 	
 	@Test
@@ -192,7 +216,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		assertThat(applications, hasSize(2));
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		JaxrsJavaApplication javaApplication = null;
 		// remove web.xml-based application and remove @ApplicationPath annotation on java-based application
 		for (IJaxrsApplication application : applications) {
@@ -211,17 +235,17 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final IMarker[] markers = findJaxrsMarkers(javaApplication);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
 	public void shouldReportProblemOnJavaApplicationIfInvalidTypeHierarchy() throws CoreException, ValidationException {
 		// preconditions
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Application", "", false);
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Application", "", false);
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -230,7 +254,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.getApplication())) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -241,9 +265,9 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
 		javaApplication.removeAnnotation(appPathAnnotation.getJavaAnnotation());
 		metamodel.findWebxmlApplication().remove();
-		createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
+		metamodelMonitor.createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -258,7 +282,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		metamodel.findWebxmlApplication().remove();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -273,12 +297,10 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		metamodel.findWebxmlApplication().remove();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation #1: remove annotation and validate
-		LOGGER.warn("*** Operation #1 ***");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(javaApplication.getJavaElement().getCompilationUnit(),
+		replaceAllOccurrencesOfCode(javaApplication.getJavaElement().getCompilationUnit(),
 				"@ApplicationPath(\"/app\")", "", false);
-		LOGGER.warn("*** Validating after Operation #1 ***");
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation after operation #1
 		IMarker[] markers = findJaxrsMarkers(javaApplication);
@@ -287,10 +309,8 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions operation #2
 		deleteJaxrsMarkers(project);
 		// operation #2: remove 'extends Application'
-		LOGGER.warn("*** Operation #2 ***");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(javaApplication.getJavaElement().getCompilationUnit(),
+		replaceAllOccurrencesOfCode(javaApplication.getJavaElement().getCompilationUnit(),
 				"extends Application", "", false);
-		LOGGER.warn("*** Validating after Operation #2 ***");
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation after operation #2
 		markers = findJaxrsMarkers(javaApplication);
@@ -302,13 +322,13 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions
 		metamodel.findWebxmlApplication().remove();
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
-				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
+		final IType restApplication2Type = metamodelMonitor.createCompilationUnit("RestApplication2.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
 		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		buildMetamodel();
+		metamodelMonitor.buildMetamodel();
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
 		for(JaxrsJavaApplication app : new JaxrsJavaApplication[]{javaApplication, javaApplication2}) {
@@ -319,7 +339,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 			}
 		}
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -327,11 +347,11 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions
 		metamodel.findWebxmlApplication().remove();
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+		final IType restApplication2Type = metamodelMonitor.createCompilationUnit(
 				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
 		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 1: validate when there are 2 applications, expecting markers
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -352,7 +372,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(0));
 		assertThat(findJaxrsMarkers(javaApplication2).length, equalTo(0));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -360,11 +380,11 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions
 		metamodel.findWebxmlApplication().remove();
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+		final IType restApplication2Type = metamodelMonitor.createCompilationUnit(
 				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
 		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 1: validate when there are 2 applications, expecting markers
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -384,7 +404,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		new JaxrsMetamodelValidator().validate(toSet(app2Resource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(0));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -392,13 +412,13 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions
 		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+		final IType restApplication2Type = metamodelMonitor.createCompilationUnit(
 				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
 		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		buildMetamodel();
+		metamodelMonitor.buildMetamodel();
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
 		for(IJaxrsApplication app : new IJaxrsApplication[]{webxmlApplication, javaApplication, javaApplication2}) {
@@ -409,7 +429,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 				assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 			}
 		}
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 	
 	@Test
@@ -418,7 +438,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 1: validate when there are 2 applications, expecting markers
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -438,7 +458,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		new JaxrsMetamodelValidator().validate(toSet(appResource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(webxmlApplication).length, equalTo(0));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -447,7 +467,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 1: validate when there are 2 applications, expecting markers
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -467,21 +487,21 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		new JaxrsMetamodelValidator().validate(toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(0));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
 	public void shouldStillReportProblemAfterUnderlyingWebxmlApplicationResourceRemovalWhenMetamodelHasTwoJavaApplicationsAndWebxmlOverride() throws CoreException, ValidationException, OperationCanceledException, InterruptedException, IOException {
 		// preconditions
 		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
-		WorkbenchUtils.replaceContent(webxmlApplication.getResource(), "javax.ws.rs.core.Application", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2");
+		replaceContent(webxmlApplication.getResource(), "javax.ws.rs.core.Application", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2");
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+		final IType restApplication2Type = metamodelMonitor.createCompilationUnit(
 				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(restApplication2Type, "@ApplicationPath(\"/app2\")", "", false);
+		replaceFirstOccurrenceOfCode(restApplication2Type, "@ApplicationPath(\"/app2\")", "", false);
 		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 1: validate when there are 2 applications, expecting markers
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation: markers are on first javaapp and one web.xml only
@@ -503,21 +523,21 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(1));
 		// restApplication2 has 2 markers: missing annotation and duplicate application
 		assertThat(findJaxrsMarkers(javaApplication2).length, equalTo(2));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 	
 	@Test
 	public void shouldStillReportProblemAfterUnderlyingWebxmlApplicationResourceEditWhenMetamodelHasTwoJavaApplicationsAndWebxmlOverride() throws Exception {
 		// preconditions
 		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
-		WorkbenchUtils.replaceContent(webxmlApplication.getResource(), "javax.ws.rs.core.Application", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2");
+		replaceContent(webxmlApplication.getResource(), "javax.ws.rs.core.Application", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2");
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
-		final IType restApplication2Type = WorkbenchUtils.createCompilationUnit(javaProject,
+		final IType restApplication2Type = metamodelMonitor.createCompilationUnit(
 				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java").findPrimaryType();
-		WorkbenchUtils.replaceFirstOccurrenceOfCode(restApplication2Type, "@ApplicationPath(\"/app2\")", "", false);
+		replaceFirstOccurrenceOfCode(restApplication2Type, "@ApplicationPath(\"/app2\")", "", false);
 		final JaxrsJavaApplication javaApplication2 = JaxrsJavaApplication.from(restApplication2Type).withMetamodel(metamodel).build();
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 1: validate when there are 2 applications, expecting markers
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation: markers are on first javaapp and one web.xml only
@@ -533,14 +553,14 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		webxmlApplication.remove();
 		IFile webxmlResource = (IFile) webxmlApplication.getResource();
 		// remove content, no remove resource
-		webxmlResource = (IFile) WorkbenchUtils.replaceDeploymentDescriptorWith(javaProject, "web-3_0-without-servlet-mapping.xml");
+		webxmlResource = (IFile) metamodelMonitor.replaceDeploymentDescriptorWith("web-3_0-without-servlet-mapping.xml");
 		// then validate again, only the *changed files* (and without reset). Expect marker on both applications to be still there
 		new JaxrsMetamodelValidator().validate(toSet(webxmlResource), project, validationHelper, context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication).length, equalTo(1));
 		// restApplication2 has 2 markers: missing annotation and duplicate application
 		assertThat(findJaxrsMarkers(javaApplication2).length, equalTo(2));
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 	
 	@Test
@@ -549,7 +569,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		final List<IJaxrsApplication> applications = metamodel.getAllApplications();
 		assertThat(applications, hasSize(2));
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(project.findMember(".project")), project, validationHelper, context, validatorManager, reporter);
 		// validation
@@ -563,7 +583,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		for(IJaxrsEndpoint endpoint : affectedEndpoints) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
-		assertThat(metamodelProblemLevelChanges.contains(metamodel), is(true));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 	
 	@Test
@@ -574,7 +594,7 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 			((JaxrsBaseElement) application).remove();
 		}
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsCorePlugin.PLUGIN_ID);
 		defaultPreferences.put(JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferences.IGNORE);
 		// operation
@@ -589,17 +609,17 @@ public class JaxrsApplicationValidatorTestCase extends AbstractMetamodelBuilderT
 		// preconditions
 		final JaxrsWebxmlApplication webxmlApplication = metamodel.findWebxmlApplication();
 		webxmlApplication.remove();
-		final IType type = resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Application", "extends Object", false);
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Application", "extends Object", false);
 		final JaxrsJavaApplication javaApplication = metamodel.getJavaApplications().get(0);
 		deleteJaxrsMarkers(project);
-		resetElementChangesNotifications();
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// verification: problem level is set to '2'
 		assertThat(javaApplication.getProblemLevel(), equalTo(2));
 		// now, fix the problem 
-		WorkbenchUtils.replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Object", "extends Application", false);
+		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "extends Object", "extends Application", false);
 		// revalidate
 		new JaxrsMetamodelValidator().validate(toSet(javaApplication.getResource()), project, validationHelper,
 				context, validatorManager, reporter);

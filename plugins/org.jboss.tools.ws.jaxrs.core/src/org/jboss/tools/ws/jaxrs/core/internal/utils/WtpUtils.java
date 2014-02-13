@@ -195,9 +195,14 @@ public class WtpUtils {
 	 * 
 	 * @param webxmlResource
 	 * @param applicationTypeName
-	 * @return the xpath expression evalutation or null if an error occurred
+	 * @return the xpath expression evalutation or null if the given
+	 *         webxmlresource is null or does not exist, or if an error
+	 *         occurred.
 	 */
 	private static Node evaluateXPathExpression(final IResource webxmlResource, final String expression) {
+		if(webxmlResource == null || !webxmlResource.exists()) {
+			return null;
+		}
 		FileInputStream fileInputStream = null;
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

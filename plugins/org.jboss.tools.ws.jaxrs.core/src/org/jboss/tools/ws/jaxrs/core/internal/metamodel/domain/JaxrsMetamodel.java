@@ -325,12 +325,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public final void remove() {
 		try {
 			readWriteLock.writeLock().lock();
-			javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
 			indexationService.dispose();
 			final IProject project = getProject();
 			if(project.exists() && project.isOpen()) {
+				project.setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
 				project.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
-				Logger.debug("JAX-RS Problem markers removed.");
 			}
 		} catch (Exception e) {
 			Logger.error("Failed to remove JAX-RS Metamodel for project " + javaProject.getElementName(), e);
@@ -358,7 +357,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * 
 	 * @param listener
 	 */
-	public void addListener(final IJaxrsElementChangedListener listener) {
+	public void addJaxrsElementChangedListener(final IJaxrsElementChangedListener listener) {
 		this.elementChangedListeners.add(listener);
 	}
 
@@ -379,7 +378,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @param listener
 	 */
 	@Override
-	public void addListener(final IJaxrsEndpointChangedListener listener) {
+	public void addJaxrsEndpointChangedListener(final IJaxrsEndpointChangedListener listener) {
 		if(!endpointChangedListeners.contains(listener)) { 
 			Logger.debug("*** Registering EndpointChangedListener for project {} ***", javaProject.getElementName());
 			this.endpointChangedListeners.add(listener);
@@ -433,7 +432,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				listener.notifyEndpointChanged(delta);
 			}
 		} else if(endpointChangedListeners.isEmpty()) {
-			Logger.debug("*** No Listener for project '{}' to notify after endpoint changes: {} (change={}) ***", javaProject.getElementName(), endpoint, deltaKind);
+			Logger.trace("*** No Listener for project '{}' to notify after endpoint changes: {} (change={}) ***", javaProject.getElementName(), endpoint, deltaKind);
 		}
 	}
 
@@ -681,24 +680,30 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	private void processWebDeploymentDescriptorChange(final ResourceDelta delta)
 			throws CoreException {
-		final IResource webxmlResource = delta.getResource();
-		final JaxrsWebxmlApplication webxmlElement = (JaxrsWebxmlApplication) findElement(webxmlResource);
-		switch (delta.getDeltaKind()) {
-		case ADDED:
-			JaxrsWebxmlApplication.from(webxmlResource).inMetamodel(this).build();
-			break;
-		case CHANGED:
-			if (webxmlElement != null) {
-				webxmlElement.update(webxmlResource);
-			} else {
+		final long start = System.currentTimeMillis(); 
+		try {
+			final IResource webxmlResource = delta.getResource();
+			final JaxrsWebxmlApplication webxmlElement = (JaxrsWebxmlApplication) findElement(webxmlResource);
+			switch (delta.getDeltaKind()) {
+			case ADDED:
 				JaxrsWebxmlApplication.from(webxmlResource).inMetamodel(this).build();
+				break;
+			case CHANGED:
+				if (webxmlElement != null) {
+					webxmlElement.update(webxmlResource);
+				} else {
+					JaxrsWebxmlApplication.from(webxmlResource).inMetamodel(this).build();
+				}
+				break;
+			case REMOVED:
+				if (webxmlElement != null) {
+					webxmlElement.remove();
+				}
+				break;
 			}
-			break;
-		case REMOVED:
-			if (webxmlElement != null) {
-				webxmlElement.remove();
-			}
-			break;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Processed web.xml in {}ms", (end - start));
 		}
 	}
 
@@ -739,13 +744,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	public void processElementChange(final JaxrsElementDelta delta) throws CoreException {
+		final long start = System.currentTimeMillis();
 		try {
 			readWriteLock.writeLock().lock();
 			JaxrsElementChangedProcessorDelegate.processEvent(delta);
 		} finally {
 			readWriteLock.writeLock().unlock();
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("JAX-RS Element change processed in {}ms", (end - start));
 		}
-
 	}
 
 	/**
@@ -1083,7 +1090,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 	}
 
-
+	/**
+	 * @return all {@link IJaxrsElement} in this {@link JaxrsMetamodel},
+	 *         including the built-in {@link JaxrsHttpMethod}.
+	 */
+	public List<IJaxrsElement> findAllElements() {
+		return findElements(javaProject);
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */

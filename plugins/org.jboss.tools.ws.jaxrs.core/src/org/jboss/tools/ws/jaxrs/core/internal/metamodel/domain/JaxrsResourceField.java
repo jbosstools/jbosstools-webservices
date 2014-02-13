@@ -31,6 +31,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -90,30 +91,36 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		}
 
 		public JaxrsResourceField build() throws CoreException {
-			if (!javaField.exists()) {
-				return null;
-			}
-			final IType parentType = (IType) javaField.getParent();
-			// lookup parent resource in metamodel
-			if (parentResource == null && metamodel != null) {
-				final JaxrsJavaElement<?> parentElement = (JaxrsJavaElement<?>) metamodel.findElement(parentType);
-				if (parentElement != null
-						&& parentElement.getElementKind().getCategory() == EnumElementCategory.RESOURCE) {
-					parentResource = (JaxrsResource) parentElement;
+			final long start = System.currentTimeMillis();
+			try {
+				if (!javaField.exists()) {
+					return null;
 				}
+				final IType parentType = (IType) javaField.getParent();
+				// lookup parent resource in metamodel
+				if (parentResource == null && metamodel != null) {
+					final JaxrsJavaElement<?> parentElement = (JaxrsJavaElement<?>) metamodel.findElement(parentType);
+					if (parentElement != null
+							&& parentElement.getElementKind().getCategory() == EnumElementCategory.RESOURCE) {
+						parentResource = (JaxrsResource) parentElement;
+					}
+				}
+				final List<String> supportedFieldAnnotations = Arrays.asList(MATRIX_PARAM.qualifiedName,
+						QUERY_PARAM.qualifiedName, PATH_PARAM.qualifiedName, COOKIE_PARAM.qualifiedName,
+						HEADER_PARAM.qualifiedName, DEFAULT_VALUE.qualifiedName);
+				annotations = JdtUtils.resolveAnnotations(javaField, ast, supportedFieldAnnotations);
+				if ((annotations.size() == 1 && !annotations.containsKey(DEFAULT_VALUE.qualifiedName))
+						|| (annotations.size() == 2 && annotations.containsKey(DEFAULT_VALUE.qualifiedName))) {
+					final JaxrsResourceField field = new JaxrsResourceField(this);
+					// this operation is only performed after creation
+					field.joinMetamodel();
+					return field;
+				}
+				return null;
+			} finally {
+				final long end = System.currentTimeMillis();
+				Logger.tracePerf("Built JAX-RS Resource Method in {}ms", (end - start));
 			}
-			final List<String> supportedFieldAnnotations = Arrays.asList(MATRIX_PARAM.qualifiedName,
-					QUERY_PARAM.qualifiedName, PATH_PARAM.qualifiedName, COOKIE_PARAM.qualifiedName,
-					HEADER_PARAM.qualifiedName, DEFAULT_VALUE.qualifiedName);
-			annotations = JdtUtils.resolveAnnotations(javaField, ast, supportedFieldAnnotations);
-			if ((annotations.size() == 1 && !annotations.containsKey(DEFAULT_VALUE.qualifiedName))
-					|| (annotations.size() == 2 && annotations.containsKey(DEFAULT_VALUE.qualifiedName))) {
-				final JaxrsResourceField field = new JaxrsResourceField(this);
-				// this operation is only performed after creation
-				field.joinMetamodel();
-				return field;
-			}
-			return null;
 		}
 
 	}
