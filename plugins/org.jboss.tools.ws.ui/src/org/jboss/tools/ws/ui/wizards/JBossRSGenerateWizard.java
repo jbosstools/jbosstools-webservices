@@ -63,7 +63,7 @@ public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 	private String appClassName = APPCLASSDEFAULT;
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
-	private boolean updateWebXML = true;
+	private boolean updateWebXML = false;
 	private boolean addJarsFromRootRuntime = false;
 
 	private IStructuredSelection selection;

@@ -98,47 +98,15 @@ public class RSServiceSampleCreationCommand extends AbstractDataModelOperation {
 			}
 
 			StringBuffer clsContent = new StringBuffer(); 
+			clsContent.append("@ApplicationPath(\"/\")").append(LINE_SEPARATOR); //$NON-NLS-1$
 			clsContent.append("public class ").append(className).append(" extends Application").append(" {" + LINE_SEPARATOR); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			clsContent.append("     /* class body intentionally left blank */" + LINE_SEPARATOR); //$NON-NLS-1$
 			clsContent.append("}").append(LINE_SEPARATOR); //$NON-NLS-1$
 			wrapperCls.createType(clsContent.toString(), null, true, null);
 			
-			wrapperCls.createImport("java.util.Set", null,null); //$NON-NLS-1$
-			wrapperCls.createImport("java.util.HashSet", null,null); //$NON-NLS-1$
+			wrapperCls.createImport("javax.ws.rs.ApplicationPath", null,null); //$NON-NLS-1$
 			wrapperCls.createImport("javax.ws.rs.core.Application", null,null); //$NON-NLS-1$
 			
-			IType serviceClsType = wrapperCls.findPrimaryType();
-			clsContent = new StringBuffer();
-			clsContent.append("private Set<Object> singletons = new HashSet<Object>();" + LINE_SEPARATOR); //$NON-NLS-1$
-			serviceClsType.createField(clsContent.toString(), null, false, null);
-			
-			clsContent = new StringBuffer();
-			clsContent.append("private Set<Class<?>> empty = new HashSet<Class<?>>();" + LINE_SEPARATOR); //$NON-NLS-1$
-			serviceClsType.createField(clsContent.toString(), null, false, null);
-
-			clsContent = new StringBuffer();
-			clsContent.append(LINE_SEPARATOR);
-			clsContent.append("public " + className + "(){" + LINE_SEPARATOR); //$NON-NLS-1$ //$NON-NLS-2$
-			clsContent.append("     singletons.add(new " + JBossWSCreationUtils //$NON-NLS-1$
-					.classNameFromQualifiedName(model.getServiceClasses().get(0)) + "());" + LINE_SEPARATOR); //$NON-NLS-1$
-			clsContent.append("}" + LINE_SEPARATOR); //$NON-NLS-1$
-			serviceClsType.createMethod(clsContent.toString(), null, true, null);
-
-			clsContent = new StringBuffer();
-			clsContent.append(LINE_SEPARATOR);
-			clsContent.append("@Override" + LINE_SEPARATOR); //$NON-NLS-1$
-			clsContent.append("public Set<Class<?>> getClasses() {" + LINE_SEPARATOR); //$NON-NLS-1$
-			clsContent.append("     return empty;" + LINE_SEPARATOR); //$NON-NLS-1$
-			clsContent.append("}" + LINE_SEPARATOR); //$NON-NLS-1$
-			serviceClsType.createMethod(clsContent.toString(), null, true, null);
-
-			clsContent = new StringBuffer();
-			clsContent.append(LINE_SEPARATOR);
-			clsContent.append("@Override" + LINE_SEPARATOR); //$NON-NLS-1$
-			clsContent.append("public Set<Object> getSingletons() {" + LINE_SEPARATOR); //$NON-NLS-1$
-			clsContent.append("     return singletons;" + LINE_SEPARATOR); //$NON-NLS-1$
-			clsContent.append("}" + LINE_SEPARATOR); //$NON-NLS-1$
-			serviceClsType.createMethod(clsContent.toString(), null, true, null);
-
 			wrapperCls.save(null, true);
 			return wrapperCls;
 		} catch (Exception e) {
