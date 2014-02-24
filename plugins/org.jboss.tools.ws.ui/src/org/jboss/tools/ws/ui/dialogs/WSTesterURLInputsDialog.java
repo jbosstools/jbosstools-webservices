@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ICellModifier;
@@ -563,6 +564,8 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 	
 	/*
 	 * Validate the parameter values and pop up a message for the first invalid value.
+	 * Updated for JBIDE-15593 to just show warning, no error, and allow user to submit
+	 * request with bad parms if desired.
 	 */
 	private void validate() {
 		// validates two different types of parameters in the url
@@ -571,12 +574,12 @@ public class WSTesterURLInputsDialog extends TitleAreaDialog {
 		String errorMessage = validateParmValues();
 		boolean hasError = errorMessage.trim().length() > 0;
 		if (hasError) {
-			setErrorMessage(errorMessage);
+			setMessage(errorMessage, IMessageProvider.WARNING);
 		}
 		else
-			setErrorMessage(null);
-		if (this.mOKButton != null && !this.mOKButton.isDisposed())
-			this.mOKButton.setEnabled(!hasError);
+			setMessage(JBossWSUIMessages.WSTesterURLInputsDialog_DialogMessage);
+//		if (this.mOKButton != null && !this.mOKButton.isDisposed())
+//			this.mOKButton.setEnabled(!hasError);
 	}
 
 	/*
