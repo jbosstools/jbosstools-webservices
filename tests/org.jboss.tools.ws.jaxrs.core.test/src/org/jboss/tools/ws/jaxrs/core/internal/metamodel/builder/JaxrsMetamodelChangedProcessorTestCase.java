@@ -68,7 +68,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomerAsVCard");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		// @produces and @consumes annotations were explicitly declared
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/xml")));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("text/x-vcard")));
@@ -86,7 +86,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResourceMethod subresourceMethod = getResourceMethod(bookResource, "getProduct");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(subresourceMethod).get(0);
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/products/{productType}/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/products;bar={String}/{productType:String}/{id:Integer}?foo={String}"));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 	}
@@ -102,7 +102,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomers");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers?start={start:int}&size={size:int=2}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers?start={int}&size={int}"));
 	}
 
 	@Test
@@ -302,7 +302,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		change = endpointChanges.get(1);
 		assertThat(change.getKind(), equalTo(ADDED));
 		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 	}
 
 	@Test
@@ -333,7 +333,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		createWebxmlApplication("javax.ws.rs.core.Application", "/foo");
@@ -355,7 +355,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsWebxmlApplication webxmlApplication = createWebxmlApplication("javax.ws.rs.core.Application", "/foo");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		webxmlApplication.remove();
@@ -376,7 +376,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation: the JavaApplication is overridden
 		createWebxmlApplication(javaApplication.getJavaClassName(), "/foo");
@@ -384,8 +384,8 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		assertThat(endpointChanges.size(), equalTo(6));
 		final JaxrsEndpointDelta change = endpointChanges.get(0);
 		assertThat(change.getKind(), equalTo(CHANGED));
-		final JaxrsEndpoint changedEndpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(changedEndpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+		JaxrsEndpoint endpoint2 = metamodel.findEndpoints(customerResourceMethod).get(0);
+		assertThat(endpoint2.getUriPathTemplate(), equalTo("/foo/customers/{id:Integer}"));
 	}
 
 	@Test
@@ -399,7 +399,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 				"/foo");
 		javaApplication.setApplicationPathOverride("/foo");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		webxmlApplication.remove();
@@ -408,7 +408,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsEndpointDelta change = endpointChanges.get(0);
 		assertThat(change.getKind(), equalTo(CHANGED));
 		final JaxrsEndpoint changedEndpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(changedEndpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		assertThat(changedEndpoint.getUriPathTemplate(), equalTo("/app/customers/{id:Integer}"));
 	}
 
 	@Test
@@ -418,7 +418,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
@@ -440,7 +440,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
@@ -451,7 +451,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		assertThat(change.getKind(), equalTo(CHANGED));
 		assertThat(change.getEndpoint(), equalTo((IJaxrsEndpoint) endpoint));
 		assertThat(change.getEndpoint().getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/customers/{foo}"));
+		assertThat(change.getEndpoint().getUriPathTemplate(), equalTo("/customers/{foo:.*}"));
 	}
 
 	@Test
@@ -465,7 +465,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), PATH.qualifiedName);
@@ -485,7 +485,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource bazResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
 		final JaxrsResourceMethod bazResourceMethod = getResourceMethod(bazResource, "update3");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(bazResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3:.*}"));
 		resetElementChangesNotifications();
 		// operation
 		final Annotation httpMethodAnnotation = getAnnotation(httpMethod.getJavaElement(), HTTP_METHOD.qualifiedName);
@@ -505,7 +505,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource bazResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
 		final JaxrsResourceMethod bazResourceMethod = getResourceMethod(bazResource, "update3");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(bazResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3:.*}"));
 		resetElementChangesNotifications();
 		// operation
 		final Annotation fooAnnotation = getAnnotation(bazResourceMethod.getJavaElement(),
@@ -529,7 +529,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation : no 'application' left in the metamodel
 		application.remove();
@@ -550,7 +550,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
@@ -833,7 +833,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource customerResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = getResourceMethod(customerResource, "deleteCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		resetElementChangesNotifications();
 		// operation
 		httpMethod.remove();
@@ -851,7 +851,7 @@ public class JaxrsMetamodelChangedProcessorTestCase extends AbstractCommonTestCa
 		final JaxrsResource bazResource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
 		final JaxrsResourceMethod bazResourceMethod = getResourceMethod(bazResource, "update3");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(bazResourceMethod).get(0);
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3:.*}"));
 		resetElementChangesNotifications();
 		// operation
 		httpMethod.remove();

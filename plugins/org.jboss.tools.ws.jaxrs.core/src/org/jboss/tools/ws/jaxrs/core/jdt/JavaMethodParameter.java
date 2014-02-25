@@ -59,6 +59,11 @@ public class JavaMethodParameter {
 		return this.typeName;
 	}
 
+	/** @return the parameter type name in a shorter/displayable form.*/
+	public String getDisplayableTypeName() {
+		return JdtUtils.toDisplayableTypeName(typeName);
+	}
+	
 	/**
 	 * @return all annotations.
 	 */

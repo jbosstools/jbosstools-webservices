@@ -8,16 +8,15 @@
  * Contributors: 
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
-import org.eclipse.jdt.core.IField;
+package org.jboss.tools.ws.ui.dialogs;
 
-public interface IJaxrsResourceField extends IJaxrsElement {
-
-	IField getJavaElement();
-
-	String getDisplayableTypeName();
-
-	String getTypeName();
+/**
+ * @author xcoulon
+ *
+ */
+public enum EnumParamType {
+	
+	PATH_PARAM, MATRIX_PARAM, QUERY_PARAM;
 
 }

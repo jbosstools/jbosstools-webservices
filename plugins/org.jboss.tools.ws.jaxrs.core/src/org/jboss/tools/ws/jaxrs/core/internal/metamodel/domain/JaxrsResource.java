@@ -15,6 +15,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -36,7 +38,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
+import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -56,8 +61,10 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  */
 public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
 
+	/** The map of {@link JaxrsResourceField} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 
+	/** The map of {@link JaxrsResourceMethod} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsResourceMethod> resourceMethods = new HashMap<String, JaxrsResourceMethod>();
 
 	/**
@@ -138,6 +145,10 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 			final JaxrsResource resource = new JaxrsResource(this);
 			// retrieve all JavaMethodSignatures at once
 			final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(ast);
+			// find the available type fields
+			for (IField javaField : javaType.getFields()) {
+				JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
+			}
 			// find the resource methods, subresource methods and
 			// subresource
 			// locators of this resource:
@@ -146,10 +157,6 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 			for (IMethod javaMethod : javaMethods) {
 				JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
 						.withJavaMethodSignature(methodSignatures.get(javaMethod.getHandleIdentifier())).withMetamodel(metamodel).build();
-			}
-			// find the available type fields
-			for (IField javaField : javaType.getFields()) {
-				JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
 			}
 			// well, sorry.. this is not a valid JAX-RS resource..
 			if (resource.isSubresource() && resource.resourceFields.isEmpty() && resource.resourceMethods.isEmpty()) {
@@ -303,6 +310,99 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 		}
 		return pathAnnotation.getValue("value");
 	}
+	
+	/**
+	 * Generates and returns a displayable path template in the context of the
+	 * given {@link JaxrsResourceMethod}.
+	 * 
+	 * @param resourceMethod
+	 *            the JAX-RS Resource Method
+	 * @return the displayable URI Path Template as a {@link Pair} of
+	 *         {@link String}, where the left part is the URI fragment including
+	 *         the path and the matrix params, and the right side is a
+	 *         {@link List} of the query params
+	 */
+	public Pair<String, List<String>> getDisplayablePathTemplate(final JaxrsResourceMethod resourceMethod) {
+		final String pathTemplate = getPathTemplate();
+		final StringBuilder displayablePathTemplateBuilder = new StringBuilder();
+		if(pathTemplate != null) {
+			displayablePathTemplateBuilder.append(processPathTemplateSubstitution(resourceMethod, pathTemplate));
+		}
+		final List<JaxrsResourceField> matrixParamFields = getFieldsAnnotatedWith(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName);
+		for(JaxrsResourceField matrixParamField : matrixParamFields) {
+			displayablePathTemplateBuilder.append(';');
+			final String matrixParamAnnotationValue = matrixParamField.getAnnotation(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName).getValue();
+			displayablePathTemplateBuilder.append(matrixParamAnnotationValue).append("={").append(matrixParamField.getDisplayableTypeName()).append('}');
+		}
+		final List<JaxrsResourceField> queryParamFields = getFieldsAnnotatedWith(EnumJaxrsClassname.QUERY_PARAM.qualifiedName);
+		final List<String> queryParams = new ArrayList<String>(queryParamFields.size());
+		for (JaxrsResourceField queryParamField : queryParamFields) {
+			final String queryParamAnnotationValue = queryParamField.getAnnotation(EnumJaxrsClassname.QUERY_PARAM.qualifiedName).getValue();
+			final String queryParam = new StringBuilder().append(queryParamAnnotationValue).append("={")
+					.append(queryParamField.getDisplayableTypeName()).append('}').toString();
+			queryParams.add(queryParam);
+		}
+		return new Pair<String, List<String>>(displayablePathTemplateBuilder.toString(), queryParams);
+	}
+
+	/**
+	 * Substitute the given Path Template parameters with a syntax that reveals their associated java types
+	 * in the displayable form.
+	 * @param pathTemplate
+	 * @param resourceMethod
+	 */
+	private String processPathTemplateSubstitution(final JaxrsResourceMethod resourceMethod, final String pathTemplate) {
+		final StringBuilder pathTemplateBuilder = new StringBuilder();
+		int index = 0;
+		while (index < pathTemplate.length()) {
+			final int beginIndex = pathTemplate.indexOf('{', index);
+			final int endIndex = pathTemplate.indexOf('}', beginIndex + 1);
+			// let's keep everything in between the current index and the
+			// next path arg to process
+			if (beginIndex > index) {
+				pathTemplateBuilder.append(pathTemplate.substring(index, beginIndex));
+			} else if (beginIndex == -1) {
+				pathTemplateBuilder.append(pathTemplate.substring(index));
+				break;
+			}
+			// retrieve path arg without surrounding curly brackets
+			final String pathArg = pathTemplate.substring(beginIndex + 1, endIndex).replace(" ", "");
+			// path arg contains some regexp, let's keep it
+			if (pathArg.contains(":")) {
+				pathTemplateBuilder.append('{').append(pathArg).append('}');
+			}
+			// otherwise, let's use the type of the associated PathParam of
+			// the first resource methods
+			// which provides it
+			else {
+				boolean match = false;
+				final JavaMethodParameter pathParameter = ((JaxrsResourceMethod) resourceMethod)
+						.getJavaMethodParameter(pathArg);
+				if (pathParameter != null) {
+					pathTemplateBuilder.append('{').append(pathArg).append(":")
+							.append(pathParameter.getDisplayableTypeName()).append('}');
+					match = true;
+				}
+				if (!match) {
+					for (IJaxrsResourceField resourceField : getAllFields()) {
+						final Annotation pathParamAnnotation = ((JaxrsResourceField) resourceField)
+								.getAnnotation(PATH_PARAM.qualifiedName);
+						if (pathParamAnnotation != null && pathParamAnnotation.getValue().equals(pathArg)) {
+							pathTemplateBuilder.append('{').append(pathArg).append(":")
+									.append(resourceField.getDisplayableTypeName()).append('}');
+							match = true;
+							break;
+						}
+					}
+				}
+				if (!match) {
+					pathTemplateBuilder.append('{').append(pathArg).append(":.*").append('}');
+				}
+			}
+			index = endIndex + 1;
+		}
+		return pathTemplateBuilder.toString();
+	}
 
 	@Override
 	public boolean hasPathTemplate() {
@@ -393,6 +493,9 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 		((JaxrsResourceMethod) method).remove();
 	}
 
+	/**
+	 * @return the map of {@link JaxrsResourceField} indexed by the underlying java element identifier.
+	 */
 	public Map<String, JaxrsResourceField> getFields() {
 		return resourceFields;
 	}
@@ -410,6 +513,23 @@ public class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsReso
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns the JAX-RS Resource Field which are annotated with the given annotation fully qualified name
+	 * 
+	 * @param annotationName the annotation's fully qualified name
+	 * @return the JAX-RS Resource Fields or empty list
+	 */
+	public List<JaxrsResourceField> getFieldsAnnotatedWith(String annotationName) {
+		final List<JaxrsResourceField> annotatedFields = new ArrayList<JaxrsResourceField>();
+		for(Entry<String, JaxrsResourceField> entry: resourceFields.entrySet()) {
+			JaxrsResourceField field = entry.getValue();
+			if(field.hasAnnotation(annotationName)) {
+				annotatedFields.add(field);
+			}
+		}
+		return annotatedFields;
 	}
 
 	/*

@@ -14,19 +14,19 @@ public class ProductResourceLocator {
 	// no real usage, just for junit tests
 	@QueryParam("foo")
 	@DefaultValue("foo!")
-	private String foo;
+	private String _foo;
 	
 	// no real usage, just for junit tests
 	@SuppressWarnings("unused")
 	@MatrixParam("bar") 
-	private String bar;
+	private String _bar;
 	
 	@PathParam("productType") 
-	private String productType = null;
+	private String _pType = null;
 	
 	@Path("/{productType}")
 	public Object getProductResourceLocator() {
-		if ("books".equals(productType)) {
+		if ("books".equals(pType)) {
 			return new BookResource();
 		}
 		if ("games".equals(productType)) {

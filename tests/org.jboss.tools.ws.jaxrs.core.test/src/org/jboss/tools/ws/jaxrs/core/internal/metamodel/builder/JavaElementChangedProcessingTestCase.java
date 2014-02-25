@@ -837,10 +837,10 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldAddResourceFieldWhenAddingPathParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("productType").remove();
+		resource.getField("_pType").remove();
 		resetElementChangesNotifications();
 		// operation
-		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("productType"),
+		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_pType"),
 				PATH_PARAM.qualifiedName);
 		processEvent(fieldAnnotation, ADDED);
 		// verifications
@@ -872,10 +872,10 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldAddResourceFieldWhenAddingQueryParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("foo").remove();
+		resource.getField("_foo").remove();
 		resetElementChangesNotifications();
 		// operation
-		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("foo"),
+		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_foo"),
 				QUERY_PARAM.qualifiedName);
 		processEvent(fieldAnnotation, ADDED);
 		// verifications
@@ -889,10 +889,10 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldAddResourceFieldWhenAddingMatrixParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("bar").remove();
+		resource.getField("_bar").remove();
 		resetElementChangesNotifications();
 		// operation
-		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("bar"),
+		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_bar"),
 				MATRIX_PARAM.qualifiedName);
 		processEvent(fieldAnnotation, ADDED);
 		// verifications
@@ -906,10 +906,10 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithPathParam() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("productType").remove();
+		resource.getField("_pType").remove();
 		resetElementChangesNotifications();
 		// operation
-		final IField field = resource.getJavaElement().getField("productType");
+		final IField field = resource.getJavaElement().getField("_pType");
 		processEvent(field, ADDED);
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // field only
@@ -922,10 +922,10 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithQueryParam() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("foo").remove();
+		resource.getField("_foo").remove();
 		resetElementChangesNotifications();
 		// operation
-		final IField field = resource.getJavaElement().getField("foo");
+		final IField field = resource.getJavaElement().getField("_foo");
 		processEvent(field, ADDED);
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // field only
@@ -938,10 +938,10 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithMatrixParam() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("bar").remove();
+		resource.getField("_bar").remove();
 		resetElementChangesNotifications();
 		// operation
-		final IField field = resource.getJavaElement().getField("bar");
+		final IField field = resource.getJavaElement().getField("_bar");
 		processEvent(field, ADDED);
 		// verifications
 		assertThat(elementChanges.size(), equalTo(1)); // field only
@@ -981,7 +981,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingPathParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("productType").getAnnotation(PATH_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_pType").getAnnotation(PATH_PARAM.qualifiedName);
 		fieldAnnotation.update(createAnnotation(PATH_PARAM.qualifiedName, "foobar"));
 		resetElementChangesNotifications();
 		// operation
@@ -996,7 +996,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingQueryParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("foo").getAnnotation(QUERY_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_foo").getAnnotation(QUERY_PARAM.qualifiedName);
 		fieldAnnotation.update(createAnnotation(QUERY_PARAM.qualifiedName, "foobar"));
 		resetElementChangesNotifications();
 		// operation
@@ -1011,7 +1011,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldUpdateResourceFieldWhenChangingMatrixParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("bar").getAnnotation(MATRIX_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_bar").getAnnotation(MATRIX_PARAM.qualifiedName);
 		fieldAnnotation.update(createAnnotation(MATRIX_PARAM.qualifiedName, "foobar"));
 		resetElementChangesNotifications();
 		// operation
@@ -1026,7 +1026,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldDoNothingWhenChangingUnrelatedResourceFieldAnnotationValue() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = getAnnotation(resource.getField("bar").getJavaElement(),
+		final Annotation fieldAnnotation = getAnnotation(resource.getField("_bar").getJavaElement(),
 				SuppressWarnings.class.getName());
 		createAnnotation(fieldAnnotation, "foobar");
 		resetElementChangesNotifications();
@@ -1041,7 +1041,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingPathParamAnnotatedOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("productType").getAnnotation(PATH_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_pType").getAnnotation(PATH_PARAM.qualifiedName);
 		resetElementChangesNotifications();
 		// operation
 		processEvent(fieldAnnotation, REMOVED);
@@ -1055,7 +1055,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingQueryParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("foo").getAnnotation(QUERY_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_foo").getAnnotation(QUERY_PARAM.qualifiedName);
 		resetElementChangesNotifications();
 		// operation
 		processEvent(fieldAnnotation, REMOVED);
@@ -1069,7 +1069,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingMatrixParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("bar").getAnnotation(MATRIX_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_bar").getAnnotation(MATRIX_PARAM.qualifiedName);
 		resetElementChangesNotifications();
 		// operation
 		processEvent(fieldAnnotation, REMOVED);
@@ -1083,7 +1083,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithPathParam() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = resource.getField("productType");
+		final JaxrsResourceField field = resource.getField("_pType");
 		resetElementChangesNotifications();
 		// operation
 		processEvent(field.getJavaElement(), REMOVED);
@@ -1097,7 +1097,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithQueryParam() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = resource.getField("foo");
+		final JaxrsResourceField field = resource.getField("_foo");
 		resetElementChangesNotifications();
 		// operation
 		processEvent(field.getJavaElement(), REMOVED);
@@ -1111,7 +1111,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 	@Test
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithMatrixParam() throws CoreException {
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = resource.getField("bar");
+		final JaxrsResourceField field = resource.getField("_bar");
 		resetElementChangesNotifications();
 		// operation
 		processEvent(field.getJavaElement(), REMOVED);
@@ -1625,7 +1625,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// pre-conditions
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final JaxrsResourceMethod resourceMethod = getResourceMethod(resource, "getPicture");
-		resourceMethod.removeJavaMethodParameter("color");
+		resourceMethod.removeJavaMethodParameter("c");
 		resetElementChangesNotifications();
 		// operation
 		processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
@@ -1705,7 +1705,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// pre-conditions
 		final JaxrsResource resource = createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final JaxrsResourceMethod resourceMethod = getResourceMethod(resource, "getPicture");
-		resourceMethod.getJavaMethodParameter("color").removeAnnotation(MATRIX_PARAM.qualifiedName);
+		resourceMethod.getJavaMethodParameter("c").removeAnnotation(MATRIX_PARAM.qualifiedName);
 		resetElementChangesNotifications();
 		// operation
 		processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
@@ -1725,7 +1725,7 @@ public class JavaElementChangedProcessingTestCase extends AbstractCommonTestCase
 		// JAX-RS Resource Method (MATRIX_PARAM.qualifiedName value is
 		// different: "foo" vs "color" on second param)
 		final JaxrsResourceMethod resourceMethod = getResourceMethod(resource, "getPicture");
-		resourceMethod.getJavaMethodParameter("color").getAnnotation(MATRIX_PARAM.qualifiedName)
+		resourceMethod.getJavaMethodParameter("c").getAnnotation(MATRIX_PARAM.qualifiedName)
 				.update(createAnnotation(MATRIX_PARAM.qualifiedName, "foo"));
 		resetElementChangesNotifications();
 		// operation

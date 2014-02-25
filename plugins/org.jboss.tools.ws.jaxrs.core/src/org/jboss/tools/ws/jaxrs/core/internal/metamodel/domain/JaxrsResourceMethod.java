@@ -15,6 +15,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
@@ -38,14 +39,17 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.DeltaFlags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.CollectionComparison;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 
@@ -363,6 +367,94 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		}
 		return pathAnnotation.getValue("value");
 	}
+	
+	/**
+	 * Computes and returns a displayable form of the Path template, ie.,
+	 * combining the value of the {@code @Path} annotation along with the java
+	 * types or primitive types of the
+	 * 
+	 * @return the displayable URI Path Template as a {@link Pair} of
+	 *         {@link String}, where the left part is the URI fragment including
+	 *         the path and the matrix params, and the right side is a
+	 *         {@link List} of the query params
+	 */
+	public Pair<String, List<String>> getDisplayablePathTemplate() {
+		final String pathTemplate = getPathTemplate();
+		final StringBuilder displayablePathTemplateBuilder = new StringBuilder();
+		if (pathTemplate != null) {
+			displayablePathTemplateBuilder.append(processPathTemplateSubstitution(pathTemplate));
+		}
+		final List<JavaMethodParameter> matrixParams = getJavaMethodParametersAnnotatedWith(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName);
+		for(JavaMethodParameter matrixParam : matrixParams) {
+			displayablePathTemplateBuilder.append(';');
+			final String matrixParamAnnotationValue = matrixParam.getAnnotation(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName).getValue();
+			displayablePathTemplateBuilder.append(matrixParamAnnotationValue).append("={").append(matrixParam.getDisplayableTypeName()).append('}');
+		}
+
+		final List<JavaMethodParameter> queryParams = getJavaMethodParametersAnnotatedWith(EnumJaxrsClassname.QUERY_PARAM.qualifiedName);
+		final List<String> queryParamValues = new ArrayList<String>(queryParams.size());
+		for (JavaMethodParameter queryParam : queryParams) {
+			final String queryParamAnnotationValue = queryParam.getAnnotation(EnumJaxrsClassname.QUERY_PARAM.qualifiedName).getValue();
+			final String queryParamValue = new StringBuilder().append(queryParamAnnotationValue).append("={")
+					.append(queryParam.getDisplayableTypeName()).append('}').toString();
+			queryParamValues.add(queryParamValue);
+		}
+		return new Pair<String, List<String>>(displayablePathTemplateBuilder.toString(), queryParamValues);
+	}
+
+	/**
+	 * Substitute the given Path Template parameters with a syntax that reveals their associated java types
+	 * in the displayable form.
+	 * @param pathTemplate
+	 */
+	private String processPathTemplateSubstitution(final String pathTemplate) {
+		final StringBuilder pathTemplateBuilder = new StringBuilder();
+		int index = 0;
+		while (index < pathTemplate.length()) {
+			final int beginIndex = pathTemplate.indexOf('{', index);
+			final int endIndex = pathTemplate.indexOf('}', beginIndex + 1);
+			// let's keep everything in between the current index and the
+			// next path arg to process
+			if (beginIndex > index) {
+				pathTemplateBuilder.append(pathTemplate.substring(index, beginIndex));
+			} else if (beginIndex == -1) {
+				pathTemplateBuilder.append(pathTemplate.substring(index));
+				break;
+			}
+			// retrieve path arg without surrounding curly brackets
+			final String pathArg = pathTemplate.substring(beginIndex + 1, endIndex).replace(" ", "");
+			// path arg contains some regexp, let's keep it
+			if (pathArg.contains(":")) {
+				pathTemplateBuilder.append('{').append(pathArg).append('}');
+			}
+			// otherwise, let's use the type of the associated PathParam
+			else {
+				boolean match = false;
+				final JavaMethodParameter pathParameter = getJavaMethodParameter(pathArg);
+				if (pathParameter != null) {
+					pathTemplateBuilder.append('{').append(pathArg).append(":")
+							.append(pathParameter.getDisplayableTypeName()).append('}');
+					match = true;
+				}
+				if (!match) {
+					for (IJaxrsResourceField resourceField : getParentResource().getAllFields()) {
+						final Annotation pathParamAnnotation = ((JaxrsResourceField) resourceField)
+								.getAnnotation(PATH_PARAM.qualifiedName);
+						if (pathParamAnnotation != null && pathParamAnnotation.getValue().equals(pathArg)) {
+							pathTemplateBuilder.append('{').append(pathArg).append(":")
+									.append(resourceField.getDisplayableTypeName()).append('}');
+							match = true;
+						}
+					}
+				}
+				if (!match) {
+					pathTemplateBuilder.append('{').append(pathArg).append(":.*").append('}');
+				}
+			}
+			index = endIndex + 1;
+		}
+		return pathTemplateBuilder.toString();
+	}
 
 	public Annotation getHttpMethodAnnotation() {
 		if (hasMetamodel()) {
@@ -411,7 +503,6 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		return Collections.emptyList();
 	}
 
-	/** @return the javaMethodParameters */
 	@Override
 	public List<JavaMethodParameter> getJavaMethodParameters() {
 		return Collections.unmodifiableList(this.javaMethodParameters);
