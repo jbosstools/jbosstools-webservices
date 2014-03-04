@@ -39,6 +39,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -179,10 +180,128 @@ public class JaxrsElementFactoryTestCase {
 		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/orders/{id:Integer}"));
+	}
+
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpPathParamFromJavaMethod() throws CoreException {
+		// pre-conditions
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = metamodelMonitor.resolveMethod(type, "getOrder");
+		ResourcesUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "/{id:int}", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
 		assertThat(element.getParentResource(), notNullValue());
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/orders/{id:int}"));
+	}
+
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpPathAndNoHeadingParamFromJavaMethod()
+			throws CoreException {
+		// pre-conditions
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = metamodelMonitor.resolveMethod(type, "getOrder");
+		ResourcesUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "{id:int}", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/orders/{id:int}"));
+	}
+
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpPathAndTailParamFromJavaMethod()
+			throws CoreException {
+		// pre-conditions
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = metamodelMonitor.resolveMethod(type, "getOrder");
+		ResourcesUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "{id:int}/foo", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/orders/{id:int}/foo"));
+	}
+
+	@Test
+	public void shouldCreateRootResourceAndResourceMethodWithRegexpAndUnboundPathParamFromJavaMethod()
+			throws CoreException {
+		// pre-conditions
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = metamodelMonitor.resolveMethod(type, "getOrder");
+		ResourcesUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "/foo{id:[0-9]+}/{foo}bar", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getAnnotations().size(), equalTo(3));
+		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(element.getParentResource(), notNullValue());
+		// {foo} is undefined
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/orders/foo{id:[0-9]+}/{foo:.*}bar"));
+	}
+
+	@Test
+	public void shouldCreateRootResourceWithRegexpAndUnboundPathParamAndResourceMethodFromJavaMethod()
+			throws CoreException {
+		// pre-conditions
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
+		final IMethod javaMethod = metamodelMonitor.resolveMethod(type, "getOrder");
+		ResourcesUtils.replaceFirstOccurrenceOfCode(type, "/orders", "/orders{id:int}/{foo}bar", false);
+		ResourcesUtils.replaceFirstOccurrenceOfCode(javaMethod, "/{id}", "/", false);
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(javaMethod,
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(2));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResourceMethod resourceMethod = (JaxrsResourceMethod) elements.get(1);
+		// {foo} is undefined -> "{foo:.*}"
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/orders{id:int}/{foo:.*}bar/"));
+		assertThat(resourceMethod.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(resourceMethod.getAnnotations().size(), equalTo(3));
+		assertThat(resourceMethod.getAnnotations().size(), equalTo(3));
+		assertThat(resourceMethod.getJavaMethodParameters().size(), equalTo(2));
+		assertThat(resourceMethod.getParentResource(), notNullValue());
 	}
 
 	@Test
@@ -215,7 +334,7 @@ public class JaxrsElementFactoryTestCase {
 		// metamodel.add(httpMethod);
 		final IType type = metamodelMonitor
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		IField field = type.getField("foo");
+		IField field = type.getField("_foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
 		// operation
 		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
@@ -223,16 +342,42 @@ public class JaxrsElementFactoryTestCase {
 		// verifications
 		assertThat(elements.size(), equalTo(5));
 		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("foo");
+		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("_foo");
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());
 		assertThat(element.getQueryParamAnnotation().getValue("value"), equalTo("foo"));
 		assertThat(element.getDefaultValueAnnotation().getValue("value"), equalTo("foo!"));
 	}
+
+	@Test
+	public void shouldCreateResourceLocatorAndMethodAndFieldsFromType() throws CoreException {
+		// pre-conditions
+		final IType httpType = metamodelMonitor.resolveType(GET.qualifiedName);
+		JaxrsHttpMethod.from(httpType).withMetamodel(metamodel).build();
+		// metamodel.add(httpMethod);
+		final IType type = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(type,
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(5));
+		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("_foo");
+		assertThat(element.getAnnotations().size(), equalTo(2));
+		assertThat(element.getPathParamAnnotation(), nullValue());
+		assertThat(element.getQueryParamAnnotation().getValue("value"), equalTo("foo"));
+		assertThat(element.getDefaultValueAnnotation().getValue("value"), equalTo("foo!"));
+	}
+
 
 	@Test
 	public void shouldCreateApplicationFromApplicationAnnotationAndApplicationSubclass() throws CoreException {

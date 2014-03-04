@@ -119,8 +119,9 @@ public class JaxrsElementFactory {
 			final JaxrsResource resource = JaxrsResource.from(type, ast, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
 			if (resource != null) {
 				elements.add(resource);
-				elements.addAll(resource.getAllMethods());
+				// fields should be added before methods because they are used to resolve path parameters
 				elements.addAll(resource.getAllFields());
+				elements.addAll(resource.getAllMethods());
 			}
 			// now,let's see if the given type can be an Application
 			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type, ast).withMetamodel(metamodel).build();

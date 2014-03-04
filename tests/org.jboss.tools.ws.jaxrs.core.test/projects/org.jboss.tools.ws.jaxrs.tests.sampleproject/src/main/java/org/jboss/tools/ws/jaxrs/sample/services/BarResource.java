@@ -29,7 +29,7 @@ public class BarResource {
 	// unbound @PathParam("i") annotation
 	@GET
 	@Path("/user/{id}/{format:(/format/[^/]+?)?}/{encoding:(/encoding/[^/]+?)?}")
-	public Response getContent2(@PathParam("i") int id,
+	public Response getContent2(@PathParam("i") int ident,
 				  @PathParam("format") String format,
 				  @PathParam("encoding") String encoding, 
 				  @QueryParam("start") int start) {

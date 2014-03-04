@@ -169,7 +169,8 @@ public class JavaElementsUtils {
 		LOGGER.info("Adding type into type " + type.getElementName());
 		ICompilationUnit unit = useWorkingCopy ? createWorkingCopy(type.getCompilationUnit()) : type
 				.getCompilationUnit();
-		ISourceRange sourceRange = type.getFields()[0].getSourceRange();
+		
+		ISourceRange sourceRange = (type.getFields().length > 0) ? type.getFields()[0].getSourceRange() : type.getMethods()[0].getSourceRange();
 		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		// insert before 1 method
 		buffer.replace(sourceRange.getOffset(), 0, contents);

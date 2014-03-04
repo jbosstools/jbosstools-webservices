@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.MatrixParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -14,6 +15,8 @@ import org.jboss.tools.ws.jaxrs.sample.domain.Book;
 
 @Produces({ MediaType.APPLICATION_XML, "application/json" })
 public class BookResource {
+	
+	//PlaceHolder (DO NOT REMOVE)
 
 	@GET
 	@Path("/{id}")
@@ -25,7 +28,7 @@ public class BookResource {
 	@GET
 	@Path("/{id}")
 	@Produces({ "image/jpeg" })
-	public Object getPicture(@PathParam("id") Integer id, @MatrixParam("color") String color) {
+	public Object getPicture(@PathParam("id") Integer id, @MatrixParam("color") String c) {
 		return null;
 	}
 	

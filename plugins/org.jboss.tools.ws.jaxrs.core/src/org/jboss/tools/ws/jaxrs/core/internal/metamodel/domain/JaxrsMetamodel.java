@@ -322,16 +322,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws IOException
 	 * @throws CorruptIndexException
 	 */
-	public final void remove() {
+	public final void remove() throws CoreException {
 		try {
 			readWriteLock.writeLock().lock();
 			indexationService.dispose();
 			final IProject project = getProject();
 			if(project.exists() && project.isOpen()) {
 				project.setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
-				project.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to remove JAX-RS Metamodel for project " + javaProject.getElementName(), e);
 		} finally {
 			Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());
@@ -432,7 +431,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				listener.notifyEndpointChanged(delta);
 			}
 		} else if(endpointChangedListeners.isEmpty()) {
-			Logger.trace("*** No Listener for project '{}' to notify after endpoint changes: {} (change={}) ***", javaProject.getElementName(), endpoint, deltaKind);
+			Logger.trace(" No Listener for project '{}' to notify after endpoint changed (type={}): {}", javaProject.getElementName(), deltaKind, endpoint);
 		}
 	}
 
@@ -561,11 +560,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			this.indexationService.clear();
 			addBuiltinHttpMethods();
 			Logger.debug("Processing project '" + getProject().getName() + "'...");
-			processResourceChange(new ResourceDelta(getProject(), ADDED, 0), progressMonitor);
 			if (WtpUtils.hasWebDeploymentDescriptor(getProject())) {
 				processWebDeploymentDescriptorChange(
 						new ResourceDelta(WtpUtils.getWebDeploymentDescriptor(getProject()), ADDED, 0));
 			}
+			processResourceChange(new ResourceDelta(getProject(), ADDED, 0), progressMonitor);
 			progressMonitor.worked(1);
 		} catch (CoreException e) {
 			Logger.error("Failed while processing resource results", e);
@@ -947,7 +946,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		final String matchingIdentifier = indexationService.searchElement(terms);
 		final T element = (T) this.elements.get(matchingIdentifier);
 		if (element == null) {
-			Logger.trace("No element matching terms", (Object[]) terms);
+			Logger.traceIndexing("No element matching terms", (Object[]) terms);
 		}
 		return element;
 	}

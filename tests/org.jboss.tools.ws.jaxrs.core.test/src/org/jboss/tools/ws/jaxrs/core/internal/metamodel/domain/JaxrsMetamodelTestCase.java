@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -62,7 +63,7 @@ public class JaxrsMetamodelTestCase {
 	public TestWatcher watcher = new TestWatcher();
 	
 	private JaxrsMetamodel metamodel = null;
-
+	
 	@Before
 	public void setup() throws CoreException {
 		metamodel = metamodelMonitor.getMetamodel();
@@ -75,7 +76,7 @@ public class JaxrsMetamodelTestCase {
 	}
 
 	@Test
-	public void shouldnotFindHttpMethodByNullType() throws CoreException {
+	public void shouldNotFindHttpMethodByNullType() throws CoreException {
 		assertThat(metamodel.findHttpMethodByTypeName(null), nullValue());
 	}
 	
@@ -280,5 +281,5 @@ public class JaxrsMetamodelTestCase {
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
-
+	
 }

@@ -108,7 +108,7 @@ public class ValidationUtils {
 	}
 
 	/**
-	 * Reset JAX-RS Markers
+	 * Reset JAX-RS Markers on the given project and all its resources.
 	 * @param element
 	 * @throws CoreException
 	 */
