@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -58,8 +59,10 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  */
 public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
 
+	/** The map of {@link JaxrsResourceField} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 
+	/** The map of {@link JaxrsResourceMethod} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsResourceMethod> resourceMethods = new HashMap<String, JaxrsResourceMethod>();
 
 	/**
@@ -140,6 +143,10 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 						PRODUCES.qualifiedName, ENCODED.qualifiedName));
 				// create the resource
 				final JaxrsResource resource = new JaxrsResource(this);
+				// find the available type fields
+				for (IField javaField : javaType.getFields()) {
+					JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
+				}
 				// retrieve all JavaMethodSignatures at once
 				final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(javaType, ast);
 				// find the resource methods, subresource methods and
@@ -150,10 +157,6 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 				for (IMethod javaMethod : javaMethods) {
 					JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
 							.withJavaMethodSignature(methodSignatures.get(javaMethod.getHandleIdentifier())).withMetamodel(metamodel).build();
-				}
-				// find the available type fields
-				for (IField javaField : javaType.getFields()) {
-					JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
 				}
 				// well, sorry.. this is not a valid JAX-RS resource..
 				if (resource.isSubresource() && resource.resourceFields.isEmpty() && resource.resourceMethods.isEmpty()) {
@@ -325,7 +328,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		return pathAnnotation.getValue();
 	}
 
-	@Override
+		@Override
 	public boolean hasPathTemplate() {
 		final Annotation pathAnnotation = getPathAnnotation();
 		return pathAnnotation != null && pathAnnotation.getValue() != null;
@@ -412,6 +415,10 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		((JaxrsResourceMethod) method).remove();
 	}
 
+	/**
+	 * @return the map of {@link JaxrsResourceField} indexed by the underlying
+	 *         java element identifier.
+	 */
 	public Map<String, JaxrsResourceField> getFields() {
 		return resourceFields;
 	}
@@ -431,12 +438,30 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Returns the JAX-RS Resource Field which are annotated with the given
+	 * annotation fully qualified name
+	 *
+	 * @param annotationName
+	 *            the annotation's fully qualified name
+	 * @return the JAX-RS Resource Fields or empty list
+	 */
+	public List<JaxrsResourceField> getFieldsAnnotatedWith(String annotationName) {
+		final List<JaxrsResourceField> annotatedFields = new ArrayList<JaxrsResourceField>();
+		for (Entry<String, JaxrsResourceField> entry : resourceFields.entrySet()) {
+			JaxrsResourceField field = entry.getValue();
+			if (field.hasAnnotation(annotationName)) {
+				annotatedFields.add(field);
+			}
+		}
+		return annotatedFields;
+	}
+	
+	/**
+	 * {@inheritDoc}
 	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement
-	 * #remove()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement
+	 *      #remove()
 	 */
 	@Override
 	public void remove() throws CoreException {

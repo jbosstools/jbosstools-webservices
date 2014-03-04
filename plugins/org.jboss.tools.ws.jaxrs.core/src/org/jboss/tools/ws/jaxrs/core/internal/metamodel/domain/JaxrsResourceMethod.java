@@ -16,6 +16,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
+import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
@@ -370,7 +371,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		}
 		return pathAnnotation.getValue();
 	}
-
+	
+	
 	public Annotation getHttpMethodAnnotation() {
 		if (hasMetamodel()) {
 			for (IJaxrsHttpMethod httpMethod : getMetamodel().findAllHttpMethods()) {
@@ -428,12 +430,29 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * Returns the {@link JavaMethodParameter} whose parameter name is equal to
 	 * the given parameterName, null otherwise
 	 * 
-	 * @param parameterName
-	 * @return
+	 * @param parameterName the name of the parameter to retrieve
+	 * @return the {@link JavaMethodParameter} or null if none was found
 	 */
-	public JavaMethodParameter getJavaMethodParameter(final String parameterName) {
+	public JavaMethodParameter getJavaMethodParameterByName(final String parameterName) {
 		for (JavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
 			if (javaMethodParameter.getName().equals(parameterName)) {
+				return javaMethodParameter;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the {@link JavaMethodParameter} associated with a {@code @PathParam} annotation.
+	 * the given parameterName, null otherwise
+	 * 
+	 * @param pathParamName the name in the {@code @PathParam} annotation
+	 * @return the {@link JavaMethodParameter} or {@code null} if none was found
+	 */
+	public JavaMethodParameter getJavaMethodParameterByAnnotationBinding(final String pathParamName) {
+		for (JavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
+			final Annotation pathParamAnnotation = javaMethodParameter.getAnnotation(PATH_PARAM.qualifiedName);
+			if (pathParamAnnotation != null && pathParamName.equals(pathParamAnnotation.getValue())) {
 				return javaMethodParameter;
 			}
 		}
@@ -530,4 +549,5 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		return params;
 	}
 
+	
 }

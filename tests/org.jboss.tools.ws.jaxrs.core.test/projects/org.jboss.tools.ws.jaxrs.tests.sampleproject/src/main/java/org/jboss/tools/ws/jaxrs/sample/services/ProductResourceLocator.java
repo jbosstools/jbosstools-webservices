@@ -11,25 +11,27 @@ import javax.ws.rs.core.Response.Status;
 @Path("/products")
 public class ProductResourceLocator {
 
+	//PlaceHolder (DO NOT REMOVE)
+	
 	// no real usage, just for junit tests
 	@QueryParam("foo")
 	@DefaultValue("foo!")
-	private String foo;
+	private String _foo;
 	
 	// no real usage, just for junit tests
 	@SuppressWarnings("unused")
 	@MatrixParam("bar") 
-	private String bar;
+	private String _bar;
 	
 	@PathParam("productType") 
-	private String productType = null;
+	private String _pType = null;
 	
 	@Path("/{productType}")
 	public Object getProductResourceLocator() {
-		if ("books".equals(productType)) {
+		if ("books".equals(_pType)) {
 			return new BookResource();
 		}
-		if ("games".equals(productType)) {
+		if ("games".equals(_pType)) {
 			return new GameResource();
 		}
 		throw new WebApplicationException(Status.NOT_FOUND);

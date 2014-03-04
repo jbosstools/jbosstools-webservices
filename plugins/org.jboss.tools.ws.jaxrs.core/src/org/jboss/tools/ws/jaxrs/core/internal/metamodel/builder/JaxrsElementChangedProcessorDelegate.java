@@ -18,6 +18,7 @@ import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
@@ -25,8 +26,11 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpointFact
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -53,6 +57,9 @@ public class JaxrsElementChangedProcessorDelegate {
 			case RESOURCE_METHOD:
 				processAddition((JaxrsResourceMethod) element);
 				break;
+			case RESOURCE_FIELD:
+				processAddition((JaxrsResourceField) element);
+				break;
 			default:
 				Logger.trace("No direct impact on JAX-RS Endpoints after change on element:" + elementKind);
 				break;
@@ -72,6 +79,9 @@ public class JaxrsElementChangedProcessorDelegate {
 			case RESOURCE_METHOD:
 				processChange((JaxrsResourceMethod) element, flags);
 				break;
+			case RESOURCE_FIELD:
+				processChange((JaxrsResourceField) element, flags);
+				break;
 			default:
 				Logger.trace("No direct impact on JAX-RS Endpoints after change on element:" + elementKind);
 				break;
@@ -87,6 +97,9 @@ public class JaxrsElementChangedProcessorDelegate {
 				break;
 			case RESOURCE_METHOD:
 				processRemoval((JaxrsResourceMethod) element);
+				break;
+			case RESOURCE_FIELD:
+				processRemoval((JaxrsResourceField) element);
 				break;
 			default:
 				Logger.trace("No direct impact on JAX-RS Endpoints after change on element:" + elementKind);
@@ -118,7 +131,6 @@ public class JaxrsElementChangedProcessorDelegate {
 		return;
 	}
 
-	@SuppressWarnings("incomplete-switch")
 	private static void processAddition(final JaxrsResourceMethod resourceMethod) throws CoreException {
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) resourceMethod.getMetamodel();
 		final JaxrsResource resource = resourceMethod.getParentResource();
@@ -140,11 +152,34 @@ public class JaxrsElementChangedProcessorDelegate {
 					processSubresourceLocatorAddition(resourceMethod, metamodel);
 				}
 				break;
+			default:
+				break;
 			}
 		}
 	}
 
-	
+	private static void processAddition(final JaxrsResourceField resourceField) throws CoreException {
+		final JaxrsResource resource = resourceField.getParentResource();
+		if (resource == null) {
+			Logger.warn("Found an orphan resource field: " + resourceField);
+		} else {
+			final List<JaxrsEndpoint> resourceEndpoints = resource.getMetamodel().findEndpoints(resource);
+			final Flags flags = new Flags();
+			for(Entry<String, Annotation> entry : resourceField.getAnnotations().entrySet()) {
+				if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.QUERY_PARAM.qualifiedName)) {
+					flags.addFlags(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION);
+				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName)) {
+					flags.addFlags(JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
+				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.PATH.qualifiedName)) {
+					flags.addFlags(JaxrsElementDelta.F_PATH_ANNOTATION);
+				}
+			}
+			for(JaxrsEndpoint endpoint : resourceEndpoints) {
+				endpoint.update(flags);
+			}
+		}
+	}
+
 	private static void processRootResourceMethodAddition(final JaxrsResourceMethod resourceMethod)
 			throws CoreException {
 		JaxrsEndpointFactory.createEndpoints(resourceMethod);
@@ -221,6 +256,14 @@ public class JaxrsElementChangedProcessorDelegate {
 		}
 	}
 
+	private static void processChange(final JaxrsResourceField changedResourceField, final Flags flags) throws CoreException {
+		final JaxrsMetamodel metamodel = changedResourceField.getMetamodel();
+		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(changedResourceField.getParentResource());
+		for (JaxrsEndpoint endpoint : endpoints) {
+			endpoint.update(flags);
+		}
+	}
+	
 	private static void processRemoval(final JaxrsHttpMethod httpMethod) {
 		httpMethod.getMetamodel().removeEndpoints(httpMethod);
 	}
@@ -233,7 +276,30 @@ public class JaxrsElementChangedProcessorDelegate {
 	}
 
 	private static void processRemoval(final JaxrsResourceMethod resourceMethod) {
-		resourceMethod.getMetamodel().removeEndpoints(resourceMethod);
+		final JaxrsMetamodel metamodel = resourceMethod.getMetamodel();
+		if(metamodel != null) {
+			metamodel.removeEndpoints(resourceMethod);
+		}
+	}
+
+	private static void processRemoval(final JaxrsResourceField resourceField) throws CoreException {
+		final JaxrsMetamodel metamodel = resourceField.getMetamodel();
+		if(metamodel != null) {
+			final List<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(resourceField.getParentResource());
+			final Flags flags = new Flags();
+			for(Entry<String, Annotation> entry : resourceField.getAnnotations().entrySet()) {
+				if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.QUERY_PARAM.qualifiedName)) {
+					flags.addFlags(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION);
+				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName)) {
+					flags.addFlags(JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
+				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.PATH.qualifiedName)) {
+					flags.addFlags(JaxrsElementDelta.F_PATH_ANNOTATION);
+				}
+			}
+			for(JaxrsEndpoint endpoint : affectedEndpoints) {
+				endpoint.update(flags);
+			}
+		}
 	}
 
 }

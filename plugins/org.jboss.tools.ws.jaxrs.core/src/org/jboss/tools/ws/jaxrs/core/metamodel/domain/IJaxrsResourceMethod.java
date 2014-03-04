@@ -44,5 +44,4 @@ public interface IJaxrsResourceMethod extends IJaxrsElement {
 
 	abstract IJaxrsResource getParentResource();
 
-
 }

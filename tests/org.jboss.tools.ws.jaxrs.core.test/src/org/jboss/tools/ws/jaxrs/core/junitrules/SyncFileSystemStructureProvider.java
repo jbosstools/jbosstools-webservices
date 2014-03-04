@@ -9,7 +9,7 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core;
+package org.jboss.tools.ws.jaxrs.core.junitrules;
 
 import java.io.File;
 import java.io.FileInputStream;

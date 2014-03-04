@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -1081,6 +1083,22 @@ public final class JdtUtils {
 		return new JavaMethodSignature(method, returnedType, methodParameters);
 	}
 
+	/**
+	 * Resolves the fully qualified name of the given {@link IField}
+	 * 
+	 * @param javaField
+	 *            the java field
+	 * @return the fully qualified name, or null if it could not be resolved.
+	 */
+	public static String resolveFieldType(final IField javaField, final CompilationUnit ast) {
+		if (ast == null) {
+			return null;
+		}
+		JavaFieldsVisitor fieldsVisitor = new JavaFieldsVisitor(javaField);
+		ast.accept(fieldsVisitor);
+		return fieldsVisitor.getResolvedFieldTypeName();
+	}
+
 	private static List<Annotation> resolveParameterAnnotations(
 			final ILocalVariable localVariable,
 			final IVariableBinding paramBinding) throws JavaModelException {
@@ -1172,4 +1190,32 @@ public final class JdtUtils {
 		return name.toString();
 	}
 
+	/**
+	 * Returns a short/displayble form of the given fully qualified name. For
+	 * example, removes the {@code java.lang} package name for String, converts
+	 * to the primitive type for {@link Long}, {@link Integer}, {@link Double},
+	 * {@link Float}, {@link Boolean}, etc. If the given type is already a
+	 * primitive type, it remains unchanged.
+	 *
+	 * @param typeName
+	 *            the name
+	 * @return the short/displayable name
+	 */
+	public static String toDisplayableTypeName(final String typeName) {
+		if (typeName == null) {
+			return null;
+		} else if (typeName.startsWith(List.class.getName() + "<")) {
+			final String parameterType = typeName.substring(List.class.getName().length() + 1, typeName.length() - 1);
+			return "List<" + toDisplayableTypeName(parameterType) + ">";
+		} else if (typeName.startsWith(Set.class.getName() + "<")) {
+			final String parameterType = typeName.substring(Set.class.getName().length() + 1, typeName.length() - 1);
+			return "Set<" + toDisplayableTypeName(parameterType) + ">";
+		} else if (typeName.startsWith(SortedSet.class.getName() + "<")) {
+			final String parameterType = typeName.substring(Set.class.getName().length() + 1, typeName.length() - 1);
+			return "SortedSet<" + toDisplayableTypeName(parameterType) + ">";
+		} else if (typeName.contains(".")) {
+			return typeName.substring(typeName.lastIndexOf(".") + 1);
+		}
+		return typeName;
+	}
 }

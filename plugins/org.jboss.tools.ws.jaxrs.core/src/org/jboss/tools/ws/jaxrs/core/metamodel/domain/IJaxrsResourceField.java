@@ -15,5 +15,7 @@ import org.eclipse.jdt.core.IField;
 public interface IJaxrsResourceField extends IJaxrsElement {
 
 	IField getJavaElement();
+	
+	String getTypeName();
 
 }

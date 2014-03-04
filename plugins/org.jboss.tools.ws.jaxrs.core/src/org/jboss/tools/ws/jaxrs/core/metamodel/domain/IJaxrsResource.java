@@ -12,20 +12,24 @@ package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
 import java.util.List;
 
+import org.eclipse.jdt.core.IType;
+
 public interface IJaxrsResource extends IJaxrsElement {
 
-	String getPathTemplate();
+	public abstract IType getJavaElement();
+	
+	public abstract String getPathTemplate();
 
-	boolean hasPathTemplate();
+	public abstract boolean hasPathTemplate();
 
-	List<String> getConsumedMediaTypes();
+	public abstract List<String> getConsumedMediaTypes();
 
-	List<String> getProducedMediaTypes();
+	public abstract List<String> getProducedMediaTypes();
 
-	List<IJaxrsResourceMethod> getAllMethods();
+	public abstract List<IJaxrsResourceMethod> getAllMethods();
 
-	boolean isRootResource();
+	public abstract boolean isRootResource();
 
-	boolean isSubresource();
+	public abstract boolean isSubresource();
 
 }

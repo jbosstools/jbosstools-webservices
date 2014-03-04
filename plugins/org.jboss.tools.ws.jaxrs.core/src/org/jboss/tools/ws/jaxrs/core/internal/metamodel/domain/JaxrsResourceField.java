@@ -74,6 +74,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		private Map<String, Annotation> annotations;
 		private JaxrsResource parentResource;
 		private JaxrsMetamodel metamodel;
+		private String javaFieldType;
 
 		private Builder(final IField javaField, final CompilationUnit ast) {
 			this.javaField = javaField;
@@ -96,6 +97,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 				if (!javaField.exists()) {
 					return null;
 				}
+				javaFieldType = JdtUtils.resolveFieldType(javaField, ast);
 				final IType parentType = (IType) javaField.getParent();
 				// lookup parent resource in metamodel
 				if (parentResource == null && metamodel != null) {
@@ -124,6 +126,9 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		}
 
 	}
+	
+	/** The underlying field type. */
+	private final String fieldType;
 
 	/**
 	 * Full constructor.
@@ -133,6 +138,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	 */
 	private JaxrsResourceField(final Builder builder) {
 		super(builder.javaField, builder.annotations, builder.parentResource, builder.metamodel);
+		this.fieldType = builder.javaFieldType;
 	}
 
 	@Override
@@ -195,6 +201,11 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	public Annotation getDefaultValueAnnotation() {
 		return getAnnotation(DEFAULT_VALUE.qualifiedName);
 	}
+	
+	@Override
+	public String getTypeName() {
+		return this.fieldType;
+	}
 
 	@Override
 	public EnumElementKind getElementKind() {
@@ -213,7 +224,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	@Override
 	public String toString() {
 		return "ResourceField '" + getJavaElement().getParent().getElementName() + "."
-				+ getJavaElement().getElementName() + "' | annotations=" + getAnnotations();
+			+ getJavaElement().getElementName() + "' | annotations=" + getAnnotations();
 	}
 
 }
