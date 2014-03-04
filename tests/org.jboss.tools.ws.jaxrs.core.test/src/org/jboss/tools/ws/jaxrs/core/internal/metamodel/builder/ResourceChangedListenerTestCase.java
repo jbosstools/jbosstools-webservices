@@ -16,8 +16,13 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILogListener;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -49,11 +54,11 @@ public class ResourceChangedListenerTestCase {
 	}
 
 	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-15827
 	public void shouldRemoveMetamodelWhileClosingProject() throws CoreException {
 		// pre-conditions
 		final JaxrsMetamodel previousMetamodel = JaxrsMetamodelLocator.get(project);
 		assertThat(previousMetamodel, notNullValue());
-		JBossJaxrsCorePlugin.getDefault().resumeListeners();
 		// operation
 		project.close(new NullProgressMonitor());
 		project.open(new NullProgressMonitor());
@@ -61,5 +66,28 @@ public class ResourceChangedListenerTestCase {
 		final JaxrsMetamodel newMetamodel = JaxrsMetamodelLocator.get(project);
 		assertThat(newMetamodel, nullValue());
 		assertThat(previousMetamodel, not(equalTo(newMetamodel)));
+	}
+	
+	@Test
+	public void shouldNotFailWhenClosingProject() throws CoreException {
+		// pre-conditions
+		final BlockingQueue<Boolean> queue = new ArrayBlockingQueue<Boolean>(1);
+		JBossJaxrsCorePlugin.getDefault().resumeListeners();
+		ILogListener logListener = new ILogListener() {
+
+			@Override
+			public void logging(IStatus status, String plugin) {
+				if(status.getSeverity() == IStatus.ERROR && plugin.equals(JBossJaxrsCorePlugin.PLUGIN_ID)) {
+					queue.add(Boolean.TRUE);
+				}
+				
+			}
+		};
+		JBossJaxrsCorePlugin.getDefault().getLog().addLogListener(logListener);
+		// operation
+		project.close(new NullProgressMonitor());
+		// verifications
+		assertThat(JaxrsMetamodelLocator.get(project), nullValue());
+		assertThat(queue.size(), equalTo(0));
 	}
 }

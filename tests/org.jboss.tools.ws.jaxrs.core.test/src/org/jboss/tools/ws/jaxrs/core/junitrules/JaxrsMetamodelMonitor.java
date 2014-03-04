@@ -120,6 +120,9 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 				metamodel.removeListener((IJaxrsEndpointChangedListener) this);
 				metamodel.remove();
 			}
+		} catch (CoreException e) {
+			e.printStackTrace();
+			fail("Failed to remove metamodel: " + e.getMessage());
 		} finally {
 			long endTime = new Date().getTime();
 			LOGGER.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
