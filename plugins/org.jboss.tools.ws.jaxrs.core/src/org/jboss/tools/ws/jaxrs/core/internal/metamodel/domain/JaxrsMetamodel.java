@@ -322,16 +322,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws IOException
 	 * @throws CorruptIndexException
 	 */
-	public final void remove() {
+	public final void remove() throws CoreException {
 		try {
 			readWriteLock.writeLock().lock();
 			indexationService.dispose();
 			final IProject project = getProject();
 			if(project.exists() && project.isOpen()) {
 				project.setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
-				project.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Logger.error("Failed to remove JAX-RS Metamodel for project " + javaProject.getElementName(), e);
 		} finally {
 			Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());

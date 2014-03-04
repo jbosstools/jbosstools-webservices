@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -42,6 +43,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -75,7 +77,7 @@ public class JaxrsMetamodelTestCase {
 	}
 
 	@Test
-	public void shouldnotFindHttpMethodByNullType() throws CoreException {
+	public void shouldNotFindHttpMethodByNullType() throws CoreException {
 		assertThat(metamodel.findHttpMethodByTypeName(null), nullValue());
 	}
 	
@@ -280,5 +282,5 @@ public class JaxrsMetamodelTestCase {
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
-
+	
 }
