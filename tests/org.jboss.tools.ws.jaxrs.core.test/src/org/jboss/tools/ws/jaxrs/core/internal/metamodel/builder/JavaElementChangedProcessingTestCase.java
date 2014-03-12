@@ -906,10 +906,10 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingPathParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("productType").remove();
+		resource.getField("_pType").remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("productType"),
+		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_pType"),
 				PATH_PARAM.qualifiedName);
 		processEvent(fieldAnnotation, ADDED);
 		// verifications
@@ -943,10 +943,10 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingQueryParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("foo").remove();
+		resource.getField("_foo").remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("foo"),
+		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_foo"),
 				QUERY_PARAM.qualifiedName);
 		processEvent(fieldAnnotation, ADDED);
 		// verifications
@@ -962,10 +962,10 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingMatrixParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("bar").remove();
+		resource.getField("_bar").remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("bar"),
+		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_bar"),
 				MATRIX_PARAM.qualifiedName);
 		processEvent(fieldAnnotation, ADDED);
 		// verifications
@@ -981,10 +981,10 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithPathParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("productType").remove();
+		resource.getField("_pType").remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IField field = resource.getJavaElement().getField("productType");
+		final IField field = resource.getJavaElement().getField("_pType");
 		processEvent(field, ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // field
@@ -999,10 +999,10 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithQueryParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("foo").remove();
+		resource.getField("_foo").remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IField field = resource.getJavaElement().getField("foo");
+		final IField field = resource.getJavaElement().getField("_foo");
 		processEvent(field, ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // field
@@ -1017,10 +1017,10 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithMatrixParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("bar").remove();
+		resource.getField("_bar").remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final IField field = resource.getJavaElement().getField("bar");
+		final IField field = resource.getJavaElement().getField("_bar");
 		processEvent(field, ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // field
@@ -1064,7 +1064,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldUpdateResourceFieldWhenChangingPathParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("productType").getAnnotation(PATH_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_pType").getAnnotation(PATH_PARAM.qualifiedName);
 		fieldAnnotation.update(createAnnotation(PATH_PARAM.qualifiedName, "foobar"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1080,7 +1080,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldUpdateResourceFieldWhenChangingQueryParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("foo").getAnnotation(QUERY_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_foo").getAnnotation(QUERY_PARAM.qualifiedName);
 		fieldAnnotation.update(createAnnotation(QUERY_PARAM.qualifiedName, "foobar"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1096,7 +1096,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldUpdateResourceFieldWhenChangingMatrixParamAnnotationValueOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("bar").getAnnotation(MATRIX_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_bar").getAnnotation(MATRIX_PARAM.qualifiedName);
 		fieldAnnotation.update(createAnnotation(MATRIX_PARAM.qualifiedName, "foobar"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1112,7 +1112,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldDoNothingWhenChangingUnrelatedResourceFieldAnnotationValue() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = getAnnotation(resource.getField("bar").getJavaElement(),
+		final Annotation fieldAnnotation = getAnnotation(resource.getField("_bar").getJavaElement(),
 				SuppressWarnings.class.getName());
 		createAnnotation(fieldAnnotation, "foobar");
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1128,7 +1128,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingPathParamAnnotatedOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("productType").getAnnotation(PATH_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_pType").getAnnotation(PATH_PARAM.qualifiedName);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(fieldAnnotation, REMOVED);
@@ -1143,7 +1143,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingQueryParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("foo").getAnnotation(QUERY_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_foo").getAnnotation(QUERY_PARAM.qualifiedName);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(fieldAnnotation, REMOVED);
@@ -1158,7 +1158,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingMatrixParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final Annotation fieldAnnotation = resource.getField("bar").getAnnotation(MATRIX_PARAM.qualifiedName);
+		final Annotation fieldAnnotation = resource.getField("_bar").getAnnotation(MATRIX_PARAM.qualifiedName);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(fieldAnnotation, REMOVED);
@@ -1173,7 +1173,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithPathParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = resource.getField("productType");
+		final JaxrsResourceField field = resource.getField("_pType");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(field.getJavaElement(), REMOVED);
@@ -1188,7 +1188,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithQueryParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = resource.getField("foo");
+		final JaxrsResourceField field = resource.getField("_foo");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(field.getJavaElement(), REMOVED);
@@ -1203,7 +1203,7 @@ public class JavaElementChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithMatrixParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceField field = resource.getField("bar");
+		final JaxrsResourceField field = resource.getField("_bar");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(field.getJavaElement(), REMOVED);
@@ -1668,7 +1668,7 @@ public class JavaElementChangedProcessingTestCase {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomer");
-		final JavaMethodParameter javaMethodParameter = resourceMethod.getJavaMethodParameter("id");
+		final JavaMethodParameter javaMethodParameter = resourceMethod.getJavaMethodParameterByName("id");
 		final Annotation annotation = javaMethodParameter.getAnnotation(PATH_PARAM.qualifiedName);
 		javaMethodParameter.removeAnnotation(annotation);
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1689,7 +1689,7 @@ public class JavaElementChangedProcessingTestCase {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomer");
-		final JavaMethodParameter javaMethodParameter = resourceMethod.getJavaMethodParameter("id");
+		final JavaMethodParameter javaMethodParameter = resourceMethod.getJavaMethodParameterByName("id");
 		final Annotation annotation = javaMethodParameter.getAnnotation(PATH_PARAM.qualifiedName);
 		annotation.update(createAnnotation(annotation, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1711,7 +1711,7 @@ public class JavaElementChangedProcessingTestCase {
 		// JAX-RS Resource Method with an extra @PathParam annotation on the
 		// 'update' parameter.
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "updateCustomer");
-		resourceMethod.getJavaMethodParameter("update")
+		resourceMethod.getJavaMethodParameterByName("update")
 				.addAnnotation(createAnnotation(PATH_PARAM.qualifiedName, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1753,7 +1753,7 @@ public class JavaElementChangedProcessingTestCase {
 		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource"
 			);
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getPicture");
-		resourceMethod.removeJavaMethodParameter("color");
+		resourceMethod.removeJavaMethodParameter("c");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
@@ -1775,7 +1775,7 @@ public class JavaElementChangedProcessingTestCase {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomers");
-		resourceMethod.getJavaMethodParameter("size").removeAnnotation(QUERY_PARAM.qualifiedName);
+		resourceMethod.getJavaMethodParameterByName("size").removeAnnotation(QUERY_PARAM.qualifiedName);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
@@ -1796,7 +1796,7 @@ public class JavaElementChangedProcessingTestCase {
 		// JAX-RS Resource Method (QueryParam value is different: "length" vs
 		// "size" on second param)
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomers");
-		resourceMethod.getJavaMethodParameter("size").getAnnotation(QUERY_PARAM.qualifiedName)
+		resourceMethod.getJavaMethodParameterByName("size").getAnnotation(QUERY_PARAM.qualifiedName)
 				.update(createAnnotation(QUERY_PARAM.qualifiedName, "length"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1818,7 +1818,7 @@ public class JavaElementChangedProcessingTestCase {
 		// JAX-RS Resource Method (with an extra @Queryparam annotation on
 		// 'uriInfo' param)
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomers");
-		resourceMethod.getJavaMethodParameter("uriInfo").addAnnotation(
+		resourceMethod.getJavaMethodParameterByName("uriInfo").addAnnotation(
 				createAnnotation(QUERY_PARAM.qualifiedName, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1838,7 +1838,7 @@ public class JavaElementChangedProcessingTestCase {
 		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource"
 			);
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getPicture");
-		resourceMethod.getJavaMethodParameter("color").removeAnnotation(MATRIX_PARAM.qualifiedName);
+		resourceMethod.getJavaMethodParameterByName("c").removeAnnotation(MATRIX_PARAM.qualifiedName);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
@@ -1860,7 +1860,7 @@ public class JavaElementChangedProcessingTestCase {
 		// JAX-RS Resource Method (MATRIX_PARAM.qualifiedName value is
 		// different: "foo" vs "color" on second param)
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getPicture");
-		resourceMethod.getJavaMethodParameter("color").getAnnotation(MATRIX_PARAM.qualifiedName)
+		resourceMethod.getJavaMethodParameterByName("c").getAnnotation(MATRIX_PARAM.qualifiedName)
 				.update(createAnnotation(MATRIX_PARAM.qualifiedName, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1883,7 +1883,7 @@ public class JavaElementChangedProcessingTestCase {
 		// JAX-RS Resource Method (an extra MATRIX_PARAM.qualifiedName
 		// annotation on 'id' param)
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getProduct");
-		resourceMethod.getJavaMethodParameter("id").addAnnotation(createAnnotation(MATRIX_PARAM.qualifiedName, "foo"));
+		resourceMethod.getJavaMethodParameterByName("id").addAnnotation(createAnnotation(MATRIX_PARAM.qualifiedName, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
@@ -1932,7 +1932,7 @@ public class JavaElementChangedProcessingTestCase {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomers");
-		resourceMethod.getJavaMethodParameter("uriInfo").removeAnnotation(CONTEXT.qualifiedName);
+		resourceMethod.getJavaMethodParameterByName("uriInfo").removeAnnotation(CONTEXT.qualifiedName);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);

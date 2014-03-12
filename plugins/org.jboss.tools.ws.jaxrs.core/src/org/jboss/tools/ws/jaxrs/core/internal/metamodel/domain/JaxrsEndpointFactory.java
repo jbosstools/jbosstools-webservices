@@ -80,7 +80,7 @@ public class JaxrsEndpointFactory {
 		try {
 			final IJaxrsHttpMethod httpMethod = resourceMethod.getMetamodel().findHttpMethodByTypeName(
 					resourceMethod.getHttpMethodAnnotation().getFullyQualifiedName());
-			final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>();
+			final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>();
 			resourceMethods.add(resourceMethod);
 			final JaxrsEndpoint endpoint = new JaxrsEndpoint(resourceMethod.getMetamodel(), httpMethod, resourceMethods);
 			endpoint.joinMetamodel();
@@ -110,8 +110,8 @@ public class JaxrsEndpointFactory {
 					if (subresourceLocator.getParentResource().isRootResource()) {
 						final IJaxrsHttpMethod httpMethod = resourceMethod.getMetamodel().findHttpMethodByTypeName(
 								resourceMethod.getHttpMethodAnnotation().getFullyQualifiedName());
-						final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>();
-						resourceMethods.add(subresourceLocator);
+						final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>();
+						resourceMethods.add((JaxrsResourceMethod)subresourceLocator);
 						resourceMethods.add(resourceMethod);
 						final JaxrsEndpoint endpoint = new JaxrsEndpoint(resourceMethod.getMetamodel(), httpMethod,
 								resourceMethods);
@@ -148,8 +148,8 @@ public class JaxrsEndpointFactory {
 							case SUBRESOURCE_METHOD:
 								final JaxrsHttpMethod httpMethod = metamodel.findHttpMethodByTypeName(method
 										.getHttpMethodClassName());
-								final LinkedList<IJaxrsResourceMethod> resourceMethods = new LinkedList<IJaxrsResourceMethod>(
-										Arrays.asList(subresourceLocator, method));
+								final LinkedList<JaxrsResourceMethod> resourceMethods = new LinkedList<JaxrsResourceMethod>(
+										Arrays.asList(subresourceLocator, (JaxrsResourceMethod)method));
 								final JaxrsEndpoint endpoint = new JaxrsEndpoint(metamodel, httpMethod, resourceMethods);
 								endpoint.joinMetamodel();
 								endpoints.add(endpoint);

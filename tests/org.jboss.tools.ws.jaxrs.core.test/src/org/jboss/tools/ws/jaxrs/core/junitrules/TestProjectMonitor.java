@@ -42,7 +42,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestsPlugin;
-import org.jboss.tools.ws.jaxrs.core.TestProjectSynchronizator;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
@@ -70,10 +69,6 @@ public class TestProjectMonitor extends ExternalResource {
 	private IJavaProject javaProject = null;
 
 	private TestProjectSynchronizator synchronizor = null;
-	
-	public TestProjectMonitor() {
-		this(DEFAULT_SAMPLE_PROJECT_NAME);
-	}
 	
 	public TestProjectMonitor(final String projectName) {
 		this.projectName = projectName;

@@ -52,7 +52,9 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	 * @throws CoreException
 	 */
 	public void removeMarkers() throws CoreException {
-		metamodel.removeMarkers(getResource());
+		if(getResource() != null) {
+			metamodel.removeMarkers(getResource());
+		}
 		this.problemLevel = 0;
 	}
 

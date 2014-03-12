@@ -9,23 +9,14 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.jboss.tools.ws.ui.dialogs;
 
 /**
- * Custom annotation that indicates with workspace project should be used. 
- * The annotation value can be retrieved by reflection.
  * @author xcoulon
  *
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RunWithProject {
+public enum EnumParamType {
 	
-	public String value();
+	PATH_PARAM, MATRIX_PARAM, QUERY_PARAM;
 
 }

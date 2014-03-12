@@ -9,7 +9,7 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core;
+package org.jboss.tools.ws.jaxrs.core.junitrules;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Stack;
@@ -25,7 +25,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.jboss.tools.ws.jaxrs.core.junitrules.WorkbenchTasks;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,12 +101,12 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 		NullProgressMonitor monitor = new NullProgressMonitor();
 		IPath projectSourcePath = getSampleProjectPath(projectName);
 		if(deltaStack.isEmpty()) {
-			LOGGER.debug("Skipping project resource resync' b/c no file changed during the test.");
+			LOGGER.info("Skipping project resource resync' b/c no file changed during the test.");
 			return false;
 		}
 		LOGGER.debug("Starting project resource resync'...");
 		while (!deltaStack.isEmpty()) {
-			IResourceDelta delta = deltaStack.pop();
+			final IResourceDelta delta = deltaStack.pop();
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				// resource was added : needs to be removed

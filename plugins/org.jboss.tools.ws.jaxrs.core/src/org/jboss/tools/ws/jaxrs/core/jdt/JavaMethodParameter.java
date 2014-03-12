@@ -59,6 +59,11 @@ public class JavaMethodParameter {
 		return this.typeName;
 	}
 
+	/** @return the parameter type name in a shorter/displayable form. */
+	public String getDisplayableTypeName() {
+		return JdtUtils.toDisplayableTypeName(typeName);
+	}
+	
 	/**
 	 * @return all annotations.
 	 */
@@ -68,11 +73,19 @@ public class JavaMethodParameter {
 
 	/**
 	 * Return the annotation whose name matches the given fully qualified name
-	 * @param fullyQualifiedName
+	 * @param fullyQualifiedName the fully qualified name of the annotation to look-up
 	 * @return the annotation or null if this method parameter has no such annotation.
 	 */
 	public Annotation getAnnotation(String fullyQualifiedName) {
 		return annotations.get(fullyQualifiedName);
+	}
+	
+	/**
+	 * @return {@code true} if this {@link JavaMethodParameter} has an annotation with the given fully qualified name, {@code false} otherwise
+	 * @param fullyQualifiedName the fully qualified name of the annotation to look-up
+	 */
+	public boolean hasAnnotation(String fullyQualifiedName) {
+		return getAnnotation(fullyQualifiedName) != null;
 	}
 	
 	public void removeAnnotation(Annotation annotation) {

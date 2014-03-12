@@ -91,7 +91,6 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 			// register listeners:
 			this.metamodel.addJaxrsElementChangedListener(this);
 			this.metamodel.addJaxrsEndpointChangedListener(this);
-			
 		} catch (CoreException e) {
 			fail(e.getMessage());
 		} finally {
