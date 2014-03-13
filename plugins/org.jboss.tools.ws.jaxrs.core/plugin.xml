@@ -14,57 +14,7 @@
          </run>
       </builder>
    </extension>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="true"
-            id="org.jboss.tools.ws.jaxrs.configuration.nature.enable"
-            objectClass="org.eclipse.core.resources.IProject">
-         <visibility>
-            <and>
-               <objectState
-                     name="projectNature"
-                     value="org.eclipse.jdt.core.javanature">
-               </objectState>
-               <not>
-                  <objectState
-                        name="projectNature"
-                        value="org.jboss.tools.ws.jaxrs.nature">
-                  </objectState>
-               </not>
-            </and>
-         </visibility>
-         <action
-               class="org.jboss.tools.ws.jaxrs.core.configuration.AddNatureAction"
-               id="org.jboss.tools.ws.jaxrs.configuration.addJaxrsConfigurationAction"
-               label="%ConfigureMenu_AddJaxrs11Support"
-               menubarPath="org.eclipse.ui.projectConfigure/additions">
-         </action>
-      </objectContribution>
-      <objectContribution
-            adaptable="true"
-            id="org.jboss.tools.ws.jaxrs.configuration.nature.disable"
-            objectClass="org.eclipse.core.resources.IProject">
-         <visibility>
-            <and>
-               <objectState
-                     name="projectNature"
-                     value="org.eclipse.jdt.core.javanature">
-               </objectState>
-               <objectState
-                     name="projectNature"
-                     value="org.jboss.tools.ws.jaxrs.nature">
-               </objectState>
-            </and>
-         </visibility>
-         <action
-               class="org.jboss.tools.ws.jaxrs.core.configuration.RemoveNatureAction"
-               id="org.jboss.tools.ws.jaxrs.removeJaxrsConfigurationAction"
-               label="%ConfigureMenu_RemoveJaxrs11Support"
-               menubarPath="org.eclipse.ui.projectConfigure/additions">
-         </action>
-      </objectContribution>
-   </extension>
+   
    <extension
          id="org.jboss.tools.ws.jaxrs.nature"
          name="JAX-RS 1.1 Nature"
