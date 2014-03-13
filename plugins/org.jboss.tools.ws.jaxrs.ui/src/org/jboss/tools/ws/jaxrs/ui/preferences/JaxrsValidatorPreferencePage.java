@@ -10,13 +10,16 @@
  ******************************************************************************/ 
 package org.jboss.tools.ws.jaxrs.ui.preferences;
 
+import java.lang.annotation.Inherited;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import org.jboss.tools.common.ui.preferences.SeverityConfigurationBlock.SectionDescription;
 import org.jboss.tools.common.ui.preferences.SeverityPreferencePage;
-import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
+import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
 /**
+ * Preference Page for JAX-RS Validation Settings.
  * @author Xavier Coulon
  */
 public class JaxrsValidatorPreferencePage extends SeverityPreferencePage {
@@ -27,20 +30,20 @@ public class JaxrsValidatorPreferencePage extends SeverityPreferencePage {
 	public static final String PROP_ID = "org.jboss.tools.ws.jaxrs.ui.propertyPages.JaxrsValidatorPreferencePage"; //$NON-NLS-1$
 
 	public JaxrsValidatorPreferencePage() {
-		setPreferenceStore(JBossJaxrsCorePlugin.getDefault().getPreferenceStore());
+		setPreferenceStore(JBossJaxrsUIPlugin.getDefault().getPreferenceStore());
 		setTitle(JaxrsPreferencesMessages.JAXRS_VALIDATOR_PREFERENCE_PAGE_JAXRS_VALIDATOR);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage#getPreferencePageID()
+	/**
+	 * {@link Inherited}
 	 */
 	@Override
 	protected String getPreferencePageID() {
 		return PREF_ID;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage#getPropertyPageID()
+	/**
+	 * {@link Inherited}
 	 */
 	@Override
 	protected String getPropertyPageID() {

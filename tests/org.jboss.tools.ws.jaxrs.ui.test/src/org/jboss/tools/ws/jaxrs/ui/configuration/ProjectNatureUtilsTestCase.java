@@ -9,14 +9,14 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core.internal.configuration;
+package org.jboss.tools.ws.jaxrs.ui.configuration;
 
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.jboss.tools.ws.jaxrs.core.configuration.AddNatureAction;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.configuration.RemoveNatureAction;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.ui.configuration.AddNatureAction;
+import org.jboss.tools.ws.jaxrs.ui.configuration.RemoveNatureAction;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;

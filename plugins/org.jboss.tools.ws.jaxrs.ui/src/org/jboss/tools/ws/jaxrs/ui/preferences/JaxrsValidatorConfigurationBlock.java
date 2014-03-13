@@ -19,6 +19,7 @@ import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import org.jboss.tools.common.preferences.SeverityPreferences;
 import org.jboss.tools.common.ui.preferences.SeverityConfigurationBlock;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
+import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
 /**
  * @author Alexey Kazakov
@@ -77,7 +78,7 @@ public class JaxrsValidatorConfigurationBlock extends SeverityConfigurationBlock
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
-		return JBossJaxrsCorePlugin.getDefault().getDialogSettings().getSection(SETTINGS_SECTION_NAME);
+		return JBossJaxrsUIPlugin.getDefault().getDialogSettings().getSection(SETTINGS_SECTION_NAME);
 	}
 
 	@Override

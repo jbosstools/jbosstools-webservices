@@ -9,7 +9,7 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core.configuration;
+package org.jboss.tools.ws.jaxrs.ui.configuration;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -18,35 +18,32 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
- * Action to add the JAXRS Nature to a selected project.
+ * Action to remove the JAXRS Nature from a selected project.
  * 
- * @author Xavier Coulon
+ * @author xcoulon
  * 
  */
-public class AddNatureAction implements IObjectActionDelegate {
+public class RemoveNatureAction implements IObjectActionDelegate {
 
 	/** The current selection (a project). */
-	private ISelection selection = null;
+	private ISelection selection;
 
 	/**
-	 * Adds the JAXRS Nature to the current selection. Adding the nature
-	 * triggers the add of the JAXRS builder.
-	 * 
-	 * @param action
-	 *            the current action (not used)
+	 * {@inheritDoc}
 	 */
 	@Override
 	public final void run(final IAction action) {
 		try {
 			if (selection instanceof IStructuredSelection) {
-				ProjectNatureUtils.installProjectNature(
+				ProjectNatureUtils.uninstallProjectNature(
 						(IProject) ((IStructuredSelection) selection).getFirstElement(),
 						ProjectNatureUtils.JAXRS_NATURE_ID);
 			} else {
-				Logger.error("Can't 'Add JAX-RS 1.1 support' on selection of type " + selection.getClass().getName());
+				Logger.error("Cannot remove JAX-RS support on selection of type " + selection.getClass().getName());
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to configure support for JAX-RS in project", e);
@@ -54,18 +51,16 @@ public class AddNatureAction implements IObjectActionDelegate {
 	}
 
 	/**
-	 * Called when the selection changes.
-	 * 
-	 * @param action
-	 *            the current action (not used).
-	 * @param s
-	 *            the current selection.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public final void selectionChanged(final IAction action, final ISelection s) {
 		this.selection = s;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void setActivePart(final IAction action, final IWorkbenchPart targetPart) {
 	}

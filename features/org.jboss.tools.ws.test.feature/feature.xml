@@ -24,5 +24,6 @@
 	<plugin id="org.jboss.tools.ws.core.test" download-size="0" install-size="0" version="0.0.0" />
 	<plugin id="org.jboss.tools.ws.creation.core.test" download-size="0" install-size="0" version="0.0.0" />
 	<plugin id="org.jboss.tools.ws.jaxrs.core.test" download-size="0" install-size="0" version="0.0.0" />
+	<plugin id="org.jboss.tools.ws.jaxrs.ui.test" download-size="0" install-size="0" version="0.0.0" />
 	<plugin id="org.jboss.tools.ws.ui.test" download-size="0" install-size="0" version="0.0.0" />
 </feature>
