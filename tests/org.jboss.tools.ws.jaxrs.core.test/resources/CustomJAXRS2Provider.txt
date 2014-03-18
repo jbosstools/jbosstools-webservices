@@ -1,0 +1,20 @@
+/**
+ * 
+ */
+package org.jboss.tools.ws.jaxrs.sample.services.interceptors;
+
+import java.io.IOException;
+
+import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.ext.Provider;
+import javax.ws.rs.ext.ReaderInterceptor;
+import javax.ws.rs.ext.WriterInterceptor;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.ext.ReaderInterceptor;
+import javax.ws.rs.ext.WriterInterceptor;
+
+
+public class CustomJAXRS2Provider {
+
+}

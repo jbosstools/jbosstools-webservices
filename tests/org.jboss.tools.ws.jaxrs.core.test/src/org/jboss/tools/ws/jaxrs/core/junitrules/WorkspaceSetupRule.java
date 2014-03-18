@@ -23,10 +23,6 @@ public class WorkspaceSetupRule extends ExternalResource {
 	
 	private final String projectName;
 	
-	public WorkspaceSetupRule() {
-		this(TestProjectMonitor.DEFAULT_SAMPLE_PROJECT_NAME);
-	}
-	
 	public WorkspaceSetupRule(final String projectName) {
 		this.projectName = projectName;
 	}

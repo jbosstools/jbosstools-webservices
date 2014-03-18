@@ -19,11 +19,11 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * Factory for {@link JaxrsEndpoint} instances

@@ -44,8 +44,8 @@ public class JavaElementDeltaFilterTestCase {
 	private ICompilationUnit workingCopy;
 	private ICompilationUnit primaryCopy;
 
-	private static JavaElementDelta createEvent(IJavaElement element, int deltaKind, int eventType, int flags) {
-		return new JavaElementDelta(element, deltaKind, eventType, null, flags);
+	private static JavaElementChangedEvent createEvent(IJavaElement element, int deltaKind, int eventType, int flags) {
+		return new JavaElementChangedEvent(element, deltaKind, eventType, null, flags);
 	}
 
 	private static <T extends IJavaElement> T createMock(Class<T> type, int elementType, ICompilationUnit compilationUnit) {

@@ -11,12 +11,12 @@
 package org.jboss.tools.ws.jaxrs.ui.preferences;
 
 import org.jboss.tools.common.ui.preferences.SeverityConfigurationBlock.SectionDescription;
-import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
-import org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferences;
+import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
 /**
  * 
  * @author Alexey Kazakov & Viacheslav Kabanovich
+ * @author xcoulon
  *
  */
 public class JaxrsValidatorConfigurationBlockDescriptionProvider {
@@ -42,7 +42,7 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 			{JaxrsPreferences.JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationMissingApplicationPathAnnotation_label},
 			{JaxrsPreferences.JAVA_APPLICATION_INVALID_TYPE_HIERARCHY, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_applicationInvalidTypeHierarchy_label}
 		},
-		JBossJaxrsCorePlugin.PLUGIN_ID
+		JBossJaxrsUIPlugin.PLUGIN_ID
 	);
 	private SectionDescription SECTION_HTTP_METHODS = new SectionDescription(
 			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_httpMethods,
@@ -53,7 +53,7 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 					{JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_httpMethodMissingTargetAnnotation_label},
 					{JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_httpMethodInvalidTargetAnnotationValue_label},
 			},
-			JBossJaxrsCorePlugin.PLUGIN_ID
+			JBossJaxrsUIPlugin.PLUGIN_ID
 			);
 	private SectionDescription SECTION_RESOURCE_METHODS = new SectionDescription(
 			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_resourceMethods,
@@ -65,7 +65,7 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 					{JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodMoreThanOneUnannotatedParameter_label},
 					{JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodIllegalContextAnnotation_label}
 			},
-			JBossJaxrsCorePlugin.PLUGIN_ID
+			JBossJaxrsUIPlugin.PLUGIN_ID
 			);
 
 	private SectionDescription SECTION_PROVIDERS = new SectionDescription(
@@ -78,7 +78,7 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 					{JaxrsPreferences.PROVIDER_DUPLICATE_MESSAGE_BODY_WRITER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerDuplicateMessageBodyWriter_label},
 					{JaxrsPreferences.PROVIDER_DUPLICATE_EXCEPTION_MAPPER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_providerDuplicateExceptionMapper_label}
 			},
-			JBossJaxrsCorePlugin.PLUGIN_ID
+			JBossJaxrsUIPlugin.PLUGIN_ID
 			);
 
 	private SectionDescription[] ALL_SECTIONS = new SectionDescription[]{

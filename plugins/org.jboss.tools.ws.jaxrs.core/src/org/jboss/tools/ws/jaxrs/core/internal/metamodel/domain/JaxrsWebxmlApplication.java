@@ -12,10 +12,10 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_CLASS_NAME;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION;
 
 import java.util.List;
 
@@ -27,11 +27,12 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
 
 /**
  * JAX-RS Application defined as part of a web deployment descriptor.
@@ -39,7 +40,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * @author xcoulon
  *
  */
-public class JaxrsWebxmlApplication extends JaxrsApplication {
+public class JaxrsWebxmlApplication extends AbstractJaxrsBaseElement implements IJaxrsApplication {
 
 	/**
 	 * Initialize the JaxrsWebxmlApplication builder with the given {@link IResource}
@@ -77,7 +78,7 @@ public class JaxrsWebxmlApplication extends JaxrsApplication {
 		public JaxrsWebxmlApplication build() throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
-				final IType applicationType = JdtUtils.resolveType(APPLICATION.qualifiedName, javaProject,
+				final IType applicationType = JdtUtils.resolveType(APPLICATION, javaProject,
 						new NullProgressMonitor());
 				// occurs when the project has the jax-rs nature (the builder is
 				// called), but no jaxrs library is in the classpath
@@ -154,7 +155,7 @@ public class JaxrsWebxmlApplication extends JaxrsApplication {
 	 *         an existing Java Application in the metamodel, false otherwise.
 	 */
 	public boolean isOverride() {
-		return (this.javaClassName != null) && !this.javaClassName.equals(EnumJaxrsClassname.APPLICATION.qualifiedName);
+		return (this.javaClassName != null) && !this.javaClassName.equals(JaxrsClassnames.APPLICATION);
 	}
 
 	/**
@@ -237,8 +238,11 @@ public class JaxrsWebxmlApplication extends JaxrsApplication {
 		super.remove();
 	}
 
+	/**
+	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsWebxmlApplication} anymore) 
+	 */
 	@Override
-	public boolean isMarkedForRemoval() {
+	boolean isMarkedForRemoval() {
 		return false;
 	}
 

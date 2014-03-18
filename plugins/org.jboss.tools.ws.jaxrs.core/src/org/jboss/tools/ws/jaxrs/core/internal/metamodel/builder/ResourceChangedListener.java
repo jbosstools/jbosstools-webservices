@@ -36,7 +36,7 @@ public class ResourceChangedListener implements IResourceChangeListener {
 	}
 
 	/**
-	 * Stops processing the incoming {@link JavaElementDelta}
+	 * Stops processing the incoming {@link JavaElementChangedEvent}
 	 */
 	public void resume() {
 		this.active = true;

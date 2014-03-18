@@ -33,10 +33,10 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 
 /**
  * Factory for JAX-RS elements that should be created from Java elements.
@@ -113,6 +113,7 @@ public class JaxrsElementFactory {
 			final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type, ast).withMetamodel(metamodel).build();
 			if (httpMethod != null) {
 				elements.add(httpMethod);
+				return elements;
 			}
 			// now,let's see if the given type can be a Resource (with or without
 			// @Path)
@@ -122,18 +123,27 @@ public class JaxrsElementFactory {
 				// fields should be added before methods because they are used to resolve path parameters
 				elements.addAll(resource.getAllFields());
 				elements.addAll(resource.getAllMethods());
+				return elements;
 			}
 			// now,let's see if the given type can be an Application
 			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type, ast).withMetamodel(metamodel).build();
 			if (application != null) {
 				elements.add(application);
+				return elements;
+			}
+			// let's see if the given type can be an Interceptor/Filter Name Binding (ie, is annotated
+			// with @Namebinding)
+			final JaxrsNameBinding nameBinding = JaxrsNameBinding.from(type, ast).withMetamodel(metamodel).build();
+			if (nameBinding != null) {
+				elements.add(nameBinding);
+				return elements;
 			}
 			// now,let's see if the given type can be a Provider
 			final JaxrsProvider provider = JaxrsProvider.from(type, ast).withMetamodel(metamodel).build();
 			if (provider != null) {
 				elements.add(provider);
+				return elements;
 			}
-	
 			return elements;
 		} finally {
 			final long end = System.currentTimeMillis();
@@ -150,7 +160,7 @@ public class JaxrsElementFactory {
 		}
 		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
 		// let's see if the given scope contains JAX-RS Application
-		final List<IType> matchingApplicationTypes = JaxrsElementsSearcher.findApplicationTypes(scope,
+		final List<IType> matchingApplicationTypes = JavaElementsSearcher.findApplicationTypes(scope,
 				progressMonitor);
 		for (IType type : matchingApplicationTypes) {
 			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
@@ -159,7 +169,7 @@ public class JaxrsElementFactory {
 			}
 		}
 		// let's see if the given scope contains JAX-RS HTTP Methods
-		final List<IType> matchingHttpMethodTypes = JaxrsElementsSearcher.findHttpMethodTypes(scope,
+		final List<IType> matchingHttpMethodTypes = JavaElementsSearcher.findHttpMethodTypes(scope,
 				progressMonitor);
 		for (IType type : matchingHttpMethodTypes) {
 			final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
@@ -167,8 +177,17 @@ public class JaxrsElementFactory {
 				elements.add(httpMethod);
 			}
 		}
-		// let's see if the given scope contains JAX-RS HTTP Resources
-		final List<IType> matchingResourceTypes = JaxrsElementsSearcher.findResourceTypes(scope, progressMonitor);
+		// let's see if the given scope contains JAX-RS Name Bindings
+		final List<IType> matchingNameBindingsTypes = JavaElementsSearcher.findNameBindingTypes(scope,
+				progressMonitor);
+		for (IType type : matchingNameBindingsTypes) {
+			final JaxrsNameBinding nameBinding = JaxrsNameBinding.from(type).withMetamodel(metamodel).build();
+			if (nameBinding != null) {
+				elements.add(nameBinding);
+			}
+		}
+		// let's see if the given scope contains JAX-RS Resources
+		final List<IType> matchingResourceTypes = JavaElementsSearcher.findResourceTypes(scope, progressMonitor);
 		for (IType type : matchingResourceTypes) {
 			final JaxrsResource resource = JaxrsResource.from(type, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
 			if (resource != null) {
@@ -178,7 +197,7 @@ public class JaxrsElementFactory {
 			}
 		}
 		// let's see if the given scope contains JAX-RS Providers
-		final List<IType> matchingProviderTypes = JaxrsElementsSearcher.findProviderTypes(scope, progressMonitor);
+		final List<IType> matchingProviderTypes = JavaElementsSearcher.findProviderTypes(scope, progressMonitor);
 		for (IType type : matchingProviderTypes) {
 			final JaxrsProvider provider = JaxrsProvider.from(type).withMetamodel(metamodel).build();
 			if (provider != null) {

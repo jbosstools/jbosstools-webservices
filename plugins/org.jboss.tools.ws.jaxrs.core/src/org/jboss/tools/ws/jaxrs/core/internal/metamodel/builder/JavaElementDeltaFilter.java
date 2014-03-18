@@ -44,7 +44,7 @@ import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 public class JavaElementDeltaFilter {
 
@@ -111,7 +111,7 @@ public class JavaElementDeltaFilter {
 	 * @param event the  Java Element Delta
 	 * @return true if the event should be processed, false otherwise
 	 */
-	public boolean apply(JavaElementDelta event) {
+	public boolean apply(JavaElementChangedEvent event) {
 		if(event.getElement() == null) {
 			return false;
 		}

@@ -99,7 +99,8 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 	public boolean resync() throws CoreException, InvocationTargetException, InterruptedException {
 		IWorkspace junitWorkspace = ResourcesPlugin.getWorkspace();
 		NullProgressMonitor monitor = new NullProgressMonitor();
-		IPath projectSourcePath = getSampleProjectPath(projectName);
+		IPath projectSourcePath = WorkbenchTasks.getProjectSourcePath(projectName);
+		
 		if(deltaStack.isEmpty()) {
 			LOGGER.info("Skipping project resource resync' b/c no file changed during the test.");
 			return false;
@@ -124,6 +125,7 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 		return true;
 	}
 
+	@Deprecated
 	public static IPath getSampleProjectPath(String projectName) {
 		IPath path = null;
 		if (System.getProperty("user.dir") != null) {

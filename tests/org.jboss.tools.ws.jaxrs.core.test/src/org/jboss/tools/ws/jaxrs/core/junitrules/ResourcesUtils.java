@@ -30,14 +30,14 @@ import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestsPlugin;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestPlugin;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Assert;
 import org.osgi.framework.Bundle;
 
 public class ResourcesUtils {
 
-	private static Bundle bundle = JBossJaxrsCoreTestsPlugin.getDefault().getBundle();
+	private static Bundle bundle = JBossJaxrsCoreTestPlugin.getDefault().getBundle();
 
 	/**
 	 * Replace the first occurrence of the given old content with the new
@@ -92,7 +92,7 @@ public class ResourcesUtils {
 			atLeastOneMatch = true;
 		}
 		if (!atLeastOneMatch) {
-			fail("No match for '" + oldContent + "' in " + compilationUnit);
+			fail("No match for '" + oldContent + "' in:\n" + compilationUnit.getSource());
 		}
 		JavaElementsUtils.saveAndClose(unit);
 	

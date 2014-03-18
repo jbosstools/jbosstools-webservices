@@ -29,8 +29,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -38,6 +36,8 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 
 public class JaxrsElementChangedProcessorDelegate {
 
@@ -119,7 +119,7 @@ public class JaxrsElementChangedProcessorDelegate {
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) application.getMetamodel();
 		// if the given application becomes the used application in the
 		// metamodel
-		if (application.equals(metamodel.getApplication())) {
+		if (application.equals(metamodel.findApplication())) {
 			for (Iterator<IJaxrsEndpoint> iterator = metamodel.getAllEndpoints().iterator(); iterator.hasNext();) {
 				JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
 				endpoint.update(application);
@@ -166,11 +166,11 @@ public class JaxrsElementChangedProcessorDelegate {
 			final List<JaxrsEndpoint> resourceEndpoints = resource.getMetamodel().findEndpoints(resource);
 			final Flags flags = new Flags();
 			for(Entry<String, Annotation> entry : resourceField.getAnnotations().entrySet()) {
-				if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.QUERY_PARAM.qualifiedName)) {
+				if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.QUERY_PARAM)) {
 					flags.addFlags(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION);
-				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName)) {
+				} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.MATRIX_PARAM)) {
 					flags.addFlags(JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
-				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.PATH.qualifiedName)) {
+				} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.PATH)) {
 					flags.addFlags(JaxrsElementDelta.F_PATH_ANNOTATION);
 				}
 			}
@@ -198,7 +198,7 @@ public class JaxrsElementChangedProcessorDelegate {
 
 	private static void processChange(final IJaxrsApplication application, final Flags flags) {
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) application.getMetamodel();
-		if (application.equals(metamodel.getApplication())) {
+		if (application.equals(metamodel.findApplication())) {
 			for (Iterator<IJaxrsEndpoint> iterator = metamodel.getAllEndpoints().iterator(); iterator.hasNext();) {
 				JaxrsEndpoint endpoint = (JaxrsEndpoint) iterator.next();
 				if (endpoint.update(application)) {
@@ -235,13 +235,9 @@ public class JaxrsElementChangedProcessorDelegate {
 
 	private static void processChange(final JaxrsResourceMethod changedResourceMethod, final Flags flags) throws CoreException {
 		final JaxrsMetamodel metamodel = changedResourceMethod.getMetamodel();
-		if (flags.hasValue(F_ELEMENT_KIND)) {
-			// remove endpoints using this resoureMethod:
-			metamodel.removeEndpoints(changedResourceMethod);
-			// create endpoints using this resourceMethod:
-			processAddition(changedResourceMethod);
-		} else if (changedResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR
-				&& flags.hasValue(F_METHOD_RETURN_TYPE)) {
+		if (flags.hasValue(F_ELEMENT_KIND)
+				|| (changedResourceMethod.getElementKind() == EnumElementKind.SUBRESOURCE_LOCATOR && flags
+						.hasValue(F_METHOD_RETURN_TYPE))) {
 			// remove endpoints using this resoureMethod:
 			metamodel.removeEndpoints(changedResourceMethod);
 			// create endpoints using this resourceMethod:
@@ -288,11 +284,11 @@ public class JaxrsElementChangedProcessorDelegate {
 			final List<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(resourceField.getParentResource());
 			final Flags flags = new Flags();
 			for(Entry<String, Annotation> entry : resourceField.getAnnotations().entrySet()) {
-				if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.QUERY_PARAM.qualifiedName)) {
+				if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.QUERY_PARAM)) {
 					flags.addFlags(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION);
-				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.MATRIX_PARAM.qualifiedName)) {
+				} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.MATRIX_PARAM)) {
 					flags.addFlags(JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
-				} else if(entry.getValue().getFullyQualifiedName().equals(EnumJaxrsClassname.PATH.qualifiedName)) {
+				} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.PATH)) {
 					flags.addFlags(JaxrsElementDelta.F_PATH_ANNOTATION);
 				}
 			}

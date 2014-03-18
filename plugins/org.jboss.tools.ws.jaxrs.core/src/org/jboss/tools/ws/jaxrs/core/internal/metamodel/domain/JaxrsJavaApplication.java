@@ -11,9 +11,9 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_HIERARCHY;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_PATH_VALUE_OVERRIDE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
 
 import java.util.Map;
 
@@ -26,12 +26,12 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * This domain element describes a subtype of {@link jvax.ws.rs.Application}
@@ -39,7 +39,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJaxrsApplication {
+public class JaxrsJavaApplication extends AbstractJaxrsJavaTypeElement implements IJaxrsJavaApplication {
 
 	/**
 	 * Builder initializer
@@ -109,18 +109,15 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		public JaxrsJavaApplication build() throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
-				if (javaType == null || !javaType.exists()) {
+				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
-				final CompilationUnit compilationUnit = ast != null ? ast : JdtUtils.parse(javaType,
-						new NullProgressMonitor());
-				final IType applicationSupertype = JdtUtils.resolveType(EnumJaxrsClassname.APPLICATION.qualifiedName,
+				final IType applicationSupertype = JdtUtils.resolveType(JaxrsClassnames.APPLICATION,
 						javaType.getJavaProject(), new NullProgressMonitor());
-				final Annotation applicationPathAnnotation = JdtUtils.resolveAnnotation(javaType, compilationUnit,
-						APPLICATION_PATH.qualifiedName);
-				isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, javaType);
+				this.isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, javaType);
+				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
+				final Annotation applicationPathAnnotation = annotations.get(APPLICATION_PATH);
 				if (isApplicationSubclass || applicationPathAnnotation != null) {
-					this.annotations = singleToMap(applicationPathAnnotation);
 					final JaxrsJavaApplication application = new JaxrsJavaApplication(this);
 					// this operation is only performed after creation
 					application.joinMetamodel();
@@ -165,8 +162,11 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		}
 	}
 
+	/**
+	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsJavaApplication} anymore) 
+	 */
 	@Override
-	public boolean isMarkedForRemoval() {
+	boolean isMarkedForRemoval() {
 		// element should be removed if it's not an application subclass and it
 		// has no ApplicationPath annotation
 		return !(isApplicationSubclass || getApplicationPathAnnotation() != null);
@@ -195,13 +195,6 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		this.isApplicationSubclass = isApplicationSubclass;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IHttpMethod#getSimpleName
-	 * ()
-	 */
 	@Override
 	public String getJavaClassName() {
 		return getJavaElement().getFullyQualifiedName();
@@ -254,7 +247,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	 *         <code>javax.ws.rs.ApplicationPath<code> annotation set on the underlying javatype, or null if none exists.
 	 */
 	public Annotation getApplicationPathAnnotation() {
-		return getAnnotation(APPLICATION_PATH.qualifiedName);
+		return getAnnotation(APPLICATION_PATH);
 	}
 
 	public boolean isOverriden() {

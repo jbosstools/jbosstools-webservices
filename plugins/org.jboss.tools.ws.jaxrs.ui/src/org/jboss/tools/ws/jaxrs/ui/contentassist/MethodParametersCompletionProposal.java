@@ -50,7 +50,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.osgi.framework.Bundle;
 

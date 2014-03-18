@@ -11,7 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.ui.contentassist;
 
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,11 +36,11 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
@@ -80,7 +80,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 			final int invocationOffset = context.getInvocationOffset();
 			final ICompilationUnit compilationUnit = javaContext.getCompilationUnit();
 			final Annotation annotation = JdtUtils.resolveAnnotationAt(invocationOffset, compilationUnit);
-			if (annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM.qualifiedName)) {
+			if (annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM)) {
 				final IJavaElement javaMethod = annotation.getJavaAnnotation().getAncestor(IJavaElement.METHOD);
 				final IJaxrsResourceMethod resourceMethod = (IJaxrsResourceMethod) metamodel.findElement(javaMethod);
 				if (resourceMethod != null) {

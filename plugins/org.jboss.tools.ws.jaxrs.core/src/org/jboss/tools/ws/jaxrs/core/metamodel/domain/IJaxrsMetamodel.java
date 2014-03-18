@@ -11,17 +11,36 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 
 public interface IJaxrsMetamodel extends IJaxrsStatus {
 
+	/**
+	 * @return the identifier for this metamodel, based on its underlying {@link IJavaProject#getHandleIdentifier()}
+	 */
+	public abstract String getIdentifier();
 	/**
 	 * @return <code>true</code> if the JAX-RS Metamodel is being initialized, false if it has already been initialized.
 	 */
 	public abstract boolean isInitializing();
 	
+	/**
+	 * Returns an unmodifiable {@link List} of all the {@link IJaxrsElement}s in this Metamodel.
+	 * 
+	 * @return
+	 */
+	public List<IJaxrsElement> getAllElements();
+	
+	
+	/**
+	 * Returns an unmodifiable {@link Collection} of all the {@link IJaxrsEndpoint}s in this Metamodel.
+	 * 
+	 * @return
+	 */
 	public abstract Collection<IJaxrsEndpoint> getAllEndpoints();
 
 	/**

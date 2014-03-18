@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
 /**
  * @author Xavier Coulon
@@ -26,7 +27,7 @@ public class JaxrsPreferencePage extends PreferencePage implements IWorkbenchPre
 	/**
 	 * @see plugin.xml descriptor for ID
 	 */
-	public static final String ID = "org.jboss.tools.ws.jaxrs.ui";
+	public static final String ID = JBossJaxrsUIPlugin.PLUGIN_ID;
 
 	@Override
 	protected Control createContents(Composite parent) {

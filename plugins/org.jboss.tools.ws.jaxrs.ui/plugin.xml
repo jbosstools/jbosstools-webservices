@@ -331,7 +331,7 @@
       </jaxrsLibraryprovider>
    </extension>
 
-<extension
+   <extension
          id="org.jboss.tools.ws.jaxrs.ui.pathParamAnnotationValueCompletionProposalComputer"
          point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
       <javaCompletionProposalComputer
@@ -437,11 +437,11 @@
       </page>
    </extension>
    
-    <extension point="org.eclipse.ui.preferencePages">
+   <extension point="org.eclipse.ui.preferencePages">
       <page 
          category="org.jboss.tools.ws.jaxrs.ui" 
          class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsValidatorPreferencePage" 
-         id="org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSValidatorPreferencePage" 
+         id="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsValidatorPreferencePage" 
          name="%PreferencePage_Validator">
       </page>
       <page
@@ -451,6 +451,48 @@
             name="%PreferencePage">
       </page>
    </extension>
+   
+   <extension
+         id="org.jboss.tools.ws.jaxrs.metamodelMarker"
+         name="JAX-RS Problem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+   <extension
+         point="org.jboss.tools.common.validation.validator">
+      <validator
+            class="org.jboss.tools.ws.jaxrs.ui.internal.validation.JaxrsMetamodelValidator"
+            id="org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"
+            name="%VALIDATOR_NAME"
+            problemType="org.jboss.tools.ws.jaxrs.metamodelMarker">
+      </validator>
+   </extension>
+   
+    <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferenceInitializer"/>
+   </extension>
+    <extension
+          point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+       <hyperlinkDetector
+             activate="true"
+             class="org.jboss.tools.ws.jaxrs.ui.navigation.JaxrsNameBindingHyperlinkDetector"
+             id="org.jboss.tools.ws.jaxrs.ui.nameBindingHyperlinkDetector"
+             name="Name Binding Hyperlink Detector"
+             targetId="org.eclipse.jdt.ui.javaCode">
+       </hyperlinkDetector>
+    </extension>
+    <extension
+          point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
+       <target
+             id="org.jboss.tools.ws.jaxrs.ui.nameBindingHyperlinkTarget"
+             name="Name Binding">
+       </target>
+    </extension>
    
    
 </plugin>

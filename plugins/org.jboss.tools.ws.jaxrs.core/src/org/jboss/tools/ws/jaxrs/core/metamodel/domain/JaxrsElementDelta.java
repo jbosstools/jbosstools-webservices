@@ -72,6 +72,8 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
 	public static final int F_PROVIDER_HIERARCHY = 0x100000;
 
+	public static final int F_NAME_BINDING_ANNOTATION = 0x200000;
+	
 	private final IJaxrsElement element;
 
 	private final int deltaKind;
@@ -138,7 +140,12 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 		return element;
 	}
 
-	/** @return the deltaKind */
+	/**
+	 * @return the deltaKind 
+	 * @see IJavaElementDelta#ADDED
+	 * @see IJavaElementDelta#CHANGED
+	 * @see IJavaElementDelta#REMOVED
+	 */
 	public int getDeltaKind() {
 		return deltaKind;
 	}

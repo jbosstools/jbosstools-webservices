@@ -11,13 +11,13 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.COOKIE_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.DEFAULT_VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HEADER_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.MATRIX_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ELEMENT_KIND;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.COOKIE_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HEADER_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MATRIX_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.QUERY_PARAM;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,13 +31,14 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * JAX-RS Resource Field.
@@ -94,25 +95,26 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		public JaxrsResourceField build() throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
-				if (!javaField.exists()) {
+				// skip if element does not exist or if it has compilation errors
+				if (javaField == null || !javaField.exists() || !javaField.isStructureKnown()) {
 					return null;
 				}
 				javaFieldType = JdtUtils.resolveFieldType(javaField, ast);
 				final IType parentType = (IType) javaField.getParent();
 				// lookup parent resource in metamodel
 				if (parentResource == null && metamodel != null) {
-					final JaxrsJavaElement<?> parentElement = (JaxrsJavaElement<?>) metamodel.findElement(parentType);
+					final AbstractJaxrsJavaElement<?> parentElement = (AbstractJaxrsJavaElement<?>) metamodel.findElement(parentType);
 					if (parentElement != null
 							&& parentElement.getElementKind().getCategory() == EnumElementCategory.RESOURCE) {
 						parentResource = (JaxrsResource) parentElement;
 					}
 				}
-				final List<String> supportedFieldAnnotations = Arrays.asList(MATRIX_PARAM.qualifiedName,
-						QUERY_PARAM.qualifiedName, PATH_PARAM.qualifiedName, COOKIE_PARAM.qualifiedName,
-						HEADER_PARAM.qualifiedName, DEFAULT_VALUE.qualifiedName);
-				annotations = JdtUtils.resolveAnnotations(javaField, ast, supportedFieldAnnotations);
-				if ((annotations.size() == 1 && !annotations.containsKey(DEFAULT_VALUE.qualifiedName))
-						|| (annotations.size() == 2 && annotations.containsKey(DEFAULT_VALUE.qualifiedName))) {
+				final List<String> expectedFieldAnnotations = Arrays.asList(MATRIX_PARAM,
+						QUERY_PARAM, PATH_PARAM, COOKIE_PARAM,
+						HEADER_PARAM);
+				this.annotations = JdtUtils.resolveAllAnnotations(javaField, ast);
+				final boolean matchesExpectedAnnotation = CollectionUtils.hasIntersection(expectedFieldAnnotations, annotations.keySet());
+				if (matchesExpectedAnnotation) {
 					final JaxrsResourceField field = new JaxrsResourceField(this);
 					// this operation is only performed after creation
 					field.joinMetamodel();
@@ -176,30 +178,33 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		}
 	}
 
+	/**
+	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsResourceField} anymore) 
+	 */
 	@Override
-	public boolean isMarkedForRemoval() {
-		final boolean hasPathParamAnnotation = hasAnnotation(PATH_PARAM.qualifiedName);
-		final boolean hasQueryParamAnnotation = hasAnnotation(QUERY_PARAM.qualifiedName);
-		final boolean hasMatrixParamAnnotation = hasAnnotation(MATRIX_PARAM.qualifiedName);
+	boolean isMarkedForRemoval() {
+		final boolean hasPathParamAnnotation = hasAnnotation(PATH_PARAM);
+		final boolean hasQueryParamAnnotation = hasAnnotation(QUERY_PARAM);
+		final boolean hasMatrixParamAnnotation = hasAnnotation(MATRIX_PARAM);
 		// element should be removed if it has neither @PathParam, @QueryParam
 		// nor @MatrixParam annotation
 		return !(hasPathParamAnnotation || hasQueryParamAnnotation || hasMatrixParamAnnotation);
 	}
 
 	public Annotation getPathParamAnnotation() {
-		return getAnnotation(PATH_PARAM.qualifiedName);
+		return getAnnotation(PATH_PARAM);
 	}
 
 	public Annotation getQueryParamAnnotation() {
-		return getAnnotation(QUERY_PARAM.qualifiedName);
+		return getAnnotation(QUERY_PARAM);
 	}
 
 	public Annotation getMatrixParamAnnotation() {
-		return getAnnotation(MATRIX_PARAM.qualifiedName);
+		return getAnnotation(MATRIX_PARAM);
 	}
 
 	public Annotation getDefaultValueAnnotation() {
-		return getAnnotation(DEFAULT_VALUE.qualifiedName);
+		return getAnnotation(DEFAULT_VALUE);
 	}
 	
 	@Override

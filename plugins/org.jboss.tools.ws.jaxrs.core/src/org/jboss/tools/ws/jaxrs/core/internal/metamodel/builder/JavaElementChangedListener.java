@@ -46,7 +46,7 @@ public class JavaElementChangedListener implements IElementChangedListener {
 	}
 
 	/**
-	 * Stops processing the incoming {@link JavaElementDelta}
+	 * Stops processing the incoming {@link JavaElementChangedEvent}
 	 */
 	public void resume() {
 		this.active = true;
@@ -99,7 +99,7 @@ public class JavaElementChangedListener implements IElementChangedListener {
 		int deltaKind = retrieveDeltaKind(delta);
 		int flags = delta.getFlags();
 		CompilationUnit compilationUnitAST = null;
-		final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType, compilationUnitAST, flags);
+		final JavaElementChangedEvent event = new JavaElementChangedEvent(element, deltaKind, eventType, compilationUnitAST, flags);
 		Logger.trace("Event {}", event);
 		// carry on with children elements.
 		for (IJavaElementDelta affectedChild : delta.getAffectedChildren()) {

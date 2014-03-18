@@ -12,14 +12,20 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
+import static org.jboss.tools.ws.jaxrs.core.utils.Annotation.VALUE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_REQUEST_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_RESPONSE_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTEXT_RESOLVER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.ENTITY_READER_INTERCEPTOR;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.ENTITY_WRITER_INTERCEPTOR;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPPER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,19 +46,17 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * <p>
- * JAX-RS Provider class <strong>Providers</strong> fall into 3 categories:
+ * JAX-RS Provider class <strong>Providers</strong> fall into 5 categories:
  * <ul>
- * <li>Entity Providers: the class MUST implement
+ * <li>Entity Providers: the class must implement
  * <code>javax.ws.rs.ext.MessageBodyReader</code> and/or
  * <code>javax.ws.rs.ext.MessageBodyWriter</code>. It MAY also declare media
  * type capabilities with <code>javax.ws.rs.Consume</code> and
@@ -61,6 +65,8 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * <code>javax.ws.rs.ext.ContextResolver</code></li>
  * <li>Exception Providers: the class must be annotated with
  * <code>javax.ws.rs.ext.ExceptionMapper</code></li>
+ * <li>Request/Response Filters: the class must implement <code>javax.ws.rs.container.ContainerRequestFilter</code> and/or <code>javax.ws.rs.container.ContainerResponseFilter</code></li>
+ * <li>Entity Interceptor: the class must implement <code>javax.ws.rs.ext.ReaderInterceptor</code> and/or <code>javax.ws.rs.ext.WriterInterceptor</code></li>
  * </ul>
  * </p>
  * <p>
@@ -70,7 +76,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProvider {
+public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxrsProvider {
 
 	private final Map<EnumElementKind, IType> providedTypes;
 
@@ -142,11 +148,15 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		/**
 		 * Creates a <strong>transient</strong> JAX-RS Provider from the given
 		 * Type. A valid Provider must be annotated with
-		 * <code>javax.ws.rs.ext.MessageBodyReader</code>,
-		 * <code>javax.ws.rs.ext.MessageBodyWriter</code> or
-		 * <code>javax.ws.rs.ext.ExceptionMapper</code>. If the given type is
-		 * not annotated with <code>javax.ws.rs.ext.Provider</code>, a should be
-		 * reported to the user.
+		 * <ul>
+		 * <li><code>javax.ws.rs.ext.MessageBodyReader</code></li>
+		 * <li><code>javax.ws.rs.ext.MessageBodyWriter</code></li>
+		 * <li><code>javax.ws.rs.ext.ExceptionMapper</code></li>
+		 * <li><code>javax.ws.rs.container.ContainerRequestFilter</code></li>
+		 * <li><code>javax.ws.rs.container.ContainerResponseFilter</code></li>
+		 * <li><code>javax.ws.rs.ext.ReaderInterceptor</code></li>
+		 * <li><code>javax.ws.rs.ext.WriterInterceptor</code></li>
+		 * </ul> 
 		 * 
 		 * @param javaType
 		 * @throws CoreException
@@ -157,7 +167,8 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		public JaxrsProvider build() throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
-				if (javaType == null || !javaType.exists()) {
+				// skip if element does not exist or if it has compilation errors
+				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
 				// assert that given java type is not abstract
@@ -171,10 +182,11 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 				if (subtypes != null && subtypes.length > 0) {
 					return null;
 				}
+				// retrieve the kind of provider from the implemented interfaces of the given java type
 				this.providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy, new NullProgressMonitor());
-				this.annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PROVIDER.qualifiedName,
-						CONSUMES.qualifiedName, PRODUCES.qualifiedName, ENCODED.qualifiedName));
-				if (annotations.get(PROVIDER.qualifiedName) != null || !providedKinds.isEmpty()) {
+				// retrieve all annotations, including NameBinginds
+				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
+				if (annotations.get(PROVIDER) != null || !providedKinds.isEmpty()) {
 					final JaxrsProvider provider = new JaxrsProvider(this);
 					// this operation is only performed after creation
 					provider.joinMetamodel();
@@ -188,12 +200,11 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		}
 
 		/**
-		 * @param metamodel
-		 * @param providerType
-		 * @param providerTypeHierarchy
-		 * @param providerInterfaces
+		 * 
+		 * @param providerType the underlying {@link IType} to analyse 
+		 * @param compilationUnit the associated {@link ICompilationUnit}
+		 * @param providerTypeHierarchy 
 		 * @param progressMonitor
-		 * @param providerTypeHierarchy
 		 * @return
 		 * @throws CoreException
 		 * @throws JavaModelException
@@ -203,24 +214,34 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		private static Map<EnumElementKind, IType> getProvidedKinds(final IType providerType,
 				final CompilationUnit compilationUnit, final ITypeHierarchy providerTypeHierarchy,
 				final IProgressMonitor progressMonitor) throws CoreException, JavaModelException {
-			final Map<EnumElementKind, IType> providerKinds = new HashMap<EnumElementKind, IType>();
-			List<Pair<EnumJaxrsClassname, EnumElementKind>> pairs = new ArrayList<Pair<EnumJaxrsClassname, EnumElementKind>>();
-			pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_READER, EnumElementKind.MESSAGE_BODY_READER));
-			pairs.add(Pair.makePair(EnumJaxrsClassname.MESSAGE_BODY_WRITER, EnumElementKind.MESSAGE_BODY_WRITER));
-			pairs.add(Pair.makePair(EnumJaxrsClassname.EXCEPTION_MAPPER, EnumElementKind.EXCEPTION_MAPPER));
-			pairs.add(Pair.makePair(EnumJaxrsClassname.CONTEXT_RESOLVER, EnumElementKind.CONTEXT_RESOLVER));
+			final Map<EnumElementKind, IType> implementedProviderKinds = new HashMap<EnumElementKind, IType>();
+			final Map<String, EnumElementKind> providerInterfaces = new HashMap<String, EnumElementKind>();
+			providerInterfaces.put(MESSAGE_BODY_READER, EnumElementKind.MESSAGE_BODY_READER);
+			providerInterfaces.put(MESSAGE_BODY_WRITER, EnumElementKind.MESSAGE_BODY_WRITER);
+			providerInterfaces.put(EXCEPTION_MAPPER, EnumElementKind.EXCEPTION_MAPPER);
+			providerInterfaces.put(CONTEXT_RESOLVER, EnumElementKind.CONTEXT_RESOLVER);
+			providerInterfaces.put(CONTAINER_REQUEST_FILTER, EnumElementKind.CONTAINER_REQUEST_FILTER);
+			providerInterfaces.put(CONTAINER_RESPONSE_FILTER, EnumElementKind.CONTAINER_RESPONSE_FILTER);
+			providerInterfaces.put(ENTITY_READER_INTERCEPTOR, EnumElementKind.ENTITY_READER_INTERCEPTOR);
+			providerInterfaces.put(ENTITY_WRITER_INTERCEPTOR, EnumElementKind.ENTITY_WRITER_INTERCEPTOR);
 
-			for (Pair<EnumJaxrsClassname, EnumElementKind> pair : pairs) {
-				final IType matchingGenericType = JdtUtils.resolveType(pair.left.qualifiedName,
+			final List<IType> providerTypeSuperInterfaces = Arrays.asList(providerTypeHierarchy.getAllSuperInterfaces(providerType));
+			for (Entry<String, EnumElementKind> entry : providerInterfaces.entrySet()) {
+				final String interfaceName = entry.getKey();
+				final EnumElementKind providerKind = entry.getValue();
+				final IType matchingGenericType = JdtUtils.resolveType(interfaceName,
 						providerType.getJavaProject(), progressMonitor);
-				List<IType> argumentTypes = JdtUtils.resolveTypeArguments(providerType, compilationUnit,
-						matchingGenericType, providerTypeHierarchy, progressMonitor);
-				if (argumentTypes == null || argumentTypes.size() == 0) {
-					continue;
+				if(providerTypeSuperInterfaces.contains(matchingGenericType)) {
+					final List<IType> argumentTypes = JdtUtils.resolveTypeArguments(providerType, compilationUnit,
+							matchingGenericType, providerTypeHierarchy, progressMonitor);
+					if (argumentTypes == null || argumentTypes.isEmpty()) {
+						implementedProviderKinds.put(providerKind, null);
+					} else {
+						implementedProviderKinds.put(providerKind, argumentTypes.get(0));
+					}
 				}
-				providerKinds.put(pair.right, argumentTypes.get(0));
 			}
-			return providerKinds;
+			return implementedProviderKinds;
 		}
 	}
 
@@ -235,27 +256,31 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		this.providedTypes = builder.providedKinds;
 	}
 
+	/**
+	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsProvider} anymore) 
+	 */
 	@Override
-	public boolean isMarkedForRemoval() {
-		final boolean hasProviderAnnotation = hasAnnotation(PROVIDER.qualifiedName);
-		final boolean isMessageBodyReader = providedTypes.get(EnumElementKind.MESSAGE_BODY_READER) != null;
-		final boolean isMessageBodyWriter = providedTypes.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
-		final boolean isExceptionMapper = providedTypes.get(EnumElementKind.EXCEPTION_MAPPER) != null;
-		final boolean isContextProvider = providedTypes.get(EnumElementKind.CONTEXT_RESOLVER) != null;
+	boolean isMarkedForRemoval() {
+		final boolean hasProviderAnnotation = hasAnnotation(PROVIDER);
+		final boolean hasProviderInterface = getElementKind() != EnumElementKind.UNDEFINED_PROVIDER;
 		// element should be removed if it has no @Provider annotation or it
 		// does not implement any of the provider interfaces
 		// (missing annotation is acceptable by some JAX-RS implementation, and
 		// Provider can be registered in the JAX-RS application or in the
 		// web.xml)
-		return !(hasProviderAnnotation || (isMessageBodyReader || isMessageBodyWriter || isContextProvider || isExceptionMapper));
+		return !hasProviderAnnotation && !hasProviderInterface;
 	}
 
 	@Override
 	public EnumElementKind getElementKind() {
-		final boolean isMessageBodyReader = providedTypes.get(EnumElementKind.MESSAGE_BODY_READER) != null;
-		final boolean isMessageBodyWriter = providedTypes.get(EnumElementKind.MESSAGE_BODY_WRITER) != null;
-		final boolean isExceptionMapper = providedTypes.get(EnumElementKind.EXCEPTION_MAPPER) != null;
-		final boolean isContextProvider = providedTypes.get(EnumElementKind.CONTEXT_RESOLVER) != null;
+		final boolean isMessageBodyReader = providedTypes.containsKey(EnumElementKind.MESSAGE_BODY_READER);
+		final boolean isMessageBodyWriter = providedTypes.containsKey(EnumElementKind.MESSAGE_BODY_WRITER);
+		final boolean isExceptionMapper = providedTypes.containsKey(EnumElementKind.EXCEPTION_MAPPER);
+		final boolean isContextProvider = providedTypes.containsKey(EnumElementKind.CONTEXT_RESOLVER);
+		final boolean isContainerRequestFilter = providedTypes.containsKey(EnumElementKind.CONTAINER_REQUEST_FILTER);
+		final boolean isContainerResponseFilter = providedTypes.containsKey(EnumElementKind.CONTAINER_RESPONSE_FILTER);
+		final boolean isEntityReaderInterceptor = providedTypes.containsKey(EnumElementKind.ENTITY_READER_INTERCEPTOR);
+		final boolean isEntityWriterInterceptor = providedTypes.containsKey(EnumElementKind.ENTITY_WRITER_INTERCEPTOR);
 		if (isMessageBodyReader && isMessageBodyWriter) {
 			return EnumElementKind.ENTITY_MAPPER;
 		} else if (isMessageBodyReader) {
@@ -266,21 +291,37 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			return EnumElementKind.EXCEPTION_MAPPER;
 		} else if (isContextProvider) {
 			return EnumElementKind.CONTEXT_RESOLVER;
+		} else if (isContainerRequestFilter && isContainerResponseFilter) {
+			return EnumElementKind.CONTAINER_FILTER;
+		} else if (isContainerRequestFilter) {
+			return EnumElementKind.CONTAINER_REQUEST_FILTER;
+		} else if (isContainerResponseFilter) {
+			return EnumElementKind.CONTAINER_RESPONSE_FILTER;
+		} else if (isEntityReaderInterceptor && isEntityWriterInterceptor) {
+			return EnumElementKind.ENTITY_INTERCEPTOR;
+		} else if (isEntityReaderInterceptor) {
+			return EnumElementKind.ENTITY_READER_INTERCEPTOR;
+		} else if (isEntityWriterInterceptor) {
+			return EnumElementKind.ENTITY_WRITER_INTERCEPTOR;
 		}
 		return EnumElementKind.UNDEFINED_PROVIDER;
 	}
 
 	@Override
-	public IType getProvidedType(EnumElementKind providerKind) {
+	public IType getProvidedType(final EnumElementKind providerKind) {
 		return providedTypes.get(providerKind);
 	}
 
+	/**
+	 * @return the implemented interface {@link IType} indexed by their
+	 *         associated {@link EnumElementKind}.
+	 */
 	public Map<EnumElementKind, IType> getProvidedTypes() {
 		return providedTypes;
 	}
 
 	public Annotation getConsumesAnnotation() {
-		return getAnnotation(CONSUMES.qualifiedName);
+		return getAnnotation(CONSUMES);
 	}
 
 	@Override
@@ -293,7 +334,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	}
 
 	public Annotation getProducesAnnotation() {
-		return getAnnotation(PRODUCES.qualifiedName);
+		return getAnnotation(PRODUCES);
 	}
 
 	@Override
@@ -319,6 +360,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		final JaxrsProvider transientProvider = JaxrsProvider.from(javaElement, ast).build();
 		// clear this element if the given transient element is null
 		if (transientProvider == null) {
+			this.getProvidedTypes().clear();
 			remove();
 		} else {
 			final Flags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
@@ -339,7 +381,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	}
 
 	/**
-	 * Return {@link JaxrsJavaElement#hashCode()} result based on underlying
+	 * Return {@link AbstractJaxrsJavaElement#hashCode()} result based on underlying
 	 * Java Type. Thus, it does not take the Provider's Type Parameter(s) into
 	 * account here.
 	 */
@@ -349,7 +391,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	}
 
 	/**
-	 * Return {@link JaxrsJavaElement#equals(Object)} result based on underlying
+	 * Return {@link AbstractJaxrsJavaElement#equals(Object)} result based on underlying
 	 * Java Type. Thus, it does not take the Provider's Type Parameter(s) into
 	 * account here.
 	 */

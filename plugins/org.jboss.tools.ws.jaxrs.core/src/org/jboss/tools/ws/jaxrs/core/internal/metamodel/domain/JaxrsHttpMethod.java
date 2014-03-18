@@ -12,13 +12,11 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RETENTION;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.TARGET;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
 
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.Arrays;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
@@ -30,11 +28,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * A request method designator is a runtime annotation that is annotated with
@@ -46,7 +44,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHttpMethod {
+public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJaxrsHttpMethod {
 
 	/**
 	 * A Simple sorter for HTTP Verbs: the preferred order is
@@ -171,14 +169,13 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		public JaxrsHttpMethod build() throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
-				if (javaType == null || !javaType.exists()) {
+				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
-				annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(HTTP_METHOD.qualifiedName, TARGET.qualifiedName,
-						RETENTION.qualifiedName));
+				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
 				// Element *MUST* at least have the @HttpMethod annotation to be an HTTP Method.
 				// Problems will be reported by validation if other annotations are missing.
-				if (annotations == null || annotations.isEmpty() || !annotations.containsKey(HTTP_METHOD.qualifiedName)) {
+				if (annotations == null || annotations.isEmpty() || !annotations.containsKey(HTTP_METHOD)) {
 					return null;
 				}
 				final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(this);
@@ -224,8 +221,11 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		return false;
 	}
 
+	/**
+	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsHttpMethod} anymore) 
+	 */
 	@Override
-	public boolean isMarkedForRemoval() {
+	boolean isMarkedForRemoval() {
 		// element should be removed if HttpMethod annotation is missing
 		return (getHttpMethodAnnotation() == null);
 	}
@@ -245,7 +245,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 
 	/** @return the HttpMethod Annotation */
 	public Annotation getHttpMethodAnnotation() {
-		return getAnnotation(HTTP_METHOD.qualifiedName);
+		return getAnnotation(HTTP_METHOD);
 	}
 
 	/** @return the Retention Annotation */
@@ -258,22 +258,8 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 		return getAnnotation(Target.class.getName());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jboss.tools.ws.jaxrs.core.internal.metamodel.IHttpMethod#getSimpleName
-	 * ()
-	 */
-	@Override
-	public String getJavaClassName() {
-		return getJavaElement().getFullyQualifiedName();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
+	/**
+	 * {@link Inherited}
 	 */
 	@Override
 	public String toString() {
@@ -299,11 +285,10 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	}
 
 	/**
-	 * Update this HttpMethod with the elements of the given httpMethod
+	 * Update this HttpMethod with the elements of the given element
 	 * 
-	 * @param httpMethod
-	 * @return the flags indicating the kind of changes that occurred during the
-	 *         update.
+	 * @param element the {@link IJavaElement} to use to update {@code this} HTTP Method
+	 * @param ast the {@link ICompilationUnit} associated with the given element
 	 * @throws CoreException
 	 */
 	public void update(final IJavaElement element, final CompilationUnit ast) throws CoreException {

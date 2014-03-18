@@ -1,0 +1,1 @@
+This is a sample JAX-RS 2.0 project that features all the new APIs that should be supported in JBoss Tools.

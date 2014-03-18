@@ -15,22 +15,20 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.startsWith;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.createAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getAnnotation;
-import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getAnnotations;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.GET;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
@@ -44,15 +42,15 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -216,7 +214,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 				"getProductResourceLocator");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		Annotation httpAnnotation = createAnnotation(GET.qualifiedName);
+		Annotation httpAnnotation = createAnnotation(GET);
 		subresourceMethod.addOrUpdateAnnotation(httpAnnotation);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
@@ -284,7 +282,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation appPathAnnotation = application
-				.getAnnotation(EnumJaxrsClassname.APPLICATION_PATH.qualifiedName);
+				.getAnnotation(JaxrsClassnames.APPLICATION_PATH);
 		application.removeAnnotation(appPathAnnotation.getJavaAnnotation());
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
@@ -299,7 +297,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomers");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		customerResourceMethod.addAnnotation(createAnnotation(PATH.qualifiedName, "/{id}"));
+		customerResourceMethod.addAnnotation(createAnnotation(PATH, "/{id}"));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(2));
 		assertThat(metamodelMonitor.getEndpointChanges().get(0).getKind(), equalTo(REMOVED));
@@ -313,7 +311,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsHttpMethod httpMethod = metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomer");
-		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH);
 		customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation());
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -336,9 +334,8 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Map<String, Annotation> annotations = getAnnotations(application.getJavaElement(),
-				APPLICATION_PATH.qualifiedName);
-		application.addOrUpdateAnnotation(createAnnotation(annotations.get(APPLICATION_PATH.qualifiedName), "/foo"));
+		final Annotation applicationPathAnnotation = getAnnotation(application.getJavaElement(), APPLICATION_PATH);
+		application.addOrUpdateAnnotation(createAnnotation(applicationPathAnnotation, "/foo"));
 		// verifications: all 6 methods changed
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
 		for (int i = 0; i < 6; i++) {
@@ -444,7 +441,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
+		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH);
 		customerResource.addOrUpdateAnnotation(createAnnotation(pathAnnotation, "/foo"));
 		// verifications: all 6 methods changed
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
@@ -467,9 +464,9 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		// FIXME: path param annotation must happen first, because no event will be triggered here
-		final Annotation pathParamAnnotation = customerResourceMethod.getJavaMethodParameterByName("id").getAnnotation(PATH_PARAM.qualifiedName);
+		final Annotation pathParamAnnotation = customerResourceMethod.getJavaMethodParameterByName("id").getAnnotation(PATH_PARAM);
 		pathParamAnnotation.update(createAnnotation(pathParamAnnotation, "foo"));
-		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
+		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH);
 		customerResourceMethod.addOrUpdateAnnotation(createAnnotation(pathAnnotation, "{foo}"));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
@@ -491,7 +488,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
+		final Annotation pathAnnotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH);
 		customerResourceMethod.addOrUpdateAnnotation(createAnnotation(pathAnnotation, "{foo}"));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
@@ -516,7 +513,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), PATH);
 		customerResource.removeAnnotation(annotation.getJavaAnnotation());
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(12));
@@ -536,7 +533,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3:String}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation httpMethodAnnotation = getAnnotation(httpMethod.getJavaElement(), HTTP_METHOD.qualifiedName);
+		final Annotation httpMethodAnnotation = getAnnotation(httpMethod.getJavaElement(), HTTP_METHOD);
 		httpMethod.addOrUpdateAnnotation(createAnnotation(httpMethodAnnotation, "BAR"));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
@@ -601,7 +598,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH);
 		customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation());
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(2));
@@ -617,7 +614,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 			CoreException {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation consumesAnnotation = getAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName);
+		final Annotation consumesAnnotation = getAnnotation(customerResource.getJavaElement(), CONSUMES);
 		customerResource.removeAnnotation(consumesAnnotation.getJavaAnnotation());
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
@@ -638,14 +635,14 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "createCustomer");
-		customerResource.removeAnnotation(customerResource.getAnnotation(CONSUMES.qualifiedName).getJavaAnnotation());
-		customerResourceMethod.removeAnnotation(customerResourceMethod.getAnnotation(CONSUMES.qualifiedName).getJavaAnnotation());
+		customerResource.removeAnnotation(customerResource.getAnnotation(CONSUMES).getJavaAnnotation());
+		customerResourceMethod.removeAnnotation(customerResourceMethod.getAnnotation(CONSUMES).getJavaAnnotation());
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		customerResourceMethod.addOrUpdateAnnotation(getAnnotation(customerResourceMethod.getJavaElement(),
-				CONSUMES.qualifiedName));
+				CONSUMES));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
 		final JaxrsEndpointDelta change = metamodelMonitor.getEndpointChanges().get(0);
@@ -661,14 +658,14 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "createCustomer");
 		final Annotation consumesAnnotation = getAnnotation(customerResourceMethod.getJavaElement(),
-				CONSUMES.qualifiedName);
+				CONSUMES);
 		customerResourceMethod.addOrUpdateAnnotation(createAnnotation(consumesAnnotation, "application/foo"));
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		customerResourceMethod.addOrUpdateAnnotation(getAnnotation(customerResourceMethod.getJavaElement(),
-				CONSUMES.qualifiedName));
+				CONSUMES));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
 		final JaxrsEndpointDelta change = metamodelMonitor.getEndpointChanges().get(0);
@@ -682,7 +679,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 			CoreException {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation consumesAnnotation = getAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName);
+		final Annotation consumesAnnotation = getAnnotation(customerResource.getJavaElement(), CONSUMES);
 		customerResource.addOrUpdateAnnotation(createAnnotation(consumesAnnotation, "application/foo"));
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
@@ -690,7 +687,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		customerResource
-				.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(), CONSUMES.qualifiedName));
+				.addOrUpdateAnnotation(getAnnotation(customerResource.getJavaElement(), CONSUMES));
 		// verifications: 5 endpoints changed when changing resource annotation
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(5));
 		final JaxrsEndpointDelta change = metamodelMonitor.getEndpointChanges().get(0);
@@ -704,11 +701,11 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation consumesTypeAnnotation = getAnnotation(customerResource.getJavaElement(),
-				CONSUMES.qualifiedName);
+				CONSUMES);
 		customerResource.addOrUpdateAnnotation(createAnnotation(consumesTypeAnnotation, "application/xml"));
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "createCustomer");
 		final Annotation consumesMethodAnnotation = getAnnotation(customerResourceMethod.getJavaElement(),
-				CONSUMES.qualifiedName);
+				CONSUMES);
 		customerResourceMethod.addOrUpdateAnnotation(createAnnotation(consumesMethodAnnotation, "application/foo"));
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
@@ -728,10 +725,10 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 			throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		customerResource.removeAnnotation(customerResource.getAnnotation(CONSUMES.qualifiedName).getJavaAnnotation());
+		customerResource.removeAnnotation(customerResource.getAnnotation(CONSUMES).getJavaAnnotation());
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "createCustomer");
 		final Annotation consumesAnnotation = createAnnotation(
-				getAnnotation(customerResourceMethod.getJavaElement(), CONSUMES.qualifiedName), "application/foo");
+				getAnnotation(customerResourceMethod.getJavaElement(), CONSUMES), "application/foo");
 		customerResourceMethod.addOrUpdateAnnotation(consumesAnnotation);
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("application/foo")));
@@ -751,14 +748,14 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 			CoreException {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		customerResource.removeAnnotation(customerResource.getAnnotation(PRODUCES.qualifiedName).getJavaAnnotation());
+		customerResource.removeAnnotation(customerResource.getAnnotation(PRODUCES).getJavaAnnotation());
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomerAsVCard");
-		customerResourceMethod.removeAnnotation(customerResourceMethod.getAnnotation(PRODUCES.qualifiedName).getJavaAnnotation());
+		customerResourceMethod.removeAnnotation(customerResourceMethod.getAnnotation(PRODUCES).getJavaAnnotation());
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		customerResource.addOrUpdateAnnotation(createAnnotation(PRODUCES.qualifiedName, "application/xml"));
+		customerResource.addOrUpdateAnnotation(createAnnotation(PRODUCES, "application/xml"));
 		// verifications: all 6 methods changed
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
 		for (int i = 0; i < 6; i++) {
@@ -773,15 +770,15 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 			CoreException {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		customerResource.removeAnnotation(customerResource.getAnnotation(PRODUCES.qualifiedName).getJavaAnnotation());
+		customerResource.removeAnnotation(customerResource.getAnnotation(PRODUCES).getJavaAnnotation());
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomerAsVCard");
-		customerResourceMethod.removeAnnotation(customerResourceMethod.getAnnotation(PRODUCES.qualifiedName).getJavaAnnotation());
+		customerResourceMethod.removeAnnotation(customerResourceMethod.getAnnotation(PRODUCES).getJavaAnnotation());
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		customerResourceMethod.addOrUpdateAnnotation(getAnnotation(customerResourceMethod.getJavaElement(),
-				PRODUCES.qualifiedName));
+				PRODUCES));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
 		final JaxrsEndpointDelta change = metamodelMonitor.getEndpointChanges().get(0);
@@ -796,7 +793,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation producesResourceAnnotation = getAnnotation(customerResource.getJavaElement(),
-				PRODUCES.qualifiedName);
+				PRODUCES);
 		customerResource.addOrUpdateAnnotation(createAnnotation(producesResourceAnnotation, "application/foo"));
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomer");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
@@ -820,7 +817,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation producesMethodAnnotation = getAnnotation(customerResourceMethod.getJavaElement(),
-				PRODUCES.qualifiedName);
+				PRODUCES);
 		customerResourceMethod.addOrUpdateAnnotation(createAnnotation(producesMethodAnnotation, "text/foo"));
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
@@ -836,7 +833,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomerAsVCard");
 		final Annotation producesAnnotation = createAnnotation(
-				customerResourceMethod.getAnnotation(PRODUCES.qualifiedName), "application/foo");
+				customerResourceMethod.getAnnotation(PRODUCES), "application/foo");
 		customerResourceMethod.addOrUpdateAnnotation(producesAnnotation);
 		// customerResourceMethod.addOrUpdateAnnotation(producesAnnotation);
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).get(0);
@@ -861,7 +858,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "createCustomer");
-		final Annotation consumesAnnotation = customerResourceMethod.getAnnotation(CONSUMES.qualifiedName);
+		final Annotation consumesAnnotation = customerResourceMethod.getAnnotation(CONSUMES);
 		customerResourceMethod.addOrUpdateAnnotation(createAnnotation(consumesAnnotation, "application/foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -917,7 +914,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(customerResource.getJavaElement(), PATH);
 		customerResource.removeAnnotation(annotation.getJavaAnnotation());
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
@@ -1068,7 +1065,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomer");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(customerResourceMethod.getJavaElement(), PATH);
 		customerResourceMethod.removeAnnotation(annotation.getJavaAnnotation());
 		// verifications: 2 events: remove/add
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(2));
@@ -1099,7 +1096,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		final Annotation productResourceLocatorPathAnnotation = getAnnotation(productResourceLocator.getJavaElement(),
-				PATH.qualifiedName);
+				PATH);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		productResourceLocator.removeAnnotation(productResourceLocatorPathAnnotation.getJavaAnnotation());
