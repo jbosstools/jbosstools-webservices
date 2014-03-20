@@ -32,7 +32,7 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  */
 public class JaxrsSettingsPreferencePage extends SettingsPage {
 
-	public static final String ID = "org.jboss.tools.ws.jaxrs.ui.propertyPages.JaxrsSettingsPreferencePage";
+	public static final String ID = "org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsSettingsPreferencePage";
 
 	private IProject project;
 	private boolean jaxrsEnabled;

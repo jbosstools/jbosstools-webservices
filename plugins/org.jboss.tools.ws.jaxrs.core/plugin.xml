@@ -28,30 +28,5 @@
             id="org.jboss.tools.ws.jaxrs.metamodelBuilder">
       </builder>
    </extension>
-   <extension
-         id="org.jboss.tools.ws.jaxrs.metamodelMarker"
-         name="JAX-RS Problem"
-         point="org.eclipse.core.resources.markers">
-      <super
-            type="org.eclipse.core.resources.problemmarker">
-      </super>
-      <persistent
-            value="true">
-      </persistent>
-   </extension>
-   <extension
-         point="org.jboss.tools.common.validation.validator">
-      <validator
-            class="org.jboss.tools.ws.jaxrs.core.internal.metamodel.validation.JaxrsMetamodelValidator"
-            id="org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"
-            name="%VALIDATOR_NAME"
-            problemType="org.jboss.tools.ws.jaxrs.metamodelMarker">
-      </validator>
-   </extension>
-   
-    <extension point="org.eclipse.core.runtime.preferences">
-      <initializer class="org.jboss.tools.ws.jaxrs.core.preferences.JaxrsPreferenceInitializer"/>
-   </extension>
-  
 
 </plugin>

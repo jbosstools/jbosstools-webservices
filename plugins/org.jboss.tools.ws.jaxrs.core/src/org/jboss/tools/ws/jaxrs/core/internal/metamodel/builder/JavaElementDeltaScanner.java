@@ -43,9 +43,9 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * Scans and filters the IJavaElementDelta and IResourceDelta (including their children and annotations) and returns a
@@ -63,7 +63,7 @@ public class JavaElementDeltaScanner {
 
 	private final CompilationUnitsRepository compilationUnitsRepository = CompilationUnitsRepository.getInstance();
 
-	public List<JavaElementDelta> scanAndFilterEvent(ElementChangedEvent event, IProgressMonitor progressMonitor)
+	public List<JavaElementChangedEvent> scanAndFilterEvent(ElementChangedEvent event, IProgressMonitor progressMonitor)
 			throws CoreException {
 		try {
 			progressMonitor.beginTask("Analysing changes", 1);
@@ -83,8 +83,8 @@ public class JavaElementDeltaScanner {
 	 * @throws CoreException
 	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=100267
 	 */
-	private List<JavaElementDelta> scanDelta(final IJavaElementDelta delta, final int eventType) throws CoreException {
-		final List<JavaElementDelta> events = new ArrayList<JavaElementDelta>();
+	private List<JavaElementChangedEvent> scanDelta(final IJavaElementDelta delta, final int eventType) throws CoreException {
+		final List<JavaElementChangedEvent> events = new ArrayList<JavaElementChangedEvent>();
 		final IJavaElement element = delta.getElement();
 		// skip as the project is closed
 		if (element == null) {
@@ -106,7 +106,7 @@ public class JavaElementDeltaScanner {
 		final int deltaKind = retrieveDeltaKind(delta);
 		final int flags = delta.getFlags();
 		if(elementKind == JAVA_PROJECT ){
-			final JavaElementDelta event = new JavaElementDelta(element, delta.getKind(), eventType, null, delta.getFlags());
+			final JavaElementChangedEvent event = new JavaElementChangedEvent(element, delta.getKind(), eventType, null, delta.getFlags());
 			if (javaElementChangedEventFilter.apply(event)) {
 				events.add(event);
 				// skip anything below
@@ -133,7 +133,7 @@ public class JavaElementDeltaScanner {
 						compilationUnitAST, computeDiffs);
 				for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
 					final JavaMethodSignature methodSignature = diff.getValue();
-					final JavaElementDelta event = new JavaElementDelta(methodSignature.getJavaMethod(), CHANGED, eventType,
+					final JavaElementChangedEvent event = new JavaElementChangedEvent(methodSignature.getJavaMethod(), CHANGED, eventType,
 							compilationUnitAST, F_SIGNATURE);
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
@@ -146,7 +146,7 @@ public class JavaElementDeltaScanner {
 						problems);
 				for (Entry<IProblem, IJavaElement> solvedProblem : solvedProblems.entrySet()) {
 					final IJavaElement solvedElement = solvedProblem.getValue();
-					final JavaElementDelta event = new JavaElementDelta(solvedElement, CHANGED, eventType,
+					final JavaElementChangedEvent event = new JavaElementChangedEvent(solvedElement, CHANGED, eventType,
 							compilationUnitAST, F_PROBLEM_SOLVED);
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
@@ -155,7 +155,7 @@ public class JavaElementDeltaScanner {
 
 			}
 		} else if(compilationUnitAST != null){
-			final JavaElementDelta event = new JavaElementDelta(element, deltaKind, eventType, compilationUnitAST,
+			final JavaElementChangedEvent event = new JavaElementChangedEvent(element, deltaKind, eventType, compilationUnitAST,
 					flags);
 			if (javaElementChangedEventFilter.apply(event)) {
 				events.add(event);

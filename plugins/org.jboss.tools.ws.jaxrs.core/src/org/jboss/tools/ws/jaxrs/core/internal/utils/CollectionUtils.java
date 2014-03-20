@@ -206,12 +206,12 @@ public class CollectionUtils {
 	/**
 	 * Compares the content of the 2 given collections
 	 * 
-	 * @param collection
-	 * @param otherCollection
+	 * @param collection the first collection to compare
+	 * @param otherCollection the second collection to compare
 	 * @return true if the intersection of both collections is not empty (ie,
 	 *         collections have values in common), false otherwise.
 	 */
-	public static boolean hasIntersection(final List<String> collection, final List<String> otherCollection) {
+	public static boolean hasIntersection(final Collection<String> collection, final Collection<String> otherCollection) {
 		return !intersection(collection, otherCollection).isEmpty();
 	}
 

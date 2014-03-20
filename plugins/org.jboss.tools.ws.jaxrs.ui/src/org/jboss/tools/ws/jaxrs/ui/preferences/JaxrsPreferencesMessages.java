@@ -63,6 +63,9 @@ public class JaxrsPreferencesMessages extends NLS {
 	public static String JaxrsValidatorConfigurationBlock_pb_providerDuplicateMessageBodyReader_label; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerDuplicateMessageBodyWriter_label; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerDuplicateExceptionMapper_label; 
+	public static String JaxrsValidatorConfigurationBlock_pb_providerInvalidPreMatchingAnnotationUsage_label; 
+	public static String JaxrsValidatorConfigurationBlock_pb_providerMissingBinding_label; 
+	public static String JaxrsValidatorConfigurationBlock_pb_providerUnusedBinding_label; 
 
 	public static String JAXRS_VALIDATOR_PREFERENCE_PAGE_JAXRS_VALIDATOR;
 

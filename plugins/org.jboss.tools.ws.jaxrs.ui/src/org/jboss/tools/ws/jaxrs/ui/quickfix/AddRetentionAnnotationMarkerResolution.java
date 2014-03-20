@@ -22,7 +22,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.jboss.tools.common.refactoring.BaseMarkerResolution;
 import org.jboss.tools.common.refactoring.MarkerResolutionUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
@@ -46,9 +46,9 @@ public class AddRetentionAnnotationMarkerResolution extends BaseMarkerResolution
 		MultiTextEdit edit = new MultiTextEdit();
 		change.setEdit(edit);
 		try{
-			MarkerResolutionUtils.addImport(EnumJaxrsClassname.RETENTION.qualifiedName, compilationUnit, edit);
+			MarkerResolutionUtils.addImport(JaxrsClassnames.RETENTION, compilationUnit, edit);
 			MarkerResolutionUtils.addImport(RetentionPolicy.class.getName(), compilationUnit, edit);
-			MarkerResolutionUtils.addAnnotation(EnumJaxrsClassname.RETENTION.simpleName, compilationUnit, type, "(RetentionPolicy.RUNTIME)", edit);
+			MarkerResolutionUtils.addAnnotation("Retention", compilationUnit, type, "(RetentionPolicy.RUNTIME)", edit);
 		} catch (JavaModelException e) {
 			Logger.error("Failed to add @Retention annotation on type " + type.getFullyQualifiedName(), e);
 		}

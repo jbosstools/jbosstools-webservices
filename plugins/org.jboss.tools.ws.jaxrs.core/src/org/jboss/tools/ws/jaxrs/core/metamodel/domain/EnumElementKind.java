@@ -16,10 +16,6 @@ package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
  * */
 public enum EnumElementKind {
 
-	/**
-	 * UNDEFINED KIND (when no annotation nor any other java element can define precisely what the element is.
-	 */
-	
 	/** A JAX-RS Application declared in the web deployment descriptor.*/
 	APPLICATION_WEBXML(EnumElementCategory.APPLICATION),
 	/** A java annotated type based JAX-RS Application */
@@ -32,12 +28,27 @@ public enum EnumElementKind {
 	MESSAGE_BODY_WRITER(EnumElementCategory.PROVIDER),
 	/** A message consumer. */
 	MESSAGE_BODY_READER(EnumElementCategory.PROVIDER),
-	/** An Entity Mapper (ie, both reader and writer). */
+	/** An Entity Mapper (ie, both MessageBodyReader and MessageBodyWriter). */
 	ENTITY_MAPPER(EnumElementCategory.PROVIDER),
 	/** An exception mapper. */
 	EXCEPTION_MAPPER(EnumElementCategory.PROVIDER),
 	/** A Context Provider. */
 	CONTEXT_RESOLVER(EnumElementCategory.PROVIDER),
+	/** A Container Request Filter.*/
+	CONTAINER_REQUEST_FILTER(EnumElementCategory.PROVIDER),
+	/** A Container Response Filter.*/
+	CONTAINER_RESPONSE_FILTER(EnumElementCategory.PROVIDER),
+	/** A Container Filter (ie, both ContainerRequestFilter and ContainerResponseFilter).*/
+	CONTAINER_FILTER(EnumElementCategory.PROVIDER),
+	/** An Entity Reader Interceptor.*/
+	ENTITY_READER_INTERCEPTOR(EnumElementCategory.PROVIDER),
+	/** An Entity Writer Interceptor.*/
+	ENTITY_WRITER_INTERCEPTOR(EnumElementCategory.PROVIDER),
+	/** An Entity Interceptor (ie, both EntityReaderInterceptor and EntityWriterInterceptor).*/
+	ENTITY_INTERCEPTOR(EnumElementCategory.PROVIDER),
+	/** An Interceptor/Filter Name Binding Annotation.*/
+	NAME_BINDING(EnumElementCategory.NAME_BINDING),
+	
 	/** Undefined Provider. */
 	UNDEFINED_PROVIDER(EnumElementCategory.PROVIDER),
 	

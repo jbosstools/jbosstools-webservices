@@ -41,11 +41,11 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
-import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestsPlugin;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestPlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
 import org.osgi.framework.Bundle;
@@ -59,7 +59,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class TestProjectMonitor extends ExternalResource {
 
-	public static final String DEFAULT_SAMPLE_PROJECT_NAME = "org.jboss.tools.ws.jaxrs.tests.sampleproject";
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestProjectMonitor.class);
 
 	private final String projectName;
@@ -125,8 +124,7 @@ public class TestProjectMonitor extends ExternalResource {
 		try {
 			LOGGER.info("Synchronizing the workspace back to its initial state...");
 			// remove listener before sync' to avoid desync...
-			IWorkspace workspace = ResourcesPlugin.getWorkspace();
-			workspace.removeResourceChangeListener(synchronizor);
+			ResourcesPlugin.getWorkspace().removeResourceChangeListener(synchronizor);
 			if(synchronizor.resync()) {
 				buildProject();
 			}
@@ -348,7 +346,7 @@ public class TestProjectMonitor extends ExternalResource {
 		if (webxmlReplacementName == null) {
 			return null;
 		}
-		Bundle bundle = JBossJaxrsCoreTestsPlugin.getDefault().getBundle();
+		Bundle bundle = JBossJaxrsCoreTestPlugin.getDefault().getBundle();
 		InputStream stream = FileLocator.openStream(bundle, new Path("resources").append(webxmlReplacementName), false);
 		assertThat(stream, notNullValue());
 		if (webxmlResource != null) {

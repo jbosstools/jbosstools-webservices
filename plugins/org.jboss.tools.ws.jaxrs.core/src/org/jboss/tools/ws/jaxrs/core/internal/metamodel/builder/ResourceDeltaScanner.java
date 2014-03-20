@@ -28,7 +28,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
 
 /**
  * Scans and filters the IJavaElementDelta and IResourceDelta (including their children and annotations) and returns a
@@ -57,7 +57,7 @@ public class ResourceDeltaScanner {
 
 	/**
 	 * Analyses the given ResourceDelta and its children and returns a list of relevant events for further processing.
-	 * These events may be {@link JavaElementDelta} or {@link ResourceDelta} depending on the nature of the affected
+	 * These events may be {@link JavaElementChangedEvent} or {@link ResourceDelta} depending on the nature of the affected
 	 * resource (ie: a resource of a compilation unit or a web deployement descriptor/web fragment, respectively).
 	 * 
 	 * @param delta

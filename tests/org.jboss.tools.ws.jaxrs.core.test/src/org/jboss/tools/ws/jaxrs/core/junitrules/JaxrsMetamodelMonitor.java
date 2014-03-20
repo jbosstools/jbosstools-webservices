@@ -3,8 +3,8 @@
  */
 package org.jboss.tools.ws.jaxrs.core.junitrules;
 
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION_PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -22,26 +22,28 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.WtpUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,7 +181,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		this.metamodelProblemLevelChanges.clear();
 	}
 
-	public void processJavaElementChange(final JavaElementDelta delta, final IProgressMonitor progressMonitor) throws CoreException {
+	public void processJavaElementChange(final JavaElementChangedEvent delta, final IProgressMonitor progressMonitor) throws CoreException {
 		metamodel.processJavaElementChange(delta, progressMonitor);
 		
 	}
@@ -227,8 +229,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	 */
 	public JaxrsJavaApplication createJavaApplication(final String typeName, boolean isApplicationSubtype) throws CoreException {
 		final IType type = JdtUtils.resolveType(typeName, metamodel.getJavaProject(), new NullProgressMonitor());
-		//final Map<String, Annotation> annotations = resolveAnnotations(type, APPLICATION_PATH.qualifiedName, SuppressWarnings.class.getName());
-		//final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotations.get(APPLICATION_PATH.qualifiedName), isApplicationSubtype);
+		//final Map<String, Annotation> annotations = resolveAnnotations(type, APPLICATION_PATH, SuppressWarnings.class.getName());
+		//final JaxrsJavaApplication application = new JaxrsJavaApplication(type, annotations.get(APPLICATION_PATH), isApplicationSubtype);
 		final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
 		// clear notifications as this method should be called during the test initialization, and thus should not count in the verifications phase
 		application.setJaxrsCoreApplicationSubclass(isApplicationSubtype);
@@ -245,7 +247,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	 */
 	public JaxrsJavaApplication createJavaApplication(final String typeName, final String applicationPath) throws CoreException {
 		final JaxrsJavaApplication application = createJavaApplication(typeName, true);
-		final Annotation applicationPathAnnotation = application.getAnnotation(APPLICATION_PATH.qualifiedName);
+		final Annotation applicationPathAnnotation = application.getAnnotation(APPLICATION_PATH);
 		application.addOrUpdateAnnotation(createAnnotation(applicationPathAnnotation, applicationPath));
 		return application;
 	}
@@ -271,9 +273,9 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	public JaxrsHttpMethod createHttpMethod(final EnumJaxrsClassname httpMethodElement) throws CoreException,
+	public JaxrsHttpMethod createHttpMethod(final JaxrsClassnames httpMethodElement) throws CoreException,
 			JavaModelException {
-		return createHttpMethod(httpMethodElement.qualifiedName);
+		return createHttpMethod(httpMethodElement);
 	}
 	
 	public JaxrsHttpMethod createHttpMethod(final String typeName) throws CoreException, JavaModelException {
@@ -293,9 +295,13 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 
 	public JaxrsHttpMethod createHttpMethod(final IType type, final String httpVerb) throws CoreException {
 		final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
-		final Annotation httpMethodAnnotation = httpMethod.getAnnotation(HTTP_METHOD.qualifiedName);
+		final Annotation httpMethodAnnotation = httpMethod.getAnnotation(HTTP_METHOD);
 		httpMethod.addOrUpdateAnnotation(createAnnotation(httpMethodAnnotation, httpVerb));
 		return httpMethod;
+	}
+	
+	public IJaxrsNameBinding createNameBinding(IType nameBindingType) throws CoreException {
+		return JaxrsNameBinding.from(nameBindingType).withMetamodel(metamodel).build();
 	}
 	
 	public JaxrsProvider createProvider(final String typeName) throws JavaModelException, CoreException {

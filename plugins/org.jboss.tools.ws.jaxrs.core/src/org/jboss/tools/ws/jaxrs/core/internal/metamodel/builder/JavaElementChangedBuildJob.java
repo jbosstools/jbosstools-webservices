@@ -56,7 +56,7 @@ public class JavaElementChangedBuildJob extends Job {
 				return Status.CANCEL_STATUS;
 			}
 			// scan and filter delta, retrieve a list of java changes
-			final List<JavaElementDelta> affectedJavaElements = new JavaElementDeltaScanner().scanAndFilterEvent(event,
+			final List<JavaElementChangedEvent> affectedJavaElements = new JavaElementDeltaScanner().scanAndFilterEvent(event,
 					new SubProgressMonitor(progressMonitor, SCALE));
 			if(affectedJavaElements.isEmpty()) {
 				Logger.debug("No relevant affected element to process");
@@ -65,7 +65,7 @@ public class JavaElementChangedBuildJob extends Job {
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
-			for(JavaElementDelta delta : affectedJavaElements) {
+			for(JavaElementChangedEvent delta : affectedJavaElements) {
 				element = delta.getElement();
 				final IJavaProject javaProject = element.getJavaProject();
 				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);

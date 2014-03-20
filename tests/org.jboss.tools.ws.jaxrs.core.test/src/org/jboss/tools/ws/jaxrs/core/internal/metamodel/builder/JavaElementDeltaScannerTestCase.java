@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_ADDED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta.NO_FLAG;
+import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent.NO_FLAG;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addFieldAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addMethodAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addMethodParameter;
@@ -77,10 +77,10 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IEditorPart;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -146,7 +146,7 @@ public class JavaElementDeltaScannerTestCase {
 
 	private final ResourceChangeListener resourceChangeListener = new ResourceChangeListener();
 
-	private List<JavaElementDelta> javaElementEvents = null;
+	private List<JavaElementChangedEvent> javaElementEvents = null;
 
 	private List<ResourceDelta> resourceEvents = null;
 
@@ -157,8 +157,8 @@ public class JavaElementDeltaScannerTestCase {
 				final JavaElementDeltaScanner scanner = new JavaElementDeltaScanner();
 				final List<? extends EventObject> events = scanner.scanAndFilterEvent(event, new NullProgressMonitor());
 				for (EventObject e : events) {
-					if (e instanceof JavaElementDelta) {
-						javaElementEvents.add((JavaElementDelta) e);
+					if (e instanceof JavaElementChangedEvent) {
+						javaElementEvents.add((JavaElementChangedEvent) e);
 					} else {
 						fail("Unexpected event type:" + e);
 					}
@@ -201,7 +201,7 @@ public class JavaElementDeltaScannerTestCase {
 			ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(element);
 			CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 			verify(javaElementEvents, numberOfTimes).add(
-					new JavaElementDelta(element, deltaKind, eventType, ast, flags));
+					new JavaElementChangedEvent(element, deltaKind, eventType, ast, flags));
 		}
 	}
 

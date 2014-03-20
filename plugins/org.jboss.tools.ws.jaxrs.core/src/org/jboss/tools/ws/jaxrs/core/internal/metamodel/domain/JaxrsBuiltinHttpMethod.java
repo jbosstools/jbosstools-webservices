@@ -15,7 +15,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 
 /**
  * Built-in Http Methods as part of the JAX-RS 1.1 specification
@@ -77,7 +77,7 @@ public class JaxrsBuiltinHttpMethod extends JaxrsHttpMethod {
 	 * Overriding this method prevents NPE (since
 	 * <code>javaElement<code> attribute is null).
 	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement#getResource()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement#getResource()
 	 */
 	@Override
 	public IResource getResource() {
@@ -95,7 +95,7 @@ public class JaxrsBuiltinHttpMethod extends JaxrsHttpMethod {
 	}
 
 	/**
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement#getIdentifier()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement#getIdentifier()
 	 */
 	@Override
 	public String getIdentifier() {

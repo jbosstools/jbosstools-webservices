@@ -18,7 +18,6 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import org.jboss.tools.common.preferences.SeverityPreferences;
 import org.jboss.tools.common.ui.preferences.SeverityConfigurationBlock;
-import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
 /**
@@ -41,21 +40,21 @@ public class JaxrsValidatorConfigurationBlock extends SeverityConfigurationBlock
 		return keys.toArray(new Key[0]);
 	}
 
-	protected final static Key ENABLE_BLOCK_KEY = getKey(JBossJaxrsCorePlugin.PLUGIN_ID, SeverityPreferences.ENABLE_BLOCK_PREFERENCE_NAME);
+	protected final static Key ENABLE_BLOCK_KEY = getKey(JBossJaxrsUIPlugin.PLUGIN_ID, SeverityPreferences.ENABLE_BLOCK_PREFERENCE_NAME);
 
 	@Override
 	protected Key getEnableBlockKey() {
 		return ENABLE_BLOCK_KEY;
 	}
 
-	private static final Key MAX_NUMBER_OF_PROBLEMS_KEY = getKey(JBossJaxrsCorePlugin.PLUGIN_ID, SeverityPreferences.MAX_NUMBER_OF_MARKERS_PREFERENCE_NAME);
+	private static final Key MAX_NUMBER_OF_PROBLEMS_KEY = getKey(JBossJaxrsUIPlugin.PLUGIN_ID, SeverityPreferences.MAX_NUMBER_OF_MARKERS_PREFERENCE_NAME);
 
 	@Override
 	protected Key getMaxNumberOfProblemsKey() {
 		return MAX_NUMBER_OF_PROBLEMS_KEY;
 	}
 
-	private static final Key WRONG_BUILDER_ORDER_KEY = getKey(JBossJaxrsCorePlugin.PLUGIN_ID, SeverityPreferences.WRONG_BUILDER_ORDER_PREFERENCE_NAME);
+	private static final Key WRONG_BUILDER_ORDER_KEY = getKey(JBossJaxrsUIPlugin.PLUGIN_ID, SeverityPreferences.WRONG_BUILDER_ORDER_PREFERENCE_NAME);
 
 	protected Key getWrongBuilderOrderKey() {
 		return WRONG_BUILDER_ORDER_KEY;
@@ -83,6 +82,6 @@ public class JaxrsValidatorConfigurationBlock extends SeverityConfigurationBlock
 
 	@Override
 	protected String getQualifier() {
-		return JBossJaxrsCorePlugin.PLUGIN_ID;
+		return JBossJaxrsUIPlugin.PLUGIN_ID;
 	}
 }

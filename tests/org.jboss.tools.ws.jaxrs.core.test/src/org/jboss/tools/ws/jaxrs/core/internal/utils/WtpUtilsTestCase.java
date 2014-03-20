@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.APPLICATION;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION;
 import static org.junit.Assert.assertThat;
 
 import org.eclipse.core.resources.IProject;
@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -60,7 +61,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_3-with-default-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 	}
@@ -70,7 +71,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_3-without-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -80,7 +81,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_4-with-default-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 	}
@@ -90,7 +91,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_4-with-default-servlet-mapping.xml");
 		// operation
-		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
+		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(location.getOffset(), not(equalTo(0)));
 		assertThat(location.getLength(), not(equalTo(0)));
@@ -101,7 +102,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_4-without-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -111,7 +112,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_4-without-servlet-mapping.xml");
 		// operation
-		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
+		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(location, nullValue());
 	}
@@ -121,7 +122,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_5-with-default-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 	}
@@ -131,7 +132,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_5-with-default-servlet-mapping.xml");
 		// operation
-		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
+		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(location.getOffset(), not(equalTo(0)));
 		assertThat(location.getLength(), not(equalTo(0)));
@@ -142,7 +143,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_5-without-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -152,7 +153,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-2_5-without-servlet-mapping.xml");
 		// operation
-		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
+		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(location, nullValue());
 	}
@@ -162,7 +163,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-3_0-with-default-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, equalTo("/hello/*"));
 
@@ -173,7 +174,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-3_0-with-default-servlet-mapping.xml");
 		// operation
-		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
+		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(location.getOffset(), not(equalTo(0)));
 		assertThat(location.getLength(), not(equalTo(0)));
@@ -184,7 +185,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-3_0-without-servlet-mapping.xml");
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -194,7 +195,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.replaceDeploymentDescriptorWith("web-3_0-without-servlet-mapping.xml");
 		// operation
-		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
+		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(location, nullValue());
 	}
@@ -204,7 +205,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.deleteDeploymentDescriptor();
 		// operation
-		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION.qualifiedName);
+		final String applicationPath = WtpUtils.getApplicationPath(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(applicationPath, nullValue());
 	}
@@ -214,7 +215,7 @@ public class WtpUtilsTestCase {
 		// pre-conditions
 		final IResource webxmlResource = projectMonitor.deleteDeploymentDescriptor();
 		// operation
-		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION.qualifiedName);
+		final ISourceRange location = WtpUtils.getApplicationPathLocation(webxmlResource, APPLICATION);
 		// verifications
 		assertThat(location, nullValue());
 	}

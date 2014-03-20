@@ -35,8 +35,8 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -456,14 +456,6 @@ public class JavaElementsUtils {
 			return null;
 		}
 		return JdtUtils.resolveAnnotation(member, JdtUtils.parse(member, null), annotationName);
-	}
-
-	public static Map<String, Annotation> getAnnotations(final IMember member, final String... annotationNames)
-			throws JavaModelException {
-		if (annotationNames == null) {
-			return null;
-		}
-		return JdtUtils.resolveAnnotations(member, JdtUtils.parse(member, null), Arrays.asList(annotationNames));
 	}
 
 	public static IType appendCompilationUnitType(final ICompilationUnit compilationUnit, final String resourceName,

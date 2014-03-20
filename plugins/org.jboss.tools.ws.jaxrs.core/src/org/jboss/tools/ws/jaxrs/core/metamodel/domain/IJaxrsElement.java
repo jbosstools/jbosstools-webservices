@@ -49,6 +49,4 @@ public interface IJaxrsElement extends IJaxrsStatus {
 
 	public abstract boolean isBinary();
 
-	abstract boolean isMarkedForRemoval();
-
 }

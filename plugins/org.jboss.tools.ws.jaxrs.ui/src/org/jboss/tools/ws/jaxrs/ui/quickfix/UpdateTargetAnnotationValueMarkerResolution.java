@@ -20,7 +20,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.jboss.tools.common.refactoring.BaseMarkerResolution;
 import org.jboss.tools.common.refactoring.MarkerResolutionUtils;
-import org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
@@ -44,7 +43,7 @@ public class UpdateTargetAnnotationValueMarkerResolution extends BaseMarkerResol
 		MultiTextEdit edit = new MultiTextEdit();
 		change.setEdit(edit);
 		try{
-			MarkerResolutionUtils.updateAnnotation(EnumJaxrsClassname.TARGET.simpleName, compilationUnit, type, "(ElementType.METHOD)", edit);
+			MarkerResolutionUtils.updateAnnotation("Target", compilationUnit, type, "(ElementType.METHOD)", edit);
 		} catch (JavaModelException e) {
 			Logger.error("Failed to add @Target annotation on type " + type.getFullyQualifiedName(), e);
 		}

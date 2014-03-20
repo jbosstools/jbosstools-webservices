@@ -147,7 +147,7 @@ public class WorkbenchTasks {
 		}
 	}
 
-	private static IPath getProjectSourcePath(String projectName) {
+	public static IPath getProjectSourcePath(String projectName) {
 		IPath path = null;
 		if (System.getProperty("user.dir") != null) {
 			path = new Path(System.getProperty("user.dir")).removeLastSegments(1).append("org.jboss.tools.ws.jaxrs.core.test").append("projects").append(projectName).makeAbsolute();

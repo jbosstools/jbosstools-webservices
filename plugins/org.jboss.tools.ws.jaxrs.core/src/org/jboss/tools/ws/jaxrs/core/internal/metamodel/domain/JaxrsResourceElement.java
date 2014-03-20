@@ -13,7 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IMember;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 
 /**
  * Abstract class holding the parent JAX-RS Resource.
@@ -21,7 +21,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
  * @author Xavier Coulon
  * 
  */
-public abstract class JaxrsResourceElement<T extends IMember> extends JaxrsJavaElement<T> {
+public abstract class JaxrsResourceElement<T extends IMember> extends AbstractJaxrsJavaElement<T> {
 
 	/** The parent JAX-RS Resource for this element. */
 	private final JaxrsResource parentResource;

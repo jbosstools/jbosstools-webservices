@@ -12,14 +12,12 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.utils.Annotation.VALUE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,18 +35,18 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.jdt.JaxrsElementsSearcher;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * From the spec : A resource class is a Java class that uses JAX-RS annotations
@@ -57,7 +55,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
+public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements IJaxrsResource {
 
 	/** The map of {@link JaxrsResourceField} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
@@ -139,8 +137,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 				if (javaType == null || !javaType.exists()) {
 					return null;
 				}
-				annotations = JdtUtils.resolveAnnotations(javaType, ast, Arrays.asList(PATH.qualifiedName, CONSUMES.qualifiedName,
-						PRODUCES.qualifiedName, ENCODED.qualifiedName));
+				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
 				// create the resource
 				final JaxrsResource resource = new JaxrsResource(this);
 				// find the available type fields
@@ -152,7 +149,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 				// find the resource methods, subresource methods and
 				// subresource
 				// locators of this resource:
-				final List<IMethod> javaMethods = JaxrsElementsSearcher.findResourceMethods(javaType, this.httpMethods,
+				final List<IMethod> javaMethods = JavaElementsSearcher.findResourceMethods(javaType, this.httpMethods,
 						new NullProgressMonitor());
 				for (IMethod javaMethod : javaMethods) {
 					JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
@@ -297,8 +294,8 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 *         not sufficient to define a JAX-RS element per-se.
 	 */
 	@Override
-	public boolean isMarkedForRemoval() {
-		final boolean hasPathAnnotation = hasAnnotation(PATH.qualifiedName);
+	boolean isMarkedForRemoval() {
+		final boolean hasPathAnnotation = hasAnnotation(PATH);
 		// element should be removed if it has no @Path annotation and it has no
 		// JAX-RS element
 		return !(hasPathAnnotation || resourceMethods.size() > 0 || resourceFields.size() > 0);
@@ -306,7 +303,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 
 	@Override
 	public final EnumElementKind getElementKind() {
-		final Annotation pathAnnotation = getAnnotation(PATH.qualifiedName);
+		final Annotation pathAnnotation = getAnnotation(PATH);
 		if (pathAnnotation != null) {
 			return EnumElementKind.ROOT_RESOURCE;
 		} else if (resourceMethods.size() > 0 || resourceFields.size() > 0) {
@@ -321,7 +318,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 
 	@Override
 	public String getPathTemplate() {
-		final Annotation pathAnnotation = getAnnotation(PATH.qualifiedName);
+		final Annotation pathAnnotation = getAnnotation(PATH);
 		if (pathAnnotation == null) {
 			return null;
 		}
@@ -335,12 +332,12 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	}
 
 	public Annotation getPathAnnotation() {
-		return getAnnotation(PATH.qualifiedName);
+		return getAnnotation(PATH);
 	}
 
 	@Override
 	public List<String> getConsumedMediaTypes() {
-		final Annotation consumesAnnotation = getAnnotation(CONSUMES.qualifiedName);
+		final Annotation consumesAnnotation = getAnnotation(CONSUMES);
 		if (consumesAnnotation != null) {
 			return consumesAnnotation.getValues(VALUE);
 		}
@@ -349,7 +346,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 
 	@Override
 	public List<String> getProducedMediaTypes() {
-		final Annotation producesAnnotation = getAnnotation(PRODUCES.qualifiedName);
+		final Annotation producesAnnotation = getAnnotation(PRODUCES);
 		if (producesAnnotation != null) {
 			return producesAnnotation.getValues(VALUE);
 		}
@@ -357,12 +354,21 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	}
 
 	public Annotation getProducesAnnotation() {
-		return getAnnotation(PRODUCES.qualifiedName);
+		return getAnnotation(PRODUCES);
 	}
-
+	
 	@Override
 	public final List<IJaxrsResourceMethod> getAllMethods() {
 		return Collections.unmodifiableList(new ArrayList<IJaxrsResourceMethod>(resourceMethods.values()));
+	}
+	
+	/**
+	 * 
+	 * @param resourceMethod the resource method to look for
+	 * @return {@code true} if this {@link JaxrsResource} contains the given {@link IJaxrsResourceMethod}, {@code false} otherwise. 
+	 */
+	public boolean hasMethod(final IJaxrsResourceMethod resourceMethod) {
+		return resourceMethods.containsKey(resourceMethod.getJavaElement().getHandleIdentifier());
 	}
 
 	public final List<IJaxrsResourceField> getAllFields() {
@@ -410,7 +416,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 *            the JAX-RS Resource Method to remove
 	 * @throws CoreException
 	 */
-	public void removeMethod(IJaxrsResourceMethod method) throws CoreException {
+	public void removeMethod(final IJaxrsResourceMethod method) throws CoreException {
 		this.resourceMethods.remove(method.getJavaElement().getHandleIdentifier());
 		((JaxrsResourceMethod) method).remove();
 	}
@@ -460,7 +466,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement
 	 *      #remove()
 	 */
 	@Override
@@ -473,5 +479,6 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 			((JaxrsResourceMethod) method).remove();
 		}
 	}
+
 
 }

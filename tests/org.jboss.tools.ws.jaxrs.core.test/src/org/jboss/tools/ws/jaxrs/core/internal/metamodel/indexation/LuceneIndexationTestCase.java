@@ -39,7 +39,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
@@ -85,7 +85,7 @@ public class LuceneIndexationTestCase {
 		index.close();
 	}
 
-	private void store(JaxrsJavaElement<? extends IMember> element) {
+	private void store(AbstractJaxrsJavaElement<? extends IMember> element) {
 		elements.put(element.getJavaElement().getHandleIdentifier(), element);
 	}
 	

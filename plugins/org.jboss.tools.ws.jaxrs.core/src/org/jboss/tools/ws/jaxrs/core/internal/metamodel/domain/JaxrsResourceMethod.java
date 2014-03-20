@@ -12,18 +12,16 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
+import static org.jboss.tools.ws.jaxrs.core.utils.Annotation.VALUE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,14 +40,15 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.CollectionComparison;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.jdt.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /** @author xcoulon */
 public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implements IJaxrsResourceMethod {
@@ -66,7 +65,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	public static Builder from(final IMethod method, final List<IJaxrsHttpMethod> httpMethods)
 			throws JavaModelException {
 		final CompilationUnit ast = JdtUtils.parse(method, new NullProgressMonitor());
-		return new Builder(method, ast, httpMethods);
+		return new Builder(method, ast, httpMethods); 
 	}
 
 	/**
@@ -126,17 +125,18 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		public JaxrsResourceMethod build() throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
+				// skip if element does not exist or if it has compilation errors
+				if (javaMethod == null || !javaMethod.exists() || !javaMethod.isStructureKnown()) {
+					return null;
+				}
+
 				final List<String> httpMethodAnnotationNames = new ArrayList<String>();
 				for (IJaxrsHttpMethod httpMethod : httpMethods) {
 					httpMethodAnnotationNames.add(httpMethod.getJavaClassName());
 				}
-				final List<String> annotationNames = new ArrayList<String>();
-				annotationNames.addAll(Arrays.asList(PATH.qualifiedName, PRODUCES.qualifiedName, CONSUMES.qualifiedName,
-						ENCODED.qualifiedName));
-				annotationNames.addAll(httpMethodAnnotationNames);
-				annotations = JdtUtils.resolveAnnotations(javaMethod, ast, annotationNames);
+				this.annotations = JdtUtils.resolveAllAnnotations(javaMethod, ast);
 				Annotation httpMethodAnnotation = null;
-				final Annotation pathAnnotation = annotations.get(PATH.qualifiedName);
+				final Annotation pathAnnotation = annotations.get(PATH);
 				for (String httpMethodAnnotationName : httpMethodAnnotationNames) {
 					if (annotations.containsKey(httpMethodAnnotationName)) {
 						httpMethodAnnotation = annotations.get(httpMethodAnnotationName);
@@ -198,7 +198,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	}
 
 	/**
-	 * Updates the current {@link JaxrsJavaElement} from the given
+	 * Updates the current {@link AbstractJaxrsJavaElement} from the given
 	 * {@link IJavaElement}
 	 * 
 	 * @param javaElement
@@ -241,6 +241,20 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 			else if (hasMetamodel()) {
 				getMetamodel().update(delta);
 			}
+		}
+	}
+	
+	/**
+	 * Remove {@code this} from the parent {@link IJaxrsResource} before calling {@code super.remove()} which deals with removal from the {@link JaxrsMetamodel}. 
+	 */
+	@Override
+	public void remove() throws CoreException {
+		// no need to remove again if this element is not part of the metamodel anymore
+		if(getParentResource().hasMethod(this)) {
+			getParentResource().removeMethod(this);
+		}
+		if(getMetamodel().containsElement(this)) {
+			super.remove();
 		}
 	}
 
@@ -328,9 +342,12 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		this.returnedJavaType = returnedType;
 	}
 
+	/**
+	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsResourceMethod} anymore) 
+	 */
 	@Override
-	public boolean isMarkedForRemoval() {
-		final boolean hasPathAnnotation = hasAnnotation(PATH.qualifiedName);
+	boolean isMarkedForRemoval() {
+		final boolean hasPathAnnotation = hasAnnotation(PATH);
 		final boolean hasHttpMethodAnnotation = getHttpMethodAnnotation() != null;
 		// element should be removed if it has no @Path annotation and it has no
 		// HTTP Method annotation
@@ -354,7 +371,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	}
 
 	public Annotation getPathAnnotation() {
-		return getAnnotation(PATH.qualifiedName);
+		return getAnnotation(PATH);
 	}
 
 	@Override
@@ -395,7 +412,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	}
 
 	public Annotation getConsumesAnnotation() {
-		return getAnnotation(CONSUMES.qualifiedName);
+		return getAnnotation(CONSUMES);
 	}
 
 	@Override
@@ -408,7 +425,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	}
 
 	public Annotation getProducesAnnotation() {
-		return getAnnotation(PRODUCES.qualifiedName);
+		return getAnnotation(PRODUCES);
 	}
 
 	@Override
@@ -451,7 +468,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 */
 	public JavaMethodParameter getJavaMethodParameterByAnnotationBinding(final String pathParamName) {
 		for (JavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
-			final Annotation pathParamAnnotation = javaMethodParameter.getAnnotation(PATH_PARAM.qualifiedName);
+			final Annotation pathParamAnnotation = javaMethodParameter.getAnnotation(PATH_PARAM);
 			if (pathParamAnnotation != null && pathParamName.equals(pathParamAnnotation.getValue())) {
 				return javaMethodParameter;
 			}

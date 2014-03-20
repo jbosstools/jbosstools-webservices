@@ -19,25 +19,22 @@ import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.ENCODED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.GET;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PATH_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.QUERY_PARAM;
-import static org.jboss.tools.ws.jaxrs.core.jdt.EnumJaxrsClassname.RESPONSE;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getField;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getLocalVariable;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.GET;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.QUERY_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +62,11 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -80,7 +82,7 @@ public class JdtUtilsTestCase {
 	private final IProgressMonitor progressMonitor = new NullProgressMonitor();
 
 	@ClassRule
-	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule();
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
 	
 	@Rule
 	public TestWatcher testWatcher = new TestWatcher();
@@ -419,22 +421,21 @@ public class JdtUtilsTestCase {
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor), "Path");
 		// verifications
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
-		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(PATH.qualifiedName));
+		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(PATH));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
 	}
 
 	@Test
-	public void shoudResolveSourceTypeAnnotationsFromNames() throws CoreException {
+	public void shoudResolveAllSourceTypeAnnotations() throws CoreException {
 		// pre-conditions
-		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("Type not found", type);
 		// operation
-		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
-				JdtUtils.parse(type, progressMonitor), Arrays.asList(PATH.qualifiedName, CONSUMES.qualifiedName,
-				PRODUCES.qualifiedName, ENCODED.qualifiedName));
+		final Map<String, Annotation> javaAnnotations = JdtUtils.resolveAllAnnotations(type,
+				JdtUtils.parse(type, progressMonitor));
 		// verifications
-		assertThat(javaAnnotations.size(), equalTo(4));
+		assertThat(javaAnnotations.size(), equalTo(5));
 		for (Entry<String, Annotation> entry : javaAnnotations.entrySet()) {
 			assertThat(entry.getKey(), equalTo(entry.getValue().getFullyQualifiedName()));
 			assertThat(entry.getValue().getJavaAnnotation(), notNullValue());
@@ -452,7 +453,7 @@ public class JdtUtilsTestCase {
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(annotation, JdtUtils.parse(type, progressMonitor));
 		// verifications
 		assertThat(javaAnnotation.getJavaAnnotation(), equalTo(annotation));
-		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(PATH.qualifiedName));
+		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(PATH));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
 	}
@@ -463,7 +464,7 @@ public class JdtUtilsTestCase {
 		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		Assert.assertNotNull("Type not found", type);
 		// operation
-		Annotation annotation = getAnnotation(type, HTTP_METHOD.qualifiedName);
+		Annotation annotation = getAnnotation(type, HTTP_METHOD);
 		// verifications
 		assertThat(annotation, nullValue());
 	}
@@ -471,48 +472,48 @@ public class JdtUtilsTestCase {
 	@Test
 	public void shoudResolveBinaryTypeAnnotationFromClassName() throws CoreException {
 		// pre-conditions
-		IType type = projectMonitor.resolveType(GET.qualifiedName);
+		IType type = projectMonitor.resolveType(GET);
 		Assert.assertNotNull("Type not found", type);
 		// operation
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor),
-				HTTP_METHOD.qualifiedName);
+				HTTP_METHOD);
 		// verifications
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
-		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(HTTP_METHOD.qualifiedName));
+		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(HTTP_METHOD));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
 	}
 
 	@Test
-	public void shoudResolveBinaryTypeAnnotationsFromClassNames() throws CoreException {
+	public void shoudResolveAllBinaryTypeAnnotations() throws CoreException {
 		// pre-conditions
-		IType type = projectMonitor.resolveType(GET.qualifiedName);
+		final IType type = projectMonitor.resolveType(GET);
 		Assert.assertNotNull("Type not found", type);
 		// operation
-		Map<String, Annotation> javaAnnotations = JdtUtils.resolveAnnotations(type,
-				JdtUtils.parse(type, progressMonitor), Arrays.asList(HTTP_METHOD.qualifiedName));
+		final Map<String, Annotation> javaAnnotations = JdtUtils.resolveAllAnnotations(type,
+				JdtUtils.parse(type, progressMonitor));
 		// verifications
-		assertThat(javaAnnotations.size(), equalTo(1));
-		Annotation javaAnnotation = javaAnnotations.get(HTTP_METHOD.qualifiedName);
+		assertThat(javaAnnotations.size(), equalTo(3));
+		Annotation javaAnnotation = javaAnnotations.get(HTTP_METHOD);
 		assertThat(javaAnnotation, notNullValue());
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
-		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(HTTP_METHOD.qualifiedName));
+		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(HTTP_METHOD));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
 	}
-
+	
 	@Test
 	public void shoudResolveBinaryTypeAnnotationFromElement() throws CoreException {
 		// pre-conditions
-		IType type = projectMonitor.resolveType(GET.qualifiedName);
+		IType type = projectMonitor.resolveType(GET);
 		Assert.assertNotNull("Type not found", type);
-		IAnnotation javaAnnotation = type.getAnnotation(HTTP_METHOD.qualifiedName);
+		IAnnotation javaAnnotation = type.getAnnotation(HTTP_METHOD);
 		Assert.assertTrue("Annotation not found", javaAnnotation.exists());
 		// operation
 		Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, JdtUtils.parse(type, progressMonitor));
 		// verifications
 		assertThat(annotation.getJavaAnnotation(), equalTo(javaAnnotation));
-		assertThat(annotation.getFullyQualifiedName(), equalTo(HTTP_METHOD.qualifiedName));
+		assertThat(annotation.getFullyQualifiedName(), equalTo(HTTP_METHOD));
 		assertThat(annotation.getJavaAnnotationElements().size(), equalTo(1));
 		assertThat(annotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
 	}
@@ -520,12 +521,12 @@ public class JdtUtilsTestCase {
 	@Test
 	public void shoudNotResolveBinaryTypeUnknownAnnotationFromElement() throws CoreException {
 		// pre-conditions
-		IType type = projectMonitor.resolveType(GET.qualifiedName);
+		IType type = projectMonitor.resolveType(GET);
 		Assert.assertNotNull("Type not found", type);
-		IAnnotation javaAnnotation = type.getAnnotation(PATH.qualifiedName);
+		IAnnotation javaAnnotation = type.getAnnotation(PATH);
 		Assert.assertFalse("Annotation not expected", javaAnnotation.exists());
 		// operation
-		Annotation annotation = getAnnotation(type, PATH.qualifiedName);
+		Annotation annotation = getAnnotation(type, PATH);
 		// verifications
 		assertThat(annotation, nullValue());
 	}
@@ -589,7 +590,7 @@ public class JdtUtilsTestCase {
 						+ " is null", annotationEntry.getValue().getJavaAnnotation());
 			}
 		}
-		assertNull(methodSignature.getMethodParameter("id").getAnnotation(PATH_PARAM.qualifiedName).getValue("value"));
+		assertNull(methodSignature.getMethodParameter("id").getAnnotation(PATH_PARAM).getValue("value"));
 	}
 
 	@Test
@@ -650,7 +651,7 @@ public class JdtUtilsTestCase {
 	public void shouldNotConfirmSuperType() throws CoreException {
 		// preconditions
 		final IType bookType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final IType objectType = projectMonitor.resolveType(RESPONSE.qualifiedName);
+		final IType objectType = projectMonitor.resolveType(RESPONSE);
 		// operation
 		final boolean typeOrSuperType = JdtUtils.isTypeOrSuperType(objectType, bookType);
 		// verification
@@ -661,7 +662,7 @@ public class JdtUtilsTestCase {
 	public void shouldRetrieveTypeAnnotationFromNameLocation() throws CoreException {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation annotation = getAnnotation(customerType, PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(customerType, PATH);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
@@ -674,8 +675,8 @@ public class JdtUtilsTestCase {
 	public void shouldRetrieveTypeAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation annotation = getAnnotation(customerType, PATH.qualifiedName);
-		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset() + PATH.qualifiedName.length()
+		final Annotation annotation = getAnnotation(customerType, PATH);
+		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset() + PATH.length()
 				+ 3;
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
@@ -688,7 +689,7 @@ public class JdtUtilsTestCase {
 	public void shouldRetrieveAnnotationTypeAnnotationFromNameLocation() throws CoreException {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		final Annotation annotation = getAnnotation(customerType, HTTP_METHOD.qualifiedName);
+		final Annotation annotation = getAnnotation(customerType, HTTP_METHOD);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
@@ -701,9 +702,9 @@ public class JdtUtilsTestCase {
 	public void shouldRetrieveAnnotationTypeAnnotationFromMemberPairLocation() throws CoreException {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		final Annotation annotation = getAnnotation(customerType, HTTP_METHOD.qualifiedName);
+		final Annotation annotation = getAnnotation(customerType, HTTP_METHOD);
 		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset()
-				+ HTTP_METHOD.qualifiedName.length() + 3;
+				+ HTTP_METHOD.length() + 3;
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification
@@ -716,7 +717,7 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = projectMonitor.resolveMethod(customerType, "createCustomer");
-		final Annotation annotation = getAnnotation(method, CONSUMES.qualifiedName);
+		final Annotation annotation = getAnnotation(method, CONSUMES);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
@@ -730,9 +731,9 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = projectMonitor.resolveMethod(customerType, "createCustomer");
-		final Annotation annotation = getAnnotation(method, CONSUMES.qualifiedName);
+		final Annotation annotation = getAnnotation(method, CONSUMES);
 		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset()
-				+ CONSUMES.qualifiedName.length() + 3;
+				+ CONSUMES.length() + 3;
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, method.getCompilationUnit());
 		// verification
@@ -760,8 +761,7 @@ public class JdtUtilsTestCase {
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final ILocalVariable localVariable = getLocalVariable(method, "id");
-		final int offset = localVariable.getAnnotations()[0].getNameRange().getOffset()
-				+ PATH_PARAM.simpleName.length() + 3;
+		final int offset = localVariable.getAnnotations()[0].getNameRange().getOffset() + "PathParam".length() + 3;
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification
@@ -775,7 +775,7 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "_foo");
-		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
+		final Annotation annotation = getAnnotation(field, QUERY_PARAM);
 		final int offset = annotation.getJavaAnnotation().getNameRange().getOffset();
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, type.getCompilationUnit());
@@ -790,8 +790,8 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "_foo");
-		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
-		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset() + CONSUMES.simpleName.length()
+		final Annotation annotation = getAnnotation(field, QUERY_PARAM);
+		final int offset = annotation.getJavaAnnotation().getSourceRange().getOffset() + "Consumes".length()
 				+ 3;
 		// operation
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, type.getCompilationUnit());
@@ -853,7 +853,7 @@ public class JdtUtilsTestCase {
 	public void shouldRetrieveTypeAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation annotation = getAnnotation(customerType, PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(customerType, PATH);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
 		// verification
@@ -868,7 +868,7 @@ public class JdtUtilsTestCase {
 	public void shouldRetrieveTypeSingleMemberAnnotationMemberValuePairSourceRange() throws CoreException {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final Annotation annotation = getAnnotation(customerType, CONSUMES.qualifiedName);
+		final Annotation annotation = getAnnotation(customerType, CONSUMES);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
 		// verification
@@ -884,7 +884,7 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
-		final Annotation annotation = getAnnotation(method, PATH.qualifiedName);
+		final Annotation annotation = getAnnotation(method, PATH);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
 		// verification
@@ -899,7 +899,7 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "_foo");
-		final Annotation annotation = getAnnotation(field, QUERY_PARAM.qualifiedName);
+		final Annotation annotation = getAnnotation(field, QUERY_PARAM);
 		// operation
 		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
 		// verification
