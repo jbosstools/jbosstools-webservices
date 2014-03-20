@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -141,6 +142,11 @@ public class WorkbenchTasks {
 			project.open(new NullProgressMonitor());
 			project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
 			Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+			IMarker[] projectMarkers = project.findMarkers(null, true, IResource.DEPTH_INFINITE);
+			System.err.println("Project markers:");
+			for(IMarker marker : projectMarkers) {
+				System.err.println(" " + marker.getAttribute(IMarker.MESSAGE, ""));
+			}
 			return project;
 		} finally {
 			LOGGER.debug("Sync'ing sample project done in " + (new Date().getTime() - start) + " millis");
