@@ -23,7 +23,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.jboss.tools.common.core,
  org.jboss.tools.ws.jaxrs.core,
  org.jboss.tools.ws.jaxrs.core.test,
- org.hamcrest.library
+ org.hamcrest.library,
+ org.eclipse.jdt.launching,
+ org.eclipse.jdt.launching.macosx;resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Eclipse-RegisterBuddy: org.apache.log4j
