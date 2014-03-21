@@ -143,9 +143,10 @@ public class WorkbenchTasks {
 			project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
 			Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
 			IMarker[] projectMarkers = project.findMarkers(null, true, IResource.DEPTH_INFINITE);
-			System.err.println("Project markers:");
 			for(IMarker marker : projectMarkers) {
-				System.err.println(" " + marker.getAttribute(IMarker.MESSAGE, ""));
+				if(marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_ERROR) {
+					System.err.println(" " + marker.getAttribute(IMarker.MESSAGE, ""));
+				}
 			}
 			return project;
 		} finally {
