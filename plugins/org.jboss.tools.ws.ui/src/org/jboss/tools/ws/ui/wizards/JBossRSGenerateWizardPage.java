@@ -139,6 +139,7 @@ public class JBossRSGenerateWizardPage extends WizardPage {
 				widgetSelected(e);
 			}
 		});
+		name.setEnabled(updateWebXML.getSelection());
 
 		addJarsIfFound = new Button(group2, SWT.CHECK);
 		addJarsIfFound.setText(JBossWSUIMessages.JBossRSGenerateWizardPage_AddJarsIfFoundCheckbox);
