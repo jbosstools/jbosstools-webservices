@@ -182,6 +182,22 @@ public class JaxrsEndpointTestCase {
 	}
 
 	@Test
+	// see JBIDE-16476
+	public void shouldDisplayEndpointWithMatrixParamsOnly() throws CoreException {
+		// pre-conditions
+		final String typeName = "org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource";
+		final IType resourceType = metamodelMonitor.resolveType(typeName);
+		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PLACEHOLDER", "@GET public void getAll(@MatrixParam(\"author\") java.lang.Long param1, @MatrixParam(\"country\") java.lang.Integer param2) {}", PRIMARY_COPY);
+		final IMethod method = metamodelMonitor.resolveMethod(resourceType, "getAll");
+		final IJaxrsElement resourceMethod = (IJaxrsElement) metamodel.findElement(method);
+		// operation
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final String uriPathTemplate = endpoint.getUriPathTemplate();
+		// verifications
+		assertThat(uriPathTemplate, equalTo("/hello/orders;author={Long};country={Integer}"));
+	}
+	
+	@Test
 	public void shouldDisplayEndpointWithTypePathUnboundOnMethodParam() throws CoreException {
 		// pre-conditions
 		final String typeName = "org.jboss.tools.ws.jaxrs.sample.services.BarResource";
