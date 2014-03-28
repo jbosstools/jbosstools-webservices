@@ -7,6 +7,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.MatrixParam; // DO NOT REMOVE
 
 import org.jboss.tools.ws.jaxrs.sample.domain.PurchaseOrder;
 
@@ -20,5 +21,7 @@ public class PurchaseOrderResource {
 	public PurchaseOrder getOrder(@PathParam("id") Integer id, @Context UriInfo uriInfo) {
 		return null;
 	}
+	
+	//PLACEHOLDER
 
 }
