@@ -314,12 +314,12 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		final JaxrsResourceMethod firstResourceMethod = resourceMethods.get(0);
 		final String displayableResourcePathTemplate = getDisplayablePathTemplate(firstResourceMethod.getParentResource(), firstResourceMethod);
 		if (!displayableResourcePathTemplate.isEmpty()) {
-			uriPathTemplateBuilder.append("/").append(displayableResourcePathTemplate);
+			uriPathTemplateBuilder.append(displayableResourcePathTemplate);
 		}
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
 			final String displayableResourceMethodPathTemplate = getDisplayablePathTemplate(resourceMethod);
 			if (!displayableResourceMethodPathTemplate.isEmpty()) {
-				uriPathTemplateBuilder.append("/").append(displayableResourceMethodPathTemplate);
+				uriPathTemplateBuilder.append(displayableResourceMethodPathTemplate);
 			}
 			final List<String> displayableResourceMethodQueryParameters = getDisplayableQueryParameters(resourceMethod);
 			queryParams.addAll(displayableResourceMethodQueryParameters);
@@ -354,6 +354,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		int index = 0;
 		if(resource.getPathTemplate() != null) {
 			while (index < resource.getPathTemplate().length()) {
+				// make sure the path template starts with a '/'. 
+				if(!resource.getPathTemplate().startsWith("/")) {
+					pathTemplateBuilder.append('/');
+				}
 				final int beginIndex = resource.getPathTemplate().indexOf('{', index);
 				final int endIndex = resource.getPathTemplate().indexOf('}', beginIndex + 1);
 				// let's keep everything in between the current index and the
@@ -415,6 +419,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		final StringBuilder pathTemplateBuilder = new StringBuilder();
 		int index = 0;
 		if (resourceMethod.getPathTemplate() != null) {
+			// make sure the path template starts with a '/'. 
+			if(!resourceMethod.getPathTemplate().startsWith("/")) {
+				pathTemplateBuilder.append('/');
+			}
 			while (index < resourceMethod.getPathTemplate().length()) {
 				final int beginIndex = resourceMethod.getPathTemplate().indexOf('{', index);
 				final int endIndex = resourceMethod.getPathTemplate().indexOf('}', beginIndex + 1);
