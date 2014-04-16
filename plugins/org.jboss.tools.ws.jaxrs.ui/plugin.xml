@@ -494,5 +494,36 @@
        </target>
     </extension>
    
+    <extension
+         point="org.eclipse.ui.newWizards">
+     <wizard
+            id="org.jboss.tools.ws.jaxrs.ui.wizard.rsgenerate"
+            category="org.jboss.ide.eclipse.ui.wizards"
+            class="org.jboss.tools.ws.jaxrs.ui.wizards.JBossRSGenerateWizard"
+            hasPages="true"
+            icon="icons/obj16/new_webserv_wiz.gif"
+            name="%restful.wizard.name">
+         <selection
+               class="org.eclipse.core.resources.IProject">
+         </selection>
+         <description>
+            %restful.wizard.description
+         </description>
+      </wizard>
+      <wizard
+            id="org.jboss.tools.ws.jaxrs.ui.wizard.rsgenerate2"
+            category="org.eclipse.jst.ws.ui.new"
+            class="org.jboss.tools.ws.jaxrs.ui.wizards.JBossRSGenerateWizard"
+            hasPages="true"
+            icon="icons/obj16/new_webserv_wiz.gif"
+            name="%restful.wizard.name">
+         <selection
+               class="org.eclipse.core.resources.IProject">
+         </selection>
+         <description>
+            %restful.wizard.description
+         </description>
+      </wizard>
+     </extension>
    
 </plugin>

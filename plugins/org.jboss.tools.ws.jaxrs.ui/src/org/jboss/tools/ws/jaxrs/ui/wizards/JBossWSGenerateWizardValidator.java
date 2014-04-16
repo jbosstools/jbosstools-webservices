@@ -8,36 +8,30 @@
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.ui.wizards;
+package org.jboss.tools.ws.jaxrs.ui.wizards;
 
 import java.io.File;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.j2ee.model.IModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
-import org.eclipse.jst.javaee.core.ParamValue;
 import org.eclipse.jst.javaee.core.UrlPatternType;
 import org.eclipse.jst.javaee.web.Servlet;
 import org.eclipse.jst.javaee.web.ServletMapping;
 import org.eclipse.jst.javaee.web.WebApp;
-import org.jboss.tools.ws.core.utils.StatusUtils;
-import org.jboss.tools.ws.creation.core.commands.RSMergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.data.ServletDescriptor;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
-import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
-import org.jboss.tools.ws.ui.utils.JBossWSUIUtils;
+import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
+import org.jboss.tools.ws.jaxrs.ui.messages.JBossWSUIMessages;
 
-/**
- * @author Grid Qian and Brian Fitzpatrick
- *
- */
-public class JBossRSGenerateWizardValidator {
+public class JBossWSGenerateWizardValidator {
 
 	private static ServiceModel model;
 	private static ServletDescriptor[] descriptors;
@@ -54,116 +48,10 @@ public class JBossRSGenerateWizardValidator {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public static IStatus RESTAppExists() {
-		IModelProvider provider = null;
-		if (model.getWebProjectName() == null) {
-			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
-		} else {
-			try {
-				IProject project = JBossWSCreationUtils.getProjectByName(model
-						.getWebProjectName());
-				if (!JavaEEProjectUtilities.isDynamicWebProject(project)) {
-					throw new Exception();
-				}
-				provider = ModelProviderManager.getModelProvider(project);
-			} catch (Exception exc) {
-				model.setWebProjectName(null);
-				return StatusUtils
-						.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
-			}
-		}
-		Object object = provider.getModelObject();
-		if (object instanceof WebApp) {
-			WebApp webApp = (WebApp) object;
-			if (model != null) {
-				List<ParamValue> theContextParams = webApp.getContextParams();
-				for (int i = 0; i < theContextParams.size(); i++) {
-					ParamValue pvalue = (ParamValue) theContextParams.get(i);
-					if (pvalue.getParamName().equals(RSMergeWebXMLCommand.RS_APPLICATION_PARM_NAME)) {
-						return StatusUtils.errorStatus(JBossWSUIMessages.JBossRSGenerateWizardValidator_ERROR_Can_Only_Add_Sample_Once);
-					}
-				}
-			}
-			return null;
-		} else if (object instanceof org.eclipse.jst.j2ee.webapplication.WebApp) {
-			org.eclipse.jst.j2ee.webapplication.WebApp webapp = (org.eclipse.jst.j2ee.webapplication.WebApp) object;
-			if (model != null) {
-				List<ParamValue> theContextParams = webapp.getContextParams();
-				for (int i = 0; i < theContextParams.size(); i++) {
-					ParamValue pvalue = (ParamValue) theContextParams.get(i);
-					if (pvalue.getParamName().equals(RSMergeWebXMLCommand.RS_APPLICATION_PARM_NAME)) {
-						return StatusUtils.errorStatus(JBossWSUIMessages.JBossRSGenerateWizardValidator_ERROR_Can_Only_Add_Sample_Once);
-					}
-				}
-			}
-			return null;
-		}
-		return null;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static IStatus isAppClassNameValid(String appClassName) {
-		
-		IModelProvider provider = null;
-		if (model.getWebProjectName() == null) {
-			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
-		} else {
-			try {
-				IProject project = JBossWSCreationUtils.getProjectByName(model
-						.getWebProjectName());
-				if (!JavaEEProjectUtilities.isDynamicWebProject(project)) {
-					throw new Exception();
-				}
-				provider = ModelProviderManager.getModelProvider(project);
-			} catch (Exception exc) {
-				model.setWebProjectName(null);
-				return StatusUtils
-						.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
-			}
-		}
-		Object object = provider.getModelObject();
-		if (object instanceof WebApp) {
-			WebApp webApp = (WebApp) object;
-			if (model != null) {
-				List<ParamValue> theContextParams = webApp.getContextParams();
-				for (int j = 0; j < theContextParams.size(); j++) {
-					ParamValue pvalue = (ParamValue) theContextParams.get(j);
-					if (pvalue.getParamName().equals(RSMergeWebXMLCommand.RS_APPLICATION_PARM_NAME)) {
-						if (pvalue.getParamValue().equals(appClassName)) {
-							return StatusUtils
-								.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
-						}
-					}
-				}
-				return null;
-			}
-		} else if (object instanceof org.eclipse.jst.j2ee.webapplication.WebApp) {
-			org.eclipse.jst.j2ee.webapplication.WebApp webapp = (org.eclipse.jst.j2ee.webapplication.WebApp) object;
-			if (model != null) {
-				List<ParamValue> theContextParams = webapp.getContextParams();
-				for (int j = 0; j < theContextParams.size(); j++) {
-					ParamValue pvalue = (ParamValue) theContextParams.get(j);
-					if (pvalue.getParamName().equals(RSMergeWebXMLCommand.RS_APPLICATION_PARM_NAME)) {
-						if (pvalue.getParamValue().equals(appClassName)) {
-							return StatusUtils
-								.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
-						}
-					}
-				}
-				return null;
-			}
-		}
-		return null;
-	}
-	
 	public static IStatus isWSNameValid() {
 		IModelProvider provider = null;
 		if (model.getWebProjectName() == null) {
-			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
+			return new Status( IStatus.ERROR, "id", 0, JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected, null );
 		} else {
 			try {
 				IProject project = JBossWSCreationUtils.getProjectByName(model
@@ -174,8 +62,7 @@ public class JBossRSGenerateWizardValidator {
 				provider = ModelProviderManager.getModelProvider(project);
 			} catch (Exception exc) {
 				model.setWebProjectName(null);
-				return StatusUtils
-						.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
+				return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
 			}
 		}
 		Object object = provider.getModelObject();
@@ -184,16 +71,14 @@ public class JBossRSGenerateWizardValidator {
 			if (model != null) {
 				for (int i = 0; i < descriptors.length; i++) {
 					if (descriptors[i].getName().trim().length() == 0) {
-						return StatusUtils
-								.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ServiceName_Empty);
+						return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSUIMessages.Error_JBossWS_GenerateWizard_ServiceName_Empty);
 					}
 					List<?> theServlets = webApp.getServlets();
 					for (int j = 0; j < theServlets.size(); j++) {
 						Servlet aServlet = (Servlet) theServlets.get(j);
 						if (aServlet.getServletName().equals(
 								descriptors[i].getName())) {
-							return StatusUtils
-									.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+							return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 						}
 					}
 					List<?> theServletMappings = webApp.getServletMappings();
@@ -208,8 +93,7 @@ public class JBossRSGenerateWizardValidator {
 									descriptors[i].getName())
 									|| upt.getValue().equals(
 											descriptors[i].getMappings())) {
-								return StatusUtils
-										.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+								return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 							}
 						}
 					}
@@ -221,8 +105,7 @@ public class JBossRSGenerateWizardValidator {
 			if (model != null) {
 				for (int i = 0; i < descriptors.length; i++) {
 					if (descriptors[i].getName().trim().length() == 0) {
-						return StatusUtils
-								.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ServiceName_Empty);
+						return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSUIMessages.Error_JBossWS_GenerateWizard_ServiceName_Empty);
 					}
 					List<?> theServlets = webApp.getServlets();
 					for (int j = 0; j < theServlets.size(); j++) {
@@ -230,8 +113,7 @@ public class JBossRSGenerateWizardValidator {
 								.get(j);
 						if (aServlet.getServletName().equals(
 								descriptors[i].getName())) {
-							return StatusUtils
-									.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+							return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 						}
 					}
 					List<?> theServletMappings = webApp.getServletMappings();
@@ -242,8 +124,7 @@ public class JBossRSGenerateWizardValidator {
 						if (aServletMapping.getServlet().getServletName().equals(
 								descriptors[i].getName())
 								|| url.equals(descriptors[i].getMappings())) {
-							return StatusUtils
-									.errorStatus(JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
+							return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSCreationCoreMessages.Error_JBossWS_GenerateWizard_WSName_Same);
 						}
 					}
 				}
@@ -256,12 +137,10 @@ public class JBossRSGenerateWizardValidator {
 	public static IStatus isWSClassValid(String className, IProject project) {
 		if (model.getCustomPackage().trim().length() == 0) {
 			// empty package name
-			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_PackageName_Cannot_Be_Empty);
+			return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSUIMessages.Error_JBossWS_GenerateWizard_PackageName_Cannot_Be_Empty);
 		} else if (model.getCustomClassName().trim().length() == 0) {
 			// empty class name
-			return StatusUtils
-					.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Cannot_Be_Empty);
+			return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Cannot_Be_Empty);
 		} else if (project == null
 				|| !JavaEEProjectUtilities.isDynamicWebProject(project)) {
 			return null;
@@ -271,12 +150,17 @@ public class JBossRSGenerateWizardValidator {
 			if (status != null && status.getSeverity() == IStatus.ERROR) {
 				return status;
 			}
-			File file = JBossWSCreationUtils.findFileByPath(className + JAVA,
+			String classFilePath = 
+				JBossWSCreationUtils.composeSrcPackageClassPath(project, model.getCustomPackage(), className);
+			File file = null;
+			if (classFilePath != null) 
+				file = JBossWSCreationUtils.findFileByPath(classFilePath);
+			else 
+				file = JBossWSCreationUtils.findFileByPath(className + JAVA,
 					project.getLocation().toOSString());
 			if (file != null) {
 				// class already exists
-				return StatusUtils
-						.errorStatus(JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+				return new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
 			}
 			return status;
 		}
