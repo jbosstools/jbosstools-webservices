@@ -8,7 +8,7 @@
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.ui.wizards;
+package org.jboss.tools.ws.jaxrs.ui.wizards;
 
 import java.util.ArrayList;
 
@@ -50,7 +50,7 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.jboss.tools.ws.creation.core.utils.RestEasyLibUtils;
-import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
+import org.jboss.tools.ws.jaxrs.ui.messages.JBossWSUIMessages;
 
 @SuppressWarnings("restriction")
 public class JBossWSAnnotatedClassWizardPage extends WizardPage {

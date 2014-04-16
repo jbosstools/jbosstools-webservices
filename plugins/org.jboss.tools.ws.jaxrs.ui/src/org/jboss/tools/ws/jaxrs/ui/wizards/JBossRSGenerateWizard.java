@@ -8,7 +8,9 @@
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.ui.wizards;
+package org.jboss.tools.ws.jaxrs.ui.wizards;
+
+import java.io.File;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
@@ -20,8 +22,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -32,65 +32,61 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
-import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.common.ui.CommonUIImages;
 import org.jboss.tools.ws.creation.core.commands.AddRestEasyJarsCommand;
-import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RSMergeWebXMLCommand;
-import org.jboss.tools.ws.creation.core.commands.RSServiceCreationCommand;
-import org.jboss.tools.ws.creation.core.commands.ServiceCreationCommand;
+import org.jboss.tools.ws.creation.core.commands.RSServiceSampleCreationCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
-import org.jboss.tools.ws.ui.JBossWSUIPlugin;
-import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.ui.messages.JBossWSUIMessages;
 
 /**
  * @author Brian Fitzpatrick
+ * @author Xavier Coulon
  *
  */
-public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
+public class JBossRSGenerateWizard extends Wizard implements INewWizard {
 
 	private static final String JDT_EDITOR = 
 		"org.eclipse.jdt.ui.CompilationUnitEditor"; //$NON-NLS-1$
 
-	public static String WSNAMEDEFAULT = "HelloWorld"; //$NON-NLS-1$
-	public static String PACKAGEDEFAULT = "org.jboss.samples.webservices"; //$NON-NLS-1$
-	public static String WSCLASSDEFAULT = "HelloWorld"; //$NON-NLS-1$
+	String NAMEDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
+	String PACKAGEDEFAULT = "org.jboss.samples.rs.webservices"; //$NON-NLS-1$
+	String CLASSDEFAULT = "HelloWorldResource"; //$NON-NLS-1$
+	String APPCLASSDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
 
-	public static String RSNAMEDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
-	public static String RSCLASSDEFAULT = "HelloWorldResource"; //$NON-NLS-1$
-	public static String RSAPPCLASSDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
-
-	private String serviceName = WSNAMEDEFAULT;
+	private String serviceName = NAMEDEFAULT;
 	private String packageName = PACKAGEDEFAULT;
-	private String className = WSCLASSDEFAULT;
-	private String appClassName = ""; //$NON-NLS-1$
+	private String className = CLASSDEFAULT;
+	private String appClassName = APPCLASSDEFAULT;
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
 	private boolean updateWebXML = true;
-	private boolean isJAXWS = true;
 	private boolean addJarsFromRootRuntime = false;
 
 	private IStructuredSelection selection;
 	private IProject project;
 
 	private static String WEB = "web.xml"; //$NON-NLS-1$
+	private static String JAVA = ".java"; //$NON-NLS-1$
 	private static String WEBINF = "WEB-INF"; //$NON-NLS-1$
 	private IFile webFile;
 
-	public JBossWSAnnotatedClassWizard() {
+	public JBossRSGenerateWizard() {
 		super();
-		super.setWindowTitle(JBossWSUIMessages.JBossWSAnnotatedClassWizard_Annotated_Class_WS_Wizard_Title);
+		super.setWindowTitle(JBossWSUIMessages.JBossRSGenerateWizard_RS_Wizard_Window_Title);
 		super.setHelpAvailable(false);
 		setDefaultPageImageDescriptor(CommonUIImages.getInstance().getOrCreateImageDescriptor(CommonUIImages.WEB_SERVICE_IMAGE));
 	}
 
 	public void addPages() {
 		super.addPages();
-		JBossWSAnnotatedClassWizardPage onePage =
-			new JBossWSAnnotatedClassWizardPage("onePage"); //$NON-NLS-1$
+		JBossRSGenerateWizardPage onePage =
+			new JBossRSGenerateWizardPage("onePage"); //$NON-NLS-1$
 		addPage(onePage);
 	}
 
@@ -99,8 +95,6 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 		if (canFinish()) {
 			ServiceModel model = new ServiceModel();
 			model.setWebProjectName(project.getName());
-			IJavaProject javaProject = JavaCore.create(project);
-			model.setJavaProject(javaProject);
 			model.addServiceClasses(new StringBuffer().append(getPackageName())
 					.append(".").append(getClassName()).toString()); //$NON-NLS-1$
 			model.setServiceName(getServiceName());
@@ -108,19 +102,24 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 			model.setCustomPackage(getPackageName());
 			model.setApplicationClassName( getAppClassName());
 
-			AbstractDataModelOperation mergeCommand = null;
-			if (isJAXWS()) {
-				mergeCommand = new MergeWebXMLCommand(model);
-			} else {
-				mergeCommand = new RSMergeWebXMLCommand(model);
+			File file = JBossWSCreationUtils.findFileByPath(getClassName() + JAVA, project
+					.getLocation().toOSString());
+			if (file != null) {
+				MessageDialog
+						.openError(
+								this.getShell(),
+								JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
+								JBossWSUIMessages.Error_JBossWS_GenerateWizard_ClassName_Same);
+				return false;
 			}
-			
+
 			IStatus status = null;
 			if (getUpdateWebXML()) {
 				try {
+					RSMergeWebXMLCommand mergeCommand = new RSMergeWebXMLCommand(model);
 					status = mergeCommand.execute(null, null);
 				} catch (ExecutionException e) {
-					JBossWSUIPlugin.log(e);
+					Logger.error("Failed to update web.xml", e);
 				}
 				if (status != null && status.getSeverity() == Status.ERROR) {
 					MessageDialog
@@ -131,59 +130,31 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 					return false;
 				}
 			}
-			
-			AbstractDataModelOperation addJarsCommand = null;
-			AbstractDataModelOperation addClassesCommand = null;
-			if (!isJAXWS()) {
-				if (getAddJarsFromRootRuntime())
-					addJarsCommand = new AddRestEasyJarsCommand(model);
-				addClassesCommand = new RSServiceCreationCommand(model);
-			} else {
-				addClassesCommand = new ServiceCreationCommand(model);
-			}
 			try {
 				boolean addedJars = false;
-				if (addJarsCommand != null) {
-					addJarsCommand.execute(null, null);
+				if (getAddJarsFromRootRuntime()) {
+					new AddRestEasyJarsCommand(model).execute(null, null);
 					addedJars = true;
 				}
-				if (addClassesCommand != null) {
-					addClassesCommand.execute(null, null);
-				}
+				
+				RSServiceSampleCreationCommand createCommand =
+					new RSServiceSampleCreationCommand(model);
+				createCommand.execute(null, null);
 				getProject().refreshLocal(IProject.DEPTH_INFINITE, new NullProgressMonitor());
-				IFile openFile1 = null;
-				IFile openFile2 = null;
-				if (addClassesCommand instanceof ServiceCreationCommand) {
-					ServiceCreationCommand cmd = (ServiceCreationCommand) addClassesCommand;
-					if (cmd.getResource() != null && cmd.getResource() instanceof IFile) {
-						openFile1 = (IFile) cmd.getResource();
-					}
-				} else if (addClassesCommand instanceof RSServiceCreationCommand) {
-					if (addedJars)
-						getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
-					RSServiceCreationCommand cmd = (RSServiceCreationCommand) addClassesCommand;
-					if (cmd.getAnnotatedClassResource() != null && cmd.getAnnotatedClassResource() instanceof IFile) {
-						openFile1 = (IFile) cmd.getAnnotatedClassResource();
-					}
-					if (cmd.getApplicationClassResource() != null && cmd.getApplicationClassResource() instanceof IFile) {
-						openFile2 = (IFile) cmd.getApplicationClassResource();
-					}
-				}
-				if (openFile1 != null) {
-					openResource(openFile1);
-				}
-				if (openFile2 != null) {
-					openResource(openFile2);
+				if (addedJars)
+					getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+				if (createCommand.getResource() != null && createCommand.getResource() instanceof IFile) {
+					openResource((IFile) createCommand.getResource());
 				}
 			} catch (ExecutionException e) {
-				JBossWSUIPlugin.log(e);
+				Logger.error(JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title, e);
 				MessageDialog
 					.openError(
 						this.getShell(),
 						JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title,
 						e.getMessage());
 			} catch (CoreException e) {
-				JBossWSUIPlugin.log(e);
+				Logger.error(JBossWSUIMessages.JBossWS_GenerateWizard_MessageDialog_Title, e);
 				MessageDialog
 					.openError(
 						this.getShell(),
@@ -276,14 +247,6 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 		this.addJarsFromRootRuntime = addJarsFromRootRuntime;
 	}
 
-	public void setJAXWS(boolean isJAXWS) {
-		this.isJAXWS = isJAXWS;
-	}
-
-	public boolean isJAXWS() {
-		return isJAXWS;
-	}
-
 	public IProject getProject() {
 		return project;
 	}
@@ -330,7 +293,7 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 			return;
 		}
 
-		IWorkbenchWindow window = JBossWSUIPlugin.getActiveWorkbenchWindow();
+		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (window == null) {
 			return;
 		}
@@ -343,7 +306,7 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 					try {
 						IDE.openEditor(activePage, resource, JDT_EDITOR, true);
 					} catch (PartInitException e) {
-						JBossWSUIPlugin.log(e);
+						Logger.error("Failed to open resource '" + resource.getLocation().toOSString() + "'", e);
 					}
 				}
 			});
