@@ -53,6 +53,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 	public void setUp() throws Exception {
 		super.setUp();
 
+		System.out.println("---Testing against Server: " + super.currentServer.getId());
 		//create jbossws web project
 		fproject = createJBossWSProject("JBossWSTestProject");
 		wsdlFile = fproject.getProject().getFile(wsdlFileName);
@@ -108,6 +109,9 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		
 		//test wsdl2Javacommand
 		WSDL2JavaCommand cmdW2j = new WSDL2JavaCommand(model);
+		if (super.currentServer.getId().contains("as42")) {
+			// remove the -e};
+		}
 		IStatus status = cmdW2j.execute(null, null);
 		assertTrue(status.getMessage(), status.getSeverity() != Status.ERROR);	
 		assertTrue(project.getFile("src/org/apache/hello_world_soap_http/Greeter.java").exists());

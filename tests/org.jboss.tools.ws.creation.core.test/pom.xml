@@ -16,7 +16,13 @@
 		mvn install -Djbosstools.test.jre.5=/qa/tools/opt/amd64/jdk1.5.0_last -Djbosstools.test.jre.6=/qa/tools/opt/amd64/jdk1.6.0_last
 	-->
 	<properties>
-		<systemProperties>-Djbosstools.test.jre.6=${jbosstools.test.jre.6} -Djbosstools.test.jre.5=${jbosstools.test.jre.5} -Djbosstools.test.jboss.home.4.2=${requirementsDirectory}/jboss-4.2.3.GA</systemProperties>
+<!-- 		<jbosstools.test.jboss.home.4.2>${requirementsDirectory}/jboss-4.2.3.GA</jbosstools.test.jboss.home.4.2> -->
+<!-- 		<jbosstools.test.jboss.home.5.0>${requirementsDirectory}/jboss-5.0.1.GA</jbosstools.test.jboss.home.5.0> -->
+		<jbosstools.test.jboss.home.5.1>${requirementsDirectory}/jboss-5.1.0.GA</jbosstools.test.jboss.home.5.1>
+<!-- 		<jbosstools.test.jboss.home.eap.4.3>${requirementsDirectory}/jboss-eap-4.3/jboss-as</jbosstools.test.jboss.home.eap.4.3> -->
+
+		<systemProperties>-Djbosstools.test.jboss.home.5.1=${jbosstools.test.jboss.home.5.1}</systemProperties>
+<!-- 		<systemProperties>-Djbosstools.test.jboss.home.4.2=${jbosstools.test.jboss.home.4.2} -Djbosstools.test.jboss.home.5.0=${jbosstools.test.jboss.home.5.0} -Djbosstools.test.jboss.home.eap.4.3=${jbosstools.test.jboss.home.eap.4.3}</systemProperties> -->
 		<coverage.filter>org.jboss.tools.ws.creation.core*</coverage.filter>
 		<emma.instrument.bundles>org.jboss.tools.ws.creation.core</emma.instrument.bundles>
 		<surefire.timeout>3600</surefire.timeout>
@@ -24,16 +30,16 @@
 
 	<build>
 		<plugins>
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.eclipse.tycho</groupId> -->
+<!-- 				<artifactId>tycho-compiler-plugin</artifactId> -->
+<!-- 				<version>${tychoVersion}</version> -->
+<!-- 				<configuration> -->
+<!-- 					<source>1.6</source> -->
+<!-- 					<target>1.6</target> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
 			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-compiler-plugin</artifactId>
-				<version>${tychoVersion}</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-						<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-surefire-plugin</artifactId>
 				<version>${tychoVersion}</version>
@@ -47,28 +53,71 @@
 					</dependencies>
 				</configuration>
 			</plugin>
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
+<!-- 				<artifactId>maven-dependency-plugin</artifactId> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<id>unpack</id> -->
+<!-- 						<phase>pre-integration-test</phase> -->
+<!-- 						<goals> -->
+<!-- 							<goal>unpack</goal> -->
+<!-- 						</goals> -->
+<!-- 						<configuration> -->
+<!-- 							<skip>${skipRequirements}</skip> -->
+<!-- 							<artifactItems> -->
+<!-- 								<artifactItem> -->
+<!-- 									<groupId>org.jboss.jbossas</groupId> -->
+<!-- 									<artifactId>jboss-as-dist</artifactId> -->
+<!-- 									<version>4.2.3.GA</version> -->
+<!-- 									<type>zip</type> -->
+<!-- 								</artifactItem> -->
+<!-- 							</artifactItems> -->
+<!-- 						</configuration> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 			</plugin> -->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
+				<groupId>com.googlecode.maven-download-plugin</groupId>
+				<artifactId>maven-download-plugin</artifactId>
 				<executions>
+<!-- 					<execution> -->
+<!-- 						<id>install-as-5.0.1</id> -->
+<!-- 						<phase>pre-integration-test</phase> -->
+<!-- 						<goals> -->
+<!-- 							<goal>wget</goal> -->
+<!-- 						</goals> -->
+<!-- 						<configuration> -->
+<!-- 							<url>http://repository.jboss.org/sourceforge/jboss-5.0.1.GA.zip</url> -->
+<!-- 							<md5>dd308175c43796db824692cb0cdea82d</md5> -->
+<!-- 							<unpack>true</unpack> -->
+<!-- 						</configuration> -->
+<!-- 					</execution> -->
 					<execution>
-						<id>unpack</id>
+						<id>install-as-5.1.0</id>
 						<phase>pre-integration-test</phase>
 						<goals>
-							<goal>unpack</goal>
+							<goal>wget</goal>
 						</goals>
 						<configuration>
-							<skip>${skipRequirements}</skip>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.jboss.jbossas</groupId>
-									<artifactId>jboss-as-dist</artifactId>
-									<version>4.2.3.GA</version>
-									<type>zip</type>
-								</artifactItem>
-							</artifactItems>
+							<url>http://repository.jboss.org/sourceforge/jboss-5.1.0.GA.zip</url>
+							<md5>78322c75ca0c13002a04418b4a8bc920</md5>
+							<unpack>true</unpack>
 						</configuration>
 					</execution>
+<!-- 					<execution> -->
+<!-- 						<id>install-eap-4.3.0</id> -->
+<!-- 						<phase>pre-integration-test</phase> -->
+<!-- 						<goals> -->
+<!-- 							<goal>wget</goal> -->
+<!-- 						</goals> -->
+<!-- 						<configuration> -->
+<!-- 							<url>http://download.devel.redhat.com/released/JBEAP-4.3.0/CP10/zip/jboss-eap-4.3.0.GA_CP10.zip</url> -->
+<!-- 							<md5>1ffb95d935c54a0a1a29865f563e55c7</md5> -->
+<!-- 							<unpack>true</unpack> -->
+<!-- 							<skip>${skipPrivateRequirements}</skip> -->
+<!-- 						</configuration> -->
+<!-- 					</execution> -->
 				</executions>
 			</plugin>
 		</plugins>

@@ -37,7 +37,6 @@ import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.RemoveClientJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.ValidateWSImplCommand;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
-import org.jboss.tools.ws.creation.core.test.util.JBossWSCreationCoreTestUtils;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
 
 /**
@@ -85,6 +84,15 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		clientProject.open(null);
 		clientProject.refreshLocal(IResource.DEPTH_INFINITE, null);
 
+		// disabled launching and testing the client for now
+//		launchClient();
+//		IConsoleManager consolemanager = JBossWSCreationCoreTestUtils.getConsoleManager();
+//		checkText(consolemanager.getConsoles());
+		
+		undeployWebProject();
+	}
+
+	public void launchClient() throws CoreException, ExecutionException {
 		ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
 		ILaunchConfigurationType launchConfigurationType = launchManager.getLaunchConfigurationType("org.eclipse.jdt.launching.localJavaApplication");
 		ILaunchConfigurationWorkingCopy wc = launchConfigurationType.newInstance(null, "ClientSample");
@@ -94,11 +102,8 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		wc.setAttribute("org.eclipse.jdt.launching.PROJECT_ATTR", "ClientTest");
 		wc.doSave();
 		wc.launch(ILaunchManager.RUN_MODE, null);
-		IConsoleManager consolemanager = JBossWSCreationCoreTestUtils.getConsoleManager();
-		checkText(consolemanager.getConsoles());
-		undeployWebProject();
 	}
-
+	
 	public void doInitialCommand() throws CoreException, ExecutionException {
 		WebServiceInfo info = new WebServiceInfo();
 		info.setImplURL("org.example.www.helloworld.HelloWorld");
@@ -134,13 +139,18 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 
 	private void checkText(IConsole[] consoles) {
 		// test run result
+		System.out.println("Waiting for client sample to run... ");
 		for (IConsole console : consoles) {
 			if (console.getName().contains("ClientSample")) {
 				int i = 0;
 				while (i < 30&& !isContainString(console,JBossWSCreationCoreMessages.Client_Sample_Run_Over)) {
-					JBossWSCreationCoreTestUtils.delay(1000);
+					System.out.println(i);
+					JobUtils.delay(1000);
+//					JBossWSCreationCoreTestUtils.delay(500);
 					i++;
 				}
+				System.out.println("Does the console contain? " + JBossWSCreationCoreMessages.Client_Sample_Run_Over);
+				System.out.println("Client Console Contents:\n" + ((TextConsole) console).getDocument().get());
 				assertTrue(((TextConsole) console).getDocument().get(),isContainString(console,JBossWSCreationCoreMessages.Client_Sample_Run_Over));
 			}
 		}
