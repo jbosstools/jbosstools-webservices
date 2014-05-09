@@ -29,6 +29,9 @@
                   <excludes>
                     <exclude>**/Abstract*.class</exclude>
                   </excludes>
+                  <!-- excludes>
+                    <exclude>**/wizards/*.class</exclude>
+                  </excludes>  -->
                 </configuration>
               </plugin>	
 	  </plugins>

@@ -30,13 +30,12 @@ public class RefreshNavigatorAction extends Action implements ISelectionChangedL
 
 	@Override
 	public void run() {
-		ITreeSelection treeSelection = ((ITreeSelection) selection);
+		final ITreeSelection treeSelection = ((ITreeSelection) selection);
 		for (Object element : treeSelection.toList()) {
 			if (element instanceof UriPathTemplateCategory) {
 				((UriPathTemplateCategory) element).refreshContent();
 			}
 		}
-		super.run();
 	}
 
 	@Override

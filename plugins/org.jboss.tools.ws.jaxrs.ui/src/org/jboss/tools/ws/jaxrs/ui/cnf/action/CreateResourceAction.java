@@ -14,25 +14,30 @@ package org.jboss.tools.ws.jaxrs.ui.cnf.action;
 import java.util.List;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchWizard;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonViewer;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
-import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateElement;
-import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsResourceCreationWizard;
 
-public class CopyToClipboardAction extends Action implements ISelectionChangedListener {
+/**
+ * @author xcoulon
+ *
+ */
+public class CreateResourceAction extends Action implements ISelectionChangedListener {
 
-	private ISelection selection = null;
+	private IStructuredSelection selection = null;
 
-	public CopyToClipboardAction() {
-		super("Copy URI Path Template", JBossJaxrsUIPlugin.getDefault().getImageDescriptor("copyqualifiedname.gif"));
+	public CreateResourceAction() {
+		super("New JAX-RS Resource", JBossJaxrsUIPlugin.getDefault().getImageDescriptor("new_webserv_wiz.gif"));
 	}
 
 	/**
@@ -42,34 +47,31 @@ public class CopyToClipboardAction extends Action implements ISelectionChangedLi
 	 */
 	@Override
 	public void run() {
-		ITreeSelection treeSelection = ((ITreeSelection) selection);
+		final ITreeSelection treeSelection = ((ITreeSelection) selection);
 		@SuppressWarnings("rawtypes")
-		List selections = treeSelection.toList();
+		final List selections = treeSelection.toList();
 		if (selections.isEmpty()) {
 			return;
 		}
-		Object selectedObject = selections.get(0);
-		try {
-			if (selectedObject instanceof UriPathTemplateElement) {
-				String uriPathTemplate = ((UriPathTemplateElement) selectedObject).getEndpoint().getUriPathTemplate();
-				Clipboard clipboard = new Clipboard(Display.getCurrent());
-				clipboard.setContents(new Object[] { uriPathTemplate }, new Transfer[] { TextTransfer.getInstance() });
-			}
-		} catch (Exception e) {
-			Logger.error("Failed to open Java editor", e);
-		}
+		open(new JaxrsResourceCreationWizard(), Display.getDefault().getActiveShell());
 	}
-
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
 		Object source = event.getSource();
 		if (source instanceof CommonViewer) {
-			this.selection = ((CommonViewer) source).getSelection();
+			this.selection = (IStructuredSelection) ((CommonViewer) source).getSelection();
 		}
 	}
-
-	public void setSelection(ISelection selection) {
+	
+	public void setSelection(final IStructuredSelection selection) {
 		this.selection = selection;
 	}
+	
+	private boolean open(IWorkbenchWizard wizard, Shell shell) {
+		WizardDialog dialog = new WizardDialog(shell, wizard);
+		wizard.init(PlatformUI.getWorkbench(), selection);
+		dialog.create();
+		return dialog.open() == Dialog.OK;
 
+	}
 }

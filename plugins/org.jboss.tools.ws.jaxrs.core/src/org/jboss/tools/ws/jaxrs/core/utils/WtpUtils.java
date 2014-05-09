@@ -253,7 +253,7 @@ public class WtpUtils {
 	}
 
 	/**
-	 * Returns true if the given project has a web deployment descriptor, false otherwise.
+	 * Returns {@code true} if the given project has a web deployment descriptor, {@code false} otherwise.
 	 * 
 	 * @param project
 	 * @return
@@ -267,11 +267,15 @@ public class WtpUtils {
 		return (file != null && file.exists());
 	}
 
-	public static IResource getWebDeploymentDescriptor(IProject project) {
+	/**
+	 * @param project the project in which to look for the web.xml file
+	 * @return the underlying {@link IFile} for the {@code web.xml}, or null if none exists.
+	 */
+	public static IFile getWebDeploymentDescriptor(IProject project) {
 		final IFolder webinfFolder = getWebInfFolder(project);
 		final IFile file = webinfFolder.getFile("web.xml");
 		if (file != null && file.exists()) {
-			return project.findMember(file.getProjectRelativePath());
+			return (IFile) project.findMember(file.getProjectRelativePath());
 		}
 		return null;
 	}

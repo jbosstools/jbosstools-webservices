@@ -18,7 +18,20 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.workbench,
  org.eclipse.ui.editors,
  org.eclipse.ui,
+ org.eclipse.wst.common.project.facet.core,
+ org.eclipse.wst.common.frameworks,
  org.eclipse.wst.validation,
+ org.eclipse.wst.command.env.ui,
+ org.eclipse.jst.j2ee,
+ org.eclipse.jst.j2ee.core,
+ org.eclipse.emf.common,
+ org.eclipse.jem,
+ org.eclipse.emf.ecore,
+ org.eclipse.wst.server.core,
+ org.eclipse.debug.core,
+ org.eclipse.jdt.core,
+ org.eclipse.ui.console,
+ org.eclipse.jface.text,
  org.jboss.tools.common.validation,
  org.jboss.tools.common.core,
  org.jboss.tools.ws.jaxrs.core,
@@ -32,3 +45,4 @@ Bundle-ActivationPolicy: lazy
 Eclipse-RegisterBuddy: org.apache.log4j
 Eclipse-BuddyPolicy: registered
 Bundle-ClassPath: .
+

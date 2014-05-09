@@ -75,6 +75,8 @@ public class ProjectBuilderUtilsTestCase {
 
 	@Test
 	public void shouldInstallAndUninstallProjectBuilder() throws Exception {
+		// pre-conditions
+		ProjectBuilderUtils.uninstallProjectBuilder(sampleProject.getProject(), BUILDER_ID);
 		Assert.assertFalse("Wrong result",
 				ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(), BUILDER_ID));
 		Assert.assertTrue("Wrong result",

@@ -17,6 +17,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -33,7 +34,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 
 	private TreeViewer viewer;
 
-	private Map<IProject, UriPathTemplateCategory> uriPathTemplateCategories = new HashMap<IProject, UriPathTemplateCategory>();
+	private Map<IJavaProject, UriPathTemplateCategory> uriPathTemplateCategories = new HashMap<IJavaProject, UriPathTemplateCategory>();
 
 	@Override
 	public Object[] getElements(Object inputElement) {
@@ -69,15 +70,16 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			if (metamodel != null) {
 				// metamodel.addListener() avoids duplicate entries
 				metamodel.addJaxrsEndpointChangedListener(this);
+				final IJavaProject javaProject = metamodel.getJavaProject();
+				if (!uriPathTemplateCategories.containsKey(javaProject)) {
+					UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, javaProject);
+					uriPathTemplateCategories.put(javaProject, uriPathTemplateCategory);
+				}
+				Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", javaProject.getElementName());
+				return new Object[] { uriPathTemplateCategories.get(javaProject) };
 			} else {
 				Logger.debug("*** No JAX-RS Metamodel available for project '{}' yet :-( ***", project.getName());
 			}
-			if (!uriPathTemplateCategories.containsKey(project)) {
-				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
-				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
-			}
-			Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
-			return new Object[] { uriPathTemplateCategories.get(project) };
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
 		}
@@ -112,14 +114,14 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	@Override
 	public void dispose() {
 		if (uriPathTemplateCategories != null) {
-			for (IProject project : uriPathTemplateCategories.keySet()) {
+			for (IJavaProject javaProject : uriPathTemplateCategories.keySet()) {
 				try {
-					final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+					final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 					if(metamodel != null) {
 						metamodel.removeListener(this);
 					}
 				} catch (CoreException e) {
-					Logger.error("Failed to remove listener on JAX-RS Metamodel '" + project.getName() + "'", e);
+					Logger.error("Failed to remove listener on JAX-RS Metamodel '" + javaProject.getElementName() + "'", e);
 				}
 			}
 		}
@@ -148,17 +150,18 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		// it is a WaitWhileBuildingElement item, and the project itself must be
 		// refresh to replace this temporary
 		// element with the expected category.
-		final IProject project = endpoint.getProject();
-		if (!uriPathTemplateCategories.containsKey(project)) {
-			refreshContent(project);
-		}
-		final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
-		final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
-		if(target != null) {
-			Logger.debug("Refreshing navigator view at level: '{}'", target.getClass().getName());
-			// this piece of code must run in an async manner to avoid reentrant
-			// call while viewer is busy.
-			updateContent(target);
+		final IJavaProject javaProject = endpoint.getJavaProject();
+		if (!uriPathTemplateCategories.containsKey(javaProject)) {
+			refreshContent(javaProject);
+		} else {
+			final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(javaProject);
+			final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
+			if(target != null) {
+				Logger.debug("Refreshing navigator view at level: '{}'", target.getClass().getName());
+				// this piece of code must run in an async manner to avoid reentrant
+				// call while viewer is busy.
+				updateContent(target);
+			}
 		}
 	}
 
@@ -167,15 +170,15 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		if(metamodel == null) {
 			return;
 		}
-		final IProject project= metamodel.getProject();
+		final IJavaProject javaProject = metamodel.getJavaProject();
 		if (uriPathTemplateCategories != null) {
-			if (!uriPathTemplateCategories.containsKey(project)) {
-				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", project.getName());
-				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
-				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
-				refreshContent(uriPathTemplateCategories.get(project));
+			if (!uriPathTemplateCategories.containsKey(javaProject)) {
+				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", javaProject.getElementName());
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, javaProject);
+				uriPathTemplateCategories.put(javaProject, uriPathTemplateCategory);
+				refreshContent(uriPathTemplateCategories.get(javaProject));
 			}
-			updateContent(uriPathTemplateCategories.get(project));
+			updateContent(uriPathTemplateCategories.get(javaProject));
 		}
 	}
 
@@ -185,14 +188,14 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	 * 
 	 * @param project
 	 */
-	public void refreshContent(final IProject project) {
+	public void refreshContent(final IJavaProject javaProject) {
 		if (uriPathTemplateCategories != null) {
-			if (!uriPathTemplateCategories.containsKey(project)) {
-				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", project.getName());
-				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
-				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
+			if (!uriPathTemplateCategories.containsKey(javaProject)) {
+				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", javaProject.getElementName());
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, javaProject);
+				uriPathTemplateCategories.put(javaProject, uriPathTemplateCategory);
 			}
-			refreshContent(uriPathTemplateCategories.get(project));
+			refreshContent(uriPathTemplateCategories.get(javaProject));
 		}
 	}
 
@@ -207,18 +210,20 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		// it is a WaitWhileBuildingElement item, and the project itself must be
 		// refresh to replace this temporary
 		// element with the expected category.
-		final IProject project = endpoint.getProject();
-		if (!uriPathTemplateCategories.containsKey(project)) {
-			refreshContent(project);
-		}
-		final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
-		final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
-		// during initialization, UI may not be available yet.
-		if(target != null) {
-			Logger.debug("Refreshing navigator view at level: '{}'", target.getClass().getName());
-			// this piece of code must run in an async manner to avoid reentrant
-			// call while viewer is busy.
-			refreshContent(target);
+		final IJavaProject javaProject = endpoint.getJavaProject();
+		if (!uriPathTemplateCategories.containsKey(javaProject)) {
+			refreshContent(javaProject);
+		} else {
+			final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(javaProject);
+			final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
+			// during initialization, UI may not be available yet.
+			if (target != null) {
+				Logger.debug("Refreshing navigator view at level: '{}'", target.getClass().getName());
+				// this piece of code must run in an async manner to avoid
+				// reentrant
+				// call while viewer is busy.
+				refreshContent(target);
+			}
 		}
 	}
 

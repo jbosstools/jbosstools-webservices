@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="org.jboss.tools.ws.jaxrs.ui" version="2">
+    <resource path="src/org/jboss/tools/ws/jaxrs/ui/wizards/JaxrsApplicationCreationWizardPage.java" type="org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsApplicationCreationWizardPage">
+        <filter id="571473929">
+            <message_arguments>
+                <message_argument value="NewClassWizardPage"/>
+                <message_argument value="JaxrsApplicationCreationWizardPage"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/jboss/tools/ws/jaxrs/ui/wizards/JaxrsResourceCreationWizardPage.java" type="org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsResourceCreationWizardPage">
+        <filter id="571473929">
+            <message_arguments>
+                <message_argument value="NewClassWizardPage"/>
+                <message_argument value="JaxrsResourceCreationWizardPage"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>

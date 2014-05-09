@@ -47,7 +47,7 @@ public class UriMappingsLabelProvider implements IStyledLabelProvider, ILabelPro
 				return JBossJaxrsUIPlugin.getDefault().getImage("filter_mapping_out.gif");
 			}
 		} else if (element instanceof UriPathTemplateMethodMappingElement) {
-			return JBossJaxrsUIPlugin.getDefault().getImage("servlet_mapping.gif");
+			return JBossJaxrsUIPlugin.getDefault().getImage("request_mapping_obj.gif");
 		} else if (element instanceof LoadingStub) {
 			return JBossJaxrsUIPlugin.getDefault().getImage("systemprocess.gif");
 		} 
