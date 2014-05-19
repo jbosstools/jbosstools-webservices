@@ -51,10 +51,13 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBase
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
@@ -99,7 +102,7 @@ public class JaxrsApplicationValidatorTestCase {
 	@After
 	public void resetProblemLevelPreferences() {
 		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsUIPlugin.PLUGIN_ID);
-		defaultPreferences.put(JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND, JaxrsPreferences.WARNING);
 	}
 
 	@Test
@@ -144,11 +147,16 @@ public class JaxrsApplicationValidatorTestCase {
 
 	@Test
 	public void shouldReportProblemOnProjectIfNoApplicationExists() throws CoreException, ValidationException {
-		// preconditions
-		final List<IJaxrsApplication> applications = metamodel.findAllApplications();
-		for (IJaxrsApplication application : applications) {
-			((AbstractJaxrsBaseElement) application).remove();
+		// preconditions: only keep CustomerResource
+		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final List<IJaxrsElement> elements = metamodel.findAllElements();
+		for (IJaxrsElement element : elements) {
+			if(element.getElementKind() == EnumElementKind.ROOT_RESOURCE && ((JaxrsResource)element).getJavaElement().equals(customerJavaType)) {
+				continue;
+			}
+			((AbstractJaxrsBaseElement) element).remove();
 		}
+		
 		deleteJaxrsMarkers(metamodel);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -158,6 +166,25 @@ public class JaxrsApplicationValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
+		assertThat(metamodel.getProblemLevel(), equalTo(IMarker.SEVERITY_WARNING));
+	}
+
+	@Test
+	public void shouldNotReportProblemOnProjectIfNoElementExists() throws CoreException, ValidationException {
+		// preconditions
+		final List<IJaxrsElement> elements = metamodel.findAllElements();
+		for (IJaxrsElement element : elements) {
+			((AbstractJaxrsBaseElement) element).remove();
+		}
+		deleteJaxrsMarkers(metamodel);
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(project);
+		assertThat(markers.length, equalTo(0));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(false));
+		assertThat(metamodel.getProblemLevel(), equalTo(IMarker.SEVERITY_INFO));
 	}
 
 	@Test

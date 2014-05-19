@@ -603,7 +603,7 @@ public class JavaElementDeltaScannerTestCase {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IField addedField = createField(type, "private int i", WORKING_COPY);
+		IField addedField = createField(type, "private int i;", WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -623,7 +623,7 @@ public class JavaElementDeltaScannerTestCase {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IField addedField = createField(type, "@PathParam() private int i", WORKING_COPY);
+		IField addedField = createField(type, "@PathParam() private int i;", WORKING_COPY);
 		// verifications
 		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
 	}
@@ -633,7 +633,7 @@ public class JavaElementDeltaScannerTestCase {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IField addedField = createField(type, "@PathParam() private int i", PRIMARY_COPY);
+		IField addedField = createField(type, "@PathParam() private int i;", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(addedField.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}
