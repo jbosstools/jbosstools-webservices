@@ -211,6 +211,19 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 		return globalLevel;
 	}
+	
+	/**
+	 * Registers a marker (from the underlying {@link IResource}) and sets the
+	 * problem level on this element. If this element already has a problem
+	 * level, the highest value is kept.
+	 * 
+	 * @param marker: the marker that has been added to the underlying resource.
+	 *            
+	 * @throws CoreException
+	 */
+	public void registerMarker(final IMarker marker) {
+		this.problemLevel = Math.max(this.problemLevel, marker.getAttribute(IMarker.SEVERITY, 0));
+	}
 
 	/**
 	 * Preload the HttpMethods collection with 6 items from the specification:
@@ -904,6 +917,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	@Override
 	public List<IJaxrsElement> getAllElements() {
 		return new ArrayList<IJaxrsElement>(elements.values());
+	}
+	
+	/**
+	 * @return {@code true} if the metamodel has {@link IJaxrsElement}s, {@code  false} otherwise.
+	 */
+	public boolean hasElements() {
+		return this.elements.size() > 0;
 	}
 
 	/**
@@ -1603,7 +1623,5 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				.append(" HttpMethods, ").append(findAllResources().size()).append(" Resources and ")
 				.append(getAllEndpoints().size()).append(" Endpoints.").toString();
 	}
-
-	
 
 }

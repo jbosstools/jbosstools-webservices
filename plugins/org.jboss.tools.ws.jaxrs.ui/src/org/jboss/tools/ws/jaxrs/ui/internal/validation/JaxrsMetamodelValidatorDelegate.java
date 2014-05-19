@@ -52,7 +52,7 @@ public class JaxrsMetamodelValidatorDelegate {
 		metamodel.resetProblemLevel();
 		final List<JaxrsJavaApplication> javaApplications = metamodel.findJavaApplications();
 		final List<JaxrsWebxmlApplication> webxmlApplications = metamodel.findWebxmlApplications();
-		if (javaApplications.isEmpty() && webxmlApplications.isEmpty()) {
+		if (javaApplications.isEmpty() && webxmlApplications.isEmpty() && metamodel.hasElements()) {
 			markerManager.addMarker(metamodel,
 					JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND);
 		} else if (javaApplications.size() >= 2 || (javaApplications.size() >= 1 && webxmlApplications.size() >= 1)) {

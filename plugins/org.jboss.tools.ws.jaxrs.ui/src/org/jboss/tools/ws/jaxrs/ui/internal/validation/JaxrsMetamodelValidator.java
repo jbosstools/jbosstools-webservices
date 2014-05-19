@@ -556,7 +556,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final IMarker marker = addProblem(message, preferenceKey, messageArguments, 0, 0, project);
 		if (marker != null) {
 			marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
-			// metamodel.registerMarker(marker);
+			metamodel.registerMarker(marker);
 		}
 		return marker;
 	}

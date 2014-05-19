@@ -62,7 +62,6 @@ public abstract class AbstractJaxrsBaseElement implements IJaxrsElement {
 	 * @throws CoreException
 	 */
 	public void registerMarker(final IMarker marker) {
-		//metamodel.registerMarker(marker);
 		this.problemLevel = Math.max(this.problemLevel, marker.getAttribute(IMarker.SEVERITY, 0));
 	}
 

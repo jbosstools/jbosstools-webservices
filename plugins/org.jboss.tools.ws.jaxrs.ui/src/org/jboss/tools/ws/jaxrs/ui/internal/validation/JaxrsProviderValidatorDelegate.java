@@ -146,7 +146,6 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	private void validatePreMatchingOnContainerRequestFilterOnly(final JaxrsProvider provider) throws CoreException {
 		// this validation rule only applies all providers except Container Request Filters.
 		if (provider != null && !provider.getProvidedTypes().containsKey(EnumElementKind.CONTAINER_REQUEST_FILTER)) {
-			
 			final Annotation preMatchingAnntotation = provider.getAnnotation(JaxrsClassnames.PRE_MATCHING);
 			if(preMatchingAnntotation != null) {
 				final ISourceRange nameRange = preMatchingAnntotation.getJavaAnnotation().getNameRange();
