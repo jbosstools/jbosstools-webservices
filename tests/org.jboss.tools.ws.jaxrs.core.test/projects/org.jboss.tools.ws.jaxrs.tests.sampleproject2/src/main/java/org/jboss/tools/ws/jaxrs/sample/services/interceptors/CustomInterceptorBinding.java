@@ -14,8 +14,8 @@ import javax.ws.rs.NameBinding;
  * @author xcoulon
  *
  */
-@Target({ ElementType.TYPE, ElementType.METHOD }) // do not moodify, including spacing
-@Retention(RetentionPolicy.RUNTIME) // do not moodify, including spacing
+@Target({ ElementType.TYPE, ElementType.METHOD }) // do not modify, including spacing
+@Retention(RetentionPolicy.RUNTIME) // do not modify, including spacing
 @NameBinding
 public @interface CustomInterceptorBinding {
 
