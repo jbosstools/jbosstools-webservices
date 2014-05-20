@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
@@ -617,14 +618,14 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 */
 	@Override
 	public int getProblemLevel() {
-		int level = 0; // Severity NONE
+		int level = IMarker.SEVERITY_INFO; // Severity NONE
 		for (IJaxrsResourceMethod resourceMethod : getResourceMethods()) {
 			level = Math.max(level, resourceMethod.getProblemLevel());
 		}
-		level = Math.max(level, httpMethod.getProblemLevel());
+		/*level = Math.max(level, httpMethod.getProblemLevel());
 		if(application != null) {
 			level = Math.max(level, application.getProblemLevel());
-		}
+		}*/
 		return level;
 	}
 
