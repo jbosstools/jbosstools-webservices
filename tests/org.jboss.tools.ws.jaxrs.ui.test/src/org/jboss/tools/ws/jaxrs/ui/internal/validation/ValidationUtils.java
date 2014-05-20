@@ -20,12 +20,16 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Xavier Coulon The class name says it all.
  */
 public class ValidationUtils {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ValidationUtils.class);
+	
 	/**
 	 * Converts the given {@link IResource} elements into a set of {@link IFile}s
 	 * 
@@ -78,6 +82,7 @@ public class ValidationUtils {
 				break;
 			}
 		}
+		printMarkers(markers);
 		return markers.toArray(new IMarker[markers.size()]);
 	}
 
@@ -155,6 +160,12 @@ public class ValidationUtils {
 			description.appendText("marker contains preference_key (\"" + expectedProblemType + "\" problem type)");
 		}
 
+	}
+	
+	public static void printMarkers(final List<IMarker> markers) {
+		for(IMarker marker: markers) {
+			LOGGER.debug(" Marker with severity={}: {}", marker.getAttribute(IMarker.SEVERITY, 0), marker.getAttribute(IMarker.MESSAGE, ""));
+		}
 	}
 
 }

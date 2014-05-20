@@ -232,9 +232,9 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	 * @throws CoreException
 	 */
 	private void updateFields(final JaxrsResource transientResource, final CompilationUnit ast) throws CoreException {
-		final List<IJaxrsResourceField> allTransientInstanceFields = transientResource.getAllFields();
-		final List<IJaxrsResourceField> allCurrentFields = this.getAllFields();
-		final List<IJaxrsResourceField> addedFields = CollectionUtils.difference(allTransientInstanceFields,
+		final List<JaxrsResourceField> allTransientInstanceFields = transientResource.getAllFields();
+		final List<JaxrsResourceField> allCurrentFields = this.getAllFields();
+		final List<JaxrsResourceField> addedFields = CollectionUtils.difference(allTransientInstanceFields,
 				allCurrentFields);
 		for (IJaxrsResourceField addedField : addedFields) {
 			// create the Resource Field by attaching it to the metamodel
@@ -242,15 +242,15 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 			JaxrsResourceField.from(addedField.getJavaElement(), ast).withMetamodel(getMetamodel())
 					.withParentResource(this).build();
 		}
-		final Collection<IJaxrsResourceField> changedFields = CollectionUtils.intersection(allCurrentFields,
+		final Collection<JaxrsResourceField> changedFields = CollectionUtils.intersection(allCurrentFields,
 				allTransientInstanceFields);
-		for (IJaxrsResourceField changedField : changedFields) {
+		for (JaxrsResourceField changedField : changedFields) {
 			((JaxrsResourceField) changedField).update(transientResource.getFields().get(
 					changedField.getIdentifier()));
 		}
-		final List<IJaxrsResourceField> removedFields = CollectionUtils.difference(allCurrentFields,
+		final List<JaxrsResourceField> removedFields = CollectionUtils.difference(allCurrentFields,
 				allTransientInstanceFields);
-		for (IJaxrsResourceField removedField : removedFields) {
+		for (JaxrsResourceField removedField : removedFields) {
 			this.removeField(removedField);
 		}
 	}
@@ -371,8 +371,8 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		return resourceMethods.containsKey(resourceMethod.getJavaElement().getHandleIdentifier());
 	}
 
-	public final List<IJaxrsResourceField> getAllFields() {
-		return Collections.unmodifiableList(new ArrayList<IJaxrsResourceField>(resourceFields.values()));
+	public final List<JaxrsResourceField> getAllFields() {
+		return Collections.unmodifiableList(new ArrayList<JaxrsResourceField>(resourceFields.values()));
 	}
 
 	@Override

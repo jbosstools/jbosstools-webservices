@@ -404,7 +404,7 @@ public class JaxrsResourceValidatorTestCase {
 	}
 
 	@Test
-	public void shouldNotValidateCustomerResourceMethodWithDotCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithDotCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
 		// preconditions
 		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{.id}\")", false);
@@ -444,7 +444,7 @@ public class JaxrsResourceValidatorTestCase {
 	}
 	
 	@Test
-	public void shouldNotValidateCustomerResourceMethodWithHyphenCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithHyphenCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
 		// preconditions
 		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{-id}\")", false);
@@ -486,7 +486,7 @@ public class JaxrsResourceValidatorTestCase {
 	}
 	
 	@Test
-	public void shouldNotValidateCustomerResourceMethodWithUnderscoreCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithUnderscoreCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
 		// preconditions
 		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{_id}\")", false);
@@ -510,7 +510,7 @@ public class JaxrsResourceValidatorTestCase {
 
 
 	@Test
-	public void shouldNotValidateCustomerResourceMethodWithAtCharacterInPathParam() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithAtCharacterInPathParam() throws CoreException, ValidationException {
 		// preconditions
 		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i@d}\")", false);
@@ -532,7 +532,7 @@ public class JaxrsResourceValidatorTestCase {
 	}
 
 	@Test
-	public void shouldNotValidateCustomerResourceMethodWithSingleCharacterInPathParam() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithSingleCharacterInPathParam() throws CoreException, ValidationException {
 		// preconditions
 		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i}\")", false);
@@ -547,5 +547,22 @@ public class JaxrsResourceValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
 	}
+	
+	@Test
+	public void shouldValidateMethodWithPathParamBoundToField() throws CoreException, ValidationException {
+		// pre-conditions
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
+				"CarResource.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"CarResource.java");
+		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(carResource);
+		assertThat(markers.length, equalTo(0));
+	}
+	
 
 }

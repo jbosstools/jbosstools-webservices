@@ -105,8 +105,8 @@ public class JaxrsNameBindingValidatorTestCase {
 		// preconditions
 		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final AbstractJaxrsBaseElement customNameBinding = (AbstractJaxrsBaseElement) metamodel.findElement(customNameBindingType);
-		assertThat(findJaxrsMarkers(customNameBinding).length, equalTo(0));
 		deleteJaxrsMarkers(customNameBinding);
+		assertThat(findJaxrsMarkers(customNameBinding).length, equalTo(0));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
@@ -117,7 +117,7 @@ public class JaxrsNameBindingValidatorTestCase {
 			assertThat(endpoint.getProblemLevel(), equalTo(0));
 		}
 		// no problem level change on the metamodel.
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
 	}
 
 	@Test

@@ -1,0 +1,17 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+
+@Path("/")
+public class CarResource {
+	@PathParam("type")
+	private String type;
+	
+	@GET
+	@Path("{type}/{id}")
+	public Object getCar(@PathParam("id") int id) {
+		return null;
+	}
+}

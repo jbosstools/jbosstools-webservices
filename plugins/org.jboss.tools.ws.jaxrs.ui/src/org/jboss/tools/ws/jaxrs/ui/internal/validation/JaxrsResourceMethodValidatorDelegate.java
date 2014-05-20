@@ -33,6 +33,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
@@ -190,9 +191,16 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			throws CoreException {
 		final Map<String, Annotation> pathParamValueProposals = resourceMethod.getPathParamValueProposals();
 		final List<String> pathParamValues = new ArrayList<String>();
-		// retrieve all @Path
+		// retrieve all @PathParam annotation on method arguments and on resource fields
 		for (JavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation annotation = parameter.getAnnotation(PATH_PARAM);
+			if (annotation != null && annotation.getValue() != null) {
+				pathParamValues.add(annotation.getValue());
+			}
+		}
+		final List<JaxrsResourceField> resourceFields = resourceMethod.getParentResource().getAllFields();
+		for(JaxrsResourceField resourceField : resourceFields) {
+			final Annotation annotation = resourceField.getPathParamAnnotation();
 			if (annotation != null && annotation.getValue() != null) {
 				pathParamValues.add(annotation.getValue());
 			}
