@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -73,11 +74,13 @@ public class JaxrsNameBindingValidatorTestCase {
 	private final ValidatorManager validatorManager = new ValidatorManager();
 
 	@ClassRule
-	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject2");
-	
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule(
+			"org.jboss.tools.ws.jaxrs.tests.sampleproject2");
+
 	@Rule
-	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject2", true);
-	
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor(
+			"org.jboss.tools.ws.jaxrs.tests.sampleproject2", true);
+
 	private JaxrsMetamodel metamodel = null;
 
 	private IProject project = null;
@@ -86,34 +89,38 @@ public class JaxrsNameBindingValidatorTestCase {
 	public void setup() throws CoreException {
 		metamodel = metamodelMonitor.getMetamodel();
 		project = metamodel.getProject();
-		// remove all applications here 
+		// remove all applications here
 		for (IJaxrsApplication application : metamodel.findAllApplications()) {
 			if (application.isJavaApplication()) {
 				((JaxrsJavaApplication) application).remove();
 			}
 		}
 	}
-	
+
 	@After
 	public void resetProblemLevelPreferences() {
-		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsUIPlugin.PLUGIN_ID);
-		defaultPreferences.put(JaxrsPreferences.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
+		final IEclipsePreferences defaultPreferences = ((IScopeContext) DefaultScope.INSTANCE)
+				.getNode(JBossJaxrsUIPlugin.PLUGIN_ID);
+		defaultPreferences
+				.put(JaxrsPreferences.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 	}
 
 	@Test
 	public void shouldValidateNameBinding() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
-		final AbstractJaxrsBaseElement customNameBinding = (AbstractJaxrsBaseElement) metamodel.findElement(customNameBindingType);
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final AbstractJaxrsBaseElement customNameBinding = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customNameBindingType);
 		deleteJaxrsMarkers(customNameBinding);
 		assertThat(findJaxrsMarkers(customNameBinding).length, equalTo(0));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(customNameBinding).length, equalTo(0));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
+		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), equalTo(0));
 		}
 		// no problem level change on the metamodel.
@@ -121,23 +128,25 @@ public class JaxrsNameBindingValidatorTestCase {
 	}
 
 	@Test
-	public void shouldReportProblemWhenNameBindingTypeMissesTargetAnnotation() throws CoreException, ValidationException {
+	public void shouldReportProblemWhenTargetAnnotationMissing() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation targetAnnotation = getAnnotation(customNameBindingType, TARGET);
 		customNameBinding.removeAnnotation(targetAnnotation.getJavaAnnotation());
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Target({ ElementType.TYPE, ElementType.METHOD })", "", true);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(),
+				"@Target({ ElementType.TYPE, ElementType.METHOD })", "", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(NAME_BINDING_MISSING_TARGET_ANNOTATION));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
+		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
@@ -145,49 +154,105 @@ public class JaxrsNameBindingValidatorTestCase {
 	}
 
 	@Test
-	public void shouldReportProblemWhenNameBindingTypeTargetAnnotationHasNullValue() throws CoreException,
-			ValidationException {
+	public void shouldNotReportProblemWhenTargetAnnotationValueNull() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation targetAnnotation = customNameBinding.getAnnotation(TARGET);
 		customNameBinding.addOrUpdateAnnotation(createAnnotation(targetAnnotation, (String) null));
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Target({ ElementType.TYPE, ElementType.METHOD })", "@Target", true);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(),
+				"@Target({ ElementType.TYPE, ElementType.METHOD })", "@Target", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
-			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
-		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		assertThat(markers.length, equalTo(0));
+		final IJavaCompletionProposal[] proposals = ValidationUtils.getJavaCompletionProposals(customNameBinding
+				.getAnnotation(TARGET));
+		assertThat(proposals.length, equalTo(1));
 	}
 
 	@Test
-	public void shouldReportProblemWhenNameBindingTypeTargetAnnotationHasWrongValue() throws CoreException,
-			ValidationException {
+	public void shouldApplyProposalWhenTargetAnnotationValueNull() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(),
+				"@Target({ ElementType.TYPE, ElementType.METHOD })", "@Target", true);
+		final IJavaCompletionProposal[] proposals = ValidationUtils.getJavaCompletionProposals(customNameBinding
+				.getAnnotation(TARGET));
+		assertThat(proposals.length, equalTo(1));
+		// operation
+		ValidationUtils.applyProposals(customNameBinding, proposals);
+		// validation
+		assertThat(ValidationUtils.findJavaProblems(customNameBinding.getResource()).length, equalTo(0));
+	}
+
+	@Test
+	public void shouldNotReportProblemWhenTargetAnnotationValueMissing() throws CoreException, ValidationException {
+		// preconditions
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
+		final Annotation targetAnnotation = customNameBinding.getAnnotation(TARGET);
+		customNameBinding.addOrUpdateAnnotation(createAnnotation(targetAnnotation, ""));
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(),
+				"@Target({ ElementType.TYPE, ElementType.METHOD })", "@Target()", true);
+		deleteJaxrsMarkers(customNameBinding);
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
+		assertThat(markers.length, equalTo(0));
+		final IJavaCompletionProposal[] proposals = ValidationUtils.getJavaCompletionProposals(customNameBinding
+				.getAnnotation(TARGET));
+		assertThat(proposals.length, equalTo(1));
+	}
+	
+	@Test
+	public void shouldApplyProposalWhenTargetAnnotationValueMissing() throws CoreException, ValidationException {
+		// preconditions
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(),
+				"@Target({ ElementType.TYPE, ElementType.METHOD })", "@Target()", true);
+		final IJavaCompletionProposal[] proposals = ValidationUtils.getJavaCompletionProposals(customNameBinding
+				.getAnnotation(TARGET));
+		assertThat(proposals.length, equalTo(1));
+		// operation
+		ValidationUtils.applyProposals(customNameBinding, proposals);
+		// validation
+		assertThat(ValidationUtils.findJavaProblems(customNameBinding.getResource()).length, equalTo(0));
+	}
+
+	@Test
+	public void shouldReportProblemWhenTargetAnnotationHasWrongValue() throws CoreException, ValidationException {
+		// preconditions
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation targetAnnotation = customNameBinding.getAnnotation(TARGET);
 		customNameBinding.addOrUpdateAnnotation(createAnnotation(targetAnnotation, "FOO"));
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Target({ ElementType.TYPE, ElementType.METHOD })", "@Target(value=ElementType.FIELD)", true);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(),
+				"@Target({ ElementType.TYPE, ElementType.METHOD })", "@Target(value=ElementType.FIELD)", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
+		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
@@ -195,73 +260,150 @@ public class JaxrsNameBindingValidatorTestCase {
 	}
 
 	@Test
-	public void shouldReportProblemWhenNameBindingTypeMissesRetentionAnnotation() throws CoreException, ValidationException {
+	public void shouldReportProblemWhenRetentionAnnotationMissing() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation targetAnnotation = getAnnotation(customNameBindingType, RETENTION);
 		customNameBinding.removeAnnotation(targetAnnotation.getJavaAnnotation());
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)", "", true);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(NAME_BINDING_MISSING_RETENTION_ANNOTATION));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
+		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 	}
-	
+
 	@Test
-	public void shouldReportProblemWhenNameBindingTypeRetentionAnnotationHasNullValue() throws CoreException,
-	ValidationException {
+	public void shouldNotReportProblemRetentionAnnotationValueNull() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation retentionAnnotation = customNameBinding.getAnnotation(RETENTION);
-		customNameBinding.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, (String)null));
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)", "@Retention", true);
+		customNameBinding.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, (String) null));
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
-			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
-		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		assertThat(markers.length, equalTo(0));
 	}
 	
 	@Test
-	public void shouldReportProblemWhenNameBindingTypeRetentionAnnotationHasWrongValue() throws CoreException,
-		ValidationException {
+	public void shouldApplyProposalWhenRetentionAnnotationValueNull() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention", true);
+		final IJavaCompletionProposal[] proposals = ValidationUtils.getJavaCompletionProposals(customNameBinding
+				.getAnnotation(RETENTION));
+		assertThat(proposals.length, equalTo(1));
+		// operation
+		ValidationUtils.applyProposals(customNameBinding, proposals);
+		// validation
+		assertThat(ValidationUtils.findJavaProblems(customNameBinding.getResource()).length, equalTo(0));
+	}
+
+	@Test
+	public void shouldNotReportProblemRetentionAnnotationValueMissing() throws CoreException, ValidationException {
+		// preconditions
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
+		final Annotation retentionAnnotation = customNameBinding.getAnnotation(RETENTION);
+		customNameBinding.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, (String) null));
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention()", true);
+		deleteJaxrsMarkers(customNameBinding);
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
+		assertThat(markers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldApplyProposalWhenRetentionAnnotationValueMissing() throws CoreException, ValidationException {
+		// preconditions
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention()", true);
+		final IJavaCompletionProposal[] proposals = ValidationUtils.getJavaCompletionProposals(customNameBinding
+				.getAnnotation(RETENTION));
+		assertThat(proposals.length, equalTo(1));
+		// operation
+		ValidationUtils.applyProposals(customNameBinding, proposals);
+		// validation
+		assertThat(ValidationUtils.findJavaProblems(customNameBinding.getResource()).length, equalTo(0));
+	}
+
+	
+	
+	@Test
+	public void shouldReportProblemWhenRetentionAnnotationHasMissingValue() throws CoreException, ValidationException {
+		// preconditions
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
+		final Annotation retentionAnnotation = customNameBinding.getAnnotation(RETENTION);
+		customNameBinding.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, ""));
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention()", true);
+		deleteJaxrsMarkers(customNameBinding);
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
+		assertThat(markers.length, equalTo(0));
+		final IJavaCompletionProposal[] proposals = ValidationUtils.getJavaCompletionProposals(customNameBinding
+				.getAnnotation(RETENTION));
+		assertThat(proposals.length, equalTo(1));
+	}
+
+	@Test
+	public void shouldReportProblemWhenRetentionAnnotationHasWrongValue() throws CoreException, ValidationException {
+		// preconditions
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation retentionAnnotation = customNameBinding.getAnnotation(RETENTION);
 		customNameBinding.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, "FOO"));
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)", "@Retention(RetentionPolicy.SOURCE)", true);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention(RetentionPolicy.SOURCE)", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
+		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
@@ -271,43 +413,50 @@ public class JaxrsNameBindingValidatorTestCase {
 	@Test
 	public void shouldNotFailOnProblemIfSeverityLevelIsIgnore() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation retentionAnnotation = customNameBinding.getAnnotation(RETENTION);
 		customNameBinding.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, "FOO"));
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)", "@Retention(RetentionPolicy.SOURCE)", true);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention(RetentionPolicy.SOURCE)", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
-		final IEclipsePreferences defaultPreferences = ((IScopeContext)DefaultScope.INSTANCE).getNode(JBossJaxrsUIPlugin.PLUGIN_ID);
-		defaultPreferences.put(JaxrsPreferences.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferences.IGNORE);
+		final IEclipsePreferences defaultPreferences = ((IScopeContext) DefaultScope.INSTANCE)
+				.getNode(JBossJaxrsUIPlugin.PLUGIN_ID);
+		defaultPreferences.put(JaxrsPreferences.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE,
+				JaxrsPreferences.IGNORE);
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(0));
 	}
-	
+
 	@Test
 	public void shouldIncreaseAndResetProblemLevelOnNameBinding() throws CoreException, ValidationException {
 		// preconditions
-		final IType customNameBindingType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
+		final IType customNameBindingType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final JaxrsNameBinding customNameBinding = (JaxrsNameBinding) metamodel.findElement(customNameBindingType);
 		final Annotation retentionAnnotation = customNameBinding.getAnnotation(RETENTION);
 		customNameBinding.addOrUpdateAnnotation(createAnnotation(retentionAnnotation, "FOO"));
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)", "@Retention(RetentionPolicy.SOURCE)", true);
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.RUNTIME)",
+				"@Retention(RetentionPolicy.SOURCE)", true);
 		deleteJaxrsMarkers(customNameBinding);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// verification: problem level is set to '2'
 		assertThat(customNameBinding.getProblemLevel(), equalTo(2));
-		// now, fix the problem 
-		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.SOURCE)", "@Retention(RetentionPolicy.RUNTIME)", true);
+		// now, fix the problem
+		replaceFirstOccurrenceOfCode(customNameBindingType.getCompilationUnit(), "@Retention(RetentionPolicy.SOURCE)",
+				"@Retention(RetentionPolicy.RUNTIME)", true);
 		// revalidate
-		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
+				context, validatorManager, reporter);
 		// verification: problem level is set to '0'
 		assertThat(customNameBinding.getProblemLevel(), equalTo(0));
 	}

@@ -406,16 +406,11 @@
          </adapter>
       </factory>
    </extension>
-   <extension point="org.eclipse.ui.ide.markerResolution">
-      <markerResolutionGenerator
-         markerType="org.jboss.tools.ws.jaxrs.metamodelMarker"
-         class="org.jboss.tools.ws.jaxrs.ui.quickfix.JaxrsMarkerResolutionGenerator"/>
-   </extension>
    
    <extension
          point="org.eclipse.ui.propertyPages">
        <page
-            name="%PreferencePage_JaxrsSettings"
+            name="%PreferencePage"
             class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsSettingsPreferencePage"
             id="org.jboss.tools.ws.jaxrs.ui.propertyPages.JaxrsSettingsPreferencePage">
          <enabledWhen>
@@ -438,18 +433,19 @@
    </extension>
    
    <extension point="org.eclipse.ui.preferencePages">
+      <page
+        category="org.jboss.tools.common.model.ui.MainPreferencePage"
+        class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferencePage"
+        id="org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSPreferencePage"
+        name="%PreferencePage">
+      </page>
       <page 
-         category="org.jboss.tools.ws.jaxrs.ui" 
+         category="org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSPreferencePage" 
          class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsValidatorPreferencePage" 
-         id="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsValidatorPreferencePage" 
+         id="org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSValidatorPreferencePage" 
          name="%PreferencePage_Validator">
       </page>
-      <page
-            category="org.jboss.tools.common.model.ui.MainPreferencePage"
-            class="org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferencePage"
-            id="org.jboss.tools.ws.jaxrs.ui"
-            name="%PreferencePage">
-      </page>
+      
    </extension>
    
    <extension
@@ -525,5 +521,27 @@
          </description>
       </wizard>
      </extension>
+     
+    <extension point="org.eclipse.ui.ide.markerResolution">
+      <markerResolutionGenerator
+         markerType="org.jboss.tools.ws.jaxrs.metamodelMarker"
+         class="org.jboss.tools.ws.jaxrs.ui.quickfix.JaxrsMarkerResolutionGenerator"/>
+    </extension>
+   
+    <extension
+          point="org.eclipse.jdt.ui.quickFixProcessors">
+       <quickFixProcessor
+             class="org.jboss.tools.ws.jaxrs.ui.quickfix.JaxrsMarkerResolutionGenerator"
+             id="org.jboss.tools.ws.jaxrs.ui.jaxrsMarkerQuickFixProcessor">
+          <handledMarkerTypes>
+             <markerType
+                   id="org.eclipse.jdt.core.problem">
+             </markerType>
+             <markerType
+                   id="org.jboss.tools.ws.jaxrs.metamodelMarker">
+             </markerType>
+          </handledMarkerTypes>
+       </quickFixProcessor>
+    </extension>
    
 </plugin>

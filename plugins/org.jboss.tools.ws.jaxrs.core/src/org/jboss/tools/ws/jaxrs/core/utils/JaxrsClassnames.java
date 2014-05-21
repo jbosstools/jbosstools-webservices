@@ -32,8 +32,12 @@ public interface JaxrsClassnames {
 	public static final String HTTP_METHOD = "javax.ws.rs.HttpMethod";
 	
 	public static final String TARGET = "java.lang.annotation.Target";
+
+	public static final String ELEMENT_TYPE = "java.lang.annotation.ElementType";
 	
 	public static final String RETENTION = "java.lang.annotation.Retention";
+	
+	public static final String RETENTION_POLICY = "java.lang.annotation.RetentionPolicy";
 	
 	public static final String APPLICATION = "javax.ws.rs.core.Application";
 	
