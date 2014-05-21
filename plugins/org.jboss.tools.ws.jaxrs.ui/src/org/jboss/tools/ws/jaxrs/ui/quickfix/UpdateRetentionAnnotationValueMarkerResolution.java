@@ -10,51 +10,33 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.quickfix;
 
-
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.text.edits.MultiTextEdit;
-import org.jboss.tools.common.refactoring.BaseMarkerResolution;
-import org.jboss.tools.common.refactoring.MarkerResolutionUtils;
-import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 
 /**
  * @author Xavier Coulon
  *
  */
-public class UpdateRetentionAnnotationValueMarkerResolution extends BaseMarkerResolution  {
+public class UpdateRetentionAnnotationValueMarkerResolution extends AbstractAnnotationMarkerResolution {
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param type
+	 *            the type on which the {@code @java.lang.annotation.Retention}
+	 *            annotation should be updated
+	 * @param annotationValue
+	 *            the new annotation value(s) to set
+	 */
+	public UpdateRetentionAnnotationValueMarkerResolution(final IType type, final String annotationValue) {
+		super(type, JaxrsClassnames.RETENTION, annotationValue, AbstractAnnotationMarkerResolution.UPDATE, NLS.bind(
+				JaxrsQuickFixMessages.UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE, annotationValue));
+	}
+
+	@Override
+	String[] getImports() {
+		return new String[] { "java.lang.annotation.RetentionPolicy" };
+	}
 	
-	private final IType type;
-
-	public UpdateRetentionAnnotationValueMarkerResolution(IType type){
-		super(type.getCompilationUnit());
-		this.type = type;
-		label = NLS.bind(JaxrsQuickFixMessages.UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE, type.getElementName());
-		init();
-	}
-
-	@Override
-	protected CompilationUnitChange getChange(ICompilationUnit compilationUnit){
-		CompilationUnitChange change = new CompilationUnitChange("", compilationUnit);
-		MultiTextEdit edit = new MultiTextEdit();
-		change.setEdit(edit);
-		try{
-			MarkerResolutionUtils.updateAnnotation("Retention", compilationUnit, type, "(ElementType.METHOD)", edit);
-		} catch (JavaModelException e) {
-			Logger.error("Failed to add @Retention annotation on type " + type.getFullyQualifiedName(), e);
-		}
-		return change;
-	}
-
-	@Override
-	public Image getImage() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
 }

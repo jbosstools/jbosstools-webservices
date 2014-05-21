@@ -11,16 +11,12 @@
 package org.jboss.tools.ws.jaxrs.ui.quickfix;
 
 
-import java.lang.annotation.RetentionPolicy;
-
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
-import org.jboss.tools.common.refactoring.BaseMarkerResolution;
 import org.jboss.tools.common.refactoring.MarkerResolutionUtils;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
@@ -29,36 +25,36 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  * @author Xavier Coulon
  *
  */
-public class AddRetentionAnnotationMarkerResolution extends BaseMarkerResolution  {
+public class AddRetentionAnnotationMarkerResolution extends AbstractAnnotationMarkerResolution  {
 	
-	private final IType type;
-
-	public AddRetentionAnnotationMarkerResolution(IType type){
-		super(type.getCompilationUnit());
-		this.type = type;
-		label = NLS.bind(JaxrsQuickFixMessages.ADD_RETENTION_ANNOTATION_MARKER_RESOLUTION_TITLE, type.getElementName());
-		init();
+	/**
+	 * Constructor.
+	 * @param type the type on which the {@code @java.lang.annotation.Retention} annotation should be added 
+	 * @param annotationValue the new annotation value(s) to set
+	 */
+	public AddRetentionAnnotationMarkerResolution(final IType type, final String annotationValues){
+		super(type, JaxrsClassnames.RETENTION,  annotationValues, AbstractAnnotationMarkerResolution.ADD, NLS.bind(JaxrsQuickFixMessages.ADD_RETENTION_ANNOTATION_MARKER_RESOLUTION_TITLE, type.getElementName()));
 	}
-
+	
+	/**
+	 * Adds the import declaration for the {@code java.lang.annotation.RetentionPolicy} class
+	 */
 	@Override
-	protected CompilationUnitChange getChange(ICompilationUnit compilationUnit){
-		CompilationUnitChange change = new CompilationUnitChange("", compilationUnit);
-		MultiTextEdit edit = new MultiTextEdit();
-		change.setEdit(edit);
+	protected CompilationUnitChange getChange(ICompilationUnit compilationUnit) {
+		final CompilationUnitChange change = super.getChange(compilationUnit);
+		final MultiTextEdit edit = new MultiTextEdit();
+		change.addEdit(edit);
 		try{
-			MarkerResolutionUtils.addImport(JaxrsClassnames.RETENTION, compilationUnit, edit);
-			MarkerResolutionUtils.addImport(RetentionPolicy.class.getName(), compilationUnit, edit);
-			MarkerResolutionUtils.addAnnotation("Retention", compilationUnit, type, "(RetentionPolicy.RUNTIME)", edit);
+			MarkerResolutionUtils.addImport("java.lang.annotation.RetentionPolicy", compilationUnit);
 		} catch (JavaModelException e) {
-			Logger.error("Failed to add @Retention annotation on type " + type.getFullyQualifiedName(), e);
+			Logger.error("Failed to add import for 'java.lang.annotation.RetentionPolicy' on '" + compilationUnit.getElementName() +"'", e);
 		}
 		return change;
 	}
 
 	@Override
-	public Image getImage() {
-		// TODO Auto-generated method stub
-		return null;
+	String[] getImports() {
+		return new String[]{"java.lang.annotation.Retention", "java.lang.annotation.RetentionPolicy"};
 	}
 
 

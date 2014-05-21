@@ -42,6 +42,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
+import org.jboss.tools.ws.jaxrs.ui.internal.text.ContentAssistCompletionProposal;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
@@ -144,7 +145,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		StyledString displayStyledString = new StyledString(displayString);
 		displayStyledString.setStyle(proposalValue.length(), displayString.length() - proposalValue.length(),
 				StyledString.QUALIFIER_STYLER);
-		return new AnnotationCompletionProposal(replacementValue, displayStyledString, region, icon, member);
+		return new ContentAssistCompletionProposal(replacementValue, displayStyledString, region, icon, member);
 	}
 
 	/**

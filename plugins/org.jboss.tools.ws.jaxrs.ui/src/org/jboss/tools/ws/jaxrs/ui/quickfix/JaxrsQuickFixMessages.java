@@ -27,6 +27,8 @@ public class JaxrsQuickFixMessages extends NLS {
 	public static String UPDATE_TARGET_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE;
 	
 	public static String UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE;
+
+	public static String UPDATE_HTTP_METHOD_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, JaxrsQuickFixMessages.class);

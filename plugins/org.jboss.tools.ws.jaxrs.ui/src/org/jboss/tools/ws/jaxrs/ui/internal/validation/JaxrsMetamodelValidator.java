@@ -87,7 +87,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	/** The name of the message bundle. */
 	private static final String BUNDLE_NAME = JaxrsMetamodelValidator.class.getPackage().getName() + ".messages";
 	/** The custom 'JAX-RS Problem' problem marker id. */
-	public static final String JAXRS_PROBLEM_MARKER_ID = "org.jboss.tools.ws.jaxrs.metamodelMarker";
+	public static final String JAXRS_PROBLEM_MARKER_ID = "org.jboss.tools.ws.jaxrs.metamodelMarker"; 
 	/** The type of JAX-RS problem. */
 	public static final String JAXRS_PROBLEM_TYPE = "problemType";
 
@@ -597,6 +597,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	@Override
 	public IMarker addMarker(final AbstractJaxrsBaseElement element, final ISourceRange range, final String message,
 			final String[] messageArguments, final String preferenceKey, final int quickFixId) throws CoreException {
+		// (range == null) occurs when there is no value at all for the annotation
+		if(range == null) {
+			return null;
+		}
 		final IResource resource = element.getResource();
 		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
 		final IMarker marker = addProblem(message, preferenceKey, messageArguments, range.getLength(),
