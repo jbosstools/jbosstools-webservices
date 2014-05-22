@@ -613,7 +613,7 @@ public class JavaElementDeltaScannerTestCase {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		createField(type, "private int i", PRIMARY_COPY);
+		createField(type, "private int i;", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}

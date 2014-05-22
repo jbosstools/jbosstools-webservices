@@ -89,11 +89,16 @@ public interface JaxrsClassnames {
 
 	public static final String RESPONSE = "javax.ws.rs.core.Response";
 	
+	public static final String RESPONSE_STATUS = "javax.ws.rs.core.Response.Status";
+	
 	public static final String URI_INFO = "javax.ws.rs.core.UriInfo";
 	
 	public static final String ENCODED = "javax.ws.rs.Encoded";
 	
 	public static final String PROVIDER = "javax.ws.rs.ext.Provider";
 	
+	public static final String REQUEST_SCOPED = "javax.enterprise.context.RequestScoped";
+
+	public static final String URI_BUILDER = "javax.ws.rs.core.UriBuilder";
 	
 }

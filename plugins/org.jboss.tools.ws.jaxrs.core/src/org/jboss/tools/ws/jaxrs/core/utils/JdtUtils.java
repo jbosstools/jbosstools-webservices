@@ -879,6 +879,9 @@ public final class JdtUtils {
 	 */
 	public static List<IType> findSupertypes(final IType type)
 			throws CoreException {
+		if(type == null) {
+			return null;
+		}
 		final List<IType> types = new ArrayList<IType>();
 		types.add(type);
 		final ITypeHierarchy returnTypeHierarchy = JdtUtils
@@ -1110,9 +1113,11 @@ public final class JdtUtils {
 		final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
 		final IAnnotationBinding[] annotationBindings = paramBinding.getAnnotations();
 		for (int j = 0; j < annotationBindings.length; j++) {
-			final IAnnotation javaAnnotation = localVariable.getAnnotations()[j];
-			final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
-			paramAnnotations.add(JdtUtils.toAnnotation(javaAnnotationBinding, javaAnnotation));
+			if(j < localVariable.getAnnotations().length) {
+				final IAnnotation javaAnnotation = localVariable.getAnnotations()[j];
+				final IAnnotationBinding javaAnnotationBinding = annotationBindings[j];
+				paramAnnotations.add(JdtUtils.toAnnotation(javaAnnotationBinding, javaAnnotation));
+			}
 		}
 		return paramAnnotations;
 	}

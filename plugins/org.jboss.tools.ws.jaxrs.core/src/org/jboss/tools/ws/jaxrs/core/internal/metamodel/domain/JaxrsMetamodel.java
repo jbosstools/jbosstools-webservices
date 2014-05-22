@@ -1136,6 +1136,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		}
 	}
 
+	@Override
+	public boolean hasApplication() {
+		return findApplication() != null;
+	}
+	
 	/**
 	 * @return the web.xml based application and all the java-based application
 	 *         overrides, or an empty collection if none exist in the metamodel.

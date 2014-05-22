@@ -255,6 +255,18 @@
                </or>
             </enablement>
          </actionProvider>
+         <actionProvider
+               class="org.jboss.tools.ws.jaxrs.ui.cnf.action.CreateResourceActionProvider"
+               id="org.jboss.tools.ws.jaxrs.ui.cnf.createResourceActionProvider"
+               priority="normal">
+            <enablement>
+               <or>
+                  <instanceof
+                        value="org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory">
+                  </instanceof>
+               </or>
+            </enablement>
+         </actionProvider>
 <!--         <actionProvider
                class="org.jboss.tools.ws.jaxrs.ui.cnf.action.OpenInWSTesterActionProvider"
                id="org.jboss.tools.ws.jaxrs.ui.cnf.openWSTesterActionProvider"
@@ -274,6 +286,52 @@
             </enablement>
          </actionProvider> -->
       </navigatorContent>
+      <commonWizard
+            menuGroupId="org.jboss.tools.ws.jaxrs.ui.menuGroup"
+            type="new"
+            wizardId="org.jboss.tools.ws.jaxrs.ui.wizard.jaxrsResourceCreationWizard">
+         <enablement>
+            <or>
+               <instanceof
+                     value="org.eclipse.core.resources.IProject">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.IPackageFragment">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.IPackageFragmentRoot">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.ICompilationUnit">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.IType">
+               </instanceof>
+            </or></enablement>
+      </commonWizard>
+      <!--commonWizard
+            menuGroupId="org.eclipse.wst.web.ui.webclass"
+            type="new"
+            wizardId="org.jboss.tools.ws.jaxrs.ui.wizard.jaxrsApplicationCreationWizard">
+         <enablement>
+            <or>
+               <instanceof
+                     value="org.eclipse.core.resources.IProject">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.IPackageFragment">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.IPackageFragmentRoot">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.ICompilationUnit">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.jdt.core.IType">
+               </instanceof>
+            </or></enablement>
+      </commonWizard-->
    </extension>
    
    <extension
@@ -492,33 +550,60 @@
    
     <extension
          point="org.eclipse.ui.newWizards">
-     <wizard
-            id="org.jboss.tools.ws.jaxrs.ui.wizard.rsgenerate"
-            category="org.jboss.ide.eclipse.ui.wizards"
-            class="org.jboss.tools.ws.jaxrs.ui.wizards.JBossRSGenerateWizard"
-            hasPages="true"
+      <wizard
+            category="org.eclipse.jst.ws.ui.new"
             icon="icons/obj16/new_webserv_wiz.gif"
-            name="%restful.wizard.name">
+            id="org.jboss.tools.ws.jaxrs.ui.wizard.jaxrsResourceCreationWizard"
+            name="%jaxrsresource.wizard.name"
+            project="false">
+         <class class="org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsResourceCreationWizard">
+            <parameter name="javaeeartifact" value="true"/> 
+			<parameter name="menuIndex" value="50" />
+         </class>
+         <description>
+            %jaxrsresource.wizard.description
+         </description>
          <selection
                class="org.eclipse.core.resources.IProject">
          </selection>
-         <description>
-            %restful.wizard.description
-         </description>
+         <selection
+               class="org.eclipse.jdt.core.IPackageFragment">
+         </selection>
+         <selection
+               class="org.eclipse.jdt.core.IPackageFragmentRoot">
+         </selection>
+         <selection
+               class="org.eclipse.jdt.core.ICompilationUnit">
+         </selection>
+         <selection
+               class="org.eclipse.jdt.core.IType">
+         </selection>
+         
       </wizard>
       <wizard
-            id="org.jboss.tools.ws.jaxrs.ui.wizard.rsgenerate2"
+            id="org.jboss.tools.ws.jaxrs.ui.wizard.jaxrsApplicationCreationWizard"
             category="org.eclipse.jst.ws.ui.new"
-            class="org.jboss.tools.ws.jaxrs.ui.wizards.JBossRSGenerateWizard"
-            hasPages="true"
+            class="org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsApplicationCreationWizard"
             icon="icons/obj16/new_webserv_wiz.gif"
-            name="%restful.wizard.name">
+            name="%jaxrsapplication.wizard.name">
+         <description>
+            %jaxrsapplication.wizard.description
+         </description>
          <selection
                class="org.eclipse.core.resources.IProject">
          </selection>
-         <description>
-            %restful.wizard.description
-         </description>
+         <selection
+               class="org.eclipse.jdt.core.IPackageFragment">
+         </selection>
+         <selection
+               class="org.eclipse.jdt.core.IPackageFragmentRoot">
+         </selection>
+         <selection
+               class="org.eclipse.jdt.core.ICompilationUnit">
+         </selection>
+         <selection
+               class="org.eclipse.jdt.core.IType">
+         </selection>
       </wizard>
      </extension>
      
@@ -543,5 +628,23 @@
           </handledMarkerTypes>
        </quickFixProcessor>
     </extension>
+    
+    <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.jboss.tools.common.ui.JBossPerspective">
+         <newWizardShortcut
+               id="org.jboss.tools.ws.jaxrs.ui.wizard.jaxrsResourceCreationWizard">
+         </newWizardShortcut>
+      </perspectiveExtension>
+
+      <perspectiveExtension
+            targetID="org.eclipse.jst.j2ee.J2EEPerspective">
+         <newWizardShortcut
+               id="org.jboss.tools.ws.jaxrs.ui.wizard.jaxrsResourceCreationWizard">
+         </newWizardShortcut>
+      </perspectiveExtension>
+   </extension>
+    
    
 </plugin>
