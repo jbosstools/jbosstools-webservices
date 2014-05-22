@@ -117,7 +117,7 @@ public class ResourcesUtils {
 	 * @throws CoreException
 	 * @throws IOException
 	 */
-	public static IResource createFileFromStream(IFolder folder, String fileName, InputStream stream)
+	public static IFile createFileFromStream(IFolder folder, String fileName, InputStream stream)
 			throws CoreException, IOException {
 		if (!folder.exists()) {
 			folder.create(true, true, new NullProgressMonitor());
@@ -136,7 +136,7 @@ public class ResourcesUtils {
 			}
 		} while (read >= 0);
 		JavaElementsUtils.LOGGER.debug(out.toString());
-		return folder.findMember(fileName);
+		return (IFile) folder.findMember(fileName);
 	}
 
 	/**

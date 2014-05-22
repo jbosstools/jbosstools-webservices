@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -335,8 +336,8 @@ public class TestProjectMonitor extends ExternalResource {
 		return packageFragment;
 	}
 
-	public IResource replaceDeploymentDescriptorWith(final String webxmlReplacementName) throws Exception {
-		IResource webxmlResource = WtpUtils.getWebDeploymentDescriptor(project);
+	public IFile replaceDeploymentDescriptorWith(final String webxmlReplacementName) throws Exception {
+		IFile webxmlResource = WtpUtils.getWebDeploymentDescriptor(project);
 		if (webxmlResource != null && webxmlReplacementName == null) {
 			webxmlResource.delete(true, new NullProgressMonitor());
 		} else if (webxmlResource == null && webxmlReplacementName == null) {

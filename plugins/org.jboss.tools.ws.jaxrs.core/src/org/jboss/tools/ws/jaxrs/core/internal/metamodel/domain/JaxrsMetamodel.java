@@ -44,6 +44,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.LockObtainFailedException;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -141,6 +142,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 	/** A Read/Write Lock to avoid concurrent access to the elements while changes are being processed. */
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
+	
+	/** A temporary cache for removed elements, so that they can be consumed during validation.*/
+	private JaxrsShadowElementsCache shadowElementsCache = new JaxrsShadowElementsCache();
 
 	/**
 	 * Full constructor.
@@ -794,6 +798,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			// actual removal and unindexing should be done at the end
 			elements.remove(element.getIdentifier());
 			indexationService.unindexElement(element);
+			// index the element in the validation cache because we may need it during validation
+			shadowElementsCache.index(element);
 			notifyListeners(new JaxrsElementDelta(element, REMOVED));
 		} finally {
 			readWriteLock.writeLock().unlock();
@@ -956,6 +962,34 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		} finally {
 			readWriteLock.readLock().unlock();
 		}
+	}
+
+	/**
+	 * Returns the {@link EnumElementKind} for the given {@link IFile} if it
+	 * matches a known "shadow" element (ie, that was maybe removed or validated
+	 * during a previous operation), {@code null} otherwise.
+	 * 
+	 * @param changedResource
+	 * @return
+	 */
+	public EnumElementKind getShadowElementKind(final IFile changedResource) {
+		return shadowElementsCache.lookup(changedResource);
+	}
+	
+	/**
+	 * Removes the given resource from the inner {@link JaxrsShadowElementsCache}.
+	 * @param changedResource the resource to remove
+	 */
+	public void removeShadowedElement(final IFile changedResource) {
+		shadowElementsCache.unindex(changedResource);
+	}
+
+	/**
+	 * Adds the given resource from the inner {@link JaxrsShadowElementsCache}.
+	 * @param changedElement the {@link IJaxrsElement} to add
+	 */
+	public void addShadowedElement(final IJaxrsElement changedElement) {
+		shadowElementsCache.index(changedElement);
 	}
 
 	/**
@@ -1628,5 +1662,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				.append(" HttpMethods, ").append(findAllResources().size()).append(" Resources and ")
 				.append(getAllEndpoints().size()).append(" Endpoints.").toString();
 	}
+
 
 }
