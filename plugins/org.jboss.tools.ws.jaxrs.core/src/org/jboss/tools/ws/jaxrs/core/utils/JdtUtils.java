@@ -1063,11 +1063,12 @@ public final class JdtUtils {
 			final SingleVariableDeclaration parameter = parameters.get(i);
 			final ILocalVariable localVariable = method.getParameters()[i];
 			final String paramName = parameter.getName().getFullyQualifiedName();
+			final ParameterType paramType = ParameterType.from(parameter);
 			final IVariableBinding paramBinding = parameter.resolveBinding();
 			final List<Annotation> paramAnnotations = resolveParameterAnnotations(
 					localVariable, paramBinding);
-			final String paramTypeName = paramBinding.getType().getQualifiedName();
-			methodParameters.add(new JavaMethodParameter(paramName, paramTypeName, paramAnnotations));
+			
+			methodParameters.add(new JavaMethodParameter(paramName, paramType, paramAnnotations));
 		}
 		return new JavaMethodSignature(method, returnedType, methodParameters);
 	}
@@ -1175,7 +1176,6 @@ public final class JdtUtils {
 			}
 		}
 		return false;
-
 	}
 
 	public static String getReadableMethodSignature(final IMethod method) {
@@ -1201,7 +1201,7 @@ public final class JdtUtils {
 	}
 
 	/**
-	 * Returns a short/displayble form of the given fully qualified name. For
+	 * Returns a short/displayable form of the given fully qualified name. For
 	 * example, removes the {@code java.lang} package name for String, converts
 	 * to the primitive type for {@link Long}, {@link Integer}, {@link Double},
 	 * {@link Float}, {@link Boolean}, etc. If the given type is already a
@@ -1221,7 +1221,7 @@ public final class JdtUtils {
 			final String parameterType = typeName.substring(Set.class.getName().length() + 1, typeName.length() - 1);
 			return "Set<" + toDisplayableTypeName(parameterType) + ">";
 		} else if (typeName.startsWith(SortedSet.class.getName() + "<")) {
-			final String parameterType = typeName.substring(Set.class.getName().length() + 1, typeName.length() - 1);
+			final String parameterType = typeName.substring(SortedSet.class.getName().length() + 1, typeName.length() - 1);
 			return "SortedSet<" + toDisplayableTypeName(parameterType) + ">";
 		} else if (typeName.contains(".")) {
 			return typeName.substring(typeName.lastIndexOf(".") + 1);

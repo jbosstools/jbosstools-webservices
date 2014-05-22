@@ -1,0 +1,19 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+public class Truck {
+	
+	// invalid: from argument
+	public Truck(int i) {
+	
+	}
+	
+	// invalid: non static
+	public Truck valueOf(String value) {
+		return null;
+	}
+
+	// invalid: wrong return type
+	public Car fromString(String value) {
+		return null;
+	}
+}

@@ -75,6 +75,9 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 
 	public static final String RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE = INSTANCE
 			.createSeverityOption("resourceMethodInvalidPathParamAnnotationValue"); //$NON-NLS-1$
+	
+	public static final String RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE = INSTANCE
+			.createSeverityOption("resourceMethodInvalidAnnotatedParameterType"); //$NON-NLS-1$
 
 	public static final String RESOURCE_METHOD_NO_PUBLIC_MODIFIER = INSTANCE
 			.createSeverityOption("resourceMethodNoPublicModifier"); //$NON-NLS-1$

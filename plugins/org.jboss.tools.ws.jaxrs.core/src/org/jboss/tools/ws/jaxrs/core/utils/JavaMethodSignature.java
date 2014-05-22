@@ -85,7 +85,7 @@ public class JavaMethodSignature {
 			for (Entry<String, Annotation> entry : methodParam.getAnnotations().entrySet()) {
 				stb.append(entry.getValue()).append(" ");
 			}
-			stb.append(methodParam.getTypeName());
+			stb.append(methodParam.getType().getQualifiedName());
 			if (paramIterator.hasNext()) {
 				stb.append(", ");
 			}

@@ -1,0 +1,17 @@
+/**
+ * 
+ */
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+/**
+ * @author xcoulon
+ *
+ */
+public class CarValueOf {
+	
+	public static org.jboss.tools.ws.jaxrs.sample.services.CarValueOf valueOf(java.lang.String value) {
+		return null;
+	}
+
+
+}

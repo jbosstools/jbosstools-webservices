@@ -32,10 +32,8 @@ public class ConstantUtils {
 					return toCamelCase(field.getName().substring(fieldPrefix.length()));
 				}
 			} catch (IllegalArgumentException e) {
-				System.err.println("Unable to retrieve field name from value " + value + ": " + e.getMessage());
 				return "**error**";
 			} catch (IllegalAccessException e) {
-				System.err.println("Unable to retrieve field name from value " + value + ": " + e.getMessage());
 				return "**error**";
 			}
 		}
@@ -53,9 +51,9 @@ public class ConstantUtils {
 					size++;
 				}
 			} catch (IllegalArgumentException e) {
-				System.err.println("Unable to retrieve fields from value " + flags + ": " + e.getMessage());
+				Logger.debug("Unable to retrieve fields from value {}: {}", flags, e.getMessage());
 			} catch (IllegalAccessException e) {
-				System.err.println("Unable to retrieve fields from flags " + flags + ": " + e.getMessage());
+				Logger.debug("Unable to retrieve fields from value {}: {}", flags, e.getMessage());
 			}
 		}
 		int[] result = new int[size];
