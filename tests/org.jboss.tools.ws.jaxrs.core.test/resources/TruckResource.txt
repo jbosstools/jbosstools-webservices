@@ -10,49 +10,44 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 @Path("/")
-public class CarResource {
+public class TruckResource {
 	@PathParam("type")
 	private String type;
 	
-	@GET
+	@POST
 	@Path("{type}/{id}") 
-	public Object getCar(@PathParam("id") int id) {
+	public Object createTruck(@PathParam("id") Truck truck) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") Car car) {
+	public Object createTrucks(@PathParam("id") List<Truck> trucks) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCars(@PathParam("id") List<Car> cars) {
+	public Object createTrucks(@PathParam("id") Set<Truck> trucks) {
+		return null;
+	}
+
+	// on purpose: unknown type 'ArrayList'
+	@POST
+	@Path("{type}/{id}") 
+	public Object createTrucks(@PathParam("id") ArrayList<String> trucks) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") CarFromString car) {
+	public Object createTrucks(@PathParam("id") java.util.ArrayList<String> trucks) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createsCar(@PathParam("id") Set<CarFromString> cars) {
-		return null;
-	}
-	
-	@POST
-	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") CarValueOf car) {
-		return null;
-	}
-
-	@POST
-	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") SortedSet<CarValueOf> cars) {
+	public Object createTrucks(@PathParam("id") SortedSet<Truck> trucks) {
 		return null;
 	}
 }

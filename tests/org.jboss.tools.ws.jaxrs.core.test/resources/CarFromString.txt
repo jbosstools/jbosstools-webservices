@@ -1,0 +1,16 @@
+/**
+ * 
+ */
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+/**
+ * @author xcoulon
+ *
+ */
+public class CarFromString {
+	
+	public static CarFromString fromString(String value) {
+		return null;
+	}
+
+}

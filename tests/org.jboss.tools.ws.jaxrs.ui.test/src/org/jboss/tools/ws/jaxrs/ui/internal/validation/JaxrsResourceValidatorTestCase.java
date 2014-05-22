@@ -57,6 +57,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
  * @author Xi
  * 
@@ -65,18 +66,20 @@ import org.slf4j.LoggerFactory;
 public class JaxrsResourceValidatorTestCase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JaxrsResourceValidatorTestCase.class);
-	
+
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
 	private final IProjectValidationContext context = new ProjectValidationContext();
 	private final ValidatorManager validatorManager = new ValidatorManager();
 
 	@ClassRule
-	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
-	
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule(
+			"org.jboss.tools.ws.jaxrs.tests.sampleproject");
+
 	@Rule
-	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
-	
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor(
+			"org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
+
 	private JaxrsMetamodel metamodel = null;
 
 	private IProject project = null;
@@ -85,7 +88,7 @@ public class JaxrsResourceValidatorTestCase {
 	public void setup() throws CoreException {
 		metamodel = metamodelMonitor.getMetamodel();
 		project = metamodel.getProject();
-		// remove all applications here 
+		// remove all applications here
 		for (IJaxrsApplication application : metamodel.findAllApplications()) {
 			if (application.isJavaApplication()) {
 				((JaxrsJavaApplication) application).remove();
@@ -96,8 +99,10 @@ public class JaxrsResourceValidatorTestCase {
 	@Test
 	public void shouldValidateCustomerResourceMethod() throws CoreException, ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -189,7 +194,8 @@ public class JaxrsResourceValidatorTestCase {
 	}
 
 	@Test
-	public void shouldReportProblemOnNonPublicJavaMethodInImplementationClass() throws CoreException, ValidationException {
+	public void shouldReportProblemOnNonPublicJavaMethodInImplementationClass() throws CoreException,
+			ValidationException {
 		// pre-conditions
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
@@ -226,7 +232,7 @@ public class JaxrsResourceValidatorTestCase {
 		// verification
 		assertThat(markers.length, equalTo(0));
 	}
-	
+
 	@Test
 	public void shouldReportProblemOnUnboundTypePathArgument() throws ValidationException, CoreException {
 		// pre-conditions
@@ -376,7 +382,7 @@ public class JaxrsResourceValidatorTestCase {
 				context, validatorManager, reporter);
 		// verification: problem level is set to '2'
 		assertThat(resource.getAllMethods().get(0).getProblemLevel(), equalTo(2));
-		// now, fix the problem 
+		// now, fix the problem
 		replaceFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"ide\")", "@PathParam(\"id\")", false);
 		// revalidate
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper,
@@ -384,14 +390,17 @@ public class JaxrsResourceValidatorTestCase {
 		// verification: problem level is set to '0'
 		assertThat(resource.getAllMethods().get(0).getProblemLevel(), equalTo(0));
 	}
-	
+
 	@Test
-	public void shouldValidateCustomerResourceMethodWithDotCharacterInPathParam() throws CoreException, ValidationException {
+	public void shouldValidateCustomerResourceMethodWithDotCharacterInPathParam() throws CoreException,
+			ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i.d}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"i.d\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -404,12 +413,15 @@ public class JaxrsResourceValidatorTestCase {
 	}
 
 	@Test
-	public void shouldReportProblemOnCustomerResourceMethodWithDotCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithDotCharacterInPathParamInFirstPlace()
+			throws CoreException, ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{.id}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\".id\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -418,20 +430,24 @@ public class JaxrsResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(4));
-		for(IMarker marker : markers) {
-			assertThat((String)marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String)marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE), equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
+		for (IMarker marker : markers) {
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 	}
-	
+
 	@Test
-	public void shouldValidateCustomerResourceMethodWithHyphenCharacterInPathParam() throws CoreException, ValidationException {
+	public void shouldValidateCustomerResourceMethodWithHyphenCharacterInPathParam() throws CoreException,
+			ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i-d}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"i-d\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -442,14 +458,17 @@ public class JaxrsResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(0));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
 	}
-	
+
 	@Test
-	public void shouldReportProblemOnCustomerResourceMethodWithHyphenCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithHyphenCharacterInPathParamInFirstPlace()
+			throws CoreException, ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{-id}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"-id\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -458,22 +477,24 @@ public class JaxrsResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(4));
-		for(IMarker marker : markers) {
-			assertThat((String)marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String)marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE), equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
+		for (IMarker marker : markers) {
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 	}
-	
-
 
 	@Test
-	public void shouldValidateCustomerResourceMethodWithUnderscoreCharacterInPathParam() throws CoreException, ValidationException {
+	public void shouldValidateCustomerResourceMethodWithUnderscoreCharacterInPathParam() throws CoreException,
+			ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i_d}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"i_d\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -484,14 +505,17 @@ public class JaxrsResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(0));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
 	}
-	
+
 	@Test
-	public void shouldReportProblemOnCustomerResourceMethodWithUnderscoreCharacterInPathParamInFirstPlace() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithUnderscoreCharacterInPathParamInFirstPlace()
+			throws CoreException, ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{_id}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"_id\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -500,22 +524,24 @@ public class JaxrsResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(4));
-		for(IMarker marker : markers) {
-			assertThat((String)marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String)marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE), equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
+		for (IMarker marker : markers) {
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 	}
-	
-
 
 	@Test
-	public void shouldReportProblemOnCustomerResourceMethodWithAtCharacterInPathParam() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithAtCharacterInPathParam() throws CoreException,
+			ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i@d}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"i@d\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -524,20 +550,24 @@ public class JaxrsResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(4));
-		for(IMarker marker : markers) {
-			assertThat((String)marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String)marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE), equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
+		for (IMarker marker : markers) {
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 	}
 
 	@Test
-	public void shouldReportProblemOnCustomerResourceMethodWithSingleCharacterInPathParam() throws CoreException, ValidationException {
+	public void shouldReportProblemOnCustomerResourceMethodWithSingleCharacterInPathParam() throws CoreException,
+			ValidationException {
 		// preconditions
-		final IType customerJavaType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType customerJavaType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"i\")", false);
-		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel.findElement(customerJavaType);
+		final AbstractJaxrsBaseElement customerResource = (AbstractJaxrsBaseElement) metamodel
+				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -547,22 +577,63 @@ public class JaxrsResourceValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
 	}
-	
+
 	@Test
 	public void shouldValidateMethodWithPathParamBoundToField() throws CoreException, ValidationException {
 		// pre-conditions
-		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
-				"CarResource.txt", "org.jboss.tools.ws.jaxrs.sample.services",
-				"CarResource.java");
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
 		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper,
-				context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(carResource);
 		assertThat(markers.length, equalTo(0));
 	}
-	
 
+	@Test
+	public void shouldValidateMethodParams() throws CoreException, ValidationException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("Car.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Car.java");
+		metamodelMonitor.createCompilationUnit("CarValueOf.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"CarValueOf.java");
+		metamodelMonitor.createCompilationUnit("CarFromString.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"CarFromString.java");
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("CarResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "CarResource.java");
+		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(carResource);
+		assertThat(markers.length, equalTo(0));
+	}
+
+	@Test
+	public void shouldReportProblemsOnAllMethodParams() throws CoreException, ValidationException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("TruckResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
+		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(carResource);
+		assertThat(markers.length, equalTo(6));
+		for (IMarker marker : markers) {
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
+		}
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+
+	}
+	
 }

@@ -100,5 +100,7 @@ public interface JaxrsClassnames {
 	public static final String REQUEST_SCOPED = "javax.enterprise.context.RequestScoped";
 
 	public static final String URI_BUILDER = "javax.ws.rs.core.UriBuilder";
+
+	public static final String PARAM_CONVERTER_PROVIDER = "javax.ws.rs.ext.ParamConverterProvider";
 	
 }

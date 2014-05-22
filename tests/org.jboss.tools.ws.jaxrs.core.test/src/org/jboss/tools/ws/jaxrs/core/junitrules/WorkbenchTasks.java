@@ -145,7 +145,7 @@ public class WorkbenchTasks {
 			IMarker[] projectMarkers = project.findMarkers(null, true, IResource.DEPTH_INFINITE);
 			for(IMarker marker : projectMarkers) {
 				if(marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_ERROR) {
-					System.err.println(" " + marker.getAttribute(IMarker.MESSAGE, ""));
+					System.out.println(" " + marker.getAttribute(IMarker.MESSAGE, ""));
 				}
 			}
 			return project;
