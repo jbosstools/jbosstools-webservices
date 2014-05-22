@@ -10,17 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.APPLICATION_JAVA;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.APPLICATION_WEBXML;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.CONTAINER_FILTER;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.CONTAINER_REQUEST_FILTER;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.CONTAINER_RESPONSE_FILTER;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ENTITY_INTERCEPTOR;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ENTITY_READER_INTERCEPTOR;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ENTITY_WRITER_INTERCEPTOR;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.NAME_BINDING;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ROOT_RESOURCE;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.SUBRESOURCE;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.*;
 
 import java.util.ArrayList;
@@ -58,6 +47,7 @@ import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsShadowElementsCache;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
@@ -226,16 +216,15 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	}
 
 	/**
-	 * Analyzes the changed resources in comparison with their known corresponding {@link EnumElementKind} in the {@link JaxrsElementsCache}.
+	 * Analyzes the changed resources in comparison with their known corresponding {@link EnumElementKind} in the {@link JaxrsShadowElementsCache}.
 	 * @param changedResources the resource that changed
 	 * @return the set of element types that changed.
 	 */
 	private Set<EnumElementKind> analyzeChangeResources(final JaxrsMetamodel metamodel, final IFile[] changedResources) {
 		final Set<EnumElementKind> elementKindChanges = new HashSet<EnumElementKind>();
-		final JaxrsElementsCache elementsCache = JaxrsElementsCache.getInstance();
 		for(IFile changedResource : changedResources) {
 			// retrieve the previous known element kind associated with this resource
-			final EnumElementKind previousElementKind = elementsCache.lookup(metamodel, changedResource);
+			final EnumElementKind previousElementKind = metamodel.getShadowElementKind(changedResource);
 			// now, see what the metamodel has for this resource
 			final IJaxrsElement currentElement = metamodel.findElement(changedResource);
 			// now, let's add the data we have: both the old and the new, in case of changes (addition, deletion and even change...)
@@ -247,9 +236,9 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			}
 			// let's update the cache for the resource, from the current element
 			if(currentElement == null) {
-				elementsCache.unindex(metamodel, changedResource);
+				metamodel.removeShadowedElement(changedResource);
 			} else {
-				elementsCache.index(currentElement);
+				metamodel.addShadowedElement(currentElement);
 			}
 		}
 		return elementKindChanges;
@@ -404,7 +393,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 			if (metamodel != null) {
 				// immediately index the JAX-RS elements for this metamodel
-				JaxrsElementsCache.getInstance().index(metamodel);
+				//metamodel.getShadowElements().reset();
 				final int previousProblemLevel = metamodel.getProblemLevel();
 				final List<IJaxrsElement> allElements = metamodel.getAllElements();
 				for (IJaxrsElement element : allElements) {
