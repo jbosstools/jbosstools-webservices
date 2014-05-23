@@ -151,19 +151,19 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 	private Button removeMediaTypesButton = null;
 
 	/** Flag to create the 'findById()' stub method. Default to {@code true}. */
-	private boolean includeFindByIdMethod = true;
+	private boolean includeFindByIdMethod = false;
 
 	/** Flag to create the 'listAll()' stub method. Default to {@code true}. */
-	private boolean includeListAllMethod = true;
+	private boolean includeListAllMethod = false;
 
 	/** Flag to create the 'create()' stub method. Default to {@code true}. */
-	private boolean includeCreateMethod = true;
+	private boolean includeCreateMethod = false;
 
 	/** Flag to create the 'update()' stub method. Default to {@code true}. */
-	private boolean includeUpdateMethod = true;
+	private boolean includeUpdateMethod = false;
 
 	/** Flag to create the 'update()' stub method. Default to {@code true}. */
-	private boolean includeDeleteByIdMethod = true;
+	private boolean includeDeleteByIdMethod = false;
 
 	/** The Target class associated with the JAX-RS Resource to create. */
 	private String targetClass = "";
@@ -346,7 +346,7 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 	private void createTargetClassControls(final Composite composite) {
 		// target class
 		final Label targetClassLabel = new Label(composite, SWT.NONE);
-		targetClassLabel.setText("Target class:");
+		targetClassLabel.setText("Target entity:");
 		GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(false, false).applyTo(targetClassLabel);
 		this.targetClassText = new Text(composite, SWT.BORDER);
 		this.targetClassText.setText(this.targetClass);

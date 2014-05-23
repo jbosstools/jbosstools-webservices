@@ -153,6 +153,7 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	 *            calling the Wizard.
 	 */
 	public void setDefaultValues(final IStructuredSelection selection) {
+		setSuperClass(JaxrsClassnames.APPLICATION, false);
 		final IJavaElement selectedJavaElement = getInitialJavaElement(selection);
 		if (selectedJavaElement instanceof IPackageFragment) {
 			setDefaultValues((IPackageFragment) selectedJavaElement);
@@ -316,7 +317,7 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 		createContainerControls(javaApplicationControlsContainer, nColumns);
 		createPackageControls(javaApplicationControlsContainer, nColumns);
 		createTypeNameControls(javaApplicationControlsContainer, nColumns);
-		createSuperClassControls(javaApplicationControlsContainer, nColumns);
+		//createSuperClassControls(javaApplicationControlsContainer, nColumns);
 
 		final Label applicationPathLabel = new Label(javaApplicationControlsContainer, SWT.NONE);
 		applicationPathLabel.setText("Application path:");
