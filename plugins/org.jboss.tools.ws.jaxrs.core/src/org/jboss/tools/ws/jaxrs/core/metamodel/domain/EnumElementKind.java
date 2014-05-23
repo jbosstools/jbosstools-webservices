@@ -48,10 +48,12 @@ public enum EnumElementKind {
 	ENTITY_INTERCEPTOR(EnumElementCategory.PROVIDER),
 	/** An Interceptor/Filter Name Binding Annotation.*/
 	NAME_BINDING(EnumElementCategory.NAME_BINDING),
-	
 	/** Undefined Provider. */
 	UNDEFINED_PROVIDER(EnumElementCategory.PROVIDER),
 	
+	/** Param Converter Provider. */
+	PARAM_CONVERTER_PROVIDER(EnumElementCategory.PARAM_CONVERTER_PROVIDER),
+
 	/** A root resource. */
 	ROOT_RESOURCE(EnumElementCategory.RESOURCE),
 	/** A subresource. */

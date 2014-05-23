@@ -447,6 +447,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			return new JaxrsHttpMethodValidatorDelegate(this);
 		case NAME_BINDING:
 			return new JaxrsNameBindingValidatorDelegate(this);
+		case PARAM_CONVERTER_PROVIDER:
+			return new JaxrsParamConverterProviderValidatorDelegate(this);
 		case PROVIDER:
 			return new JaxrsProviderValidatorDelegate(this);
 		case RESOURCE:

@@ -82,6 +82,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
@@ -1446,6 +1447,22 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			readWriteLock.readLock().lock();
 			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
+			return searchJaxrsElements(projectTerm, categoryTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
+	}
+	
+	/**
+	 * Search for all JAX-RS ParamConverterProviders.
+	 * 
+	 * @return the JAX-RS ParamConverterProviders or empty list if none found
+	 */
+	public List<IJaxrsParamConverterProvider> findAllParamConverterProviders() {
+		try {
+			readWriteLock.readLock().lock();
+			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PARAM_CONVERTER_PROVIDER.toString());
 			return searchJaxrsElements(projectTerm, categoryTerm);
 		} finally {
 			readWriteLock.readLock().unlock();

@@ -40,6 +40,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
@@ -103,6 +104,12 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	 * @see JaxrsParameterValidatorDelegate
 	 */
 	private void validateParameterTypes(final JaxrsResourceMethod resourceMethod) throws CoreException {
+		// for now, we bypass this validation if the metamodel has at least one ParamConverterProvider
+		final List<IJaxrsParamConverterProvider> allParamConverterProviders = resourceMethod.getMetamodel().findAllParamConverterProviders();
+		if(allParamConverterProviders != null && ! allParamConverterProviders.isEmpty()) {
+			return;
+		}
+		
 		final JaxrsParameterValidatorDelegate parameterValidatorDelegate = new JaxrsParameterValidatorDelegate();
 		final List<JavaMethodParameter> methodParameters = resourceMethod.getJavaMethodParameters();
 		for (JavaMethodParameter methodParameter : methodParameters) {

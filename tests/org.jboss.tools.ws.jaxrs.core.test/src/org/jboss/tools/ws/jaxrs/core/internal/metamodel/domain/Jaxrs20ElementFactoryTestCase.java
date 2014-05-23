@@ -25,6 +25,7 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Before;
@@ -149,6 +150,23 @@ public class Jaxrs20ElementFactoryTestCase {
 		assertThat(nameBinding.getElementKind(), equalTo(EnumElementKind.NAME_BINDING));
 		assertThat(metamodel.findAllNameBindings().size(), equalTo(1));
 		assertThat(metamodel.findAllNameBindings().get(0), equalTo((IJaxrsNameBinding)nameBinding));
+	}
+
+	@Test
+	public void shouldCreateParamConverterProviderFromType() throws CoreException {
+		// pre-conditions
+		final IType providerType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CarParamConverterProvider");
+		// operation
+		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(providerType,
+				JdtUtils.parse(providerType, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		// verifications
+		assertThat(elements.size(), equalTo(1));
+		final JaxrsParamConverterProvider paramConverterProvider = (JaxrsParamConverterProvider) (elements.get(0));
+		assertThat(paramConverterProvider.getAnnotations().size(), equalTo(1));
+		assertThat(paramConverterProvider.getElementKind(), equalTo(EnumElementKind.PARAM_CONVERTER_PROVIDER));
+		assertThat(metamodel.findAllParamConverterProviders().size(), equalTo(1));
+		assertThat(metamodel.findAllParamConverterProviders().get(0), equalTo((IJaxrsParamConverterProvider)paramConverterProvider));
 	}
 	
 	

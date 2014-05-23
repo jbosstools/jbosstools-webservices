@@ -15,7 +15,7 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPPER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.*;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.NAME_BINDING;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
@@ -89,8 +89,8 @@ public final class JavaElementsSearcher {
 	}
 
 	/**
-	 * Returns all JAX-RS providers in the given scope (ex : javaProject), ie, types annotated with
-	 * <code>javax.ws.rs.ext.Provider</code> annotation.
+	 * Returns all potential JAX-RS providers in the given scope (ex : javaProject), ie, types annotated with
+	 * <code>javax.ws.rs.ext.Provider</code> annotation or extending some expected interfaces.
 	 * 
 	 * 
 	 * @param scope
@@ -129,6 +129,41 @@ public final class JavaElementsSearcher {
 		}
 	}
 
+	/**
+	 * Returns all JAX-RS ParamConverter Providers in the given scope (ex : javaProject), ie, types annotated with
+	 * <code>javax.ws.rs.ext.Provider</code> annotation or implementing {@code java.ws.rs.ext.ParamConverterProvider}.
+	 * 
+	 * 
+	 * @param scope
+	 *            the search scope (project, compilation unit, type, etc.)
+	 * @param includeLibraries
+	 *            include project libraries in search scope or not
+	 * @param progressMonitor
+	 *            the progress monitor
+	 * @return providers the JAX-RS provider types
+	 * @throws CoreException
+	 *             in case of exception
+	 */
+	public static List<IType> findParamConverterProviderTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
+			throws CoreException {
+		final long start = System.currentTimeMillis();
+		try {
+			final List<IType> providerTypes = new ArrayList<IType>();
+			final IJavaSearchScope searchScope = createSearchScope(scope);
+			final List<IType> annotatedTypes = searchForAnnotatedTypes(PROVIDER, searchScope,
+					progressMonitor);
+			providerTypes.addAll(annotatedTypes);
+			// also search for subtypes 
+			final List<IType> paramConverterProviderSubtypes = findSubtypes(scope, PARAM_CONVERTER_PROVIDER,
+					progressMonitor);
+			providerTypes.addAll(CollectionUtils.difference(paramConverterProviderSubtypes, providerTypes));
+			return providerTypes;
+		} finally {
+			final long end = System.currentTimeMillis();
+			Logger.tracePerf("Found Provider types in scope {} in {}ms", scope.getElementName(), (end - start));
+		}
+	}
+	
 	/**
 	 * @param scope
 	 * @param progressMonitor

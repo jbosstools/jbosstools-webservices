@@ -86,6 +86,7 @@ public class ValidationUtils {
 			case HTTP_METHOD:
 			case NAME_BINDING:
 			case PROVIDER:
+			case PARAM_CONVERTER_PROVIDER:
 			case RESOURCE:
 				for (IMarker marker : elementMarkers) {
 					markers.add(marker);

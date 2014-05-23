@@ -50,11 +50,12 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * <p>
- * JAX-RS Provider class <strong>Providers</strong> fall into 5 categories:
+ * JAX-RS Providers fall into 5 categories:
  * <ul>
  * <li>Entity Providers: the class must implement
  * <code>javax.ws.rs.ext.MessageBodyReader</code> and/or
@@ -182,6 +183,13 @@ public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxr
 				if (subtypes != null && subtypes.length > 0) {
 					return null;
 				}
+				// skip if type implements ParamConverterProvider
+				final IType paramConverterProviderSupertype = JdtUtils.resolveType(JaxrsClassnames.PARAM_CONVERTER_PROVIDER,
+						javaType.getJavaProject(), new NullProgressMonitor());
+				if(JdtUtils.isTypeOrSuperType(paramConverterProviderSupertype, javaType)) {
+					return null;
+				}
+				
 				// retrieve the kind of provider from the implemented interfaces of the given java type
 				this.providedKinds = getProvidedKinds(javaType, ast, providerTypeHierarchy, new NullProgressMonitor());
 				// retrieve all annotations, including NameBinginds

@@ -138,6 +138,12 @@ public class JaxrsElementFactory {
 				elements.add(nameBinding);
 				return elements;
 			}
+			// now,let's see if the given type can be a ParamConverterProvider
+			final JaxrsParamConverterProvider paramConverterProvider = JaxrsParamConverterProvider.from(type, ast).withMetamodel(metamodel).build();
+			if (paramConverterProvider != null) {
+				elements.add(paramConverterProvider);
+				return elements;
+			}
 			// now,let's see if the given type can be a Provider
 			final JaxrsProvider provider = JaxrsProvider.from(type, ast).withMetamodel(metamodel).build();
 			if (provider != null) {
@@ -194,6 +200,14 @@ public class JaxrsElementFactory {
 				elements.add(resource);
 				elements.addAll(resource.getAllMethods());
 				elements.addAll(resource.getAllFields());
+			}
+		}
+		// now,let's see if the given type can be a ParamConverterProvider
+		final List<IType> matchingParamConverterProviderTypes = JavaElementsSearcher.findParamConverterProviderTypes(scope, progressMonitor);
+		for (IType type : matchingParamConverterProviderTypes) {
+			final JaxrsParamConverterProvider paramConverterProvider = JaxrsParamConverterProvider.from(type).withMetamodel(metamodel).build();
+			if (paramConverterProvider != null) {
+				elements.add(paramConverterProvider);
 			}
 		}
 		// let's see if the given scope contains JAX-RS Providers

@@ -9,12 +9,15 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -75,7 +78,14 @@ public class Jaxrs20MetamodelTestCase {
 		for(IJaxrsElement element : allElements) {
 			LOGGER.debug(element.toString());
 		}
-		assertThat(allElements.size(), equalTo(33));
+		assertThat(allElements.size(), equalTo(36));
+	}
+	
+	@Test
+	public void shouldRetrieveParamConverterProvider() throws CoreException {
+		final IType paramConverterProviderType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CarParamConverterProvider");
+		final JaxrsParamConverterProvider paramConverterProvider = (JaxrsParamConverterProvider) metamodel.findElement(paramConverterProviderType);
+		Assert.assertNotNull("ParamConverterProvider not found", paramConverterProvider);
 	}
 	
 }

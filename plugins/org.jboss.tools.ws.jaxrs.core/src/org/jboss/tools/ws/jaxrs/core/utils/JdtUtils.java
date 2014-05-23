@@ -1167,9 +1167,9 @@ public final class JdtUtils {
 		}
 		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(subType,
 				subType.getJavaProject(), true, new NullProgressMonitor());
-		final List<IType> allSuperclasses = Arrays.asList(hierarchy
-				.getAllSuperclasses(subType));
-		for (IType type : allSuperclasses) {
+		final List<IType> allSupertypes = Arrays.asList(hierarchy
+				.getAllSupertypes(subType));
+		for (IType type : allSupertypes) {
 			if (type.getHandleIdentifier().equals(
 					superType.getHandleIdentifier())) {
 				return true;

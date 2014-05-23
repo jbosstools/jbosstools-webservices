@@ -108,6 +108,11 @@ public class JaxrsNameBindingValidatorTestCase {
 	@Test
 	public void shouldValidateNameBinding() throws CoreException, ValidationException {
 		// preconditions
+		// delete CarResource that has param validation errors
+		
+		final IType carResourceType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CarResource");
+		carResourceType.getResource().delete(true, null);
 		final IType customNameBindingType = metamodelMonitor
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding");
 		final AbstractJaxrsBaseElement customNameBinding = (AbstractJaxrsBaseElement) metamodel

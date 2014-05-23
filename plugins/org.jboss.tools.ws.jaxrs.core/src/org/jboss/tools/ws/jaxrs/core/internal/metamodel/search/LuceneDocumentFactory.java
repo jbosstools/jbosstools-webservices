@@ -50,6 +50,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJava
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
@@ -189,6 +190,8 @@ public class LuceneDocumentFactory {
 			return createHttpMethodDocument((JaxrsHttpMethod) element);
 		case NAME_BINDING:
 			return createNameBindingDocument((JaxrsNameBinding) element);
+		case PARAM_CONVERTER_PROVIDER:
+			return createParamConverterProviderDocument((JaxrsParamConverterProvider) element);
 		case PROVIDER:
 			return createProviderDocument((JaxrsProvider) element);
 		case RESOURCE:
@@ -197,7 +200,8 @@ public class LuceneDocumentFactory {
 			return createResourceFieldDocument((JaxrsResourceField) element);
 		case RESOURCE_METHOD:
 			return createResourceMethodDocument((JaxrsResourceMethod) element);
-		default:
+		case ENDPOINT:
+		case UNDEFINED:
 			break;
 		}
 		return null;
@@ -403,7 +407,7 @@ public class LuceneDocumentFactory {
 	/**
 	 * Initializes a Lucene Document for the given JAX-RS Provider.
 	 * 
-	 * @param httpMethod
+	 * @param provider
 	 *            the JAX-RS Provider
 	 * @return the document.
 	 */
@@ -416,6 +420,19 @@ public class LuceneDocumentFactory {
 		}
 		addFieldToDocument(document, FIELD_CONSUMED_MEDIA_TYPE, provider.getConsumedMediaTypes());
 		addFieldToDocument(document, FIELD_PRODUCED_MEDIA_TYPE, provider.getProducedMediaTypes());
+		return document;
+	}
+
+	/**
+	 * Initializes a Lucene Document for the given JAX-RS ParamConverterProvider.
+	 * 
+	 * @param paramConverterProvider
+	 *            the JAX-RS ParamConverterProviderDocument
+	 * @return the document.
+	 */
+	private static Document createParamConverterProviderDocument(final JaxrsParamConverterProvider paramConverterProvider) {
+		final Document document = createBaseDocument(paramConverterProvider);
+		
 		return document;
 	}
 
