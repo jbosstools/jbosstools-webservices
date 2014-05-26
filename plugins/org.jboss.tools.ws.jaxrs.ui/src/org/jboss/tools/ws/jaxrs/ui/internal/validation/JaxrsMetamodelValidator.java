@@ -69,7 +69,7 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 public class JaxrsMetamodelValidator extends TempMarkerManager implements IValidator, IAsYouTypeValidator,
 		IMarkerManager {
 	/** ID of the Preference Page. */
-	private static final String PREFERENCE_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui.preferencePages.JAXRSValidatorPreferencePage";
+	private static final String PREFERENCE_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui.preferencePages.JaxrsValidatorPreferencePage";
 	/** ID of the Property Page. */
 	private static final String PROPERTY_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui.propertyPages.JaxrsValidatorPreferencePage";
 	/** The JAX-RS Validator ID. */
