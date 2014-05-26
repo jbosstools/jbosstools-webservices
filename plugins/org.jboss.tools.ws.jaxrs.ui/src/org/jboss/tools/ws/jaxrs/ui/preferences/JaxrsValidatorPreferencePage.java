@@ -25,9 +25,9 @@ import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 public class JaxrsValidatorPreferencePage extends SeverityPreferencePage {
 
 	/** The JAX-RS Validation preference page ID (at the workspace level). */
-	public static final String PREF_ID = "org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsValidatorPreferencePage"; //$NON-NLS-1$
+	public static final String PREF_ID = "org.jboss.tools.ws.jaxrs.ui.preferencePages.JaxrsValidatorPreferencePage"; //$NON-NLS-1$
 	/** The JAX-RS Validation property page ID (at the project level). */
-	public static final String PROP_ID = "org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsValidatorPreferencePage"; //$NON-NLS-1$
+	public static final String PROP_ID = "org.jboss.tools.ws.jaxrs.ui.propertyPages.JaxrsValidatorPreferencePage"; //$NON-NLS-1$
 
 	public JaxrsValidatorPreferencePage() {
 		setPreferenceStore(JBossJaxrsUIPlugin.getDefault().getPreferenceStore());
