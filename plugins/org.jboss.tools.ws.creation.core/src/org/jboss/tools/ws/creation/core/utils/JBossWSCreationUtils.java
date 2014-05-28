@@ -62,6 +62,7 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.IRuntimeType;
 import org.eclipse.wst.server.core.ServerCore;
+import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
 import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
@@ -299,12 +300,9 @@ public class JBossWSCreationUtils {
 
     		if (prjFacetRuntime != null) {
     			IRuntime serverRuntime = getRuntime(prjFacetRuntime);
-    			String runtimeTypeName = serverRuntime.getRuntimeType().getName();
-    			if (runtimeTypeName == null) {
-    				runtimeTypeName = ""; //$NON-NLS-1$
-    			}
-    			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0 || //$NON-NLS-1$
-    					runtimeTypeName.toUpperCase().indexOf("WILDFLY") >= 0) { //$NON-NLS-1$
+    			String runtimeTypeId = serverRuntime.getRuntimeType().getId();
+    			if (runtimeTypeId != null && 
+    					Arrays.asList(IJBossToolingConstants.ALL_JBOSS_RUNTIMES).contains(runtimeTypeId)) {
     				String runtimeLocation = serverRuntime.getLocation()
     						.toOSString();
     				if (runtimeLocation.endsWith("bin")) { //$NON-NLS-1$
