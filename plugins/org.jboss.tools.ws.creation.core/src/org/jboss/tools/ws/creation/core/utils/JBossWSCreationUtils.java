@@ -303,7 +303,8 @@ public class JBossWSCreationUtils {
     			if (runtimeTypeName == null) {
     				runtimeTypeName = ""; //$NON-NLS-1$
     			}
-    			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0) { //$NON-NLS-1$
+    			if (runtimeTypeName.toUpperCase().indexOf("JBOSS") >= 0 || //$NON-NLS-1$
+    					runtimeTypeName.toUpperCase().indexOf("WILDFLY") >= 0) { //$NON-NLS-1$
     				String runtimeLocation = serverRuntime.getLocation()
     						.toOSString();
     				if (runtimeLocation.endsWith("bin")) { //$NON-NLS-1$
