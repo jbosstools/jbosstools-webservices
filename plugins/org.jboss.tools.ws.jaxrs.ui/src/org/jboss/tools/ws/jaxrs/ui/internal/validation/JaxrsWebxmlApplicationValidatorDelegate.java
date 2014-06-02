@@ -22,9 +22,14 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  */
 public class JaxrsWebxmlApplicationValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsWebxmlApplication> {
 
+	/** The underlying marker manager.*/
 	@SuppressWarnings("unused")
 	private final IMarkerManager markerManager;
-	
+
+	/**
+	 * Constructor
+	 * @param markerManager the underlying marker manager to use
+	 */
 	public JaxrsWebxmlApplicationValidatorDelegate(final IMarkerManager markerManager) {
 		this.markerManager = markerManager;
 	}

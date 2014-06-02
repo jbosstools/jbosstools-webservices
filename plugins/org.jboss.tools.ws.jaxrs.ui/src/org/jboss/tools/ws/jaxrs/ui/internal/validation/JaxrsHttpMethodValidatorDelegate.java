@@ -34,8 +34,13 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  */
 public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsHttpMethod> {
 
+	/** The underlying marker manager.*/
 	private final IMarkerManager markerManager;
 
+	/**
+	 * Constructor
+	 * @param markerManager the underlying marker manager to use
+	 */
 	public JaxrsHttpMethodValidatorDelegate(final IMarkerManager markerManager) {
 		this.markerManager = markerManager;
 	}

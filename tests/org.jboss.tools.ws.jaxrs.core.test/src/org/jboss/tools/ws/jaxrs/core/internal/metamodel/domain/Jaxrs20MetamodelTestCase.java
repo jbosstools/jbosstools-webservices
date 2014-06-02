@@ -16,7 +16,6 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;

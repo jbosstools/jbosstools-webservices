@@ -381,10 +381,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 					boolean match = false;
 					final JavaMethodParameter pathParameter = resourceMethod.getJavaMethodParameterByAnnotationBinding(pathArg);
 					if (pathParameter != null) {
-						pathTemplateBuilder.append('{').append(pathArg)
-								.append(":")
-								.append(pathParameter.getType().getDisplayableTypeName())
-								.append('}');
+						pathTemplateBuilder.append('{').append(pathArg);
+						if (pathParameter.getType() != null) {
+							pathTemplateBuilder.append(":").append(pathParameter.getType().getDisplayableTypeName());
+						}
+						pathTemplateBuilder.append('}');
 						match = true;
 					}
 					if (!match) {
@@ -450,8 +451,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 					final JavaMethodParameter pathParameter = ((JaxrsResourceMethod) resourceMethod)
 							.getJavaMethodParameterByAnnotationBinding(pathArg);
 					if (pathParameter != null) {
-						pathTemplateBuilder.append('{').append(pathArg).append(":")
-								.append(pathParameter.getType().getDisplayableTypeName()).append('}');
+						pathTemplateBuilder.append('{').append(pathArg);
+						if (pathParameter.getType() != null) {
+							pathTemplateBuilder.append(":").append(pathParameter.getType().getDisplayableTypeName());
+						}
+						pathTemplateBuilder.append('}');
 						match = true;
 					}
 					if (!match) {
@@ -542,10 +546,13 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			if(queryParamFieldAnnotationValues.contains(queryParamAnnotationValue)) {
 				continue;
 			}
-			queryParamBuilder.append(queryParamAnnotationValue).append("={")
-					.append(queryParamArg.getType().getDisplayableTypeName());
-			if(queryParamArg.hasAnnotation(JaxrsClassnames.DEFAULT_VALUE)) {
-				queryParamBuilder.append(':').append(queryParamArg.getAnnotation(JaxrsClassnames.DEFAULT_VALUE).getValue());
+			queryParamBuilder.append(queryParamAnnotationValue);
+			if (queryParamArg.getType() != null) {
+				queryParamBuilder.append("={").append(queryParamArg.getType().getDisplayableTypeName());
+				if (queryParamArg.hasAnnotation(JaxrsClassnames.DEFAULT_VALUE)) {
+					queryParamBuilder.append(':').append(
+							queryParamArg.getAnnotation(JaxrsClassnames.DEFAULT_VALUE).getValue());
+				}
 			}
 			final String queryParam = queryParamBuilder.append('}').toString();
 			queryParams.add(queryParam);

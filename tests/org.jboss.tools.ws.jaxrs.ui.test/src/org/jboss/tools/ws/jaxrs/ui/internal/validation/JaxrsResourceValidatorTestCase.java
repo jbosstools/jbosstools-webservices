@@ -620,6 +620,26 @@ public class JaxrsResourceValidatorTestCase {
 	}
 
 	@Test
+	public void shouldValidateFieldParams() throws CoreException, ValidationException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("Car.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Car.java");
+		metamodelMonitor.createCompilationUnit("CarValueOf.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"CarValueOf.java");
+		metamodelMonitor.createCompilationUnit("CarFromString.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"CarFromString.java");
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("CarResourceWithFields.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "CarResource.java");
+		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(carResource);
+		assertThat(markers.length, equalTo(0));
+	}
+
+	@Test
 	public void shouldReportProblemsOnAllMethodParams() throws CoreException, ValidationException {
 		// pre-conditions
 		metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
@@ -640,6 +660,29 @@ public class JaxrsResourceValidatorTestCase {
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 
+	}
+
+	@Test
+	public void shouldReportProblemsOnAllFieldParams() throws CoreException, ValidationException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("TruckResourceWithFields.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
+		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(carResource);
+		assertThat(markers.length, equalTo(6));
+		for (IMarker marker : markers) {
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
+		}
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		
 	}
 	
 }

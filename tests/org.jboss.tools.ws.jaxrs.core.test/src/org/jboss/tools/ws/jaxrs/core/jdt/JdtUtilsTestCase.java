@@ -67,6 +67,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.ParameterType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -954,9 +955,9 @@ public class JdtUtilsTestCase {
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = type.getField("_foo");
 		// operation
-		final String fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
+		final ParameterType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
 		// verification
-		assertThat(fieldType, equalTo(String.class.getName()));
+		assertThat(fieldType.getQualifiedName(), equalTo(String.class.getName()));
 	}
 
 	@Test
@@ -966,9 +967,9 @@ public class JdtUtilsTestCase {
 		replaceFirstOccurrenceOfCode(type, "String _foo", "int _foo", false);
 		final IField field = type.getField("_foo");
 		// operation
-		final String fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
+		final ParameterType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
 		// verification
-		assertThat(fieldType, equalTo("int"));
+		assertThat(fieldType.getQualifiedName(), equalTo("int"));
 	}
 
 	@Test
@@ -977,7 +978,7 @@ public class JdtUtilsTestCase {
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = type.getField("unknown");
 		// operation
-		final String fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
+		final ParameterType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
 		// verification
 		assertThat(fieldType, nullValue());
 	}

@@ -10,6 +10,11 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -28,6 +33,16 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  */
 public abstract class AbstractJaxrsElementValidatorDelegate<T extends AbstractJaxrsBaseElement> implements IJaxrsElementValidator<T> {
 	
+	/**
+	 * The parameter type names that can be annotated with <code>Context</code>.
+	 */
+	protected final static List<String> CONTEXT_TYPE_NAMES = new ArrayList<String>(Arrays.asList(
+			"javax.ws.rs.core.HttpHeaders", "javax.ws.rs.core.UriInfo", "javax.ws.rs.core.Request",
+			"javax.servlet.http.HttpServletRequest", "javax.servlet.http.HttpServletResponse",
+			"javax.servlet.ServletConfig", "javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext"));
+
+	protected static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]([a-zA-Z1-9]|\\.|-|_)*");
+
 	/**
 	 * Validates the given {@link IJaxrsElement}.
 	 * @param element the JAX-RS element to validate

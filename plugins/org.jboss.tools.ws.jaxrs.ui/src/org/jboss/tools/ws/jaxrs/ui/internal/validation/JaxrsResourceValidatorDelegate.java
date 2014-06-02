@@ -20,8 +20,10 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
@@ -34,8 +36,14 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  * 
  */
 public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsResource> {
+	
+	/** The underlying marker manager.*/
 	private final IMarkerManager markerManager;
 
+	/**
+	 * Constructor
+	 * @param markerManager the underlying marker manager to use
+	 */
 	public JaxrsResourceValidatorDelegate(final IMarkerManager markerManager) {
 		this.markerManager = markerManager;
 	}
@@ -50,6 +58,9 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 		validateAtLeastOneProviderWithBinding(resource);
 		for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
 			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod);
+		}
+		for (IJaxrsResourceField resourceField : resource.getAllFields()) {
+			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField);
 		}
 	}
 

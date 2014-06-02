@@ -37,8 +37,13 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  */
 public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsJavaApplication> {
 
+	/** The underlying marker manager.*/
 	private final IMarkerManager markerManager;
-	
+
+	/**
+	 * Constructor
+	 * @param markerManager the underlying marker manager to use
+	 */
 	public JaxrsJavaApplicationValidatorDelegate(final IMarkerManager markerManager) {
 		this.markerManager = markerManager;
 	}

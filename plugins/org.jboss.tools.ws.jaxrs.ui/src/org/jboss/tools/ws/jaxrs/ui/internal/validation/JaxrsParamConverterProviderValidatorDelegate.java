@@ -11,9 +11,6 @@
 
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
@@ -41,16 +38,12 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  */
 public class JaxrsParamConverterProviderValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsParamConverterProvider> {
 
-	private final static List<String> CONTEXT_TYPE_NAMES = new ArrayList<String>(Arrays.asList(
-			"javax.ws.rs.core.UriInfo", "javax.servlet.ServletConfig", "javax.servlet.ServletContext",
-			"javax.ws.rs.core.SecurityContext"));
-
+	/** The underlying marker manager.*/
 	private final IMarkerManager markerManager;
-	
+
 	/**
-	 * Constructor.
-	 * 
-	 * @param markerManager
+	 * Constructor
+	 * @param markerManager the underlying marker manager to use
 	 */
 	public JaxrsParamConverterProviderValidatorDelegate(final IMarkerManager markerManager) {
 		this.markerManager = markerManager;

@@ -39,6 +39,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.utils.ParameterType;
 
 /**
  * JAX-RS Resource Field.
@@ -75,7 +76,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		private Map<String, Annotation> annotations;
 		private JaxrsResource parentResource;
 		private JaxrsMetamodel metamodel;
-		private String javaFieldType;
+		private ParameterType javaFieldType;
 
 		private Builder(final IField javaField, final CompilationUnit ast) {
 			this.javaField = javaField;
@@ -130,7 +131,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	}
 	
 	/** The underlying field type. */
-	private final String fieldType;
+	private final ParameterType fieldType;
 
 	/**
 	 * Full constructor.
@@ -207,11 +208,15 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		return getAnnotation(DEFAULT_VALUE);
 	}
 	
-	@Override
-	public String getTypeName() {
+	public ParameterType getType() {
 		return this.fieldType;
 	}
 
+	@Override
+	public String getTypeName() {
+		return this.fieldType.getQualifiedName();
+	}
+	
 	@Override
 	public EnumElementKind getElementKind() {
 		if (getPathParamAnnotation() != null) {

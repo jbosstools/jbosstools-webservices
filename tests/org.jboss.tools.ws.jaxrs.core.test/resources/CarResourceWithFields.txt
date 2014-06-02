@@ -1,0 +1,36 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+
+@Path("/")
+public class CarResource {
+	@PathParam("type")
+	private String type;
+	
+	@PathParam("id") Car car;
+	
+	@PathParam("id2") List<Car> listOfCars;
+	
+	@PathParam("id3") CarFromString carFromString;
+	
+	@PathParam("id4") Set<CarFromString> setOfCarsFromString;
+	
+	@PathParam("id5") CarValueOf valueOfCar;
+	
+	@PathParam("id6") SortedSet<CarValueOf> sortedSetOfValueOfCars;
+	
+	
+	@POST
+	@Path("{type}/{id}") 
+	public Object createCar() {
+		return null;
+	}
+
+}

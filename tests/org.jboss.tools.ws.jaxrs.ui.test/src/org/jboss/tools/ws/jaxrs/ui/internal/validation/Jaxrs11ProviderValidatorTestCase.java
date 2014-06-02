@@ -221,7 +221,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		replaceFirstOccurrenceOfCode(
 						providerType,
 						"public Response toResponse(EntityNotFoundException exception)",
-						"public EntityNotFoundExceptionMapper(@Context HttpServletRequest request) {} public Response toResponse(EntityNotFoundException exception)",
+						"public EntityNotFoundExceptionMapper(@Context String foo) {} public Response toResponse(EntityNotFoundException exception)",
 						false);
 		removeAllElementsExcept(provider);
 		deleteJaxrsMarkers(project);

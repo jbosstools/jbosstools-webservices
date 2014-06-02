@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.SourceRange;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.VariableDeclaration;
@@ -29,19 +30,43 @@ public class ParameterType {
 
 	/**
 	 * Factory method for the {@link ParameterType}
-	 * @param parameter the {@link IVariableBinding} 
+	 * @param declaration the {@link VariableDeclaration} 
 	 * @return the {@link ParameterType}
 	 */
-	public static ParameterType from(final VariableDeclaration parameter) {
-		final IVariableBinding paramBinding = parameter.resolveBinding();
-		final String erasureName = paramBinding.getType().getErasure().getQualifiedName();
-		final List<String> typeArgumentNames = new ArrayList<String>();
-		final ISourceRange nameRange = new SourceRange(parameter.getStartPosition(), parameter.getLength());
-		for(ITypeBinding typeArgumentBinding : paramBinding.getType().getTypeArguments()) {
-			typeArgumentNames.add(typeArgumentBinding.getQualifiedName());
+	public static ParameterType from(final VariableDeclaration declaration) {
+		final IVariableBinding paramBinding = declaration.resolveBinding();
+		if (paramBinding != null) {
+			final String erasureName = paramBinding.getType().getErasure().getQualifiedName();
+			final List<String> typeArgumentNames = new ArrayList<String>();
+			final ISourceRange nameRange = new SourceRange(declaration.getStartPosition(), declaration.getLength());
+			for (ITypeBinding typeArgumentBinding : paramBinding.getType().getTypeArguments()) {
+				typeArgumentNames.add(typeArgumentBinding.getQualifiedName());
+			}
+			return new ParameterType(erasureName, typeArgumentNames, paramBinding.getType().isPrimitive(), nameRange);
 		}
-		return new ParameterType(erasureName, typeArgumentNames, paramBinding.getType().isPrimitive(), nameRange);
+		return null;
 	}
+
+	/**
+	 * Factory method for the {@link ParameterType}
+	 * @param parameter the {@link FieldDeclaration} 
+	 * @return the {@link ParameterType}
+	 */
+	public static ParameterType from(final FieldDeclaration declaration) {
+		final ITypeBinding paramBinding = declaration.getType().resolveBinding();
+		if (paramBinding != null) {
+			final String erasureName = paramBinding.getErasure().getQualifiedName();
+			final List<String> typeArgumentNames = new ArrayList<String>();
+			final ISourceRange nameRange = new SourceRange(declaration.getStartPosition(), declaration.getLength());
+			for (ITypeBinding typeArgumentBinding : paramBinding.getTypeArguments()) {
+				typeArgumentNames.add(typeArgumentBinding.getQualifiedName());
+			}
+			return new ParameterType(erasureName, typeArgumentNames, paramBinding.isPrimitive(), nameRange);
+		}
+		return null;
+	}
+	
+
 
 
 	
@@ -174,6 +199,5 @@ public class ParameterType {
 	public String toString() {
 		return qualifiedName;
 	}
-	
 
 }

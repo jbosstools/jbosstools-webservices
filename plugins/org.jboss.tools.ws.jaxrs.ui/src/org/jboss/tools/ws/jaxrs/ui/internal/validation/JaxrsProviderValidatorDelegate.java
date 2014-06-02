@@ -11,8 +11,6 @@
 
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,10 +48,7 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  */
 public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsProvider> {
 
-	private final static List<String> CONTEXT_TYPE_NAMES = new ArrayList<String>(Arrays.asList(
-			"javax.ws.rs.core.UriInfo", "javax.servlet.ServletConfig", "javax.servlet.ServletContext",
-			"javax.ws.rs.core.SecurityContext"));
-
+	/** The marker manager.*/
 	private final IMarkerManager markerManager;
 	
 	/**

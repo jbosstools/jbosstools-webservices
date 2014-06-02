@@ -19,7 +19,6 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.QUERY_PARAM;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,18 +56,13 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  */
 public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsResourceMethod> {
 
-	/**
-	 * The parameter type names that can be annotated with <code>Context</code>.
-	 */
-	private final static List<String> CONTEXT_TYPE_NAMES = new ArrayList<String>(Arrays.asList(
-			"javax.ws.rs.core.HttpHeaders", "javax.ws.rs.core.UriInfo", "javax.ws.rs.core.Request",
-			"javax.servlet.http.HttpServletRequest", "javax.servlet.http.HttpServletResponse",
-			"javax.servlet.ServletConfig", "javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext"));
-
-	private static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]([a-zA-Z1-9]|\\.|-|_)*");
-
+	/** The underlying marker manager.*/
 	private final IMarkerManager markerManager;
 
+	/**
+	 * Constructor
+	 * @param markerManager the underlying marker manager to use
+	 */
 	public JaxrsResourceMethodValidatorDelegate(final IMarkerManager markerManager) {
 		this.markerManager = markerManager;
 	}
@@ -82,7 +76,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		Logger.debug("Validating element {}", resourceMethod);
 		// markers were already removed at the Resource level, they should *not*
 		// be removed again here (because another resource method
-		// of the same parent resouce may already have been validated and have
+		// of the same parent resource may already have been validated and have
 		// markers created.
 		resourceMethod.resetProblemLevel();
 		validatePublicModifierOnJavaMethod(resourceMethod);

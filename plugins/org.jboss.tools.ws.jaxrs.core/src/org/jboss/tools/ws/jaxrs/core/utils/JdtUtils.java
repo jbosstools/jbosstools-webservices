@@ -62,7 +62,6 @@ import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -1081,7 +1080,7 @@ public final class JdtUtils {
 	 * @return the fully qualified name, or null if it could not be resolved.
 	 * @throws JavaModelException 
 	 */
-	public static String resolveFieldType(final IField javaField, final CompilationUnit ast) {
+	public static ParameterType resolveFieldType(final IField javaField, final CompilationUnit ast) {
 		if (javaField == null || ast == null) {
 			return null;
 		}
@@ -1097,11 +1096,7 @@ public final class JdtUtils {
 				return null;
 			}
 			final FieldDeclaration fieldDeclaration = ((FieldDeclaration) matchNode.getParent().getParent());
-			final Type fieldType = fieldDeclaration.getType();
-			final ITypeBinding fieldTypeBinding = fieldType.resolveBinding();
-			if (fieldTypeBinding != null) {
-				return fieldTypeBinding.getQualifiedName();
-			}
+			return ParameterType.from(fieldDeclaration);
 		} catch (JavaModelException e) {
 			Logger.error("Failed to retrieve type for field " + javaField.getElementName(), e);
 		}
