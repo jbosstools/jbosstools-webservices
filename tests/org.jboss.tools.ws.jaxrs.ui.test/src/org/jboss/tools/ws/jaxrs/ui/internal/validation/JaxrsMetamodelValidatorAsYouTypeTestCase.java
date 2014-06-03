@@ -16,13 +16,18 @@ import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.de
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.junit.Assert.assertThat;
 
+import java.util.Arrays;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.IDocument;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.operations.WorkbenchContext;
@@ -33,8 +38,14 @@ import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -45,7 +56,7 @@ import org.junit.Test;
  * 
  */
 @SuppressWarnings("restriction")
-public class JaxrsMetamodelValidatorTestCase {
+public class JaxrsMetamodelValidatorAsYouTypeTestCase {
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final IProjectValidationContext projectValidationContext = new ProjectValidationContext();
@@ -53,13 +64,15 @@ public class JaxrsMetamodelValidatorTestCase {
 	private final IValidationContext validationContext = new WorkbenchContext();
 	private final ValidatorManager validatorManager = new ValidatorManager();
 	private JaxrsMetamodelValidator metamodelValidator;
-	
+
 	@ClassRule
-	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
-	
+	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule(
+			"org.jboss.tools.ws.jaxrs.tests.sampleproject");
+
 	@Rule
-	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
-	
+	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor(
+			"org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
+
 	private JaxrsMetamodel metamodel = null;
 
 	private IProject project = null;
@@ -74,17 +87,24 @@ public class JaxrsMetamodelValidatorTestCase {
 	@Test
 	public void shouldValidateMetamodel() throws CoreException, ValidationException {
 		// preconditions
-		final IFile changedFile = (IFile)(metamodel.findJavaApplications().get(0).getResource());
-		IDocument document = new Document();
-		editorValidationContext = new EditorValidationContext(project, document);
-		deleteJaxrsMarkers(project);
+		final IType barType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
+		final JaxrsResource barResource = metamodel.findResource(barType);
+		deleteJaxrsMarkers(barResource);
+		metamodelMonitor.resetElementChangesNotifications();
+		final IMethod barMethod = JavaElementsUtils.getMethod(barType, "getContent1");
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(barType.getCompilationUnit(), "getContent1(@PathParam(\"param1\") int id)", "getContent1(@PathParam(\"param3\") int id)", true);
+		final JaxrsResourceMethod barResourceMethod = barResource.getMethods().get(barMethod.getHandleIdentifier());
+		final JavaMethodParameter javaMethodParameter = barResourceMethod.getJavaMethodParameters().get(0);
+		final Annotation pathParamAnnotation = javaMethodParameter.getAnnotation(JaxrsClassnames.PATH_PARAM);
+		final ISourceRange annotationRange = pathParamAnnotation.getJavaAnnotation().getSourceRange();
+		final IRegion dirtyRegion = new Region(annotationRange.getOffset() + "@PathParam(".length(), "\"param3\"".length());
 		// operation
-		metamodelValidator.shouldValidate(project);
-		metamodelValidator.validate(validatorManager, project, null, validationContext, reporter, editorValidationContext, projectValidationContext, changedFile);
+		metamodelValidator.validate(validatorManager, project, Arrays.asList(dirtyRegion), validationContext, reporter,
+				editorValidationContext, projectValidationContext, (IFile) barResourceMethod.getResource());
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(0));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
 	}
-	
+
 }

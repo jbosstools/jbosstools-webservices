@@ -43,17 +43,20 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.eclipse.wst.validation.internal.provisional.core.IValidationContext;
 import org.jboss.tools.common.validation.ContextValidationHelper;
 import org.jboss.tools.common.validation.EditorValidationContext;
-import org.jboss.tools.common.validation.IAsYouTypeValidator;
+import org.jboss.tools.common.validation.IJavaElementValidator;
 import org.jboss.tools.common.validation.IPreferenceInfo;
 import org.jboss.tools.common.validation.IProjectValidationContext;
+import org.jboss.tools.common.validation.IStringValidator;
 import org.jboss.tools.common.validation.IValidatingProjectTree;
 import org.jboss.tools.common.validation.IValidator;
 import org.jboss.tools.common.validation.PreferenceInfoManager;
@@ -62,6 +65,7 @@ import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaTypeElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsShadowElementsCache;
@@ -72,6 +76,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
@@ -85,7 +90,7 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  * 
  */
 @SuppressWarnings("restriction")
-public class JaxrsMetamodelValidator extends TempMarkerManager implements IValidator, IAsYouTypeValidator,
+public class JaxrsMetamodelValidator extends TempMarkerManager implements IValidator, IJavaElementValidator, IStringValidator,
 		IMarkerManager {
 	/** ID of the Preference Page. */
 	private static final String PREFERENCE_PAGE_ID = "org.jboss.tools.ws.jaxrs.ui.preferencePages.JaxrsValidatorPreferencePage";
@@ -105,6 +110,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 */
 	public JaxrsMetamodelValidator() {
 		super.setProblemType(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
+	}
+	
+	@Override
+	public void init(IProject project, ContextValidationHelper validationHelper, IProjectValidationContext context, org.eclipse.wst.validation.internal.provisional.core.IValidator manager, IReporter reporter) {
+		super.init(project, validationHelper, context, manager, reporter);
+		setAsYouTypeValidation(false);
 	}
 
 	/**
@@ -135,7 +146,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			final IProjectValidationContext context, final ValidatorManager manager, final IReporter reporter) throws ValidationException {
 		final long startTime = System.currentTimeMillis();
 		init(project, validationHelper, context, manager, reporter);
-		setAsYouTypeValidation(false);
 		try {
 			if (!changedFiles.isEmpty()) {
 				Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
@@ -384,6 +394,19 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		}
 	}
 
+	/**
+	 * As-you-type validation, called when before the user saved the modified file. The given dirtyRegions indicate where the changes occurred.
+	 * As opposed to other validation methods in this class, there is no cross-resource validation performed here, ie, only local changes are taken into account.
+	 * 
+	 * @param validatorManager the validation manager
+	 * @param rootProject the root project
+	 * @param dirtyRegions the dirty regions
+	 * @param helper the validation context
+	 * @param reporter the validation reporter
+	 * @param validationContext the validation context
+	 * @param projectContext the project context
+	 * @param changedFile the file that changed
+	 */
 	@Override
 	public void validate(final org.eclipse.wst.validation.internal.provisional.core.IValidator validatorManager,
 			final IProject rootProject, final Collection<IRegion> dirtyRegions, final IValidationContext helper,
@@ -392,23 +415,29 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final long startTime = System.currentTimeMillis();
 		Logger.debug("*** Validating project {} after file {} changed... ***", changedFile.getProject().getName(),
 				changedFile.getFullPath());
-		final ContextValidationHelper validationHelper = new ContextValidationHelper();
-		validationHelper.setProject(rootProject);
-		validationHelper.setValidationContextManager(validationContext);
-		init(rootProject, validationHelper, projectContext, validatorManager, reporter);
-		setAsYouTypeValidation(false);
-		this.document = validationContext.getDocument();
-		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE, new String[] { changedFile.getProject().getName(),
-				changedFile.getName() });
 		try {
 			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
 			if (metamodel != null) {
-				final List<IResource> allResources = completeValidationSet(metamodel, changedFile);
-				for (IResource changedResource : allResources) {
-					validate(changedResource, metamodel, reporter);
+				final ICompilationUnit changedCompilationUnit = JdtUtils.getCompilationUnit(changedFile);
+				//final CompilationUnit ast = JdtUtils.parse(changedCompilationUnit, new NullProgressMonitor());
+				final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(changedCompilationUnit);
+				final Set<IJaxrsElement> changedJaxrsElements = new HashSet<IJaxrsElement>();
+				for(IRegion dirtyRegion : dirtyRegions) {
+					final IJavaElement changedElement = changedCompilationUnit.getElementAt(dirtyRegion.getOffset());
+					if(changedElement == null) {
+						continue;
+					}
+					final IJaxrsElement changedJaxrsElement = metamodel.findElement(changedElement);
+					if(changedJaxrsElements == null || !(changedJaxrsElement instanceof AbstractJaxrsJavaElement<?>)) {
+						continue;
+					}
+					((AbstractJaxrsJavaElement<?>)changedJaxrsElement).update(changedElement, ast);
+					changedJaxrsElements.add(changedJaxrsElement);
 				}
-				// validate at the metamodel level for cross-elements validation
-				validate(metamodel);
+				for(IJaxrsElement changedJaxrsElement : changedJaxrsElements) {
+					Logger.debug("Going to validate {}:\n{}", changedJaxrsElement.getName(), ((AbstractJaxrsJavaElement<?>)changedJaxrsElement).getJavaElement().getSource());
+					validate(changedJaxrsElement);
+				}
 			}
 		} catch (CoreException e) {
 			Logger.error(
@@ -427,7 +456,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final long startTime = System.currentTimeMillis();
 		Logger.debug("*** Validating all files in project {} ***", project.getName());
 		init(project, validationHelper, validationContext, manager, reporter);
-		setAsYouTypeValidation(false);
 		displaySubtask(JaxrsValidationMessages.VALIDATING_PROJECT, new String[] { project.getName() });
 		try {
 			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
@@ -493,8 +521,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			return new JaxrsProviderValidatorDelegate(this);
 		case RESOURCE:
 			// this validator delegate also deals with ResourceMethods and
-			// ResourceFields
+			// ResourceFields when validating a whole resource
 			return new JaxrsResourceValidatorDelegate(this);
+		case RESOURCE_FIELD:
+			return new JaxrsResourceFieldValidatorDelegate(this);
+		case RESOURCE_METHOD:
+			return new JaxrsResourceMethodValidatorDelegate(this);
 		default:
 			// skipping other categories of elements at this validator level.
 			// (see above)

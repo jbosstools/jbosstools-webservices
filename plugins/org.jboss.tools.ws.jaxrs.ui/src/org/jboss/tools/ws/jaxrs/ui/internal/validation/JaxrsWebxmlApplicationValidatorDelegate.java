@@ -40,7 +40,6 @@ public class JaxrsWebxmlApplicationValidatorDelegate extends AbstractJaxrsElemen
 	@Override
 	void internalValidate(final JaxrsWebxmlApplication webxmlApplication) throws CoreException {
 		Logger.debug("Validating element {}", webxmlApplication);
-		removeMarkers(webxmlApplication);
 	}
 
 }

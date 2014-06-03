@@ -67,7 +67,6 @@ import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.core.CreateTypeHierarchyOperation;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.RangeUtils;
 
 /**
  * A JDT wrapper that provides utility methods to manipulate the Java Model.

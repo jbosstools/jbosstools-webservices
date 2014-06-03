@@ -54,13 +54,12 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 	@Override
 	void internalValidate(final JaxrsResource resource) throws CoreException {
 		Logger.debug("Validating element {}", resource);
-		removeMarkers(resource);
 		validateAtLeastOneProviderWithBinding(resource);
 		for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
-			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod);
+			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod, false);
 		}
 		for (IJaxrsResourceField resourceField : resource.getAllFields()) {
-			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField);
+			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, false);
 		}
 	}
 

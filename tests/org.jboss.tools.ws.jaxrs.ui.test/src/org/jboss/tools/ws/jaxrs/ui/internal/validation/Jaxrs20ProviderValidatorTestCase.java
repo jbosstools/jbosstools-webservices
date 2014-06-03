@@ -40,6 +40,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
@@ -88,6 +89,9 @@ public class Jaxrs20ProviderValidatorTestCase {
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject2", true);
 	private JaxrsMetamodel metamodel = null;
 	private IProject project = null;
+	
+	@Rule
+	public TestWatcher watcher = new TestWatcher();
 
 	@Before
 	public void setup() throws CoreException {
@@ -229,7 +233,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 		final JaxrsJavaApplication application = (JaxrsJavaApplication) metamodel.findElement(applicationType);
 		removeAllElementsExcept(provider, nameBinding, application);
 		// operation: validate the resource
-		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(provider.getResource()), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(applicationType.getResource(), provider.getResource()), project, validationHelper, context, validatorManager, reporter);
 		// verification: no error on RestApplication: there's a Filter/Interceptor
 		// with such a Name Binding
 		final IMarker[] applicationMarkers = findJaxrsMarkers(application);
@@ -331,7 +335,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 		final JaxrsResource gameResource = (JaxrsResource) metamodel.findElement(gameResourceType);
 		removeAllElementsExcept(provider, nameBinding, gameResource);
 		// operation: validate the resource
-		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(provider.getResource()), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(nameBindingType.getResource()), project, validationHelper, context, validatorManager, reporter);
 		// verification: there's no problem, the Interceptor became a Global
 		// Interceptor ;-)
 		final IMarker[] markers = findJaxrsMarkers(provider);
@@ -366,7 +370,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 		final JaxrsJavaApplication application = (JaxrsJavaApplication) metamodel.findElement(applicationType);
 		removeAllElementsExcept(provider, nameBinding, application);
 		// operation: validate the *provider* that just changed
-		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(provider.getResource()), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(application.getResource(), provider.getResource()), project, validationHelper, context, validatorManager, reporter);
 		// verification: error on *RestApplication*: no Filter/Interceptor
 		// with such a Name Binding
 		final IMarker[] markers = findJaxrsMarkers(application);
@@ -431,7 +435,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 		final JaxrsResource gameResource = (JaxrsResource) metamodel.findElement(gameResourceType);
 		removeAllElementsExcept(provider, nameBinding, gameResource);
 		// operation: validate the *provider* that just changed
-		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(provider.getResource()), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(provider.getResource(), gameResource.getResource()), project, validationHelper, context, validatorManager, reporter);
 		// verification: error on *Game Resource*: no Filter/Interceptor
 		// with such a Name Binding
 		final IMarker[] markers = findJaxrsMarkers(gameResource);
@@ -461,7 +465,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 		final JaxrsResource customerResource = (JaxrsResource) metamodel.findElement(customerResourceType);
 		removeAllElementsExcept(provider, nameBinding, customerResource);
 		// operation: validate the *customer resource* that just changed
-		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(customerResource.getResource()), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(customerResource.getResource(), provider.getResource()), project, validationHelper, context, validatorManager, reporter);
 		// verification: error on *Provider*: no other element
 		// with such a Name Binding
 		final IMarker[] markers = findJaxrsMarkers(provider);
@@ -495,7 +499,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 		final JaxrsResource gameResource = (JaxrsResource) metamodel.findElement(gameResourceType);
 		removeAllElementsExcept(provider, customNameBinding, anotherNameBinding, gameResource);
 		// operation: validate the *Game Resource* that just changed
-		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(gameResource.getResource()), project, validationHelper, context, validatorManager, reporter);
+		new JaxrsMetamodelValidator().validate(ValidationUtils.toSet(gameResource.getResource(), provider.getResource()), project, validationHelper, context, validatorManager, reporter);
 		// verification: error on Game Resource: no Filter/Interceptor
 		// with the *two* NameBindings
 		final IMarker[] gameResourceMarkers = findJaxrsMarkers(gameResource);

@@ -20,9 +20,12 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.utils.RangeUtils;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
@@ -44,12 +47,37 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends AbstractJa
 	protected static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]([a-zA-Z1-9]|\\.|-|_)*");
 
 	/**
-	 * Validates the given {@link IJaxrsElement}.
-	 * @param element the JAX-RS element to validate
+	 * Validates the given {@link IJaxrsElement} after having removed the JAX-RS Problem markers on the given element.
+	 * 
+	 * @param element
+	 *            the JAX-RS element to validate
+	 * @param removeMarkers
+	 *            boolean to indicate if JAX-RS Problem Type markers related to
+	 *            the given element should be removed prior to validation, or
+	 *            not (assuming they were already removed).
 	 * @throws CoreException
 	 */
 	public void validate(final T element) throws CoreException {
+		validate(element, true);
+	}
+	
+	/**
+	 * Validates the given {@link IJaxrsElement}.
+	 * 
+	 * @param element
+	 *            the JAX-RS element to validate
+	 * @param removeMarkers
+	 *            boolean to indicate if JAX-RS Problem markers related to
+	 *            the given element should be removed prior to validation, or
+	 *            not (assuming they were already removed).
+	 * @throws CoreException
+	 */
+	public void validate(final T element, final boolean removeMarkers) throws CoreException {
 		final int previousProblemLevel = element.getProblemLevel();
+		if(removeMarkers) {
+			removeMarkers(element);
+		}
+		element.resetProblemLevel();
 		internalValidate(element);
 		final int currentProblemLevel = element.getProblemLevel();
 		if(currentProblemLevel != previousProblemLevel) {
@@ -72,8 +100,21 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends AbstractJa
 	 * @throws CoreException
 	 */
 	void removeMarkers(final T element) throws CoreException {
-		element.resetProblemLevel();
-		element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+		switch(element.getElementKind().getCategory()) {
+		case RESOURCE_METHOD:
+		case RESOURCE_FIELD:
+			final ISourceRange sourceRange = ((AbstractJaxrsJavaElement<?>) element).getJavaElement().getSourceRange();
+			final IMarker[] markers = element.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+			for(IMarker marker : markers) {
+				final int markerStartPosition = marker.getAttribute(IMarker.CHAR_START, 0);
+				if(RangeUtils.matches(sourceRange, markerStartPosition)) {
+					marker.delete();
+				}
+			}
+			break;
+		default:
+			element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+		}
 	}
 
 }

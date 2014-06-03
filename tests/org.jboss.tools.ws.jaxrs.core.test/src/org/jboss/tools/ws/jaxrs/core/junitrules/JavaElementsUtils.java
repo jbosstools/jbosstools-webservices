@@ -210,7 +210,17 @@ public class JavaElementsUtils {
 				return field;
 			}
 		}
-		Assert.fail("Failed to locate method named '" + fieldName + "'");
+		Assert.fail("Failed to locate field named '" + fieldName + "'");
+		return null;
+	}
+
+	public static IMethod getMethod(final IType type, final String methodName) throws JavaModelException {
+		for (IMethod method : type.getMethods()) {
+			if (method.getElementName().equals(methodName)) {
+				return method;
+			}
+		}
+		Assert.fail("Failed to locate method named '" + methodName + "'");
 		return null;
 	}
 

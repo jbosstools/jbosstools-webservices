@@ -55,7 +55,6 @@ public class JaxrsParamConverterProviderValidatorDelegate extends AbstractJaxrsE
 	@Override
 	void internalValidate(final JaxrsParamConverterProvider provider) throws CoreException {
 		Logger.debug("Validating element {}", provider);
-		removeMarkers(provider);
 		validateAtLeastOneValidConstructor(provider);
 		validateNoMissingProviderAnnotation(provider);
 	}

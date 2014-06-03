@@ -50,7 +50,6 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	 */
 	@Override
 	void internalValidate(final JaxrsHttpMethod httpMethod) throws CoreException {
-		removeMarkers(httpMethod);
 		Logger.debug("Validating element {}", httpMethod);
 		if (!httpMethod.isBuiltIn()) {
 			validateHttpMethodAnnotation(httpMethod);

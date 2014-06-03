@@ -78,7 +78,6 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		// be removed again here (because another resource method
 		// of the same parent resource may already have been validated and have
 		// markers created.
-		resourceMethod.resetProblemLevel();
 		validatePublicModifierOnJavaMethod(resourceMethod);
 		validateNoUnboundPathAnnotationTemplateParameters(resourceMethod);
 		validateNoUnboundPathParamAnnotationValues(resourceMethod);

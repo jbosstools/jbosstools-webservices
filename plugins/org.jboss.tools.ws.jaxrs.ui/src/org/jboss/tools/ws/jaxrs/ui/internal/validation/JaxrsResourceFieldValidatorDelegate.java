@@ -50,7 +50,6 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 		// be removed again here (because another resource method
 		// of the same parent resource may already have been validated and have
 		// markers created.
-		resourceField.resetProblemLevel();
 		validateParameterTypes(resourceField);
 	}
 

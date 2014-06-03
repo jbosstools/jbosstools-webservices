@@ -54,7 +54,6 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 	@Override
 	void internalValidate(final JaxrsJavaApplication application) throws CoreException {
 		Logger.debug("Validating element {}", application);
-		removeMarkers(application);
 		validateApplicationOverride(application);
 		validateApplicationSubclass(application);
 		validateAtLeastOneProviderWithBinding(application);

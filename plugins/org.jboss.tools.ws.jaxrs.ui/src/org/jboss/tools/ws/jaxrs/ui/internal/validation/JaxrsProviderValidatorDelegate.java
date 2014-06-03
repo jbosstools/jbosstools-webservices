@@ -66,7 +66,6 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	@Override
 	void internalValidate(final JaxrsProvider provider) throws CoreException {
 		Logger.debug("Validating element {}", provider);
-		removeMarkers(provider);
 		validateAtLeastOneValidConstructor(provider);
 		validateNoMissingProviderAnnotation(provider);
 		validateNoDuplicateProvider(provider);

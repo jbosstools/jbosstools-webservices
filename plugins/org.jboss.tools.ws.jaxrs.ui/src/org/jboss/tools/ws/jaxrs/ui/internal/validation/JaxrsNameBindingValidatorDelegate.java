@@ -50,7 +50,6 @@ public class JaxrsNameBindingValidatorDelegate extends AbstractJaxrsElementValid
 	 */
 	@Override
 	void internalValidate(final JaxrsNameBinding nameBinding) throws CoreException {
-		removeMarkers(nameBinding);
 		Logger.debug("Validating element {}", nameBinding);
 		if (!nameBinding.isBuiltIn()) {
 			validateRetentionAnnotation(nameBinding);
