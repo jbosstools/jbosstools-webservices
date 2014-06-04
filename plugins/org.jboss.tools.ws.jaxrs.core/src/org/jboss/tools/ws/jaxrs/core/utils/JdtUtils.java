@@ -1223,7 +1223,5 @@ public final class JdtUtils {
 		}
 		return typeName;
 	}
-
-	
 	
 }

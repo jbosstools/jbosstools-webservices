@@ -15,14 +15,16 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPPER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.*;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.NAME_BINDING;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PARAM_CONVERTER_PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -165,10 +167,10 @@ public final class JavaElementsSearcher {
 	}
 	
 	/**
-	 * @param scope
-	 * @param progressMonitor
-	 * @param typeName TODO
-	 * @return
+	 * @param scope the search scope
+	 * @param typeName the fully qualified name of the type whose subtypes should be found
+	 * @param progressMonitor the progress monitor
+	 * @return the subtypes of the given type, in the given scope, or empty list if none was found.
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
@@ -289,6 +291,16 @@ public final class JavaElementsSearcher {
 	}
 
 	/**
+	 * Creates and returns an IJavaSearchScope from the given {@link IJavaElement}s scope
+	 * @param scope the Java Elements that will serve as a scope for an upcoming search
+	 * @return the search scope
+	 * @throws JavaModelException
+	 */
+	private static IJavaSearchScope createSearchScope(final List<? extends IJavaElement> scope) throws JavaModelException {
+		return SearchEngine.createJavaSearchScope(scope.toArray(new IJavaElement[scope.size()]));
+	}
+
+	/**
 	 * Search for types that are annotated with the given annotation name, in the given search scope.
 	 * 
 	 * @param annotationName
@@ -354,7 +366,7 @@ public final class JavaElementsSearcher {
 	 */
 	private static List<IMethod> searchForAnnotatedMethods(final List<String> annotationNames,
 			final IJavaSearchScope searchScope, final IProgressMonitor progressMonitor) throws CoreException {
-		JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.METHOD,
+		final JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.METHOD,
 				searchScope);
 		SearchPattern pattern = null;
 		for (String annotationName : annotationNames) {
@@ -376,5 +388,32 @@ public final class JavaElementsSearcher {
 		// the enclosing type
 		return collector.getResult(IMethod.class);
 	}
+	
+	/**
+	 * Returns all related {@link IType}s from the given 'scope' argument that reference the given {@link IType}
+	 * @param type the type that is referenced
+	 * @param types the search scope
+	 * @param progressMonitor the progress monitor
+	 * @return
+	 * @throws CoreException 
+	 */
+	public static List<IType> findRelatedTypes(final IType type,
+			final List<IType> types, final IProgressMonitor progressMonitor) throws CoreException {
+		if(type == null || types == null || types.isEmpty()) {
+			return Collections.emptyList();
+		}
+		final IJavaSearchScope searchScope = createSearchScope(types);
+		final JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.TYPE,
+				searchScope);
+		final SearchPattern pattern = SearchPattern.createPattern(type,
+				IJavaSearchConstants.ALL_OCCURRENCES ,
+				SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE);
+		// perform search, results are added/filtered by the custom
+		// searchRequestor defined above
+		new SearchEngine().search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
+				searchScope, collector, progressMonitor);
+		return collector.getResult(IType.class);
+	}
+
 
 }

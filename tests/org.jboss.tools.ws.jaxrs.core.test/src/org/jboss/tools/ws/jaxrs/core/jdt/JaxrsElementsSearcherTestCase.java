@@ -7,6 +7,7 @@ import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFir
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -297,4 +298,35 @@ public class JaxrsElementsSearcherTestCase {
 		// verifications
 		assertThat(applications.size(), equalTo(1));
 	}
+	
+	@Test
+	public void shouldFindRelatedTypes() throws CoreException {
+		// pre-conditions
+		final IType fooType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final IType barResourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
+		final IType bazResourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
+		final IType customerResourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType productResourceLocatorType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		assertThat(fooType, notNullValue());
+		// operation
+		final List<IType> relatedTypes = JavaElementsSearcher.findRelatedTypes(fooType, Arrays.asList(customerResourceType, productResourceLocatorType, barResourceType, bazResourceType), new NullProgressMonitor());
+		// verifications
+		assertThat(relatedTypes.size(), equalTo(1));
+		assertThat(relatedTypes.get(0), equalTo(bazResourceType));
+	}
+	
+	@Test
+	public void shouldNotFindRelatedTypes() throws CoreException {
+		// pre-conditions
+		final IType fooType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		final IType barResourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
+		final IType customerResourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType productResourceLocatorType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		assertThat(fooType, notNullValue());
+		// operation
+		final List<IType> relatedTypes = JavaElementsSearcher.findRelatedTypes(fooType, Arrays.asList(customerResourceType, productResourceLocatorType, barResourceType), new NullProgressMonitor());
+		// verifications
+		assertThat(relatedTypes.size(), equalTo(0));
+	}
+	
 }

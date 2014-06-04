@@ -10,7 +10,20 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.*;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.APPLICATION_JAVA;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.APPLICATION_WEBXML;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.CONTAINER_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.CONTAINER_REQUEST_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.CONTAINER_RESPONSE_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ENTITY_INTERCEPTOR;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ENTITY_READER_INTERCEPTOR;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ENTITY_WRITER_INTERCEPTOR;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.NAME_BINDING;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.ROOT_RESOURCE;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.SUBRESOURCE;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.SUBRESOURCE_LOCATOR;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.UNDEFINED_PROVIDER;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.UNDEFINED_RESOURCE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +40,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -46,14 +62,17 @@ import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaTypeElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsShadowElementsCache;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
@@ -204,6 +223,27 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			resources.addAll(getFiltersAndInterceptorsUnderlyingResources(metamodel));
 			resources.addAll(getResourceUnderlyingResources(metamodel));
 		}
+		// check if the given changedFile is referenced in JAX-RS elements of the metamodel
+		final List<IType> jaxrsRelatedTypes = new ArrayList<IType>();
+		final List<IJaxrsElement> allJaxrsElements = metamodel.getAllElements();
+		for(IJaxrsElement jaxrsElement : allJaxrsElements) {
+			if(jaxrsElement instanceof AbstractJaxrsJavaTypeElement) {
+				final IType type = ((AbstractJaxrsJavaTypeElement)jaxrsElement).getJavaElement();
+				if(type != null) {
+					jaxrsRelatedTypes.add(type);
+				}
+			}
+		}
+		for(IFile changedResource : changedResources) {
+			final ICompilationUnit changedCompilationUnit = JdtUtils.getCompilationUnit(changedResource);
+			if(changedCompilationUnit != null) {
+				final List<IType> foundRelatedTypes = JavaElementsSearcher.findRelatedTypes(changedCompilationUnit.findPrimaryType(), jaxrsRelatedTypes, new NullProgressMonitor());
+				for(IType relatedType : foundRelatedTypes) {
+					resources.add(relatedType.getResource());
+				}
+			}
+		}
+		
 		// put the result in a list that will be sorted
 		final ArrayList<IResource> result = new ArrayList<IResource>(resources);
 		Collections.sort(result, new Comparator<IResource>() {

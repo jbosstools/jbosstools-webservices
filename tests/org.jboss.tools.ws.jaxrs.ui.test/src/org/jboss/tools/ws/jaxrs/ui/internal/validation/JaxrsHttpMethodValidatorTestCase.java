@@ -117,10 +117,6 @@ public class JaxrsHttpMethodValidatorTestCase {
 				validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(httpMethod).length, equalTo(0));
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
-			assertThat(endpoint.getProblemLevel(), equalTo(0));
-		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
 	}
 
 	@Test
@@ -257,10 +253,6 @@ public class JaxrsHttpMethodValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_TARGET_ANNOTATION));
-		// associated endpoints don't have the problem, though
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
-			assertThat(endpoint.getProblemLevel(), equalTo(0));
-		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 		assertThat(new JaxrsMarkerResolutionGenerator().getResolutions(markers[0]), notNullValue());
@@ -341,10 +333,6 @@ public class JaxrsHttpMethodValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE));
-		// associated endpoints don't have the problem, though
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
-			assertThat(endpoint.getProblemLevel(), equalTo(0));
-		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 		assertThat(new JaxrsMarkerResolutionGenerator().getResolutions(markers[0]), notNullValue());
@@ -367,10 +355,6 @@ public class JaxrsHttpMethodValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
-		// associated endpoints don't have the problem, though
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
-			assertThat(endpoint.getProblemLevel(), equalTo(0));
-		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 		assertThat(new JaxrsMarkerResolutionGenerator().getResolutions(markers[0]), notNullValue());
@@ -463,10 +447,6 @@ public class JaxrsHttpMethodValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE));
-		// associated endpoints don't have the problem, though
-		for(IJaxrsEndpoint endpoint : metamodel.findEndpoints(httpMethod)) {
-			assertThat(endpoint.getProblemLevel(), equalTo(0));
-		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 		assertThat(new JaxrsMarkerResolutionGenerator().getResolutions(markers[0]), notNullValue());

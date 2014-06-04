@@ -16,38 +16,39 @@ public class TruckResource {
 	
 	@POST
 	@Path("{type}/{id}") 
-	public Object createTruck(@PathParam("id") Truck truck) {
+	public Object createTruck1(@PathParam("id") Truck truck) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createTrucks(@PathParam("id") List<Truck> trucks) {
+	public Object createTrucks2(@PathParam("id") List<Truck> trucks) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createTrucks(@PathParam("id") Set<Truck> trucks) {
+	public Object createTrucks3(@PathParam("id") Set<Truck> trucks) {
 		return null;
 	}
 
 	// on purpose: unknown type 'ArrayList'
 	@POST
 	@Path("{type}/{id}") 
-	public Object createTrucks(@PathParam("id") ArrayList<String> trucks) {
+	public Object createTrucks4(@PathParam("id") ArrayList<String> trucks) {
+		return null;
+	}
+
+	// java.util.ArrayList is invalid, it should be 'List' instead. 
+	@POST
+	@Path("{type}/{id}") 
+	public Object createTrucks5(@PathParam("id") java.util.ArrayList<String> trucks) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createTrucks(@PathParam("id") java.util.ArrayList<String> trucks) {
-		return null;
-	}
-
-	@POST
-	@Path("{type}/{id}") 
-	public Object createTrucks(@PathParam("id") SortedSet<Truck> trucks) {
+	public Object createTrucks6(@PathParam("id") SortedSet<Truck> trucks) {
 		return null;
 	}
 }

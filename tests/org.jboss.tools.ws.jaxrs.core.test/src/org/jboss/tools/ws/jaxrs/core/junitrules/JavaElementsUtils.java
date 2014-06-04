@@ -478,5 +478,9 @@ public class JavaElementsUtils {
 		return null;
 	}
 
+	public static void addImportDeclaration(final ICompilationUnit compilationUnit, String importType) throws JavaModelException {
+		compilationUnit.createPackageDeclaration(importType, new NullProgressMonitor());
+	}
+
 		
 }

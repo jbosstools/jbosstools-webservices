@@ -25,6 +25,7 @@ import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.RESOURCE_
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -47,7 +48,9 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
@@ -659,7 +662,6 @@ public class JaxrsResourceValidatorTestCase {
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
-
 	}
 
 	@Test
@@ -682,7 +684,36 @@ public class JaxrsResourceValidatorTestCase {
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
-		
+	}
+	
+	@Test
+	public void shouldRemoveProblemsOnMethodParams() throws CoreException, ValidationException, IOException {
+		// pre-conditions
+		final ICompilationUnit truckCompilationUnit = metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
+		final ICompilationUnit truckResourceCompilationUnit = metamodelMonitor.createCompilationUnit("TruckResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
+		final JaxrsResource truckResource = metamodelMonitor.createResource(truckResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation 1 : first validation
+		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation 1: the JAX-RS resource methods have errors
+		final IMarker[] markers = findJaxrsMarkers(truckResource);
+		assertThat(markers.length, equalTo(6));
+		for (IMarker marker : markers) {
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
+		}
+		// operation 2: now, let's update the 'Truck' class to fix the problem, by adding a 'valueOf(String)' method, and let's replace all 'ArrayList' with 'List'
+		ResourcesUtils.replaceContent(truckCompilationUnit.getResource(), "public Truck valueOf(String value)", "public static Truck valueOf(String value)");
+		ResourcesUtils.replaceContent(truckResourceCompilationUnit.getResource(), "ArrayList<String>", "List<String>");
+		// validate the 'Truck' domain class, not the JAX-RS 'TruckResource', since this one did not change during the operation above
+		new JaxrsMetamodelValidator().validate(toSet(truckCompilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation 2: the JAX-RS resource methods errors are gone \o/
+		final IMarker[] updatedMarkers = findJaxrsMarkers(truckResource);
+		assertThat(updatedMarkers.length, equalTo(0));
 	}
 	
 }
