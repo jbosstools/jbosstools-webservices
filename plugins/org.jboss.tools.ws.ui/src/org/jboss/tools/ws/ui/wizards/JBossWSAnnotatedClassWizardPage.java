@@ -49,7 +49,6 @@ import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
-import org.jboss.tools.ws.creation.core.utils.RestEasyLibUtils;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 @SuppressWarnings("restriction")
@@ -58,17 +57,13 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 	private JBossWSAnnotatedClassWizard wizard;
 	private Combo projects;
 	private boolean bHasChanged = false;
-	private Button optJAXWS;
-	private Button optJAXRS;
 	private Text packageName;
 	private Text className;
-	private Text appClassName;
 	private Text name;
 	private Button updateWebXML;
 	private Button addJarsIfFound;
 	private Button btnPackageBrowse;
 	private Button btnServiceClassBrowse;
-	private Button btnAppClassBrowse;
 
 	protected JBossWSAnnotatedClassWizardPage(String pageName) {
 		super(pageName);
@@ -78,63 +73,6 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 				.setDescription(JBossWSUIMessages.JBossWSAnnotatedClassWizardPage_PageDescription);
 	}
 
-	private void createWsTechComposite(Composite parent) {
-		Group wsTechGroup = new Group(parent, SWT.NONE);
-		wsTechGroup
-				.setText(JBossWSUIMessages.JBossWSAnnotatedClassWizardPage_WS_Tech_Group);
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = 2;
-		wsTechGroup.setLayout(new GridLayout(2, false));
-		wsTechGroup.setLayoutData(gd);
-
-		Composite wsTechComposite = new Composite (wsTechGroup, SWT.NONE);
-		GridLayout gl = new GridLayout(2, true);
-		gl.marginTop = -5;
-		gl.marginBottom = -5;
-		wsTechComposite.setLayout(gl);
-		GridData gridData = new GridData();
-		gridData.horizontalIndent = -5;
-		gridData.grabExcessHorizontalSpace = true;
-		gridData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		wsTechComposite.setLayoutData(gridData);
-		
-		optJAXWS = new Button(wsTechComposite, SWT.RADIO);
-		optJAXWS.setText(JBossWSUIMessages.JBossWSAnnotatedClassWizardPage_JAXWS_Button);
-		optJAXWS.setLayoutData(new GridData(SWT.FILL, SWT.NULL, true, false));
-		
-		optJAXRS = new Button(wsTechComposite, SWT.RADIO);
-		optJAXRS.setText(JBossWSUIMessages.JBossWSAnnotatedClassWizardPage_JAXRS_Button);
-		optJAXRS.setLayoutData(new GridData(SWT.FILL, SWT.NULL, true, false));
-		
-		//default
-		optJAXWS.setSelection(true);
-		
-		optJAXWS.addSelectionListener(new SelectionListener(){
-			public void widgetSelected(SelectionEvent e) {
-				wizard.setJAXWS(true);
-				appClassName.setEnabled(!wizard.isJAXWS());
-				btnAppClassBrowse.setEnabled(!wizard.isJAXWS());
-				updateDefaultValues();
-				setPageComplete(isPageComplete());
-			}
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
-		});
-		optJAXRS.addSelectionListener(new SelectionListener(){
-			public void widgetSelected(SelectionEvent e) {
-				wizard.setJAXWS(false);
-				appClassName.setEnabled(!wizard.isJAXWS());
-				btnAppClassBrowse.setEnabled(!wizard.isJAXWS());
-				updateDefaultValues();
-				setPageComplete(isPageComplete());
-			}
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
-		});
-	}
-	
 	private String testDefaultServiceName( String currentName) {
 		ServiceModel model = wizard.getServiceModel();
 		JBossWSGenerateWizardValidator.setServiceModel(model);
@@ -156,41 +94,6 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 			model = wizard.getServiceModel();
 			JBossWSGenerateWizardValidator.setServiceModel(model);
 			status = JBossWSGenerateWizardValidator.isWSNameValid();
-			i++;
-		}
-		return testName;
-	}
-
-	private String testDefaultAppClassName(String currentName) {
-		ServiceModel model = wizard.getServiceModel();
-		JBossRSGenerateWizardValidator.setServiceModel(model);
-		if (wizard.getProject() == null) {
-			return currentName;
-		} else {
-			boolean isDynamicWebProject = false;
-			try {
-				if (wizard.getProject().getNature(
-						"org.eclipse.wst.common.project.facet.core.nature") != null) { //$NON-NLS-1$
-					isDynamicWebProject = true;
-				}
-			} catch (CoreException e) {
-				// ignore
-			}
-			if (!isDynamicWebProject) {
-				return currentName;
-			}
-		}
-		String testName = currentName;
-		IStatus status = JBossRSGenerateWizardValidator.isAppClassNameValid(
-				model.getCustomPackage() + '.' + currentName);
-		int i = 1;
-		while (status != null && status.getSeverity() == IStatus.ERROR) {
-			testName = currentName + i;
-			wizard.setClassName(testName);
-			model = wizard.getServiceModel();
-			JBossWSGenerateWizardValidator.setServiceModel(model);
-			status = JBossWSGenerateWizardValidator.isWSClassValid(testName,
-					wizard.getProject());
 			i++;
 		}
 		return testName;
@@ -234,37 +137,18 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 	private void updateDefaultValues() {
 		
 		String testName = null;
-		if (wizard.isJAXWS()) {
-			if (className != null && className.getText().trim().length() == 0) {
-				testName = testDefaultClassName(JBossWSAnnotatedClassWizard.WSCLASSDEFAULT);
-				className.setText(testName);
-				wizard.setClassName(testName);
-			}
-			
-			if (name != null && name.getText().trim().length() == 0) {
-				testName = testDefaultServiceName(JBossWSAnnotatedClassWizard.WSNAMEDEFAULT);
-				name.setText(testName);
-				wizard.setServiceName(testName);
-			}
-			appClassName.setText(""); //$NON-NLS-1$
-			wizard.setAppClassName(""); //$NON-NLS-1$
-		} else {
-			if (className != null && className.getText().trim().length() == 0) {
-				testName = testDefaultClassName(JBossWSAnnotatedClassWizard.RSCLASSDEFAULT);
-				className.setText(testName);
-				wizard.setClassName(testName);
-			}
-			if (name != null && name.getText().trim().length() == 0) {
-				testName = testDefaultServiceName(JBossWSAnnotatedClassWizard.RSNAMEDEFAULT);
-				name.setText(testName);
-				wizard.setServiceName(testName);
-			}
-			if (appClassName != null && appClassName.getText().trim().length() == 0) {
-				testName = testDefaultAppClassName(JBossWSAnnotatedClassWizard.RSAPPCLASSDEFAULT);
-				appClassName.setText(testName);
-				wizard.setAppClassName(testName);
-			}
+		if (className != null && className.getText().trim().length() == 0) {
+			testName = testDefaultClassName(JBossWSAnnotatedClassWizard.WSCLASSDEFAULT);
+			className.setText(testName);
+			wizard.setClassName(testName);
 		}
+		
+		if (name != null && name.getText().trim().length() == 0) {
+			testName = testDefaultServiceName(JBossWSAnnotatedClassWizard.WSNAMEDEFAULT);
+			name.setText(testName);
+			wizard.setServiceName(testName);
+		}
+		wizard.setAppClassName(""); //$NON-NLS-1$
 		if (packageName != null && packageName.getText().trim().length() == 0) {
 			packageName.setText(JBossWSAnnotatedClassWizard.PACKAGEDEFAULT);
 			wizard.setPackageName(packageName.getText());
@@ -470,65 +354,17 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 			}
 		});
 		
-		new Label(group, SWT.NONE)
-			.setText(JBossWSUIMessages.JBossWSAnnotatedClassWizardPage_Application_Class_field);
-		appClassName = new Text(group, SWT.BORDER);
-		gd = new GridData(GridData.FILL_HORIZONTAL);
-		appClassName.setLayoutData(gd);
-//		appClassName.setText(wizard.getAppClassName());
-		appClassName.addModifyListener(new ModifyListener() {
 		
-			public void modifyText(ModifyEvent e) {
-				wizard.setAppClassName(appClassName.getText());
-				setPageComplete(isPageComplete());
-			}
-		
-		});
-
-		btnAppClassBrowse = new Button(group, SWT.PUSH);
-		btnAppClassBrowse.setText(JBossWSUIMessages.JBossWSAnnotatedClassWizardPage_Application_Class_Browse_btn);
-		btnAppClassBrowse.addSelectionListener(new SelectionListener(){
-			public void widgetSelected(SelectionEvent e) {
-				if (wizard.getProject() == null) {
-					return;
-				}
-
-				try {
-					SelectionDialog dialog =
-						JavaUI.createTypeDialog(
-								getShell(), 
-								null, 
-								wizard.getProject(), 
-								IJavaElementSearchConstants.CONSIDER_CLASSES, 
-								false);
-					if (dialog.open() == Window.OK) {
-						if (dialog.getResult() != null && dialog.getResult().length == 1) {
-							String fqClassName = ((IType) dialog.getResult()[0]).getElementName();
-							appClassName.setText(fqClassName);
-							setPageComplete(isPageComplete());
-						}
-					}
-				} catch (JavaModelException e1) {
-					e1.printStackTrace();
-				}
-			}
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
 	}
 
 	public void createControl(Composite parent) {
 		Composite composite = createDialogArea(parent);
 		this.wizard = (JBossWSAnnotatedClassWizard) this.getWizard();
 
-		createWsTechComposite(composite);
 		createProjectGroup(composite);
 		createApplicationGroup(composite);
 		createImplementationGroup(composite);
-		appClassName.setEnabled(!wizard.isJAXWS());
-		btnAppClassBrowse.setEnabled(!wizard.isJAXWS());
 		updateDefaultValues();
-
 		setControl(composite);
 	}
 
@@ -604,185 +440,76 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 
 	private boolean validate() {
 		ServiceModel model = wizard.getServiceModel();
-		if (wizard.isJAXWS()) {
-			setMessage(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Description);
-			setErrorMessage(null);
+		setMessage(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Description);
+		setErrorMessage(null);
 
-			JBossWSGenerateWizardValidator.setServiceModel(model);
-			
-			addJarsIfFound.setEnabled(false);
+		JBossWSGenerateWizardValidator.setServiceModel(model);
+		
+		addJarsIfFound.setEnabled(false);
 
-			if (!projects.isDisposed() && projects.getText().length() > 0) {
-				model.setWebProjectName(projects.getText());
-			}
+		if (!projects.isDisposed() && projects.getText().length() > 0) {
+			model.setWebProjectName(projects.getText());
+		}
 
-			if (((JBossWSAnnotatedClassWizard) this.getWizard()).getProject() == null) {
-				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
-				return false;
-			}
+		if (((JBossWSAnnotatedClassWizard) this.getWizard()).getProject() == null) {
+			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
+			return false;
+		}
 
-			try {
-				IFacetedProject facetProject =
-						ProjectFacetsManager.create(((JBossWSAnnotatedClassWizard)this.getWizard()).getProject());
-				if (facetProject == null || facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET) == null) {
-					// then we're not a dynamic web project
-					setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
-					return false;
-				}
-			} catch (CoreException e1) {
+		try {
+			IFacetedProject facetProject =
+					ProjectFacetsManager.create(((JBossWSAnnotatedClassWizard)this.getWizard()).getProject());
+			if (facetProject == null || facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET) == null) {
+				// then we're not a dynamic web project
 				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
 				return false;
 			}
-			
-			// project not a dynamic web project
-			IFile web = ((JBossWSAnnotatedClassWizard) this.getWizard()).getWebFile();
-			if (web == null || !web.exists()) {
-				if (updateWebXML.getSelection()) {
-					setMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoWebXML, 
-							DialogPage.WARNING);
-					return true;
-				}
-			}
-
-			try {
-				if (""	.equals(JBossWSCreationUtils.getJavaProjectSrcLocation(((JBossWSAnnotatedClassWizard) this.getWizard()).getProject()))) { //$NON-NLS-1$
-					setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoSrcInProject);
-					return false;
-				}
-			} catch (JavaModelException e) {
-				e.printStackTrace();
-			}
-
-			IStatus status = JBossWSGenerateWizardValidator.isWSNameValid();
-			if (status != null) {
-				setErrorMessage(status.getMessage());
-				return false;
-			} 
-			
-			IStatus classNameStatus = JBossWSGenerateWizardValidator.isWSClassValid(model
-					.getCustomClassName(), wizard.getProject());
-			if (classNameStatus != null) {
-				if (classNameStatus.getSeverity() == IStatus.ERROR) {
-					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
-					setErrorMessage(null);
-//					setErrorMessage(classNameStatus.getMessage());
-					return true;
-				} else if (classNameStatus.getSeverity() == IStatus.WARNING) {
-					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
-					setErrorMessage(null);
-					return true;
-				}
-			} 
-			
-			setMessage(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Description);
-			setErrorMessage(null);
-			return true;
-		} else {
-			setMessage(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Description);
-			setErrorMessage(null);
-
-			JBossRSGenerateWizardValidator.setServiceModel(model);
-			if (!projects.isDisposed() && projects.getText().length() > 0) {
-				model.setWebProjectName(projects.getText());
-			}
-
-			setErrorMessage(null);
-			// no project selected
-			if (((JBossWSAnnotatedClassWizard) this.getWizard()).getProject() == null) {
-				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoProjectSelected);
-				return false;
-			}
-
-			try {
-				IFacetedProject facetProject =
-						ProjectFacetsManager.create(((JBossWSAnnotatedClassWizard)this.getWizard()).getProject());
-				if (facetProject == null || facetProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET) == null) {
-					// then we're not a dynamic web project
-					setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
-					return false;
-				}
-			} catch (CoreException e1) {
-				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
-				return false;
-			}
-			
-			// project not a dynamic web project
-			IFile web = ((JBossWSAnnotatedClassWizard) this.getWizard()).getWebFile();
-			if (web == null || !web.exists()) {
-				if (updateWebXML.getSelection()) {
-					setMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoWebXML, 
-							DialogPage.WARNING);
-					return true;
-				}
-			}
-
-			IStatus reNoREDirectoryInRuntimeRoot = RestEasyLibUtils.doesRuntimeHaveRootLevelRestEasyDir(
-					((JBossWSAnnotatedClassWizard) this.getWizard()).getProject());
-			addJarsIfFound.setEnabled(reNoREDirectoryInRuntimeRoot.getSeverity() == IStatus.OK);
-			
-			IStatus reInstalledStatus =
-				RestEasyLibUtils.doesRuntimeSupportRestEasy(((JBossWSAnnotatedClassWizard) this.getWizard()).getProject());
-			if (reInstalledStatus.getSeverity() != IStatus.OK && !addJarsIfFound.getSelection()){
-				setMessage(JBossWSUIMessages.JBossRSGenerateWizardPage_Error_RestEasyJarsNotFoundInRuntime, DialogPage.WARNING);
+		} catch (CoreException e1) {
+			setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NotDynamicWebProject2);
+			return false;
+		}
+		
+		// project not a dynamic web project
+		IFile web = ((JBossWSAnnotatedClassWizard) this.getWizard()).getWebFile();
+		if (web == null || !web.exists()) {
+			if (updateWebXML.getSelection()) {
+				setMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoWebXML, 
+						DialogPage.WARNING);
 				return true;
 			}
-
-			// no source folder in web project
-			try {
-				if (""	.equals(JBossWSCreationUtils.getJavaProjectSrcLocation(((JBossWSAnnotatedClassWizard) this.getWizard()).getProject()))) { //$NON-NLS-1$
-					setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoSrcInProject);
-					return false;
-				}
-			} catch (JavaModelException e) {
-				e.printStackTrace();
-			}
-
-			// already has a REST sample installed - can't use wizard again
-			if (wizard.getUpdateWebXML()) {
-				IStatus alreadyHasREST = JBossRSGenerateWizardValidator.RESTAppExists();
-				if (alreadyHasREST != null) {
-					if (alreadyHasREST.getSeverity() == IStatus.ERROR) {
-						setErrorMessage(alreadyHasREST.getMessage());
-						return false;
-					} else if (alreadyHasREST.getSeverity() == IStatus.WARNING) {
-						setMessage(alreadyHasREST.getMessage(), DialogPage.WARNING);
-						setErrorMessage(null);
-						return true;
-					}
-				}
-			} 
-			
-			// Check the service class name
-			IStatus classNameStatus = JBossRSGenerateWizardValidator.isWSClassValid(model
-					.getCustomClassName(), wizard.getProject());
-			if (classNameStatus != null) {
-				if (classNameStatus.getSeverity() == IStatus.ERROR) {
-					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
-					setErrorMessage(null);
-					return true;
-//					setErrorMessage(classNameStatus.getMessage());
-//					return false;
-				} else if (classNameStatus.getSeverity() == IStatus.WARNING) {
-					setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
-					setErrorMessage(null);
-					return true;
-				}
-			} 
-			
-			// check the application class name
-			IStatus appClassNameStatus = JBossRSGenerateWizardValidator.isAppClassNameValid(
-					model.getCustomPackage() + '.' + model.getApplicationClassName());
-			if (appClassNameStatus != null) {
-				if (appClassNameStatus.getSeverity() == IStatus.ERROR) {
-					setMessage(appClassNameStatus.getMessage(), DialogPage.ERROR);
-					return false;
-				} else if (appClassNameStatus.getSeverity() == IStatus.WARNING) {
-					setMessage(appClassNameStatus.getMessage(), DialogPage.WARNING);
-					return true;
-				}
-			} 
 		}
-		setMessage(JBossWSUIMessages.JBossWSAnnotatedClassWizardPage_PageDescription);
+
+		try {
+			if (""	.equals(JBossWSCreationUtils.getJavaProjectSrcLocation(((JBossWSAnnotatedClassWizard) this.getWizard()).getProject()))) { //$NON-NLS-1$
+				setErrorMessage(JBossWSUIMessages.Error_JBossWS_GenerateWizard_NoSrcInProject);
+				return false;
+			}
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+
+		IStatus status = JBossWSGenerateWizardValidator.isWSNameValid();
+		if (status != null) {
+			setErrorMessage(status.getMessage());
+			return false;
+		} 
+		
+		IStatus classNameStatus = JBossWSGenerateWizardValidator.isWSClassValid(model
+				.getCustomClassName(), wizard.getProject());
+		if (classNameStatus != null) {
+			if (classNameStatus.getSeverity() == IStatus.ERROR) {
+				setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
+				setErrorMessage(null);
+//					setErrorMessage(classNameStatus.getMessage());
+				return true;
+			} else if (classNameStatus.getSeverity() == IStatus.WARNING) {
+				setMessage(classNameStatus.getMessage(), DialogPage.WARNING);
+				setErrorMessage(null);
+				return true;
+			}
+		} 
+		
+		setMessage(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Description);
 		setErrorMessage(null);
 		return true;
 	}

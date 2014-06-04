@@ -123,9 +123,6 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWS_DelimitedStringList_EditValue_Dialog_Message;
 	public static String JBossWSAnnotatedClassWizard_Annotated_Class_WS_Wizard_Title;
 	public static String JBossWSAnnotatedClassWizardPage_Application_Class_Browse_btn;
-	public static String JBossWSAnnotatedClassWizardPage_Application_Class_field;
-	public static String JBossWSAnnotatedClassWizardPage_JAXRS_Button;
-	public static String JBossWSAnnotatedClassWizardPage_JAXWS_Button;
 	public static String JBossWSAnnotatedClassWizardPage_package_browse_btn;
 	public static String JBossWSAnnotatedClassWizardPage_package_name_field;
 	public static String JBossWSAnnotatedClassWizardPage_PageDescription;
@@ -138,7 +135,6 @@ public class JBossWSUIMessages extends NLS {
 	public static String JBossWSAnnotatedClassWizardPage_Service_Name_field;
 	public static String JBossWSAnnotatedClassWizardPage_Update_Web_xml_checkbox;
 	public static String JBossWSAnnotatedClassWizardPage_Web_Service_Group;
-	public static String JBossWSAnnotatedClassWizardPage_WS_Tech_Group;
 	public static String JAXRSWSTestView_Action_URL_Label;
 	public static String JAXRSWSTestView_Button_Get_From_WSDL;
 	public static String JAXRSWSTestView_Configure_Monitor_Button;

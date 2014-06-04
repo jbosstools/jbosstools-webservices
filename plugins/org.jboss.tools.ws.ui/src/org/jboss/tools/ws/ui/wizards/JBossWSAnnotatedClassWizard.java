@@ -14,7 +14,6 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -36,10 +35,7 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 import org.eclipse.wst.common.frameworks.datamodel.AbstractDataModelOperation;
 import org.jboss.tools.common.ui.CommonUIImages;
-import org.jboss.tools.ws.creation.core.commands.AddRestEasyJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
-import org.jboss.tools.ws.creation.core.commands.RSMergeWebXMLCommand;
-import org.jboss.tools.ws.creation.core.commands.RSServiceCreationCommand;
 import org.jboss.tools.ws.creation.core.commands.ServiceCreationCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
@@ -59,10 +55,6 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 	public static String PACKAGEDEFAULT = "org.jboss.samples.webservices"; //$NON-NLS-1$
 	public static String WSCLASSDEFAULT = "HelloWorld"; //$NON-NLS-1$
 
-	public static String RSNAMEDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
-	public static String RSCLASSDEFAULT = "HelloWorldResource"; //$NON-NLS-1$
-	public static String RSAPPCLASSDEFAULT = "MyRESTApplication"; //$NON-NLS-1$
-
 	private String serviceName = WSNAMEDEFAULT;
 	private String packageName = PACKAGEDEFAULT;
 	private String className = WSCLASSDEFAULT;
@@ -70,7 +62,6 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
 	private boolean updateWebXML = true;
-	private boolean isJAXWS = true;
 	private boolean addJarsFromRootRuntime = false;
 
 	private IStructuredSelection selection;
@@ -108,12 +99,7 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 			model.setCustomPackage(getPackageName());
 			model.setApplicationClassName( getAppClassName());
 
-			AbstractDataModelOperation mergeCommand = null;
-			if (isJAXWS()) {
-				mergeCommand = new MergeWebXMLCommand(model);
-			} else {
-				mergeCommand = new RSMergeWebXMLCommand(model);
-			}
+			AbstractDataModelOperation mergeCommand = new MergeWebXMLCommand(model);
 			
 			IStatus status = null;
 			if (getUpdateWebXML()) {
@@ -132,48 +118,20 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 				}
 			}
 			
-			AbstractDataModelOperation addJarsCommand = null;
 			AbstractDataModelOperation addClassesCommand = null;
-			if (!isJAXWS()) {
-				if (getAddJarsFromRootRuntime())
-					addJarsCommand = new AddRestEasyJarsCommand(model);
-				addClassesCommand = new RSServiceCreationCommand(model);
-			} else {
-				addClassesCommand = new ServiceCreationCommand(model);
-			}
+			addClassesCommand = new ServiceCreationCommand(model);
 			try {
-				boolean addedJars = false;
-				if (addJarsCommand != null) {
-					addJarsCommand.execute(null, null);
-					addedJars = true;
-				}
 				if (addClassesCommand != null) {
 					addClassesCommand.execute(null, null);
 				}
 				getProject().refreshLocal(IProject.DEPTH_INFINITE, new NullProgressMonitor());
 				IFile openFile1 = null;
-				IFile openFile2 = null;
-				if (addClassesCommand instanceof ServiceCreationCommand) {
-					ServiceCreationCommand cmd = (ServiceCreationCommand) addClassesCommand;
-					if (cmd.getResource() != null && cmd.getResource() instanceof IFile) {
-						openFile1 = (IFile) cmd.getResource();
-					}
-				} else if (addClassesCommand instanceof RSServiceCreationCommand) {
-					if (addedJars)
-						getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
-					RSServiceCreationCommand cmd = (RSServiceCreationCommand) addClassesCommand;
-					if (cmd.getAnnotatedClassResource() != null && cmd.getAnnotatedClassResource() instanceof IFile) {
-						openFile1 = (IFile) cmd.getAnnotatedClassResource();
-					}
-					if (cmd.getApplicationClassResource() != null && cmd.getApplicationClassResource() instanceof IFile) {
-						openFile2 = (IFile) cmd.getApplicationClassResource();
-					}
+				ServiceCreationCommand cmd = (ServiceCreationCommand) addClassesCommand;
+				if (cmd.getResource() != null && cmd.getResource() instanceof IFile) {
+					openFile1 = (IFile) cmd.getResource();
 				}
 				if (openFile1 != null) {
 					openResource(openFile1);
-				}
-				if (openFile2 != null) {
-					openResource(openFile2);
 				}
 			} catch (ExecutionException e) {
 				JBossWSUIPlugin.log(e);
@@ -274,14 +232,6 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 
 	public void setAddJarsFromRootRuntime(boolean addJarsFromRootRuntime) {
 		this.addJarsFromRootRuntime = addJarsFromRootRuntime;
-	}
-
-	public void setJAXWS(boolean isJAXWS) {
-		this.isJAXWS = isJAXWS;
-	}
-
-	public boolean isJAXWS() {
-		return isJAXWS;
 	}
 
 	public IProject getProject() {
