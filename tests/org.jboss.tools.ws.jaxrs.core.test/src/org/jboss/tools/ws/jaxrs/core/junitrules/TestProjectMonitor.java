@@ -44,14 +44,13 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestPlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
 import org.osgi.framework.Bundle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author xcoulon
@@ -59,8 +58,6 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("restriction")
 public class TestProjectMonitor extends ExternalResource {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(TestProjectMonitor.class);
 
 	private final String projectName;
 
@@ -76,9 +73,9 @@ public class TestProjectMonitor extends ExternalResource {
 	
 	@Override
 	protected void before() throws Throwable {
-		LOGGER.debug("***********************************************");
-		LOGGER.debug("* Setting up test project...");
-		LOGGER.debug("***********************************************");
+		TestLogger.debug("***********************************************");
+		TestLogger.debug("* Setting up test project...");
+		TestLogger.debug("***********************************************");
 		long startTime = new Date().getTime();
 		try {
 			setupProject();
@@ -86,9 +83,9 @@ public class TestProjectMonitor extends ExternalResource {
 			fail(e.getMessage());
 		} finally {
 			long endTime = new Date().getTime();
-			LOGGER.debug("***********************************************");
-			LOGGER.debug("* Test project setup in " + (endTime - startTime) + "ms. ***");
-			LOGGER.debug("***********************************************");
+			TestLogger.debug("***********************************************");
+			TestLogger.debug("* Test project setup in " + (endTime - startTime) + "ms. ***");
+			TestLogger.debug("***********************************************");
 		}
 	}
 
@@ -98,7 +95,7 @@ public class TestProjectMonitor extends ExternalResource {
 			IWorkspaceDescription description = workspace.getDescription();
 			description.setAutoBuilding(false);
 			workspace.setDescription(description);
-			LOGGER.info("Workspace auto-build disabled.");
+			TestLogger.info("Workspace auto-build disabled.");
 		}
 		// clear CompilationUnit repository
 		CompilationUnitsRepository.getInstance().clear();
@@ -123,7 +120,7 @@ public class TestProjectMonitor extends ExternalResource {
 	protected void after() {
 		long startTime = new Date().getTime();
 		try {
-			LOGGER.info("Synchronizing the workspace back to its initial state...");
+			TestLogger.info("Synchronizing the workspace back to its initial state...");
 			// remove listener before sync' to avoid desync...
 			ResourcesPlugin.getWorkspace().removeResourceChangeListener(synchronizor);
 			if(synchronizor.resync()) {
@@ -137,7 +134,7 @@ public class TestProjectMonitor extends ExternalResource {
 			fail(e.getMessage());
 		} finally {
 			long endTime = new Date().getTime();
-			LOGGER.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
+			TestLogger.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
 		}
 	}
 
@@ -198,7 +195,7 @@ public class TestProjectMonitor extends ExternalResource {
 	public IPackageFragmentRoot addClasspathEntry(final String name) throws CoreException, OperationCanceledException, InterruptedException {
 		IPath path = javaProject.getProject().getLocation().append("lib").addTrailingSeparator().append(name);
 		if (!path.toFile().exists() || !path.toFile().canRead()) {
-			LOGGER.warn("Following library does not exist or is not readable: {} ", path.toFile());
+			TestLogger.warn("Following library does not exist or is not readable: {} ", path.toFile());
 		}
 		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
 		IClasspathEntry newLibraryEntry = JavaCore.newLibraryEntry(path, null, null);

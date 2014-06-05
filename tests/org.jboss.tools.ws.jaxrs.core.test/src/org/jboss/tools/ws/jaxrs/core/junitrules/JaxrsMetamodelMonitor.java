@@ -32,6 +32,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
@@ -44,8 +45,6 @@ import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author xcoulon
@@ -53,8 +52,6 @@ import org.slf4j.LoggerFactory;
  */
 public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsElementChangedListener,
 		IJaxrsEndpointChangedListener {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(JaxrsMetamodelMonitor.class);
 
 	private JaxrsMetamodel metamodel;
 
@@ -84,9 +81,9 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 
 	@Override
 	protected void before() throws Throwable {
-		LOGGER.debug("***********************************************");
-		LOGGER.debug("* Setting up test project (with metamodel: {})...", buildMetamodel);
-		LOGGER.debug("***********************************************");
+		TestLogger.debug("***********************************************");
+		TestLogger.debug("* Setting up test project (with metamodel: {})...", buildMetamodel);
+		TestLogger.debug("***********************************************");
 		long startTime = new Date().getTime();
 		try {
 			super.setupProject();
@@ -106,24 +103,24 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 			fail(e.getMessage());
 		} finally {
 			long endTime = new Date().getTime();
-			LOGGER.debug("***********************************************");
-			LOGGER.debug("* Test project setup in " + (endTime - startTime) + "ms. ***");
-			LOGGER.debug("***********************************************");
+			TestLogger.debug("***********************************************");
+			TestLogger.debug("* Test project setup in " + (endTime - startTime) + "ms. ***");
+			TestLogger.debug("***********************************************");
 		}
 	}
 
 	@Override
 	protected void after() {
-		LOGGER.debug("***********************************************");
-		LOGGER.debug("* Tearing down project (with metamodel: {}) after test run...", buildMetamodel);
-		LOGGER.debug("***********************************************");
+		TestLogger.debug("***********************************************");
+		TestLogger.debug("* Tearing down project (with metamodel: {}) after test run...", buildMetamodel);
+		TestLogger.debug("***********************************************");
 		
 		if(this.metamodel == null) {
 			return;
 		}
 		long startTime = new Date().getTime();
 		try {
-			LOGGER.info("Destroying metamodel...");
+			TestLogger.info("Destroying metamodel...");
 			// remove listener before sync' to avoid desync...
 			if (metamodel != null) {
 				metamodel.removeListener((IJaxrsElementChangedListener) this);
@@ -135,7 +132,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 			fail("Failed to remove metamodel: " + e.getMessage());
 		} finally {
 			long endTime = new Date().getTime();
-			LOGGER.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
+			TestLogger.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
 			super.after();
 		}
 		

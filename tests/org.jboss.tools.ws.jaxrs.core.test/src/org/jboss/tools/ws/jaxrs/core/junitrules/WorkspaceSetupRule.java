@@ -9,9 +9,8 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.junit.rules.ExternalResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author xcoulon
@@ -19,8 +18,6 @@ import org.slf4j.LoggerFactory;
  */
 public class WorkspaceSetupRule extends ExternalResource {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WorkspaceSetupRule.class);
-	
 	private final String projectName;
 	
 	public WorkspaceSetupRule(final String projectName) {
@@ -30,9 +27,9 @@ public class WorkspaceSetupRule extends ExternalResource {
 	@Override
 	protected void before() throws Throwable {
 		long startTime = new Date().getTime();
-		LOGGER.debug("***********************************************");
-		LOGGER.debug("* Setting up test workspace...");
-		LOGGER.debug("***********************************************");
+		TestLogger.debug("***********************************************");
+		TestLogger.debug("* Setting up test workspace...");
+		TestLogger.debug("***********************************************");
 		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		try {
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -44,9 +41,9 @@ public class WorkspaceSetupRule extends ExternalResource {
 			WorkbenchTasks.synchronizeProject(projectName);
 		} finally {
 			long endTime = new Date().getTime();
-			LOGGER.debug("***********************************************");
-			LOGGER.debug("*** Test workspace setup done in {} ms.", (endTime - startTime));
-			LOGGER.debug("***********************************************");
+			TestLogger.debug("***********************************************");
+			TestLogger.debug("*** Test workspace setup done in {} ms.", (endTime - startTime));
+			TestLogger.debug("***********************************************");
 		}
 	}
 

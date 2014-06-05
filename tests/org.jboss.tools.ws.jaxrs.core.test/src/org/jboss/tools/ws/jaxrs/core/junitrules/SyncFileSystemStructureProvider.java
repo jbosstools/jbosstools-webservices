@@ -23,8 +23,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.wizards.datatransfer.IImportStructureProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 
 /**
  * Copy of the org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider
@@ -37,8 +36,6 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("restriction")
 public class SyncFileSystemStructureProvider implements IImportStructureProvider {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SyncFileSystemStructureProvider.class);
 
 	private final IPath source;
 
@@ -86,7 +83,7 @@ public class SyncFileSystemStructureProvider implements IImportStructureProvider
 				IPath relativeDestinationPath = destination.append(relativeSourcePath);
 				File destinationFile = new File(relativeDestinationPath.toOSString());
 				if (!destinationFile.exists() || destinationFile.lastModified() > sourceFile.lastModified()) {
-					LOGGER.debug("Adding '" + relativeSourcePath + "' to sync operation.");
+					TestLogger.debug("Adding '" + relativeSourcePath + "' to sync operation.");
 					result.add(sourceFile);
 				}
 			}

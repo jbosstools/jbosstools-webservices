@@ -25,13 +25,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TestProjectSynchronizator implements IResourceChangeListener, IResourceDeltaVisitor {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(TestProjectSynchronizator.class);
 
 	private final Stack<IResourceDelta> deltaStack = new Stack<IResourceDelta>();
 	
@@ -48,7 +45,7 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 				event.getDelta().accept(this);
 			}
 		} catch (CoreException e) {
-			LOGGER.error("Failed to visit delta", e);
+			TestLogger.error("Failed to visit delta", e);
 		}
 	}
 
@@ -63,27 +60,27 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 		if (delta.getResource().getType() == IResource.FILE) {
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
-				LOGGER.trace("Resource added: {}", delta.getResource());
+				TestLogger.trace("Resource added: {}", delta.getResource());
 				deltaStack.add(delta);
 				break;
 			case IResourceDelta.CHANGED:
 				if (delta.getFlags() == IResourceDelta.CONTENT) {
-					LOGGER.trace("Resource changed: {}", delta.getResource());
+					TestLogger.trace("Resource changed: {}", delta.getResource());
 					deltaStack.add(delta);
 				}
 				break;
 			case IResourceDelta.REMOVED:
-				LOGGER.trace("Resource removed: {}", delta.getResource());
+				TestLogger.trace("Resource removed: {}", delta.getResource());
 				deltaStack.add(delta);
 				break;
 			}
 		}
 		// only creation and deletion on a folder is put on top of the stack
 		else if (delta.getResource().getType() == IResource.FOLDER && delta.getKind() == IResourceDelta.ADDED) {
-			LOGGER.trace("Resource added : {}", delta.getResource());
+			TestLogger.trace("Resource added : {}", delta.getResource());
 			deltaStack.add(delta);
 		} else if (delta.getResource().getType() == IResource.FOLDER && delta.getKind() == IResourceDelta.REMOVED) {
-			LOGGER.trace("Resource removed : {}", delta.getResource());
+			TestLogger.trace("Resource removed : {}", delta.getResource());
 			deltaStack.add(delta);
 		}
 		return true;
@@ -102,26 +99,26 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 		IPath projectSourcePath = WorkbenchTasks.getProjectSourcePath(projectName);
 		
 		if(deltaStack.isEmpty()) {
-			LOGGER.info("Skipping project resource resync' b/c no file changed during the test.");
+			TestLogger.info("Skipping project resource resync' b/c no file changed during the test.");
 			return false;
 		}
-		LOGGER.debug("Starting project resource resync'...");
+		TestLogger.debug("Starting project resource resync'...");
 		while (!deltaStack.isEmpty()) {
 			final IResourceDelta delta = deltaStack.pop();
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				// resource was added : needs to be removed
-				LOGGER.trace("Removing " + delta.getResource().getFullPath());
+				TestLogger.trace("Removing " + delta.getResource().getFullPath());
 				delta.getResource().delete(true, monitor);
 				break;
 			case IResourceDelta.CHANGED:
 			case IResourceDelta.REMOVED:
-				LOGGER.trace("Restoring " + delta.getResource().getFullPath());
+				TestLogger.trace("Restoring " + delta.getResource().getFullPath());
 				WorkbenchTasks.copyFile(projectSourcePath, delta.getResource(), junitWorkspace);
 				break;
 			}
 		}
-		LOGGER.debug("Done with project resource resync'...");
+		TestLogger.debug("Done with project resource resync'...");
 		return true;
 	}
 
@@ -134,7 +131,7 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 			Assert.fail("The sample project was not found in the launcher workspace under name '" + projectName + "'");
 
 		}
-		LOGGER.debug(projectName + " path=" + path.toOSString());
+		TestLogger.debug(projectName + " path=" + path.toOSString());
 		return path;
 	}
 

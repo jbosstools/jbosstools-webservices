@@ -31,6 +31,7 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestPlugin;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Assert;
 import org.osgi.framework.Bundle;
@@ -123,7 +124,7 @@ public class ResourcesUtils {
 			folder.create(true, true, new NullProgressMonitor());
 		}
 		folder.getFile(fileName).create(stream, true, null);
-		JavaElementsUtils.LOGGER.debug("Content of {}", folder.getFile(fileName).getProjectRelativePath().toPortableString());
+		TestLogger.debug("Content of {}", folder.getFile(fileName).getProjectRelativePath().toPortableString());
 		final InputStream contents = folder.getFile(fileName).getContents();
 		final char[] buffer = new char[0x10000];
 		StringBuilder out = new StringBuilder();
@@ -135,7 +136,7 @@ public class ResourcesUtils {
 				out.append(buffer, 0, read);
 			}
 		} while (read >= 0);
-		JavaElementsUtils.LOGGER.debug(out.toString());
+		TestLogger.debug(out.toString());
 		return (IFile) folder.findMember(fileName);
 	}
 
@@ -165,7 +166,7 @@ public class ResourcesUtils {
 				out.append(buffer, 0, read);
 			}
 		} while (read >= 0);
-		JavaElementsUtils.LOGGER.debug("Content:\n" + out.toString());
+		TestLogger.debug("Content:\n" + out.toString());
 	}
 
 	/**
@@ -200,7 +201,7 @@ public class ResourcesUtils {
 				out.append(buffer, 0, read);
 			}
 		} while (read >= 0);
-		JavaElementsUtils.LOGGER.debug("Content:\n" + out.toString());
+		TestLogger.debug("Content:\n" + out.toString());
 	}
 
 	/**

@@ -32,16 +32,11 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.internal.ide.filesystem.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
 public class WorkbenchTasks {
-
-	static final Logger LOGGER = LoggerFactory.getLogger(WorkbenchTasks.class);
-
-	
 
 	public static void copyFile(IPath projectSourcePath, IResource resource, IWorkspace targetWorkspace)
 			throws InvocationTargetException, InterruptedException {
@@ -69,7 +64,7 @@ public class WorkbenchTasks {
 		// need to overwrite modified files
 		operation.setOverwriteResources(true);
 		operation.setCreateContainerStructure(false);
-		LOGGER.debug("Copying {} into {}", file.getAbsolutePath(), resource.getProject().getLocation());
+		TestLogger.debug("Copying {} into {}", file.getAbsolutePath(), resource.getProject().getLocation());
 		operation.run(new NullProgressMonitor());
 	}
 
@@ -81,7 +76,7 @@ public class WorkbenchTasks {
 		final IProjectDescription description = targetWorkspace.loadProjectDescription(dotProjectPath);
 		final IProject project = targetWorkspace.getRoot().getProject(projectName);
 		if (project.exists() && !targetWorkspace.getRoot().getFile(project.getFile(".project").getFullPath()).exists()) {
-			LOGGER.warn("Deleting (with force!) the project as it seems to be in an invalid state...");
+			TestLogger.warn("Deleting (with force!) the project as it seems to be in an invalid state...");
 			project.delete(true, new NullProgressMonitor());
 		} else if (project.exists() && !project.isOpen()) {
 			project.open(new NullProgressMonitor());
@@ -103,10 +98,10 @@ public class WorkbenchTasks {
 		try {
 			IPath projectSourcePath = getProjectSourcePath(projectName);
 			
-			LOGGER.debug("Source project path: " + projectSourcePath.toPortableString());
+			TestLogger.debug("Source project path: " + projectSourcePath.toPortableString());
 			final IProject project = getTargetWorkspaceProject(projectName);
-			LOGGER.debug("Target project path: " + project.getRawLocation());
-			LOGGER.debug("Removing added files from the target workspace");
+			TestLogger.debug("Target project path: " + project.getRawLocation());
+			TestLogger.debug("Removing added files from the target workspace");
 			// reverse detection operation
 			SyncFileSystemStructureProvider syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(
 					project.getLocation(), projectSourcePath);
@@ -116,7 +111,7 @@ public class WorkbenchTasks {
 			for (File fileToRemove : filesToRemove) {
 				Assert.assertTrue("File not deleted : " + fileToRemove, fileToRemove.delete());
 			}
-			LOGGER.info("adding missing or modified files in the target workspace...");
+			TestLogger.info("adding missing or modified files in the target workspace...");
 			syncFileSystemStructureProvider = new SyncFileSystemStructureProvider(projectSourcePath,
 					project.getLocation());
 			syncFileSystemStructureProvider.ignoreRelativeSourcePath(".svn");
@@ -124,7 +119,7 @@ public class WorkbenchTasks {
 			syncFileSystemStructureProvider.ignoreRelativeSourcePath("bin");
 			List<File> filesToImport = syncFileSystemStructureProvider.getChildren(projectSourcePath.toFile());
 			if (filesToImport != null && filesToImport.size() > 0) {
-				LOGGER.info(" about to synchronize {} files...", filesToImport.size());
+				TestLogger.info(" about to synchronize {} files...", filesToImport.size());
 				ImportOperation operation = new ImportOperation(project.getFullPath(), projectSourcePath.toFile(),
 						syncFileSystemStructureProvider, new IOverwriteQuery() {
 							@Override
@@ -150,7 +145,7 @@ public class WorkbenchTasks {
 			}
 			return project;
 		} finally {
-			LOGGER.debug("Sync'ing sample project done in " + (new Date().getTime() - start) + " millis");
+			TestLogger.debug("Sync'ing sample project done in " + (new Date().getTime() - start) + " millis");
 		}
 	}
 
@@ -162,7 +157,7 @@ public class WorkbenchTasks {
 			Assert.fail("The sample project was not found in the launcher workspace under name '" + projectName + "'");
 
 		}
-		LOGGER.debug(projectName + " path=" + path.toOSString());
+		TestLogger.debug(projectName + " path=" + path.toOSString());
 		return path;
 	}
 }
