@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -21,16 +22,12 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author xcoulon
  *
  */
 public class Jaxrs20MetamodelTestCase {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(Jaxrs20MetamodelTestCase.class);
 	
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule(
@@ -53,7 +50,7 @@ public class Jaxrs20MetamodelTestCase {
 		final List<IJaxrsProvider> allProviders = metamodel.findAllProviders();
 		//verification
 		for(IJaxrsProvider provider : allProviders) {
-			LOGGER.debug(provider.toString());
+			TestLogger.debug(provider.toString());
 		}
 		assertThat(allProviders.size(), equalTo(5));
 	}
@@ -64,7 +61,7 @@ public class Jaxrs20MetamodelTestCase {
 		final List<IJaxrsNameBinding> allNameBindings = metamodel.findAllNameBindings();
 		//verification
 		for(IJaxrsNameBinding nameBinding : allNameBindings) {
-			LOGGER.debug(nameBinding.toString());
+			TestLogger.debug(nameBinding.toString());
 		}
 		assertThat(allNameBindings.size(), equalTo(2));
 	}
@@ -75,7 +72,7 @@ public class Jaxrs20MetamodelTestCase {
 		final List<IJaxrsElement> allElements = metamodel.findAllElements();
 		//verification
 		for(IJaxrsElement element : allElements) {
-			LOGGER.debug(element.toString());
+			TestLogger.debug(element.toString());
 		}
 		assertThat(allElements.size(), equalTo(36));
 	}

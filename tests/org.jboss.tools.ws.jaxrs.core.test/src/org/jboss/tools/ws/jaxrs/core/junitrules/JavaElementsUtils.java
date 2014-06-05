@@ -35,11 +35,10 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Java code manipulation utility class.
@@ -49,8 +48,6 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("restriction")
 public class JavaElementsUtils {
-
-	static final Logger LOGGER = LoggerFactory.getLogger(JavaElementsUtils.class);
 
 	public static Annotation createAnnotation(final String className) {
 		return createAnnotation(null, className, null);
@@ -126,7 +123,7 @@ public class JavaElementsUtils {
 
 	public static IMethod removeMethod(final ICompilationUnit compilationUnit, final String methodName, final boolean useWorkingCopy)
 			throws JavaModelException {
-		LOGGER.debug("Removing method " + methodName);
+		TestLogger.debug("Removing method " + methodName);
 		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
 		for (IMethod method : unit.findPrimaryType().getMethods()) {
 			if (method.getElementName().equals(methodName)) {
@@ -142,7 +139,7 @@ public class JavaElementsUtils {
 	}
 
 	public static void removeType(final IType type, final boolean useWorkingCopy) throws JavaModelException {
-		LOGGER.info("Removing type " + type.getElementName() + "...");
+		TestLogger.info("Removing type " + type.getElementName() + "...");
 		ICompilationUnit unit = getCompilationUnit(type.getCompilationUnit(), useWorkingCopy);
 		unit.getType(type.getElementName()).delete(true, new NullProgressMonitor());
 		saveAndClose(unit);
@@ -150,7 +147,7 @@ public class JavaElementsUtils {
 
 	public static IMethod createMethod(final IType javaType, final String contents, final boolean useWorkingCopy)
 			throws JavaModelException {
-		LOGGER.info("Adding method into type " + javaType.getElementName());
+		TestLogger.info("Adding method into type " + javaType.getElementName());
 		ICompilationUnit unit = javaType.getCompilationUnit();
 		if (useWorkingCopy) {
 			unit = createWorkingCopy(unit);
@@ -166,7 +163,7 @@ public class JavaElementsUtils {
 	}
 
 	public static IField createField(final IType type, final String contents, final boolean useWorkingCopy) throws JavaModelException {
-		LOGGER.info("Adding type into type " + type.getElementName());
+		TestLogger.info("Adding type into type " + type.getElementName());
 		ICompilationUnit unit = useWorkingCopy ? createWorkingCopy(type.getCompilationUnit()) : type
 				.getCompilationUnit();
 		
@@ -181,7 +178,7 @@ public class JavaElementsUtils {
 	}
 
 	public static IField removeField(final IField field, final boolean useWorkingCopy) throws JavaModelException {
-		LOGGER.info("Removing field " + field.getElementName());
+		TestLogger.info("Removing field " + field.getElementName());
 		ICompilationUnit unit = useWorkingCopy ? createWorkingCopy(field.getCompilationUnit()) : field
 				.getCompilationUnit();
 		ISourceRange sourceRange = field.getSourceRange();
@@ -245,7 +242,7 @@ public class JavaElementsUtils {
 
 	public static IAnnotation addTypeAnnotation(final IType type, final String annotationStmt, final boolean useWorkingCopy)
 			throws JavaModelException, CoreException {
-		LOGGER.info("Adding annotation " + annotationStmt + " on type " + type.getElementName());
+		TestLogger.info("Adding annotation " + annotationStmt + " on type " + type.getElementName());
 		insertCodeAtLocation(type.getCompilationUnit(), annotationStmt, type.getSourceRange().getOffset(),
 				useWorkingCopy);
 		String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
@@ -292,7 +289,7 @@ public class JavaElementsUtils {
 
 	public static IAnnotation addFieldAnnotation(final IField field, final String annotationStmt, final boolean useWorkingCopy)
 			throws CoreException {
-		LOGGER.info("Adding annotation " + annotationStmt + " on type " + field.getElementName());
+		TestLogger.info("Adding annotation " + annotationStmt + " on type " + field.getElementName());
 		insertCodeAtLocation(field.getCompilationUnit(), annotationStmt, field.getSourceRange().getOffset(),
 				useWorkingCopy);
 		String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
@@ -335,7 +332,7 @@ public class JavaElementsUtils {
 	}
 
 	public static ICompilationUnit createWorkingCopy(final ICompilationUnit compilationUnit) throws JavaModelException {
-		LOGGER.debug("Creating working copy...");
+		TestLogger.debug("Creating working copy...");
 		// ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new
 		// NullProgressMonitor());
 		ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new WorkingCopyOwner() {
@@ -363,7 +360,7 @@ public class JavaElementsUtils {
 				};
 			}
 		}, new NullProgressMonitor());
-		LOGGER.debug("Working copy created.");
+		TestLogger.debug("Working copy created.");
 		return workingCopy;
 	}
 
@@ -374,14 +371,14 @@ public class JavaElementsUtils {
 	public static void saveAndClose(final ICompilationUnit unit) throws JavaModelException {
 		try {
 			if (unit.isWorkingCopy()) {
-				LOGGER.debug("Reconciling unit...");
+				TestLogger.debug("Reconciling unit...");
 				unit.reconcile(AST.JLS8, ICompilationUnit.FORCE_PROBLEM_DETECTION, unit.getOwner(),
 						new NullProgressMonitor());
 				// Commit changes
-				LOGGER.debug("Commiting working copy...");
+				TestLogger.debug("Commiting working copy...");
 				unit.commitWorkingCopy(true, null);
 				// Destroy working copy
-				LOGGER.debug("Discarding working copy...");
+				TestLogger.debug("Discarding working copy...");
 				unit.discardWorkingCopy();
 			} else {
 				unit.save(new NullProgressMonitor(), true);
@@ -390,7 +387,7 @@ public class JavaElementsUtils {
 			unit.getJavaProject().getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
 	
 		} catch (Exception e) {
-			LOGGER.error("Failed to build project", e);
+			TestLogger.error("Failed to build project", e);
 		}
 	}
 

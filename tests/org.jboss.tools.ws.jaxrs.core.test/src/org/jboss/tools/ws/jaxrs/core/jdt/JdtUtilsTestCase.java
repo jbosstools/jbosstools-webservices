@@ -59,6 +59,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -73,13 +74,9 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JdtUtilsTestCase {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JdtUtilsTestCase.class);
-	
 	private final IProgressMonitor progressMonitor = new NullProgressMonitor();
 
 	@ClassRule
@@ -831,7 +828,7 @@ public class JdtUtilsTestCase {
 		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final int offset = method.getSourceRange().getOffset() + method.getSourceRange().getLength() - 2;
 		// operation
-		LOGGER.info("Compilation unit: \n{}", CompilationUnitsRepository.getInstance()
+		TestLogger.info("Compilation unit: \n{}", CompilationUnitsRepository.getInstance()
 				.getAST(customerType.getCompilationUnit()));
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification

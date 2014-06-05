@@ -96,7 +96,7 @@ public final class Logger {
 		JBossJaxrsCorePlugin.getDefault().getLog()
 				.log(new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID, message));
 	}
-
+	
 	/**
 	 * Logs a message with an 'warning' severity.
 	 * 
@@ -221,13 +221,7 @@ public final class Logger {
 	private static void log(final String level, final String message, final Object... items) {
 		try {
 			if (isOptionEnabled(level)) {
-				String valuedMessage = message;
-				if (items != null) {
-					for (Object item : items) {
-						valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString()
-								.replaceAll("\\$", ".") : "null"));
-					}
-				}
+				String valuedMessage = getMessage(message, items);
 				System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName()
 						+ "] " + toLevel(level) + " " + valuedMessage);
 			}
@@ -237,6 +231,22 @@ public final class Logger {
 				System.err.println(" " + item);
 			}
 		}
+	}
+
+	/**
+	 * @param message
+	 * @param items
+	 * @return
+	 */
+	public static String getMessage(final String message, final Object... items) {
+		String valuedMessage = message;
+		if (items != null) {
+			for (Object item : items) {
+				valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString()
+						.replaceAll("\\$", ".") : "null"));
+			}
+		}
+		return valuedMessage;
 	}
 
 	private static String toLevel(final String level) {

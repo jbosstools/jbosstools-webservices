@@ -77,6 +77,7 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IEditorPart;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
@@ -90,12 +91,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JavaElementDeltaScannerTestCase {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(JavaElementDeltaScannerTestCase.class);
 
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
@@ -164,7 +161,7 @@ public class JavaElementDeltaScannerTestCase {
 					}
 				}
 			} catch (CoreException e) {
-				LOGGER.error("Failed to scan event {}", event, e);
+				TestLogger.error("Failed to scan event {}", e, event);
 			}
 		}
 	}
@@ -183,14 +180,14 @@ public class JavaElementDeltaScannerTestCase {
 					resourceEvents.add(resourceDelta);
 				}
 			} catch (CoreException e) {
-				LOGGER.error("Failed to scan event {}", event, e);
+				TestLogger.error("Failed to scan event {}", e, event);
 			}
 		}
 	}
 
 	private void verifyEventNotification(IJavaElement element, int deltaKind, int eventType, int flags,
 			VerificationMode numberOfTimes) throws JavaModelException {
-		LOGGER.info("Verifying method calls..");
+		TestLogger.info("Verifying method calls..");
 		if (element == null) {
 			verify(javaElementEvents, numberOfTimes).add(null);
 		} else {
@@ -207,7 +204,7 @@ public class JavaElementDeltaScannerTestCase {
 
 	private void verifyEventNotification(IResource resource, int deltaKind, int eventType, int flags,
 			VerificationMode numberOfTimes) throws JavaModelException {
-		LOGGER.info("Verifying method calls..");
+		TestLogger.info("Verifying method calls..");
 		// verify(scanner,
 		// numberOfTimes).notifyJavaElementChanged(eq(element),
 		// eq(elementKind), eq(deltaKind),
@@ -345,7 +342,7 @@ public class JavaElementDeltaScannerTestCase {
 				"PersistenceExceptionMapperEmptyParameter.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
-		LOGGER.info("Performing Test Operation(s)...");
+		TestLogger.info("Performing Test Operation(s)...");
 		replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", WORKING_COPY);
 		// verifications
@@ -359,7 +356,7 @@ public class JavaElementDeltaScannerTestCase {
 				"PersistenceExceptionMapperEmptyParameter.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
-		LOGGER.info("Performing Test Operation(s)...");
+		TestLogger.info("Performing Test Operation(s)...");
 		replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", PRIMARY_COPY);
 		// verifications
@@ -459,7 +456,7 @@ public class JavaElementDeltaScannerTestCase {
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
-		LOGGER.info("Performing Test Operation(s)...");
+		TestLogger.info("Performing Test Operation(s)...");
 		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				WORKING_COPY);
 		// verifications
@@ -473,7 +470,7 @@ public class JavaElementDeltaScannerTestCase {
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
-		LOGGER.info("Performing Test Operation(s)...");
+		TestLogger.info("Performing Test Operation(s)...");
 		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				PRIMARY_COPY);
 		// verifications
@@ -487,7 +484,7 @@ public class JavaElementDeltaScannerTestCase {
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
-		LOGGER.info("Performing Test Operation(s)...");
+		TestLogger.info("Performing Test Operation(s)...");
 		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", WORKING_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
@@ -500,7 +497,7 @@ public class JavaElementDeltaScannerTestCase {
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
 				"PersistenceExceptionMapper.java");
 		// operation
-		LOGGER.info("Performing Test Operation(s)...");
+		TestLogger.info("Performing Test Operation(s)...");
 		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
@@ -951,12 +948,12 @@ public class JavaElementDeltaScannerTestCase {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "getCustomer");
-		LOGGER.info("Method signature: " + oldMethod.getSignature());
+		TestLogger.info("Method signature: " + oldMethod.getSignature());
 		// operation
 		IMethod newMethod = replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo", "@PathParam(\"id\") Integer id",
 				WORKING_COPY);
-		LOGGER.info("Method signature: " + newMethod.getSignature());
+		TestLogger.info("Method signature: " + newMethod.getSignature());
 		// verifications
 		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
 		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
@@ -967,12 +964,12 @@ public class JavaElementDeltaScannerTestCase {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		IMethod oldMethod = metamodelMonitor.resolveMethod(type, "getCustomer");
-		LOGGER.info("Method signature: " + oldMethod.getSignature());
+		TestLogger.info("Method signature: " + oldMethod.getSignature());
 		// operation
 		IMethod newMethod = replaceFirstOccurrenceOfCode(oldMethod,
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo", "@PathParam(\"id\") Integer id",
 				PRIMARY_COPY);
-		LOGGER.info("Method signature: " + newMethod.getSignature());
+		TestLogger.info("Method signature: " + newMethod.getSignature());
 		// verifications
 		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
 	}

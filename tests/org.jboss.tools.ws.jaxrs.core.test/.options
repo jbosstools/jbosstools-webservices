@@ -1,0 +1,7 @@
+# This file enables runtime tracing
+org.jboss.tools.ws.jaxrs.core.test/info=true
+org.jboss.tools.ws.jaxrs.core.test/debug=true
+org.jboss.tools.ws.jaxrs.core.test/debugIndexing=true
+org.jboss.tools.ws.jaxrs.core.test/trace=false
+org.jboss.tools.ws.jaxrs.core.test/tracePerf=false
+org.jboss.tools.ws.jaxrs.core.test/traceIndexing=false
