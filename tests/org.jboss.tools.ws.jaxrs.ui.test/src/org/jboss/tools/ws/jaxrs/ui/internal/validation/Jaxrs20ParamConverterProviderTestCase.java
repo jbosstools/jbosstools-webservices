@@ -50,14 +50,13 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author xcoulon
@@ -66,7 +65,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class Jaxrs20ParamConverterProviderTestCase {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(Jaxrs20ParamConverterProviderTestCase.class);
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
 	private final IProjectValidationContext context = new ProjectValidationContext();
@@ -128,7 +126,7 @@ public class Jaxrs20ParamConverterProviderTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(providerConverterProvider);
 		for (IMarker marker : markers) {
-			LOGGER.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));

@@ -53,14 +53,13 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Xi
@@ -68,8 +67,6 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("restriction")
 public class JaxrsResourceValidatorTestCase {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(JaxrsResourceValidatorTestCase.class);
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
@@ -135,7 +132,7 @@ public class JaxrsResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(barResource);
 		for (IMarker marker : markers) {
-			LOGGER.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(8));

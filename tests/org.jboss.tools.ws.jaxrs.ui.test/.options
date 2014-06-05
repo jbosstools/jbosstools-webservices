@@ -1,0 +1,3 @@
+# This file enables runtime tracing
+org.jboss.tools.ws.jaxrs.ui.test/debug=true
+org.jboss.tools.ws.jaxrs.ui.test/trace=false

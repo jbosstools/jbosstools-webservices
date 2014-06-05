@@ -41,18 +41,15 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.quickfix.JaxrsMarkerResolutionGenerator;
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Xavier Coulon The class name says it all.
  */
 @SuppressWarnings("restriction")
 public class ValidationUtils {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(ValidationUtils.class);
 
 	/**
 	 * Converts the given {@link IResource} elements into a set of {@link IFile}
@@ -194,7 +191,7 @@ public class ValidationUtils {
 
 	public static void printMarkers(final List<IMarker> markers) {
 		for (IMarker marker : markers) {
-			LOGGER.debug(" Marker with severity={}: {}", marker.getAttribute(IMarker.SEVERITY, 0),
+			Logger.debug(" Marker with severity={}: {}", marker.getAttribute(IMarker.SEVERITY, 0),
 					marker.getAttribute(IMarker.MESSAGE, ""));
 		}
 	}
