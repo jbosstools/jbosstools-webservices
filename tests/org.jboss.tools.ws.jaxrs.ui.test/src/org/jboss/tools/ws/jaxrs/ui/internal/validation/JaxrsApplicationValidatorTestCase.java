@@ -162,10 +162,11 @@ public class JaxrsApplicationValidatorTestCase {
 
 	@Test
 	public void shouldReportProblemOnProjectIfNoApplicationExists() throws CoreException, ValidationException {
-		// preconditions: only keep CustomerResource
+		// preconditions: only keep CustomerResource (remove Applications)
 		final IType customerJavaType = metamodelMonitor
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final List<IJaxrsElement> elements = metamodel.findAllElements();
+		
 		for (IJaxrsElement element : elements) {
 			if (element.getElementKind() == EnumElementKind.ROOT_RESOURCE
 					&& ((JaxrsResource) element).getJavaElement().equals(customerJavaType)) {

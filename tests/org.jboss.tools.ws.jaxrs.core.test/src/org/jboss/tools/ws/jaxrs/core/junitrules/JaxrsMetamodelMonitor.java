@@ -73,6 +73,15 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		this.buildMetamodel = buildMetamodel;
 	}
 	
+	public JaxrsMetamodel initMetamodel() {
+		try {
+			before();
+		} catch (Throwable e) {
+			fail("Failed to init metamodel: " + e.getMessage());
+		}
+		return this.metamodel;
+	}
+
 	@Override
 	protected void before() throws Throwable {
 		LOGGER.debug("***********************************************");
