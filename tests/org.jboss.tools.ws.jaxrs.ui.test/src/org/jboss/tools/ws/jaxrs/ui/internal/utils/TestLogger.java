@@ -26,7 +26,7 @@ import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUITestPlugin;
  * @author xcoulon
  * 
  */
-public final class Logger {
+public final class TestLogger {
 
 	/** The debug name, matching the .options file. */
 	private static final String DEBUG = JBossJaxrsUITestPlugin.PLUGIN_ID + "/debug";
@@ -44,7 +44,7 @@ public final class Logger {
 	/**
 	 * The private constructor of the static class.
 	 */
-	private Logger() {
+	private TestLogger() {
 	}
 
 	/**

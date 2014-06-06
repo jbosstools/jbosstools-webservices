@@ -131,7 +131,7 @@ public class JaxrsElementsIndexationDelegate {
 		} finally {
 			Logger.traceIndexing(" Done indexing {}.", element.getName());
 			final long end = System.currentTimeMillis();
-			Logger.tracePerf("Element indexed in {}ms", (end - start));
+			Logger.traceIndexingPerf("Element indexed in {}ms", (end - start));
 		}
 	}
 
@@ -303,7 +303,7 @@ public class JaxrsElementsIndexationDelegate {
 			final JaxrsElementsCollector<T> collector = new JaxrsElementsCollector<T>();
 			searcher.search(query, collector);
 			final List<T> elements = collector.getResults();
-			Logger.traceIndexing(" Found {} matching endpoints", elements.size());
+			Logger.traceIndexing(" Found {} matching elements", elements.size());
 			return elements;
 		} catch (IOException e) {
 			Logger.error("Failed to search for JAX-RS element in index", e);

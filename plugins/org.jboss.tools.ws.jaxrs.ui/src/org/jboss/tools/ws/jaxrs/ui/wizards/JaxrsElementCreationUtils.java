@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.ui.wizards;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -139,8 +140,9 @@ public class JaxrsElementCreationUtils {
 	 * @param javaProject
 	 *            the java project
 	 * @return the web app
+	 * @throws CoreException 
 	 */
-	public static WebApp getWebApp(final IJavaProject javaProject) {
+	public static WebApp getWebApp(final IJavaProject javaProject) throws CoreException {
 		if (WtpUtils.hasWebDeploymentDescriptor(javaProject.getProject())) {
 			return (WebApp) ModelProviderManager.getModelProvider(javaProject.getProject()).getModelObject();
 		}

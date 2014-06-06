@@ -76,6 +76,10 @@ public class JaxrsWebxmlApplication extends AbstractJaxrsBaseElement implements 
 		}
 
 		public JaxrsWebxmlApplication build() throws CoreException {
+			return build(true);
+		}
+			
+		public JaxrsWebxmlApplication build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				final IType applicationType = JdtUtils.resolveType(APPLICATION, javaProject,
@@ -93,10 +97,12 @@ public class JaxrsWebxmlApplication extends AbstractJaxrsBaseElement implements 
 					applicationPath = WtpUtils.getApplicationPath(webxmlResource, javaClassName);
 					if (applicationPath != null) {
 						final JaxrsWebxmlApplication webxmlApplication = new JaxrsWebxmlApplication(this);
-						webxmlApplication.joinMetamodel();
-						final JaxrsJavaApplication overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
-						if(overridenJaxrsJavaApplication != null) {
-							overridenJaxrsJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
+						if(joinMetamodel) {
+							webxmlApplication.joinMetamodel();
+							final JaxrsJavaApplication overridenJaxrsJavaApplication = webxmlApplication.getOverridenJaxrsJavaApplication();
+							if(overridenJaxrsJavaApplication != null) {
+								overridenJaxrsJavaApplication.setApplicationPathOverride(webxmlApplication.getApplicationPath());
+							}
 						}
 						return webxmlApplication;
 					}
@@ -180,7 +186,7 @@ public class JaxrsWebxmlApplication extends AbstractJaxrsBaseElement implements 
 	}
 	
 	public int update(IResource webxmlResource) throws CoreException {
-		return update(from(webxmlResource).build());
+		return update(from(webxmlResource).build(false));
 	}
 
 

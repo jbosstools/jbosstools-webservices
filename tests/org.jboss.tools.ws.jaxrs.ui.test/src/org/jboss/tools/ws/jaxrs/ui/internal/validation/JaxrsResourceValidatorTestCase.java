@@ -53,7 +53,8 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
-import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -132,7 +133,7 @@ public class JaxrsResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(barResource);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(8));
@@ -688,7 +689,7 @@ public class JaxrsResourceValidatorTestCase {
 		final ICompilationUnit truckCompilationUnit = metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
 		final ICompilationUnit truckResourceCompilationUnit = metamodelMonitor.createCompilationUnit("TruckResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
-		final JaxrsResource truckResource = metamodelMonitor.createResource(truckResourceCompilationUnit.findPrimaryType());
+		final JaxrsResource truckResource = metamodel.findResource(truckResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation 1 : first validation
 		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
@@ -704,6 +705,7 @@ public class JaxrsResourceValidatorTestCase {
 		// operation 2: now, let's update the 'Truck' class to fix the problem, by adding a 'valueOf(String)' method, and let's replace all 'ArrayList' with 'List'
 		ResourcesUtils.replaceContent(truckCompilationUnit.getResource(), "public Truck valueOf(String value)", "public static Truck valueOf(String value)");
 		ResourcesUtils.replaceContent(truckResourceCompilationUnit.getResource(), "ArrayList<String>", "List<String>");
+		truckResource.update(truckResourceCompilationUnit, JdtUtils.parse(truckResourceCompilationUnit, null));
 		// validate the 'Truck' domain class, not the JAX-RS 'TruckResource', since this one did not change during the operation above
 		new JaxrsMetamodelValidator().validate(toSet(truckCompilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);

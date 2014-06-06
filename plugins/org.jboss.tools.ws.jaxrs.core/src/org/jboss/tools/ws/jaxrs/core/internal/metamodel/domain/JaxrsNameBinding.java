@@ -114,6 +114,10 @@ public class JaxrsNameBinding extends AbstractJaxrsJavaTypeElement implements IJ
 		}
 
 		public JaxrsNameBinding build() throws CoreException {
+			return build(true);
+		}
+		
+		JaxrsNameBinding build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
@@ -127,7 +131,9 @@ public class JaxrsNameBinding extends AbstractJaxrsJavaTypeElement implements IJ
 				}
 				final JaxrsNameBinding nameBinding = new JaxrsNameBinding(this);
 				// this operation is only performed after creation
-				nameBinding.joinMetamodel();
+				if(joinMetamodel) {
+					nameBinding.joinMetamodel();
+				}
 				return nameBinding;
 			} finally {
 				final long end = System.currentTimeMillis();
@@ -215,7 +221,7 @@ public class JaxrsNameBinding extends AbstractJaxrsJavaTypeElement implements IJ
 	 * @throws CoreException
 	 */
 	public void update(final IJavaElement element, final CompilationUnit ast) throws CoreException {
-		final JaxrsNameBinding transientNameBinding = JaxrsNameBinding.from(element, ast).build();
+		final JaxrsNameBinding transientNameBinding = JaxrsNameBinding.from(element, ast).build(false);
 		if (transientNameBinding == null) {
 			remove();
 		} else {

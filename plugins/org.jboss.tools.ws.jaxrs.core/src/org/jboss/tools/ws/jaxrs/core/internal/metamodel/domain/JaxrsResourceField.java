@@ -94,6 +94,10 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 		}
 
 		public JaxrsResourceField build() throws CoreException {
+			return build(true);
+		}
+		
+		JaxrsResourceField build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				// skip if element does not exist or if it has compilation errors
@@ -118,7 +122,9 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 				if (matchesExpectedAnnotation) {
 					final JaxrsResourceField field = new JaxrsResourceField(this);
 					// this operation is only performed after creation
-					field.joinMetamodel();
+					if(joinMetamodel) {
+						field.joinMetamodel();
+					}
 					return field;
 				}
 				return null;
@@ -160,7 +166,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 				}
 				break;
 			case IJavaElement.METHOD:
-				update(from((IField) javaElement, ast).build());
+				update(from((IField) javaElement, ast).build(false));
 			}
 		} 
 	}

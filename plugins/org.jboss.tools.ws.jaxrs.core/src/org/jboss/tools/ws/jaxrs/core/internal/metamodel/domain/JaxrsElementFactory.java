@@ -12,21 +12,17 @@ Le * Copyright (c) 2008 Red Hat, Inc.
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElement.ANNOTATION;
-import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
 import static org.eclipse.jdt.core.IJavaElement.FIELD;
-import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
 import static org.eclipse.jdt.core.IJavaElement.METHOD;
-import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
-import static org.eclipse.jdt.core.IJavaElement.TYPE;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
@@ -50,7 +46,6 @@ public class JaxrsElementFactory {
 	 * Dispatch method.
 	 * 
 	 * @param element
-	 * @param ast
 	 * @param metamodel
 	 * @param progressMonitor
 	 * @return
@@ -60,21 +55,6 @@ public class JaxrsElementFactory {
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
 		switch (element.getElementType()) {
-		case JAVA_PROJECT:
-			elements.addAll(createElements(element, metamodel, progressMonitor));
-			break;
-		case PACKAGE_FRAGMENT_ROOT:
-			elements.addAll(createElements(element, metamodel, progressMonitor));
-			break;
-		case COMPILATION_UNIT:
-			final ICompilationUnit compilationUnit = (ICompilationUnit) element;
-			for (IType type : compilationUnit.getTypes()) {
-				elements.addAll(createElements(type, ast, metamodel, progressMonitor));
-			}
-			break;
-		case TYPE:
-			elements.addAll(createElements((IType) element, ast, metamodel, progressMonitor));
-			break;
 		case METHOD:
 			elements.addAll(createElements((IMethod) element, ast, metamodel, progressMonitor));
 			break;
@@ -84,6 +64,9 @@ public class JaxrsElementFactory {
 		case ANNOTATION:
 			elements.addAll(createElements((IAnnotation) element, ast, metamodel,
 					progressMonitor));
+			break;
+		default:
+			elements.addAll(internalCreateElements(element, ast, metamodel, progressMonitor));
 			break;
 		}
 		return elements;
@@ -158,7 +141,7 @@ public class JaxrsElementFactory {
 		}
 	}
 
-	private static List<IJaxrsElement> createElements(final IJavaElement scope,
+	private static List<IJaxrsElement> internalCreateElements(final IJavaElement scope, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		if(scope.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)scope).isArchive()) {
 			Logger.debug("Ignoring archive {}", scope.getElementName());
@@ -211,7 +194,7 @@ public class JaxrsElementFactory {
 			}
 		}
 		// let's see if the given scope contains JAX-RS Providers
-		final List<IType> matchingProviderTypes = JavaElementsSearcher.findProviderTypes(scope, progressMonitor);
+		final Collection<IType> matchingProviderTypes = JavaElementsSearcher.findProviderTypes(scope, progressMonitor);
 		for (IType type : matchingProviderTypes) {
 			final JaxrsProvider provider = JaxrsProvider.from(type).withMetamodel(metamodel).build();
 			if (provider != null) {
@@ -234,10 +217,11 @@ public class JaxrsElementFactory {
 	 */
 	private static List<IJaxrsElement> createElements(final IMethod javaMethod,
 			final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		// TODO: should skip if the given javaMethod has no relevant JAX-RS annotation
 		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
 		final IType parentType = (IType) javaMethod.getAncestor(IJavaElement.TYPE);
 		if(metamodel.findElement(parentType) == null) {
-			elements.addAll(createElements(parentType, ast, metamodel, progressMonitor));
+			elements.addAll(internalCreateElements(parentType, ast, metamodel, progressMonitor));
 		} else {
 			final JaxrsResource parentResource = metamodel.findResource((IType)javaMethod.getAncestor(IJavaElement.TYPE));
 			final JaxrsResourceMethod resourceMethod = JaxrsResourceMethod
@@ -265,12 +249,13 @@ public class JaxrsElementFactory {
 	 * @return
 	 * @throws CoreException
 	 */
-	private static List<IJaxrsElement> createElements(IField javaField, CompilationUnit ast,
-			JaxrsMetamodel metamodel, IProgressMonitor progressMonitor) throws CoreException {
+	private static List<IJaxrsElement> createElements(final IField javaField, final CompilationUnit ast,
+			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
+		// TODO: should skip if the given javaField has no relevant JAX-RS annotation
 		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
 		final IType parentType = (IType) javaField.getAncestor(IJavaElement.TYPE);
 		if(metamodel.findElement(parentType) == null) {
-			elements.addAll(createElements(parentType, ast, metamodel, progressMonitor));
+			elements.addAll(internalCreateElements(parentType, ast, metamodel, progressMonitor));
 		} else {
 			final JaxrsResourceField resourceField = JaxrsResourceField.from(javaField, ast).withMetamodel(metamodel).build();
 			if (resourceField != null) {
@@ -306,7 +291,7 @@ public class JaxrsElementFactory {
 		if (javaAnnotation != null) {
 			switch (javaAnnotation.getParent().getElementType()) {
 			case IJavaElement.TYPE:
-				return createElements((IType) javaAnnotation.getParent(), ast, metamodel, progressMonitor);
+				return internalCreateElements((IType) javaAnnotation.getParent(), ast, metamodel, progressMonitor);
 			case IJavaElement.METHOD:
 				return createElements((IMethod) javaAnnotation.getParent(), ast, metamodel, progressMonitor);
 			case IJavaElement.FIELD:

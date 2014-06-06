@@ -80,17 +80,21 @@ public class JaxrsApplicationCreationWizard extends NewElementWizard implements 
 							+ "'", e);
 				}
 			} else {
-				final IFile webxmlResource = applicationPage.getWebxmlResource();
-				if (webxmlResource != null && webxmlResource.exists()) {
-					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				try {
+					final IFile webxmlResource = applicationPage.getWebxmlResource();
+					if (webxmlResource != null && webxmlResource.exists()) {
+						IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
-					final IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry()
-							.getDefaultEditor(webxmlResource.getName());
-					try {
-						page.openEditor(new FileEditorInput(webxmlResource), desc.getId());
-					} catch (PartInitException e) {
-						Logger.error("Failed to open '" + webxmlResource.getLocation().toString() + "'", e);
+						final IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry()
+								.getDefaultEditor(webxmlResource.getName());
+						try {
+							page.openEditor(new FileEditorInput(webxmlResource), desc.getId());
+						} catch (PartInitException e) {
+							Logger.error("Failed to open '" + webxmlResource.getLocation().toString() + "'", e);
+						}
 					}
+				} catch(CoreException e) {
+					Logger.error("Failed to open web.xml file in project {}", e, applicationPage.getJavaProject().getElementName());
 				}
 
 			}

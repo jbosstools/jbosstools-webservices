@@ -337,7 +337,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 	private void validatePublicModifierOnJavaMethod(final JaxrsResourceMethod resourceMethod) throws CoreException {
 		final IMethod javaMethod = resourceMethod.getJavaElement();
 		final JaxrsResource parentResource = resourceMethod.getParentResource();
-		if (javaMethod == null || parentResource == null || parentResource.getJavaElement() == null) {
+		if (javaMethod == null || parentResource == null || parentResource.getJavaElement() == null || !javaMethod.exists()) {
 			return;
 		}
 		if (!parentResource.getJavaElement().isInterface() && !Flags.isPublic(javaMethod.getFlags())) {

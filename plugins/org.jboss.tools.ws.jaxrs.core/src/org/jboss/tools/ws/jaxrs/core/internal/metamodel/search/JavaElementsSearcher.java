@@ -15,7 +15,7 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPPER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.*;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.NAME_BINDING;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PARAM_CONVERTER_PROVIDER;
@@ -25,7 +25,9 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -105,25 +107,23 @@ public final class JavaElementsSearcher {
 	 * @throws CoreException
 	 *             in case of exception
 	 */
-	public static List<IType> findProviderTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
+	public static Set<IType> findProviderTypes(final IJavaElement scope, final IProgressMonitor progressMonitor)
 			throws CoreException {
 		final long start = System.currentTimeMillis();
 		try {
-			final List<IType> providerTypes = new ArrayList<IType>();
+			final Set<IType> providerTypes = new HashSet<IType>();
 			final IJavaSearchScope searchScope = createSearchScope(scope);
 			final List<IType> annotatedTypes = searchForAnnotatedTypes(PROVIDER, searchScope,
 					progressMonitor);
 			providerTypes.addAll(annotatedTypes);
 			// also search for one or more provider subtypes
-			final List<IType> messageBodyReaderSubtypes = findSubtypes(scope, MESSAGE_BODY_READER,
-					progressMonitor);
-			providerTypes.addAll(CollectionUtils.difference(messageBodyReaderSubtypes, providerTypes));
-			final List<IType> messageBodyWriterSubtypes = findSubtypes(scope, MESSAGE_BODY_WRITER,
-					progressMonitor);
-			providerTypes.addAll(CollectionUtils.difference(messageBodyWriterSubtypes, providerTypes));
-			final List<IType> exceptionMapperSubtypes = findSubtypes(scope, EXCEPTION_MAPPER,
-					progressMonitor);
-			providerTypes.addAll(CollectionUtils.difference(exceptionMapperSubtypes, providerTypes));
+			providerTypes.addAll(findSubtypes(scope, MESSAGE_BODY_READER, progressMonitor));
+			providerTypes.addAll(findSubtypes(scope, MESSAGE_BODY_WRITER, progressMonitor));
+			providerTypes.addAll(findSubtypes(scope, EXCEPTION_MAPPER, progressMonitor));
+			providerTypes.addAll(findSubtypes(scope, CONTAINER_REQUEST_FILTER, progressMonitor));
+			providerTypes.addAll(findSubtypes(scope, CONTAINER_RESPONSE_FILTER, progressMonitor));
+			providerTypes.addAll(findSubtypes(scope, ENTITY_READER_INTERCEPTOR, progressMonitor));
+			providerTypes.addAll(findSubtypes(scope, ENTITY_WRITER_INTERCEPTOR, progressMonitor));
 			return providerTypes;
 		} finally {
 			final long end = System.currentTimeMillis();

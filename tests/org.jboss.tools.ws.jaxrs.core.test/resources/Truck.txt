@@ -2,17 +2,17 @@ package org.jboss.tools.ws.jaxrs.sample.services;
 
 public class Truck {
 	
-	// invalid: from argument
+	// invalid wrong argument type, should be 'String'
 	public Truck(int i) {
 	
 	}
 	
-	// invalid: non static
+	// invalid modifier: should be static
 	public Truck valueOf(String value) {
 		return null;
 	}
 
-	// invalid: wrong return type
+	// invalid return type, should be Truck
 	public Car fromString(String value) {
 		return null;
 	}

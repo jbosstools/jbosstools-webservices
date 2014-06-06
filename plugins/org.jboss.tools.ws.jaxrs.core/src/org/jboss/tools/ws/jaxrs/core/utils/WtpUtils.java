@@ -38,14 +38,13 @@ import org.xml.sax.InputSource;
 public class WtpUtils {
 
 	public static IFolder getWebInfFolder(IProject project) {
-		IVirtualComponent component = ComponentCore.createComponent(project);
+		final IVirtualComponent component = ComponentCore.createComponent(project);
 		if (component == null) {
 			return null;
 		}
-		IVirtualFolder contentFolder = component.getRootFolder();
-		final IFolder underlyingFolder = (IFolder) contentFolder.getFolder(WebArtifactEdit.WEB_INF)
+		final IVirtualFolder contentFolder = component.getRootFolder();
+		return (IFolder) contentFolder.getFolder(WebArtifactEdit.WEB_INF)
 				.getUnderlyingFolder();
-		return underlyingFolder;
 	}
 
 	/**
@@ -65,14 +64,15 @@ public class WtpUtils {
 	 *            the current java project
 	 * @param applicationTypeName
 	 *            the name of the type/subtype to match in the servlet-mapping
-	 * @return the applicationPath or null if it is not configured.
+	 * @return the applicationPath or {@code null} if it is not configured.
 	 * @throws CoreException
 	 */
 	public static String getApplicationPath(IResource webxmlResource, String applicationTypeName) throws CoreException {
-		if (webxmlResource == null) {
-			return null;
-		}
+		final long startTime = System.currentTimeMillis();
 		try {
+			if (webxmlResource == null) {
+				return null;
+			}
 			final String expression = "//servlet-mapping[servlet-name=\"" + applicationTypeName
 					+ "\"]/url-pattern/text()";
 			final Node urlPattern = evaluateXPathExpression(webxmlResource, expression);
@@ -81,14 +81,17 @@ public class WtpUtils {
 						applicationTypeName);
 				return urlPattern.getTextContent();
 			}
+			Logger.debug("No servlet mapping found for class '{}' in file '{}'", applicationTypeName,
+					webxmlResource.getProjectRelativePath());
+			return null;
 		} catch (Exception e) {
 			Logger.error("Unable to parse file '" + webxmlResource.getProjectRelativePath().toOSString()
 					+ "' to find <servlet-mapping> elements", e);
+			return null;
+		} finally {
+			Logger.tracePerf("Found application path for {} in web.xml in {}ms", applicationTypeName,
+					(System.currentTimeMillis() - startTime));
 		}
-
-		Logger.debug("No servlet mapping found for class '{}' in file '{}'", applicationTypeName,
-				webxmlResource.getProjectRelativePath());
-		return null;
 	}
 
 	/**
@@ -259,19 +262,25 @@ public class WtpUtils {
 	 * @return
 	 */
 	public static boolean hasWebDeploymentDescriptor(IProject project) {
-		final IFolder webinfFolder = getWebInfFolder(project);
-		if (webinfFolder == null) {
-			return false;
+		final long startTime = System.currentTimeMillis();
+		try {
+			final IFolder webinfFolder = getWebInfFolder(project);
+			if (webinfFolder == null) {
+				return false;
+			}
+			final IFile file = webinfFolder.getFile("web.xml");
+			return (file != null && file.exists());
+		} finally {
+			Logger.tracePerf("Looked-up Web Deployment Description in {}ms", (System.currentTimeMillis() - startTime));
 		}
-		final IFile file = webinfFolder.getFile("web.xml");
-		return (file != null && file.exists());
 	}
 
 	/**
 	 * @param project the project in which to look for the web.xml file
 	 * @return the underlying {@link IFile} for the {@code web.xml}, or null if none exists.
+	 * @throws CoreException 
 	 */
-	public static IFile getWebDeploymentDescriptor(IProject project) {
+	public static IFile getWebDeploymentDescriptor(IProject project) throws CoreException {
 		final IFolder webinfFolder = getWebInfFolder(project);
 		final IFile file = webinfFolder.getFile("web.xml");
 		if (file != null && file.exists()) {

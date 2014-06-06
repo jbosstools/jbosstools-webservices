@@ -9,6 +9,7 @@ import static org.junit.Assert.assertThat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -122,7 +123,7 @@ public class JaxrsElementsSearcherTestCase {
 	public void shouldRetrieveAllProvidersInProject() throws CoreException {
 		// pre-conditions
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher.findProviderTypes(javaProject,
+		final Set<IType> providerTypes = JavaElementsSearcher.findProviderTypes(javaProject,
 				new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(5));
@@ -133,7 +134,7 @@ public class JaxrsElementsSearcherTestCase {
 		// pre-conditions
 		final IPackageFragmentRoot sourceFolder = projectMonitor.resolvePackageFragmentRoot("src/main/java");
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher.findProviderTypes(sourceFolder,
+		final Set<IType> providerTypes = JavaElementsSearcher.findProviderTypes(sourceFolder,
 				new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(2));
@@ -145,7 +146,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		removeFirstOccurrenceOfCode(type, "@Provider", false);
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher.findProviderTypes(type,
+		final Set<IType> providerTypes = JavaElementsSearcher.findProviderTypes(type,
 				new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(1));
@@ -157,7 +158,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		removeFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", false);
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher.findProviderTypes(type, new NullProgressMonitor());
+		final Set<IType> providerTypes = JavaElementsSearcher.findProviderTypes(type, new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(1));
 	}
@@ -167,7 +168,7 @@ public class JaxrsElementsSearcherTestCase {
 		// pre-conditions
 		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher
+		final Set<IType> providerTypes = JavaElementsSearcher
 				.findProviderTypes(sourceType, new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(1));
@@ -179,7 +180,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		replaceFirstOccurrenceOfCode(sourceType, "@Provider", "", false);
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher
+		final Set<IType> providerTypes = JavaElementsSearcher
 				.findProviderTypes(sourceType, new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(1));
@@ -191,7 +192,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		replaceFirstOccurrenceOfCode(sourceType, "implements ExceptionMapper<EntityNotFoundException>", "", false);
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher
+		final Set<IType> providerTypes = JavaElementsSearcher
 				.findProviderTypes(sourceType, new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(1));
@@ -202,7 +203,7 @@ public class JaxrsElementsSearcherTestCase {
 		// pre-conditions
 		final IType sourceType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		// operation
-		final List<IType> providerTypes = JavaElementsSearcher
+		final Set<IType> providerTypes = JavaElementsSearcher
 				.findProviderTypes(sourceType, new NullProgressMonitor());
 		// verifications
 		assertThat(providerTypes.size(), equalTo(0));

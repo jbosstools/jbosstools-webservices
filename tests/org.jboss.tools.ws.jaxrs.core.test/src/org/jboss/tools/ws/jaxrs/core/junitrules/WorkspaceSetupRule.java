@@ -3,8 +3,6 @@
  */
 package org.jboss.tools.ws.jaxrs.core.junitrules;
 
-import java.util.Date;
-
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -26,9 +24,9 @@ public class WorkspaceSetupRule extends ExternalResource {
 	
 	@Override
 	protected void before() throws Throwable {
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		TestLogger.debug("***********************************************");
-		TestLogger.debug("* Setting up test workspace...");
+		TestLogger.debug("*** Setting up test workspace...");
 		TestLogger.debug("***********************************************");
 		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		try {
@@ -40,7 +38,7 @@ public class WorkspaceSetupRule extends ExternalResource {
 			}
 			WorkbenchTasks.synchronizeProject(projectName);
 		} finally {
-			long endTime = new Date().getTime();
+			long endTime = System.currentTimeMillis();
 			TestLogger.debug("***********************************************");
 			TestLogger.debug("*** Test workspace setup done in {} ms.", (endTime - startTime));
 			TestLogger.debug("***********************************************");

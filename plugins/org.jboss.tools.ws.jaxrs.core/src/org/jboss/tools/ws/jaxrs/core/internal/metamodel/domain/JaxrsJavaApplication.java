@@ -107,6 +107,10 @@ public class JaxrsJavaApplication extends AbstractJaxrsJavaTypeElement implement
 		}
 
 		public JaxrsJavaApplication build() throws CoreException {
+			return build(true);
+		}
+		
+		JaxrsJavaApplication build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
@@ -120,7 +124,9 @@ public class JaxrsJavaApplication extends AbstractJaxrsJavaTypeElement implement
 				if (isApplicationSubclass || applicationPathAnnotation != null) {
 					final JaxrsJavaApplication application = new JaxrsJavaApplication(this);
 					// this operation is only performed after creation
-					application.joinMetamodel();
+					if(joinMetamodel) {
+						application.joinMetamodel();
+					}
 					return application;
 				}
 				return null;
@@ -268,7 +274,7 @@ public class JaxrsJavaApplication extends AbstractJaxrsJavaTypeElement implement
 	 * @throws CoreException
 	 */
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsJavaApplication transientApplication = from(javaElement, ast).build();
+		final JaxrsJavaApplication transientApplication = from(javaElement, ast).build(false);
 		if (transientApplication == null) {
 			remove();
 		} else {

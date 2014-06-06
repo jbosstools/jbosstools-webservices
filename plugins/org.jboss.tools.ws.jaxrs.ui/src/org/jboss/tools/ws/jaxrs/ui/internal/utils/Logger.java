@@ -72,6 +72,19 @@ public final class Logger {
 	}
 
 	/**
+	 * Logs a message with an 'error' severity.
+	 * 
+	 * @param message
+	 *            the message to log
+	 * @param t
+	 *            the throwable cause
+	 */
+	public static void error(final String message, final Throwable t, final Object... items) {
+		JBossJaxrsUIPlugin.getDefault().getLog()
+		.log(new Status(Status.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, getMessage(message, items), t));
+	}
+
+	/**
 	 * Logs a message with a 'warning' severity.
 	 * 
 	 * @param message
@@ -129,16 +142,10 @@ public final class Logger {
 
 	private static void log(final String level, final String message, final Object... items) {
 		try {
-			String debugOption = Platform.getDebugOption(level);
-			String valuedMessage = message;
+			final String debugOption = Platform.getDebugOption(level);
 			if (JBossJaxrsUIPlugin.getDefault() != null && JBossJaxrsUIPlugin.getDefault().isDebugging()
 					&& "true".equalsIgnoreCase(debugOption)) {
-				if (items != null) {
-					for (Object item : items) {
-						valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString()
-								.replaceAll("\\$", ".") : "null"));
-					}
-				}
+				final String valuedMessage = getMessage(message, items);
 				System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName()
 						+ "] " + valuedMessage);
 			}
@@ -148,6 +155,21 @@ public final class Logger {
 				System.err.println(" " + item);
 			}
 		}
+	}
+
+	/**
+	 * @param valuedMessage
+	 * @param items
+	 * @return
+	 */
+	public static String getMessage(String valuedMessage, final Object... items) {
+		if (items != null) {
+			for (Object item : items) {
+				valuedMessage = valuedMessage.replaceFirst("\\{\\}", (item != null ? item.toString()
+						.replaceAll("\\$", ".") : "null"));
+			}
+		}
+		return valuedMessage;
 	}
 
 }

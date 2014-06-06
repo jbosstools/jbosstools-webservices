@@ -766,7 +766,7 @@ public final class JdtUtils {
 		if (qName == null) {
 			return null;
 		}
-		IType findType = javaProject.findType(qName, progressMonitor);
+		IType findType = javaProject.findType(qName);
 		if (findType == null) {
 			Logger.debug("Unable to find type with fully qualified name '"
 					+ qName + "' in Java Project '"
@@ -857,13 +857,18 @@ public final class JdtUtils {
 	 */
 	public static List<IType> findSubtypes(final IType type)
 			throws CoreException {
-		final List<IType> types = new ArrayList<IType>();
-		final ITypeHierarchy returnTypeHierarchy = JdtUtils
-				.resolveTypeHierarchy(type, type.getJavaProject(), false,
-						new NullProgressMonitor());
-		types.addAll(Arrays.asList(returnTypeHierarchy.getAllSubtypes(type)));
-		types.add(type);
-		return types;
+		final long start = System.currentTimeMillis();
+		try {
+			final List<IType> types = new ArrayList<IType>();
+			final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(),
+					false, new NullProgressMonitor());
+			types.addAll(Arrays.asList(returnTypeHierarchy.getAllSubtypes(type)));
+			types.add(type);
+			return types;
+		} finally {
+			Logger.tracePerf("Found subtypes of {} in {}ms", type.getFullyQualifiedName(),
+					(System.currentTimeMillis() - start));
+		}
 	}
 
 	/**

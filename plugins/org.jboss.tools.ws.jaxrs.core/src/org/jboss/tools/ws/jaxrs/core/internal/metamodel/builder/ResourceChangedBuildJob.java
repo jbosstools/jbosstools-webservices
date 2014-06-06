@@ -41,10 +41,10 @@ public class ResourceChangedBuildJob extends Job {
 	private final IProject project;
 	
 	public ResourceChangedBuildJob(final IProject project, final IResourceChangeEvent event) {
-		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
+		super("JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
 		this.project = project;
-		Logger.debug("Initiating an incremental JAX-RS Metamodel build after " + event); //$NON-NLS-1$
+		Logger.debug("Initiating a JAX-RS Metamodel build after " + event); //$NON-NLS-1$
 	}
 
 	@Override

@@ -132,36 +132,42 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		}
 
 		public JaxrsResource build() throws CoreException {
+			return build(true);
+		}
+
+		JaxrsResource build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				if (javaType == null || !javaType.exists()) {
 					return null;
 				}
-				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
+				Logger.trace("Building a new JAX-RS Resource from {}", javaType.getElementName());
 				// create the resource
+				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
 				final JaxrsResource resource = new JaxrsResource(this);
 				// find the available type fields
 				for (IField javaField : javaType.getFields()) {
 					JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
 				}
-				// retrieve all JavaMethodSignatures at once
-				final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(javaType, ast);
 				// find the resource methods, subresource methods and
 				// subresource
 				// locators of this resource:
 				final List<IMethod> javaMethods = JavaElementsSearcher.findResourceMethods(javaType, this.httpMethods,
 						new NullProgressMonitor());
 				for (IMethod javaMethod : javaMethods) {
+					final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
 					JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
-							.withJavaMethodSignature(methodSignatures.get(javaMethod.getHandleIdentifier())).withMetamodel(metamodel).build();
+							.withJavaMethodSignature(methodSignature).withMetamodel(metamodel).build();
 				}
-				// well, sorry.. this is not a valid JAX-RS resource..
-				if (resource.isSubresource() && resource.resourceFields.isEmpty() && resource.resourceMethods.isEmpty()) {
+				// well, sorry.. this is not a valid JAX-RS resource (requires at least one method)
+				if (resource.isSubresource() && resource.resourceMethods.isEmpty()) {
 					return null;
 				}
 				// this operation is only performed if the resource is acceptable
 				// (ie, not UNDEFINED)
-				resource.joinMetamodel();
+				if(joinMetamodel) {
+					resource.joinMetamodel();
+				}
 				return resource;
 			} finally {
 				final long end = System.currentTimeMillis();
@@ -206,7 +212,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethods()).build();
+		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethods()).build(false);
 		if (transientResource == null) {
 			remove();
 			return;

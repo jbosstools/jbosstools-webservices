@@ -557,7 +557,7 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 		}
 	}
 
-	public IFile getWebxmlResource() {
+	public IFile getWebxmlResource() throws CoreException {
 		return WtpUtils.getWebDeploymentDescriptor(getJavaProject().getProject());
 	}
 

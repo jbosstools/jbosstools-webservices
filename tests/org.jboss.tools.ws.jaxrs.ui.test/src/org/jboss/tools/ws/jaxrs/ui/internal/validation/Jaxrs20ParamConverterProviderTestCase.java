@@ -46,11 +46,12 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
-import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.After;
 import org.junit.Before;
@@ -92,6 +93,10 @@ public class Jaxrs20ParamConverterProviderTestCase {
 	@Rule
 	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor(
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject2", true);
+	
+	@Rule
+	public TestWatcher testWatcher = new TestWatcher();
+	
 	private JaxrsMetamodel metamodel = null;
 	private IProject project = null;
 
@@ -126,7 +131,7 @@ public class Jaxrs20ParamConverterProviderTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(providerConverterProvider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));
@@ -140,13 +145,13 @@ public class Jaxrs20ParamConverterProviderTestCase {
 		metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
 		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("TruckResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
-		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		final JaxrsResource truckResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
+		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		final IMarker[] markers = findJaxrsMarkers(carResource);
+		final IMarker[] markers = findJaxrsMarkers(truckResource);
 		assertThat(markers.length, equalTo(0));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
 	}

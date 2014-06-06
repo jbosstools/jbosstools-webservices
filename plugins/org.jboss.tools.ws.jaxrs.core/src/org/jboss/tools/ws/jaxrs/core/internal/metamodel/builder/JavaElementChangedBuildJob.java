@@ -35,9 +35,9 @@ public class JavaElementChangedBuildJob extends Job {
 	private final ElementChangedEvent event;
 	
 	public JavaElementChangedBuildJob(final ElementChangedEvent event) {
-		super("Incremental JAX-RS Metamodel build..."); //$NON-NLS-1$
+		super("JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
-		Logger.debug("Initiating an incremental JAX-RS Metamodel build after " + event); //$NON-NLS-1$
+		Logger.debug("Initiating a JAX-RS Metamodel build after " + event); //$NON-NLS-1$
 	}
 	
 	public void execute() {

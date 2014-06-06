@@ -167,6 +167,10 @@ public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJa
 		}
 
 		public JaxrsHttpMethod build() throws CoreException {
+			return build(true);
+		}
+		
+		JaxrsHttpMethod build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
@@ -180,7 +184,9 @@ public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJa
 				}
 				final JaxrsHttpMethod httpMethod = new JaxrsHttpMethod(this);
 				// this operation is only performed after creation
-				httpMethod.joinMetamodel();
+				if(joinMetamodel) {
+					httpMethod.joinMetamodel();
+				}
 				return httpMethod;
 			} finally {
 				final long end = System.currentTimeMillis();
@@ -292,7 +298,7 @@ public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJa
 	 * @throws CoreException
 	 */
 	public void update(final IJavaElement element, final CompilationUnit ast) throws CoreException {
-		final JaxrsHttpMethod transientHttpMethod = JaxrsHttpMethod.from(element, ast).build();
+		final JaxrsHttpMethod transientHttpMethod = JaxrsHttpMethod.from(element, ast).build(false);
 		if (transientHttpMethod == null) {
 			remove();
 		} else {

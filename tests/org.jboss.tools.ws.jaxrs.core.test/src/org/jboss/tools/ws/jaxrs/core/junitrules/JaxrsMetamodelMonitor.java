@@ -10,7 +10,6 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -65,6 +64,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 
 	private final boolean buildMetamodel;
 	
+	private long testStartTime;
+	
 	public JaxrsMetamodelMonitor(final String projectName, final boolean buildMetamodel) {
 		super(projectName);
 		this.buildMetamodel = buildMetamodel;
@@ -84,7 +85,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		TestLogger.debug("***********************************************");
 		TestLogger.debug("* Setting up test project (with metamodel: {})...", buildMetamodel);
 		TestLogger.debug("***********************************************");
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		try {
 			super.setupProject();
 			this.metamodel = JaxrsMetamodel.create(super.getJavaProject());
@@ -102,23 +103,24 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		} catch (CoreException e) {
 			fail(e.getMessage());
 		} finally {
-			long endTime = new Date().getTime();
+			long endTime = System.currentTimeMillis();
 			TestLogger.debug("***********************************************");
 			TestLogger.debug("* Test project setup in " + (endTime - startTime) + "ms. ***");
 			TestLogger.debug("***********************************************");
+			testStartTime = System.currentTimeMillis();
 		}
 	}
 
 	@Override
 	protected void after() {
-		TestLogger.debug("***********************************************");
-		TestLogger.debug("* Tearing down project (with metamodel: {}) after test run...", buildMetamodel);
-		TestLogger.debug("***********************************************");
+		TestLogger.debug("*********************************************************************");
+		TestLogger.debug("* Tearing down project (with metamodel: {}) after test run ({}ms)", buildMetamodel, (System.currentTimeMillis() - testStartTime));
+		TestLogger.debug("*********************************************************************");
 		
 		if(this.metamodel == null) {
 			return;
 		}
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		try {
 			TestLogger.info("Destroying metamodel...");
 			// remove listener before sync' to avoid desync...
@@ -131,8 +133,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 			e.printStackTrace();
 			fail("Failed to remove metamodel: " + e.getMessage());
 		} finally {
-			long endTime = new Date().getTime();
-			TestLogger.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
+			long endTime = System.currentTimeMillis();
+			TestLogger.debug("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
 			super.after();
 		}
 		

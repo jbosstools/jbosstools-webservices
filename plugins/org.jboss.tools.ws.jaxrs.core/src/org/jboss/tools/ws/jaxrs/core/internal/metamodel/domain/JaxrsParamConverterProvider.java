@@ -106,6 +106,10 @@ public class JaxrsParamConverterProvider extends AbstractJaxrsJavaTypeElement im
 		}
 
 		public JaxrsParamConverterProvider build() throws CoreException {
+			return build(true);
+		}
+		
+		JaxrsParamConverterProvider build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
@@ -118,7 +122,9 @@ public class JaxrsParamConverterProvider extends AbstractJaxrsJavaTypeElement im
 				if(isParamConvertProviderImpl) {
 					final JaxrsParamConverterProvider paramConverterProvider = new JaxrsParamConverterProvider(this);
 					// this operation is only performed after creation
-					paramConverterProvider.joinMetamodel();
+					if(joinMetamodel) {
+						paramConverterProvider.joinMetamodel();
+					}
 					return paramConverterProvider;
 				}
 				return null;
@@ -161,7 +167,7 @@ public class JaxrsParamConverterProvider extends AbstractJaxrsJavaTypeElement im
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsParamConverterProvider transientProvider = JaxrsParamConverterProvider.from(javaElement, ast).build();
+		final JaxrsParamConverterProvider transientProvider = JaxrsParamConverterProvider.from(javaElement, ast).build(false);
 		// clear this element if the given transient element is null
 		if (transientProvider == null) {
 			remove();

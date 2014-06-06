@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -66,7 +65,7 @@ public class TestProjectMonitor extends ExternalResource {
 	private IJavaProject javaProject = null;
 
 	private TestProjectSynchronizator synchronizor = null;
-	
+
 	public TestProjectMonitor(final String projectName) {
 		this.projectName = projectName;
 	}
@@ -76,15 +75,15 @@ public class TestProjectMonitor extends ExternalResource {
 		TestLogger.debug("***********************************************");
 		TestLogger.debug("* Setting up test project...");
 		TestLogger.debug("***********************************************");
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		try {
 			setupProject();
 		} catch (CoreException e) {
 			fail(e.getMessage());
 		} finally {
-			long endTime = new Date().getTime();
+			long endTime = System.currentTimeMillis();
 			TestLogger.debug("***********************************************");
-			TestLogger.debug("* Test project setup in " + (endTime - startTime) + "ms. ***");
+			TestLogger.debug("*** Test project setup in " + (endTime - startTime) + "ms.");
 			TestLogger.debug("***********************************************");
 		}
 	}
@@ -118,9 +117,11 @@ public class TestProjectMonitor extends ExternalResource {
 
 	@Override
 	protected void after() {
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		try {
-			TestLogger.info("Synchronizing the workspace back to its initial state...");
+			TestLogger.debug("**********************************************************************************");
+			TestLogger.debug("*** Synchronizing the workspace back to its initial state after run");
+			TestLogger.debug("**********************************************************************************");
 			// remove listener before sync' to avoid desync...
 			ResourcesPlugin.getWorkspace().removeResourceChangeListener(synchronizor);
 			if(synchronizor.resync()) {
@@ -133,7 +134,7 @@ public class TestProjectMonitor extends ExternalResource {
 		} catch (InterruptedException e) {
 			fail(e.getMessage());
 		} finally {
-			long endTime = new Date().getTime();
+			long endTime = System.currentTimeMillis();
 			TestLogger.info("Test Workspace sync'd in " + (endTime - startTime) + "ms.");
 		}
 	}
@@ -370,7 +371,7 @@ public class TestProjectMonitor extends ExternalResource {
 	}
 	
 	
-	public IResource getWebDeploymentDescriptor() {
+	public IResource getWebDeploymentDescriptor() throws CoreException {
 		return WtpUtils.getWebDeploymentDescriptor(project);
 	}
 

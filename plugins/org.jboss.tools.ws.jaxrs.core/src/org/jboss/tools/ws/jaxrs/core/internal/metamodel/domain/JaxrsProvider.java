@@ -166,6 +166,10 @@ public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxr
 		 *         invalid type (ie, not a valid JAX-RS Provider)
 		 */
 		public JaxrsProvider build() throws CoreException {
+			return build(true);
+		}
+		
+		JaxrsProvider build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				// skip if element does not exist or if it has compilation errors
@@ -197,7 +201,9 @@ public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxr
 				if (annotations.get(PROVIDER) != null || !providedKinds.isEmpty()) {
 					final JaxrsProvider provider = new JaxrsProvider(this);
 					// this operation is only performed after creation
-					provider.joinMetamodel();
+					if(joinMetamodel) {
+						provider.joinMetamodel();
+					}
 					return provider;
 				}
 				return null;
@@ -365,7 +371,7 @@ public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxr
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsProvider transientProvider = JaxrsProvider.from(javaElement, ast).build();
+		final JaxrsProvider transientProvider = JaxrsProvider.from(javaElement, ast).build(false);
 		// clear this element if the given transient element is null
 		if (transientProvider == null) {
 			this.getProvidedTypes().clear();

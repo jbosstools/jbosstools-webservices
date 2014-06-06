@@ -5,3 +5,4 @@ org.jboss.tools.ws.jaxrs.core/debugIndexing=true
 org.jboss.tools.ws.jaxrs.core/trace=false
 org.jboss.tools.ws.jaxrs.core/tracePerf=false
 org.jboss.tools.ws.jaxrs.core/traceIndexing=false
+org.jboss.tools.ws.jaxrs.core/traceIndexingPerf=false

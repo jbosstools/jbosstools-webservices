@@ -342,10 +342,10 @@ public class Jaxrs11ElementFactoryTestCase {
 		// verifications
 		assertThat(elements.size(), equalTo(5));
 		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("_foo");
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());
@@ -367,10 +367,10 @@ public class Jaxrs11ElementFactoryTestCase {
 		// verifications
 		assertThat(elements.size(), equalTo(5));
 		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("_foo");
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());

@@ -123,6 +123,10 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		}
 
 		public JaxrsResourceMethod build() throws CoreException {
+			return build(true);
+		}
+		
+		JaxrsResourceMethod build(final boolean joinMetamodel) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				// skip if element does not exist or if it has compilation errors
@@ -160,11 +164,13 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 				javaMethodParameters = methodSignature.getMethodParameters();
 				returnedJavaType = methodSignature.getReturnedType();
 				final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(this);
-				resourceMethod.joinMetamodel();
+				if(joinMetamodel) {
+					resourceMethod.joinMetamodel();
+				}
 				return resourceMethod;
 			} finally {
 				final long end = System.currentTimeMillis();
-				Logger.tracePerf("Built JAX-RS Resource Field in {}ms", (end - start));
+				Logger.tracePerf("Built JAX-RS Resource Method in {}ms", (end - start));
 			}
 		}
 
@@ -223,7 +229,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 				}
 				break;
 			case IJavaElement.METHOD:
-				update(from((IMethod) javaElement, ast, getMetamodel().findAllHttpMethods()).build());
+				update(from((IMethod) javaElement, ast, getMetamodel().findAllHttpMethods()).build(false));
 			}
 		}
 	}

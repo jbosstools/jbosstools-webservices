@@ -53,7 +53,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
-import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.After;
 import org.junit.Before;
@@ -125,7 +125,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(0));
@@ -151,7 +151,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(0));
@@ -176,7 +176,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));
@@ -203,7 +203,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));
@@ -230,7 +230,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));
@@ -257,7 +257,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(0));
@@ -283,7 +283,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));
@@ -313,7 +313,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider, otherProvider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(2));
@@ -345,7 +345,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider, otherProvider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(4));
@@ -379,7 +379,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider, otherProvider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		// both @Consumes and @Produces collides on both Providers
@@ -414,7 +414,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider, otherProvider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(0));
@@ -437,7 +437,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));
@@ -461,7 +461,7 @@ public class Jaxrs11ProviderValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(provider);
 		for (IMarker marker : markers) {
-			Logger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));
 		}
 		assertThat(markers.length, equalTo(1));

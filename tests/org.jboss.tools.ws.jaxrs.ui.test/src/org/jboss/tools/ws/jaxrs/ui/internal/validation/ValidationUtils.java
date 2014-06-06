@@ -41,7 +41,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
-import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.quickfix.JaxrsMarkerResolutionGenerator;
 import org.junit.Assert;
 
@@ -191,7 +191,7 @@ public class ValidationUtils {
 
 	public static void printMarkers(final List<IMarker> markers) {
 		for (IMarker marker : markers) {
-			Logger.debug(" Marker with severity={}: {}", marker.getAttribute(IMarker.SEVERITY, 0),
+			TestLogger.debug(" Marker with severity={}: {}", marker.getAttribute(IMarker.SEVERITY, 0),
 					marker.getAttribute(IMarker.MESSAGE, ""));
 		}
 	}
