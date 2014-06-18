@@ -5,9 +5,9 @@ import org.eclipse.core.resources.IMarker;
 public interface IJaxrsStatus {
 
 	/**
-	 * @return the highest level problem this resource method has.
+	 * @return the highest marker severity this element has.
 	 * @see {@link IMarker} for severity levels and values.
 	 */
-	public abstract int getProblemLevel();
+	public abstract int getMarkerSeverity();
 
 }

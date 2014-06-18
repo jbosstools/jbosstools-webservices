@@ -10,7 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,10 +22,10 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 
@@ -85,7 +85,7 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 		// have this annotation, too
 		final String firstNameBindingAnnotationClassName = nameBindingAnnotations.keySet().iterator().next();
 		final Set<String> allBindingAnnotationNames = nameBindingAnnotations.keySet();
-		final List<IJaxrsProvider> annotatedProviders = metamodel
+		final Collection<IJaxrsProvider> annotatedProviders = metamodel
 				.findProvidersByAnnotation(firstNameBindingAnnotationClassName);
 		for (IJaxrsProvider provider : annotatedProviders) {
 			if (provider.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {

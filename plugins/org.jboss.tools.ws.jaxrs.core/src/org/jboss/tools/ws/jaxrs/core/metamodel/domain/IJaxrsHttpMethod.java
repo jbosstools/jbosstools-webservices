@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 import org.eclipse.jdt.core.IType;
 
 public interface IJaxrsHttpMethod extends IJaxrsElement, Comparable<IJaxrsHttpMethod> {
+	
 	/** @return the httpVerb */
 	String getHttpVerb();
 

@@ -8,7 +8,7 @@
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.jaxrs.core.utils;
+package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;

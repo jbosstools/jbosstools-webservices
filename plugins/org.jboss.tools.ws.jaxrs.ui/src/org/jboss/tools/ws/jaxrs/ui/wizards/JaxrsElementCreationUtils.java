@@ -31,7 +31,7 @@ import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.web.WebApp;
 import org.eclipse.jst.javaee.web.WebAppDeploymentDescriptor;
 import org.eclipse.jst.javaee.web.WebFactory;
-import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
  * Utility class for JAX-RS elements creation.

@@ -21,11 +21,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.jdt.RangeUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
-import org.jboss.tools.ws.jaxrs.core.utils.RangeUtils;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
@@ -34,7 +34,7 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  * @author Xavier Coulon
  *
  */
-public abstract class AbstractJaxrsElementValidatorDelegate<T extends AbstractJaxrsBaseElement> implements IJaxrsElementValidator<T> {
+public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseElement> implements IJaxrsElementValidator<T> {
 	
 	/**
 	 * The parameter type names that can be annotated with <code>Context</code>.
@@ -52,7 +52,7 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends AbstractJa
 	 * @param element
 	 *            the JAX-RS element to validate
 	 * @param removeMarkers
-	 *            boolean to indicate if JAX-RS Problem Type markers related to
+	 *            boolean to indicate if JAX-RS Problem SourceType markers related to
 	 *            the given element should be removed prior to validation, or
 	 *            not (assuming they were already removed).
 	 * @throws CoreException
@@ -73,13 +73,13 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends AbstractJa
 	 * @throws CoreException
 	 */
 	public void validate(final T element, final boolean removeMarkers) throws CoreException {
-		final int previousProblemLevel = element.getProblemLevel();
+		final int previousProblemLevel = element.getMarkerSeverity();
 		if(removeMarkers) {
 			removeMarkers(element);
 		}
 		element.resetProblemLevel();
 		internalValidate(element);
-		final int currentProblemLevel = element.getProblemLevel();
+		final int currentProblemLevel = element.getMarkerSeverity();
 		if(currentProblemLevel != previousProblemLevel) {
 			Logger.debug("Informing metamodel that problem level changed from {} to {}", previousProblemLevel,
 					currentProblemLevel);
@@ -103,7 +103,7 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends AbstractJa
 		switch(element.getElementKind().getCategory()) {
 		case RESOURCE_METHOD:
 		case RESOURCE_FIELD:
-			final ISourceRange sourceRange = ((AbstractJaxrsJavaElement<?>) element).getJavaElement().getSourceRange();
+			final ISourceRange sourceRange = ((JaxrsJavaElement<?>) element).getJavaElement().getSourceRange();
 			final IMarker[] markers = element.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
 			for(IMarker marker : markers) {
 				final int markerStartPosition = marker.getAttribute(IMarker.CHAR_START, 0);

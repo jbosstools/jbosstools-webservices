@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -22,6 +23,8 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaModelMarker;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
@@ -35,9 +38,10 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ui.internal.wizards.datatransfer.DataTransferMessages;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Assert;
 
 /**
@@ -222,21 +226,39 @@ public class JavaElementsUtils {
 	}
 
 	public static IAnnotation addMethodAnnotation(final IMethod method, final String annotationStmt, final boolean useWorkingCopy)
-			throws JavaModelException {
+			throws CoreException {
 		ICompilationUnit compilationUnit = method.getCompilationUnit();
 		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
 		ISourceRange sourceRange = method.getSourceRange();
 		IBuffer buffer = ((IOpenable) unit).getBuffer();
 		buffer.replace(sourceRange.getOffset(), 0, annotationStmt + "\n");
 		saveAndClose(unit);
+		// look for compilation unit errors (they can explain some issues if tests fail)
+		final IMarker[] javaMarkers = method.getResource().findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+		boolean hasErrors = false;
+		if(javaMarkers.length > 0) {
+			Logger.debug("Reporting java problems on Resource '{}':", method.getResource().getName());
+			for(IMarker javaMarker : javaMarkers) {
+				if(javaMarker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
+					Logger.debug("  Found problem on line {}: {}", javaMarker.getAttribute(IMarker.LINE_NUMBER), javaMarker.getAttribute(IMarker.MESSAGE));
+					hasErrors=true;
+				}
+			}
+		}
+		if(hasErrors) {
+			Assert.fail("Resource '" + method.getResource().getName() + "' has java problems. Check the logs for more details.");
+		}
 		final IMethod foundMethod = (IMethod) compilationUnit.getElementAt(method.getSourceRange().getOffset());
 		String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
+		if(annotationName == null) {
+			annotationName = annotationStmt.substring("@".length());
+		}
 		for (IAnnotation annotation : foundMethod.getAnnotations()) {
 			if (annotation.getElementName().equals(annotationName)) {
 				return annotation;
 			}
 		}
-		Assert.fail("SimpleAnnotation '" + annotationName + "'not found on method " + foundMethod.getSource());
+		Assert.fail("Annotation '" + annotationName + "' not found on method " + foundMethod.getSource());
 		return null;
 	}
 
@@ -487,6 +509,14 @@ public class JavaElementsUtils {
 
 	public static void addImportDeclaration(final ICompilationUnit compilationUnit, String importType) throws JavaModelException {
 		compilationUnit.createPackageDeclaration(importType, new NullProgressMonitor());
+	}
+
+	public static IResource getResource(final String typeName, final IJavaProject javaProject) throws CoreException {
+		final IType type = JdtUtils.resolveType(typeName, javaProject, null);
+		if(type != null) {
+			return type.getResource();
+		}
+		return null;
 	}
 
 		

@@ -32,7 +32,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestPlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Assert;
 import org.osgi.framework.Bundle;
 

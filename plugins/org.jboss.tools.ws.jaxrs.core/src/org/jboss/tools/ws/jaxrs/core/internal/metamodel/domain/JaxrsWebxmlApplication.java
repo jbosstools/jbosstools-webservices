@@ -27,12 +27,12 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
  * JAX-RS Application defined as part of a web deployment descriptor.
@@ -40,7 +40,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
  * @author xcoulon
  *
  */
-public class JaxrsWebxmlApplication extends AbstractJaxrsBaseElement implements IJaxrsApplication {
+public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsApplication {
 
 	/**
 	 * Initialize the JaxrsWebxmlApplication builder with the given {@link IResource}
@@ -165,7 +165,7 @@ public class JaxrsWebxmlApplication extends AbstractJaxrsBaseElement implements 
 	}
 
 	/**
-	 * @return the Java application whose underlying Java Type fully qualified
+	 * @return the Java application whose underlying Java SourceType fully qualified
 	 *         name matches the given application class name in the constructor,
 	 *         null otherwise.
 	 */

@@ -6,7 +6,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
@@ -47,7 +47,7 @@ public class Jaxrs20MetamodelTestCase {
 	@Test
 	public void shouldRetrieveAllProviders() {
 		// operation
-		final List<IJaxrsProvider> allProviders = metamodel.findAllProviders();
+		final Collection<IJaxrsProvider> allProviders = metamodel.findAllProviders();
 		//verification
 		for(IJaxrsProvider provider : allProviders) {
 			TestLogger.debug(provider.toString());
@@ -58,7 +58,7 @@ public class Jaxrs20MetamodelTestCase {
 	@Test
 	public void shouldRetrieveAllNameBindings() {
 		// operation
-		final List<IJaxrsNameBinding> allNameBindings = metamodel.findAllNameBindings();
+		final Collection<IJaxrsNameBinding> allNameBindings = metamodel.findAllNameBindings();
 		//verification
 		for(IJaxrsNameBinding nameBinding : allNameBindings) {
 			TestLogger.debug(nameBinding.toString());
@@ -69,12 +69,12 @@ public class Jaxrs20MetamodelTestCase {
 	@Test
 	public void shouldRetrieveAllElements() {
 		// operation
-		final List<IJaxrsElement> allElements = metamodel.findAllElements();
+		final Collection<IJaxrsElement> allElements = metamodel.findAllElements();
 		//verification
 		for(IJaxrsElement element : allElements) {
 			TestLogger.debug(element.toString());
 		}
-		assertThat(allElements.size(), equalTo(36));
+		assertThat(allElements.size(), equalTo(42));
 	}
 	
 	@Test

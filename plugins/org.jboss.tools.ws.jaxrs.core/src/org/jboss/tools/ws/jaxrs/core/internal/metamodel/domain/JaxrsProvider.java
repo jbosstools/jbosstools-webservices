@@ -12,8 +12,8 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
-import static org.jboss.tools.ws.jaxrs.core.utils.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_REQUEST_FILTER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_RESPONSE_FILTER;
@@ -46,12 +46,12 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * <p>
@@ -77,7 +77,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * 
  * @author xcoulon
  */
-public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxrsProvider {
+public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProvider {
 
 	private final Map<EnumElementKind, IType> providedTypes;
 
@@ -148,7 +148,7 @@ public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxr
 
 		/**
 		 * Creates a <strong>transient</strong> JAX-RS Provider from the given
-		 * Type. A valid Provider must be annotated with
+		 * SourceType. A valid Provider must be annotated with
 		 * <ul>
 		 * <li><code>javax.ws.rs.ext.MessageBodyReader</code></li>
 		 * <li><code>javax.ws.rs.ext.MessageBodyWriter</code></li>
@@ -395,8 +395,8 @@ public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxr
 	}
 
 	/**
-	 * Return {@link AbstractJaxrsJavaElement#hashCode()} result based on underlying
-	 * Java Type. Thus, it does not take the Provider's Type Parameter(s) into
+	 * Return {@link JaxrsJavaElement#hashCode()} result based on underlying
+	 * Java SourceType. Thus, it does not take the Provider's SourceType Parameter(s) into
 	 * account here.
 	 */
 	@Override
@@ -405,8 +405,8 @@ public class JaxrsProvider extends AbstractJaxrsJavaTypeElement implements IJaxr
 	}
 
 	/**
-	 * Return {@link AbstractJaxrsJavaElement#equals(Object)} result based on underlying
-	 * Java Type. Thus, it does not take the Provider's Type Parameter(s) into
+	 * Return {@link JaxrsJavaElement#equals(Object)} result based on underlying
+	 * Java SourceType. Thus, it does not take the Provider's SourceType Parameter(s) into
 	 * account here.
 	 */
 	@Override

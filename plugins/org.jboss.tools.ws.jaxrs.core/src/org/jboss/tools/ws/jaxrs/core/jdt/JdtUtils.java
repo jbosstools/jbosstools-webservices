@@ -9,7 +9,7 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core.utils;
+package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,7 +66,10 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.core.CreateTypeHierarchyOperation;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 
 /**
  * A JDT wrapper that provides utility methods to manipulate the Java Model.
@@ -295,6 +298,10 @@ public final class JdtUtils {
 		if (javaElement instanceof IMember) {
 			return parse(((IMember) javaElement).getCompilationUnit(),
 					progressMonitor);
+		} else if(javaElement instanceof IAnnotation) {
+			return parse(((IAnnotation) javaElement).getAncestor(IJavaElement.COMPILATION_UNIT),
+					progressMonitor);
+		
 		} else if (javaElement instanceof ICompilationUnit) {
 			return parse((ICompilationUnit) javaElement, progressMonitor);
 		}
@@ -785,7 +792,7 @@ public final class JdtUtils {
 	 *            should the hierarchy include type from libraries
 	 * @param progressMonitor
 	 *            a progress monitor (or null)
-	 * @return the Type Hierarchy for the base type
+	 * @return the SourceType Hierarchy for the base type
 	 * @throws CoreException
 	 *             the underlying CoreException thrown by the manipulated JDT
 	 *             APIs
@@ -895,7 +902,7 @@ public final class JdtUtils {
 	}
 	
 	/**
-	 * Resolves the Type Argument for the given parameterizedType against the
+	 * Resolves the SourceType Argument for the given parameterizedType against the
 	 * given matchGenericType that is part of the parameterizedTypeHierarchy.
 	 * Binding information is obtained from the Java model. This means that the
 	 * compilation unit must be located relative to the Java model. This happens
@@ -1057,7 +1064,7 @@ public final class JdtUtils {
 		if(methodBinding == null) { 
 			return null; 
 		}
-		final IType returnedType = getReturnType(methodBinding);
+		final SourceType returnedType = getReturnType(methodBinding, methodDeclaration);
 		// .getReturnType().getJavaElement() : null;
 		final List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
 		@SuppressWarnings("unchecked")
@@ -1066,12 +1073,12 @@ public final class JdtUtils {
 			final SingleVariableDeclaration parameter = parameters.get(i);
 			final ILocalVariable localVariable = method.getParameters()[i];
 			final String paramName = parameter.getName().getFullyQualifiedName();
-			final ParameterType paramType = ParameterType.from(parameter);
+			final SourceType paramType = SourceType.from(parameter);
 			final IVariableBinding paramBinding = parameter.resolveBinding();
 			final List<Annotation> paramAnnotations = resolveParameterAnnotations(
 					localVariable, paramBinding);
 			
-			methodParameters.add(new JavaMethodParameter(paramName, paramType, paramAnnotations));
+			methodParameters.add(new JavaMethodParameter(paramName, paramType, paramAnnotations, method.getResource()));
 		}
 		return new JavaMethodSignature(method, returnedType, methodParameters);
 	}
@@ -1084,7 +1091,7 @@ public final class JdtUtils {
 	 * @return the fully qualified name, or null if it could not be resolved.
 	 * @throws JavaModelException 
 	 */
-	public static ParameterType resolveFieldType(final IField javaField, final CompilationUnit ast) {
+	public static SourceType resolveFieldType(final IField javaField, final CompilationUnit ast) {
 		if (javaField == null || ast == null) {
 			return null;
 		}
@@ -1093,14 +1100,14 @@ public final class JdtUtils {
 			// matchNode should be a SimpleName belonging to a
 			// VariableDeclarationFragment, itself belonging to a
 			// FieldDeclaration:
-			// FieldDeclaration: [Javadoc] { ExtendedModifier } Type
+			// FieldDeclaration: [Javadoc] { ExtendedModifier } SourceType
 			// VariableDeclarationFragment {, VariableDeclarationFragment}
 			if (matchNode == null || matchNode.getParent() == null || matchNode.getParent().getParent() == null
 					|| matchNode.getParent().getParent().getNodeType() != ASTNode.FIELD_DECLARATION) {
 				return null;
 			}
 			final FieldDeclaration fieldDeclaration = ((FieldDeclaration) matchNode.getParent().getParent());
-			return ParameterType.from(fieldDeclaration);
+			return SourceType.from(fieldDeclaration);
 		} catch (JavaModelException e) {
 			Logger.error("Failed to retrieve type for field " + javaField.getElementName(), e);
 		}
@@ -1123,16 +1130,17 @@ public final class JdtUtils {
 	}
 	
 	/**
-	 * Returns the ReturnType for the given method or null of the return type
+	 * Returns the Return SourceType for the given method or null of the return type
 	 * could not be found or is 'void'
 	 * 
 	 * @param methodBinding
+	 * @param methodDeclaration 
 	 * @return
 	 */
-	private static IType getReturnType(final IMethodBinding methodBinding) {
+	private static SourceType getReturnType(final IMethodBinding methodBinding, final MethodDeclaration methodDeclaration) {
 		try {
 			if (methodBinding.getReturnType() != null && methodBinding.getReturnType().getJavaElement() != null) {
-				return (IType) methodBinding.getReturnType().getJavaElement().getAdapter(IType.class);
+				return  SourceType.from(methodBinding.getReturnType(), methodDeclaration.getStartPosition(), methodDeclaration.getLength());
 			}
 		} 
 		// https://issues.jboss.org/browse/JBIDE-15084: when compilation error (not syntax), retrieving return type may result in
@@ -1226,6 +1234,29 @@ public final class JdtUtils {
 			return typeName.substring(typeName.lastIndexOf(".") + 1);
 		}
 		return typeName;
+	}
+
+	/**
+	 * @param methodSignature the method signature
+	 * @return the type of the first parameter or the return type, depending if the method name starts with "set" or "get", respectively.
+	 * @throws JavaModelException 
+	 * @throws IllegalArgumentException 
+	 */
+	public static SourceType getPropertyType(final IJavaMethodSignature methodSignature) throws IllegalArgumentException, JavaModelException {
+		final IMethod javaMethod = methodSignature.getJavaMethod();
+		if(javaMethod != null && javaMethod.getElementName().startsWith("set") && Signature.getParameterCount(javaMethod.getSignature()) == 1) {
+			return methodSignature.getMethodParameters().get(0).getType();
+		}
+		return null;
+	}
+	
+	/**
+	 * @return {@code true} if the given method is a valid setter, ie, its name starts with "set" and it has a single parameter.
+	 * @throws JavaModelException if the method signature is not readable
+	 * @throws IllegalArgumentException 
+	 */
+	public static boolean isSetter(final IMethod javaMethod) throws JavaModelException {
+		return javaMethod != null && javaMethod.getElementName().startsWith("set") ;
 	}
 	
 }

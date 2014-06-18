@@ -77,6 +77,8 @@ public interface JaxrsClassnames {
 
 	public static final String HEADER_PARAM = "javax.ws.rs.HeaderParam";
 
+	public static final String FORM_PARAM = "javax.ws.rs.FormParam";
+	
 	public static final String MATRIX_PARAM = "javax.ws.rs.MatrixParam";
 	
 	public static final String QUERY_PARAM = "javax.ws.rs.QueryParam";
@@ -102,5 +104,7 @@ public interface JaxrsClassnames {
 	public static final String URI_BUILDER = "javax.ws.rs.core.UriBuilder";
 
 	public static final String PARAM_CONVERTER_PROVIDER = "javax.ws.rs.ext.ParamConverterProvider";
+
+	public static final String BEAN_PARAM = "javax.ws.rs.BeanParam";
 	
 }

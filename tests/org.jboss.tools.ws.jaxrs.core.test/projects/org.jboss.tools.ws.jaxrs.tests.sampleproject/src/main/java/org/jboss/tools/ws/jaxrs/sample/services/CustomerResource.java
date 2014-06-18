@@ -31,7 +31,7 @@ import org.jboss.tools.ws.jaxrs.sample.domain.Customer;
 @SuppressWarnings("foo") // keep this for tests
 public class CustomerResource {
 
-	//PlaceHolder (DO NOT REMOVE)
+	//PlaceHolder
 	
 	@PersistenceContext
 	private EntityManager entityManager = null;

@@ -1,25 +1,37 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -43,17 +55,22 @@ public class JavaElement20ChangedProcessingTestCase {
 		assertThat(metamodel, notNullValue());
 	}
 
-	private void processEvent(IMember element, int deltaKind) throws CoreException {
+	private void processEvent(final IJavaElement element, final int deltaKind) throws CoreException {
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
 				new NullProgressMonitor()), NO_FLAG);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
 
-	private void processEvent(ICompilationUnit element, int deltaKind) throws CoreException {
+	private void processEvent(final ICompilationUnit element, final int deltaKind) throws CoreException {
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
 				new NullProgressMonitor()), NO_FLAG);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
+	
+	private List<IJaxrsElement> createElement(final IType type) throws CoreException, JavaModelException {
+		return JaxrsElementFactory.createElements(type, JdtUtils.parse(type, null), metamodel, null);
+	}
+	
 
 	@Test
 	public void shouldCreateContainerRequestFilterWhenAddingSuperClassWithoutProviderAnnotation() throws CoreException {
@@ -457,4 +474,462 @@ public class JavaElement20ChangedProcessingTestCase {
 		assertThat(provider, nullValue());
 		assertThat(customResponseFilterWithBinding.getNameBindingAnnotations().size(), equalTo(0));
 	}
+	
+	@Test
+	public void shouldCreateParameterAggregatorWhenTypeWithFieldAdded() throws CoreException {
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id1\") private String id1;", false);
+		assertThat(parameterAggregatorType, notNullValue());
+		// operation
+		processEvent(parameterAggregatorType, ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+	}
+
+	@Test
+	public void shouldCreateParameterAggregatorWhenTypeWithMethodAdded() throws CoreException {
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id2\") public void setId2(String id2) {}", false);
+		assertThat(parameterAggregatorType, notNullValue());
+		// operation
+		processEvent(parameterAggregatorType, ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+	}
+
+	@Test
+	public void shouldNotCreateParameterAggregatorWhenOtherJaxrsTypeAdded() throws CoreException {
+		final IType carType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CarResource");
+		assertThat(carType, notNullValue());
+		// operation
+		processEvent(carType, ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(carType.getFullyQualifiedName());
+		assertThat(aggregator, nullValue());
+	}
+
+	@Test
+	public void shouldNotCreateParameterAggregatorWhenEmptyTypeAdded() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		// operation: type added
+		processEvent(parameterAggregatorType, ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, nullValue());
+	}
+
+	@Test
+	public void shouldCreateParameterAggregatorWhenAnnotationAddedOnField() throws CoreException  {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"private String id1;", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(true));
+		// operation: annotation added on field
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "private String id1;",
+				"@PathParam(\"id1\") private String id1;", false);
+		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id1");
+		processEvent(field.getAnnotations()[0], ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllFields().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldCreateParameterAggregatorWhenAnnotatedFieldAdded() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(true));
+		// operation: annotated field added 
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id1\") private String id1;", false);
+		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id1");
+		processEvent(field, ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllFields().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldCreateParameterAggregatorWhenAnnotationAddedOnMethod() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER", "public void setId2(String id2) {}",
+				false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(true));
+		// operation: annotation added on method
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "public void setId2(String id2)",
+				"@PathParam(\"id2\") public void setId2(String id2)", false);
+		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2");
+		processEvent(method.getAnnotations()[0], ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllProperties().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldCreateParameterAggregatorWhenAnnotatedMethodAdded() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(true));
+		// operation: method added
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id2\") public void setId2(String id2) {}", false);
+		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2");
+		processEvent(method, ADDED);
+		// verification
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllProperties().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldAddElementInParameterAggregatorWhenAnnotationAddedOnField() throws CoreException  {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"// PLACEHOLDER \n @PathParam(\"id1\") private String id1; \n private String id2;", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		// operation: annotation added on field
+		replaceAllOccurrencesOfCode(parameterAggregatorType,
+				"private String id2;", "@PathParam(\"id2\") private String id2;", false);
+		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
+		processEvent(field.getAnnotations()[0], ADDED);
+		// verification
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllFields().size(), equalTo(2));
+	}
+
+	@Test
+	public void shouldAddElementInParameterAggregatorWhenAnnotatedFieldAdded() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id1\") private String id1;", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		// operation: annotated field added
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id1\") private String id1;",
+				"@PathParam(\"id1\") private String id1; \n @PathParam(\"id2\") private String id2;", false);
+		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
+		processEvent(field, ADDED);
+		// verification
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllFields().size(), equalTo(2));
+	}
+	
+	@Test
+	public void shouldAddElementInParameterAggregatorWhenAnnotationAddedOnMethod() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"// PLACEHOLDER \n @PathParam(\"id2\") public void setId2(String id2) {} \n public void setId3(String id3) {}", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		// operation: annotation added on method
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "public void setId3(String id3)",
+				"@PathParam(\"id3\") public void setId3(String id3)", false);
+		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3");
+		processEvent(method.getAnnotations()[0], ADDED);
+		// verification
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllProperties().size(), equalTo(2));
+	}
+	
+	@Test
+	public void shouldAddElementInParameterAggregatorWhenAnnotatedMethodAdded() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"// PLACEHOLDER \n @PathParam(\"id2\") public void setId2(String id2) {}", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		// operation: annotated method added
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"// PLACEHOLDER \n @PathParam(\"id3\") public void setId3(String id3) {}", false);
+		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3");
+		processEvent(method, ADDED);
+		// verification
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllProperties().size(), equalTo(2));
+	}
+	
+	@Test
+	public void shouldRemoveElementFromParameterAggregatorWhenAnnotationRemovedFromField() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id1\") private String id1; \n @PathParam(\"id2\") private String id2;", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllFields().size(), equalTo(2));
+		// operation: annotation removed from field
+		final IAnnotation annotation = JavaElementsUtils.getField(parameterAggregatorType, "id2").getAnnotations()[0];
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;",
+				"private String id2;", false);
+		processEvent(annotation, REMOVED);
+		// verification
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllFields().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldRemoveElementFromParameterAggregatorWhenAnnotatedFieldRemoved() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id1\") private String id1; \n @PathParam(\"id2\") private String id2;", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllFields().size(), equalTo(2));
+		// operation: annotated field removed
+		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;",
+				"", false);
+		processEvent(field, REMOVED);
+		// verification
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllFields().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldRemoveElementFromParameterAggregatorWhenAnnotationRemovedFromMethod() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id2\") public void setId2(String id2) {} \n @PathParam(\"id3\") public void setId3(String id3) {}", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllProperties().size(), equalTo(2));
+		// operation: annotation removed from method
+		final IAnnotation annotation = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3").getAnnotations()[0];
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id3\") public void setId3(String id3) {}",
+				"public void setId3(String id3) {}", false);
+		processEvent(annotation, REMOVED);
+		// verification
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllProperties().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldRemoveElementFromParameterAggregatorWhenAnnotatedMethodRemoved() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id2\") public void setId2(String id2) {} \n @PathParam(\"id3\") public void setId3(String id3) {}", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllProperties().size(), equalTo(2));
+		// operation: annotated method removed
+		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id3\") public void setId3(String id3) {}",
+				"", false);
+		processEvent(method, REMOVED);
+		// verification
+		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
+		assertThat(aggregator.getAllProperties().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldKeepParameterAggregatorWhenAnnotationRemovedFromLastField() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id2\") private String id2;", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllFields().size(), equalTo(1));
+		// operation: annotation removed from field
+		final IAnnotation annotation = JavaElementsUtils.getField(parameterAggregatorType, "id2").getAnnotations()[0];
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;",
+				"private String id2;", false);
+		processEvent(annotation, REMOVED);
+		// verification: parameter aggregator still exists, but it is empty
+		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel
+				.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(remainingParameterAggregator, notNullValue());
+		assertThat(remainingParameterAggregator.getAllFields().size(), equalTo(0));
+		assertThat(remainingParameterAggregator.getAllProperties().size(), equalTo(0));
+	}
+	
+	@Test
+	public void shouldKeepParameterAggregatorWhenLastAnnotatedFieldRemoved() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
+				"@PathParam(\"id2\") private String id2;", false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllFields().size(), equalTo(1));
+		// operation: annotated field removed
+		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;", "", false);
+		processEvent(field, REMOVED);
+		// verification: parameter aggregator still exists, but it is empty
+		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel
+				.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(remainingParameterAggregator, notNullValue());
+		assertThat(remainingParameterAggregator.getAllFields().size(), equalTo(0));
+		assertThat(remainingParameterAggregator.getAllProperties().size(), equalTo(0));
+	}
+	
+	@Test
+	// JAX-RS Parameter aggregator still exists, despite the fact that it is empty (well, it will exists until the next full build...)
+	public void shouldKeepParameterAggregatorWhenAnnotationRemovedFromLastMethod() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(
+				parameterAggregatorType,
+				"// PLACEHOLDER",
+				"@PathParam(\"id2\") public void setId2(String id2) {}",
+				false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator parameterAggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		final IJaxrsParameterAggregator aggregator = parameterAggregator;
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllProperties().size(), equalTo(1));
+		// operation: annotated method removed
+		final IAnnotation annotation = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2").getAnnotations()[0];
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") public void setId2(String id2) {}",
+				"public void setId2(String id2) {}", false);
+		processEvent(annotation, REMOVED);
+		// verification: parameter aggregator still exists, but it is empty
+		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(remainingParameterAggregator, notNullValue());
+		assertThat(remainingParameterAggregator.getAllFields().size(), equalTo(0));
+		assertThat(remainingParameterAggregator.getAllProperties().size(), equalTo(0));
+	}
+	
+	@Test
+	// JAX-RS Parameter aggregator still exists, despite the fact that it is empty (well, it will exists until the next full build...)
+	public void shouldKeepParameterAggregatorWhenLastAnnotatedMethodRemoved() throws CoreException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("ParameterAggregator.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"ParameterAggregator.java");
+		final IType parameterAggregatorType = metamodelMonitor
+				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
+		assertThat(parameterAggregatorType, notNullValue());
+		replaceAllOccurrencesOfCode(
+				parameterAggregatorType,
+				"// PLACEHOLDER",
+				"@PathParam(\"id2\") public void setId2(String id2) {}",
+				false);
+		assertThat(createElement(parameterAggregatorType).isEmpty(), equalTo(false));
+		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
+				.getFullyQualifiedName());
+		assertThat(aggregator, notNullValue());
+		assertThat(aggregator.getAllProperties().size(), equalTo(1));
+		// operation: annotated method removed
+		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2");
+		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") public void setId2(String id2) {}",
+				"", false);
+		processEvent(method, REMOVED);
+		// verification: parameter aggregator still exists, but it is empty
+		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
+		assertThat(remainingParameterAggregator, notNullValue());
+		assertThat(remainingParameterAggregator.getAllFields().size(), equalTo(0));
+		assertThat(remainingParameterAggregator.getAllProperties().size(), equalTo(0));
+	}
+	
 }

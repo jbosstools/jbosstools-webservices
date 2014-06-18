@@ -4,6 +4,7 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -34,13 +35,13 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jboss.tools.common.validation.ValidationErrorManager;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.quickfix.JaxrsMarkerResolutionGenerator;
 import org.junit.Assert;
@@ -51,6 +52,23 @@ import org.junit.Assert;
 @SuppressWarnings("restriction")
 public class ValidationUtils {
 
+	@Deprecated
+	public static void removeAllElementsExcept(final JaxrsMetamodel metamodel, final IJaxrsElement... elementsToKeep) throws CoreException {
+		final Set<String> resourcesToKeep = new HashSet<String>();
+		for (IJaxrsElement element : elementsToKeep) {
+			if (element != null) {
+				resourcesToKeep.add(element.getIdentifier());
+			}
+		}
+		final List<IJaxrsElement> allElements = metamodel.getAllElements();
+		for (Iterator<IJaxrsElement> iterator = allElements.iterator(); iterator.hasNext();) {
+			JaxrsBaseElement element = (JaxrsBaseElement) iterator.next();
+			if (element.getResource() == null || !resourcesToKeep.contains(element.getIdentifier())) {
+				element.remove();
+			}
+		}
+	}
+	
 	/**
 	 * Converts the given {@link IResource} elements into a set of {@link IFile}
 	 * s
@@ -61,6 +79,9 @@ public class ValidationUtils {
 	public static Set<IFile> toSet(final IResource... elements) {
 		final Set<IFile> result = new HashSet<IFile>();
 		for (IResource element : elements) {
+			if(element == null) {
+				continue;
+			}
 			result.add((IFile) element);
 		}
 		return result;
@@ -76,6 +97,9 @@ public class ValidationUtils {
 	public static IMarker[] findJaxrsMarkers(final IJaxrsElement... elements) throws CoreException {
 		final List<IMarker> markers = new ArrayList<IMarker>();
 		for (IJaxrsElement element : elements) {
+			if(element.getResource() == null) {
+				continue;
+			}
 			final IMarker[] elementMarkers = element.getResource().findMarkers(
 					JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
 			switch (element.getElementKind().getCategory()) {
@@ -84,6 +108,7 @@ public class ValidationUtils {
 			case NAME_BINDING:
 			case PROVIDER:
 			case PARAM_CONVERTER_PROVIDER:
+			case PARAMETER_AGGREGATOR:
 			case RESOURCE:
 				for (IMarker marker : elementMarkers) {
 					markers.add(marker);
@@ -125,7 +150,10 @@ public class ValidationUtils {
 	 * @param element
 	 * @throws CoreException
 	 */
-	public static void deleteJaxrsMarkers(final AbstractJaxrsBaseElement element) throws CoreException {
+	public static void deleteJaxrsMarkers(final JaxrsBaseElement element) throws CoreException {
+		if(element.getResource() == null) {
+			return;
+		}
 		element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false,
 				IResource.DEPTH_INFINITE);
 	}
@@ -152,7 +180,7 @@ public class ValidationUtils {
 		metamodel.resetProblemLevel();
 		final List<IJaxrsElement> allElements = metamodel.getAllElements();
 		for (IJaxrsElement element : allElements) {
-			((AbstractJaxrsBaseElement) element).resetProblemLevel();
+			((JaxrsBaseElement) element).resetProblemLevel();
 		}
 	}
 

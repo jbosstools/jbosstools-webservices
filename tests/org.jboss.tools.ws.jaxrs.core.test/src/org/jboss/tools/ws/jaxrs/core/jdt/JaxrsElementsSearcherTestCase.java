@@ -6,9 +6,9 @@ import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeF
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.junit.Assert.assertThat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
@@ -21,7 +21,6 @@ import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -46,7 +45,7 @@ public class JaxrsElementsSearcherTestCase {
 	public void shouldRetrieveAllResourcesInTheProject() throws CoreException {
 		// pre-conditions
 		// operation
-		final List<IType> resources = JavaElementsSearcher.findResourceTypes(javaProject, new NullProgressMonitor());
+		final Collection<IType> resources = JavaElementsSearcher.findResourceTypes(javaProject, new NullProgressMonitor());
 		// verifications
 		assertThat(resources.size(), equalTo(7));
 	}
@@ -57,7 +56,7 @@ public class JaxrsElementsSearcherTestCase {
 		IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		assertThat(customerType, notNullValue());
 		// operation
-		final List<IType> resources = JavaElementsSearcher.findResourceTypes(customerType, new NullProgressMonitor());
+		final Collection<IType> resources = JavaElementsSearcher.findResourceTypes(customerType, new NullProgressMonitor());
 		// verifications
 		assertThat(resources.size(), equalTo(1));
 	}
@@ -68,7 +67,7 @@ public class JaxrsElementsSearcherTestCase {
 		IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		assertThat(customerType, notNullValue());
 		// operation
-		final List<IType> resources = JavaElementsSearcher.findResourceTypes(customerType, new NullProgressMonitor());
+		final Collection<IType> resources = JavaElementsSearcher.findResourceTypes(customerType, new NullProgressMonitor());
 		// verifications
 		assertThat(resources.size(), equalTo(0));
 	}
@@ -77,8 +76,8 @@ public class JaxrsElementsSearcherTestCase {
 	public void shouldRetrieveAllResourceMethodsInProject() throws CoreException {
 		// pre-conditions
 		// operation
-		final List<IMethod> resourceMethods = JavaElementsSearcher.findResourceMethods(javaProject,
-				new ArrayList<IJaxrsHttpMethod>(), new NullProgressMonitor());
+		final Collection<IMethod> resourceMethods = JavaElementsSearcher.findResourceMethods(javaProject,
+				new HashSet<String>(), new NullProgressMonitor());
 		// verifications
 		// just sub resource methods with @Path annotation
 		assertThat(resourceMethods.size(), equalTo(19));
@@ -90,8 +89,8 @@ public class JaxrsElementsSearcherTestCase {
 		IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		assertThat(customerType, notNullValue());
 		// operation
-		final List<IMethod> resourceMethods = JavaElementsSearcher.findResourceMethods(customerType,
-				new ArrayList<IJaxrsHttpMethod>(), new NullProgressMonitor());
+		final Collection<IMethod> resourceMethods = JavaElementsSearcher.findResourceMethods(customerType,
+				new HashSet<String>(), new NullProgressMonitor());
 		// verifications
 		// just sub resource methods with @Path annotation
 		assertThat(resourceMethods.size(), equalTo(4));
@@ -101,7 +100,7 @@ public class JaxrsElementsSearcherTestCase {
 	public void shouldRetrieveAllHttpMethodsInProject() throws CoreException {
 		// pre-conditions
 		// operation
-		final List<IType> httpMethods = JavaElementsSearcher.findHttpMethodTypes(javaProject,
+		final Collection<IType> httpMethods = JavaElementsSearcher.findHttpMethodTypes(javaProject,
 				new NullProgressMonitor());
 		// verifications: 2 custom HTTP Methods
 		assertThat(httpMethods.size(), equalTo(2));
@@ -113,7 +112,7 @@ public class JaxrsElementsSearcherTestCase {
 		IType fooType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		assertThat(fooType, notNullValue());
 		// operation
-		final List<IType> resourceMethods = JavaElementsSearcher.findHttpMethodTypes(fooType,
+		final Collection<IType> resourceMethods = JavaElementsSearcher.findHttpMethodTypes(fooType,
 				new NullProgressMonitor());
 		// verifications
 		assertThat(resourceMethods.size(), equalTo(1));
@@ -213,7 +212,7 @@ public class JaxrsElementsSearcherTestCase {
 	public void shouldRetrieveAllApplicationsInProject() throws CoreException {
 		// pre-conditions
 		// operation
-		final List<IType> applicationTypes = JavaElementsSearcher.findApplicationTypes(javaProject,
+		final Collection<IType> applicationTypes = JavaElementsSearcher.findApplicationTypes(javaProject,
 				new NullProgressMonitor());
 		// verifications
 		assertThat(applicationTypes.size(), equalTo(1));
@@ -225,7 +224,7 @@ public class JaxrsElementsSearcherTestCase {
 		IType restType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		assertThat(restType, notNullValue());
 		// operation
-		final List<IType> applicationTypes = JavaElementsSearcher.findApplicationTypes(restType,
+		final Collection<IType> applicationTypes = JavaElementsSearcher.findApplicationTypes(restType,
 				new NullProgressMonitor());
 		// verifications
 		assertThat(applicationTypes.size(), equalTo(1));
@@ -237,7 +236,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "@ApplicationPath(\"/app\")", "", false);
 		// operation
-		final List<IType> applications = JavaElementsSearcher.findApplicationTypes(type, new NullProgressMonitor());
+		final Collection<IType> applications = JavaElementsSearcher.findApplicationTypes(type, new NullProgressMonitor());
 		// verifications
 		assertThat(applications.size(), equalTo(1));
 	}
@@ -248,7 +247,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "@ApplicationPath(\"/app\")", "", false);
 		// operation
-		final List<IType> applications = JavaElementsSearcher.findApplicationTypes(type.getJavaProject(),
+		final Collection<IType> applications = JavaElementsSearcher.findApplicationTypes(type.getJavaProject(),
 				new NullProgressMonitor());
 		// verifications
 		assertThat(applications.size(), equalTo(1));
@@ -260,7 +259,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "@ApplicationPath(\"/app\")", "", false);
 		// operation
-		final List<IType> applications = JavaElementsSearcher.findApplicationTypes(type, new NullProgressMonitor());
+		final Collection<IType> applications = JavaElementsSearcher.findApplicationTypes(type, new NullProgressMonitor());
 		// verifications
 		assertThat(applications.size(), equalTo(1));
 	}
@@ -272,7 +271,7 @@ public class JaxrsElementsSearcherTestCase {
 		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication", javaProject,
 				"@ApplicationPath(\"/app\")", "", false);
 		// operation
-		final List<IType> applications = JavaElementsSearcher.findApplicationTypes(lib, new NullProgressMonitor());
+		final Collection<IType> applications = JavaElementsSearcher.findApplicationTypes(lib, new NullProgressMonitor());
 		// verifications
 		assertThat(applications.size(), equalTo(0));
 	}
@@ -283,7 +282,7 @@ public class JaxrsElementsSearcherTestCase {
 		IType fooType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		assertThat(fooType, notNullValue());
 		// operation
-		final List<IType> applications = JavaElementsSearcher.findApplicationTypes(fooType, new NullProgressMonitor());
+		final Collection<IType> applications = JavaElementsSearcher.findApplicationTypes(fooType, new NullProgressMonitor());
 		// verifications
 		assertThat(applications.size(), equalTo(0));
 	}
@@ -294,7 +293,7 @@ public class JaxrsElementsSearcherTestCase {
 		// pre-conditions: remove Appllication from project classpath
 		projectMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
 		// operation
-		final List<IType> applications = JavaElementsSearcher.findApplicationTypes(javaProject,
+		final Collection<IType> applications = JavaElementsSearcher.findApplicationTypes(javaProject,
 				new NullProgressMonitor());
 		// verifications
 		assertThat(applications.size(), equalTo(1));
@@ -310,10 +309,10 @@ public class JaxrsElementsSearcherTestCase {
 		final IType productResourceLocatorType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		assertThat(fooType, notNullValue());
 		// operation
-		final List<IType> relatedTypes = JavaElementsSearcher.findRelatedTypes(fooType, Arrays.asList(customerResourceType, productResourceLocatorType, barResourceType, bazResourceType), new NullProgressMonitor());
+		final Collection<IType> relatedTypes = JavaElementsSearcher.findRelatedTypes(fooType, Arrays.asList(customerResourceType, productResourceLocatorType, barResourceType, bazResourceType), new NullProgressMonitor());
 		// verifications
 		assertThat(relatedTypes.size(), equalTo(1));
-		assertThat(relatedTypes.get(0), equalTo(bazResourceType));
+		assertThat(relatedTypes.iterator().next(), equalTo(bazResourceType));
 	}
 	
 	@Test
@@ -325,7 +324,7 @@ public class JaxrsElementsSearcherTestCase {
 		final IType productResourceLocatorType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		assertThat(fooType, notNullValue());
 		// operation
-		final List<IType> relatedTypes = JavaElementsSearcher.findRelatedTypes(fooType, Arrays.asList(customerResourceType, productResourceLocatorType, barResourceType), new NullProgressMonitor());
+		final Collection<IType> relatedTypes = JavaElementsSearcher.findRelatedTypes(fooType, Arrays.asList(customerResourceType, productResourceLocatorType, barResourceType), new NullProgressMonitor());
 		// verifications
 		assertThat(relatedTypes.size(), equalTo(0));
 	}

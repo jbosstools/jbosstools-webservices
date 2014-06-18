@@ -12,10 +12,11 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
-import static org.jboss.tools.ws.jaxrs.core.utils.Annotation.VALUE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.BEAN_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -40,18 +42,22 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.CollectionComparison;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IAnnotatedSourceType;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /** @author xcoulon */
-public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implements IJaxrsResourceMethod {
+public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJaxrsResourceMethod {
 
 	/**
 	 * Builder initializer
@@ -62,10 +68,10 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * @return the Builder
 	 * @throws JavaModelException
 	 */
-	public static Builder from(final IMethod method, final List<IJaxrsHttpMethod> httpMethods)
+	public static Builder from(final IMethod method, final Set<String> httpMethodNames)
 			throws JavaModelException {
 		final CompilationUnit ast = JdtUtils.parse(method, new NullProgressMonitor());
-		return new Builder(method, ast, httpMethods); 
+		return new Builder(method, ast, httpMethodNames); 
 	}
 
 	/**
@@ -79,8 +85,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * @return the Builder
 	 * @throws JavaModelException
 	 */
-	public static Builder from(final IMethod method, final CompilationUnit ast, final List<IJaxrsHttpMethod> httpMethods) {
-		return new Builder(method, ast, httpMethods);
+	public static Builder from(final IMethod method, final CompilationUnit ast, final Set<String> httpMethodNames) {
+		return new Builder(method, ast, httpMethodNames);
 	}
 
 	/**
@@ -92,56 +98,63 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	public static class Builder {
 
 		private final IMethod javaMethod;
-		private final CompilationUnit ast;;
-		private final List<IJaxrsHttpMethod> httpMethods;
+		private final CompilationUnit ast;
+		private final Set<String> httpMethodNames;
 		private JaxrsResource parentResource;
-		private Map<String, Annotation> annotations;
-		private IType returnedJavaType = null;
-		private List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
 		private JaxrsMetamodel metamodel;
-		private JavaMethodSignature methodSignature;
+		private Map<String, Annotation> annotations;
+		private IJavaMethodSignature methodSignature;
+		private SourceType returnedJavaType = null;
+		private List<IJavaMethodParameter> javaMethodParameters = new ArrayList<IJavaMethodParameter>();
 
-		public Builder(final IMethod javaMethod, final CompilationUnit ast, final List<IJaxrsHttpMethod> httpMethods) {
+		public Builder(final IMethod javaMethod, final CompilationUnit ast, final Set<String> httpMethodNames) {
 			this.javaMethod = javaMethod;
 			this.ast = ast;
-			this.httpMethods = httpMethods;
+			this.httpMethodNames = httpMethodNames;
 		}
 
-		public Builder withMetamodel(final JaxrsMetamodel metamodel) {
-			this.metamodel = metamodel;
-			return this;
-		}
-		
-		public Builder withJavaMethodSignature(final JavaMethodSignature javaMethodSignature) {
+		public Builder withJavaMethodSignature(final IJavaMethodSignature javaMethodSignature) {
 			this.methodSignature = javaMethodSignature;
 			return this;
 		}
-
-		public Builder withParentResource(final JaxrsResource parentResource) {
-			this.parentResource = parentResource;
+		
+		public Builder withAnnotations(final Map<String, Annotation> annotations) {
+			this.annotations = annotations;
 			return this;
 		}
 
-		public JaxrsResourceMethod build() throws CoreException {
-			return build(true);
+		/**
+		 * Builds a <strong>transient<strong> instance of {@link JaxrsResourceMethod}, ie, not attached to any parent element nor included in the {@link JaxrsMetamodel}.
+		 * @return a transient instance 
+		 * @throws CoreException
+		 */
+		public JaxrsResourceMethod buildTransient() throws CoreException {
+			return buildInResource(null);
 		}
 		
-		JaxrsResourceMethod build(final boolean joinMetamodel) throws CoreException {
+		/**
+		 * Builds an  instance of {@link JaxrsResourceMethod}, ie, attached to the given parent element and included in the {@link JaxrsMetamodel}.
+		 * @param parentResource the parent resource
+		 * @return the created instance 
+		 * @throws CoreException
+		 */
+		public JaxrsResourceMethod buildInResource(final JaxrsResource parentResource) throws CoreException {
 			final long start = System.currentTimeMillis();
 			try {
 				// skip if element does not exist or if it has compilation errors
 				if (javaMethod == null || !javaMethod.exists() || !javaMethod.isStructureKnown()) {
 					return null;
 				}
-
-				final List<String> httpMethodAnnotationNames = new ArrayList<String>();
-				for (IJaxrsHttpMethod httpMethod : httpMethods) {
-					httpMethodAnnotationNames.add(httpMethod.getJavaClassName());
+				this.parentResource = parentResource;
+				if(parentResource != null) {
+					this.metamodel = parentResource.getMetamodel();
 				}
-				this.annotations = JdtUtils.resolveAllAnnotations(javaMethod, ast);
+				if(this.annotations == null) {
+					this.annotations = JdtUtils.resolveAllAnnotations(javaMethod, ast);
+				}
 				Annotation httpMethodAnnotation = null;
 				final Annotation pathAnnotation = annotations.get(PATH);
-				for (String httpMethodAnnotationName : httpMethodAnnotationNames) {
+				for (String httpMethodAnnotationName : httpMethodNames) {
 					if (annotations.containsKey(httpMethodAnnotationName)) {
 						httpMethodAnnotation = annotations.get(httpMethodAnnotationName);
 						break;
@@ -164,7 +177,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 				javaMethodParameters = methodSignature.getMethodParameters();
 				returnedJavaType = methodSignature.getReturnedType();
 				final JaxrsResourceMethod resourceMethod = new JaxrsResourceMethod(this);
-				if(joinMetamodel) {
+				if(parentResource != null) {
 					resourceMethod.joinMetamodel();
 				}
 				return resourceMethod;
@@ -180,13 +193,16 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * return type of the java javaMethod. Null if this is not a subresource
 	 * locator.
 	 */
-	private IType returnedJavaType = null;
+	private SourceType returnedJavaType = null;
 
 	/**
 	 * List of method parameters bound to the underlying java method of this
 	 * resource method.
 	 */
-	private final List<JavaMethodParameter> javaMethodParameters = new ArrayList<JavaMethodParameter>();
+	private final List<IJavaMethodParameter> javaMethodParameters = new ArrayList<IJavaMethodParameter>();
+
+	/** The parent JAX-RS Resource for this element. */
+	private final JaxrsResource parentResource;
 
 	/**
 	 * Full constructor.
@@ -196,7 +212,11 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * 
 	 */
 	private JaxrsResourceMethod(final Builder builder) {
-		super(builder.javaMethod, builder.annotations, builder.parentResource, builder.metamodel);
+		super(builder.javaMethod, builder.annotations, builder.metamodel);
+		this.parentResource = builder.parentResource;
+		if(this.parentResource != null) {
+			this.parentResource.addMethod(this);
+		}
 		this.returnedJavaType = builder.returnedJavaType;
 		if (javaMethodParameters != null) {
 			this.javaMethodParameters.addAll(builder.javaMethodParameters);
@@ -204,7 +224,14 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	}
 
 	/**
-	 * Updates the current {@link AbstractJaxrsJavaElement} from the given
+	 * @return the parent JAX-RS Resource
+	 */
+	public JaxrsResource getParentResource() {
+		return parentResource;
+	}
+	
+	/**
+	 * Updates the current {@link JaxrsJavaElement} from the given
 	 * {@link IJavaElement}
 	 * 
 	 * @param javaElement
@@ -229,7 +256,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 				}
 				break;
 			case IJavaElement.METHOD:
-				update(from((IMethod) javaElement, ast, getMetamodel().findAllHttpMethods()).build(false));
+				update(from((IMethod) javaElement, ast, getMetamodel().findAllHttpMethodNames()).buildTransient());
 			}
 		}
 	}
@@ -256,12 +283,12 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	@Override
 	public void remove() throws CoreException {
 		// no need to remove again if this element is not part of the metamodel anymore
-		if(getParentResource().hasMethod(this)) {
+		//if(getParentResource().hasMethod(this)) {
 			getParentResource().removeMethod(this);
-		}
-		if(getMetamodel().containsElement(this)) {
+		//}
+		//if(getMetamodel().containsElement(this)) {
 			super.remove();
-		}
+		//}
 	}
 
 	Flags internalUpdate(final JaxrsResourceMethod transientMethod) throws CoreException {
@@ -281,7 +308,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 *         {@link JaxrsElementDelta.F_METHOD_RETURN_TYPE}) or no change (
 	 *         {@link JaxrsElementDelta.F_NONE})
 	 */
-	private int updateReturnedType(final IType returnedType) {
+	private int updateReturnedType(final SourceType returnedType) {
 		if ((this.returnedJavaType != null && returnedType == null)
 				|| (this.returnedJavaType == null && returnedType != null)
 				|| (this.returnedJavaType != null && returnedType != null && !this.returnedJavaType
@@ -299,8 +326,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 *         {@link JaxrsElementDelta.F_METHOD_PARAMETERS}) or no change (
 	 *         {@link JaxrsElementDelta.F_NONE})
 	 */
-	private int updateMethodParameters(final List<JavaMethodParameter> otherMethodParameters) {
-		final CollectionComparison<JavaMethodParameter> comparison = CollectionUtils.compare(this.javaMethodParameters,
+	private int updateMethodParameters(final List<IJavaMethodParameter> otherMethodParameters) {
+		final CollectionComparison<IJavaMethodParameter> comparison = CollectionUtils.compare(this.javaMethodParameters,
 				otherMethodParameters);
 		boolean changed = hasChanges(otherMethodParameters, comparison);
 		// in any case, let's override to get the latest source ranges, even if
@@ -320,31 +347,31 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * @param comparison
 	 * @return true if there are differences, false otherwise
 	 */
-	private boolean hasChanges(final List<JavaMethodParameter> otherMethodParameters,
-			final CollectionComparison<JavaMethodParameter> comparison) {
+	private boolean hasChanges(final List<IJavaMethodParameter> otherMethodParameters,
+			final CollectionComparison<IJavaMethodParameter> comparison) {
 		if (!comparison.getAddedItems().isEmpty()) {
 			return true;
 		}
 		if (!comparison.getRemovedItems().isEmpty()) {
 			return true;
 		}
-		for (JavaMethodParameter item : comparison.getItemsInCommon()) {
-			final JavaMethodParameter thisMethodParameter = this.javaMethodParameters.get(this.javaMethodParameters
+		for (IJavaMethodParameter item : comparison.getItemsInCommon()) {
+			final IJavaMethodParameter thisMethodParameter = this.javaMethodParameters.get(this.javaMethodParameters
 					.indexOf(item));
-			final JavaMethodParameter otherMethodParameter = otherMethodParameters.get(otherMethodParameters
+			final IJavaMethodParameter otherMethodParameter = otherMethodParameters.get(otherMethodParameters
 					.indexOf(item));
-			if (thisMethodParameter != null && thisMethodParameter.hasChanges(otherMethodParameter)) {
+			if (thisMethodParameter != null && ((JavaMethodParameter)thisMethodParameter).hasChanges(otherMethodParameter)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public IType getReturnedType() {
+	public SourceType getReturnedType() {
 		return this.returnedJavaType;
 	}
 
-	public void setReturnedType(final IType returnedType) {
+	public void setReturnedType(final SourceType returnedType) {
 		this.returnedJavaType = returnedType;
 	}
 
@@ -445,7 +472,7 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 
 	/** @return the javaMethodParameters */
 	@Override
-	public List<JavaMethodParameter> getJavaMethodParameters() {
+	public List<IJavaMethodParameter> getJavaMethodParameters() {
 		return Collections.unmodifiableList(this.javaMethodParameters);
 	}
 
@@ -456,8 +483,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * @param parameterName the name of the parameter to retrieve
 	 * @return the {@link JavaMethodParameter} or null if none was found
 	 */
-	public JavaMethodParameter getJavaMethodParameterByName(final String parameterName) {
-		for (JavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
+	public IJavaMethodParameter getJavaMethodParameterByName(final String parameterName) {
+		for (IJavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
 			if (javaMethodParameter.getName().equals(parameterName)) {
 				return javaMethodParameter;
 			}
@@ -472,8 +499,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * @param pathParamName the name in the {@code @PathParam} annotation
 	 * @return the {@link JavaMethodParameter} or {@code null} if none was found
 	 */
-	public JavaMethodParameter getJavaMethodParameterByAnnotationBinding(final String pathParamName) {
-		for (JavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
+	public IJavaMethodParameter getJavaMethodParameterByAnnotationBinding(final String pathParamName) {
+		for (IJavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
 			final Annotation pathParamAnnotation = javaMethodParameter.getAnnotation(PATH_PARAM);
 			if (pathParamAnnotation != null && pathParamName.equals(pathParamAnnotation.getValue())) {
 				return javaMethodParameter;
@@ -490,9 +517,9 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 *            the expected annotation fully qualified name
 	 * @return a list of {@link JavaMethodParameter}, empty if no item matches
 	 */
-	public List<JavaMethodParameter> getJavaMethodParametersAnnotatedWith(String annotationName) {
-		final List<JavaMethodParameter> matchingParameters = new ArrayList<JavaMethodParameter>();
-		for (JavaMethodParameter parameter : this.javaMethodParameters) {
+	public List<IJavaMethodParameter> getJavaMethodParametersAnnotatedWith(String annotationName) {
+		final List<IJavaMethodParameter> matchingParameters = new ArrayList<IJavaMethodParameter>();
+		for (IJavaMethodParameter parameter : this.javaMethodParameters) {
 			if (parameter.getAnnotation(annotationName) != null) {
 				matchingParameters.add(parameter);
 			}
@@ -507,8 +534,8 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 	 * @param parameterName
 	 */
 	public void removeJavaMethodParameter(String parameterName) {
-		for (Iterator<JavaMethodParameter> iterator = this.javaMethodParameters.iterator(); iterator.hasNext();) {
-			final JavaMethodParameter javaMethodParameter = iterator.next();
+		for (Iterator<IJavaMethodParameter> iterator = this.javaMethodParameters.iterator(); iterator.hasNext();) {
+			final IJavaMethodParameter javaMethodParameter = iterator.next();
 			if (javaMethodParameter.getName().equals(parameterName)) {
 				iterator.remove();
 				break;
@@ -516,9 +543,54 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	@Override
+	public Map<String, Annotation> getPathTemplateParameters() {
+		final Map<String, Annotation> proposals = new HashMap<String, Annotation>();
+		proposals.putAll(AnnotationUtils.extractTemplateParameters(getPathAnnotation()));
+		return proposals;
+	}
+
+	/**
+	 * Retrieves:
+	 * <ul>
+	 * <li> {@link JaxrsResource}'s {@link JaxrsResourceField} and {@link JaxrsResourceProperty} annotated with the given annotationName,</li>
+	 * <li> {@code this} {@link JavaMethodParameter} annotated with the given annotationName,</li>
+	 * <li> {@link JaxrsParameterAggregatorField} and {@link JaxrsParameterAggregatorProperty} annotated with the given
+	 * annotationName in a {@link JaxrsParameterAggregator} if the parent {@link JaxrsResource} has any
+	 * {@link JaxrsResourceField} or {@link JaxrsResourceProperty} of the {@link JaxrsParameterAggregator} type annotated with {@code javax.ws.rs.BeanParam},</li>
+	 * <li> {@link JaxrsParameterAggregatorField} and {@link JaxrsParameterAggregatorProperty} annotated with the given
+	 * annotationName in a {@link JaxrsParameterAggregator} if any {@link JavaMethodParameter} of the {@link JaxrsParameterAggregator} type annotated with with {@code javax.ws.rs.BeanParam}.</li>
+	 * </ul>
+	 * @param annotationName
+	 * @return all {@link IAnnotatedSourceType} matching the description above
+	 *         ;-)
+	 */
+	public List<IAnnotatedSourceType> getRelatedTypesAnnotatedWith(final String annotationName) {
+		final List<IAnnotatedSourceType> annotatedSourceTypes = new ArrayList<IAnnotatedSourceType>();
+		// 1 - retrieve all fields and methods annotated with annotationName
+		annotatedSourceTypes.addAll(getParentResource().getFieldsAnnotatedWith(annotationName));
+		annotatedSourceTypes.addAll(getParentResource().getPropertiesAnnotatedWith(annotationName));
+		// 2 - method parameters annotated with annotationName
+		annotatedSourceTypes.addAll(getJavaMethodParametersAnnotatedWith(annotationName));
+		// 3, 4 - all fields and properties annotated with 'annotationName' of parent resource fields and properties and of method parameters type annotated with @BeanParam 
+		final List<IAnnotatedSourceType> beanParameters = new ArrayList<IAnnotatedSourceType>(); 
+		beanParameters.addAll(getParentResource().getFieldsAnnotatedWith(BEAN_PARAM));
+		beanParameters.addAll(getParentResource().getPropertiesAnnotatedWith(BEAN_PARAM));
+		beanParameters.addAll(getJavaMethodParametersAnnotatedWith(BEAN_PARAM));
+		for(IAnnotatedSourceType beanParameter : beanParameters) {
+			final SourceType parameterAggregatorType = beanParameter.getType();
+			if(parameterAggregatorType != null) {
+				final JaxrsParameterAggregator parameterAggregator = (JaxrsParameterAggregator) getMetamodel().findElement(parameterAggregatorType.getErasureName(), EnumElementCategory.PARAMETER_AGGREGATOR);
+				if(parameterAggregator!= null) {
+					annotatedSourceTypes.addAll(parameterAggregator.getFieldsAnnotatedWith(annotationName));
+					annotatedSourceTypes.addAll(parameterAggregator.getPropertiesAnnotatedWith(annotationName));
+				}
+			}
+		}
+		return annotatedSourceTypes;
+	}
+	
+	/**
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -531,46 +603,4 @@ public class JaxrsResourceMethod extends JaxrsResourceElement<IMethod> implement
 				+ " (" + getElementKind().toString() + ")";
 	}
 
-	@Override
-	public Map<String, Annotation> getPathParamValueProposals() {
-		final Map<String, Annotation> proposals = new HashMap<String, Annotation>();
-		proposals.putAll(extractProposals(getPathAnnotation()));
-		proposals.putAll(extractProposals(getParentResource().getPathAnnotation()));
-		return proposals;
-	}
-
-	private Map<String, Annotation> extractProposals(final Annotation pathAnnotation) {
-		final Map<String, Annotation> proposals = new HashMap<String, Annotation>();
-		if (pathAnnotation != null && pathAnnotation.getValue() != null) {
-			final String value = pathAnnotation.getValue();
-			List<String> params = extractParamsFromUriTemplateFragment(value);
-			for (String param : params) {
-				proposals.put(param, pathAnnotation);
-			}
-		}
-		return proposals;
-	}
-
-	/**
-	 * Extracts all the character sequences inside of curly braces ('{' and '}')
-	 * and returns them as a list of strings
-	 * 
-	 * @param value
-	 *            the given value
-	 * @return the list of character sequences, or an empty list
-	 */
-	private static List<String> extractParamsFromUriTemplateFragment(String value) {
-		List<String> params = new ArrayList<String>();
-		int beginIndex = -1;
-		while ((beginIndex = value.indexOf("{", beginIndex + 1)) != -1) {
-			int semicolonIndex = value.indexOf(":", beginIndex);
-			int closingCurlyBraketIndex = value.indexOf("}", beginIndex);
-			int endIndex = (semicolonIndex != -1) ? Math.min(semicolonIndex, closingCurlyBraketIndex)
-					: closingCurlyBraketIndex;
-			params.add(value.substring(beginIndex + 1, endIndex).trim());
-		}
-		return params;
-	}
-
-	
 }

@@ -177,7 +177,7 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 	/** The button to select a class in the selected project's classpath. */
 	private Button browseClassesButton = null;
 
-	/** Java Type completion processor for content assist on Text control. */
+	/** Java SourceType completion processor for content assist on Text control. */
 	private JavaTypeCompletionProcessor targetClassCompletionProcessor = new JavaTypeCompletionProcessor(true, false,
 			true);
 

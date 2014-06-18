@@ -8,6 +8,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 @Path("/")
 public class TruckResource {
@@ -16,15 +17,15 @@ public class TruckResource {
 	
 	@PathParam("id") Truck truck;
 	
-	@PathParam("id2") List<Truck> listOfTrucks;
+	@QueryParam("q1") List<Truck> listOfTrucks;
 	
-	@PathParam("id3") Set<Truck> setOfTrucks;
+	@QueryParam("q2") Set<Truck> setOfTrucks;
 	
-	@PathParam("id4") ArrayList<String> arrayListOfTrucks;
+	@QueryParam("q3") ArrayList<String> arrayListOfTrucks;
 	
-	@PathParam("id5") java.util.ArrayList<String> arrayListOfTrucks2;
+	@QueryParam("q4") java.util.ArrayList<String> arrayListOfTrucks2;
 	
-	@PathParam("id6") SortedSet<Truck> sortedSetOfTrucks;
+	@QueryParam("q5") SortedSet<Truck> sortedSetOfTrucks;
 	
 	@POST
 	@Path("{type}/{id}") 

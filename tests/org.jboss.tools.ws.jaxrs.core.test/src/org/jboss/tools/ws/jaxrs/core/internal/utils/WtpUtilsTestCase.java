@@ -13,7 +13,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
-import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;

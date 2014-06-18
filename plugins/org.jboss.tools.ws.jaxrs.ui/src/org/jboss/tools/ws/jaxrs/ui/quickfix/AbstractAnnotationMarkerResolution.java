@@ -28,7 +28,7 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
  */
 public abstract class AbstractAnnotationMarkerResolution extends BaseMarkerResolution  {
 	
-	/** the Type to annotate. */
+	/** the SourceType to annotate. */
 	private final IType type;
 
 	/** The annotation name to use when inserting/updating the given annotation */

@@ -11,7 +11,6 @@
 
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
-import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
@@ -59,16 +58,13 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.utils.ParameterType;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -102,7 +98,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// verification
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 	}
 
 	@Test
@@ -111,7 +107,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType type = projectMonitor.resolveType("javax.persistence.PersistenceException");
 		// verification
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 	}
 
 	@Test
@@ -120,7 +116,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType type = projectMonitor.resolveType("unknown.class");
 		// verification
-		Assert.assertNull("No Type expected", type);
+		Assert.assertNull("No SourceType expected", type);
 	}
 
 	@Test
@@ -129,7 +125,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.TestQualifiedException.TestException");
 		// verification
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 	}
 
 	@Test
@@ -138,8 +134,8 @@ public class JdtUtilsTestCase {
 		// operation
 		IType type = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider");
 		// verification
-		Assert.assertNotNull("Type not found", type);
-		Assert.assertTrue("Type is abstract", JdtUtils.isAbstractType(type));
+		Assert.assertNotNull("SourceType not found", type);
+		Assert.assertTrue("SourceType is abstract", JdtUtils.isAbstractType(type));
 	}
 
 	@Test
@@ -148,8 +144,8 @@ public class JdtUtilsTestCase {
 		// operation
 		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// verification
-		Assert.assertNotNull("Type not found", type);
-		Assert.assertFalse("Type is not abstract", JdtUtils.isAbstractType(type));
+		Assert.assertNotNull("SourceType not found", type);
+		Assert.assertFalse("SourceType is not abstract", JdtUtils.isAbstractType(type));
 	}
 
 	@Test
@@ -167,8 +163,8 @@ public class JdtUtilsTestCase {
 		// operation
 		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// verification
-		Assert.assertNotNull("Type not found", type);
-		Assert.assertNotNull("Type hierarchy not found",
+		Assert.assertNotNull("SourceType not found", type);
+		Assert.assertNotNull("SourceType hierarchy not found",
 				JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false, new NullProgressMonitor()));
 	}
 
@@ -178,8 +174,8 @@ public class JdtUtilsTestCase {
 		// operation
 		IType type = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
 		// verification
-		Assert.assertNotNull("Type not found", type);
-		Assert.assertNotNull("Type hierarchy not found",
+		Assert.assertNotNull("SourceType not found", type);
+		Assert.assertNotNull("SourceType hierarchy not found",
 				JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false, new NullProgressMonitor()));
 	}
 
@@ -187,41 +183,41 @@ public class JdtUtilsTestCase {
 	public void shouldResolveTypeHierarchyOnLibrariesWithSubclasses() throws CoreException {
 		// preconditions
 		IType type = projectMonitor.resolveType("javax.ws.rs.core.Application");
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		// operation
 		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), true,
 				new NullProgressMonitor());
 		// verifications
-		Assert.assertNotNull("Type hierarchy not found", hierarchy);
-		Assert.assertEquals("Type hierarchy incomplete", 1, hierarchy.getSubtypes(type).length);
+		Assert.assertNotNull("SourceType hierarchy not found", hierarchy);
+		Assert.assertEquals("SourceType hierarchy incomplete", 1, hierarchy.getSubtypes(type).length);
 	}
 
 	@Test
 	public void shouldResolveTypeHierarchyOnLibrariesWithNoSubclass() throws CoreException {
 		// preconditions
 		IType type = projectMonitor.resolveType("javax.ws.rs.core.Application");
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		final IPackageFragmentRoot lib = projectMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
 		Assert.assertNotNull("Lib not found", lib);
 		// operation
 		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, lib, true,
 				new NullProgressMonitor());
 		// verifications
-		Assert.assertNotNull("Type hierarchy not found", hierarchy);
-		Assert.assertEquals("Type hierarchy incomplete", 0, hierarchy.getSubtypes(type).length);
+		Assert.assertNotNull("SourceType hierarchy not found", hierarchy);
+		Assert.assertEquals("SourceType hierarchy incomplete", 0, hierarchy.getSubtypes(type).length);
 	}
 
 	@Test
 	public void shouldNotResolveTypeHierarchyOnRemovedClass() throws CoreException {
 		// preconditions
 		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		// operation
 		type.delete(true, new NullProgressMonitor());
 		final ITypeHierarchy hierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(), false,
 				new NullProgressMonitor());
 		// verification
-		Assert.assertNull("No Type hierarchy expected", hierarchy);
+		Assert.assertNull("No SourceType hierarchy expected", hierarchy);
 	}
 
 	@Test
@@ -229,9 +225,9 @@ public class JdtUtilsTestCase {
 			OperationCanceledException, InterruptedException {
 		// preconditions
 		IType parameterizedType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
-		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
+		Assert.assertNotNull("Parameterized SourceType not found", parameterizedType);
 		IType matchSuperInterfaceType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
-		Assert.assertNotNull("Interface Type not found", matchSuperInterfaceType);
+		Assert.assertNotNull("Interface SourceType not found", matchSuperInterfaceType);
 		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType,
 				parameterizedType.getJavaProject(), false, progressMonitor);
 		boolean removedReferencedLibrarySourceAttachment = projectMonitor.removeReferencedLibrarySourceAttachment(
@@ -249,9 +245,9 @@ public class JdtUtilsTestCase {
 	public void shouldNotResolveTypeArgumentsOnBinaryImplementation() throws CoreException {
 		// preconditions
 		IType parameterizedType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.jaxb.AbstractJAXBProvider");
-		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
+		Assert.assertNotNull("Parameterized SourceType not found", parameterizedType);
 		IType matchGenericType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.AbstractEntityProvider");
-		Assert.assertNotNull("Interface Type not found", matchGenericType);
+		Assert.assertNotNull("Interface SourceType not found", matchGenericType);
 		// operation
 		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType,
 				parameterizedType.getJavaProject(), false, new NullProgressMonitor());
@@ -266,11 +262,11 @@ public class JdtUtilsTestCase {
 	public void shouldResolveMultipleConcreteTypeArgumentsOnSourceImplementation() throws CoreException {
 		// preconditions
 		IType parameterizedType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.extra.AnotherDummyProvider");
-		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
+		Assert.assertNotNull("Parameterized SourceType not found", parameterizedType);
 
 		// MessageBodyReader
 		IType matchGenericType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
-		Assert.assertNotNull("Interface Type not found", matchGenericType);
+		Assert.assertNotNull("Interface SourceType not found", matchGenericType);
 		CompilationUnit compilationUnit = JdtUtils.parse(parameterizedType, null);
 		ITypeHierarchy parameterizedTypeHierarchy = JdtUtils.resolveTypeHierarchy(parameterizedType,
 				parameterizedType.getJavaProject(), false, new NullProgressMonitor());
@@ -283,7 +279,7 @@ public class JdtUtilsTestCase {
 				.getFullyQualifiedName());
 		// MessageBodyWriter
 		matchGenericType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyWriter");
-		Assert.assertNotNull("Interface Type not found", matchGenericType);
+		Assert.assertNotNull("Interface SourceType not found", matchGenericType);
 		resolvedTypeParameters = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit, matchGenericType,
 				parameterizedTypeHierarchy, new NullProgressMonitor());
 		Assert.assertNotNull("No type parameters found", resolvedTypeParameters);
@@ -292,7 +288,7 @@ public class JdtUtilsTestCase {
 				.getFullyQualifiedName());
 		// ExceptionMapper
 		matchGenericType = projectMonitor.resolveType("javax.ws.rs.ext.ExceptionMapper");
-		Assert.assertNotNull("Interface Type not found", matchGenericType);
+		Assert.assertNotNull("Interface SourceType not found", matchGenericType);
 		resolvedTypeParameters = JdtUtils.resolveTypeArguments(parameterizedType, compilationUnit, matchGenericType,
 				parameterizedTypeHierarchy, new NullProgressMonitor());
 		Assert.assertNotNull("No type parameters found", resolvedTypeParameters);
@@ -306,11 +302,11 @@ public class JdtUtilsTestCase {
 		// preconditions
 		IType parameterizedType = projectMonitor.resolveType("org.jboss.resteasy.plugins.providers.jaxb.CollectionProvider");
 		IType unrelatedType = projectMonitor.resolveType("javax.ws.rs.ext.ExceptionMapper");
-		Assert.assertNotNull("Parameterized Type not found", parameterizedType);
+		Assert.assertNotNull("Parameterized SourceType not found", parameterizedType);
 		// operation
 		IType matchSuperInterfaceType = projectMonitor.resolveType("javax.ws.rs.ext.MessageBodyReader");
 		// verification
-		Assert.assertNotNull("Interface Type not found", matchSuperInterfaceType);
+		Assert.assertNotNull("Interface SourceType not found", matchSuperInterfaceType);
 		// operation
 		ITypeHierarchy unrelatedTypeHierarchy = JdtUtils.resolveTypeHierarchy(unrelatedType,
 				unrelatedType.getJavaProject(), false, new NullProgressMonitor());
@@ -329,7 +325,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType topLevelType = JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit());
 		// verification
-		Assert.assertNotNull("Type not found", topLevelType);
+		Assert.assertNotNull("SourceType not found", topLevelType);
 	}
 
 	@Test
@@ -340,7 +336,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType topLevelType = JdtUtils.resolveTopLevelType(resourceType.getCompilationUnit());
 		// verification
-		Assert.assertNull("Type not found", topLevelType);
+		Assert.assertNull("SourceType not found", topLevelType);
 	}
 
 	@Test
@@ -352,7 +348,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType topLevelType = JdtUtils.resolveTopLevelType(compilationUnit);
 		// verification
-		Assert.assertNull("Type not expected", topLevelType);
+		Assert.assertNull("SourceType not expected", topLevelType);
 	}
 
 	@Test
@@ -364,7 +360,7 @@ public class JdtUtilsTestCase {
 		// operation
 		final IType topLevelType = JdtUtils.resolveTopLevelType(compilationUnit);
 		// verification
-		Assert.assertNotNull("Type not found", topLevelType);
+		Assert.assertNotNull("SourceType not found", topLevelType);
 	}
 
 	@Test
@@ -414,7 +410,7 @@ public class JdtUtilsTestCase {
 	public void shoudResolveSourceTypeAnnotationFromName() throws CoreException {
 		// pre-conditions
 		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		// operation
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor), "Path");
 		// verifications
@@ -428,7 +424,7 @@ public class JdtUtilsTestCase {
 	public void shoudResolveAllSourceTypeAnnotations() throws CoreException {
 		// pre-conditions
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		// operation
 		final Map<String, Annotation> javaAnnotations = JdtUtils.resolveAllAnnotations(type,
 				JdtUtils.parse(type, progressMonitor));
@@ -444,7 +440,7 @@ public class JdtUtilsTestCase {
 	public void shoudResolveSourceTypeAnnotationFromElement() throws CoreException {
 		// pre-conditions
 		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		IAnnotation annotation = type.getAnnotation("Path");
 		Assert.assertNotNull("Annotation not found", annotation);
 		// operation
@@ -460,7 +456,7 @@ public class JdtUtilsTestCase {
 	public void shoudNotResolveUnknownSourceTypeAnnotationFromClassName() throws CoreException {
 		// pre-conditions
 		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		// operation
 		Annotation annotation = getAnnotation(type, HTTP_METHOD);
 		// verifications
@@ -471,7 +467,7 @@ public class JdtUtilsTestCase {
 	public void shoudResolveBinaryTypeAnnotationFromClassName() throws CoreException {
 		// pre-conditions
 		IType type = projectMonitor.resolveType(GET);
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		// operation
 		Annotation javaAnnotation = JdtUtils.resolveAnnotation(type, JdtUtils.parse(type, progressMonitor),
 				HTTP_METHOD);
@@ -486,7 +482,7 @@ public class JdtUtilsTestCase {
 	public void shoudResolveAllBinaryTypeAnnotations() throws CoreException {
 		// pre-conditions
 		final IType type = projectMonitor.resolveType(GET);
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		// operation
 		final Map<String, Annotation> javaAnnotations = JdtUtils.resolveAllAnnotations(type,
 				JdtUtils.parse(type, progressMonitor));
@@ -504,7 +500,7 @@ public class JdtUtilsTestCase {
 	public void shoudResolveBinaryTypeAnnotationFromElement() throws CoreException {
 		// pre-conditions
 		IType type = projectMonitor.resolveType(GET);
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		IAnnotation javaAnnotation = type.getAnnotation(HTTP_METHOD);
 		Assert.assertTrue("Annotation not found", javaAnnotation.exists());
 		// operation
@@ -520,7 +516,7 @@ public class JdtUtilsTestCase {
 	public void shoudNotResolveBinaryTypeUnknownAnnotationFromElement() throws CoreException {
 		// pre-conditions
 		IType type = projectMonitor.resolveType(GET);
-		Assert.assertNotNull("Type not found", type);
+		Assert.assertNotNull("SourceType not found", type);
 		IAnnotation javaAnnotation = type.getAnnotation(PATH);
 		Assert.assertFalse("Annotation not expected", javaAnnotation.exists());
 		// operation
@@ -538,8 +534,8 @@ public class JdtUtilsTestCase {
 				JdtUtils.parse(type, progressMonitor));
 		// verification
 		Assert.assertEquals(8, methodSignatures.size());
-		for (JavaMethodSignature methodSignature : methodSignatures.values()) {
-			for (JavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
+		for (IJavaMethodSignature methodSignature : methodSignatures.values()) {
+			for (IJavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
 				for (Entry<String, Annotation> annotationEntry : methodParameter.getAnnotations().entrySet()) {
 					assertNotNull("JavaAnnotation for " + methodParameter.getName() + "." + annotationEntry.getKey()
 							+ " is null", annotationEntry.getValue().getJavaAnnotation());
@@ -551,11 +547,11 @@ public class JdtUtilsTestCase {
 		for(Iterator<Entry<String, JavaMethodSignature>> iterator1 = methodSignatures.entrySet().iterator(); iterator1.hasNext();) {
 			final Entry<String, JavaMethodSignature> entry1 = iterator1.next();
 			final String key1 = entry1.getKey();
-			final JavaMethodSignature methodSignature1 = entry1.getValue();
+			final IJavaMethodSignature methodSignature1 = entry1.getValue();
 			for(Iterator<Entry<String, JavaMethodSignature>> iterator2 = methodSignatures.entrySet().iterator(); iterator2.hasNext();) {
 				final Entry<String, JavaMethodSignature> entry2 = iterator2.next();
 				final String key2 = entry2.getKey();
-				final JavaMethodSignature methodSignature2 = entry2.getValue();
+				final IJavaMethodSignature methodSignature2 = entry2.getValue();
 				if(key1.equals(key2)) {
 					assertThat(methodSignature1.equals(methodSignature2), equalTo(true));
 					assertThat(methodSignature1.hashCode() == methodSignature2.hashCode(), equalTo(true));
@@ -577,12 +573,12 @@ public class JdtUtilsTestCase {
 		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id",
 				"@PathParam() Integer id", false);
 		// operation
-		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
+		final IJavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
 				JdtUtils.parse(type, progressMonitor));
 		// verification
 		assertNotNull(methodSignature);
 		assertEquals(2, methodSignature.getMethodParameters().size());
-		for (JavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
+		for (IJavaMethodParameter methodParameter : methodSignature.getMethodParameters()) {
 			for (Entry<String, Annotation> annotationEntry : methodParameter.getAnnotations().entrySet()) {
 				assertNotNull("JavaAnnotation for " + methodParameter.getName() + "." + annotationEntry.getKey()
 						+ " is null", annotationEntry.getValue().getJavaAnnotation());
@@ -614,13 +610,13 @@ public class JdtUtilsTestCase {
 		assertThat(methodSignature, notNullValue());
 		assertThat(methodSignature.getJavaMethod(), notNullValue());
 		assertThat(methodSignature.getMethodParameters().size(), equalTo(3));
-		for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
+		for (IJavaMethodParameter parameter : methodSignature.getMethodParameters()) {
 			assertThat(parameter.getAnnotations().size(), isOneOf(1, 2));
 			for (Annotation annotation : parameter.getAnnotations().values()) {
 				assertThat(annotation.getJavaAnnotation(), notNullValue());
 			}
 		}
-		assertThat(methodSignature.getReturnedType().getFullyQualifiedName(), endsWith(".List"));
+		assertThat(methodSignature.getReturnedType().getDisplayableTypeName(), equalTo("List<Customer>"));
 	}
 
 	@Test
@@ -952,9 +948,9 @@ public class JdtUtilsTestCase {
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = type.getField("_foo");
 		// operation
-		final ParameterType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
+		final SourceType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
 		// verification
-		assertThat(fieldType.getQualifiedName(), equalTo(String.class.getName()));
+		assertThat(fieldType.getDisplayableTypeName(), equalTo(String.class.getSimpleName()));
 	}
 
 	@Test
@@ -964,9 +960,9 @@ public class JdtUtilsTestCase {
 		replaceFirstOccurrenceOfCode(type, "String _foo", "int _foo", false);
 		final IField field = type.getField("_foo");
 		// operation
-		final ParameterType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
+		final SourceType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
 		// verification
-		assertThat(fieldType.getQualifiedName(), equalTo("int"));
+		assertThat(fieldType.getDisplayableTypeName(), equalTo("int"));
 	}
 
 	@Test
@@ -975,7 +971,7 @@ public class JdtUtilsTestCase {
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = type.getField("unknown");
 		// operation
-		final ParameterType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
+		final SourceType fieldType = JdtUtils.resolveFieldType(field, JdtUtils.parse(type, progressMonitor));
 		// verification
 		assertThat(fieldType, nullValue());
 	}

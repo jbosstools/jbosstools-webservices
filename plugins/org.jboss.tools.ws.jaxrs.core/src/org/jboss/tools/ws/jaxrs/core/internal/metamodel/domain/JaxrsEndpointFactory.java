@@ -15,15 +15,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * Factory for {@link JaxrsEndpoint} instances
@@ -105,7 +107,7 @@ public class JaxrsEndpointFactory {
 			final List<IType> superTypes = JdtUtils.findSupertypes(resourceType);
 			if(superTypes != null) {
 				for (IType superType : superTypes) {
-					final List<IJaxrsResourceMethod> subresourceLocators = metamodel
+					final Set<IJaxrsResourceMethod> subresourceLocators = metamodel
 							.findResourceMethodsByReturnedType(superType);
 					for (IJaxrsResourceMethod subresourceLocator : subresourceLocators) {
 						if (subresourceLocator.getParentResource().isRootResource()) {
@@ -138,9 +140,9 @@ public class JaxrsEndpointFactory {
 		try {
 			final List<JaxrsEndpoint> endpoints = new ArrayList<JaxrsEndpoint>();
 			final JaxrsMetamodel metamodel = subresourceLocator.getMetamodel();
-			final IType returnedType = subresourceLocator.getReturnedType();
+			final SourceType returnedType = subresourceLocator.getReturnedType();
 			if (returnedType != null) {
-				final List<IType> returnedTypes = JdtUtils.findSubtypes(returnedType);
+				final List<IType> returnedTypes = JdtUtils.findSubtypes(returnedType.getErasureType());
 				for (IType subtype : returnedTypes) {
 					final JaxrsResource matchingResource = metamodel.findResource(subtype);
 					if (matchingResource != null && matchingResource.isSubresource()) {

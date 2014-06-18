@@ -8,7 +8,7 @@
  * Contributors: 
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.jaxrs.core.utils;
+package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.Arrays;
 import java.util.HashMap;

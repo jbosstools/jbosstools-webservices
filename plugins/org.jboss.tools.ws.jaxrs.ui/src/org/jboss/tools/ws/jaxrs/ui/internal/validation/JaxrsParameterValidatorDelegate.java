@@ -23,10 +23,9 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
+import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.utils.ParameterType;
 
 /**
  * Validates that a given {@link IType} used in a {@link IJaxrsResourceMethod}
@@ -53,23 +52,21 @@ public class JaxrsParameterValidatorDelegate {
 	 *         specification, {@code false} otherwise.
 	 * @throws CoreException
 	 */
-	public boolean validate(final ParameterType type, final IJavaProject javaProject,
+	public boolean validate(final SourceType type, final IJavaProject javaProject,
 			final IProgressMonitor progressMonitor) throws CoreException {
 		if (type.isPrimitive()) {
 			return true;
 		}
-		final IType erasureType = JdtUtils.resolveType(type.getErasureName(), javaProject, progressMonitor);
-		if(erasureType == null) {
+		if(type.getErasureType() == null) {
 			return false;
 		}
-		if (validate(erasureType)) {
+		if (validate(type.getErasureType())) {
 			return true;
 		}
-		final String erasureQualifiedName = erasureType.getFullyQualifiedName();
+		final String erasureQualifiedName = type.getErasureType().getFullyQualifiedName();
 		if (erasureQualifiedName.equals(Set.class.getName()) || erasureQualifiedName.equals(List.class.getName())
 				|| erasureQualifiedName.equals(SortedSet.class.getName())) {
-			for (String typeArgumentName : type.getTypeArgumentNames()) {
-				final IType typeArgument = JdtUtils.resolveType(typeArgumentName, javaProject, progressMonitor);
+			for (IType typeArgument : type.getTypeArguments()) {
 				if (validate(typeArgument)) {
 					return true;
 				}

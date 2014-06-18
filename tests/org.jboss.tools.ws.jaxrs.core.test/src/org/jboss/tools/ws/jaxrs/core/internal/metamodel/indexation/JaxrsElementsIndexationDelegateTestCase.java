@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.lucene.index.CorruptIndexException;
@@ -84,10 +85,10 @@ public class JaxrsElementsIndexationDelegateTestCase {
 		final IType httpMethodType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		JaxrsHttpMethod.from(httpMethodType).withMetamodel(metamodel).build();
 		final IType bazResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		final JaxrsResource bazResource = JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final JaxrsResource bazResource = JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final JaxrsResourceMethod bazResourceMethod = metamodelMonitor.resolveResourceMethod(bazResource, "update3");
 		// operation
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(bazResourceMethod);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(bazResourceMethod);
 		// verifications
 		assertThat(endpoints.size(), equalTo(1));
 	}
@@ -98,9 +99,9 @@ public class JaxrsElementsIndexationDelegateTestCase {
 		final IType httpMethodType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final JaxrsHttpMethod fooHttpMethod = JaxrsHttpMethod.from(httpMethodType).withMetamodel(metamodel).build();
 		final IType bazResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(fooHttpMethod);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(fooHttpMethod);
 		// verifications
 		assertThat(endpoints.size(), equalTo(1));
 	}
@@ -109,12 +110,12 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveSingleEndpointWithMultipleMethods() throws CoreException {
 		// pre-condition
 		final IType productResourceLocatorType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final IType bookResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		final JaxrsResource bookResource = JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final JaxrsResource bookResource = JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final JaxrsResourceMethod bookResourceMethod = metamodelMonitor.resolveResourceMethod(bookResource, "getProduct");
 		// operation
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(bookResourceMethod);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(bookResourceMethod);
 		// verifications
 		assertThat(endpoints.size(), equalTo(1));
 	}
@@ -123,12 +124,12 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveMultipleEndpointsFromHttpMethod() throws CoreException {
 		// pre-condition
 		final IType productResourceLocatorType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final IType bookResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final JaxrsHttpMethod httpMethod = metamodel.findHttpMethodByTypeName("javax.ws.rs.GET");
 		// operation
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(httpMethod);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(httpMethod);
 		// verifications
 		assertThat(endpoints.size(), equalTo(3));
 	}
@@ -136,13 +137,13 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	@Test
 	public void shouldIndexAndRetrieveMultipleEndpointsWithMultipleMethods() throws CoreException {
 		final IType productResourceLocatorType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResource productResourceLocator = JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final JaxrsResource productResourceLocator = JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final IType bookResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final IType gameResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		JaxrsResource.from(gameResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(gameResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(metamodelMonitor.resolveResourceMethod(productResourceLocator, "getProductResourceLocator"));
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(metamodelMonitor.resolveResourceMethod(productResourceLocator, "getProductResourceLocator"));
 		// verifications
 		assertThat(endpoints.size(), equalTo(5));
 	}
@@ -152,13 +153,13 @@ public class JaxrsElementsIndexationDelegateTestCase {
 		final IType applicationType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final JaxrsJavaApplication application = JaxrsJavaApplication.from(applicationType).withMetamodel(metamodel).build();
 		final IType productResourceLocatorType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(productResourceLocatorType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final IType bookResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(bookResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final IType gameResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		JaxrsResource.from(gameResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		JaxrsResource.from(gameResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(application);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(application);
 		// verifications
 		assertThat(endpoints.size(), equalTo(5));
 	}
@@ -167,10 +168,10 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveResourceMethod() throws CoreException {
 		// pre-condition
 		final IType bazResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		final JaxrsResource bazResource = JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final JaxrsResource bazResource = JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final JaxrsResourceMethod bazResourceMethod = metamodelMonitor.resolveResourceMethod(bazResource, "update3");
 		// operation
-		List<IJaxrsResourceMethod> resourceMethods = metamodel.findResourceMethodsByReturnedType(bazResourceMethod.getReturnedType());
+		Collection<IJaxrsResourceMethod> resourceMethods = metamodel.findResourceMethodsByReturnedType(bazResourceMethod.getReturnedType().getErasureType());
 		// verification
 		assertThat(resourceMethods.size(), equalTo(5));
 	}
@@ -178,7 +179,7 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	@Test
 	public void shouldNotRetrieveResourceMethodFromNull() throws CoreException {
 		// operation
-		List<IJaxrsResourceMethod> resourceMethods = metamodel.findResourceMethodsByReturnedType(null);
+		Collection<IJaxrsResourceMethod> resourceMethods = metamodel.findResourceMethodsByReturnedType(null);
 		// verification
 		assertThat(resourceMethods.size(), equalTo(0));
 	}
@@ -200,7 +201,7 @@ public class JaxrsElementsIndexationDelegateTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		JaxrsProvider.from(type).withMetamodel(metamodel).build();
 		// operation
-		final IJaxrsProvider foundProvider = metamodel.findProvider(null);
+		final IJaxrsProvider foundProvider = metamodel.findProvider((IType)null);
 		// verifications
 		assertThat(foundProvider, nullValue());
 	}
@@ -209,19 +210,19 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveResourceByAnnotation() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		final IJaxrsResource resource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final IJaxrsResource resource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
-		final List<IJaxrsResource> foundResources = metamodel.findResourcesByAnnotation(JaxrsClassnames.PATH);
+		final Collection<IJaxrsResource> foundResources = metamodel.findResourcesByAnnotation(JaxrsClassnames.PATH);
 		// verifications
 		assertThat(foundResources.size(), equalTo(1));
-		assertThat(foundResources.get(0), equalTo(resource));
+		assertThat(foundResources.iterator().next(), equalTo(resource));
 	}
 	
 	@Test
 	public void shouldIndexAndRetrieveRootResourceByType() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		final IJaxrsResource resource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final IJaxrsResource resource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
 		final IJaxrsResource foundResource = metamodel.findResource(resourceType);
 		// verifications
@@ -232,7 +233,7 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveRootResourceByUnderlyingResource() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		final IJaxrsResource resource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final IJaxrsResource resource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
 		final IJaxrsResource foundResource = (IJaxrsResource) metamodel.findElement(resourceType.getResource());
 		// verifications
@@ -243,7 +244,7 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveSubresourceByType() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final IJaxrsResource gameResource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final IJaxrsResource gameResource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
 		final IJaxrsResource foundResource = metamodel.findResource(resourceType);
 		// verifications
@@ -254,7 +255,7 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveSubresourceByUnderlyingResource() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
-		final IJaxrsResource gameResource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final IJaxrsResource gameResource = JaxrsResource.from(resourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
 		final IJaxrsResource foundResource = (IJaxrsResource) metamodel.findElement(resourceType.getResource());
 		// verifications
@@ -268,7 +269,7 @@ public class JaxrsElementsIndexationDelegateTestCase {
 		final IJaxrsProvider provider = JaxrsProvider.from(type).withMetamodel(metamodel).build();
 		// operation
 		final IJaxrsProvider foundProvider = metamodel.findProviders(EnumElementKind.EXCEPTION_MAPPER,
-				"javax.persistence.EntityNotFoundException").get(0);
+				"javax.persistence.EntityNotFoundException").iterator().next();
 		// verifications
 		assertThat(foundProvider, equalTo(provider));
 	}
@@ -290,16 +291,16 @@ public class JaxrsElementsIndexationDelegateTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final IJaxrsProvider provider = JaxrsProvider.from(type).withMetamodel(metamodel).build();
 		// operation
-		final List<IJaxrsProvider> foundProviders = metamodel.findProvidersByAnnotation(JaxrsClassnames.PROVIDER);
+		final Collection<IJaxrsProvider> foundProviders = metamodel.findProvidersByAnnotation(JaxrsClassnames.PROVIDER);
 		// verifications
 		assertThat(foundProviders.size(), equalTo(1));
-		assertThat(foundProviders.get(0), equalTo(provider));
+		assertThat(foundProviders.iterator().next(), equalTo(provider));
 	}
 
 	@Test
 	public void shouldNotRetrieveProviderByNullExceptionTypeName() throws JavaModelException, CoreException {
 		// operation
-		final List<JaxrsProvider> providers = metamodel.findProviders(EnumElementKind.EXCEPTION_MAPPER,
+		final Collection<JaxrsProvider> providers = metamodel.findProviders(EnumElementKind.EXCEPTION_MAPPER,
 				null);
 		// verifications
 		assertThat(providers.size(), equalTo(0));
@@ -401,7 +402,7 @@ public class JaxrsElementsIndexationDelegateTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final IJaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
 		// operation
-		final List<IJaxrsJavaApplication> elements = metamodel.findApplicationsByAnnotation(JaxrsClassnames.APPLICATION_PATH);
+		final Collection<IJaxrsJavaApplication> elements = metamodel.findApplicationsByAnnotation(JaxrsClassnames.APPLICATION_PATH);
 		// verifications
 		assertThat(elements, notNullValue());
 		assertThat(elements.size(), equalTo(1));
@@ -412,11 +413,11 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	public void shouldIndexAndRetrieveElementsByAnnotation() throws JavaModelException, CoreException {
 		// pre-condition
 		final IType barResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
-		final IJaxrsResource barResource = JaxrsResource.from(barResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final IJaxrsResource barResource = JaxrsResource.from(barResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		final IType bazResourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
-		final IJaxrsResource bazResource = JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		final IJaxrsResource bazResource = JaxrsResource.from(bazResourceType, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 		// operation
-		final List<IJaxrsElement> foundElements = metamodel.findElementsByAnnotation(JaxrsClassnames.PATH);
+		final Collection<IJaxrsElement> foundElements = metamodel.findElementsByAnnotation(JaxrsClassnames.PATH);
 		// verifications: 2 resources + 5 resource methods *each*
 		assertThat(foundElements.size(), equalTo(12));
 		final List<IJaxrsElement> expectedMatches = new ArrayList<IJaxrsElement>();

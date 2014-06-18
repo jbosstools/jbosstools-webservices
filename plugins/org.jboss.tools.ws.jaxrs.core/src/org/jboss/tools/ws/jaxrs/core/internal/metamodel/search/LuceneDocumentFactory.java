@@ -36,6 +36,7 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneFiel
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneFields.FIELD_WEBXML_APPLICATION_OVERRIDES_JAVA_APPLICATION;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.lucene.document.Document;
@@ -45,23 +46,27 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaTypeElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorField;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 
 /**
  * Generated Lucene {@link Document} from the JAX-RS Elements
@@ -81,6 +86,29 @@ public class LuceneDocumentFactory {
 	public static Term getIdentifierTerm(final IMarker marker) {
 		return new Term(FIELD_MARKER_IDENTIFIER, getIdentifierValue(marker));
 	}
+	
+	/**
+	 * Returns the search {@link Term} for the given className.
+	 * 
+	 * @param className
+	 *            the fully qualified name of the underlying Java Class.
+	 * @return the search term
+	 */
+	public static Term getJavaClassNameTerm(final String className) {
+		return new Term(FIELD_JAVA_CLASS_NAME, className);
+	}
+
+	/**
+	 * Returns the search {@link Term} for the given className.
+	 * 
+	 * @param className
+	 *            the fully qualified name of the underlying Java Class.
+	 * @return the search term
+	 */
+	public static Term getElementCategoryTerm(final EnumElementCategory category) {
+		return new Term(FIELD_TYPE, category.toString());
+	}
+	
 
 	/**
 	 * Returns the identifier value to use in index {@link Field} and query
@@ -198,14 +226,26 @@ public class LuceneDocumentFactory {
 			return createResourceDocument((JaxrsResource) element);
 		case RESOURCE_FIELD:
 			return createResourceFieldDocument((JaxrsResourceField) element);
+		case RESOURCE_PROPERTY:
+			return createResourcePropertyDocument((JaxrsResourceProperty) element);
 		case RESOURCE_METHOD:
 			return createResourceMethodDocument((JaxrsResourceMethod) element);
+		case PARAMETER_AGGREGATOR:
+			return createParameterAggregatorDocument((JaxrsParameterAggregator) element);
+		case PARAMETER_AGGREGATOR_FIELD:
+			return createParameterAggregatorFieldDocument((JaxrsParameterAggregatorField) element);
+		case PARAMETER_AGGREGATOR_PROPERTY:
+			return createParameterAggregatorPropertyDocument((JaxrsParameterAggregatorProperty) element);
 		case ENDPOINT:
 		case UNDEFINED:
+			break;
+		
+		default:
 			break;
 		}
 		return null;
 	}
+	
 	/**
 	 * Creates a Lucene document from the given {@link IJaxrsEndpoint}.
 	 * 
@@ -229,7 +269,18 @@ public class LuceneDocumentFactory {
 		addFieldToDocument(document, FIELD_JAXRS_ELEMENT, endpoint.getHttpMethod().getIdentifier());
 		for(IJaxrsResourceMethod resourceMethod : endpoint.getResourceMethods()) {
 			addFieldToDocument(document, FIELD_JAXRS_ELEMENT, resourceMethod.getIdentifier());
-			addFieldToDocument(document, FIELD_JAXRS_ELEMENT, resourceMethod.getParentResource().getIdentifier());
+			addFieldToDocument(document, FIELD_JAVA_ELEMENT, resourceMethod.getJavaElement().getHandleIdentifier());
+			final JaxrsResource parentResource = (JaxrsResource) resourceMethod.getParentResource();
+			addFieldToDocument(document, FIELD_JAXRS_ELEMENT, parentResource.getIdentifier());
+			addFieldToDocument(document, FIELD_JAVA_ELEMENT, parentResource.getJavaElement().getHandleIdentifier());
+			for(JaxrsResourceField resourceField : parentResource.getAllFields()) {
+				addFieldToDocument(document, FIELD_JAXRS_ELEMENT, resourceField.getIdentifier());
+				addFieldToDocument(document, FIELD_JAVA_ELEMENT, resourceField.getJavaElement().getHandleIdentifier());
+			}
+			for(JaxrsResourceProperty resourceProperty : parentResource.getAllProperties()) {
+				addFieldToDocument(document, FIELD_JAXRS_ELEMENT, resourceProperty.getIdentifier());
+				addFieldToDocument(document, FIELD_JAVA_ELEMENT, resourceProperty.getJavaElement().getHandleIdentifier());
+			}
 		}
 		return document;
 	}
@@ -295,23 +346,7 @@ public class LuceneDocumentFactory {
 	 * @return a base document, to be completed with specific fields within the
 	 *         calling method.
 	 */
-	private static Document createBaseDocument(final AbstractJaxrsJavaTypeElement element) {
-		final Document document = createBaseDocument((AbstractJaxrsJavaElement<?>)element);
-		// only applies to JAX-RS element associated with an IType or IAnnotation (not IMethod nor IField)
-		if (element.getResource() != null) {
-			addFieldToDocument(document, FIELD_RESOURCE_PATH, element.getResource().getFullPath().toPortableString());
-		}
-		return document;
-	}
-	
-	/**
-	 * Initialize a base Lucene Document for the given JAX-RS element.
-	 * 
-	 * @param element
-	 * @return a base document, to be completed with specific fields within the
-	 *         calling method.
-	 */
-	private static Document createBaseDocument(final AbstractJaxrsJavaElement<?> element) {
+	private static Document createBaseDocument(final JaxrsJavaElement<?> element) {
 		final Document document = new Document();
 		addFieldToDocument(document, FIELD_JAVA_PROJECT_IDENTIFIER, getHandleIdentifier(element.getMetamodel().getJavaProject()));
 		addFieldToDocument(document, FIELD_TYPE, element.getElementKind().getCategory().toString());
@@ -322,10 +357,13 @@ public class LuceneDocumentFactory {
 					.getAncestor(IJavaElement.COMPILATION_UNIT)));
 			addFieldToDocument(document, FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER, getHandleIdentifier(element.getJavaElement()
 					.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT)));
-
 			if (element.getJavaElement().getElementType() == IJavaElement.TYPE) {
 				addFieldToDocument(document, FIELD_JAVA_CLASS_NAME,
 						((IType) element.getJavaElement()).getFullyQualifiedName());
+				// only applies to JAX-RS element associated with an IType or IAnnotation (not IMethod nor IField)
+				if (element.getResource() != null) {
+					addFieldToDocument(document, FIELD_RESOURCE_PATH, element.getResource().getFullPath().toPortableString());
+				}
 			}
 		}
 		for (Entry<String, Annotation> entry : element.getAnnotations().entrySet()) {
@@ -343,7 +381,7 @@ public class LuceneDocumentFactory {
 	 *            the JAX-RS Java-based Application.
 	 * @return the document.
 	 */
-	private static Document createJavaApplicationDocument(JaxrsJavaApplication javaApplication) {
+	private static Document createJavaApplicationDocument(final JaxrsJavaApplication javaApplication) {
 		final Document document = createBaseDocument(javaApplication);
 		addFieldToDocument(document, FIELD_APPLICATION_PATH, javaApplication.getApplicationPath());
 		addFieldToDocument(document, FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
@@ -351,6 +389,48 @@ public class LuceneDocumentFactory {
 		addFieldToDocument(document, FIELD_RESOURCE_PATH, javaApplication.getResource().getFullPath().toPortableString());
 		return document;
 	}
+	
+	/**
+	 * Initializes a Lucene Document for the given JAX-RS Parameter Aggregator.
+	 * 
+	 * @param element
+	 *            the JAX-RS Parameter Aggregator.
+	 * @return the document.
+	 */
+	private static Document createParameterAggregatorDocument(final JaxrsParameterAggregator parameterAggregator) {
+		final Document document = createBaseDocument(parameterAggregator);
+		return document;
+	}
+	
+	/**
+	 * Initializes a Lucene Document for the given JAX-RS Parameter Aggregator Field.
+	 * 
+	 * @param parameterAggregatorField
+	 *            the JAX-RS Parameter Aggregator Field
+	 * @return the document.
+	 */
+	private static Document createParameterAggregatorFieldDocument(final JaxrsParameterAggregatorField parameterAggregatorField) {
+		final Document document = createBaseDocument(parameterAggregatorField);
+		return document;
+	}
+
+	/**
+	 * Initializes a Lucene Document for the given JAX-RS Parameter Aggregator Method.
+	 * 
+	 * @param parameterAggregatorMethod
+	 *            the JAX-RS Parameter Aggregator Method
+	 * @return the document.
+	 */
+	private static Document createParameterAggregatorPropertyDocument(final JaxrsParameterAggregatorProperty parameterAggregatorMethod) {
+		final Document document = createBaseDocument(parameterAggregatorMethod);
+		addFieldToDocument(document, FIELD_TYPE, parameterAggregatorMethod.getType().getErasureName());
+		final List<IType> typeArguments = parameterAggregatorMethod.getType().getTypeArguments();
+		for(IType typeArg: typeArguments) {
+			addFieldToDocument(document, FIELD_TYPE, typeArg.getFullyQualifiedName());
+		}
+		return document;
+	}
+	
 
 	/**
 	 * Initializes a Lucene Document for the given JAX-RS web.xml base
@@ -385,8 +465,8 @@ public class LuceneDocumentFactory {
 	private static Document createHttpMethodDocument(final JaxrsHttpMethod httpMethod) {
 		final Document document = createBaseDocument(httpMethod);
 		addFieldToDocument(document, FIELD_HTTP_VERB, httpMethod.getHttpVerb());
+		addFieldToDocument(document, FIELD_JAVA_CLASS_NAME, httpMethod.getJavaClassName());
 		if(httpMethod.isBuiltIn()) {
-			addFieldToDocument(document, FIELD_JAVA_CLASS_NAME, httpMethod.getJavaClassName());
 			addFieldToDocument(document, FIELD_BUILT_IN_HTTP_METHOD, "true");
 		}
 		return document;
@@ -451,8 +531,8 @@ public class LuceneDocumentFactory {
 	/**
 	 * Initializes a Lucene Document for the given JAX-RS Resource Field.
 	 * 
-	 * @param resource
-	 *            the JAX-RS Resource
+	 * @param resourceField
+	 *            the JAX-RS Resource Field
 	 * @return the document.
 	 */
 	private static Document createResourceFieldDocument(final JaxrsResourceField resourceField) {
@@ -460,6 +540,18 @@ public class LuceneDocumentFactory {
 		return document;
 	}
 
+	/**
+	 * Initializes a Lucene Document for the given JAX-RS Resource Property.
+	 * 
+	 * @param resourceProperty
+	 *            the JAX-RS Resource Property
+	 * @return the document.
+	 */
+	private static Document createResourcePropertyDocument(final JaxrsResourceProperty resourceProperty) {
+		final Document document = createBaseDocument(resourceProperty);
+		return document;
+	}
+	
 	/**
 	 * Initializes a Lucene Document for the given JAX-RS Resource Method.
 	 * 
@@ -470,9 +562,14 @@ public class LuceneDocumentFactory {
 	private static Document createResourceMethodDocument(final JaxrsResourceMethod resourceMethod) {
 		final Document document = createBaseDocument(resourceMethod);
 		if(resourceMethod.getReturnedType() != null) {
-			addFieldToDocument(document, FIELD_RETURNED_TYPE_NAME, resourceMethod.getReturnedType().getFullyQualifiedName());
+			addFieldToDocument(document, FIELD_RETURNED_TYPE_NAME, resourceMethod.getReturnedType().getErasureName());
+			final List<IType> typeArguments = resourceMethod.getReturnedType().getTypeArguments();
+			for(IType typeArg: typeArguments) {
+				addFieldToDocument(document, FIELD_TYPE, typeArg.getFullyQualifiedName());
+			}
 		}
 		return document;
 	}
+
 
 }

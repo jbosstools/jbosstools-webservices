@@ -25,12 +25,12 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * Contract for a provider of ParamConverter instances. 
@@ -38,7 +38,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * @author xcoulon
  *
  */
-public class JaxrsParamConverterProvider extends AbstractJaxrsJavaTypeElement implements IJaxrsParamConverterProvider {
+public class JaxrsParamConverterProvider extends JaxrsJavaElement<IType> implements IJaxrsParamConverterProvider {
 
 	/**
 	 * Builder initializer
@@ -163,7 +163,7 @@ public class JaxrsParamConverterProvider extends AbstractJaxrsJavaTypeElement im
 	}
 
 	/**
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement#update(org.eclipse.jdt.core.IJavaElement, org.eclipse.jdt.core.dom.CompilationUnit)
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement#update(org.eclipse.jdt.core.IJavaElement, org.eclipse.jdt.core.dom.CompilationUnit)
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
@@ -190,7 +190,7 @@ public class JaxrsParamConverterProvider extends AbstractJaxrsJavaTypeElement im
 	}
 
 	/**
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement#isMarkedForRemoval()
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement#isMarkedForRemoval()
 	 */
 	@Override
 	boolean isMarkedForRemoval() {

@@ -8,7 +8,7 @@
  * Contributors: 
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
-package org.jboss.tools.ws.jaxrs.core.utils;
+package org.jboss.tools.ws.jaxrs.core.jdt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +24,16 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 
+/**
+ * 
+ * @author xcoulon
+ *
+ */
 public class CompilationUnitsRepository {
 
 	private static final CompilationUnitsRepository instance = new CompilationUnitsRepository();
@@ -138,7 +145,7 @@ public class CompilationUnitsRepository {
 	 * @return the known JavaMethodSignature or null
 	 * @throws JavaModelException
 	 */
-	public JavaMethodSignature getMethodSignature(final IMethod javaMethod) throws JavaModelException {
+	public IJavaMethodSignature getMethodSignature(final IMethod javaMethod) throws JavaModelException {
 		final ICompilationUnit compilationUnit = javaMethod.getCompilationUnit();
 		if (!methodDeclarationsMap.containsKey(compilationUnit)) {
 			recordAST(compilationUnit);

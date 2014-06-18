@@ -76,8 +76,30 @@ public enum EnumElementKind {
 	QUERY_PARAM_FIELD(EnumElementCategory.RESOURCE_FIELD),
 	/** MatrixParam field. */
 	MATRIX_PARAM_FIELD(EnumElementCategory.RESOURCE_FIELD), 
+	/** BeanParam field. */
+	BEAN_PARAM_FIELD(EnumElementCategory.RESOURCE_FIELD), 
 	/** Undefined Resource Field. */
-	UNDEFINED_RESOURCE_FIELD(EnumElementCategory.RESOURCE_FIELD);
+	UNDEFINED_RESOURCE_FIELD(EnumElementCategory.RESOURCE_FIELD),
+	
+	/** PathParam property. */
+	PATH_PARAM_PROPERTY(EnumElementCategory.RESOURCE_PROPERTY),
+	/** QueryParam property. */
+	QUERY_PARAM_PROPERTY(EnumElementCategory.RESOURCE_PROPERTY),
+	/** MatrixParam property. */
+	MATRIX_PARAM_PROPERTY(EnumElementCategory.RESOURCE_PROPERTY), 
+	/** Bean Param Resource property. */
+	BEAN_PARAM_PROPERTY(EnumElementCategory.RESOURCE_PROPERTY),
+	/** Undefined Resource property. */
+	UNDEFINED_RESOURCE_PROPERTY(EnumElementCategory.RESOURCE_PROPERTY),
+	
+	/** Parameter Aggregator (instance is annotated with {@code @BeanParameter} annotation). */
+	PARAMETER_AGGREGATOR(EnumElementCategory.PARAMETER_AGGREGATOR),
+	/** Parameter Aggregator Field. */
+	PARAMETER_AGGREGATOR_FIELD(EnumElementCategory.PARAMETER_AGGREGATOR_FIELD),
+	/** Parameter Aggregator Property. */
+	PARAMETER_AGGREGATOR_PROPERTY(EnumElementCategory.PARAMETER_AGGREGATOR_PROPERTY);
+	
+	
 	
 	private final EnumElementCategory category;
 	

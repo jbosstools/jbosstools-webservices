@@ -28,6 +28,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -35,6 +39,9 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -44,9 +51,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -73,11 +78,12 @@ public class Jaxrs11ElementFactoryTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(type, PATH);
 		// operation
-		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
-				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>(JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor()));
 		// verifications
+		Collections.sort(elements, new JaxrsElementsComparator());
 		assertThat(elements.size(), equalTo(7));
-		final IJaxrsResource resource = (IJaxrsResource) (elements.get(0));
+		final IJaxrsResource resource = (IJaxrsResource) (elements.iterator().next());
 		// result contains a mix of resource methods and subresource methods
 		// since http methods are built-in the metamodel
 		assertThat(resource.getAllMethods().size(), equalTo(6));
@@ -93,7 +99,7 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(7));
-		final IJaxrsResource resource = (IJaxrsResource) (elements.get(0));
+		final IJaxrsResource resource = (IJaxrsResource) (elements.iterator().next());
 		// result contains a mix of resource methods and subresource methods
 		// since http methods are built-in the metamodel
 		assertThat(resource.getAllMethods().size(), equalTo(6));
@@ -109,7 +115,7 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(4));
-		final IJaxrsResource resource = (IJaxrsResource) (elements.get(0));
+		final IJaxrsResource resource = (IJaxrsResource) (elements.iterator().next());
 		// result contains a mix of resource methods and subresource methods
 		// since http methods are built-in the metamodel
 		assertThat(resource.getAllMethods().size(), equalTo(3));
@@ -122,11 +128,11 @@ public class Jaxrs11ElementFactoryTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		final Annotation annotation = getAnnotation(type, HTTP_METHOD);
 		// operation
-		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
+		final Collection<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final IJaxrsHttpMethod httpMethod = (IJaxrsHttpMethod) (elements.get(0));
+		final IJaxrsHttpMethod httpMethod = (IJaxrsHttpMethod) (elements.iterator().next());
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 	}
 
@@ -139,7 +145,7 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final IJaxrsHttpMethod httpMethod = (IJaxrsHttpMethod) (elements.get(0));
+		final IJaxrsHttpMethod httpMethod = (IJaxrsHttpMethod) (elements.iterator().next());
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 	}
 
@@ -177,10 +183,10 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(2));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elements.iterator().next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).iterator().next();
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
 		assertThat(element.getParentResource(), notNullValue());
@@ -198,9 +204,9 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(2));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elements.iterator().next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).iterator().next();
 		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -221,9 +227,9 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(2));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elements.iterator().next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).iterator().next();
 		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -244,9 +250,9 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(2));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elements.iterator().next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).iterator().next();
 		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -267,9 +273,9 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(2));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elements.iterator().next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(element).iterator().next();
 		assertThat(element.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getAnnotations().size(), equalTo(3));
@@ -292,10 +298,10 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(2));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elements.iterator().next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		final JaxrsResourceMethod resourceMethod = (JaxrsResourceMethod) elements.get(1);
 		// {foo} is undefined -> "{foo:.*}"
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/orders{id:int}/{foo:.*}bar/"));
 		assertThat(resourceMethod.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(resourceMethod.getAnnotations().size(), equalTo(3));
@@ -314,12 +320,12 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(4));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		final JaxrsResource resource = (JaxrsResource) elements.iterator().next();
+		assertThat(resource.getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
-		final JaxrsResourceMethod element = (JaxrsResourceMethod) elements.get(1);
-		assertThat(element.getAnnotations().size(), equalTo(3));
+		final JaxrsResourceMethod element = resource.getMethods().get(JavaElementsUtils.getMethod(type, "getPicture").getHandleIdentifier());
 		assertThat(element.getAnnotations().size(), equalTo(3));
 		assertThat(element.getJavaMethodParameters().size(), equalTo(2));
 		assertThat(element.getParentResource(), notNullValue());
@@ -337,16 +343,18 @@ public class Jaxrs11ElementFactoryTestCase {
 		IField field = type.getField("_foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM);
 		// operation
-		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
-				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
+		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>(JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
+				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor()));
+		Collections.sort(elements, new JaxrsElementsComparator());
 		// verifications
 		assertThat(elements.size(), equalTo(5));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
-		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("_foo");
+		final Iterator<IJaxrsElement> elementsIterator = elements.iterator();
+		assertThat(elementsIterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(elementsIterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elementsIterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elementsIterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(elementsIterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		final JaxrsResourceField element = ((JaxrsResource) elements.iterator().next()).getField("_foo");
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());
 		assertThat(element.getQueryParamAnnotation().getValue("value"), equalTo("foo"));
@@ -366,12 +374,13 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(5));
-		assertThat(elements.get(0).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(elements.get(1).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
-		assertThat(elements.get(2).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(3).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		assertThat(elements.get(4).getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		final JaxrsResourceField element = ((JaxrsResource) elements.get(0)).getField("_foo");
+		final Iterator<IJaxrsElement> iterator = elements.iterator();
+		assertThat(iterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(iterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(iterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(iterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
+		assertThat(iterator.next().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
+		final JaxrsResourceField element = ((JaxrsResource) elements.iterator().next()).getField("_foo");
 		assertThat(element.getAnnotations().size(), equalTo(2));
 		assertThat(element.getPathParamAnnotation(), nullValue());
 		assertThat(element.getQueryParamAnnotation().getValue("value"), equalTo("foo"));
@@ -385,11 +394,11 @@ public class Jaxrs11ElementFactoryTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		final Annotation annotation = getAnnotation(type, APPLICATION_PATH);
 		// operation
-		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
+		final Collection<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsJavaApplication element = (JaxrsJavaApplication) elements.get(0);
+		final JaxrsJavaApplication element = (JaxrsJavaApplication) elements.iterator().next();
 		// result contains a mix of resource methods and subresource methods
 		// since http methods are built-in the metamodel
 		assertThat(element.getApplicationPath(), equalTo("/app"));
@@ -402,11 +411,11 @@ public class Jaxrs11ElementFactoryTestCase {
 		final Annotation annotation = getAnnotation(type, APPLICATION_PATH);
 		delete(annotation.getJavaAnnotation(), false);
 		// operation
-		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
+		final Collection<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsJavaApplication element = (JaxrsJavaApplication) elements.get(0);
+		final JaxrsJavaApplication element = (JaxrsJavaApplication) elements.iterator().next();
 		// result contains a mix of resource methods and subresource methods
 		// since http methods are built-in the metamodel
 		assertThat(element.getApplicationPath(), nullValue());
@@ -421,11 +430,11 @@ public class Jaxrs11ElementFactoryTestCase {
 		assertFalse(JdtUtils.isTypeOrSuperType(applicationType, type));
 		final Annotation annotation = getAnnotation(type, APPLICATION_PATH);
 		// operation
-		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
+		final Collection<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsJavaApplication element = (JaxrsJavaApplication) elements.get(0);
+		final JaxrsJavaApplication element = (JaxrsJavaApplication) elements.iterator().next();
 		// result contains a mix of resource methods and subresource methods
 		// since http methods are built-in the metamodel
 		assertThat(element.getApplicationPath(), equalTo("/app"));
@@ -468,15 +477,15 @@ public class Jaxrs11ElementFactoryTestCase {
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		final Annotation annotation = getAnnotation(type, PROVIDER);
 		// operation
-		final List<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
+		final Collection<IJaxrsElement> elements = JaxrsElementFactory.createElements(annotation.getJavaAnnotation(),
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final IJaxrsProvider provider = (IJaxrsProvider) (elements.get(0));
+		final IJaxrsProvider provider = (IJaxrsProvider) (elements.iterator().next());
 		assertThat(provider.getConsumedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getConsumedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getConsumedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProducedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getProducedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getProducedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(),
 				equalTo("javax.persistence.EntityNotFoundException"));
 	}
@@ -491,11 +500,11 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final IJaxrsProvider provider = (IJaxrsProvider) (elements.get(0));
+		final IJaxrsProvider provider = (IJaxrsProvider) (elements.iterator().next());
 		assertThat(provider.getConsumedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getConsumedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getConsumedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProducedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getProducedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getProducedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(),
 				equalTo("javax.persistence.EntityNotFoundException"));
 	}
@@ -511,12 +520,12 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsProvider provider = (JaxrsProvider) (elements.get(0));
+		final JaxrsProvider provider = (JaxrsProvider) (elements.iterator().next());
 		assertThat(provider.getAnnotation(PROVIDER), notNullValue());
 		assertThat(provider.getConsumedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getConsumedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getConsumedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProducedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getProducedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getProducedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER), nullValue());
 	}
 
@@ -531,12 +540,12 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(type, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsProvider provider = (JaxrsProvider) (elements.get(0));
+		final JaxrsProvider provider = (JaxrsProvider) (elements.iterator().next());
 		assertThat(provider.getAnnotation(PROVIDER), nullValue());
 		assertThat(provider.getConsumedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getConsumedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getConsumedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProducedMediaTypes().size(), equalTo(1));
-		assertThat(provider.getProducedMediaTypes().get(0), equalTo("application/json"));
+		assertThat(provider.getProducedMediaTypes().iterator().next(), equalTo("application/json"));
 		assertThat(provider.getProvidedType(EnumElementKind.EXCEPTION_MAPPER).getFullyQualifiedName(),
 				equalTo("javax.persistence.EntityNotFoundException"));
 	}
@@ -551,7 +560,7 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(providerType, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsProvider provider = (JaxrsProvider) (elements.get(0));
+		final JaxrsProvider provider = (JaxrsProvider) (elements.iterator().next());
 		assertThat(provider.getAnnotations().size(), equalTo(2));
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.MESSAGE_BODY_WRITER));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
@@ -569,7 +578,7 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(providerType, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsProvider provider = (JaxrsProvider) (elements.get(0));
+		final JaxrsProvider provider = (JaxrsProvider) (elements.iterator().next());
 		assertThat(provider.getAnnotations().size(), equalTo(3));
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.ENTITY_MAPPER));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER).getFullyQualifiedName(),
@@ -589,7 +598,7 @@ public class Jaxrs11ElementFactoryTestCase {
 				JdtUtils.parse(providerType, new NullProgressMonitor()), metamodel, new NullProgressMonitor());
 		// verifications
 		assertThat(elements.size(), equalTo(1));
-		final JaxrsProvider provider = (JaxrsProvider) (elements.get(0));
+		final JaxrsProvider provider = (JaxrsProvider) (elements.iterator().next());
 		assertThat(provider.getAnnotations().size(), equalTo(1));
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.EXCEPTION_MAPPER));
 		assertNull(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER));

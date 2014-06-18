@@ -104,7 +104,7 @@ public class Jaxrs11MetamodelTestCase {
 	public void shouldAssertResourcesAndMethods() throws CoreException {
 		// for now, the result excludes the (binary) AsynchronousDispatcher, and
 		// hence, its (sub)resources
-		final List<IJaxrsResource> resources = metamodel.findAllResources();
+		final Collection<IJaxrsResource> resources = metamodel.findAllResources();
 		Assert.assertEquals(7, resources.size());
 		for (IJaxrsResource jaxrsResource : resources) {
 			assertThat(((JaxrsResource) jaxrsResource).getJavaElement(), notNullValue());
@@ -156,13 +156,13 @@ public class Jaxrs11MetamodelTestCase {
 
 	@Test
 	public void shouldNotRetrieveElementsFromNull() throws CoreException {
-		final List<IJaxrsElement> elements = metamodel.findElements((IType)null);
+		final Collection<IJaxrsElement> elements = metamodel.findElements((IType)null);
 		assertThat(elements.size(), equalTo(0));
 	}
 
 	@Test
 	public void shouldNotRetrieveEndpointsFromNull() throws CoreException {
-		final List<JaxrsEndpoint> elements = metamodel.findEndpoints((IJaxrsElement)null);
+		final Collection<JaxrsEndpoint> elements = metamodel.findEndpoints((IJaxrsElement)null);
 		assertThat(elements.size(), equalTo(0));
 	}
 	@Test
@@ -179,7 +179,8 @@ public class Jaxrs11MetamodelTestCase {
 		final IMethod customerMethod = metamodelMonitor.resolveMethod(customerType, "getCustomers");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
-		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().size(), equalTo(0));
+		Assert.assertThat(customerResourceMethod.getPathTemplateParameters().size(), equalTo(0));
+		Assert.assertThat(customerResourceMethod.getParentResource().getPathTemplateParameters().size(), equalTo(0));
 	}
 
 	@Test
@@ -188,7 +189,7 @@ public class Jaxrs11MetamodelTestCase {
 		final IMethod customerMethod = metamodelMonitor.resolveMethod(customerType, "getCustomer");
 		final IJaxrsResourceMethod customerResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(customerMethod);
 		Assert.assertThat(customerResourceMethod, notNullValue());
-		Assert.assertThat(customerResourceMethod.getPathParamValueProposals().keySet(), containsInAnyOrder("id"));
+		Assert.assertThat(customerResourceMethod.getPathTemplateParameters().keySet(), containsInAnyOrder("id"));
 	}
 
 	@Test
@@ -197,7 +198,8 @@ public class Jaxrs11MetamodelTestCase {
 		final IMethod bookMethod = metamodelMonitor.resolveMethod(bookType, "getAllProducts");
 		final IJaxrsResourceMethod bookResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(bookMethod);
 		Assert.assertThat(bookResourceMethod, notNullValue());
-		Assert.assertThat(bookResourceMethod.getPathParamValueProposals().size(), equalTo(0));
+		Assert.assertThat(bookResourceMethod.getPathTemplateParameters().size(), equalTo(0));
+		Assert.assertThat(bookResourceMethod.getParentResource().getPathTemplateParameters().size(), equalTo(0));
 	}
 
 	@Test
@@ -206,7 +208,7 @@ public class Jaxrs11MetamodelTestCase {
 		final IMethod bookMethod = metamodelMonitor.resolveMethod(bookType, "getProduct");
 		final IJaxrsResourceMethod bookResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(bookMethod);
 		Assert.assertThat(bookResourceMethod, notNullValue());
-		Assert.assertThat(bookResourceMethod.getPathParamValueProposals().keySet(), containsInAnyOrder("id"));
+		Assert.assertThat(bookResourceMethod.getPathTemplateParameters().keySet(), containsInAnyOrder("id"));
 	}
 
 	@Test
@@ -215,9 +217,10 @@ public class Jaxrs11MetamodelTestCase {
 		final IMethod bazMethod = metamodelMonitor.resolveMethod(bazType, "getContent2");
 		final IJaxrsResourceMethod bazResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(bazMethod);
 		Assert.assertThat(bazResourceMethod, notNullValue());
-		final Set<String> pathParamValueProposals = bazResourceMethod.getPathParamValueProposals().keySet();
-		Assert.assertThat(pathParamValueProposals, hasSize(3));
-		Assert.assertThat(pathParamValueProposals, containsInAnyOrder("id", "format", "encoding"));
+		final List<String> proposals = new ArrayList<String>(bazResourceMethod.getPathTemplateParameters().keySet());
+		proposals.addAll(bazResourceMethod.getParentResource().getPathTemplateParameters().keySet());
+		Assert.assertThat(proposals, hasSize(3));
+		Assert.assertThat(proposals, containsInAnyOrder("id", "format", "encoding"));
 	}
 
 	@Test
@@ -235,7 +238,7 @@ public class Jaxrs11MetamodelTestCase {
 		// pre-conditions
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodel.add((AbstractJaxrsBaseElement)null);
+		metamodel.add((JaxrsBaseElement)null);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
@@ -289,7 +292,7 @@ public class Jaxrs11MetamodelTestCase {
 		final IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IResource customerResource = customerType.getResource();
 		// operation
-		final List<IJaxrsElement> elements = metamodel.findElements(customerResource);
+		final Collection<IJaxrsElement> elements = metamodel.findElements(customerResource);
 		// verification: 1 Resource only (children resource methods and resource fields are not indexed by the underlying resource) 
 		assertThat(elements.size(), equalTo(1));
 	}

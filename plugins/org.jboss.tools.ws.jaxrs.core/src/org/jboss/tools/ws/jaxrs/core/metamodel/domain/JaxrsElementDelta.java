@@ -75,6 +75,8 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	public static final int F_NAME_BINDING_ANNOTATION = 0x200000;
 
 	public static final int F_PARAM_CONVERTER_PROVIDER_HIERARCHY = 0x400000;
+
+	public static final int F_BEAN_PARAM_ANNOTATION = 0x800000;
 	
 	private final IJaxrsElement element;
 

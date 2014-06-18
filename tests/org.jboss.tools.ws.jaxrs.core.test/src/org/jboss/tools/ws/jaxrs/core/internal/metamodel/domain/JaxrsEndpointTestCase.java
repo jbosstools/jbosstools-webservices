@@ -20,7 +20,7 @@ import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
 import static org.junit.Assert.assertThat;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IField;
@@ -28,13 +28,13 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -91,7 +91,7 @@ public class JaxrsEndpointTestCase {
 	public void shouldDisplayEndpointParametersInOrderAtCreationInWorkingCopy() throws CoreException {
 		// pre-conditions
 		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
-		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
@@ -104,7 +104,7 @@ public class JaxrsEndpointTestCase {
 	public void shouldDisplayEndpointParametersInOrderAtCreationInPrimaryCopy() throws CoreException {
 		// pre-conditions
 		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
-		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
@@ -117,7 +117,7 @@ public class JaxrsEndpointTestCase {
 	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdateInPrimaryCopy() throws CoreException {
 		// pre-conditions
 		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "@GET", "@POST", false);
 		// verifications
@@ -128,7 +128,7 @@ public class JaxrsEndpointTestCase {
 	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdateInWorkingCopy() throws CoreException {
 		// pre-conditions
 		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "@GET", "@POST", false);
 		// verifications
@@ -139,7 +139,7 @@ public class JaxrsEndpointTestCase {
 	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdateInWorkingCopy() throws CoreException {
 		// pre-conditions
 		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		final IMethod modifiedMethod  = modifyJavaMethodSignature(resourceMethod, WORKING_COPY);
 		resourceMethod.update(modifiedMethod, JdtUtils.parse(modifiedMethod, null));
@@ -155,7 +155,7 @@ public class JaxrsEndpointTestCase {
 	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdateInPrimaryCopy() throws CoreException {
 		// pre-conditions
 		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		final IMethod modifiedMethod  = modifyJavaMethodSignature(resourceMethod, PRIMARY_COPY);
 		resourceMethod.update(modifiedMethod, JdtUtils.parse(modifiedMethod, null));
@@ -175,10 +175,10 @@ public class JaxrsEndpointTestCase {
 		final IMethod method = metamodelMonitor.resolveMethod(resourceType, "getPicture");
 		final IJaxrsElement resourceMethod = (IJaxrsElement) metamodel.findElement(method);
 		// operation
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
-		assertThat(uriPathTemplate, equalTo("/hello/products/{productType:String};bar={String}/{id:Integer};color={String}?foo={String:foo!}"));
+		assertThat(uriPathTemplate, equalTo("/hello/products/{productType:String};bar={String}/{id:Integer};color={String}?foo={String:foo!}&qux1={String:qux1!}"));
 	}
 
 	@Test
@@ -191,7 +191,7 @@ public class JaxrsEndpointTestCase {
 		final IMethod method = metamodelMonitor.resolveMethod(resourceType, "getAll");
 		final IJaxrsElement resourceMethod = (IJaxrsElement) metamodel.findElement(method);
 		// operation
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
 		assertThat(uriPathTemplate, equalTo("/hello/orders;author={Long};country={Integer}"));
@@ -205,7 +205,7 @@ public class JaxrsEndpointTestCase {
 		final IMethod method = metamodelMonitor.resolveMethod(resourceType, "getContent2");
 		final IJaxrsElement resourceMethod = (IJaxrsElement) metamodel.findElement(method);
 		// operation
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
 		assertThat(uriPathTemplate, equalTo("/hello/foo/bar/{param1:.*}/user/{id:.*}/{format:(/format/[^/]+?)?}/{encoding:(/encoding/[^/]+?)?}?start={int}"));
@@ -219,7 +219,7 @@ public class JaxrsEndpointTestCase {
 		final IMethod method = metamodelMonitor.resolveMethod(resourceType, "update3");
 		final IJaxrsElement resourceMethod = (IJaxrsElement) metamodel.findElement(method);
 		// operation
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).get(0);
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
 		assertThat(uriPathTemplate, equalTo("/hello/foo/bar/{param1:String}/{param2:String}"));
@@ -233,7 +233,7 @@ public class JaxrsEndpointTestCase {
 		// operation
 		JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"start\") private int start;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -243,6 +243,7 @@ public class JaxrsEndpointTestCase {
 
 	@Test
 	public void shouldAddQueryParamInAllEndpointsWhenAddingAnnotationOnFieldInRootResource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private int start; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("start");
@@ -253,7 +254,7 @@ public class JaxrsEndpointTestCase {
 		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -269,7 +270,7 @@ public class JaxrsEndpointTestCase {
 		// operation
 		JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"start\") private int start;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -278,6 +279,7 @@ public class JaxrsEndpointTestCase {
 
 	@Test
 	public void shouldAddQueryParamInAllEndpointsWhenAddingAnnotationOnFieldInSubresource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private int start; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("start");
@@ -288,7 +290,7 @@ public class JaxrsEndpointTestCase {
 		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -303,7 +305,7 @@ public class JaxrsEndpointTestCase {
 		// operation
 		JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"start\") private int start;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -312,6 +314,7 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldAddQueryParamInAllEndpointsWhenAddingAnnotationOnFieldInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private int start; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("start");
@@ -322,7 +325,7 @@ public class JaxrsEndpointTestCase {
 		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -337,7 +340,7 @@ public class JaxrsEndpointTestCase {
 		// operation
 		JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString(";lang={String}"));
@@ -346,6 +349,7 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldAddMatrixParamInAllEndpointsWhenAddingAnnotationOnFieldInRootResource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("l");
@@ -356,7 +360,7 @@ public class JaxrsEndpointTestCase {
 		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString(";lang={String}"));
@@ -371,7 +375,7 @@ public class JaxrsEndpointTestCase {
 		// operation
 		JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString(";lang={String}"));
@@ -380,6 +384,7 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldAddMatrixParamInAllEndpointsWhenAddingAnnotationOnFieldInSubresource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("l");
@@ -390,7 +395,7 @@ public class JaxrsEndpointTestCase {
 		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString(";lang={String}"));
@@ -405,7 +410,7 @@ public class JaxrsEndpointTestCase {
 		// operation
 		JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString(";lang={String}"));
@@ -414,6 +419,7 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldAddMatrixParamInAllEndpointsWhenAddingAnnotationOnFieldInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("l");
@@ -424,7 +430,7 @@ public class JaxrsEndpointTestCase {
 		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString(";lang={String}"));
@@ -433,30 +439,32 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldChangeQueryParamInAllEndpointsWhenUpdatingFieldAnnotationInRootResource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"start\") private int foo;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
 		}
 		// now change the field annotation
-		replaceFirstOccurrenceOfCode(resource.getJavaElement(), "@QueryParam(\"start\") private int foo;", "@QueryParam(\"size\") private int foo;", WORKING_COPY);
+		replaceFirstOccurrenceOfCode(resource.getJavaElement(), "@QueryParam(\"start\") private int foo;", "@QueryParam(\"begin\") private int foo;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("size={int}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("begin={int}"));
 		}
 	}
 	
 	@Test
 	public void shouldChangeQueryParamInAllEndpointsWhenUpdatingFieldAnnotationInSubresource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"start\") private int foo;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -464,7 +472,7 @@ public class JaxrsEndpointTestCase {
 		// now change the field annotation
 		replaceFirstOccurrenceOfCode(resource.getJavaElement(), "@QueryParam(\"start\") private int foo;", "@QueryParam(\"size\") private int foo;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("size={int}"));
@@ -473,10 +481,11 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldChangeQueryParamInAllEndpointsWhenUpdatingFieldAnnotationInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"start\") private int foo;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
@@ -484,7 +493,7 @@ public class JaxrsEndpointTestCase {
 		// now change the field annotation
 		replaceFirstOccurrenceOfCode(resource.getJavaElement(), "@QueryParam(\"start\") private int foo;", "@QueryParam(\"size\") private int foo;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("size={int}"));
@@ -493,10 +502,11 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldChangeMatrixParamInAllEndpointsWhenUpdatingFieldAnnotationInRootRresource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -504,7 +514,7 @@ public class JaxrsEndpointTestCase {
 		// now change the field annotation
 		replaceFirstOccurrenceOfCode(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", "@MatrixParam(\"language\") private String l;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("language={String}"));
@@ -513,11 +523,12 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldChangeMatrixParamInAllEndpointsWhenUpdatingFieldAnnotationInSubresource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;",
 				WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for (JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -526,7 +537,7 @@ public class JaxrsEndpointTestCase {
 		replaceFirstOccurrenceOfCode(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;",
 				"@MatrixParam(\"language\") private String l;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(3));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("language={String}"));
@@ -535,10 +546,11 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldChangeMatrixParamInAllEndpointsWhenUpdatingFieldAnnotationInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -546,7 +558,7 @@ public class JaxrsEndpointTestCase {
 		// now change the field annotation
 		replaceFirstOccurrenceOfCode(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", "@MatrixParam(\"language\") private String l;", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("language={String}"));
@@ -555,11 +567,12 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldRemoveQueryParamInAllEndpointsWhenRemovingAnnotatedFieldInRootResource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		final IField queryParamField = JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"foo\") private int start;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("foo={int}"));
@@ -567,7 +580,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove field
 		JavaElementsUtils.removeField(queryParamField, WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("foo={int}")));
@@ -576,13 +589,14 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldRemoveQueryParamInAllEndpointsWhenRemovingAnnotationOnFieldInRootResource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private int start; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("start");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
 		JavaElementsUtils.addFieldAnnotation(queryParamField, "@QueryParam(\"foo\")", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("foo={int}"));
@@ -590,7 +604,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove the annotation
 		JavaElementsUtils.removeFieldAnnotation(queryParamField, "@QueryParam(\"foo\")", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("foo={int}")));
@@ -599,11 +613,12 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldRemoveQueryParamInAllEndpointsWhenRemovingAnnotatedFieldInSubresource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		final IField queryParamField = JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"foo\") private int start;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("foo={int}"));
@@ -611,7 +626,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove field
 		JavaElementsUtils.removeField(queryParamField, WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("foo={int}")));
@@ -620,13 +635,14 @@ public class JaxrsEndpointTestCase {
 
 	@Test
 	public void shouldRemoveQueryParamInAllEndpointsWhenRemovingAnnotationOnFieldInSubresource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private int start; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("start");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
 		JavaElementsUtils.addFieldAnnotation(queryParamField, "@QueryParam(\"foo\")", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("foo={int}"));
@@ -634,7 +650,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove the annotation
 		JavaElementsUtils.removeFieldAnnotation(queryParamField, "@QueryParam(\"foo\")", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("foo={int}")));
@@ -643,55 +659,58 @@ public class JaxrsEndpointTestCase {
 
 	@Test
 	public void shouldRemoveQueryParamInAllEndpointsWhenRemovingAnnotatedFieldInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		metamodelMonitor.resetElementChangesNotifications();
-		final IField queryParamField = JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"foo\") private int start;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final IField queryParamField = JavaElementsUtils.createField(resource.getJavaElement(), "@QueryParam(\"start\") private int start;", WORKING_COPY);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("foo={int}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
 		}
 		// operation: now, remove field
 		JavaElementsUtils.removeField(queryParamField, WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("foo={int}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("start={int}")));
 		}
 	}
 	
 	@Test
 	public void shouldRemoveQueryParamInAllEndpointsWhenRemovingAnnotationOnFieldInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private int start; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("start");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
-		JavaElementsUtils.addFieldAnnotation(queryParamField, "@QueryParam(\"foo\")", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		JavaElementsUtils.addFieldAnnotation(queryParamField, "@QueryParam(\"start\")", WORKING_COPY);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("foo={int}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("start={int}"));
 		}
 		// operation: now, remove the annotation
-		JavaElementsUtils.removeFieldAnnotation(queryParamField, "@QueryParam(\"foo\")", WORKING_COPY);
+		JavaElementsUtils.removeFieldAnnotation(queryParamField, "@QueryParam(\"start\")", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("foo={int}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("start={int}")));
 		}
 	}
 	
 	@Test
 	public void shouldRemoveMatrixParamInAllEndpointsWhenRemovingAnnotatedFieldInRootResource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		final IField queryParamField = JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -699,7 +718,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove field
 		JavaElementsUtils.removeField(queryParamField, WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("lang={String}")));
@@ -708,13 +727,14 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldRemoveMatrixParamInAllEndpointsWhenRemovingAnnotationOnFieldInRootResource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("l");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
 		JavaElementsUtils.addFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -722,7 +742,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove the annotation
 		JavaElementsUtils.removeFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(6));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("lang={String}")));
@@ -731,11 +751,12 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldRemoveMatrixParamInAllEndpointsWhenRemovingAnnotatedFieldInSubresource() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		final IField queryParamField = JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -743,7 +764,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove field
 		JavaElementsUtils.removeField(queryParamField, WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("lang={String}")));
@@ -752,13 +773,14 @@ public class JaxrsEndpointTestCase {
 
 	@Test
 	public void shouldRemoveMatrixParamInAllEndpointsWhenRemovingAnnotationOnFieldInSubresource() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("l");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
 		JavaElementsUtils.addFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -766,7 +788,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove the annotation
 		JavaElementsUtils.removeFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(3));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("lang={String}")));
@@ -775,11 +797,12 @@ public class JaxrsEndpointTestCase {
 
 	@Test
 	public void shouldRemoveMatrixParamInAllEndpointsWhenRemovingAnnotatedFieldInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		metamodelMonitor.resetElementChangesNotifications();
 		final IField queryParamField = JavaElementsUtils.createField(resource.getJavaElement(), "@MatrixParam(\"lang\") private String l;", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -787,7 +810,7 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove field
 		JavaElementsUtils.removeField(queryParamField, WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("lang={String}")));
@@ -796,13 +819,14 @@ public class JaxrsEndpointTestCase {
 	
 	@Test
 	public void shouldRemoveMatrixParamInAllEndpointsWhenRemovingAnnotationOnFieldInSubresourceLocator() throws CoreException {
+		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
 		final IField queryParamField = resourceType.getField("l");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
 		JavaElementsUtils.addFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
-		final List<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
 		assertThat(endpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : endpoints) {
 			assertThat(endpoint.getUriPathTemplate(), containsString("lang={String}"));
@@ -810,14 +834,11 @@ public class JaxrsEndpointTestCase {
 		// operation: now, remove the annotation
 		JavaElementsUtils.removeFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
 		// verifications
-		final List<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
+		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(resource);
 		assertThat(modifiedEndpoints.size(), equalTo(5));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
 			assertThat(endpoint.getUriPathTemplate(), not(containsString("lang={String}")));
 		}
 	}
-	
-
-	
 	
 }

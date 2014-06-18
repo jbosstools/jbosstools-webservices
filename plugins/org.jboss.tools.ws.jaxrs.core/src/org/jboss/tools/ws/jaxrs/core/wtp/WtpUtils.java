@@ -1,4 +1,4 @@
-package org.jboss.tools.ws.jaxrs.core.utils;
+package org.jboss.tools.ws.jaxrs.core.wtp;
 
 import java.io.FileInputStream;
 import java.io.IOException;

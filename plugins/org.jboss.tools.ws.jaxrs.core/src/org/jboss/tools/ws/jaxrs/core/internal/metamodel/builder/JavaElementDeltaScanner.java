@@ -41,11 +41,12 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 
 /**
  * Scans and filters the IJavaElementDelta and IResourceDelta (including their children and annotations) and returns a
@@ -132,7 +133,7 @@ public class JavaElementDeltaScanner {
 				final Map<String, JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
 						compilationUnitAST, computeDiffs);
 				for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
-					final JavaMethodSignature methodSignature = diff.getValue();
+					final IJavaMethodSignature methodSignature = diff.getValue();
 					final JavaElementChangedEvent event = new JavaElementChangedEvent(methodSignature.getJavaMethod(), CHANGED, eventType,
 							compilationUnitAST, F_SIGNATURE);
 					if (javaElementChangedEventFilter.apply(event)) {

@@ -189,7 +189,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		try {
 			final IJaxrsMetamodel metamodel= JaxrsMetamodelLocator.get(javaProject);
 			if (metamodel != null) {
-				level = metamodel.getProblemLevel();
+				level = metamodel.getMarkerSeverity();
 				for (IJaxrsEndpoint endpoint : metamodel.getAllEndpoints()) {
 					level = Math.max(level, endpoint.getProblemLevel());
 				}

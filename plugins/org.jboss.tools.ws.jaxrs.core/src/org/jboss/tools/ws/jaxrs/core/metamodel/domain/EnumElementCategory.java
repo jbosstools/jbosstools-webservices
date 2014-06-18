@@ -11,6 +11,33 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
 public enum EnumElementCategory {
-	APPLICATION, HTTP_METHOD, PROVIDER, NAME_BINDING, RESOURCE, RESOURCE_FIELD, RESOURCE_METHOD, ENDPOINT, UNDEFINED, PARAM_CONVERTER_PROVIDER;
+	/** Application */
+	APPLICATION,
+	/** HTTP Method */
+	HTTP_METHOD, 
+	/** Provider */
+	PROVIDER, 
+	/** Name Binding */
+	NAME_BINDING, 
+	/** Resource */
+	RESOURCE, 
+	/** Resource Field */
+	RESOURCE_FIELD, 
+	/** Resource Property */
+	RESOURCE_PROPERTY, 
+	/** Resource Method */
+	RESOURCE_METHOD, 
+	/** Parameter Converter Provider */
+	PARAM_CONVERTER_PROVIDER, 
+	/** Parameter Aggregator */
+	PARAMETER_AGGREGATOR, 
+	/** Parameter Aggregator Field */
+	PARAMETER_AGGREGATOR_FIELD, 
+	/** Parameter Aggregator Property*/
+	PARAMETER_AGGREGATOR_PROPERTY, 
+	/** Endpoint */
+	ENDPOINT, 
+	/** Undefined */
+	UNDEFINED;
 
 }

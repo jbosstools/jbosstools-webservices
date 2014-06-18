@@ -14,8 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IMethod;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 public interface IJaxrsResourceMethod extends IJaxrsElement {
 
@@ -29,16 +30,17 @@ public interface IJaxrsResourceMethod extends IJaxrsElement {
 
 	abstract List<String> getProducedMediaTypes();
 
-	abstract List<JavaMethodParameter> getJavaMethodParameters();
+	abstract List<IJavaMethodParameter> getJavaMethodParameters();
 
 	/**
-	 * Determines the proposals for the PathParam annotated method parameters of
-	 * the underlying Java Method. This map contains the @Path annotations
-	 * found on the Java Method and on the parent Java Type, indexed by their extracted value (ie, with no regexp)
+	 * Returns all current values for the {@code @Path} annotations on {@code this} {@link JaxrsResourceMethod} and on the parent {@link JaxrsResource} 
+	 * This result can be used to determine the proposals for the PathParam annotated method parameters of
+	 * the underlying Java Method. 
 	 * 
-	 * @return
+	 * @return A {@link Map} containing the {@code @Path} annotations
+	 * found on {@code this} {@link JaxrsResourceMethod} and on the parent {@link JaxrsResource}, indexed by their extracted value (ie, with no regexp)
 	 */
-	abstract Map<String, Annotation> getPathParamValueProposals();
+	abstract Map<String, Annotation> getPathTemplateParameters();
 
 	abstract boolean hasPathTemplate();
 

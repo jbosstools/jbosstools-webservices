@@ -16,9 +16,11 @@ import static org.eclipse.jdt.core.IJavaElement.FIELD;
 import static org.eclipse.jdt.core.IJavaElement.METHOD;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -30,9 +32,13 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 
 /**
  * Factory for JAX-RS elements that should be created from Java elements.
@@ -69,87 +75,19 @@ public class JaxrsElementFactory {
 			elements.addAll(internalCreateElements(element, ast, metamodel, progressMonitor));
 			break;
 		}
+		Collections.sort(elements, new JaxrsElementsComparator());
 		return elements;
 	}
 
-	/**
-	 * Creates one or more JAX-RS elements from the given {@link IType}
-	 * 
-	 * @param type
-	 *            the java type
-	 * @param ast
-	 *            the associated {@link CompilationUnit}
-	 * @param metamodel
-	 *            the metamodel
-	 * @param progressMonitor
-	 *            the progress monitor
-	 * @return
-	 * @throws CoreException
-	 */
-	private static List<IJaxrsElement> createElements(final IType type, final CompilationUnit ast,
-			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
-		final long start = System.currentTimeMillis();
-		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
-		try {
-			// let's see if the given type can be an HTTP Method (ie, is annotated
-			// with @HttpMethod)
-			final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type, ast).withMetamodel(metamodel).build();
-			if (httpMethod != null) {
-				elements.add(httpMethod);
-				return elements;
-			}
-			// now,let's see if the given type can be a Resource (with or without
-			// @Path)
-			final JaxrsResource resource = JaxrsResource.from(type, ast, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
-			if (resource != null) {
-				elements.add(resource);
-				// fields should be added before methods because they are used to resolve path parameters
-				elements.addAll(resource.getAllFields());
-				elements.addAll(resource.getAllMethods());
-				return elements;
-			}
-			// now,let's see if the given type can be an Application
-			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type, ast).withMetamodel(metamodel).build();
-			if (application != null) {
-				elements.add(application);
-				return elements;
-			}
-			// let's see if the given type can be an Interceptor/Filter Name Binding (ie, is annotated
-			// with @Namebinding)
-			final JaxrsNameBinding nameBinding = JaxrsNameBinding.from(type, ast).withMetamodel(metamodel).build();
-			if (nameBinding != null) {
-				elements.add(nameBinding);
-				return elements;
-			}
-			// now,let's see if the given type can be a ParamConverterProvider
-			final JaxrsParamConverterProvider paramConverterProvider = JaxrsParamConverterProvider.from(type, ast).withMetamodel(metamodel).build();
-			if (paramConverterProvider != null) {
-				elements.add(paramConverterProvider);
-				return elements;
-			}
-			// now,let's see if the given type can be a Provider
-			final JaxrsProvider provider = JaxrsProvider.from(type, ast).withMetamodel(metamodel).build();
-			if (provider != null) {
-				elements.add(provider);
-				return elements;
-			}
-			return elements;
-		} finally {
-			final long end = System.currentTimeMillis();
-			Logger.tracePerf("{} JAX-RS elements created in {}ms:", elements.size(), (end - start), elements);
-			
-		}
-	}
-
-	private static List<IJaxrsElement> internalCreateElements(final IJavaElement scope, final CompilationUnit ast,
+	private static Set<IJaxrsElement> internalCreateElements(final IJavaElement scope, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		if(scope.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT && ((IPackageFragmentRoot)scope).isArchive()) {
 			Logger.debug("Ignoring archive {}", scope.getElementName());
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
-		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		final Set<IJaxrsElement> elements = new HashSet<IJaxrsElement>();
 		// let's see if the given scope contains JAX-RS Application
-		final List<IType> matchingApplicationTypes = JavaElementsSearcher.findApplicationTypes(scope,
+		final Set<IType> matchingApplicationTypes = JavaElementsSearcher.findApplicationTypes(scope,
 				progressMonitor);
 		for (IType type : matchingApplicationTypes) {
 			final JaxrsJavaApplication application = JaxrsJavaApplication.from(type).withMetamodel(metamodel).build();
@@ -158,7 +96,7 @@ public class JaxrsElementFactory {
 			}
 		}
 		// let's see if the given scope contains JAX-RS HTTP Methods
-		final List<IType> matchingHttpMethodTypes = JavaElementsSearcher.findHttpMethodTypes(scope,
+		final Set<IType> matchingHttpMethodTypes = JavaElementsSearcher.findHttpMethodTypes(scope,
 				progressMonitor);
 		for (IType type : matchingHttpMethodTypes) {
 			final JaxrsHttpMethod httpMethod = JaxrsHttpMethod.from(type).withMetamodel(metamodel).build();
@@ -167,7 +105,7 @@ public class JaxrsElementFactory {
 			}
 		}
 		// let's see if the given scope contains JAX-RS Name Bindings
-		final List<IType> matchingNameBindingsTypes = JavaElementsSearcher.findNameBindingTypes(scope,
+		final Set<IType> matchingNameBindingsTypes = JavaElementsSearcher.findNameBindingTypes(scope,
 				progressMonitor);
 		for (IType type : matchingNameBindingsTypes) {
 			final JaxrsNameBinding nameBinding = JaxrsNameBinding.from(type).withMetamodel(metamodel).build();
@@ -176,9 +114,9 @@ public class JaxrsElementFactory {
 			}
 		}
 		// let's see if the given scope contains JAX-RS Resources
-		final List<IType> matchingResourceTypes = JavaElementsSearcher.findResourceTypes(scope, progressMonitor);
+		final Set<IType> matchingResourceTypes = JavaElementsSearcher.findResourceTypes(scope, progressMonitor);
 		for (IType type : matchingResourceTypes) {
-			final JaxrsResource resource = JaxrsResource.from(type, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+			final JaxrsResource resource = JaxrsResource.from(type, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 			if (resource != null) {
 				elements.add(resource);
 				elements.addAll(resource.getAllMethods());
@@ -186,15 +124,25 @@ public class JaxrsElementFactory {
 			}
 		}
 		// now,let's see if the given type can be a ParamConverterProvider
-		final List<IType> matchingParamConverterProviderTypes = JavaElementsSearcher.findParamConverterProviderTypes(scope, progressMonitor);
+		final Set<IType> matchingParamConverterProviderTypes = JavaElementsSearcher.findParamConverterProviderTypes(scope, progressMonitor);
 		for (IType type : matchingParamConverterProviderTypes) {
 			final JaxrsParamConverterProvider paramConverterProvider = JaxrsParamConverterProvider.from(type).withMetamodel(metamodel).build();
 			if (paramConverterProvider != null) {
 				elements.add(paramConverterProvider);
 			}
 		}
+		// now,let's see if the given type can be a Parameter Aggregator
+		final Set<IType> matchingParameterAggregatorTypes = JavaElementsSearcher.findParameterAggregatorTypes(scope, progressMonitor);
+		for (IType type : matchingParameterAggregatorTypes) {
+			final JaxrsParameterAggregator parameterAggregator = JaxrsParameterAggregator.from(type).buildInMetamodel(metamodel);
+			if (parameterAggregator != null) {
+				elements.add(parameterAggregator);
+				elements.addAll(parameterAggregator.getAllProperties());
+				elements.addAll(parameterAggregator.getAllFields());
+			}
+		}
 		// let's see if the given scope contains JAX-RS Providers
-		final Collection<IType> matchingProviderTypes = JavaElementsSearcher.findProviderTypes(scope, progressMonitor);
+		final Set<IType> matchingProviderTypes = JavaElementsSearcher.findProviderTypes(scope, progressMonitor);
 		for (IType type : matchingProviderTypes) {
 			final JaxrsProvider provider = JaxrsProvider.from(type).withMetamodel(metamodel).build();
 			if (provider != null) {
@@ -215,25 +163,61 @@ public class JaxrsElementFactory {
 	 * @return
 	 * @throws CoreException
 	 */
-	private static List<IJaxrsElement> createElements(final IMethod javaMethod,
+	private static Set<IJaxrsElement> createElements(final IMethod javaMethod,
 			final CompilationUnit ast, final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
-		// TODO: should skip if the given javaMethod has no relevant JAX-RS annotation
-		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
-		final IType parentType = (IType) javaMethod.getAncestor(IJavaElement.TYPE);
-		if(metamodel.findElement(parentType) == null) {
-			elements.addAll(internalCreateElements(parentType, ast, metamodel, progressMonitor));
-		} else {
-			final JaxrsResource parentResource = metamodel.findResource((IType)javaMethod.getAncestor(IJavaElement.TYPE));
-			final JaxrsResourceMethod resourceMethod = JaxrsResourceMethod
-					.from(javaMethod, ast, metamodel.findAllHttpMethods()).withParentResource(parentResource).withMetamodel(metamodel).build();
-			if (resourceMethod != null) {
-				elements.add(resourceMethod);
-				// now, check if the parent resource should also be added to the
-				// metamodel
-				if (resourceMethod.getParentResource() != null && !metamodel.containsElement(resourceMethod.getParentResource())) {
-					elements.add(resourceMethod.getParentResource());
+		final Map<String, Annotation> methodAnnotations = JdtUtils.resolveAllAnnotations(javaMethod, ast);
+		final Set<IJaxrsElement> elements = new HashSet<IJaxrsElement>();
+		// attempt to create a JaxrsParameterAggregatorProperty or a Resource Property from the give Java method.
+		if(JaxrsParamAnnotations.matchesAtLeastOne(methodAnnotations.keySet())) {
+			final IType parentType = (IType) javaMethod.getAncestor(IJavaElement.TYPE);
+			final IJaxrsElement parentElement = metamodel.findElement(parentType);
+			if(parentElement == null) {
+				elements.addAll(internalCreateElements(parentType, ast, metamodel, progressMonitor));
+			} 
+			// Parameter Aggregator Method
+			else if(parentElement.getElementKind().getCategory() == EnumElementCategory.PARAMETER_AGGREGATOR){
+				final JaxrsParameterAggregator parentParameterAggregator = (JaxrsParameterAggregator) parentElement;
+				final JaxrsParameterAggregatorProperty parameterAggregatorMethod = JaxrsParameterAggregatorProperty
+						.from(javaMethod, ast).buildInParentAggregator(parentParameterAggregator);
+				if (parameterAggregatorMethod != null) {
+					elements.add(parameterAggregatorMethod);
+					// now, check if the parent resource should also be added to the
+					// metamodel
+					/*if (resourceMethod.getParentResource() != null && !metamodel.containsElement(resourceMethod.getParentResource())) {
+						elements.add(resourceMethod.getParentResource());
+					}*/
 				}
 			}
+			// Resource Property
+			else if(parentElement.getElementKind().getCategory() == EnumElementCategory.RESOURCE){
+				final JaxrsResource parentResource = (JaxrsResource) parentElement;
+				final JaxrsResourceProperty resourceProperty = JaxrsResourceProperty
+						.from(javaMethod, ast).buildInResource(parentResource);
+				if (resourceProperty != null) {
+					elements.add(resourceProperty);
+				}
+			}
+		} 
+		// attempt to create a JaxrsResourceMethod from the give Java method.
+		else if(CollectionUtils.hasIntersection(methodAnnotations.keySet(), metamodel.findAllHttpMethodNames()) || 
+				methodAnnotations.keySet().contains(JaxrsClassnames.PATH)) {
+			final IType parentType = (IType) javaMethod.getAncestor(IJavaElement.TYPE);
+			final IJaxrsElement parentElement = metamodel.findElement(parentType);
+			if(parentElement == null) {
+				elements.addAll(internalCreateElements(parentType, ast, metamodel, progressMonitor));
+			} else if(parentElement.getElementKind().getCategory() == EnumElementCategory.RESOURCE){
+				final JaxrsResource parentResource = (JaxrsResource) parentElement;
+				final JaxrsResourceMethod resourceMethod = JaxrsResourceMethod
+						.from(javaMethod, ast, metamodel.findAllHttpMethodNames()).buildInResource(parentResource);
+				if (resourceMethod != null) {
+					elements.add(resourceMethod);
+					// now, check if the parent resource should also be added to the
+					// metamodel
+					/*if (resourceMethod.getParentResource() != null && !metamodel.containsElement(resourceMethod.getParentResource())) {
+						elements.add(resourceMethod.getParentResource());
+					}*/
+				}
+			}			
 		}
 		return elements;
 	}
@@ -249,23 +233,33 @@ public class JaxrsElementFactory {
 	 * @return
 	 * @throws CoreException
 	 */
-	private static List<IJaxrsElement> createElements(final IField javaField, final CompilationUnit ast,
+	private static Set<IJaxrsElement> createElements(final IField javaField, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
-		// TODO: should skip if the given javaField has no relevant JAX-RS annotation
-		final List<IJaxrsElement> elements = new ArrayList<IJaxrsElement>();
+		final Map<String, Annotation> fieldAnnotations = JdtUtils.resolveAllAnnotations(javaField, ast);
+		if(!JaxrsParamAnnotations.matchesAtLeastOne(fieldAnnotations.keySet())) {
+			return Collections.emptySet();
+		}
+		final Set<IJaxrsElement> elements = new HashSet<IJaxrsElement>();
 		final IType parentType = (IType) javaField.getAncestor(IJavaElement.TYPE);
-		if(metamodel.findElement(parentType) == null) {
+		final IJaxrsElement parentElement = metamodel.findElement(parentType);
+		if(parentElement == null) {
 			elements.addAll(internalCreateElements(parentType, ast, metamodel, progressMonitor));
-		} else {
+		} else if(parentElement.getElementKind().getCategory() == EnumElementCategory.RESOURCE){
 			final JaxrsResourceField resourceField = JaxrsResourceField.from(javaField, ast).withMetamodel(metamodel).build();
 			if (resourceField != null) {
 				elements.add(resourceField);
 				// now, check if the parent resource should also be added to the
 				// metamodel
-				if (!metamodel.containsElement(resourceField.getParentResource())) {
+				/*if (!metamodel.containsElement(resourceField.getParentResource())) {
 					final JaxrsResource parentResource = resourceField.getParentResource();
 					elements.add(parentResource);
-				}
+				}*/
+			}
+		} else if(parentElement.getElementKind().getCategory() == EnumElementCategory.PARAMETER_AGGREGATOR){
+			final JaxrsParameterAggregatorField parameterAggregatorField = JaxrsParameterAggregatorField.from(
+					javaField, ast).buildInParentAggregator((JaxrsParameterAggregator) parentElement);
+			if (parameterAggregatorField != null) {
+				elements.add(parameterAggregatorField);
 			}
 		}
 		return elements;
@@ -284,7 +278,7 @@ public class JaxrsElementFactory {
 	 *         is not a valid one.
 	 * @throws CoreException
 	 */
-	public static List<IJaxrsElement> createElements(final IAnnotation javaAnnotation, final CompilationUnit ast,
+	public static Set<IJaxrsElement> createElements(final IAnnotation javaAnnotation, final CompilationUnit ast,
 			final JaxrsMetamodel metamodel, final IProgressMonitor progressMonitor) throws CoreException {
 		// unsupported annotation (eg: on package declaration, or underlying java
 		// element does not exist or not found) are ignored
@@ -298,7 +292,7 @@ public class JaxrsElementFactory {
 				return createElements((IField) javaAnnotation.getParent(), ast, metamodel, progressMonitor);
 			}
 		}
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 
 }

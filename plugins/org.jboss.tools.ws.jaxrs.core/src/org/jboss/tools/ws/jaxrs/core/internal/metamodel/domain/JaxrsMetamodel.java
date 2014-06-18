@@ -71,6 +71,8 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JaxrsElementsIndexationDelegate;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneDocumentFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -89,9 +91,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsStatus;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
  * Manages all the JAX-RS domain classes of the JAX-RS Metamodel. Not only a
@@ -118,7 +118,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * Internal store of all the JAX-RS elements of this metamodel (elements are
 	 * indexed by the handleIdentifier of their associated java element).
 	 */
-	private final Map<String, AbstractJaxrsBaseElement> elements = new HashMap<String, AbstractJaxrsBaseElement>();
+	private final Map<String, JaxrsBaseElement> elements = new HashMap<String, JaxrsBaseElement>();
 
 	/**
 	 * Internal store of all the JAX-RS Endpoints, indexed by their unique
@@ -209,10 +209,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @see IMarker for the severity level (value "0" meaning
 	 *      "no problem, dude")
 	 */
-	public final int getProblemLevel() {
+	public final int getMarkerSeverity() {
 		int globalLevel = problemLevel;
-		for(Entry<String, AbstractJaxrsBaseElement> entry : this.elements.entrySet()) {
-			globalLevel = Math.max(globalLevel, entry.getValue().getProblemLevel());
+		for(Entry<String, JaxrsBaseElement> entry : this.elements.entrySet()) {
+			globalLevel = Math.max(globalLevel, entry.getValue().getMarkerSeverity());
 		}
 		return globalLevel;
 	}
@@ -451,13 +451,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 					JaxrsElementFactory.createElements(element, ast, this, progressMonitor);
 				} else {
 					for (Iterator<IJaxrsElement> iterator = jaxrsElements.iterator(); iterator.hasNext();) {
-						AbstractJaxrsJavaElement<?> jaxrsElement = (AbstractJaxrsJavaElement<?>) iterator.next();
+						JaxrsJavaElement<?> jaxrsElement = (JaxrsJavaElement<?>) iterator.next();
 						jaxrsElement.update(element, ast);
 					}
 				}
 			} else {
 				for (Iterator<IJaxrsElement> iterator = jaxrsElements.iterator(); iterator.hasNext();) {
-					AbstractJaxrsJavaElement<?> jaxrsElement = (AbstractJaxrsJavaElement<?>) iterator.next();
+					JaxrsJavaElement<?> jaxrsElement = (JaxrsJavaElement<?>) iterator.next();
 					jaxrsElement.remove();
 				}
 			}
@@ -481,7 +481,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		// if the java parent element for the given annotation already matches
 		// some JAX-RS element in this metamodel, then just update the JAX-RS
 		// element
-		final AbstractJaxrsJavaElement<?> matchingElement = (AbstractJaxrsJavaElement<?>) findElement(javaAnnotation.getParent());
+		final JaxrsJavaElement<?> matchingElement = (JaxrsJavaElement<?>) findElement(javaAnnotation.getParent());
 		if (matchingElement != null) {
 			final Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
 			switch (deltaKind) {
@@ -605,7 +605,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	private void processJavaElement(final IJavaElement javaElement, final int deltaKind,
 			final IProgressMonitor progressMonitor) throws CoreException, JavaModelException {
-		final List<AbstractJaxrsJavaElement<?>> matchingElements = findElements(javaElement);
+		final Set<JaxrsJavaElement<?>> matchingElements = findElements(javaElement);
 		switch (deltaKind) {
 		case ADDED:
 			JaxrsElementFactory.createElements(javaElement, JdtUtils.parse(javaElement, progressMonitor), this,
@@ -616,7 +616,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			if (matchingElements.isEmpty()) {
 				JaxrsElementFactory.createElements(javaElement, ast, this, progressMonitor);
 			} else {
-				for (AbstractJaxrsJavaElement<?> element : matchingElements) {
+				for (JaxrsJavaElement<?> element : matchingElements) {
 					// only working on JAX-RS elements bound to IType, not
 					// IFields nor IMethods
 					// those elements will internally update their own
@@ -628,7 +628,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			}
 			break;
 		case REMOVED:
-			for (AbstractJaxrsJavaElement<?> element : matchingElements) {
+			for (JaxrsJavaElement<?> element : matchingElements) {
 				element.remove();
 			}
 			break;
@@ -674,14 +674,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	// ********************************************************************************
 
 	/**
-	 * Adds the given {@link AbstractJaxrsBaseElement} element into the JAX-RS Metamodel, including its
+	 * Adds the given {@link JaxrsBaseElement} element into the JAX-RS Metamodel, including its
 	 * indexation if the underlying {@link IJavaElement} is not already part of the metamodel (avoiding duplicate elements)
 	 * 
 	 * @param element
 	 *            the element to add
 	 * @throws CoreException
 	 */
-	public void add(final AbstractJaxrsBaseElement element) throws CoreException {
+	public void add(final JaxrsBaseElement element) throws CoreException {
 		try {
 			readWriteLock.writeLock().lock();
 			if (element == null || findElementByIdentifier(element) != null) {
@@ -735,6 +735,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			} finally {
 				readWriteLock.writeLock().unlock();
 			}
+		} else {
+			Logger.trace("{} is not relevant. No propagation amongst other elements is happening", delta);
 		}
 	}
 	
@@ -743,7 +745,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @param element the JAX-RS element whose problem level changed
 	 */
 	public void notifyElementProblemLevelChanged(final IJaxrsElement element) {
-		final List<JaxrsEndpoint> affectedEndpoints = findEndpoints(element);
+		final Set<JaxrsEndpoint> affectedEndpoints = findEndpoints(element);
 		for (JaxrsEndpoint affectedEndpoint : affectedEndpoints) {
 			for (IJaxrsEndpointChangedListener listener : endpointChangedListeners) {
 				listener.notifyEndpointProblemLevelChanged(affectedEndpoint);
@@ -788,7 +790,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            the element to remove
 	 * @throws CoreException
 	 */
-	// FIXME: make protected instead of public
 	protected void remove(final IJaxrsElement element) throws CoreException {
 		if (element == null) {
 			return;
@@ -885,7 +886,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            the search terms
 	 * @return the JAX-RS Elements or empty list if none was found.
 	 */
-	private <T extends IJaxrsElement> List<T> searchJaxrsElements(final Term... terms) {
+	private <T extends IJaxrsElement> Set<T> searchJaxrsElements(final Term... terms) {
 		try {
 			readWriteLock.readLock().lock();
 			return indexationService.searchElements(terms);
@@ -901,7 +902,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            the search terms
 	 * @return the JAX-RS Element or null if none was found.
 	 */
-	private List<JaxrsEndpoint> searchJaxrsEndpoints(Term... terms) {
+	private Set<JaxrsEndpoint> searchJaxrsEndpoints(Term... terms) {
 		Logger.debugIndexing("Searching for Endpoints with using: {}", Arrays.asList(terms));
 		return indexationService.searchEndpoints(terms);
 	}
@@ -925,12 +926,32 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public List<IJaxrsElement> getAllElements() {
 		return new ArrayList<IJaxrsElement>(elements.values());
 	}
+
+	/**
+	 * @param elementType the element type to match
+	 * @return a collection of {@link IJavaElement} having the 
+	 * @see IJavaElement
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends IJavaElement> List<T> getAllJavaElements(int elementType) {
+		final List<T> javaElements = new ArrayList<T>();
+		for(Entry<String, JaxrsBaseElement> entry : this.elements.entrySet()) {
+			final IJaxrsElement jaxrsElement = entry.getValue();
+			if(jaxrsElement instanceof JaxrsJavaElement) {
+				final IMember javaElement = ((JaxrsJavaElement<?>)jaxrsElement).getJavaElement();
+				if(javaElement != null && javaElement.getElementType() == elementType) {
+					javaElements.add((T) javaElement);
+				}
+			}
+		}
+		return javaElements;
+	}
 	
 	/**
-	 * @return {@code true} if the metamodel has {@link IJaxrsElement}s, {@code  false} otherwise.
+	 * @return {@code true} if the metamodel has custom {@link IJaxrsElement}s (ie any element, except the 6 built-in {@link JaxrsHttpMethod}), {@code  false} otherwise.
 	 */
-	public boolean hasElements() {
-		return this.elements.size() > 0;
+	public boolean hasCustomElements() {
+		return this.elements.size() > 6;
 	}
 
 	/**
@@ -952,9 +973,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            the resource
 	 * @return the matching JAX-RS elements
 	 */
-	public List<IJaxrsElement> findElements(final IResource resource) {
+	public Set<IJaxrsElement> findElements(final IResource resource) {
 		if (resource == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1017,9 +1038,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the JAX-RS Elements matching the given Java Element or empty list
 	 *         if none matches.
 	 */
-	public <T extends IJaxrsElement> List<T> findElements(final IJavaElement javaElement) {
+	public <T extends IJaxrsElement> Set<T> findElements(final IJavaElement javaElement) {
 		if (javaElement == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1065,7 +1086,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return all {@link IJaxrsElement} in this {@link JaxrsMetamodel},
 	 *         including the built-in {@link JaxrsHttpMethod}.
 	 */
-	public List<IJaxrsElement> findAllElements() {
+	public Set<IJaxrsElement> findAllElements() {
 		return findElements(javaProject);
 	}
 	
@@ -1086,16 +1107,30 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
+	 * Finds an {@link IJaxrsElement} whose class name matches the given argument.
+	 * @param className the fully qualified name of the underlying Java class.
+	 * @return a matching {@link IJaxrsElement} or {@code null} if none was found.
+	 */
+	public IJaxrsElement findElement(final String className, final EnumElementCategory expectedCategory) {
+		try {
+			readWriteLock.readLock().lock();
+			return searchJaxrsElement(LuceneDocumentFactory.getJavaClassNameTerm(className), LuceneDocumentFactory.getElementCategoryTerm(expectedCategory));
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
+	}
+
+	/**
 	 * returns true if this metamodel already contains the given element.
 	 * 
 	 * @param element
 	 * @return
 	 */
-	public boolean containsElement(AbstractJaxrsBaseElement element) {
+	public boolean containsElement(JaxrsBaseElement element) {
+		if(element == null) {
+			return false;
+		}
 		try {
-			if(element == null) {
-				return false;
-			}
 			readWriteLock.readLock().lock();
 			return this.elements.containsKey(element.getIdentifier());
 		} finally {
@@ -1107,7 +1142,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return all the JAX-RS Application in the JAX-RS Metamodel The result is a
 	 *         separate unmodifiable list
 	 */
-	public final List<IJaxrsApplication> findAllApplications() {
+	public final Set<IJaxrsApplication> findAllApplications() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
@@ -1123,9 +1158,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            : the fully qualified name of the annotation
 	 * @return the JAX-RS Java Applications or empty list if not found
 	 */
-	public List<IJaxrsJavaApplication> findApplicationsByAnnotation(String annotationClassName) {
+	public Set<IJaxrsJavaApplication> findApplicationsByAnnotation(String annotationClassName) {
 		if (annotationClassName == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1142,7 +1177,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * <p>
 	 * Returns the application that is used to compute the Endpoint's URI Path
 	 * Templates, or null if no application was specified in the code. An
-	 * invalid application may be returned, though (ie, a Type annotated with
+	 * invalid application may be returned, though (ie, a SourceType annotated with
 	 * {@link javax.ws.rs.ApplicationPath} but not extending the
 	 * {@link javax.ws.rs.Application} type). If multiple applications have been
 	 * defined, the pure web.xml one is returned.
@@ -1159,7 +1194,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				return webxmlApplication;
 			}
 			// otherwise, return first existing java-based application
-			final List<JaxrsJavaApplication> javaApplications = findJavaApplications();
+			final Set<JaxrsJavaApplication> javaApplications = findJavaApplications();
 			for (JaxrsJavaApplication application : javaApplications) {
 				if (application.exists()) {
 					return application;
@@ -1180,7 +1215,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the web.xml based application and all the java-based application
 	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
-	public final List<JaxrsJavaApplication> findJavaApplications() {
+	public final Set<JaxrsJavaApplication> findJavaApplications() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
@@ -1215,7 +1250,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @return the web.xml based application and all the java-based application
 	 *         overrides, or an empty collection if none exist in the metamodel.
 	 */
-	public final List<JaxrsWebxmlApplication> findWebxmlApplications() {
+	public final Set<JaxrsWebxmlApplication> findWebxmlApplications() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
@@ -1269,7 +1304,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	/**
 	 * @return all the JAX-RS HTTP Methods in the Metamodel.
 	 */
-	public final List<IJaxrsHttpMethod> findAllHttpMethods() {
+	public final Set<IJaxrsHttpMethod> findAllHttpMethods() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.HTTP_METHOD.toString());
@@ -1280,9 +1315,22 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 	
 	/**
+	 * @return all the <strong>names</strong> of the JAX-RS HTTP Methods in the Metamodel.
+	 */
+	public Set<String> findAllHttpMethodNames() {
+		//TODO: cache this result in local collection to avid building it again and again !
+		final Set<IJaxrsHttpMethod> httpMethods = findAllHttpMethods();
+		final Set<String> httpMethodNames = new HashSet<String>(httpMethods.size() * 2);
+		for(IJaxrsHttpMethod httpMethod : httpMethods) {
+			httpMethodNames.add(httpMethod.getJavaClassName());
+		}
+		return httpMethodNames;
+	}
+	
+	/**
 	 * @return all the JAX-RS Name Bindings in the Metamodel.
 	 */
-	public final List<IJaxrsNameBinding> findAllNameBindings() {
+	public final Set<IJaxrsNameBinding> findAllNameBindings() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.NAME_BINDING.toString());
@@ -1306,6 +1354,27 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			readWriteLock.readLock().lock();
 			final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, className);
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.NAME_BINDING.toString());
+			return searchJaxrsElement(classNameTerm, categoryTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
+	}
+	
+	
+	/**
+	 * Search and return the JAX-RS Parameter Aggregator for the given fully qualified
+	 * java name
+	 * 
+	 * @param className
+	 *            the fully qualified java name
+	 * @return the matching JAX-RS Parameter Aggregator or null if none was found
+	 * @throws CoreException
+	 */
+	public JaxrsParameterAggregator findParameterAggregator(final String className) {
+		try {
+			readWriteLock.readLock().lock();
+			final Term classNameTerm = new Term(FIELD_JAVA_CLASS_NAME, className);
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PARAMETER_AGGREGATOR.toString());
 			return searchJaxrsElement(classNameTerm, categoryTerm);
 		} finally {
 			readWriteLock.readLock().unlock();
@@ -1344,18 +1413,32 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * Search for a JAX-RS Provider matching the given JavaType.
 	 * 
 	 * @param providerType
-	 *            : the underlying Java Type for this Provider
+	 *            : the underlying Java SourceType for this Provider
 	 * @return the JAX-RS Provider or null if not found
 	 */
 	public IJaxrsProvider findProvider(final IType providerType) {
 		if (providerType == null) {
 			return null;
 		}
+		return findProvider(providerType.getFullyQualifiedName());
+	}
+
+	/**
+	 * Search for a JAX-RS Provider matching the given JavaType.
+	 * 
+	 * @param providerName
+	 *            : the fully qualified name of the underlying Java SourceType for this Provider
+	 * @return the JAX-RS Provider or null if not found
+	 */
+	public IJaxrsProvider findProvider(final String providerName) {
+		if (providerName == null) {
+			return null;
+		}
 		try {
 			readWriteLock.readLock().lock();
 			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.PROVIDER.toString());
-			final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, providerType.getFullyQualifiedName());
+			final Term typeTerm = new Term(FIELD_JAVA_CLASS_NAME, providerName);
 			return searchJaxrsElement(projectTerm, categoryTerm, typeTerm);
 		} finally {
 			readWriteLock.readLock().unlock();
@@ -1369,9 +1452,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            : the fully qualified name of the annotation
 	 * @return the JAX-RS Providers or empty list if not found
 	 */
-	public List<IJaxrsProvider> findProvidersByAnnotation(String annotationClassName) {
+	public Set<IJaxrsProvider> findProvidersByAnnotation(String annotationClassName) {
 		if (annotationClassName == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1391,9 +1474,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            : the fully qualified name of the annotation
 	 * @return the JAX-RS Elements or empty list if not found
 	 */
-	public List<IJaxrsElement> findElementsByAnnotation(String annotationClassName) {
+	public Set<IJaxrsElement> findElementsByAnnotation(String annotationClassName) {
 		if (annotationClassName == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1408,7 +1491,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 
 
 	/**
-	 * Search for all JAX-RS Providers that are associated with the given Type
+	 * Search for all JAX-RS Providers that are associated with the given SourceType
 	 * Name for the given Kind.
 	 * <p>
 	 * For example, looking for an {@link EnumElementKind#EXCEPTION_MAPPER} that
@@ -1422,9 +1505,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            : the associated classname of the provider
 	 * @return the JAX-RS Providers or empty list if no match
 	 */
-	public List<JaxrsProvider> findProviders(final EnumElementKind providerKind, final String providedClassName) {
+	public Set<JaxrsProvider> findProviders(final EnumElementKind providerKind, final String providedClassName) {
 		if (providerKind == null || providedClassName == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1442,7 +1525,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * 
 	 * @return the JAX-RS Providers or empty list if none found
 	 */
-	public List<IJaxrsProvider> findAllProviders() {
+	public Set<IJaxrsProvider> findAllProviders() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
@@ -1458,7 +1541,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * 
 	 * @return the JAX-RS ParamConverterProviders or empty list if none found
 	 */
-	public List<IJaxrsParamConverterProvider> findAllParamConverterProviders() {
+	public Set<IJaxrsParamConverterProvider> findAllParamConverterProviders() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
@@ -1473,7 +1556,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * Search for a JAX-RS Resource matching the given JavaType.
 	 * 
 	 * @param resourceType
-	 *            : the underlying Java Type for this JAX-RS Resource
+	 *            : the underlying Java SourceType for this JAX-RS Resource
 	 * @return the JAX-RS Resource or null if not found
 	 */
 	public JaxrsResource findResource(IType resourceType) {
@@ -1492,15 +1575,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Search for a JAX-RS Resource Methods matching the given Returned Type.
+	 * Search for a JAX-RS Resource Methods matching the given Returned SourceType.
 	 * 
 	 * @param returnedType
 	 *            : the returned type of the JAX-RS Resource Methods
 	 * @return the JAX-RS Resource or empty list if not found
 	 */
-	public List<IJaxrsResourceMethod> findResourceMethodsByReturnedType(final IType returnedType) {
+	public Set<IJaxrsResourceMethod> findResourceMethodsByReturnedType(final IType returnedType) {
 		if (returnedType == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1520,9 +1603,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            : the fully qualified name of the annotation
 	 * @return the JAX-RS Resource Methods or empty list if not found
 	 */
-	public List<IJaxrsResourceMethod> findResourceMethodsByAnnotation(String annotationClassName) {
+	public Set<IJaxrsResourceMethod> findResourceMethodsByAnnotation(String annotationClassName) {
 		if (annotationClassName == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1542,9 +1625,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            : the fully qualified name of the annotation
 	 * @return the JAX-RS Resources or empty list if not found
 	 */
-	public List<IJaxrsResource> findResourcesByAnnotation(String annotationClassName) {
+	public Set<IJaxrsResource> findResourcesByAnnotation(String annotationClassName) {
 		if (annotationClassName == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1558,17 +1641,17 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Searches and retrives all the {@link JaxrsEndpoint}s in the metamodel
-	 * that use the given {@link JaxrsResourceMethod}
+	 * Searches and retrieves all the {@link JaxrsEndpoint}s in the metamodel
+	 * that use the given {@link IJaxrsElement}
 	 * 
-	 * @param resourceMethod
-	 *            the resource method used by the searched Endpoints
+	 * @param element
+	 *            the element used by the searched Endpoints
 	 * @return a collection containing zero or more matches, or
 	 *         empty list if the input was {@code null}.
 	 */
-	public List<JaxrsEndpoint> findEndpoints(final IJaxrsElement element) {
+	public Set<JaxrsEndpoint> findEndpoints(final IJaxrsElement element) {
 		if (element == null) {
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 		try {
 			readWriteLock.readLock().lock();
@@ -1582,11 +1665,35 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
+	 * Searches and retrieves all the {@link JaxrsEndpoint}s in the metamodel
+	 * that use the given {@link IJavaElement}
+	 * 
+	 * @param resourceMethod
+	 *            the resource method used by the searched Endpoints
+	 * @return a collection containing zero or more matches, or
+	 *         empty list if the input was {@code null}.
+	 */
+	public Set<JaxrsEndpoint> findEndpoints(final IJavaElement element) {
+		if (element == null) {
+			return Collections.emptySet();
+		}
+		try {
+			readWriteLock.readLock().lock();
+			final Term projectTerm = new Term(FIELD_JAVA_PROJECT_IDENTIFIER, getJavaProject().getHandleIdentifier());
+			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.ENDPOINT.toString());
+			final Term javaElementTerm = new Term(FIELD_JAVA_ELEMENT, element.getHandleIdentifier());
+			return searchJaxrsEndpoints(projectTerm, categoryTerm, javaElementTerm);
+		} finally {
+			readWriteLock.readLock().unlock();
+		}
+	}
+
+	/**
 	 * Returns all the JAX-RS Resources in the Metamodel.
 	 * 
 	 * @return the JAX-RS Resources
 	 */
-	public final List<IJaxrsResource> findAllResources() {
+	public final Set<IJaxrsResource> findAllResources() {
 		try {
 			readWriteLock.readLock().lock();
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.RESOURCE.toString());
@@ -1639,7 +1746,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void removeEndpoints(final IJaxrsElement removedElement) {
 		try {
 			readWriteLock.writeLock().lock();
-			final List<JaxrsEndpoint> elementEndpoints = findEndpoints(removedElement);
+			final Set<JaxrsEndpoint> elementEndpoints = findEndpoints(removedElement);
 			for (JaxrsEndpoint endpoint : elementEndpoints) {
 				endpoint.remove();
 			}
@@ -1679,6 +1786,5 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				.append(" HttpMethods, ").append(findAllResources().size()).append(" Resources and ")
 				.append(getAllEndpoints().size()).append(" Endpoints.").toString();
 	}
-
 
 }

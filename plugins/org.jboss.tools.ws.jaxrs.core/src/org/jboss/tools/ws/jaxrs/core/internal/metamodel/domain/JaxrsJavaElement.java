@@ -59,12 +59,12 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 
 /**
  * Base class for all JAX-RS Java-based elements in the Metamodel. This base
@@ -75,10 +75,10 @@ import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
  * @param <T>
  *            the underlying Java type managed by the JAX-RS ElementKind.
  */
-public abstract class AbstractJaxrsJavaElement<T extends IMember> extends AbstractJaxrsBaseElement implements IJaxrsJavaElement {
+public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseElement implements IJaxrsJavaElement {
 
 	/** The underlying java element. */
-	private final T javaElement;
+	protected final T javaElement;
 
 	/**
 	 * Map of Annotations on the associated Java Element, indexed by the
@@ -97,7 +97,7 @@ public abstract class AbstractJaxrsJavaElement<T extends IMember> extends Abstra
 	 *            the metamodel in which this element exist, or null if this
 	 *            element is transient.
 	 */
-	public AbstractJaxrsJavaElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel) {
+	public JaxrsJavaElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel) {
 		super(metamodel);
 		this.javaElement = element;
 		if (annotations != null) {
@@ -449,7 +449,7 @@ public abstract class AbstractJaxrsJavaElement<T extends IMember> extends Abstra
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		AbstractJaxrsJavaElement<?> other = (AbstractJaxrsJavaElement<?>) obj;
+		JaxrsJavaElement<?> other = (JaxrsJavaElement<?>) obj;
 		if (javaElement == null) {
 			if (other.javaElement != null) {
 				return false;
@@ -461,7 +461,7 @@ public abstract class AbstractJaxrsJavaElement<T extends IMember> extends Abstra
 	}
 
 	/**
-	 * Updates the current {@link AbstractJaxrsJavaElement} from the given
+	 * Updates the current {@link JaxrsJavaElement} from the given
 	 * {@link IJavaElement}
 	 * 
 	 * @param javaElement

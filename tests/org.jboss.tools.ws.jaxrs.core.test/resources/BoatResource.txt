@@ -3,14 +3,21 @@ package org.jboss.tools.ws.jaxrs.sample.services;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.BeanParam;
 
 @Path("/")
 public class BoatResource {
-	@PathParam("type")
+	
+	@PathParam("type") //field
 	private String type;
 	
+	//@PathParam("type") //property
+	public void setType(String type) {
+	  this.type = type;
+	}
+	
 	@GET
-	@Path("{type}/{id}")
+	@Path("{id}")
 	public Object getBoat(@PathParam("id") int id) {
 		return null;
 	}

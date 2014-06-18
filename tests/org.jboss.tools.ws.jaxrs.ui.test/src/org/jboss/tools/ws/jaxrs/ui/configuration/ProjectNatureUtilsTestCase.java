@@ -16,12 +16,9 @@ import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.de
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.junit.Assert.assertThat;
 
-import java.util.List;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
@@ -29,14 +26,10 @@ import org.jboss.tools.common.validation.ContextValidationHelper;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.ui.internal.validation.JaxrsMetamodelValidator;
 import org.junit.Assert;
 import org.junit.Before;
@@ -60,7 +53,7 @@ public class ProjectNatureUtilsTestCase {
 
 	@Rule
 	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor(
-			"org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
+			"org.jboss.tools.ws.jaxrs.tests.sampleproject", false);
 
 	private JaxrsMetamodel metamodel = null;
 
@@ -68,6 +61,7 @@ public class ProjectNatureUtilsTestCase {
 	
 	@Before
 	public void setup() {
+		metamodel = metamodelMonitor.getMetamodel();
 		this.project = projectMonitor.getProject();
 	}
 
@@ -105,21 +99,11 @@ public class ProjectNatureUtilsTestCase {
 	public void shouldRemoveMarkersWhenProjectNatureIsRemoved() throws CoreException, ValidationException {
 		// only keep CustomerResource, have a marker for missing Application
 		ProjectNatureUtils.installProjectNature(projectMonitor.getProject(), ProjectNatureUtils.JAXRS_NATURE_ID);
-		metamodel = metamodelMonitor.initMetamodel();
-		project = metamodel.getProject();
-		final IType customerJavaType = metamodelMonitor
-				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final List<IJaxrsElement> elements = metamodel.findAllElements();
-		for (IJaxrsElement element : elements) {
-			if (element.getElementKind() == EnumElementKind.ROOT_RESOURCE
-					&& ((JaxrsResource) element).getJavaElement().equals(customerJavaType)) {
-				continue;
-			}
-			((AbstractJaxrsBaseElement) element).remove();
-		}
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BazResource");
 		deleteJaxrsMarkers(metamodel);
 		metamodelMonitor.resetElementChangesNotifications();
 		new JaxrsMetamodelValidator().validateAll(project, new ContextValidationHelper(), new ProjectValidationContext(), new ValidatorManager(), new ReporterHelper(new NullProgressMonitor()));
+		// project has one problem (missing application)
 		assertThat(findJaxrsMarkers(project).length, equalTo(1));
 		// operation
 		removeJaxrsNature(project);

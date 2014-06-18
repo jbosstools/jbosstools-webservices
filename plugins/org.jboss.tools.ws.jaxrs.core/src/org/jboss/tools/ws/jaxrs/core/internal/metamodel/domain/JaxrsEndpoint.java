@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.notNullNorEmpty;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_BEAN_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_CONSUMES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_DEFAULT_VALUE_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_HTTP_METHOD_ANNOTATION;
@@ -19,13 +20,19 @@ import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DEFAULT_VALUE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MATRIX_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.QUERY_PARAM;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.eclipse.core.resources.IMarker;
@@ -35,18 +42,17 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ObjectUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Pair;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IAnnotatedSourceType;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 public class JaxrsEndpoint implements IJaxrsEndpoint {
 
@@ -203,9 +209,9 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		// replace the current application with the (new) default one from the
 		// metamodel
 		if (this.application.equals(application)) {
-			this.application = metamodel.findApplication();
+			this.application = this.metamodel.findApplication();
 			refreshUriPathTemplate();
-			metamodel.update(this);
+			this.metamodel.update(this);
 			return true;
 		}
 		return false;
@@ -223,7 +229,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			changed = changed || refreshHttpMethod();
 		}
 
-		if (flags.hasValue(F_PATH_ANNOTATION, F_QUERY_PARAM_ANNOTATION, F_MATRIX_PARAM_ANNOTATION,
+		if (flags.hasValue(F_PATH_ANNOTATION, F_QUERY_PARAM_ANNOTATION, F_MATRIX_PARAM_ANNOTATION, F_BEAN_PARAM_ANNOTATION, 
 				F_DEFAULT_VALUE_ANNOTATION, F_METHOD_PARAMETERS)) {
 			changed = changed || refreshUriPathTemplate();
 		}
@@ -379,7 +385,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				// have the type of the associated PathParam
 				else {
 					boolean match = false;
-					final JavaMethodParameter pathParameter = resourceMethod.getJavaMethodParameterByAnnotationBinding(pathArg);
+					final IJavaMethodParameter pathParameter = resourceMethod.getJavaMethodParameterByAnnotationBinding(pathArg);
 					if (pathParameter != null) {
 						pathTemplateBuilder.append('{').append(pathArg);
 						if (pathParameter.getType() != null) {
@@ -394,7 +400,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 									.getAnnotation(PATH_PARAM);
 							if (pathParamAnnotation != null && pathParamAnnotation.getValue().equals(pathArg)) {
 								pathTemplateBuilder.append('{').append(pathArg).append(":")
-										.append(JdtUtils.toDisplayableTypeName(resourceField.getTypeName())).append('}');
+										.append(resourceField.getType().getDisplayableTypeName()).append('}');
 								match = true;
 							}
 						}
@@ -416,7 +422,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * @param pathTemplate
 	 * @param resourceMethod
 	 */
-	private static String getDisplayablePathTemplate(final JaxrsResourceMethod resourceMethod) {
+	private String getDisplayablePathTemplate(final JaxrsResourceMethod resourceMethod) {
 		final JaxrsResource parentResource = resourceMethod.getParentResource();
 		final StringBuilder pathTemplateBuilder = new StringBuilder();
 		int index = 0;
@@ -448,7 +454,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				// which provides it
 				else {
 					boolean match = false;
-					final JavaMethodParameter pathParameter = ((JaxrsResourceMethod) resourceMethod)
+					final IJavaMethodParameter pathParameter = ((JaxrsResourceMethod) resourceMethod)
 							.getJavaMethodParameterByAnnotationBinding(pathArg);
 					if (pathParameter != null) {
 						pathTemplateBuilder.append('{').append(pathArg);
@@ -464,7 +470,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 									.getAnnotation(PATH_PARAM);
 							if (pathParamAnnotation != null && pathParamAnnotation.getValue().equals(pathArg)) {
 								pathTemplateBuilder.append('{').append(pathArg).append(":")
-										.append(JdtUtils.toDisplayableTypeName(resourceField.getTypeName())).append('}');
+										.append(resourceField.getType().getDisplayableTypeName()).append('}');
 								match = true;
 								break;
 							}
@@ -478,28 +484,28 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			}
 		}
 		final List<String> matrixParamFieldAnnotationValues = new ArrayList<String>();
-		final List<JaxrsResourceField> matrixParamFields = resourceMethod.getParentResource().getFieldsAnnotatedWith(JaxrsClassnames.MATRIX_PARAM);
+		final List<JaxrsResourceField> matrixParamFields = resourceMethod.getParentResource().getFieldsAnnotatedWith(MATRIX_PARAM);
 		for (JaxrsResourceField matrixParamField : matrixParamFields) {
 			pathTemplateBuilder.append(';');
 			final String matrixParamFieldAnnotationValue = matrixParamField.getAnnotation(
-					JaxrsClassnames.MATRIX_PARAM).getValue();
+					MATRIX_PARAM).getValue();
 			matrixParamFieldAnnotationValues.add(matrixParamFieldAnnotationValue);
 			pathTemplateBuilder.append(matrixParamFieldAnnotationValue).append("={")
-					.append(JdtUtils.toDisplayableTypeName(matrixParamField.getTypeName()));
-			if(matrixParamField.hasAnnotation(JaxrsClassnames.DEFAULT_VALUE)) {
-				pathTemplateBuilder.append(':').append(matrixParamField.getAnnotation(JaxrsClassnames.DEFAULT_VALUE).getValue());
+					.append(matrixParamField.getType().getDisplayableTypeName());
+			if(matrixParamField.hasAnnotation(DEFAULT_VALUE)) {
+				pathTemplateBuilder.append(':').append(matrixParamField.getAnnotation(DEFAULT_VALUE).getValue());
 			}
 			pathTemplateBuilder.append('}');
 		}
 		// look at the method arguments but skip matrix params already defined at the parent resource (java type) level
-		final List<JavaMethodParameter> matrixParams = resourceMethod.getJavaMethodParametersAnnotatedWith(JaxrsClassnames.MATRIX_PARAM);
-		for (JavaMethodParameter matrixParam : matrixParams) {
+		final List<IJavaMethodParameter> matrixParams = resourceMethod.getJavaMethodParametersAnnotatedWith(MATRIX_PARAM);
+		for (IJavaMethodParameter matrixParam : matrixParams) {
 			pathTemplateBuilder.append(';');
 			final String matrixParamAnnotationValue = matrixParam.getAnnotation(
-					JaxrsClassnames.MATRIX_PARAM).getValue();
+					MATRIX_PARAM).getValue();
 			pathTemplateBuilder.append(matrixParamAnnotationValue).append("={")
 					.append(matrixParam.getType().getDisplayableTypeName());
-			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(JaxrsClassnames.DEFAULT_VALUE);
+			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(DEFAULT_VALUE);
 			if(matrixParamAnnotation != null && !matrixParamFieldAnnotationValues.contains(matrixParamAnnotation.getValue())) {
 				pathTemplateBuilder.append(':').append(matrixParamAnnotation.getValue());
 			}
@@ -514,50 +520,41 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 *
 	 * @param resourceMethod
 	 *            the JAX-RS Resource Method
-	 * @return the displayable URI Path Template as a {@link Pair} of
-	 *         {@link String}, where the left part is the URI fragment including
-	 *         the path and the matrix params, and the right side is a
-	 *         {@link List} of the query params
+	 * @return the ordered list of query parameters as they should appear in the UI.
 	 */
-	private static List<String> getDisplayableQueryParameters(final JaxrsResourceMethod resourceMethod) {
-		final List<String> queryParams = new ArrayList<String>();
-		final List<String> queryParamFieldAnnotationValues = new ArrayList<String>();
-		final List<JaxrsResourceField> queryParamFields = resourceMethod.getParentResource().getFieldsAnnotatedWith(JaxrsClassnames.QUERY_PARAM);
-		for (JaxrsResourceField queryParamField : queryParamFields) {
-			final String queryParamFieldAnnotationValue = queryParamField.getAnnotation(
-					JaxrsClassnames.QUERY_PARAM).getValue();
-			queryParamFieldAnnotationValues.add(queryParamFieldAnnotationValue);
-			final String queryParamAnnotationValue = queryParamFieldAnnotationValue;
-			final StringBuilder queryParamBuilder = new StringBuilder();
-			queryParamBuilder.append(queryParamAnnotationValue).append("={")
-					.append(JdtUtils.toDisplayableTypeName(queryParamField.getTypeName()));
-			if(queryParamField.hasAnnotation(JaxrsClassnames.DEFAULT_VALUE)) {
-				queryParamBuilder.append(':').append(queryParamField.getAnnotation(JaxrsClassnames.DEFAULT_VALUE).getValue());
-			}
-			final String queryParam = queryParamBuilder.append('}').toString();
-			queryParams.add(queryParam);
-		}
-		// retrieve all arg annotated with @QueryParam, but skip those that have the same annotation value as parent resource fields with the same @QueryParam annotation...
-		final List<JavaMethodParameter> queryParamArgs = resourceMethod.getJavaMethodParametersAnnotatedWith(JaxrsClassnames.QUERY_PARAM);
-		for (JavaMethodParameter queryParamArg : queryParamArgs) {
-			final String queryParamAnnotationValue = queryParamArg.getAnnotation(
-					JaxrsClassnames.QUERY_PARAM).getValue();
-			final StringBuilder queryParamBuilder = new StringBuilder();
-			if(queryParamFieldAnnotationValues.contains(queryParamAnnotationValue)) {
+	private List<String> getDisplayableQueryParameters(final JaxrsResourceMethod resourceMethod) {
+		final Set<String> queryParams = new HashSet<String>();
+		final List<String> displayableQueryParams = new ArrayList<String>();
+		final List<IAnnotatedSourceType> queryParamTypes = resourceMethod.getRelatedTypesAnnotatedWith(QUERY_PARAM);
+		for(IAnnotatedSourceType annotatedSourceType : queryParamTypes) {
+			final String annotationValue = annotatedSourceType.getAnnotation(QUERY_PARAM).getValue();
+			final String annotationDisplayableValue = createDisplayableQueryParam(annotatedSourceType.getType(), annotatedSourceType.getAnnotations());
+			// skip if this query param was already known
+			if(queryParams.contains(annotationValue)) {
 				continue;
 			}
-			queryParamBuilder.append(queryParamAnnotationValue);
-			if (queryParamArg.getType() != null) {
-				queryParamBuilder.append("={").append(queryParamArg.getType().getDisplayableTypeName());
-				if (queryParamArg.hasAnnotation(JaxrsClassnames.DEFAULT_VALUE)) {
-					queryParamBuilder.append(':').append(
-							queryParamArg.getAnnotation(JaxrsClassnames.DEFAULT_VALUE).getValue());
-				}
-			}
-			final String queryParam = queryParamBuilder.append('}').toString();
-			queryParams.add(queryParam);
+			queryParams.add(annotationValue);
+			displayableQueryParams.add(annotationDisplayableValue);
 		}
-		return queryParams;
+		return displayableQueryParams;
+	}
+
+	/**
+	 * Builds a displayable form for the Query Param, based on its type and {@code @QueryParam} and {@code @DefaultValue} annotation values.
+	 * @param annotations
+	 * @param queryParamField
+	 * @return
+	 */
+	public String createDisplayableQueryParam(final SourceType type, final Map<String, Annotation> annotations) {
+		final StringBuilder queryParamBuilder = new StringBuilder();
+		final String queryParamAnnotationValue = annotations.get(QUERY_PARAM).getValue();
+		queryParamBuilder.append(queryParamAnnotationValue).append("={")
+				.append(type.getDisplayableTypeName());
+		if(annotations.containsKey(DEFAULT_VALUE)) {
+			queryParamBuilder.append(':').append(annotations.get(DEFAULT_VALUE).getValue());
+		}
+		final String queryParam = queryParamBuilder.append('}').toString();
+		return queryParam;
 	}
 
 	private boolean setUriPathTemplate(final String template) {
@@ -627,7 +624,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	public int getProblemLevel() {
 		int level = IMarker.SEVERITY_INFO; // Severity NONE
 		for (IJaxrsResourceMethod resourceMethod : getResourceMethods()) {
-			level = Math.max(level, resourceMethod.getProblemLevel());
+			level = Math.max(level, resourceMethod.getMarkerSeverity());
 		}
 		/*level = Math.max(level, httpMethod.getProblemLevel());
 		if(application != null) {

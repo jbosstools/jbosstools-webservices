@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
 public interface IJaxrsResource extends IJaxrsElement {
 
@@ -35,5 +35,7 @@ public interface IJaxrsResource extends IJaxrsElement {
 	public abstract boolean isSubresource();
 	
 	public abstract Map<String, Annotation> getNameBindingAnnotations();
+
+	public abstract Map<String, Annotation> getPathTemplateParameters();
 
 }

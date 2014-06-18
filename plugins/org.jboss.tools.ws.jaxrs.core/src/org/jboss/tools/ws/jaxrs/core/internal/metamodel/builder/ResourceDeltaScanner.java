@@ -28,7 +28,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
  * Scans and filters the IJavaElementDelta and IResourceDelta (including their children and annotations) and returns a

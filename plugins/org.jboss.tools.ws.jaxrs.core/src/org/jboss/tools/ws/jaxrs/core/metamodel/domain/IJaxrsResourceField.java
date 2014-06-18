@@ -11,11 +11,18 @@
 package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 
 import org.eclipse.jdt.core.IField;
+import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 
-public interface IJaxrsResourceField extends IJaxrsElement {
+public interface IJaxrsResourceField extends IJaxrsElement, IAnnotatedSourceType {
 
+	/**
+	 * @return the underlying java {@link IField} of this {@link IJaxrsResourceField}.
+	 */
 	IField getJavaElement();
 	
-	String getTypeName();
+	/**
+	 * @return the {@link SourceType} associated with the underlying java {@link IField} of this {@link IJaxrsResourceField}.
+	 */
+	SourceType getType();
 
 }

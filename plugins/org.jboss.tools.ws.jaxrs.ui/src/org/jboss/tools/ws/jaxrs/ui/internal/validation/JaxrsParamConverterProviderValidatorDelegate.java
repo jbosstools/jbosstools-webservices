@@ -22,10 +22,10 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
@@ -121,15 +121,15 @@ public class JaxrsParamConverterProviderValidatorDelegate extends AbstractJaxrsE
 		}
 		// only accepting constructors with parameters annotated with
 		// @javax.ws.rs.core.Context
-		final JavaMethodSignature methodSignature = CompilationUnitsRepository.getInstance().getMethodSignature(method);
+		final IJavaMethodSignature methodSignature = CompilationUnitsRepository.getInstance().getMethodSignature(method);
 		if(methodSignature != null) {
-			for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
+			for (IJavaMethodParameter parameter : methodSignature.getMethodParameters()) {
 				if (parameter.getAnnotations().isEmpty()) {
 					return false;
 				}
 				for (Entry<String, Annotation> annotation : parameter.getAnnotations().entrySet()) {
 					if (!annotation.getValue().getFullyQualifiedName().equals(JaxrsClassnames.CONTEXT)
-							|| !CONTEXT_TYPE_NAMES.contains(parameter.getType().getQualifiedName())) {
+							|| !CONTEXT_TYPE_NAMES.contains(parameter.getType().getErasureName())) {
 						return false;
 					}
 				}

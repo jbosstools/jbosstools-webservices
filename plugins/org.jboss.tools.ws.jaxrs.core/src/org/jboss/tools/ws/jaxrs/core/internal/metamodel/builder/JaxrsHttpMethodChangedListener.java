@@ -3,9 +3,9 @@
  */
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -18,13 +18,13 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * A specific {@link IJaxrsElementChangedListener} that will respond to changes on {@link JaxrsHttpMethod}s.
@@ -54,14 +54,13 @@ public class JaxrsHttpMethodChangedListener implements IJaxrsElementChangedListe
 					return;
 				}
 				final JaxrsMetamodel metamodel = (JaxrsMetamodel) delta.getElement().getMetamodel();
-				final String httpMethodClassName = httpMethod.getJavaClassName();
-				final List<IMethod> affectedMethods = getAffectedMethods(delta);
+				final Set<IMethod> affectedMethods = getAffectedMethods(delta);
 				final JavaElementDelta affectedMethodsDelta = new JavaElementDelta(metamodel.getJavaProject(), null, IJavaElementDelta.CHANGED, 0);
 				for(IMethod affectedMethod : affectedMethods) {
 					//FIXME: do we need an intermediate level with methods ?
 					final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(affectedMethod.getCompilationUnit());
 					final JavaElementDelta affectedMethodDelta = new JavaElementDelta(affectedMethod, ast, IJavaElementDelta.CHANGED, 0);
-					final Annotation httpMethodAnnotation = JdtUtils.resolveAnnotation(affectedMethod, ast, httpMethodClassName);
+					final Annotation httpMethodAnnotation = JdtUtils.resolveAnnotation(affectedMethod, ast, httpMethod.getJavaClassName());
 					if(httpMethodAnnotation != null) {
 						affectedMethodDelta.addAffectedAnnotation(new JavaElementDelta(httpMethodAnnotation.getJavaAnnotation(), ast, delta.getDeltaKind(), 0));
 						affectedMethodsDelta.addAffectedElementDelta(affectedMethodDelta);
@@ -80,25 +79,23 @@ public class JaxrsHttpMethodChangedListener implements IJaxrsElementChangedListe
 	 * @return the list of {@link IMethod} that are affected by the given change.
 	 * @throws CoreException 
 	 */
-	private List<IMethod> getAffectedMethods(final JaxrsElementDelta delta) throws CoreException {
+	private Set<IMethod> getAffectedMethods(final JaxrsElementDelta delta) throws CoreException {
 		final JaxrsMetamodel metamodel = (JaxrsMetamodel) delta.getElement().getMetamodel();
 		final JaxrsHttpMethod httpMethod = (JaxrsHttpMethod) delta.getElement();
-		final String httpMethodClassName = httpMethod.getJavaClassName();
-		
 		switch (delta.getDeltaKind()) {
 		case IJavaElementDelta.ADDED:
 			// find all Java Methods that have the added HTTP Method and process a fake 'annotation addition' event on these methods
-			return JavaElementsSearcher.findAnnotatedMethods(metamodel.getJavaProject(), httpMethodClassName, new NullProgressMonitor());
+			return JavaElementsSearcher.findAnnotatedMethods(metamodel.getJavaProject(), httpMethod.getJavaClassName(), new NullProgressMonitor());
 		case IJavaElementDelta.REMOVED:
 			// retrieve all known JAX-RS Resource Methods that have the remove HTTP Method process a fake 'annotation removal' event on these resource methods
-			final List<IJaxrsResourceMethod> annotatedResourceMethods = metamodel.findResourceMethodsByAnnotation(httpMethodClassName);
-			final List<IMethod> affectedMethods = new ArrayList<IMethod>();
+			final Set<IJaxrsResourceMethod> annotatedResourceMethods = metamodel.findResourceMethodsByAnnotation(httpMethod.getJavaClassName());
+			final Set<IMethod> affectedMethods = new HashSet<IMethod>();
 			for(IJaxrsResourceMethod resourceMethod : annotatedResourceMethods) {
 				affectedMethods.add(resourceMethod.getJavaElement());
 			}
 			return affectedMethods;
 		default:
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 	}
 }

@@ -12,10 +12,9 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.search;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -293,7 +292,7 @@ public class JaxrsElementsIndexationDelegate {
 	 * @return the {@link IJaxrsElement}s matching the query, or null if no
 	 *         document matched
 	 */
-	public <T> List<T> searchElements(final Term... terms) {
+	public <T> Set<T> searchElements(final Term... terms) {
 		try {
 			final IndexSearcher searcher = getNewIndexSearcherIfNeeded();
 			Logger.traceIndexing("Using IndexReader (current={} / hasDeletions={}) containing {} documents",
@@ -302,13 +301,13 @@ public class JaxrsElementsIndexationDelegate {
 			Logger.traceIndexing("Searching documents matching {}", query.toString());
 			final JaxrsElementsCollector<T> collector = new JaxrsElementsCollector<T>();
 			searcher.search(query, collector);
-			final List<T> elements = collector.getResults();
+			final Set<T> elements = collector.getResults();
 			Logger.traceIndexing(" Found {} matching elements", elements.size());
 			return elements;
 		} catch (IOException e) {
 			Logger.error("Failed to search for JAX-RS element in index", e);
 		}
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 	
 	/**
@@ -320,7 +319,7 @@ public class JaxrsElementsIndexationDelegate {
 	 * @return the {@link JaxrsEndpoint}s matching the query, or null if no
 	 *         document matched
 	 */
-	public List<JaxrsEndpoint> searchEndpoints(final Term... terms) {
+	public Set<JaxrsEndpoint> searchEndpoints(final Term... terms) {
 		try {
 			Logger.debugIndexing("Searching for Endpoints with using: {}", Arrays.asList(terms));
 			final IndexSearcher searcher = getNewIndexSearcherIfNeeded();
@@ -330,13 +329,13 @@ public class JaxrsElementsIndexationDelegate {
 			Logger.traceIndexing("Searching documents matching {}", query.toString());
 			final JaxrsEndpointsCollector collector = new JaxrsEndpointsCollector();
 			searcher.search(query, collector);
-			final List<JaxrsEndpoint> endpoints = collector.getResults();
+			final Set<JaxrsEndpoint> endpoints = collector.getResults();
 			Logger.traceIndexing(" Found {} matching endpoints", endpoints.size());
 			return endpoints;
 		} catch (IOException e) {
 			Logger.error("Failed to search for JAX-RS element in index", e);
 		}
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 	
 	/**
@@ -391,11 +390,11 @@ public class JaxrsElementsIndexationDelegate {
 		 * Set of doc identifiers matching the query. Using a {@link TreeSet} to
 		 * keep order of returned elements.
 		 */
-		final List<T> results;
+		final Set<T> results;
 
 		private int docBase;
 
-		public AnyResultsCollector(final List<T> results) {
+		public AnyResultsCollector(final Set<T> results) {
 			this.results = results;
 		}
 		
@@ -414,7 +413,7 @@ public class JaxrsElementsIndexationDelegate {
 			return true;
 		}
 
-		public List<T> getResults() throws CorruptIndexException, IOException {
+		public Set<T> getResults() throws CorruptIndexException, IOException {
 			return results;
 		}
 
@@ -454,7 +453,7 @@ public class JaxrsElementsIndexationDelegate {
 		private final String identifierPrefix;
 
 		public JaxrsElementsCollector() {
-			super(new ArrayList<T>());
+			super(new HashSet<T>());
 			this.identifierPrefix = IndexedObjectType.JAX_RS_ELEMENT.getPrefix();
 		}
 		
@@ -480,7 +479,7 @@ public class JaxrsElementsIndexationDelegate {
 		private final String identifierPrefix;
 		
 		public JaxrsEndpointsCollector() {
-			super(new ArrayList<JaxrsEndpoint>());
+			super(new HashSet<JaxrsEndpoint>());
 			this.identifierPrefix = IndexedObjectType.JAX_RS_ENDPOINT.getPrefix();
 		}
 		
@@ -502,7 +501,7 @@ public class JaxrsElementsIndexationDelegate {
 	class ResourcesCollector extends AnyResultsCollector<IResource> {
 
 		public ResourcesCollector() {
-			super(new ArrayList<IResource>());
+			super(new HashSet<IResource>());
 		}
 		@Override
 		public void collect(int docId) throws IOException {

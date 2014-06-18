@@ -36,11 +36,11 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.text.ContentAssistCompletionProposal;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
@@ -127,7 +127,8 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		if (!matchValue.isEmpty() && matchValue.charAt(0) == '\"') {
 			matchValue = matchValue.substring(1);
 		}
-		List<String> proposals = new ArrayList<String>(resourceMethod.getPathParamValueProposals().keySet());
+		final List<String> proposals = new ArrayList<String>(resourceMethod.getPathTemplateParameters().keySet());
+		proposals.addAll(resourceMethod.getParentResource().getPathTemplateParameters().keySet());
 		Collections.sort(proposals);
 		for (String proposal : proposals) {
 			if (proposal.startsWith(matchValue)) {

@@ -27,11 +27,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * A JAX-RS 2.0 Interceptor/Filter Name Binding Annotation.
@@ -45,7 +45,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * @author xcoulon
  *
  */
-public class JaxrsNameBinding extends AbstractJaxrsJavaTypeElement implements IJaxrsNameBinding {
+public class JaxrsNameBinding extends JaxrsJavaElement<IType> implements IJaxrsNameBinding {
 
 	
 

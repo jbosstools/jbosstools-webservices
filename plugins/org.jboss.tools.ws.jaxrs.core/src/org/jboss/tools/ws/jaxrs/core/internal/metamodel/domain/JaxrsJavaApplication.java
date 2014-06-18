@@ -26,12 +26,12 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * This domain element describes a subtype of {@link jvax.ws.rs.Application}
@@ -39,7 +39,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * 
  * @author xcoulon
  */
-public class JaxrsJavaApplication extends AbstractJaxrsJavaTypeElement implements IJaxrsJavaApplication {
+public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJaxrsJavaApplication {
 
 	/**
 	 * Builder initializer

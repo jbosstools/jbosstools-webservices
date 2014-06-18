@@ -12,7 +12,8 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.search;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMember;
@@ -77,8 +78,8 @@ public class JavaMemberSearchResultCollector extends SearchRequestor {
 	 * @return the resultMembers
 	 */
 	@SuppressWarnings("unchecked")
-	public final <T> List<T> getResult(final Class<T> clazz) {
-		List<T> results = new ArrayList<T>();
+	public final <T> Set<T> getResult(final Class<T> clazz) {
+		final Set<T> results = new HashSet<T>();
 		for (IMember member : resultMembers) {
 			results.add((T) member);
 		}

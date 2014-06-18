@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 
-public abstract class AbstractJaxrsBaseElement implements IJaxrsElement {
+public abstract class JaxrsBaseElement implements IJaxrsElement {
 
 	/**
 	 * The associated metamodel (or <code>null</code> if this element is not
@@ -25,7 +25,7 @@ public abstract class AbstractJaxrsBaseElement implements IJaxrsElement {
 	private final JaxrsMetamodel metamodel;
 
 	/** Indicates if the element has problems. */
-	private int problemLevel;
+	private int markerSeverity;
 	
 	/** Exist until its is removed. */
 	public boolean exist = true;
@@ -37,7 +37,7 @@ public abstract class AbstractJaxrsBaseElement implements IJaxrsElement {
 	 *            the metamodel in which this element exist, or null if this
 	 *            element is transient.
 	 */
-	public AbstractJaxrsBaseElement(final JaxrsMetamodel metamodel) {
+	public JaxrsBaseElement(final JaxrsMetamodel metamodel) {
 		this.metamodel = metamodel;
 	}
 	
@@ -49,7 +49,7 @@ public abstract class AbstractJaxrsBaseElement implements IJaxrsElement {
 	 * Sets the problem level to {@code 0} for this element.
 	 */
 	public void resetProblemLevel() {
-		this.problemLevel = 0;
+		this.markerSeverity = 0;
 	}
 	
 	/**
@@ -62,7 +62,7 @@ public abstract class AbstractJaxrsBaseElement implements IJaxrsElement {
 	 * @throws CoreException
 	 */
 	public void registerMarker(final IMarker marker) {
-		this.problemLevel = Math.max(this.problemLevel, marker.getAttribute(IMarker.SEVERITY, 0));
+		this.markerSeverity = Math.max(this.markerSeverity, marker.getAttribute(IMarker.SEVERITY, 0));
 	}
 
 	/**
@@ -70,8 +70,8 @@ public abstract class AbstractJaxrsBaseElement implements IJaxrsElement {
 	 * @see IMarker for the severity level (value "0" meaning
 	 *      "no problem, dude")
 	 */
-	public final int getProblemLevel() {
-		return problemLevel;
+	public final int getMarkerSeverity() {
+		return markerSeverity;
 	}
 
 	/** @return the metamodel */

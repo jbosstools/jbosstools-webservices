@@ -12,9 +12,10 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.utils.Annotation.VALUE;
+import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -38,15 +40,16 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * From the spec : A resource class is a Java class that uses JAX-RS annotations
@@ -55,11 +58,14 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * 
  * @author xcoulon
  */
-public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements IJaxrsResource {
+public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJaxrsResource {
 
 	/** The map of {@link JaxrsResourceField} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsResourceField> resourceFields = new HashMap<String, JaxrsResourceField>();
 
+	/** The map of {@link JaxrsResourceProperty} indexed by the underlying java element identifier. */
+	private final Map<String, JaxrsResourceProperty> resourceProperties = new HashMap<String, JaxrsResourceProperty>();
+	
 	/** The map of {@link JaxrsResourceMethod} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsResourceMethod> resourceMethods = new HashMap<String, JaxrsResourceMethod>();
 
@@ -72,14 +78,14 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	 * @return the Builder
 	 * @throws JavaModelException
 	 */
-	public static Builder from(final IJavaElement javaElement, final List<IJaxrsHttpMethod> httpMethods)
+	public static Builder from(final IJavaElement javaElement, final Set<String> httpMethodNames)
 			throws JavaModelException {
 		final CompilationUnit ast = JdtUtils.parse(javaElement, new NullProgressMonitor());
 		switch (javaElement.getElementType()) {
 		case IJavaElement.COMPILATION_UNIT:
-			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast, httpMethods);
+			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast, httpMethodNames);
 		case IJavaElement.TYPE:
-			return new Builder((IType) javaElement, ast, httpMethods);
+			return new Builder((IType) javaElement, ast, httpMethodNames);
 		}
 		return null;
 	}
@@ -96,12 +102,12 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	 * @throws JavaModelException
 	 */
 	public static Builder from(final IJavaElement javaElement, final CompilationUnit ast,
-			final List<IJaxrsHttpMethod> httpMethods) {
+			final Set<String> httpMethodNames) {
 		switch (javaElement.getElementType()) {
 		case IJavaElement.COMPILATION_UNIT:
-			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast, httpMethods);
+			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast, httpMethodNames);
 		case IJavaElement.TYPE:
-			return new Builder((IType) javaElement, ast, httpMethods);
+			return new Builder((IType) javaElement, ast, httpMethodNames);
 		}
 		return null;
 	}
@@ -116,14 +122,14 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 
 		private final IType javaType;
 		private final CompilationUnit ast;
-		private final List<IJaxrsHttpMethod> httpMethods;
+		private final Set<String> httpMethodNames;
 		private Map<String, Annotation> annotations;
 		private JaxrsMetamodel metamodel;
 
-		private Builder(final IType javaType, final CompilationUnit ast, final List<IJaxrsHttpMethod> httpMethods) {
+		private Builder(final IType javaType, final CompilationUnit ast, final Set<String> httpMethodNames) {
 			this.javaType = javaType;
 			this.ast = ast;
-			this.httpMethods = httpMethods;
+			this.httpMethodNames = httpMethodNames;
 		}
 
 		public Builder withMetamodel(final JaxrsMetamodel metamodel) {
@@ -145,19 +151,23 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 				// create the resource
 				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
 				final JaxrsResource resource = new JaxrsResource(this);
-				// find the available type fields
+				// find the available fields
 				for (IField javaField : javaType.getFields()) {
 					JaxrsResourceField.from(javaField, ast).withParentResource(resource).withMetamodel(metamodel).build();
+				}
+				// find the available properties
+				for (IMethod javaMethod : javaType.getMethods()) {
+					JaxrsResourceProperty.from(javaMethod, ast).buildInResource(resource);
 				}
 				// find the resource methods, subresource methods and
 				// subresource
 				// locators of this resource:
-				final List<IMethod> javaMethods = JavaElementsSearcher.findResourceMethods(javaType, this.httpMethods,
+				final Set<IMethod> javaMethods = JavaElementsSearcher.findResourceMethods(javaType, this.httpMethodNames,
 						new NullProgressMonitor());
 				for (IMethod javaMethod : javaMethods) {
-					final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
-					JaxrsResourceMethod.from(javaMethod, ast, httpMethods).withParentResource(resource)
-							.withJavaMethodSignature(methodSignature).withMetamodel(metamodel).build();
+					final IJavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
+					JaxrsResourceMethod.from(javaMethod, ast, httpMethodNames).withJavaMethodSignature(methodSignature)
+							.buildInResource(resource);
 				}
 				// well, sorry.. this is not a valid JAX-RS resource (requires at least one method)
 				if (resource.isSubresource() && resource.resourceMethods.isEmpty()) {
@@ -212,7 +222,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethods()).build(false);
+		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethodNames()).build(false);
 		if (transientResource == null) {
 			remove();
 			return;
@@ -220,6 +230,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		final Flags updateAnnotationsFlags = updateAnnotations(transientResource.getAnnotations());
 		final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
 		updateMethods(transientResource, ast);
+		updateProperties(transientResource, ast);
 		updateFields(transientResource, ast);
 
 		if (isMarkedForRemoval()) {
@@ -231,6 +242,35 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		}
 	}
 
+	/**
+	 * Updates the {@link IJaxrsResourceProperty}s of {@code this} from the ones provided by the given {@link JaxrsResource}
+	 * @param transientResource the resource to analyze
+	 * @param ast its associated AST.
+	 * @throws CoreException
+	 */
+	private void updateProperties(final JaxrsResource transientResource, final CompilationUnit ast) throws CoreException {
+		final List<JaxrsResourceProperty> allTransientInstanceProperties = transientResource.getAllProperties();
+		final List<JaxrsResourceProperty> allCurrentProperties = this.getAllProperties();
+		final List<JaxrsResourceProperty> addedProperties = CollectionUtils.difference(allTransientInstanceProperties,
+				allCurrentProperties);
+		for (JaxrsResourceProperty addedProperty : addedProperties) {
+			// create the Resource Field by attaching it to the metamodel
+			// and to this parent resource.
+			JaxrsResourceProperty.from(addedProperty.getJavaElement(), ast).buildInResource(this);
+		}
+		final Collection<JaxrsResourceProperty> changedProperties = CollectionUtils.intersection(allCurrentProperties,
+				allTransientInstanceProperties);
+		for (JaxrsResourceProperty changedProperty: changedProperties) {
+			((JaxrsResourceProperty) changedProperty).update(transientResource.getProperties().get(
+					changedProperty.getIdentifier()));
+		}
+		final List<JaxrsResourceProperty> removedProperties = CollectionUtils.difference(allCurrentProperties,
+				allTransientInstanceProperties);
+		for (JaxrsResourceProperty removedProperty: removedProperties) {
+			removedProperty.remove();
+		}
+	}
+	
 	/**
 	 * Updates the {@link IJaxrsResourceField}s of {@code this} from the ones provided by the given {@link JaxrsResource}
 	 * @param transientResource the resource to analyze
@@ -257,7 +297,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		final List<JaxrsResourceField> removedFields = CollectionUtils.difference(allCurrentFields,
 				allTransientInstanceFields);
 		for (JaxrsResourceField removedField : removedFields) {
-			this.removeField(removedField);
+			removedField.remove();
 		}
 	}
 
@@ -276,8 +316,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		for (IJaxrsResourceMethod addedMethod : addedMethods) {
 			// create the Resource Method by attaching it to the metamodel
 			// and this parent resource.
-			JaxrsResourceMethod.from(addedMethod.getJavaElement(), ast, getMetamodel().findAllHttpMethods())
-					.withMetamodel(getMetamodel()).withParentResource(this).build();
+			JaxrsResourceMethod.from(addedMethod.getJavaElement(), ast, getMetamodel().findAllHttpMethodNames()).buildInResource(this);
 		}
 		final Collection<IJaxrsResourceMethod> changedMethods = CollectionUtils.intersection(allCurrentMethods,
 				allTransientInstanceMethods);
@@ -288,7 +327,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		final List<IJaxrsResourceMethod> removedMethods = CollectionUtils.difference(allCurrentMethods,
 				allTransientInstanceMethods);
 		for (IJaxrsResourceMethod removedMethod : removedMethods) {
-			this.removeMethod(removedMethod);
+			((JaxrsResourceMethod)removedMethod).remove();
 		}
 	}
 	
@@ -303,8 +342,8 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	boolean isMarkedForRemoval() {
 		final boolean hasPathAnnotation = hasAnnotation(PATH);
 		// element should be removed if it has no @Path annotation and it has no
-		// JAX-RS element
-		return !(hasPathAnnotation || resourceMethods.size() > 0 || resourceFields.size() > 0);
+		// JAX-RS method. Having JAX-RS fields only is not enough.
+		return !(hasPathAnnotation || resourceMethods.size() > 0);
 	}
 
 	@Override
@@ -318,8 +357,12 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		return EnumElementKind.UNDEFINED_RESOURCE;
 	}
 
+	/**
+	 * @return the fully qualified name of the underlying {@link IJavaElement}.
+	 */
+	@Override
 	public final String getName() {
-		return getJavaElement().getElementName();
+		return getJavaElement().getFullyQualifiedName();
 	}
 
 	@Override
@@ -331,7 +374,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		return pathAnnotation.getValue();
 	}
 
-		@Override
+	@Override
 	public boolean hasPathTemplate() {
 		final Annotation pathAnnotation = getPathAnnotation();
 		return pathAnnotation != null && pathAnnotation.getValue() != null;
@@ -339,6 +382,13 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 
 	public Annotation getPathAnnotation() {
 		return getAnnotation(PATH);
+	}
+
+	@Override
+	public Map<String, Annotation> getPathTemplateParameters() {
+		final Map<String, Annotation> proposals = new HashMap<String, Annotation>();
+		proposals.putAll(AnnotationUtils.extractTemplateParameters(getPathAnnotation()));
+		return proposals;
 	}
 
 	@Override
@@ -368,18 +418,38 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 		return Collections.unmodifiableList(new ArrayList<IJaxrsResourceMethod>(resourceMethods.values()));
 	}
 	
-	/**
-	 * 
-	 * @param resourceMethod the resource method to look for
-	 * @return {@code true} if this {@link JaxrsResource} contains the given {@link IJaxrsResourceMethod}, {@code false} otherwise. 
-	 */
-	public boolean hasMethod(final IJaxrsResourceMethod resourceMethod) {
-		return resourceMethods.containsKey(resourceMethod.getJavaElement().getHandleIdentifier());
-	}
-
 	public final List<JaxrsResourceField> getAllFields() {
 		return Collections.unmodifiableList(new ArrayList<JaxrsResourceField>(resourceFields.values()));
 	}
+	
+	public List<JaxrsResourceProperty> getAllProperties() {
+		return Collections.unmodifiableList(new ArrayList<JaxrsResourceProperty>(resourceProperties.values()));
+	}
+
+	/**
+	 * @return the values of all annotations whose fully qualified name is
+	 *         {@code javax.ws.rs.PathParam}. These annotation can be found on
+	 *         any {@link JaxrsResourceField} and
+	 *         {@link JaxrsResourceProperty} of this
+	 *         {@link JaxrsResource}.
+	 */
+	public List<String> getPathParamValues() {
+		final List<String> pathParamValues = new ArrayList<String>();
+		for (JaxrsResourceField field : this.resourceFields.values()) {
+			final Annotation aggregatorFieldPathParamAnnotation = field.getAnnotation(PATH_PARAM);
+			if (aggregatorFieldPathParamAnnotation != null && aggregatorFieldPathParamAnnotation.getValue() != null) {
+				pathParamValues.add(aggregatorFieldPathParamAnnotation.getValue());
+			}
+		}
+		for (JaxrsResourceProperty properties : this.resourceProperties.values()) {
+			final Annotation aggregatorFieldPathParamAnnotation = properties.getAnnotation(PATH_PARAM);
+			if (aggregatorFieldPathParamAnnotation != null && aggregatorFieldPathParamAnnotation.getValue() != null) {
+				pathParamValues.add(aggregatorFieldPathParamAnnotation.getValue());
+			}
+		}
+		return pathParamValues;
+	}
+
 
 	@Override
 	public String toString() {
@@ -387,23 +457,66 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 				.append(") ").toString();
 	}
 
-	@SuppressWarnings("incomplete-switch")
-	public void addElement(JaxrsResourceElement<?> element) {
-		if (element != null) {
-			switch (element.getElementKind().getCategory()) {
-			case RESOURCE_FIELD:
-				this.resourceFields.put(element.getJavaElement().getHandleIdentifier(), (JaxrsResourceField) element);
-				return;
-			case RESOURCE_METHOD:
-				this.resourceMethods.put(element.getJavaElement().getHandleIdentifier(), (JaxrsResourceMethod) element);
-				return;
-			}
+	/**
+	 * Adds the given {@link JaxrsResourceField} to this {@link JaxrsResource}.
+	 * @param resourceField the element to add.
+	 */
+	protected void addField(final JaxrsResourceField resourceField) {
+		if (resourceField != null) {
+			this.resourceFields.put(resourceField.getJavaElement().getHandleIdentifier(), resourceField);
+		}
+	}
+	
+	/**
+	 * @return an <strong>unmodifiable</strong map of {@link JaxrsResourceField} indexed by the underlying
+	 *         java element identifier.
+	 */
+	public Map<String, JaxrsResourceField> getFields() {
+		return Collections.unmodifiableMap(resourceFields);
+	}
+
+	/**
+	 * Removes the given {@link IJaxrsResourceField} from this {@link JaxrsResource}.
+	 * @param resourceField the resource field to remove
+	 * @throws CoreException
+	 */
+	protected void removeField(final IJaxrsResourceField resourceField) throws CoreException {
+		this.resourceFields.remove(resourceField.getJavaElement().getHandleIdentifier());
+	}
+	
+	/**
+	 * Adds the given {@link JaxrsResourceProperty} to this {@link JaxrsResource}.
+	 * @param resourceProperty the element to add.
+	 */
+	protected void addProperty(final JaxrsResourceProperty resourceProperty) {
+		if (resourceProperty != null) {
+			this.resourceProperties.put(resourceProperty.getJavaElement().getHandleIdentifier(), resourceProperty);
 		}
 	}
 
-	public void removeField(final IJaxrsResourceField resourceField) throws CoreException {
-		this.resourceFields.remove(resourceField.getJavaElement().getHandleIdentifier());
-		((JaxrsResourceField) resourceField).remove();
+	/**
+	 * @return an <strong>unmodifiable</strong map of {@link JaxrsResourceProperty} indexed by the underlying
+	 *         java element identifier.
+	 */
+	public Map<String, JaxrsResourceProperty> getProperties() {
+		return Collections.unmodifiableMap(this.resourceProperties);
+	}
+
+	/**
+	 * Removes the given {@link JaxrsResourceProperty} from this {@link JaxrsResource}.
+	 * @param resourceProperty the resource property to remove
+	 * @throws CoreException
+	 */
+	protected void removeProperty(final JaxrsResourceProperty resourceProperty) throws CoreException {
+		this.resourceProperties.remove(resourceProperty.getJavaElement().getHandleIdentifier());
+	}
+	
+	
+
+	protected void addMethod(final JaxrsResourceMethod resourceMethod) {
+		if (resourceMethod != null) {
+			this.resourceMethods.put(resourceMethod.getJavaElement().getHandleIdentifier(), resourceMethod);
+		}
 	}
 
 	/**
@@ -422,17 +535,9 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	 *            the JAX-RS Resource Method to remove
 	 * @throws CoreException
 	 */
-	public void removeMethod(final IJaxrsResourceMethod method) throws CoreException {
+	protected void removeMethod(final IJaxrsResourceMethod method) throws CoreException {
 		this.resourceMethods.remove(method.getJavaElement().getHandleIdentifier());
-		((JaxrsResourceMethod) method).remove();
-	}
-
-	/**
-	 * @return the map of {@link JaxrsResourceField} indexed by the underlying
-	 *         java element identifier.
-	 */
-	public Map<String, JaxrsResourceField> getFields() {
-		return resourceFields;
+		//((JaxrsResourceMethod) method).remove();
 	}
 
 	/**
@@ -451,7 +556,7 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	}
 
 	/**
-	 * Returns the JAX-RS Resource Field which are annotated with the given
+	 * Returns the list of {@link JaxrsResourceField} which are annotated with the given
 	 * annotation fully qualified name
 	 *
 	 * @param annotationName
@@ -470,21 +575,46 @@ public final class JaxrsResource extends AbstractJaxrsJavaTypeElement implements
 	}
 	
 	/**
+	 * Returns the list of {@link JaxrsResourceProperty} which are annotated with the given
+	 * annotation fully qualified name
+	 *
+	 * @param annotationName
+	 *            the annotation's fully qualified name
+	 * @return the JAX-RS Resource Fields or empty list
+	 */
+	public List<JaxrsResourceProperty> getPropertiesAnnotatedWith(String annotationName) {
+		final List<JaxrsResourceProperty> annotatedProperties = new ArrayList<JaxrsResourceProperty>();
+		for (Entry<String, JaxrsResourceProperty> entry : resourceProperties.entrySet()) {
+			JaxrsResourceProperty property = entry.getValue();
+			if (property.hasAnnotation(annotationName)) {
+				annotatedProperties.add(property);
+			}
+		}
+		return annotatedProperties;
+	}
+	
+	/**
 	 * {@inheritDoc}
 	 * 
-	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement
+	 * @see org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement
 	 *      #remove()
 	 */
 	@Override
 	public void remove() throws CoreException {
 		super.remove();
-		for (IJaxrsResourceField field : getAllFields()) {
-			((JaxrsResourceField) field).remove();
-		}
+		// removing methods first will remove associated endpoints immediately. 
 		for (IJaxrsResourceMethod method : getAllMethods()) {
 			((JaxrsResourceMethod) method).remove();
 		}
+		// if we removed fields first, there could be some unnecessary 'CHANGED' events for fields with 
+		// @QueryParam or @MatrixParam annotations, that affect the Endpoint's URL Path Template.
+		// 
+		for (IJaxrsResourceField field : getAllFields()) {
+			((JaxrsResourceField) field).remove();
+		}
+		for (IJaxrsResourceProperty property : getAllProperties()) {
+			((JaxrsResourceProperty) property).remove();
+		}
 	}
-
 
 }

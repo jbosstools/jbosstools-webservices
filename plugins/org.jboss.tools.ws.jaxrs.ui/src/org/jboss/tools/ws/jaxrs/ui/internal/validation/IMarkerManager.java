@@ -13,7 +13,7 @@ package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 
 /**
@@ -33,11 +33,11 @@ public interface IMarkerManager {
 	 * @return the created marker
 	 * @throws CoreException 
 	 */
-	public abstract IMarker addMarker(JaxrsMetamodel metamodel, String message, String[] messageArguments,
-			String preferenceKey) throws CoreException;
+	public abstract IMarker addMarker(final JaxrsMetamodel metamodel, final String message, final String[] messageArguments,
+			final String preferenceKey) throws CoreException;
 
 	/**
-	 * Adds an {@link IMarker} on the given {@link AbstractJaxrsBaseElement}
+	 * Adds an {@link IMarker} on the given {@link JaxrsBaseElement}
 	 * @param element the JAX-RS element that whose underlying resource will receive the created marker
 	 * @param message the marker message
 	 * @param messageArguments the message arguments
@@ -45,11 +45,11 @@ public interface IMarkerManager {
 	 * @return the created marker
 	 * @throws CoreException 
 	 */
-	public abstract IMarker addMarker(AbstractJaxrsBaseElement element, ISourceRange range, String message,
-			String[] messageArguments, String preferenceKey) throws CoreException;
-
+	public abstract IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
+			final String[] messageArguments, final String preferenceKey) throws CoreException;
+	
 	/**
-	 * Adds an {@link IMarker} on the given {@link AbstractJaxrsBaseElement}
+	 * Adds an {@link IMarker} on the given {@link JaxrsBaseElement}
 	 * @param element the JAX-RS element that whose underlying resource will receive the created marker
 	 * @param message the marker message
 	 * @param messageArguments the message arguments
@@ -58,7 +58,7 @@ public interface IMarkerManager {
 	 * @return the created marker
 	 * @throws CoreException 
 	 */
-	public abstract IMarker addMarker(AbstractJaxrsBaseElement element, ISourceRange range, String message,
-			String[] messageArguments, String preferenceKey, int quickFixId) throws CoreException;
+	public abstract IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
+			final String[] messageArguments, final String preferenceKey, final int quickFixId) throws CoreException;
 
 }

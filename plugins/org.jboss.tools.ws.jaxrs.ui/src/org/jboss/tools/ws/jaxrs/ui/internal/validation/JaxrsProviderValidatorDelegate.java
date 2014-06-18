@@ -11,7 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -28,14 +28,14 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodParameter;
-import org.jboss.tools.ws.jaxrs.core.utils.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
@@ -95,21 +95,21 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		// take the first NameBinding annotation and look for Resource and Resource Methods that have this annotation, too
 		final String firstNameBindingAnnotationClassName = nameBindingAnnotations.keySet().iterator().next();
 		final Set<String> allBindingAnnotationNames = nameBindingAnnotations.keySet();
-		final List<IJaxrsResourceMethod> annotatedResourceMethods = metamodel.findResourceMethodsByAnnotation(firstNameBindingAnnotationClassName);
+		final Collection<IJaxrsResourceMethod> annotatedResourceMethods = metamodel.findResourceMethodsByAnnotation(firstNameBindingAnnotationClassName);
 		for(IJaxrsResourceMethod resourceMethod : annotatedResourceMethods) {
 			if(resourceMethod.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
 				// provider is valid, at least one method has all those bindings
 				return;
 			}
 		}
-		final List<IJaxrsResource> annotatedResources = metamodel.findResourcesByAnnotation(firstNameBindingAnnotationClassName);
+		final Collection<IJaxrsResource> annotatedResources = metamodel.findResourcesByAnnotation(firstNameBindingAnnotationClassName);
 		for(IJaxrsResource resource : annotatedResources) {
 			if(resource.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
 				// provider is valid, at least one method has all those bindings
 				return;
 			}
 		}
-		final List<IJaxrsJavaApplication> annotatedApplications = metamodel.findApplicationsByAnnotation(firstNameBindingAnnotationClassName);
+		final Collection<IJaxrsJavaApplication> annotatedApplications = metamodel.findApplicationsByAnnotation(firstNameBindingAnnotationClassName);
 		for(IJaxrsJavaApplication application : annotatedApplications) {
 			if(application.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
 				// provider is valid, at least one method has all those bindings
@@ -211,15 +211,15 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		}
 		// only accepting constructors with parameters annotated with
 		// @javax.ws.rs.core.Context
-		final JavaMethodSignature methodSignature = CompilationUnitsRepository.getInstance().getMethodSignature(method);
+		final IJavaMethodSignature methodSignature = CompilationUnitsRepository.getInstance().getMethodSignature(method);
 		if(methodSignature != null) {
-			for (JavaMethodParameter parameter : methodSignature.getMethodParameters()) {
+			for (IJavaMethodParameter parameter : methodSignature.getMethodParameters()) {
 				if (parameter.getAnnotations().isEmpty()) {
 					return false;
 				}
 				for (Entry<String, Annotation> annotation : parameter.getAnnotations().entrySet()) {
 					if (!annotation.getValue().getFullyQualifiedName().equals(JaxrsClassnames.CONTEXT)
-							|| !CONTEXT_TYPE_NAMES.contains(parameter.getType().getQualifiedName())) {
+							|| !CONTEXT_TYPE_NAMES.contains(parameter.getType().getErasureName())) {
 						return false;
 					}
 				}
@@ -270,7 +270,7 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 			if(providedType == null) {
 				return;
 			}
-			final List<JaxrsProvider> providers = metamodel.findProviders(elementKind,
+			final Collection<JaxrsProvider> providers = metamodel.findProviders(elementKind,
 					providedType.getFullyQualifiedName());
 			for (JaxrsProvider p : providers) {
 				if (p == provider) {

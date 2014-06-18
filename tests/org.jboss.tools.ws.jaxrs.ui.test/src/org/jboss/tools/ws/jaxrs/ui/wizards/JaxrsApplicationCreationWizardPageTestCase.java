@@ -16,7 +16,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -25,13 +25,13 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriMappingsContentProvider;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory;
 import org.junit.Assert;
@@ -157,10 +157,10 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 	@Test
 	public void shouldCreateJavaApplicationClass() throws CoreException, InterruptedException {
 		// given
-		final List<IJaxrsApplication> allApplications = metamodel.findAllApplications();
+		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((AbstractJaxrsBaseElement) application).remove();
-			((AbstractJaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
@@ -185,10 +185,10 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 	@Test
 	public void shouldCreateWebxmlApplicationWhenNoWebxmlExists() throws CoreException, InterruptedException {
 		// given
-		final List<IJaxrsApplication> allApplications = metamodel.findAllApplications();
+		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((AbstractJaxrsBaseElement) application).remove();
-			((AbstractJaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
@@ -216,10 +216,10 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 	@Test
 	public void shouldCreateWebxmlApplicationWhenWebxmlExists() throws Exception {
 		// given
-		final List<IJaxrsApplication> allApplications = metamodel.findAllApplications();
+		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((AbstractJaxrsBaseElement) application).remove();
-			((AbstractJaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 		metamodelMonitor.replaceDeploymentDescriptorWith("web-3_0-without-servlet-mapping.xml");
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
@@ -245,10 +245,10 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 	@Test
 	public void shouldSkipApplicationCreation() throws CoreException, InterruptedException {
 		// given
-		final List<IJaxrsApplication> allApplications = metamodel.findAllApplications();
+		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((AbstractJaxrsBaseElement) application).remove();
-			((AbstractJaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);

@@ -10,40 +10,50 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
  * @author xcoulon
@@ -51,6 +61,10 @@ import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
  */
 public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsElementChangedListener,
 		IJaxrsEndpointChangedListener {
+	
+	public final static int ANY_EVENT_TYPE = 0;
+
+	public final static int NO_FLAG = 0;
 
 	private JaxrsMetamodel metamodel;
 
@@ -71,15 +85,6 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		this.buildMetamodel = buildMetamodel;
 	}
 	
-	public JaxrsMetamodel initMetamodel() {
-		try {
-			before();
-		} catch (Throwable e) {
-			fail("Failed to init metamodel: " + e.getMessage());
-		}
-		return this.metamodel;
-	}
-
 	@Override
 	protected void before() throws Throwable {
 		TestLogger.debug("***********************************************");
@@ -163,6 +168,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	}
 
 	public List<JaxrsElementDelta> getElementChanges() {
+		Collections.sort(elementChanges, new JaxrsElementDeltaComparator());
 		return elementChanges;
 	}
 
@@ -189,9 +195,33 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		this.metamodelProblemLevelChanges.clear();
 	}
 
-	public void processJavaElementChange(final JavaElementChangedEvent delta, final IProgressMonitor progressMonitor) throws CoreException {
-		metamodel.processJavaElementChange(delta, progressMonitor);
-		
+	public void processEvent(final Annotation annotation, final int deltaKind) throws CoreException {
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, ANY_EVENT_TYPE,
+				JdtUtils.parse(((IMember) annotation.getJavaParent()), new NullProgressMonitor()), NO_FLAG);
+		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
+	}
+	
+	public void processEvent(IMember element, int deltaKind) throws CoreException {
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
+				new NullProgressMonitor()), NO_FLAG);
+		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
+	}
+
+	public void processEvent(IMember element, int deltaKind, int flags) throws CoreException {
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
+				new NullProgressMonitor()), flags);
+		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
+	}
+
+	public void processEvent(ICompilationUnit element, int deltaKind) throws CoreException {
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
+				new NullProgressMonitor()), NO_FLAG);
+		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
+	}
+
+	public void processEvent(IPackageFragmentRoot element, int deltaKind) throws CoreException {
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, null, NO_FLAG);
+		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
 	
 	/********************************************************************************************
@@ -212,6 +242,15 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		return this.metamodel;
 	}
 
+	
+	public Set<IJaxrsElement> createElements(final String... classNames) throws CoreException {
+		final Set<IJaxrsElement> elements = new HashSet<IJaxrsElement>();
+		for(String className : classNames) {
+			final IType javaType = JdtUtils.resolveType(className, getJavaProject(), null);
+			elements.addAll(JaxrsElementFactory.createElements(javaType, JdtUtils.parse(javaType, null), metamodel, null));
+		}
+		return elements;
+	}
 
 	/**
 	 * Creates a java annotated type based JAX-RS Application element
@@ -277,6 +316,19 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	}
 
 	/**
+	 * Creates a web.xml based JAX-RS Application element
+	 * 
+	 * @param applicationPath
+	 * @return
+	 * @throws CoreException 
+	 * @throws IOException 
+	 */
+	public JaxrsWebxmlApplication createWebxmlApplication() throws CoreException, IOException {
+		final IResource webDeploymentDescriptor = WtpUtils.getWebDeploymentDescriptor(metamodel.getProject());
+		return JaxrsWebxmlApplication.from(webDeploymentDescriptor).inMetamodel(metamodel).build();
+	}
+
+	/**
 	 * @return
 	 * @throws CoreException
 	 * @throws JavaModelException
@@ -326,9 +378,17 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	}
 
 	public JaxrsResource createResource(final IType type) throws CoreException, JavaModelException {
-		return JaxrsResource.from(type, metamodel.findAllHttpMethods()).withMetamodel(metamodel).build();
+		return JaxrsResource.from(type, metamodel.findAllHttpMethodNames()).withMetamodel(metamodel).build();
 	}
 	
+	public JaxrsParameterAggregator createParameterAggregator(final String typeName) throws JavaModelException, CoreException {
+		return createParameterAggregator(JdtUtils.resolveType(typeName, metamodel.getJavaProject(), new NullProgressMonitor()));
+	}
+	
+	public JaxrsParameterAggregator createParameterAggregator(final IType type) throws JavaModelException, CoreException {
+		return JaxrsParameterAggregator.from(type).buildInMetamodel(metamodel);
+	}
+
 	/**
 	 * Returns a <strong>new annotation</strong> built from the given one, with overriden values
 	 * @param annotation
@@ -346,18 +406,43 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		final List<IJaxrsResourceMethod> allMethods = new ArrayList<IJaxrsResourceMethod>(resource.getAllMethods());
 		for(IJaxrsResourceMethod resourceMethod : allMethods) {
 			if(resourceMethod.getJavaElement().getElementName().equals(methodName)) {
-				resource.removeMethod(resourceMethod);
-				break;
+				((JaxrsResourceMethod)resourceMethod).remove();
+				return;
 			}
 		}
+		fail("Failed to remove Resource Method '" + methodName + "'");
 	}
 
 	public JaxrsResourceMethod resolveResourceMethod(final JaxrsResource resource, final String methodName) {
-		for(IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+		final List<IJaxrsResourceMethod> allMethods = resource.getAllMethods();
+		for(IJaxrsResourceMethod resourceMethod : allMethods) {
 			if(resourceMethod.getJavaElement().getElementName().equals(methodName)) {
 				return (JaxrsResourceMethod) resourceMethod;
 			}
 		}
+		fail("Failed to resolve Resource Method '" + methodName + "'");
+		return null;
+	}
+
+	public void removeResourceProperty(final JaxrsResource resource, final String propertyName) throws CoreException {
+		final List<IJaxrsResourceProperty> allProperties = new ArrayList<IJaxrsResourceProperty>(resource.getAllProperties());
+		for(IJaxrsResourceProperty resourceProperty : allProperties) {
+			if(resourceProperty.getJavaElement().getElementName().equals(propertyName)) {
+				((JaxrsResourceProperty)resourceProperty).remove();
+				return;
+			}
+		}
+		fail("Failed to remove Resource Property '" + propertyName + "'");
+	}
+
+	public JaxrsResourceProperty resolveResourceProperty(final JaxrsResource resource, final String propertyName) {
+		final List<JaxrsResourceProperty> allProperties = resource.getAllProperties();
+		for(JaxrsResourceProperty resourceMethod : allProperties) {
+			if(resourceMethod.getJavaElement().getElementName().equals(propertyName)) {
+				return (JaxrsResourceProperty) resourceMethod;
+			}
+		}
+		fail("Failed to resolve Resource Property '" + propertyName + "'");
 		return null;
 	}
 

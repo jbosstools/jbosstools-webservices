@@ -9,14 +9,18 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core.utils;
+package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IResource;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 
 /**
  * Wrapper for a method parameter, exposing its name, type (fully qualified
@@ -25,16 +29,19 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapCompariso
  * @author Xavier Coulon
  *
  */
-public class JavaMethodParameter {
+public class JavaMethodParameter implements IJavaMethodParameter {
 
 	/** The name the parameter name. */
 	private final String name;
 
 	/** The parameter type.*/
-	private final ParameterType type;
+	private final SourceType type;
 	
 	/** Parameter annotations, indexed by their fully qualified name. */
 	private final Map<String, Annotation> annotations;
+	
+	/** the underlying resource. */
+	private final IResource resource;
 	
 	/**
 	 * Full constructor.
@@ -49,22 +56,26 @@ public class JavaMethodParameter {
 	 * @param annotations
 	 *            the parameter's relevant annotations
 	 */
-	public JavaMethodParameter(final String name, final ParameterType type, final List<Annotation> annotations) {
+	public JavaMethodParameter(final String name, final SourceType type, final List<Annotation> annotations, final IResource resource) {
 		this.name = name;
 		this.type = type;
+		this.resource = resource;
 		this.annotations = new HashMap<String, Annotation>(annotations.size() * 2);
 		for (Annotation annotation : annotations) {
 			this.annotations.put(annotation.getFullyQualifiedName(), annotation);
 		}
 	}
 
-	/** @return the parameter name */
+	/* (non-Javadoc)
+	 * @see org.jboss.tools.ws.jaxrs.core.utils.IJavaMethodParameter#getName()
+	 */
+	@Override
 	public String getName() {
 		return this.name;
 	}
 
 	/** @return the parameter type */
-	public ParameterType getType() {
+	public SourceType getType() {
 		return type;
 	}
 	
@@ -118,16 +129,31 @@ public class JavaMethodParameter {
 	 * 
 	 * @param otherMethodParameter
 	 */
-	public boolean hasChanges(final JavaMethodParameter otherMethodParameter) {
+	public boolean hasChanges(final IJavaMethodParameter otherMethodParameter) {
 		final Map<String, Annotation> otherAnnotations = otherMethodParameter.getAnnotations();
 		final MapComparison<String, Annotation> comparison = CollectionUtils
 				.compare(this.annotations, otherAnnotations);
 		return comparison.hasDifferences();
 	}
+	
+	@Override
+	public IResource getResource() {
+		return this.resource;
+	}
 
 	@Override
 	public String toString() {
-		return "ResourceMethodAnnotatedParameter [type=" + getType().getQualifiedName() + ", annotations=" + annotations + "]";
+		final StringBuilder builder =new StringBuilder();
+		for(Annotation annotation : annotations.values()) {
+			builder.append("@").append(annotation.getJavaAnnotation().getElementName());
+			if(annotation.getValue() != null && !annotation.getValue().isEmpty()) {
+				builder.append('(').append(annotation.getValue()).append(')');
+			}
+			builder.append(' ');
+		}
+		builder.append(getType().getDisplayableTypeName()).append(' ').append(getName());
+		return builder.toString();
+		
 	}
 
 	/* (non-Javadoc)

@@ -10,13 +10,14 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
+import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
-import org.jboss.tools.ws.jaxrs.core.utils.ParameterType;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 
@@ -64,19 +65,19 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 	 */
 	private void validateParameterTypes(final JaxrsResourceField resourceField) throws CoreException {
 		// for now, we bypass this validation if the metamodel has at least one ParamConverterProvider
-		final List<IJaxrsParamConverterProvider> allParamConverterProviders = resourceField.getMetamodel().findAllParamConverterProviders();
+		final Collection<IJaxrsParamConverterProvider> allParamConverterProviders = resourceField.getMetamodel().findAllParamConverterProviders();
 		if(allParamConverterProviders != null && ! allParamConverterProviders.isEmpty()) {
 			return;
 		}
 		
 		final JaxrsParameterValidatorDelegate parameterValidatorDelegate = new JaxrsParameterValidatorDelegate();
-			final ParameterType type = resourceField.getType();
+			final SourceType type = resourceField.getType();
 			final boolean isValid = parameterValidatorDelegate.validate(type, resourceField.getMetamodel()
 					.getJavaProject(), new NullProgressMonitor());
 			if (!isValid) {
-				markerManager.addMarker(resourceField, resourceField.getJavaElement().getNameRange(),
+				markerManager.addMarker((JaxrsBaseElement)resourceField, resourceField.getJavaElement().getNameRange(),
 						JaxrsValidationMessages.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE,
-						new String[] { type.getQualifiedName() },
+						new String[] { type.getErasureName() },
 						JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE);
 			}
 		

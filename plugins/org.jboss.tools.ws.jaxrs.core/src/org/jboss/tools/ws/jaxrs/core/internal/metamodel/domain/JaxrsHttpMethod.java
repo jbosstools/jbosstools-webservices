@@ -28,11 +28,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 
 /**
  * A request method designator is a runtime annotation that is annotated with
@@ -44,7 +44,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
  * 
  * @author xcoulon
  */
-public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJaxrsHttpMethod {
+public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHttpMethod {
 
 	/**
 	 * A Simple sorter for HTTP Verbs: the preferred order is
@@ -227,6 +227,14 @@ public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJa
 		return false;
 	}
 
+	
+	@Override
+	public String getJavaClassName() {
+		if(getJavaElement() != null) {
+			return getJavaElement().getFullyQualifiedName();
+		}
+		return null;
+	}
 	/**
 	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsHttpMethod} anymore) 
 	 */
@@ -269,7 +277,7 @@ public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJa
 	 */
 	@Override
 	public String toString() {
-		return "HttpMethod [@" + getJavaClassName() + ":" + getHttpMethodAnnotation() + "]";
+		return "HttpMethod [@" + getJavaElement().getFullyQualifiedName() + ":" + getHttpMethodAnnotation() + "]";
 	}
 
 	@Override
@@ -277,12 +285,14 @@ public class JaxrsHttpMethod extends AbstractJaxrsJavaTypeElement implements IJa
 		if (this.getHttpVerb() == null) {
 			return 1;
 		}
-		if (this.getHttpVerb().equals(other.getHttpVerb())) {
-			return 0;
+		final HttpVerbSortEnum enum1 = HttpVerbSortEnum.from(this.getHttpVerb());
+		final HttpVerbSortEnum enum2 = HttpVerbSortEnum.from(other.getHttpVerb());
+		// for known HTTP Verbs: use pre-defined ordering
+		if(enum1.getRank() != enum2.getRank()) {
+			return enum1.getRank() - enum2.getRank();
 		}
-		HttpVerbSortEnum enum1 = HttpVerbSortEnum.from(this.getHttpVerb());
-		HttpVerbSortEnum enum2 = HttpVerbSortEnum.from(other.getHttpVerb());
-		return enum1.getRank() - enum2.getRank();
+		// for custom HTTP Verbs, compare the upper case value of the verbs
+		return this.getHttpVerb().toUpperCase().compareTo(other.getHttpVerb().toUpperCase());
 	}
 
 	@Override

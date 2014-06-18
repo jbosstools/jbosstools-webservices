@@ -70,7 +70,11 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -78,10 +82,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.Annotation;
-import org.jboss.tools.ws.jaxrs.core.utils.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
-import org.jboss.tools.ws.jaxrs.core.utils.JdtUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -132,12 +133,12 @@ public class ResourceChangedProcessingTestCase {
 		// verifications
 		// 1 application + 1 HttpMethod + 7 Resources and their methods + 2
 		// Providers
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(38));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(41));
 		assertThat(metamodelMonitor.getElementChanges(), everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all HttpMethods, Resources, ResourceMethods and ResourceFields. only
 		// application is available: the java-based
 		// one found in src/main/java
-		assertThat(metamodel.findElements(javaProject).size(), equalTo(44));
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(47));
 	}
 
 	@Test
@@ -151,14 +152,14 @@ public class ResourceChangedProcessingTestCase {
 		// 2 applications (java/webxml) + 6 built-in HttpMethods + 2 custom
 		// HttpMethod + 7 Resources and their methods + 5 Providers: the whole
 		// project is used to build the metamodel.
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(48));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(51));
 		assertThat(metamodelMonitor.getElementChanges(), everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// all project-specific Applications, HttpMethods, Resources,
 		// ResourceMethods and ResourceFields (built-in
 		// HttpMethods are not bound to a project)
 		// 2 applications are available: the java-based and the web.xml since a
 		// full build was performed
-		assertThat(metamodel.findElements(javaProject).size(), equalTo(48));
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(51));
 	}
 
 	@Test
@@ -548,7 +549,7 @@ public class ResourceChangedProcessingTestCase {
 		// Application element
 		assertThat(metamodel.findApplication(), equalTo((IJaxrsApplication) webxmlApplication));
 		// Java-based application configuration should not be changed
-		assertThat(metamodel.findJavaApplications().get(0).getApplicationPath(), equalTo("/app"));
+		assertThat(metamodel.findJavaApplications().iterator().next().getApplicationPath(), equalTo("/app"));
 		// 6 built-in HTTP Methods + 2 apps (java + xml)
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(8));
 	}
@@ -962,7 +963,7 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7)); // 1 resource + 6
 														// methods
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
-		assertThat(metamodelMonitor.getElementChanges().get(6).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		// HttpMethods, Resource, ResourceMethods and ResourceFields
 		// 6 built-in HTTP Methods + 1 resource + 6 methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
@@ -1009,7 +1010,7 @@ public class ResourceChangedProcessingTestCase {
 	public void shouldAddResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsResource bookResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		bookResource.removeMethod(bookResource.getAllMethods().get(0));
+		((JaxrsResourceMethod)bookResource.getAllMethods().get(0)).remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
@@ -1082,7 +1083,7 @@ public class ResourceChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		productResourceLocator.removeField(productResourceLocator.getAllFields().get(0));
+		productResourceLocator.getAllFields().get(0).remove();
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
@@ -1092,8 +1093,8 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 6 built-in HttpMethods + 1 resource (including its 1 method and 3
-		// fields)
-		assertThat(metamodel.findElements(javaProject).size(), equalTo(11));
+		// fields + 3 properties)
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(14));
 	}
 
 	@Test
@@ -1101,7 +1102,6 @@ public class ResourceChangedProcessingTestCase {
 		// pre-conditions
 		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		metamodelMonitor.resetElementChangesNotifications();
-		// operation
 		for (Iterator<JaxrsResourceField> iterator = productResourceLocator.getFields().values().iterator(); iterator
 				.hasNext();) {
 			JaxrsResourceField resourceField = iterator.next();
@@ -1110,23 +1110,22 @@ public class ResourceChangedProcessingTestCase {
 						"@DefaultValue(\"bar\")", false);
 			}
 		}
+		// operation
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		processAffectedResources(event);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource field
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
-		// 6 built-in HttpMethods + 1 resource (including its 1 method and 3
-		// fields)
-		assertThat(metamodel.findElements(javaProject).size(), equalTo(11));
+		// 6 built-in HttpMethods + 1 resource (including its 1 method + 3
+		// fields + 3 properties)
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(14));
 	}
 
 	@Test
 	public void shouldRemoveResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		metamodelMonitor.resetElementChangesNotifications();
-		// operation
 		for (Iterator<JaxrsResourceField> iterator = productResourceLocator.getFields().values().iterator(); iterator
 				.hasNext();) {
 			JaxrsResourceField resourceField = iterator.next();
@@ -1134,6 +1133,8 @@ public class ResourceChangedProcessingTestCase {
 				delete(resourceField.getQueryParamAnnotation().getJavaAnnotation(), false);
 			}
 		}
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		processAffectedResources(event);
 		// verifications
@@ -1141,9 +1142,77 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_FIELD));
 		// 6 built-in HttpMethods + 1 resource (including its 1 method and 2
-		// fields)
-		assertThat(metamodel.findElements(javaProject).size(), equalTo(10));
+		// fields + 3 properties)
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
 	}
+	
+	@Test
+	public void shouldAddResourcePropertyWhenChangingResource() throws CoreException {
+		// pre-conditions
+		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		productResourceLocator.getAllProperties().get(0).remove();
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
+		processAffectedResources(event);
+		// verifications
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource property
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_PROPERTY));
+		// 6 built-in HttpMethods + 1 resource (including its 1 method and 3
+		// fields + 3 properties)
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(14));
+	}
+
+	@Test
+	public void shouldChangeResourcePropertyWhenChangingResource() throws CoreException {
+		// pre-conditions
+		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		for (Iterator<JaxrsResourceProperty> iterator = productResourceLocator.getProperties().values().iterator(); iterator
+				.hasNext();) {
+			JaxrsResourceProperty resourceProperty = iterator.next();
+			if (resourceProperty.getElementKind() == EnumElementKind.QUERY_PARAM_PROPERTY && resourceProperty.getDefaultValueAnnotation() != null) {
+				replaceFirstOccurrenceOfCode(resourceProperty.getJavaElement(), "@DefaultValue(\"qux1!\")",
+						"@DefaultValue(\"bar\")", false);
+			}
+		}
+		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
+		processAffectedResources(event);
+		// verifications
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource property
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_PROPERTY));
+		// 6 built-in HttpMethods + 1 resource (including its 1 method + 3
+		// fields + 3 properties)
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(14));
+	}
+
+	@Test
+	public void shouldRemoveResourcePropertyWhenChangingResource() throws CoreException {
+		// pre-conditions
+		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		for (Iterator<JaxrsResourceProperty> iterator = productResourceLocator.getProperties().values().iterator(); iterator
+				.hasNext();) {
+			JaxrsResourceProperty resourceProperty = iterator.next();
+			if (resourceProperty.getQueryParamAnnotation() != null) {
+				delete(resourceProperty.getQueryParamAnnotation().getJavaAnnotation(), false);
+			}
+		}
+		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
+		processAffectedResources(event);
+		// verifications
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource property
+		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_PROPERTY));
+		// 6 built-in HttpMethods + 1 resource (including its 1 method and 2
+		// fields + 3 properties)
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(13));
+	}
+
 
 	@Test
 	public void shouldRemoveExistingResourceWhenChangingResource() throws CoreException {
@@ -1175,16 +1244,17 @@ public class ResourceChangedProcessingTestCase {
 		final ResourceDelta event = createResourceDelta(resource.getJavaElement().getResource(), REMOVED);
 		processAffectedResources(event);
 		// verifications: 1 resource and its 2 methods removed
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(3));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
+		final List<JaxrsElementDelta> elementChanges = metamodelMonitor.getElementChanges();
+		assertThat(elementChanges.size(), equalTo(3));
+		assertThat(elementChanges.get(0).getDeltaKind(), equalTo(REMOVED));
+		assertThat(elementChanges.get(0).getElement().getElementKind().getCategory(),
+				equalTo(EnumElementCategory.RESOURCE));
+		assertThat(((JaxrsResource) elementChanges.get(0).getElement()), equalTo(resource));
+		assertThat(elementChanges.get(1).getDeltaKind(), equalTo(REMOVED));
+		assertThat(elementChanges.get(1).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.RESOURCE_METHOD));
-		assertThat(metamodelMonitor.getElementChanges().get(1).getDeltaKind(), equalTo(REMOVED));
-		assertThat(metamodelMonitor.getElementChanges().get(1).getElement().getElementKind().getCategory(),
-				equalTo(EnumElementCategory.RESOURCE_METHOD));
-		assertThat(metamodelMonitor.getElementChanges().get(2).getDeltaKind(), equalTo(REMOVED));
-		assertThat(metamodelMonitor.getElementChanges().get(2).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
-		assertThat(((JaxrsResource) metamodelMonitor.getElementChanges().get(2).getElement()), equalTo(resource));
+		assertThat(elementChanges.get(2).getDeltaKind(), equalTo(REMOVED));
+		assertThat(elementChanges.get(2).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE_METHOD));
 		// 6 built-in HttpMethods left only
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
@@ -1229,7 +1299,7 @@ public class ResourceChangedProcessingTestCase {
 	}
 
 	@Test
-	public void shouldRemoveResourceWhenRemovingMethodsFieldsAndAnnotations() throws CoreException {
+	public void shouldRemoveResourceWhenRemovingMethodsFieldsPropertiesAndAnnotations() throws CoreException {
 		// pre-conditions
 		final JaxrsResource resourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1244,14 +1314,19 @@ public class ResourceChangedProcessingTestCase {
 			JaxrsResourceField resourceField = iterator.next();
 			delete(resourceField.getJavaElement());
 		}
+		for (Iterator<JaxrsResourceProperty> iterator = resourceLocator.getProperties().values().iterator(); iterator
+				.hasNext();) {
+			JaxrsResourceProperty resourceProperties = iterator.next();
+			delete(resourceProperties.getJavaElement());
+		}
 		for (Iterator<Annotation> iterator = resourceLocator.getAnnotations().values().iterator(); iterator.hasNext();) {
 			Annotation annotation = iterator.next();
 			delete(annotation.getJavaAnnotation(), false);
 		}
 		final ResourceDelta event = createResourceDelta(resourceLocator.getJavaElement().getResource(), CHANGED);
 		processAffectedResources(event);
-		// verifications: 1 resource, its 1 method and 3 fields removed
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(5));
+		// verifications: 1 resource, its 1 method, 3 fields and 3 properties removed
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(8));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
 		// 6 built-in HttpMethods left only
@@ -1859,6 +1934,7 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_READER), nullValue());
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER), nullValue());
-
 	}
+	
+	
 }

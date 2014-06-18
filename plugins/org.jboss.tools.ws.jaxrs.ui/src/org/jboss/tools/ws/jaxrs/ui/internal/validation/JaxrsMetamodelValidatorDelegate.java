@@ -10,18 +10,18 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
-import org.jboss.tools.ws.jaxrs.core.utils.WtpUtils;
+import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 
@@ -55,9 +55,9 @@ public class JaxrsMetamodelValidatorDelegate {
 		final IProject project = metamodel.getProject();
 		JaxrsMetamodelValidator.removeMarkers(metamodel, project);
 		metamodel.resetProblemLevel();
-		final List<JaxrsJavaApplication> javaApplications = metamodel.findJavaApplications();
-		final List<JaxrsWebxmlApplication> webxmlApplications = metamodel.findWebxmlApplications();
-		if (javaApplications.isEmpty() && webxmlApplications.isEmpty() && metamodel.hasElements()) {
+		final Collection<JaxrsJavaApplication> javaApplications = metamodel.findJavaApplications();
+		final Collection<JaxrsWebxmlApplication> webxmlApplications = metamodel.findWebxmlApplications();
+		if (javaApplications.isEmpty() && webxmlApplications.isEmpty() && metamodel.hasCustomElements()) {
 			markerManager.addMarker(metamodel,
 					JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND);
 		} else if (javaApplications.size() >= 2 || (javaApplications.size() >= 1 && webxmlApplications.size() >= 1)) {
@@ -79,7 +79,7 @@ public class JaxrsMetamodelValidatorDelegate {
 	 * @throws JavaModelException
 	 */
 	private void validateWebxmlApplication(final IJaxrsApplication webxmlapplication,
-			final List<JaxrsJavaApplication> javaApplications) throws CoreException, JavaModelException {
+			final Collection<JaxrsJavaApplication> javaApplications) throws CoreException, JavaModelException {
 		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) webxmlapplication;
 		// remove previous marker of type APPLICATION_TOO_MANY_OCCURRENCES
 		if((webxmlApplication.isOverride() && javaApplications.size() >= 2)
@@ -122,7 +122,7 @@ public class JaxrsMetamodelValidatorDelegate {
 	 * @param javaNameRange
 	 * @throws CoreException
 	 */
-	public void addTooManyOccurrencesMarker(final AbstractJaxrsBaseElement application, final ISourceRange javaNameRange)
+	public void addTooManyOccurrencesMarker(final JaxrsBaseElement application, final ISourceRange javaNameRange)
 			throws CoreException {
 		markerManager.addMarker(application,
 				javaNameRange, JaxrsValidationMessages.APPLICATION_TOO_MANY_OCCURRENCES, new String[0], JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES);

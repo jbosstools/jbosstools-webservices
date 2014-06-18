@@ -4,6 +4,7 @@
 package org.jboss.tools.ws.jaxrs.ui.navigation;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -119,7 +120,7 @@ public class JaxrsNameBindingHyperlinkDetector extends AbstractHyperlinkDetector
 			final IJaxrsElement associatedJaxrsElement = metamodel.findElement(selectedJavaElement);
 			if(associatedJaxrsElement != null && associatedJaxrsElement.getElementKind() == EnumElementKind.NAME_BINDING) {
 				final JaxrsNameBinding nameBinding = (JaxrsNameBinding) associatedJaxrsElement;
-				final List<IJaxrsElement> matchingElements = metamodel.findElementsByAnnotation(nameBinding.getJavaClassName());
+				final Collection<IJaxrsElement> matchingElements = metamodel.findElementsByAnnotation(nameBinding.getJavaClassName());
 				for(IJaxrsElement matchingElement : matchingElements) {
 					final IJavaElement matchingJavaElement = ((IJaxrsJavaElement)matchingElement).getJavaElement();
 					// skip if the matching/target Java element is part of the current compilation unit

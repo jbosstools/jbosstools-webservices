@@ -38,7 +38,7 @@ import org.apache.lucene.util.Version;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.AbstractJaxrsJavaElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -85,7 +85,7 @@ public class LuceneIndexationTestCase {
 		index.close();
 	}
 
-	private void store(AbstractJaxrsJavaElement<? extends IMember> element) {
+	private void store(JaxrsJavaElement<? extends IMember> element) {
 		elements.put(element.getJavaElement().getHandleIdentifier(), element);
 	}
 	
@@ -96,7 +96,7 @@ public class LuceneIndexationTestCase {
 	private void index(final JaxrsHttpMethod httpMethod) throws IOException {
 		Document doc = new Document();
 		doc.add(new Field("verb", httpMethod.getHttpVerb(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-		doc.add(new Field("javaType", httpMethod.getJavaElement().getFullyQualifiedName(), Field.Store.YES,
+		doc.add(new Field("javaType", httpMethod.getJavaClassName(), Field.Store.YES,
 				Field.Index.NOT_ANALYZED));
 		doc.add(new Field("handleIdentifier", httpMethod.getJavaElement().getHandleIdentifier(), Field.Store.YES,
 				Field.Index.NOT_ANALYZED));
@@ -107,7 +107,7 @@ public class LuceneIndexationTestCase {
 	private void updateIndex(final JaxrsHttpMethod httpMethod) throws IOException {
 		Document doc = new Document();
 		doc.add(new Field("verb", httpMethod.getHttpVerb(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-		doc.add(new Field("javaType", httpMethod.getJavaElement().getFullyQualifiedName(), Field.Store.YES,
+		doc.add(new Field("javaType", httpMethod.getJavaClassName(), Field.Store.YES,
 				Field.Index.NOT_ANALYZED));
 		doc.add(new Field("handleIdentifier", httpMethod.getJavaElement().getHandleIdentifier(), Field.Store.YES,
 				Field.Index.NOT_ANALYZED));
