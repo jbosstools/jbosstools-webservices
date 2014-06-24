@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.codec.binary.Base64;
+import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
  * Tester class for JAX-RS services
@@ -236,7 +237,7 @@ public class JAXRSTester {
         if (Thread.interrupted()) {
             throw new InterruptedException();
         }
-
+        
         // If we are doing a POST and we have some request body to pass along, do it
         if (requestBody != null && ( methodType.equalsIgnoreCase("POST")  //$NON-NLS-1$
         		|| methodType.equalsIgnoreCase("PUT"))) { //$NON-NLS-1$
@@ -252,7 +253,12 @@ public class JAXRSTester {
             throw new InterruptedException();
         }
 
-        // retrieve result and put string results into the response
+        // if we have headers to pass to user, copy them
+        if (httpurlc.getHeaderFields() != null) {
+        	resultHeaders = httpurlc.getHeaderFields();
+        }
+
+    	// retrieve result and put string results into the response
         InputStream is = null;
         try {
 	        is = httpurlc.getInputStream();
@@ -276,21 +282,29 @@ public class JAXRSTester {
         } catch (IOException ie) {
         	try {
 		        is = httpurlc.getErrorStream();
-		        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));//$NON-NLS-1$
-		        StringBuilder sb = new StringBuilder();
-		        String line;
-		        while ((line = br.readLine()) != null) {
-		            sb.append(line);
-		            sb.append("\n");//$NON-NLS-1$
+		        
+		        // is possible that we're getting nothing back in the error stream
+		        if (is != null) {
+			        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));//$NON-NLS-1$
+			        StringBuilder sb = new StringBuilder();
+			        String line;
+			        while ((line = br.readLine()) != null) {
+			            sb.append(line);
+			            sb.append("\n");//$NON-NLS-1$
+			        }
+			        br.close();
+			        resultBody = sb.toString();
 		        }
-		        br.close();
-		        resultBody = sb.toString();
         	} catch (IOException ie2) {
         		resultBody = ie2.getLocalizedMessage();
         	}
         }
         
-        resultHeaders = httpurlc.getHeaderFields();
+        // as a last resort, if we still have nothing to report,
+        // show an error message to the user
+	    if (resultBody == null || resultBody.trim().isEmpty()) {
+	    	resultBody = JBossWSUIMessages.JAXRSRSTestView_Message_Unsuccessful_Test;
+	    }
         
         // disconnect explicitly (may not be necessary)
         httpurlc.disconnect();
