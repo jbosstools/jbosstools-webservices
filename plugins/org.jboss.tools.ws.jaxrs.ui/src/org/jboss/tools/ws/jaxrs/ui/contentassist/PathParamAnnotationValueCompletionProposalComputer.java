@@ -146,7 +146,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 		StyledString displayStyledString = new StyledString(displayString);
 		displayStyledString.setStyle(proposalValue.length(), displayString.length() - proposalValue.length(),
 				StyledString.QUALIFIER_STYLER);
-		return new ContentAssistCompletionProposal(replacementValue, displayStyledString, region, icon, member);
+		return new ContentAssistCompletionProposal(member.getCompilationUnit(), replacementValue, displayStyledString, region, icon, member);
 	}
 
 	/**

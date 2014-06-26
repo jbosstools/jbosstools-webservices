@@ -406,6 +406,7 @@ public class JavaElementsUtils {
 				unit.save(new NullProgressMonitor(), true);
 			}
 			// explicitly trigger the project build
+			unit.getResource().refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
 			unit.getJavaProject().getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
 	
 		} catch (Exception e) {

@@ -21,7 +21,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IImportContainer;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -44,33 +46,33 @@ import org.osgi.framework.Bundle;
 @SuppressWarnings("restriction")
 public class BasicCompletionProposal implements IJavaCompletionProposal {
 
+	private final ICompilationUnit compilationUnit;
+	
 	/**
 	 * The maximum relevance value, to ensure the proposal is at the top of the
 	 * list.
 	 */
 	public static final int MAX_RELEVANCE = 1000;
 
-	protected String additionalProposalInfo;
+	private String additionalProposalInfo;
 
-	protected final IMember member;
+	private final IMember member;
 
-	protected final String replacementString;
+	private final String replacementString;
 
-	protected final int replacementOffset;
+	private final int replacementOffset;
 
-	protected final int replacementLength;
+	private final int replacementLength;
 
-	protected final Image icon;
+	private final Image icon;
 
-	protected final String proposalDisplayString;
+	private final String proposalDisplayString;
 
-	protected final int relevance;
+	private final int relevance;
 
-	protected String fgCSSStyles;
+	private String fgCSSStyles;
 
-	private String additionImport;
-
-	private ICompilationUnit compilationUnit;
+	private String additionalImport;
 
 	/**
 	 * Full Constructor
@@ -81,8 +83,9 @@ public class BasicCompletionProposal implements IJavaCompletionProposal {
 	 * @param icon
 	 * @param member
 	 */
-	public BasicCompletionProposal(final String replacementString, final String proposalDisplayString,
+	public BasicCompletionProposal(final ICompilationUnit compilationUnit, final String replacementString, final String proposalDisplayString,
 			final int replacementOffset, final int replacementLength, final Image icon, final IMember member) {
+		this.compilationUnit = compilationUnit;
 		this.replacementString = replacementString;
 		this.replacementOffset = replacementOffset;
 		this.replacementLength = replacementLength;
@@ -92,11 +95,22 @@ public class BasicCompletionProposal implements IJavaCompletionProposal {
 		this.member = member;
 	}
 
-	protected void includeImportDeclarationAddition(final ICompilationUnit compilationUnit, final String fullyQualifiedName) {
-		this.compilationUnit = compilationUnit;
-		this.additionImport = fullyQualifiedName;
+	protected void includeImportDeclarationAddition(final String fullyQualifiedName) {
+		this.additionalImport = fullyQualifiedName;
 	}
 
+	public int getReplacementOffset() {
+		return replacementOffset;
+	}
+
+	public int getReplacementLength() {
+		return replacementLength;
+	}
+	
+	public String getReplacementString() {
+		return replacementString;
+	}
+	
 	@Override
 	public Point getSelection(IDocument document) {
 		return new Point(replacementOffset + replacementString.length(), 0);
@@ -110,8 +124,10 @@ public class BasicCompletionProposal implements IJavaCompletionProposal {
 	public void apply(IDocument document, char trigger, int offset) {
 		try {
 			document.replace(replacementOffset, replacementLength, replacementString);
-			if(this.additionImport != null) {
-				compilationUnit.createImport(additionImport, null, null);
+			final IImportContainer importContainer = compilationUnit.getImportContainer();
+			if(this.additionalImport != null && !importContainer.getImport(additionalImport).exists()) {
+				final ISourceRange importContainerRange = importContainer.getSourceRange();
+				document.replace(importContainerRange.getOffset() + importContainerRange.getLength(), 0, document.getLineDelimiter(0) + "import " + additionalImport + ";");
 			}
 		} catch (BadLocationException e) {
 			Logger.warn("Failed to replace document content with selected proposal", e);

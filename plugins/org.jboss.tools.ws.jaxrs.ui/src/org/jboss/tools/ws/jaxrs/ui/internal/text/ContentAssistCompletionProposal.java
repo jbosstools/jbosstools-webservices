@@ -11,6 +11,7 @@
 
 package org.jboss.tools.ws.jaxrs.ui.internal.text;
 
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.java.hover.JavadocHover;
@@ -47,9 +48,9 @@ public class ContentAssistCompletionProposal extends BasicCompletionProposal imp
 	 * @param icon
 	 * @param member
 	 */
-	public ContentAssistCompletionProposal(final String replacementString, final StyledString displayStyledString,
+	public ContentAssistCompletionProposal(final ICompilationUnit compilationUnit, final String replacementString, final StyledString displayStyledString,
 			final ITypedRegion region, final Image icon, final IMember member) {
-		super(replacementString, displayStyledString.getString(), region.getOffset(), region.getLength(), icon, member);
+		super(compilationUnit, replacementString, displayStyledString.getString(), region.getOffset(), region.getLength(), icon, member);
 		this.displayStyledString = displayStyledString;
 	}
 
@@ -79,9 +80,9 @@ public class ContentAssistCompletionProposal extends BasicCompletionProposal imp
 	@Override
 	public int getContextInformationPosition() {
 		if (getContextInformation() == null) {
-			return replacementOffset - 1;
+			return getReplacementOffset() - 1;
 		}
-		return replacementOffset + replacementString.length();
+		return getReplacementOffset() + getReplacementString().length();
 	}
 
 	@Override

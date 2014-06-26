@@ -51,6 +51,7 @@ Bundle-ClassPath: .
 Export-Package: org.jboss.tools.ws.jaxrs.ui;x-friends:="org.jboss.tools.ws.jaxrs.ui.test",
  org.jboss.tools.ws.jaxrs.ui.cnf;x-friends:="org.jboss.tools.ws.jaxrs.ui.test",
  org.jboss.tools.ws.jaxrs.ui.configuration;x-friends:="org.jboss.tools.ws.jaxrs.ui.test",
+ org.jboss.tools.ws.jaxrs.ui.internal.text;x-friends:="org.jboss.tools.ws.jaxrs.ui.test",
  org.jboss.tools.ws.jaxrs.ui.internal.utils;x-friends:="org.jboss.tools.ws.jaxrs.ui.test",
  org.jboss.tools.ws.jaxrs.ui.internal.validation;x-friends:="org.jboss.tools.ws.jaxrs.ui.test",
  org.jboss.tools.ws.jaxrs.ui.preferences;x-friends:="org.jboss.tools.ws.jaxrs.ui.test",

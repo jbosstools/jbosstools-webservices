@@ -65,20 +65,22 @@ public abstract class AbstractAnnotationMarkerResolution extends BaseMarkerResol
 	}
 
 	@Override
-	protected CompilationUnitChange getChange(ICompilationUnit compilationUnit){
+	public CompilationUnitChange getChange(final ICompilationUnit compilationUnit){
 		final CompilationUnitChange change = new CompilationUnitChange("", compilationUnit);
 		final MultiTextEdit edit = new MultiTextEdit();
-		change.setEdit(edit);
 		try{
-			MarkerResolutionUtils.addImport(annotationName, compilationUnit, edit);
 			if(editMode == ADD) {
 				MarkerResolutionUtils.addAnnotation(annotationName, compilationUnit, type, annotationValue , edit);
 			} else {
 				MarkerResolutionUtils.updateAnnotation(annotationName, compilationUnit, type, annotationValue, edit);
 			}
+			for(String importName : getImports()) {
+				MarkerResolutionUtils.addImport(importName, compilationUnit, edit);
+			}
 		} catch (JavaModelException e) {
 			Logger.error("Failed to add '@" + annotationName + "' annotation on type '" + type.getFullyQualifiedName() + "'", e);
 		}
+		change.setEdit(edit);
 		return change;
 	}
 

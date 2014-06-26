@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.ui.quickfix;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.osgi.util.NLS;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.text.BasicCompletionProposal;
 
@@ -22,19 +23,19 @@ import org.jboss.tools.ws.jaxrs.ui.internal.text.BasicCompletionProposal;
  * @author xcoulon
  *
  */
-public class AddHttpMethodValueCompletionProposal extends BasicCompletionProposal {
+public class AddNameBindingRetentionValueCompletionProposal extends BasicCompletionProposal {
 
+	
 	/**
 	 * Full constructor
 	 * @param compilationUnit
-	 * @param annotationValue
 	 * @param sourceRange
 	 */
-	public AddHttpMethodValueCompletionProposal(final ICompilationUnit compilationUnit, final String annotationValue,
-			final SourceRange sourceRange) {
-		super(compilationUnit, "@HttpMethod(" + annotationValue + ")", NLS.bind(JaxrsQuickFixMessages.UPDATE_HTTP_METHOD_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE,
-				annotationValue), sourceRange.getOffset(), sourceRange.getLength(), JBossJaxrsUIPlugin.getDefault().getImage(
+	public AddNameBindingRetentionValueCompletionProposal(final ICompilationUnit compilationUnit, final SourceRange sourceRange) {
+		super(compilationUnit, "@Retention(" + AddHttpMethodRetentionAnnotationMarkerResolution.ANNOTATION_VALUE + ")", NLS.bind(JaxrsQuickFixMessages.UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE,
+				AddHttpMethodRetentionAnnotationMarkerResolution.ANNOTATION_VALUE), sourceRange.getOffset(), sourceRange.getLength(), JBossJaxrsUIPlugin.getDefault().getImage(
 				"annotation_obj.gif"), null);
+		includeImportDeclarationAddition(JaxrsClassnames.RETENTION_POLICY);
 	}
 
 }

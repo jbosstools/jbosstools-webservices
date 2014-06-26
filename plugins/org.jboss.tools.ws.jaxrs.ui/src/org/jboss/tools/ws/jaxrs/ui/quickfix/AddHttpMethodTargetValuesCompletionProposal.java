@@ -19,24 +19,25 @@ import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.text.BasicCompletionProposal;
 
 /**
- * Completion proposal for the {@code @java.lang.annotation.Target} annotation
+ * Completion proposal for the {@code @java.lang.annotation.Target} annotation on JAX-RS HTTP Method annotations
  * @author xcoulon
  *
  */
-public class AddTargetValuesCompletionProposal extends BasicCompletionProposal {
+public class AddHttpMethodTargetValuesCompletionProposal extends BasicCompletionProposal {
 
+	public static final String ANNOTATION_VALUE = "ElementType.METHOD";
+	
 	/**
 	 * Full constructor
 	 * @param compilationUnit
-	 * @param annotationValues
 	 * @param sourceRange
 	 */
-	public AddTargetValuesCompletionProposal(final ICompilationUnit compilationUnit, final String annotationValues,
+	public AddHttpMethodTargetValuesCompletionProposal(final ICompilationUnit compilationUnit,
 			final SourceRange sourceRange) {
-		super("@Target(" + annotationValues + ")", NLS.bind(JaxrsQuickFixMessages.UPDATE_TARGET_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE,
-				annotationValues), sourceRange.getOffset(), sourceRange.getLength(), JBossJaxrsUIPlugin.getDefault().getImage(
+		super(compilationUnit, "@Target(" + ANNOTATION_VALUE + ")", NLS.bind(JaxrsQuickFixMessages.UPDATE_TARGET_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE,
+				ANNOTATION_VALUE), sourceRange.getOffset(), sourceRange.getLength(), JBossJaxrsUIPlugin.getDefault().getImage(
 				"annotation_obj.gif"), null);
-		includeImportDeclarationAddition(compilationUnit, JaxrsClassnames.ELEMENT_TYPE);
+		includeImportDeclarationAddition(JaxrsClassnames.ELEMENT_TYPE);
 	}
 	
 	

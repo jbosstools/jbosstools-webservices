@@ -64,24 +64,21 @@ public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerato
 			if (type != null) {
 				switch (quickfixId) {
 				case JaxrsMarkerResolutionIds.HTTP_METHOD_MISSING_TARGET_ANNOTATION_QUICKFIX_ID:
-					return new IMarkerResolution[] { new AddTargetAnnotationMarkerResolution(type, "ElementType.METHOD") };
+					return new IMarkerResolution[] { new AddHttpMethodTargetAnnotationMarkerResolution(type) };
 				case JaxrsMarkerResolutionIds.NAME_BINDING_MISSING_TARGET_ANNOTATION_QUICKFIX_ID:
-					return new IMarkerResolution[] { new AddTargetAnnotationMarkerResolution(type,
-							"{ElementType.TYPE, ElementType.METHOD}") };
+					return new IMarkerResolution[] { new AddNameBindingTargetAnnotationMarkerResolution(type) };
 				case JaxrsMarkerResolutionIds.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE_QUICKFIX_ID:
-					return new IMarkerResolution[] { new UpdateTargetAnnotationValueMarkerResolution(type,
-							"ElementType.METHOD") };
+					return new IMarkerResolution[] { new UpdateHttpMethodTargetAnnotationValueMarkerResolution(type) };
 				case JaxrsMarkerResolutionIds.NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE_QUICKFIX_ID:
-					return new IMarkerResolution[] { new UpdateTargetAnnotationValueMarkerResolution(type,
-							"{ElementType.TYPE, ElementType.METHOD}") };
+					return new IMarkerResolution[] { new UpdateHttpMethodTargetAnnotationValueMarkerResolution(type) };
 				case JaxrsMarkerResolutionIds.HTTP_METHOD_MISSING_RETENTION_ANNOTATION_QUICKFIX_ID:
+					return new IMarkerResolution[] { new AddHttpMethodRetentionAnnotationMarkerResolution(type) };
 				case JaxrsMarkerResolutionIds.NAME_BINDING_MISSING_RETENTION_ANNOTATION_QUICKFIX_ID:
-					return new IMarkerResolution[] { new AddRetentionAnnotationMarkerResolution(type,
-							"RetentionPolicy.RUNTIME") };
+					return new IMarkerResolution[] { new AddNameBindingRetentionAnnotationMarkerResolution(type) };
 				case JaxrsMarkerResolutionIds.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE_QUICKFIX_ID:
+					return new IMarkerResolution[] { new UpdateHttpMethodRetentionAnnotationValueMarkerResolution(type) };
 				case JaxrsMarkerResolutionIds.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE_QUICKFIX_ID:
-					return new IMarkerResolution[] { new UpdateRetentionAnnotationValueMarkerResolution(type,
-							"RetentionPolicy.RUNTIME") };
+					return new IMarkerResolution[] { new UpdateNameBindingRetentionAnnotationValueMarkerResolution(type) };
 				}
 			}
 		} catch (CoreException e) {
@@ -163,17 +160,25 @@ public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerato
 		if (qualifiedName.equals(JaxrsClassnames.TARGET)) {
 			switch (jaxrsElement.getElementKind()) {
 			case HTTP_METHOD:
-				return new AddTargetValuesCompletionProposal(compilationUnit, "ElementType.METHOD",
+				return new AddHttpMethodTargetValuesCompletionProposal(compilationUnit,
 						findEffectiveSourceRange(compilationUnit, problemLocation));
 			case NAME_BINDING:
-				return new AddTargetValuesCompletionProposal(compilationUnit, "{ElementType.TYPE, ElementType.METHOD}",
+				return new AddHttpMethodTargetValuesCompletionProposal(compilationUnit,
 						findEffectiveSourceRange(compilationUnit, problemLocation));
 			default:
 				return null;
 			}
 		} else if (qualifiedName.equals(JaxrsClassnames.RETENTION)) {
-			return new AddRetentionValueCompletionProposal(compilationUnit, "RetentionPolicy.RUNTIME",
-					findEffectiveSourceRange(compilationUnit, problemLocation));
+			switch (jaxrsElement.getElementKind()) {
+			case HTTP_METHOD:
+				return new AddHttpMethodRetentionValueCompletionProposal(compilationUnit,
+						findEffectiveSourceRange(compilationUnit, problemLocation));
+			case NAME_BINDING:
+				return new AddNameBindingRetentionValueCompletionProposal(compilationUnit,
+						findEffectiveSourceRange(compilationUnit, problemLocation));
+			default:
+				return null;
+			}
 		} else if (qualifiedName.equals(JaxrsClassnames.HTTP_METHOD)) {
 			final IJavaElement httpMethodType = annotation.getAncestor(IJavaElement.TYPE);
 			return new AddHttpMethodValueCompletionProposal(compilationUnit, "\"" + httpMethodType.getElementName()
@@ -191,7 +196,7 @@ public class JaxrsMarkerResolutionGenerator implements IMarkerResolutionGenerato
 	 *         following the given problem location (including spaces)
 	 * @throws JavaModelException
 	 */
-	private static SourceRange findEffectiveSourceRange(final ICompilationUnit compilationUnit,
+	public static SourceRange findEffectiveSourceRange(final ICompilationUnit compilationUnit,
 			final IProblemLocation problemLocation) {
 		try {
 			final String source = compilationUnit.getSource();

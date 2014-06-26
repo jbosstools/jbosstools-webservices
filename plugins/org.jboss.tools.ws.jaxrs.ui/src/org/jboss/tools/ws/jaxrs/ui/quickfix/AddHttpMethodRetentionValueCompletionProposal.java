@@ -23,20 +23,19 @@ import org.jboss.tools.ws.jaxrs.ui.internal.text.BasicCompletionProposal;
  * @author xcoulon
  *
  */
-public class AddRetentionValueCompletionProposal extends BasicCompletionProposal {
+public class AddHttpMethodRetentionValueCompletionProposal extends BasicCompletionProposal {
 
+	
 	/**
 	 * Full constructor
 	 * @param compilationUnit
-	 * @param annotationValue
 	 * @param sourceRange
 	 */
-	public AddRetentionValueCompletionProposal(final ICompilationUnit compilationUnit, final String annotationValue,
-			final SourceRange sourceRange) {
-		super("@Retention(" + annotationValue + ")", NLS.bind(JaxrsQuickFixMessages.UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE,
-				annotationValue), sourceRange.getOffset(), sourceRange.getLength(), JBossJaxrsUIPlugin.getDefault().getImage(
+	public AddHttpMethodRetentionValueCompletionProposal(final ICompilationUnit compilationUnit, final SourceRange sourceRange) {
+		super(compilationUnit, "@Retention(" + AddHttpMethodRetentionAnnotationMarkerResolution.ANNOTATION_VALUE + ")", NLS.bind(JaxrsQuickFixMessages.UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE,
+				AddHttpMethodRetentionAnnotationMarkerResolution.ANNOTATION_VALUE), sourceRange.getOffset(), sourceRange.getLength(), JBossJaxrsUIPlugin.getDefault().getImage(
 				"annotation_obj.gif"), null);
-		includeImportDeclarationAddition(compilationUnit, JaxrsClassnames.RETENTION_POLICY);
+		includeImportDeclarationAddition(JaxrsClassnames.RETENTION_POLICY);
 	}
 
 }

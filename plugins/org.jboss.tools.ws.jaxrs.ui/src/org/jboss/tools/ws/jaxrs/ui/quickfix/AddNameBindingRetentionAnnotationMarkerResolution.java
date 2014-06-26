@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.quickfix;
 
+
 import org.eclipse.jdt.core.IType;
 import org.eclipse.osgi.util.NLS;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
@@ -18,25 +19,21 @@ import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
  * @author Xavier Coulon
  *
  */
-public class UpdateRetentionAnnotationValueMarkerResolution extends AbstractAnnotationMarkerResolution {
-
+public class AddNameBindingRetentionAnnotationMarkerResolution extends AbstractAnnotationMarkerResolution  {
+	
+	public static final String ANNOTATION_VALUE = "RetentionPolicy.RUNTIME";
+			
 	/**
 	 * Constructor.
-	 * 
-	 * @param type
-	 *            the type on which the {@code @java.lang.annotation.Retention}
-	 *            annotation should be updated
-	 * @param annotationValue
-	 *            the new annotation value(s) to set
+	 * @param type the type on which the {@code @java.lang.annotation.Retention} annotation should be added 
 	 */
-	public UpdateRetentionAnnotationValueMarkerResolution(final IType type, final String annotationValue) {
-		super(type, JaxrsClassnames.RETENTION, annotationValue, AbstractAnnotationMarkerResolution.UPDATE, NLS.bind(
-				JaxrsQuickFixMessages.UPDATE_RETENTION_ANNOTATION_VALUE_MARKER_RESOLUTION_TITLE, annotationValue));
-	}
-
-	@Override
-	String[] getImports() {
-		return new String[] { "java.lang.annotation.RetentionPolicy" };
+	public AddNameBindingRetentionAnnotationMarkerResolution(final IType type){
+		super(type, JaxrsClassnames.RETENTION,  ANNOTATION_VALUE, AbstractAnnotationMarkerResolution.ADD, NLS.bind(JaxrsQuickFixMessages.ADD_RETENTION_ANNOTATION_MARKER_RESOLUTION_TITLE, type.getElementName()));
 	}
 	
+	@Override
+	String[] getImports() {
+		return new String[]{"java.lang.annotation.RetentionPolicy"};
+	}
+
 }

@@ -261,4 +261,16 @@ public class ResourcesUtils {
 		return null;
 	}
 
+	/**
+	 * Replace the content of the given {@link IFile} with the given 'newContent'.
+	 * @param file the file whose content should be replaced
+	 * @param newContent the replacement content 
+	 * @throws CoreException 
+	 */
+	public static void replaceContent(final IResource file, String newContent) throws CoreException {
+		file.delete(true, new NullProgressMonitor());
+		((IFile) file).create(IOUtils.toInputStream(newContent), true, null);
+		file.refreshLocal(IResource.DEPTH_ONE, null);
+	}
+
 }
