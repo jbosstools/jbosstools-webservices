@@ -104,7 +104,7 @@ public class ProjectBuilderUtilsTestCase {
 		ResourcesUtils
 				.replaceContent(
 						dotProjectFile,
-						"<!-- buildCommand><name>org.eclipse.wst.validation.validationbuilder</name><arguments></arguments></buildCommand -->",
+						"<!-- PLACEHOLDER -->",
 						"<buildCommand><name>org.eclipse.wst.validation.validationbuilder</name><arguments></arguments></buildCommand>");
 		assertThat(getCommandNames(sampleProject.getProject()).length, equalTo(3));
 		// operation

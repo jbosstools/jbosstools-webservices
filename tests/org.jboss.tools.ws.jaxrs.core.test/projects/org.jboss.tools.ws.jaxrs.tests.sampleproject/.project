@@ -15,8 +15,7 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
-		<!-- DO NOT MODIFY/REFORMAT -->
-		<!-- buildCommand><name>org.eclipse.wst.validation.validationbuilder</name><arguments></arguments></buildCommand -->
+		<!-- PLACEHOLDER -->
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jem.workbench.JavaEMFNature</nature>
