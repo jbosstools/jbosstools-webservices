@@ -362,7 +362,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE, new String[] {
 				changedResource.getProject().getName(), changedResource.getName() });
 		try {
-			if (metamodel != null) {
+			if (metamodel != null && changedResource != null && changedResource.exists()) {
 				if(changedResource.getType() == IResource.PROJECT) {
 					validate(metamodel);
 				} else {
@@ -407,8 +407,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				changedFile.getFullPath());
 		try {
 			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
-			if (metamodel != null) {
-				final ICompilationUnit changedCompilationUnit = JdtUtils.getCompilationUnit(changedFile);
+			final ICompilationUnit changedCompilationUnit = JdtUtils.getCompilationUnit(changedFile);
+			if (metamodel != null && changedCompilationUnit != null) {
 				//final CompilationUnit ast = JdtUtils.parse(changedCompilationUnit, new NullProgressMonitor());
 				final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(changedCompilationUnit);
 				final Set<IJaxrsElement> changedJaxrsElements = new HashSet<IJaxrsElement>();
