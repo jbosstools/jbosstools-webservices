@@ -34,6 +34,7 @@ public class URLTemplateParameter {
 
 		private String name = null;
 		private String datatype = null;
+		private String defaultValue = null;
 		private final String originalContent;
 		private EnumParamType paramType;
 
@@ -62,13 +63,18 @@ public class URLTemplateParameter {
 			return this;
 		}
 
+		public Builder withDefaultValue(final String defaultValue) {
+			this.defaultValue = defaultValue;
+			return this;
+		}
+
 		public Builder withParamType(final EnumParamType paramType) {
 			this.paramType = paramType;
 			return this;
 		}
 
 		public URLTemplateParameter build() {
-			return new URLTemplateParameter(originalContent, name, datatype, paramType);
+			return new URLTemplateParameter(originalContent, name, datatype, defaultValue, paramType);
 		}
 
 	}
@@ -81,6 +87,9 @@ public class URLTemplateParameter {
 	
 	/** The datatype associated with this param. */
 	private final String datatype;
+	
+	/** The default value associated with this param. */
+	private final String defaultValue;
 	
 	/** The type of parameter. */
 	private final EnumParamType paramType;
@@ -102,11 +111,13 @@ public class URLTemplateParameter {
 	 * @param mandatory
 	 * @param datatype
 	 */
-	private URLTemplateParameter(final String originalContent, final String name, final String datatype,
+	private URLTemplateParameter(final String originalContent, final String name, final String datatype, final String defaultValue,
 			final EnumParamType paramType) {
 		this.originalContent = originalContent;
 		this.name = name;
 		this.datatype = datatype;
+		this.defaultValue = defaultValue != null ? defaultValue : ""; //$NON-NLS-1$
+		this.value = this.defaultValue;
 		this.regex = getRegex(datatype);
 		this.paramType = paramType;
 
@@ -262,6 +273,13 @@ public class URLTemplateParameter {
 	}
 
 	/**
+	 * @return the optional default value
+	 */
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+	
+	/**
 	 * @return the value
 	 */
 	public String getValue() {
@@ -313,6 +331,9 @@ public class URLTemplateParameter {
 	 */
 	@Override
 	public String toString() {
+		if(defaultValue != null) {
+			return (name + ", " + datatype + "=" + defaultValue + ", " + originalContent + " (" + paramType + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
+		}
 		return (name + ", " + datatype + ", " + originalContent + " (" + paramType + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
 	}
 

@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 
 import org.jboss.tools.ws.ui.dialogs.EnumParamType;
 import org.jboss.tools.ws.ui.dialogs.URLTemplateParameter;
-import org.jboss.tools.ws.ui.dialogs.URLTemplateParameter.Builder;
 
 /**
  * Utility class to parse an URL Template and extract all the parameters from
@@ -30,10 +29,14 @@ import org.jboss.tools.ws.ui.dialogs.URLTemplateParameter.Builder;
 public class JAXRSPathTemplateParser {
 
 	/** Pattern to match expression such as {@code "{name:int}" }.*/
-	private static final Pattern pathParamPattern = Pattern.compile("\\{(\\w+):(.*)\\}"); //$NON-NLS-1$
+	private static final Pattern PATH_PARAM_TEMPLATE_PATTERN = Pattern.compile("\\{(\\w+):([^:]+)\\}"); //$NON-NLS-1$
 	
 	/** Pattern to match expression such as {@code "name={int}" }.*/
-	private static final Pattern optionalParamsPattern = Pattern.compile("(;|\\?|&)(\\w+)=\\{(.*)\\}"); //$NON-NLS-1$
+	private static final Pattern OPTIONAL_PARAM_TEMPLATE_PATTERN = Pattern.compile("(;|\\?|&)(\\w+)=\\{([^:]+)\\}"); //$NON-NLS-1$
+
+	/** Pattern to match expression such as <pre>name={String:"FOO"}</pre> or <pre>name={int:"123.456"}</pre>. */
+	private static final Pattern OPTIONAL_PARAM_WITH_DEFAULT_VALUE_TEMPLATE_PATTERN = Pattern.compile("(;|\\?|&)(\\w+)=\\{([^:]+):\"(.+)\"\\}"); //$NON-NLS-1$
+	
 	/**
 	 * Parses the given urlTemplate and extracts all
 	 * {@link URLTemplateParameter}s from it.
@@ -67,49 +70,93 @@ public class JAXRSPathTemplateParser {
 		// '}' characters
 		int scanIndex = 0;
 		while (scanIndex != -1 || scanIndex >= urlTemplate.length()) {
-			final int beginIndex = urlTemplate.indexOf('{', scanIndex);
-			final int endIndex = urlTemplate.indexOf('}', beginIndex);
-			if (beginIndex == -1 || endIndex == -1) {
+			final int bracketBeginIndex = urlTemplate.indexOf('{', scanIndex);
+			final int bracketEndIndex = urlTemplate.indexOf('}', bracketBeginIndex);
+			final int commaBeginIndex = urlTemplate.indexOf(';', scanIndex);
+			final int questionMarkBeginIndex = urlTemplate.indexOf('?', scanIndex);
+			final int ampersandMarkBeginIndex = urlTemplate.indexOf('&', scanIndex);
+			if (bracketBeginIndex == -1 || bracketEndIndex == -1) {
 				break;
 			}
-			String expression = urlTemplate.substring(beginIndex, endIndex + 1);
-			// expression is of the form: {$name:$type}
-			if (expression.contains(":")) { //$NON-NLS-1$
-				final Matcher m = pathParamPattern.matcher(expression);
-				if(m.matches()) {
+			// now, let see which character comes first: bracket, comma, question mark or ampersand
+			int nextCharacterIndex = nextCharacterIndex(bracketBeginIndex, commaBeginIndex, questionMarkBeginIndex, ampersandMarkBeginIndex);
+			if(nextCharacterIndex == -1) {
+				break;
+			}
+			final char nextCharacter = urlTemplate.charAt(nextCharacterIndex);
+			if(nextCharacter == '{') {
+				final String expression = urlTemplate.substring(nextCharacterIndex, bracketEndIndex + 1);
+				final Matcher pathParamTemplateMatcher = PATH_PARAM_TEMPLATE_PATTERN.matcher(expression);
+				if(pathParamTemplateMatcher.matches()) {
 					final URLTemplateParameter templateParameter = URLTemplateParameter.Builder.from(expression)
-							.withName(m.group(1), true).withDatatype(m.group(2)).withParamType(EnumParamType.PATH_PARAM).build();
+							.withName(pathParamTemplateMatcher.group(1), true)
+							.withDatatype(pathParamTemplateMatcher.group(2)).withParamType(EnumParamType.PATH_PARAM)
+							.build();
 					templateParameters.add(templateParameter);
 				}
-			}
-			// expression is of the form: $name={$type}, we should rewind the
-			// scanner
-			else {
-				final String prefix = urlTemplate.substring(scanIndex, beginIndex);
-				final int rewindedLocation = CharSearcher.findLastIndexOf(';', '?', '&').in(prefix);
-				expression = urlTemplate.substring(scanIndex + rewindedLocation, endIndex + 1);
-				final Matcher m = optionalParamsPattern.matcher(expression);
-				if(m.matches()) {
-					final Builder builder = URLTemplateParameter.Builder.from(expression)
-						.withName(m.group(2), false).withDatatype(m.group(3));
-					char separator = prefix.charAt(rewindedLocation);
-					switch(separator) {
-					case ';':
-						builder.withParamType(EnumParamType.MATRIX_PARAM);
-						break;
-					case '?':
-					case '&':
-						builder.withParamType(EnumParamType.QUERY_PARAM);
-						break;
-					}
-					final URLTemplateParameter templateParameter = builder.build();
+				scanIndex = nextCharacterIndex+expression.length();
+			} else if(nextCharacter == ';' || nextCharacter == '?' || nextCharacter == '&') {
+				final String expression = urlTemplate.substring(nextCharacterIndex, bracketEndIndex + 1);
+				final Matcher optionalParamTemplateMatcher = OPTIONAL_PARAM_TEMPLATE_PATTERN.matcher(expression);
+				final Matcher optionalParamWithDefaultStringValueTemplateMatcher = OPTIONAL_PARAM_WITH_DEFAULT_VALUE_TEMPLATE_PATTERN.matcher(expression);
+				if(optionalParamTemplateMatcher.matches()) {
+					final URLTemplateParameter templateParameter = URLTemplateParameter.Builder.from(expression)
+							.withName(optionalParamTemplateMatcher.group(2), true)
+							.withDatatype(optionalParamTemplateMatcher.group(3))
+							.withParamType(getParamType(nextCharacter)).build();
+					templateParameters.add(templateParameter);
+				} else if(optionalParamWithDefaultStringValueTemplateMatcher.matches()) {
+					final URLTemplateParameter templateParameter = URLTemplateParameter.Builder.from(expression)
+							.withName(optionalParamWithDefaultStringValueTemplateMatcher.group(2), true)
+							.withDatatype(optionalParamWithDefaultStringValueTemplateMatcher.group(3))
+							.withDefaultValue(optionalParamWithDefaultStringValueTemplateMatcher.group(4))
+							.withParamType(getParamType(nextCharacter)).build();
 					templateParameters.add(templateParameter);
 				}
+				scanIndex = nextCharacterIndex+expression.length();
 			}
-			scanIndex = endIndex+1;
+			
 		}
 
 		return templateParameters.toArray(new URLTemplateParameter[templateParameters.size()]);
+	}
+
+	/**
+	 * @param nextCharacter
+	 * @return the {@link EnumParamType} given the character:
+	 * <ul>
+	 * <li>{@code ;} -> {@link EnumParamType#MATRIX_PARAM}</li>
+	 * <li>{@code ?} -> {@link EnumParamType#QUERY_PARAM}</li>
+	 * <li>{@code &} -> {@link EnumParamType#QUERY_PARAM}</li>
+	 *</ul> 
+	 */
+	private static EnumParamType getParamType(final char nextCharacter) {
+		switch(nextCharacter) {
+		case '?':
+		case '&':
+			return EnumParamType.QUERY_PARAM;
+		case ';':
+			return EnumParamType.MATRIX_PARAM;
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the lowest character index value in the given values, excluding the {@code -1} value.
+	 * @param characterIndexes
+	 * @return the lowest characterIndex value
+	 */
+	private static int nextCharacterIndex(final int... characterIndexes) {
+		int minValue = Integer.MAX_VALUE;
+		for(int characterIndex : characterIndexes) {
+			if(characterIndex != -1) {
+				minValue = Math.min(minValue, characterIndex);
+			}
+		}
+		if(minValue ==Integer.MAX_VALUE) {
+			return -1;
+		}
+		return minValue;
 	}
 
 	/**

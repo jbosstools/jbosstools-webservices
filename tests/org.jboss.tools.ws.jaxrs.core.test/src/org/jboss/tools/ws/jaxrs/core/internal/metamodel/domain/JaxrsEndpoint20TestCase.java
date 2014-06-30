@@ -83,8 +83,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(carResource);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 	}
 
@@ -97,8 +97,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(carResource);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -110,8 +110,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 	}
 
@@ -125,8 +125,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(endpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -139,8 +139,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 			assertThat(endpoint.getUriPathTemplate(), containsString("model={String}"));
 		}
 	}
@@ -156,8 +156,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(endpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -170,8 +170,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("model={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("model={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 	}
 	
@@ -186,8 +186,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(endpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -201,8 +201,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 	}
 	
@@ -217,8 +217,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -230,8 +230,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(carResource);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 
@@ -246,8 +246,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamField);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -259,8 +259,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(carResource);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 	
@@ -272,8 +272,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(carResource);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -286,8 +286,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(createdMethod);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 	}
 
@@ -300,8 +300,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(carResource);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -313,8 +313,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(beanParamMethod);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 	}
 	
@@ -328,8 +328,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamMethod);
 		assertThat(endpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -342,8 +342,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(beanParamMethod);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("model={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("model={String:\"shape!\"}"));
 		}
 	}
 	
@@ -357,8 +357,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamMethod);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -371,8 +371,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(carResource);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 
@@ -386,8 +386,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(beanParamMethod);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -400,8 +400,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(carResource);
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 
@@ -413,8 +413,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(carResource);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -428,14 +428,14 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(replacementJavaMethod);
 		assertThat(modifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		final Collection<JaxrsEndpoint> unmodifiedEndpoints = metamodel.findEndpoints(JavaElementsUtils.getMethod(carResource.getJavaElement(), "findById"));
 		assertThat(unmodifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : unmodifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 
@@ -447,8 +447,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(carResource);
 		assertThat(endpoints.size(), equalTo(2));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -464,15 +464,15 @@ public class JaxrsEndpoint20TestCase {
 		assertThat(modifiedEndpoints.size(), equalTo(2));
 		for (JaxrsEndpointDelta endpointDelta : modifiedEndpoints) {
 			if(endpointDelta.getKind() == ADDED) {
-				assertThat(endpointDelta.getEndpoint().getUriPathTemplate(), containsString("color={String:color!}"));
-				assertThat(endpointDelta.getEndpoint().getUriPathTemplate(), containsString("shape={String:shape!}"));
+				assertThat(endpointDelta.getEndpoint().getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+				assertThat(endpointDelta.getEndpoint().getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 			}
 		}
 		final Collection<JaxrsEndpoint> unmodifiedEndpoints = metamodel.findEndpoints(JavaElementsUtils.getMethod(carResource.getJavaElement(), "findById"));
 		assertThat(unmodifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : unmodifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 	
@@ -488,8 +488,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(replacedJavaMethod);
 		assertThat(endpoints.size(), equalTo(1));
 		for(JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -502,14 +502,14 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(replacedJavaMethod);
 		assertThat(modifiedEndpoints.size(), equalTo(1));
 		for(JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("model={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("model={String:\"shape!\"}"));
 		}
 		final Collection<JaxrsEndpoint> unmodifiedEndpoints = metamodel.findEndpoints(JavaElementsUtils.getMethod(carResource.getJavaElement(), "findById"));
 		assertThat(unmodifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : unmodifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 	
@@ -525,8 +525,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(replacedJavaMethod);
 		assertThat(endpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -541,15 +541,15 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(restoredJavaMethod);
 		assertThat(modifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 		final IJaxrsElement otherJavaMethod = metamodel.findElement(JavaElementsUtils.getMethod(carResource.getJavaElement(), "findById"));
 		final Collection<JaxrsEndpoint> unmodifiedEndpoints = metamodel.findEndpoints(otherJavaMethod);
 		assertThat(unmodifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : unmodifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 	
@@ -565,8 +565,8 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(modifiedMethod);
 		assertThat(endpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : endpoints) {
-			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:color!}"));
-			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:shape!}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("color={String:\"color!\"}"));
+			assertThat(endpoint.getUriPathTemplate(), containsString("shape={String:\"shape!\"}"));
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 
@@ -579,14 +579,14 @@ public class JaxrsEndpoint20TestCase {
 		final Collection<JaxrsEndpoint> modifiedEndpoints = metamodel.findEndpoints(modifiedMethod);
 		assertThat(modifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : modifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 		final Collection<JaxrsEndpoint> unmodifiedEndpoints = metamodel.findEndpoints(modifiedMethod);
 		assertThat(unmodifiedEndpoints.size(), equalTo(1));
 		for (JaxrsEndpoint endpoint : unmodifiedEndpoints) {
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:color!}")));
-			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:shape!}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("color={String:\"color!\"}")));
+			assertThat(endpoint.getUriPathTemplate(), not(containsString("shape={String:\"shape!\"}")));
 		}
 	}
 	

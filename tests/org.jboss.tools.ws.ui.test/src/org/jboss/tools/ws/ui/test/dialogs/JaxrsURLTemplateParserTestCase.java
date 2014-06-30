@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import junit.framework.TestCase;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -28,7 +29,7 @@ import org.junit.Test;
  * @author xcoulon
  * 
  */
-public class JaxrsURLTemplateParserTestCase {
+public class JaxrsURLTemplateParserTestCase extends TestCase {
 
 	/**
 	 * Generates a custom matcher for the {@link URLTemplateParameter} based on
@@ -47,7 +48,9 @@ public class JaxrsURLTemplateParserTestCase {
 			@Override
 			public boolean matches(Object item) {
 				final URLTemplateParameter templateParam = (URLTemplateParameter) item;
-				return templateParam.getName().equals(name) && templateParam.getDatatype().equals(type)
+				return templateParam.getName().equals(name) 
+						&& templateParam.getDatatype().equals(type)
+						&& templateParam.getDefaultValue().isEmpty()
 						&& templateParam.getOriginalContent().equals(originalContent)
 						&& templateParam.getParameterType() == paramType;
 			}
@@ -60,8 +63,40 @@ public class JaxrsURLTemplateParserTestCase {
 		};
 	}
 
+	/**
+	 * Generates a custom matcher for the {@link URLTemplateParameter} based on
+	 * the given parameters
+	 * 
+	 * @param name
+	 * @param type
+	 * @param originalContent
+	 * @param mandatory
+	 * @return
+	 */
+	private Matcher<URLTemplateParameter> matches(final String name, final String type, final String defaultValue, final String originalContent,
+			final EnumParamType paramType) {
+		return new BaseMatcher<URLTemplateParameter>() {
+			
+			@Override
+			public boolean matches(Object item) {
+				final URLTemplateParameter templateParam = (URLTemplateParameter) item;
+				return templateParam.getName().equals(name) 
+						&& templateParam.getDatatype().equals(type)
+						&& templateParam.getDefaultValue().equals(defaultValue)
+						&& templateParam.getOriginalContent().equals(originalContent)
+						&& templateParam.getParameterType() == paramType;
+			}
+			
+			@Override
+			public void describeTo(Description description) {
+				description.appendText(name + ", " + type + "=" + defaultValue + ", " + originalContent + " ("+ paramType + ")");
+			}
+			
+		};
+	}
+
 	@Test
-	public void shouldParseURLTemplateWith3MandatoryParameters() {
+	public void testParseURLTemplateWith3MandatoryParameters() {
 		// given
 		final String template = "http://localhost/application/rest/{path:String}/{to:String}/{id:Integer}";
 		// when
@@ -77,7 +112,113 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldParseURLTemplateWithACrazyMixOfParameters() {
+	public void testParseURLTemplateWithMatrixParamWithoutDefaultValue() {
+		// given
+		final String template = "http://localhost:8080/org.jboss.tools.ws.jaxrs.tests.sampleproject2/app/customers/{id:Integer};country={String}";
+		// when
+		final URLTemplateParameter[] templateParameters = JAXRSPathTemplateParser.parse(template);
+		// then
+		assertThat(templateParameters.length, equalTo(2));
+		// param #1
+		assertThat(templateParameters[0], matches("id", "Integer", "{id:Integer}", EnumParamType.PATH_PARAM));
+		// param #2
+		assertThat(templateParameters[1], matches("country", "String", ";country={String}", EnumParamType.MATRIX_PARAM));
+	}
+
+	@Test
+	public void testParseURLTemplateWithTwoMatrixParamsWithDefaultValue() {
+		// given
+		final String template = "http://localhost:8080/org.jboss.tools.ws.jaxrs.tests.sampleproject2/app/customers/{id:Integer};country={String:\"EN\"};long={long:\"123456\"}";
+		// when
+		final URLTemplateParameter[] templateParameters = JAXRSPathTemplateParser.parse(template);
+		// then
+		assertThat(templateParameters.length, equalTo(3));
+		// param #1
+		assertThat(templateParameters[0], matches("id", "Integer", "{id:Integer}", EnumParamType.PATH_PARAM));
+		// param #2
+		assertThat(templateParameters[1], matches("country", "String", "EN", ";country={String:\"EN\"}", EnumParamType.MATRIX_PARAM));
+		// param #3
+		assertThat(templateParameters[2], matches("long", "long", "123456", ";long={long:\"123456\"}", EnumParamType.MATRIX_PARAM));
+	}
+
+	@Test
+	public void testParseURLTemplateWithQueryParamWithoutDefaultValue() {
+		// given
+		final String template = "http://localhost:8080/org.jboss.tools.ws.jaxrs.tests.sampleproject2/app/customers/{id:Integer}?country={String}";
+		// when
+		final URLTemplateParameter[] templateParameters = JAXRSPathTemplateParser.parse(template);
+		// then
+		assertThat(templateParameters.length, equalTo(2));
+		// param #1
+		assertThat(templateParameters[0], matches("id", "Integer", "{id:Integer}", EnumParamType.PATH_PARAM));
+		// param #2
+		assertThat(templateParameters[1], matches("country", "String", "?country={String}", EnumParamType.QUERY_PARAM));
+	}
+
+	@Test
+	public void testParseURLTemplateWithTwoQueryParamWithoutDefaultValue() {
+		// given
+		final String template = "http://localhost:8080/org.jboss.tools.ws.jaxrs.tests.sampleproject2/app/customers/{id:Integer}?country={String}&lang={String}";
+		// when
+		final URLTemplateParameter[] templateParameters = JAXRSPathTemplateParser.parse(template);
+		// then
+		assertThat(templateParameters.length, equalTo(3));
+		// param #1
+		assertThat(templateParameters[0], matches("id", "Integer", "{id:Integer}", EnumParamType.PATH_PARAM));
+		// param #2
+		assertThat(templateParameters[1], matches("country", "String", "?country={String}", EnumParamType.QUERY_PARAM));
+		// param #3
+		assertThat(templateParameters[2], matches("lang", "String", "&lang={String}", EnumParamType.QUERY_PARAM));
+	}
+	
+	@Test
+	public void testParseURLTemplateWithQueryParamWithDefaultValue() {
+		// given
+		final String template = "http://localhost:8080/org.jboss.tools.ws.jaxrs.tests.sampleproject2/app/customers/{id:Integer}?country={String:\"EN\"}";
+		// when
+		final URLTemplateParameter[] templateParameters = JAXRSPathTemplateParser.parse(template);
+		// then
+		assertThat(templateParameters.length, equalTo(2));
+		// param #1
+		assertThat(templateParameters[0], matches("id", "Integer", "{id:Integer}", EnumParamType.PATH_PARAM));
+		// param #2
+		assertThat(templateParameters[1], matches("country", "String", "EN", "?country={String:\"EN\"}", EnumParamType.QUERY_PARAM));
+	}
+	
+	@Test
+	public void testParseURLTemplateWithTwoQueryParamsWithDefaultValue() {
+		// given
+		final String template = "http://localhost:8080/org.jboss.tools.ws.jaxrs.tests.sampleproject2/app/customers/{id:Integer}?country={String:\"EN\"}&long={float:\"1.23\"}";
+		// when
+		final URLTemplateParameter[] templateParameters = JAXRSPathTemplateParser.parse(template);
+		// then
+		assertThat(templateParameters.length, equalTo(3));
+		// param #1
+		assertThat(templateParameters[0], matches("id", "Integer", "{id:Integer}", EnumParamType.PATH_PARAM));
+		// param #2
+		assertThat(templateParameters[1], matches("country", "String", "EN", "?country={String:\"EN\"}", EnumParamType.QUERY_PARAM));
+		// param #3
+		assertThat(templateParameters[2], matches("long", "float", "1.23", "&long={float:\"1.23\"}", EnumParamType.QUERY_PARAM));
+	}
+	
+	@Test
+	public void testParseURLTemplateWithMatrixAndQueryParamsWithDefaultValue() {
+		// given
+		final String template = "http://localhost:8080/org.jboss.tools.ws.jaxrs.tests.sampleproject2/app/customers/{id:Integer};country={String:\"EN\"}?shape={String:\"shape!\"}";
+		// when
+		final URLTemplateParameter[] templateParameters = JAXRSPathTemplateParser.parse(template);
+		// then
+		assertThat(templateParameters.length, equalTo(3));
+		// param #1
+		assertThat(templateParameters[0], matches("id", "Integer", "{id:Integer}", EnumParamType.PATH_PARAM));
+		// param #2
+		assertThat(templateParameters[1], matches("country", "String", "EN", ";country={String:\"EN\"}", EnumParamType.MATRIX_PARAM));
+		// param #3
+		assertThat(templateParameters[2], matches("shape", "String", "shape!", "?shape={String:\"shape!\"}", EnumParamType.QUERY_PARAM));
+	}
+
+	@Test
+	public void testParseURLTemplateWithACrazyMixOfParameters() {
 		// given
 		final String template = "http://localhost/application/rest/{path:.*};matrix={List<Integer>}/{format:(/format/[^/]+?)?}/{encoding:(/encoding/[^/]+?)?}/{to:\\d+}/{id:Integer}?start={Integer}&size={Integer}&foo={List<Integer>}";
 		// when
@@ -105,7 +246,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldValidateString() {
+	public void testValidateString() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:String}").withDatatype("String")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -116,7 +257,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldValidateInteger() {
+	public void testValidateInteger() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Integer}").withDatatype("Integer")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -127,7 +268,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldReplacePathParamWithInteger() {
+	public void testReplacePathParamWithInteger() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:int}").withDatatype("int")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -138,18 +279,18 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldReplaceMatrixParamWithInteger() {
+	public void testReplaceMatrixParamWithInteger() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("id={Integer}").withDatatype("Integer")
 				.withName("id", true).withParamType(EnumParamType.MATRIX_PARAM).build();
 		// operation
 		parameter.setValue("1");
 		// verification
-		assertThat(parameter.getReplacementContent(), equalTo("id=1"));
+		assertThat(parameter.getReplacementContent(), equalTo(";id=1"));
 	}
 	
 	@Test
-	public void shouldNotValidateInteger() {
+	public void testNotValidateInteger() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("id={int}").withDatatype("int")
 				.withName("id", true).withParamType(EnumParamType.MATRIX_PARAM).build();
@@ -160,7 +301,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldValidateLong() {
+	public void testValidateLong() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Long}").withDatatype("Long")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -171,7 +312,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldReplacePathParamWithLong() {
+	public void testReplacePathParamWithLong() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Long}").withDatatype("Long")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -182,7 +323,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldNotValidateLong() {
+	public void testNotValidateLong() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:long}").withDatatype("long")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -193,7 +334,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldValidateDouble() {
+	public void testValidateDouble() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Double}").withDatatype("Double")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -204,7 +345,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldReplacePathParamWithDouble() {
+	public void testReplacePathParamWithDouble() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Double}").withDatatype("Double")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -215,7 +356,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldValidateDoubleWithLongValue() {
+	public void testValidateDoubleWithLongValue() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Double}").withDatatype("Double")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -226,7 +367,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldValidateDoubleWithIntValue() {
+	public void testValidateDoubleWithIntValue() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Double}").withDatatype("Double")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -237,7 +378,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldNotValidateDouble() {
+	public void testNotValidateDouble() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Double}").withDatatype("Double")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -248,7 +389,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldValidateFloat() {
+	public void testValidateFloat() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Float}").withDatatype("Float")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -259,7 +400,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldReplacePathParamWithFloat() {
+	public void testReplacePathParamWithFloat() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Float}").withDatatype("Float")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -270,7 +411,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldValidateFloatWithInteger() {
+	public void testValidateFloatWithInteger() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Float}").withDatatype("Float")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -281,7 +422,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldNotValidateFloat() {
+	public void testNotValidateFloat() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:Float}").withDatatype("Float")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();
@@ -292,7 +433,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldValidateListOfIntegersWithSingleValue() {
+	public void testValidateListOfIntegersWithSingleValue() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("matrix={List<Integer>}").withDatatype("Integer")
 				.withName("id", true).withParamType(EnumParamType.MATRIX_PARAM).build();
@@ -303,7 +444,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldValidateListOfIntegersWithMultipleValues() {
+	public void testValidateListOfIntegersWithMultipleValues() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("matrix={List<Integer>}").withDatatype("List<Integer>")
 				.withName("id", true).withParamType(EnumParamType.MATRIX_PARAM).build();
@@ -314,7 +455,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldReplaceListOfIntegersWithSingleValueInMatrixParams() {
+	public void testReplaceListOfIntegersWithSingleValueInMatrixParams() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("matrix={List<Integer>}").withDatatype("List<Integer>")
 				.withName("matrix", true).withParamType(EnumParamType.MATRIX_PARAM).build();
@@ -325,7 +466,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldReplaceListOfIntegersWithMultipleValuesInMatrixParams() {
+	public void testReplaceListOfIntegersWithMultipleValuesInMatrixParams() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("matrix={List<Integer>}").withDatatype("List<Integer>")
 				.withName("matrix", true).withParamType(EnumParamType.MATRIX_PARAM).build();
@@ -336,7 +477,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldReplaceListOfIntegersWithSingleValueInQueryParams() {
+	public void testReplaceListOfIntegersWithSingleValueInQueryParams() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("?query={List<Integer>}").withDatatype("List<Integer>")
 				.withName("query", true).withParamType(EnumParamType.QUERY_PARAM).build();
@@ -347,7 +488,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldReplaceListOfIntegersWithMultipleValuesInQueryParams() {
+	public void testReplaceListOfIntegersWithMultipleValuesInQueryParams() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("?query={List<Integer>}").withDatatype("List<Integer>")
 				.withName("query", true).withParamType(EnumParamType.QUERY_PARAM).build();
@@ -358,7 +499,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldReplaceListOfIntegersWithSingleValueInSecondQueryParams() {
+	public void testReplaceListOfIntegersWithSingleValueInSecondQueryParams() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("&query={List<Integer>}").withDatatype("List<Integer>")
 				.withName("query", true).withParamType(EnumParamType.QUERY_PARAM).build();
@@ -369,7 +510,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 
 	@Test
-	public void shouldReplaceListOfIntegersWithMultipleValuesInSecondQueryParams() {
+	public void testReplaceListOfIntegersWithMultipleValuesInSecondQueryParams() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("?query={List<Integer>}").withDatatype("List<Integer>")
 				.withName("query", true).withParamType(EnumParamType.QUERY_PARAM).build();
@@ -380,7 +521,7 @@ public class JaxrsURLTemplateParserTestCase {
 	}
 	
 	@Test
-	public void shouldNotValidateListOfInteger() {
+	public void testNotValidateListOfInteger() {
 		// pre-condition
 		URLTemplateParameter parameter = URLTemplateParameter.Builder.from("{id:int}").withDatatype("Integer")
 				.withName("id", true).withParamType(EnumParamType.PATH_PARAM).build();

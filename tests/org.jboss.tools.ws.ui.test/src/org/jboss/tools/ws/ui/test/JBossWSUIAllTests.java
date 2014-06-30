@@ -11,12 +11,12 @@
 
 package org.jboss.tools.ws.ui.test;
 
-import org.jboss.tools.ws.ui.test.preferences.JBossWSRuntimePreferencePageTest;
-import org.jboss.tools.ws.ui.test.utils.TesterWSDLUtilsTest;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import org.jboss.tools.ws.ui.test.dialogs.JaxrsURLTemplateParserTestCase;
+import org.jboss.tools.ws.ui.test.preferences.JBossWSRuntimePreferencePageTest;
 
 /**
  * @author Grid Qian
@@ -27,6 +27,7 @@ public class JBossWSUIAllTests extends TestCase {
 	public static Test suite() {
 		TestSuite suite = new TestSuite(JBossWSUIAllTests.class.getName());
 		suite.addTestSuite(JBossWSRuntimePreferencePageTest.class);
+		suite.addTestSuite(JaxrsURLTemplateParserTestCase.class);
 		// needs to be rewritten for updated utility class
 //		suite.addTestSuite(TesterWSDLUtilsTest.class);
 

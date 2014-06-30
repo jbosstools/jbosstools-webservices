@@ -493,7 +493,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			pathTemplateBuilder.append(matrixParamFieldAnnotationValue).append("={")
 					.append(matrixParamField.getType().getDisplayableTypeName());
 			if(matrixParamField.hasAnnotation(DEFAULT_VALUE)) {
-				pathTemplateBuilder.append(':').append(matrixParamField.getAnnotation(DEFAULT_VALUE).getValue());
+				pathTemplateBuilder.append(':').append('\"').append(matrixParamField.getAnnotation(DEFAULT_VALUE).getValue()).append('\"');
 			}
 			pathTemplateBuilder.append('}');
 		}
@@ -507,7 +507,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 					.append(matrixParam.getType().getDisplayableTypeName());
 			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(DEFAULT_VALUE);
 			if(matrixParamAnnotation != null && !matrixParamFieldAnnotationValues.contains(matrixParamAnnotation.getValue())) {
-				pathTemplateBuilder.append(':').append(matrixParamAnnotation.getValue());
+				pathTemplateBuilder.append(':').append('\"').append(matrixParamAnnotation.getValue()).append('\"');
 			}
 			pathTemplateBuilder.append('}');
 		}
@@ -551,7 +551,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		queryParamBuilder.append(queryParamAnnotationValue).append("={")
 				.append(type.getDisplayableTypeName());
 		if(annotations.containsKey(DEFAULT_VALUE)) {
-			queryParamBuilder.append(':').append(annotations.get(DEFAULT_VALUE).getValue());
+			queryParamBuilder.append(':').append('\"').append(annotations.get(DEFAULT_VALUE).getValue()).append('\"');
 		}
 		final String queryParam = queryParamBuilder.append('}').toString();
 		return queryParam;

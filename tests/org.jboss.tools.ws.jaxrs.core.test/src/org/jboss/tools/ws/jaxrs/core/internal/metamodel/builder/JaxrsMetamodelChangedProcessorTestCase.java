@@ -107,7 +107,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResourceMethod subresourceMethod = metamodelMonitor.resolveResourceMethod(bookResource, "getProduct");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(subresourceMethod).iterator().next();
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/products/{productType:String};bar={String}/{id:Integer}?foo={String:foo!}&qux1={String:qux1!}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/products/{productType:String};bar={String}/{id:Integer}?foo={String:\"foo!\"}&qux1={String:\"qux1!\"}"));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 	}
@@ -123,7 +123,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomers");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(customerResourceMethod).iterator().next();
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers?start={int}&size={int:2}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers?start={int}&size={int:\"2\"}"));
 	}
 
 	@Test
