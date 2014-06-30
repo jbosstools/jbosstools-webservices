@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -28,7 +27,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
@@ -38,12 +36,12 @@ public class ResourceChangedBuildJob extends Job {
 
 	private final IResourceChangeEvent event;
 
-	private final IProject project;
+	private final IJavaProject javaProject;
 	
-	public ResourceChangedBuildJob(final IProject project, final IResourceChangeEvent event) {
+	public ResourceChangedBuildJob(final IJavaProject javaProject, final IResourceChangeEvent event) {
 		super("JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
-		this.project = project;
+		this.javaProject = javaProject;
 		Logger.debug("Initiating a JAX-RS Metamodel build after " + event); //$NON-NLS-1$
 	}
 
@@ -61,7 +59,6 @@ public class ResourceChangedBuildJob extends Job {
 				return Status.CANCEL_STATUS;
 			} 
 			// compute changes on the JAX-RS Application(s), HttpMethods, Resources, etc.
-			final IJavaProject javaProject = JavaCore.create(project);
 			metamodel = JaxrsMetamodelLocator.get(javaProject);
 			if (metamodel == null) {
 				metamodel = JaxrsMetamodelLocator.get(javaProject, true);
@@ -69,14 +66,15 @@ public class ResourceChangedBuildJob extends Job {
 					metamodel.processProject(progressMonitor);
 				}
 			} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
-					|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
+					|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD
+					|| metamodel.isInitializing()) {
 				metamodel.processProject(progressMonitor);
 			} else {
 				metamodel.processAffectedResources(affectedResources, progressMonitor);
 			}
 			return Status.OK_STATUS;
 		} catch (Exception e) {
-			final IStatus status = Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + project.getName(), e);
+			final IStatus status = Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + javaProject.getElementName(), e);
 			if(metamodel != null) {
 				metamodel.setBuildStatus(status);
 			}
@@ -84,8 +82,9 @@ public class ResourceChangedBuildJob extends Job {
 		} finally {
 			long endTime = new Date().getTime();
 			if (Logger.isDebugEnabled()) {
-				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms, ended with status {}.", project
-						.getName(), (endTime - startTime), (metamodel != null ? metamodel.getStatus() : "unknown"));
+				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms, ended with status {}.", javaProject
+						.getElementName(), (endTime - startTime), (metamodel != null ? metamodel.getStatus()
+						: "unknown"));
 			}
 			progressMonitor.done();
 		}
@@ -98,7 +97,7 @@ public class ResourceChangedBuildJob extends Job {
 			events.addAll(new ResourceDeltaScanner().scanAndFilterEvent(delta, new SubProgressMonitor(progressMonitor,
 					SCALE)));
 		} else {
-			events.add(new ResourceDelta(project, CHANGED, 0));
+			events.add(new ResourceDelta(javaProject.getProject(), CHANGED, 0));
 		}
 		return events;
 	}

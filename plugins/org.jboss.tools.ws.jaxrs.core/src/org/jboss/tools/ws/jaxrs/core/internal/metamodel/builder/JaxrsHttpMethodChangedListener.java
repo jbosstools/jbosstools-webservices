@@ -66,8 +66,8 @@ public class JaxrsHttpMethodChangedListener implements IJaxrsElementChangedListe
 						affectedMethodsDelta.addAffectedElementDelta(affectedMethodDelta);
 					}
 				}
-				final JavaElementChangedBuildJob elementChangedBuildJob = new JavaElementChangedBuildJob(new ElementChangedEvent(affectedMethodsDelta, IJavaElementDelta.CHANGED));
-				elementChangedBuildJob.execute();
+				final JavaElementChangedBuildTask elementChangedBuildTask = new JavaElementChangedBuildTask(new ElementChangedEvent(affectedMethodsDelta, IJavaElementDelta.CHANGED));
+				elementChangedBuildTask.execute(new NullProgressMonitor());
 			} catch(CoreException e) {
 				Logger.error("Failed to process change after HTTP Method addition/removal", e);
 			}

@@ -272,7 +272,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *             in case of underlying exception
 	 */
 	public static JaxrsMetamodel create(final IJavaProject javaProject) throws CoreException {
-		Logger.debug("*** Returning a new Metamodel for project {} ***", javaProject.getElementName());
+		Logger.debug("*** Returning a new Metamodel for project '{}' ***", javaProject.getElementName());
 		final JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
 		Logger.debug("JAX-RS Metamodel created for project {}", javaProject.getElementName());
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, metamodel);
@@ -413,6 +413,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			throws CoreException {
 		try {
 			Logger.debug("Processing {}", delta);
+			this.initializing = false;
 			readWriteLock.writeLock().lock();
 			final IJavaElement element = delta.getElement();
 			final CompilationUnit ast = delta.getCompilationUnitAST();
@@ -426,7 +427,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			progressMonitor.done();
 			readWriteLock.writeLock().unlock();
 			setBuildStatus(Status.OK_STATUS);
-			Logger.debug("Done processing Java changes.");
+			Logger.debug("Done processing Java changes: " + getStatus());
 		}
 	}
 
@@ -515,7 +516,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void processProject(final IProgressMonitor progressMonitor) throws CoreException {
 		try {
 			readWriteLock.writeLock().lock();
-			this.initializing = true;
+			this.initializing = false;
 			progressMonitor.beginTask("Processing project '" + getProject().getName() + "'...", 1);
 			// start with a fresh new metamodel
 			this.elements.clear();
@@ -536,7 +537,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			readWriteLock.writeLock().unlock();
 			setBuildStatus(Status.OK_STATUS);
 			Logger.debug("Done processing resource results.");
-			this.initializing = false;
 		}
 	}
 

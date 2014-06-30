@@ -46,7 +46,10 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.NodeFinder;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -407,13 +410,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				changedFile.getFullPath());
 		try {
 			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
-			final ICompilationUnit changedCompilationUnit = JdtUtils.getCompilationUnit(changedFile);
-			if (metamodel != null && changedCompilationUnit != null) {
-				//final CompilationUnit ast = JdtUtils.parse(changedCompilationUnit, new NullProgressMonitor());
-				final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(changedCompilationUnit);
+			if (metamodel != null) {
+				final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(changedFile);
+				final CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 				final Set<IJaxrsElement> changedJaxrsElements = new HashSet<IJaxrsElement>();
 				for(IRegion dirtyRegion : dirtyRegions) {
-					final IJavaElement changedElement = changedCompilationUnit.getElementAt(dirtyRegion.getOffset());
+					final IJavaElement changedElement = compilationUnit.getElementAt(dirtyRegion.getOffset());
 					if(changedElement == null) {
 						continue;
 					}

@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
@@ -50,6 +51,15 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	 * @param parent
 	 * @param project
 	 */
+	public UriPathTemplateCategory(final UriMappingsContentProvider parent, final IProject project) {
+		this(parent, JavaCore.create(project));
+	}
+
+	/**
+	 * Constructor
+	 * @param parent
+	 * @param project
+	 */
 	public UriPathTemplateCategory(final UriMappingsContentProvider parent, final IJavaProject javaProject) {
 		super();
 		this.parent = parent;
@@ -58,7 +68,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 
 	/** {@inheritDoc} */
 	@Override
-	public Object[] getChildren(Object parentElement) {
+	public Object[] getChildren(final Object parentElement) {
 		try {
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 			if (metamodel != null && !metamodel.isInitializing()) {
@@ -87,19 +97,21 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 				}
 				return uriPathTemplateElements.toArray();
 			} else if (metamodel == null || !metamodel.isInitializing()) {
+				// immediately create a new metamodel to avoid entering this block twice (once for hasChildren() and once for getChildren())
+				JaxrsMetamodelLocator.get(javaProject, true);
 				launchLoadingMetamodelJob(this);
 				// return a stub object that says loading...
 				Logger.debug("Displaying the 'Loading...' stub for project '{}' and launching a build", javaProject.getElementName());
-				return new Object[] { new LoadingStub() };
+				return new Object[] { new LoadingStub(javaProject) };
 			} else {
 				// return a stub object that says loading while the metamodel is already initializing...
 				Logger.debug("Just displaying the 'Loading...' stub for project '{}'", javaProject.getElementName());
-				return new Object[] { new LoadingStub() };
+				return new Object[] { new LoadingStub(javaProject) };
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + javaProject.getElementName() + "'", e);
 		}
-		Logger.debug("*** There's no JAX-RS Metamodel for project '{}' ***", javaProject.getElementName());
+		Logger.debug("*** There's no JAX-RS Metamodel for project '{}' -> no element to display ***", javaProject.getElementName());
 		return new Object[0];
 	}
 
@@ -151,13 +163,14 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	public boolean hasChildren(Object element) {
 		try {
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
-			if (metamodel != null) {
-				return (metamodel.getAllEndpoints().size() > 0);
+			if (metamodel != null && !metamodel.isInitializing()) {
+				final Collection<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
+				Logger.debug("UriPathTemplateCategory contains {} endpoints", endpoints.size());
+				return endpoints.size() > 0;
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + javaProject.getElementName() + "'", e);
 		}
-		Logger.debug("No JAX-RS Metamodel for project '{}' -> expect to display default 'loading...' stub instead", javaProject.getElementName());
 		return true;
 	}
 
@@ -219,7 +232,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve the JAX-RS Metamodel for project '" + javaProject.getElementName() + "'", e);
 		}
-		parent.refreshContent(javaProject);
+		parent.refreshContent(javaProject.getProject());
 	}
 
 	public Object[] getChildren() {

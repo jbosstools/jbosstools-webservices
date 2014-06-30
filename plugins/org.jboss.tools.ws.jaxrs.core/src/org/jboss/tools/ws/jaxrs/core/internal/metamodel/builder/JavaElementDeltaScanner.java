@@ -15,7 +15,7 @@ import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
 import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
+import static org.eclipse.jdt.core.IJavaElementDelta.*;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_AST_AFFECTED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
@@ -91,8 +91,8 @@ public class JavaElementDeltaScanner {
 		if (element == null) {
 			Logger.debug("** skipping this build because the delta element is null **");
 			return Collections.emptyList();
-		} else if(element.getElementType() == IJavaElement.JAVA_PROJECT && !element.getJavaProject().isOpen()) {
-			Logger.debug("** skipping this build because the java project is null or closed (or not open yet)... **");
+		} else if(element.getElementType() == IJavaElement.JAVA_PROJECT && !element.getJavaProject().isOpen() && delta.getFlags() != F_OPENED) {
+			Logger.debug("** skipping this build because the java project is closed. **");
 			return Collections.emptyList();
 		} else if ((element.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT)) {
 			final IPackageFragmentRoot packageFragmentRoot = (IPackageFragmentRoot) element;

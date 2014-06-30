@@ -23,6 +23,7 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
+import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
@@ -34,7 +35,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 
 	private TreeViewer viewer;
 
-	private Map<IJavaProject, UriPathTemplateCategory> uriPathTemplateCategories = new HashMap<IJavaProject, UriPathTemplateCategory>();
+	private Map<IProject, UriPathTemplateCategory> uriPathTemplateCategories = new HashMap<IProject, UriPathTemplateCategory>();
 
 	@Override
 	public Object[] getElements(Object inputElement) {
@@ -65,21 +66,17 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	 */
 	private Object[] getChildren(final IProject project) {
 		try {
-			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-			// let's make sure this listener is registered
-			if (metamodel != null) {
-				// metamodel.addListener() avoids duplicate entries
-				metamodel.addJaxrsEndpointChangedListener(this);
-				final IJavaProject javaProject = metamodel.getJavaProject();
-				if (!uriPathTemplateCategories.containsKey(javaProject)) {
-					UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, javaProject);
-					uriPathTemplateCategories.put(javaProject, uriPathTemplateCategory);
-				}
-				Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", javaProject.getElementName());
-				return new Object[] { uriPathTemplateCategories.get(javaProject) };
-			} else {
-				Logger.debug("*** No JAX-RS Metamodel available for project '{}' yet :-( ***", project.getName());
+			if(!ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID)) {
+				Logger.debug("*** Project '{}' has no JAX-RS nature installed. ***", project.getName());
+				return new Object[0];
 			}
+			if (!uriPathTemplateCategories.containsKey(project)) {
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
+				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
+			}
+			Logger.debug("Displaying the UriPathTemplateCategory for project '{}'", project.getName());
+			return new Object[] { uriPathTemplateCategories.get(project) };
+			
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + project.getName() + "'", e);
 		}
@@ -102,7 +99,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			Logger.trace("Element {} has children: {}", element, hasChildren);
 			return hasChildren;
 		}
-		Logger.debug("Element '{}' has not children", element);
+		Logger.debug("Element '{}' has no children", element);
 		return false;
 	}
 
@@ -114,14 +111,14 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	@Override
 	public void dispose() {
 		if (uriPathTemplateCategories != null) {
-			for (IJavaProject javaProject : uriPathTemplateCategories.keySet()) {
+			for (IProject project : uriPathTemplateCategories.keySet()) {
 				try {
-					final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+					final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 					if(metamodel != null) {
 						metamodel.removeListener(this);
 					}
 				} catch (CoreException e) {
-					Logger.error("Failed to remove listener on JAX-RS Metamodel '" + javaProject.getElementName() + "'", e);
+					Logger.error("Failed to remove listener on JAX-RS Metamodel '" + project.getName() + "'", e);
 				}
 			}
 		}
@@ -150,11 +147,11 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		// it is a WaitWhileBuildingElement item, and the project itself must be
 		// refresh to replace this temporary
 		// element with the expected category.
-		final IJavaProject javaProject = endpoint.getJavaProject();
-		if (!uriPathTemplateCategories.containsKey(javaProject)) {
-			refreshContent(javaProject);
+		final IProject project = endpoint.getProject();
+		if (!uriPathTemplateCategories.containsKey(project)) {
+			refreshContent(project);
 		} else {
-			final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(javaProject);
+			final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
 			final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
 			if(target != null) {
 				Logger.debug("Refreshing navigator view at level: '{}'", target.getClass().getName());
@@ -171,12 +168,13 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			return;
 		}
 		final IJavaProject javaProject = metamodel.getJavaProject();
+		final IProject project = javaProject.getProject();
 		if (uriPathTemplateCategories != null) {
-			if (!uriPathTemplateCategories.containsKey(javaProject)) {
-				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", javaProject.getElementName());
+			if (!uriPathTemplateCategories.containsKey(project)) {
+				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", project.getName());
 				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, javaProject);
-				uriPathTemplateCategories.put(javaProject, uriPathTemplateCategory);
-				refreshContent(uriPathTemplateCategories.get(javaProject));
+				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
+				refreshContent(uriPathTemplateCategories.get(project));
 			}
 			updateContent(uriPathTemplateCategories.get(javaProject));
 		}
@@ -188,14 +186,14 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 	 * 
 	 * @param project
 	 */
-	public void refreshContent(final IJavaProject javaProject) {
+	public void refreshContent(final IProject project) {
 		if (uriPathTemplateCategories != null) {
-			if (!uriPathTemplateCategories.containsKey(javaProject)) {
-				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", javaProject.getElementName());
-				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, javaProject);
-				uriPathTemplateCategories.put(javaProject, uriPathTemplateCategory);
+			if (!uriPathTemplateCategories.containsKey(project)) {
+				Logger.debug("Adding a UriPathTemplateCategory for project '{}' (case #1)", project.getName());
+				UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(this, project);
+				uriPathTemplateCategories.put(project, uriPathTemplateCategory);
 			}
-			refreshContent(uriPathTemplateCategories.get(javaProject));
+			refreshContent(uriPathTemplateCategories.get(project));
 		}
 	}
 
@@ -210,11 +208,11 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		// it is a WaitWhileBuildingElement item, and the project itself must be
 		// refresh to replace this temporary
 		// element with the expected category.
-		final IJavaProject javaProject = endpoint.getJavaProject();
-		if (!uriPathTemplateCategories.containsKey(javaProject)) {
-			refreshContent(javaProject);
+		final IProject project = endpoint.getProject();
+		if (!uriPathTemplateCategories.containsKey(project)) {
+			refreshContent(project);
 		} else {
-			final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(javaProject);
+			final UriPathTemplateCategory uriPathTemplateCategory = uriPathTemplateCategories.get(project);
 			final UriPathTemplateElement target = uriPathTemplateCategory.getUriPathTemplateElement(endpoint);
 			// during initialization, UI may not be available yet.
 			if (target != null) {
@@ -242,8 +240,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 			public void run() {
 				if (viewer != null) {
 					TreePath[] treePaths = viewer.getExpandedTreePaths();
-					Logger.debug("*** Refreshing the viewer at target level: '{}' (viewer busy: {}) ***", target,
-							viewer.isBusy());
+					Logger.debug("*** Refreshing the viewer (busy: {}) ***", viewer.isBusy());
 					viewer.refresh(target, true);
 					viewer.setExpandedTreePaths(treePaths);
 					Logger.debug("*** Refreshing the viewer... done ***");
@@ -266,7 +263,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				if (viewer != null) {
+				if (viewer != null && target != null) {
 					TreePath[] treePaths = viewer.getExpandedTreePaths();
 					Logger.debug("*** Updating the viewer at target level: {} (viewer busy: {}) ***", target,
 							viewer.isBusy());
@@ -280,7 +277,16 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsE
 		});
 	}
 	public static class LoadingStub {
-		public LoadingStub() {
+		
+		private final IJavaProject javaProject;
+		
+		public LoadingStub(final IJavaProject javaProject) {
+			this.javaProject = javaProject;
+		}
+		
+		@Override
+		public String toString() {
+			return "Loading Stub on '" + javaProject.getElementName() + "'";
 		}
 	}
 	

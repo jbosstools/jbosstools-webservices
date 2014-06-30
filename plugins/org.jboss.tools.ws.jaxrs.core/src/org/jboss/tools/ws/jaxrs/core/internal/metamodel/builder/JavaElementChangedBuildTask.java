@@ -17,10 +17,8 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -30,28 +28,22 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 
 /** @author xcoulon */
-public class JavaElementChangedBuildJob extends Job {
+public class JavaElementChangedBuildTask {
 
 	private final ElementChangedEvent event;
 	
-	public JavaElementChangedBuildJob(final ElementChangedEvent event) {
-		super("JAX-RS Metamodel build..."); //$NON-NLS-1$
+	public JavaElementChangedBuildTask(final ElementChangedEvent event) {
+		super();
 		this.event = event;
-		Logger.debug("Initiating a JAX-RS Metamodel build after " + event); //$NON-NLS-1$
 	}
 	
-	public void execute() {
-		run(new NullProgressMonitor());
-	}
-	
-	@Override
-	protected IStatus run(final IProgressMonitor progressMonitor) {
+	public IStatus execute(final IProgressMonitor progressMonitor) {
 		final long startTime = new Date().getTime();
 		IJavaElement element = null;
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			progressMonitor.worked(SCALE);
-			Logger.debug("Building JAX-RS Metamodel after Java element changed...");
+			Logger.debug("Building JAX-RS Metamodel after: {}", event);
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
@@ -59,7 +51,7 @@ public class JavaElementChangedBuildJob extends Job {
 			final List<JavaElementChangedEvent> affectedJavaElements = new JavaElementDeltaScanner().scanAndFilterEvent(event,
 					new SubProgressMonitor(progressMonitor, SCALE));
 			if(affectedJavaElements.isEmpty()) {
-				Logger.debug("No relevant affected element to process");
+				Logger.debug("* No relevant affected element to process *");
 				return Status.OK_STATUS;
 			}
 			if (progressMonitor.isCanceled()) {
@@ -68,7 +60,7 @@ public class JavaElementChangedBuildJob extends Job {
 			for(JavaElementChangedEvent delta : affectedJavaElements) {
 				element = delta.getElement();
 				final IJavaProject javaProject = element.getJavaProject();
-				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject, true);
 				// prevent NPE when opening a closed project (ie, there's no metamodel yet).
 				if(metamodel != null) {
 					try {

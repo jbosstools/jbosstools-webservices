@@ -222,6 +222,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
+		Logger.debug("Updating {}", this.toString());
 		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethodNames()).build(false);
 		if (transientResource == null) {
 			remove();

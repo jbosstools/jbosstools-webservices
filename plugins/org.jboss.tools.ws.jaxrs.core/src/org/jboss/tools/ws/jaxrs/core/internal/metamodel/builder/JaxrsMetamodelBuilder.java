@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
@@ -94,8 +96,9 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	 */
 	private void build(final int buildKind, final IProject project, final IProgressMonitor progressMonitor) {
 		Logger.debug("Building JAX-RS metamodel for project '" + project.getName() + "'");
-		ResourceChangedBuildJob job = new ResourceChangedBuildJob(project, getResourceChangeEvent(project, buildKind));
-		job.setRule(new MutexJobSchedulingRule(project));
+		final IJavaProject javaProject = JavaCore.create(project);
+		final ResourceChangedBuildJob job = new ResourceChangedBuildJob(javaProject, getResourceChangeEvent(project, buildKind));
+		job.setRule(new MutexJobSchedulingRule(javaProject));
 		job.schedule();
 		try {
 			job.join();

@@ -22,6 +22,7 @@ import static org.eclipse.jdt.core.IJavaElement.TYPE;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_OPENED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_AST_AFFECTED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
@@ -60,6 +61,7 @@ public class JavaElementDeltaFilter {
 	public JavaElementDeltaFilter() {
 		accept().when(JAVA_PROJECT).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY);
 		accept().when(JAVA_PROJECT).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY);
+		accept().when(JAVA_PROJECT).is(CHANGED).withFlags(F_OPENED).after(POST_CHANGE).in(PRIMARY_COPY);
 
 		accept().when(PACKAGE_FRAGMENT_ROOT).is(ADDED).after(POST_CHANGE).in(PRIMARY_COPY);
 		accept().when(PACKAGE_FRAGMENT_ROOT).is(ADDED).withFlags(F_ADDED_TO_CLASSPATH).after(POST_CHANGE)
@@ -121,7 +123,7 @@ public class JavaElementDeltaFilter {
 		// prevent processing java elements in a closed java project
 		// prevent processing of any file named 'package-info.java'
 		// prevent processing of any jar file
-		if (isProjectClosed(element) || isPackageInfoFile(element) || isJarArchive(element)) {
+		if (isPackageInfoFile(element) || isJarArchive(element)) {
 			return false;
 		}
 		int flags = event.getFlags();
@@ -155,15 +157,6 @@ public class JavaElementDeltaFilter {
 	 */
 	private boolean isPackageInfoFile(IJavaElement element) {
 		return element.getResource() != null && element.getResource().getType() == IResource.FILE && element.getResource().getName().equals("package-info.java");
-	}
-
-	/**
-	 * Returns true if the enclosing project is closed
-	 * @param element
-	 * @return
-	 */
-	private boolean isProjectClosed(IJavaElement element) {
-		return element.getJavaProject() != null && !element.getJavaProject().getProject().isOpen();
 	}
 
 	protected boolean apply(int elementKind, int deltaKind, int eventType, int flags, boolean workingCopy) {

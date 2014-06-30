@@ -18,6 +18,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IJavaElement;
@@ -65,11 +66,8 @@ public class JavaElementChangedListener implements IElementChangedListener {
 		try {
 			if (isApplicable(event.getDelta())) {
 				logDelta(event.getDelta(), event.getType());
-				JavaElementChangedBuildJob job = new JavaElementChangedBuildJob(event);
-				job.execute(); // not using this class as a job, just calling the execute() method for immediate execution.
-				/*job.setRule(MutexJobSchedulingRule.getInstance());
-				job.schedule();*/
-				//job.join();
+				JavaElementChangedBuildTask task = new JavaElementChangedBuildTask(event);
+				task.execute(new NullProgressMonitor()); // not using this class as a job, just calling the execute() method for immediate execution.
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to process Java Element change", e);

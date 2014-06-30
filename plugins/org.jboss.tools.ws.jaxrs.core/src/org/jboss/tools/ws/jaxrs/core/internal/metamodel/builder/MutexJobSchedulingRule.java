@@ -12,6 +12,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.jdt.core.IJavaProject;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 /**
@@ -22,14 +23,15 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
  */
 public class MutexJobSchedulingRule implements ISchedulingRule {
 
-	private final IProject project;
+	/** The java project being built. */
+	private final IJavaProject javaProject;
 	
 	/** 
 	 * Private singleton constructor
 	 */
-	public MutexJobSchedulingRule(final IProject project) {
+	public MutexJobSchedulingRule(final IJavaProject javaProject) {
 		super();
-		this.project = project;
+		this.javaProject = javaProject;
 	}
 	
 	@Override
@@ -42,7 +44,7 @@ public class MutexJobSchedulingRule implements ISchedulingRule {
 	 */
 	@Override
 	public boolean isConflicting(final ISchedulingRule otherRule) {
-		final boolean conflict = otherRule instanceof MutexJobSchedulingRule && ((MutexJobSchedulingRule)otherRule).getProject().equals(this.project);
+		final boolean conflict = otherRule instanceof MutexJobSchedulingRule && ((MutexJobSchedulingRule)otherRule).getProject().equals(this.javaProject);
 		if(conflict) {
 			Logger.trace("Rule conflict between {} and {}", this, otherRule);
 		}
@@ -53,8 +55,8 @@ public class MutexJobSchedulingRule implements ISchedulingRule {
 	/**
 	 * @return the project
 	 */
-	public IProject getProject() {
-		return project;
+	public IJavaProject getProject() {
+		return javaProject;
 	}
 
 }
