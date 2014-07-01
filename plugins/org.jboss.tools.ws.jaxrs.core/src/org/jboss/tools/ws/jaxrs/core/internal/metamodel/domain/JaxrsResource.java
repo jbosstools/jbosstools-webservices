@@ -564,7 +564,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 *            the annotation's fully qualified name
 	 * @return the JAX-RS Resource Fields or empty list
 	 */
-	public List<JaxrsResourceField> getFieldsAnnotatedWith(String annotationName) {
+	public List<JaxrsResourceField> getFieldsAnnotatedWith(final String annotationName) {
 		final List<JaxrsResourceField> annotatedFields = new ArrayList<JaxrsResourceField>();
 		for (Entry<String, JaxrsResourceField> entry : resourceFields.entrySet()) {
 			JaxrsResourceField field = entry.getValue();
@@ -576,6 +576,25 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	}
 	
 	/**
+	 * Returns the {@link JaxrsResourceField} which is annotated with the given
+	 * annotation fully qualified name and which has the given annotationValue
+	 *
+	 * @param annotationName
+	 *            the annotation's fully qualified name
+	 * @return the JAX-RS Resource Field or {@code null}
+	 */
+	public JaxrsResourceField getFieldAnnotatedWith(final String annotationName, final String annotationValue) {
+		for (Entry<String, JaxrsResourceField> entry : resourceFields.entrySet()) {
+			final JaxrsResourceField field = entry.getValue();
+			final Annotation annotation = field.getAnnotation(annotationName);
+			if (annotation != null && annotationValue.equals(annotation.getValue())) {
+				return field;
+			}
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns the list of {@link JaxrsResourceProperty} which are annotated with the given
 	 * annotation fully qualified name
 	 *
@@ -583,7 +602,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 *            the annotation's fully qualified name
 	 * @return the JAX-RS Resource Fields or empty list
 	 */
-	public List<JaxrsResourceProperty> getPropertiesAnnotatedWith(String annotationName) {
+	public List<JaxrsResourceProperty> getPropertiesAnnotatedWith(final String annotationName) {
 		final List<JaxrsResourceProperty> annotatedProperties = new ArrayList<JaxrsResourceProperty>();
 		for (Entry<String, JaxrsResourceProperty> entry : resourceProperties.entrySet()) {
 			JaxrsResourceProperty property = entry.getValue();
@@ -593,6 +612,26 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		}
 		return annotatedProperties;
 	}
+	
+	/**
+	 * Returns the {@link JaxrsResourceProperty} which is annotated with the given
+	 * annotation fully qualified name and which has the given annotationValue
+	 *
+	 * @param annotationName
+	 *            the annotation's fully qualified name
+	 * @return the JAX-RS Resource Property or {@code null}
+	 */
+	public JaxrsResourceProperty getPropertyAnnotatedWith(final String annotationName, final String annotationValue) {
+		for (Entry<String, JaxrsResourceProperty> entry : resourceProperties.entrySet()) {
+			final JaxrsResourceProperty property = entry.getValue();
+			final Annotation annotation = property.getAnnotation(annotationName);
+			if (annotation != null && annotationValue.equals(annotation.getValue())) {
+				return property;
+			}
+		}
+		return null;
+	}
+	
 	
 	/**
 	 * {@inheritDoc}

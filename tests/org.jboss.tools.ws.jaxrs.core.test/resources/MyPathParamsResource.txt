@@ -1,0 +1,17 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+@Path("/test")
+public class MyPathParamsResource {
+	@GET()
+    @Path("/{path}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String get(@BeanParam MyPathParams pathParams) {
+		return "Test";
+    }
+}

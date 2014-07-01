@@ -313,8 +313,8 @@ public class JaxrsElementChangedProcessorDelegate {
 				flags.addFlags(JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION);
 			} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.MATRIX_PARAM)) {
 				flags.addFlags(JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION);
-			} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.PATH)) {
-				flags.addFlags(JaxrsElementDelta.F_PATH_ANNOTATION);
+			} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.PATH_PARAM)) {
+				flags.addFlags(JaxrsElementDelta.F_PATH_PARAM_ANNOTATION);
 			} else if(entry.getValue().getFullyQualifiedName().equals(JaxrsClassnames.BEAN_PARAM)) {
 				flags.addFlags(JaxrsElementDelta.F_BEAN_PARAM_ANNOTATION);
 			}

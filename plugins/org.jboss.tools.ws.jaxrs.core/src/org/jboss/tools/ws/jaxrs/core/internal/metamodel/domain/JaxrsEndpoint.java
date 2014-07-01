@@ -18,6 +18,7 @@ import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PRODUCES_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DEFAULT_VALUE;
@@ -229,7 +230,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			changed = changed || refreshHttpMethod();
 		}
 
-		if (flags.hasValue(F_PATH_ANNOTATION, F_QUERY_PARAM_ANNOTATION, F_MATRIX_PARAM_ANNOTATION, F_BEAN_PARAM_ANNOTATION, 
+		if (flags.hasValue(F_PATH_ANNOTATION, F_PATH_PARAM_ANNOTATION, F_QUERY_PARAM_ANNOTATION, F_MATRIX_PARAM_ANNOTATION, F_BEAN_PARAM_ANNOTATION, 
 				F_DEFAULT_VALUE_ANNOTATION, F_METHOD_PARAMETERS)) {
 			changed = changed || refreshUriPathTemplate();
 		}
@@ -385,11 +386,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				// have the type of the associated PathParam
 				else {
 					boolean match = false;
-					final IJavaMethodParameter pathParameter = resourceMethod.getJavaMethodParameterByAnnotationBinding(pathArg);
-					if (pathParameter != null) {
+					final IAnnotatedSourceType parameterType = ((JaxrsResourceMethod) resourceMethod).getRelatedTypeAnnotatedWith(PATH_PARAM, pathArg);
+					if (parameterType != null) {
 						pathTemplateBuilder.append('{').append(pathArg);
-						if (pathParameter.getType() != null) {
-							pathTemplateBuilder.append(":").append(pathParameter.getType().getDisplayableTypeName());
+						if (parameterType.getType() != null) {
+							pathTemplateBuilder.append(":").append(parameterType.getType().getDisplayableTypeName());
 						}
 						pathTemplateBuilder.append('}');
 						match = true;
@@ -454,12 +455,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				// which provides it
 				else {
 					boolean match = false;
-					final IJavaMethodParameter pathParameter = ((JaxrsResourceMethod) resourceMethod)
-							.getJavaMethodParameterByAnnotationBinding(pathArg);
-					if (pathParameter != null) {
+					final IAnnotatedSourceType parameterType = ((JaxrsResourceMethod) resourceMethod).getRelatedTypeAnnotatedWith(PATH_PARAM, pathArg);
+					if (parameterType != null) {
 						pathTemplateBuilder.append('{').append(pathArg);
-						if (pathParameter.getType() != null) {
-							pathTemplateBuilder.append(":").append(pathParameter.getType().getDisplayableTypeName());
+						if (parameterType.getType() != null) {
+							pathTemplateBuilder.append(":").append(parameterType.getType().getDisplayableTypeName());
 						}
 						pathTemplateBuilder.append('}');
 						match = true;

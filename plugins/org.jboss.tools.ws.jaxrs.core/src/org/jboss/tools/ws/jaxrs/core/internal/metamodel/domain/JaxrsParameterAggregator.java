@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -232,6 +233,27 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 		}
 		return matches;
 	}
+	
+	/**
+	 * Returns the {@link JaxrsParameterAggregatorField} which is annotated with the given
+	 * annotation fully qualified name and which has the given annotationValue
+	 *
+	 * @param annotationName
+	 *            the annotation's fully qualified name
+	 * @return the {@link JaxrsParameterAggregatorField} or {@code null}
+	 */
+	public JaxrsParameterAggregatorField getFieldAnnotatedWith(final String annotationName, final String annotationValue) {
+		for (Entry<String, JaxrsParameterAggregatorField> entry : fields.entrySet()) {
+			final JaxrsParameterAggregatorField field = entry.getValue();
+			final Annotation annotation = field.getAnnotation(annotationName);
+			if (annotation != null && annotationValue.equals(annotation.getValue())) {
+				return field;
+			}
+		}
+		return null;
+	}
+	
+	
 
 	@Override
 	public List<JaxrsParameterAggregatorProperty> getAllProperties() {
@@ -259,6 +281,26 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 		}
 		return matches;
 	}
+	
+	/**
+	 * Returns the {@link JaxrsResourceProperty} which is annotated with the given
+	 * annotation fully qualified name and which has the given annotationValue
+	 *
+	 * @param annotationName
+	 *            the annotation's fully qualified name
+	 * @return the JAX-RS Resource Field or {@code null}
+	 */
+	public JaxrsParameterAggregatorProperty getPropertyAnnotatedWith(final String annotationName, final String annotationValue) {
+		for (Entry<String, JaxrsParameterAggregatorProperty> entry : properties.entrySet()) {
+			final JaxrsParameterAggregatorProperty property = entry.getValue();
+			final Annotation annotation = property.getAnnotation(annotationName);
+			if (annotation != null && annotationValue.equals(annotation.getValue())) {
+				return property;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Removes the given {@link JaxrsParameterAggregatorField} from the internal collection.
 	 * @param parameterAggregatorField the field to remove

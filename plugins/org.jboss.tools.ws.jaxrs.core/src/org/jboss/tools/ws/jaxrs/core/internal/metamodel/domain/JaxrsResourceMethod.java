@@ -19,7 +19,6 @@ import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.BEAN_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 
 import java.util.ArrayList;
@@ -493,23 +492,6 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	}
 
 	/**
-	 * Returns the {@link JavaMethodParameter} associated with a {@code @PathParam} annotation.
-	 * the given parameterName, null otherwise
-	 * 
-	 * @param pathParamName the name in the {@code @PathParam} annotation
-	 * @return the {@link JavaMethodParameter} or {@code null} if none was found
-	 */
-	public IJavaMethodParameter getJavaMethodParameterByAnnotationBinding(final String pathParamName) {
-		for (IJavaMethodParameter javaMethodParameter : this.javaMethodParameters) {
-			final Annotation pathParamAnnotation = javaMethodParameter.getAnnotation(PATH_PARAM);
-			if (pathParamAnnotation != null && pathParamName.equals(pathParamAnnotation.getValue())) {
-				return javaMethodParameter;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Returns a list of {@link JavaMethodParameter} that have an annotation
 	 * with the given qualifiedName
 	 * 
@@ -517,7 +499,7 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	 *            the expected annotation fully qualified name
 	 * @return a list of {@link JavaMethodParameter}, empty if no item matches
 	 */
-	public List<IJavaMethodParameter> getJavaMethodParametersAnnotatedWith(String annotationName) {
+	public List<IJavaMethodParameter> getJavaMethodParametersAnnotatedWith(final String annotationName) {
 		final List<IJavaMethodParameter> matchingParameters = new ArrayList<IJavaMethodParameter>();
 		for (IJavaMethodParameter parameter : this.javaMethodParameters) {
 			if (parameter.getAnnotation(annotationName) != null) {
@@ -527,6 +509,24 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 		return matchingParameters;
 	}
 
+	/**
+	 * Returns the {@link JavaMethodParameter} that have an annotation
+	 * with the given qualifiedName and with the given annotationValue, or {@code null} if none matches. 
+	 * 
+	 * @param annotationName
+	 *            the expected annotation fully qualified name
+	 * @return an{@link JavaMethodParameter}, or {@code null} if no item matches
+	 */
+	public IJavaMethodParameter getJavaMethodParameterAnnotatedWith(final String annotationName, final String annotationValue) {
+		for (IJavaMethodParameter parameter : this.javaMethodParameters) {
+			final Annotation annotation = parameter.getAnnotation(annotationName);
+			if (annotation != null && annotationValue.equals(annotation.getValue())) {
+				return parameter;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Remove the {@link JavaMethodParameter} whose name is the given
 	 * parameterName
@@ -551,7 +551,7 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	}
 
 	/**
-	 * Retrieves:
+	 * Retrieves <strong>all</strong>:
 	 * <ul>
 	 * <li> {@link JaxrsResource}'s {@link JaxrsResourceField} and {@link JaxrsResourceProperty} annotated with the given annotationName,</li>
 	 * <li> {@code this} {@link JavaMethodParameter} annotated with the given annotationName,</li>
@@ -588,6 +588,61 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 			}
 		}
 		return annotatedSourceTypes;
+	}
+
+	/**
+	 * Retrieves <strong>the first</strong> of:
+	 * <ul>
+	 * <li> {@link JaxrsResource}'s {@link JaxrsResourceField} and {@link JaxrsResourceProperty} annotated with the given {@code annotationName} and whose value matches the given {@code annotationValue},</li>
+	 * <li> {@code this} {@link JavaMethodParameter} annotated with the given {@code annotationName} and whose value matches the given {@code annotationValue},</li>
+	 * <li> {@link JaxrsParameterAggregatorField} and {@link JaxrsParameterAggregatorProperty} annotated with the given
+	 * {@code annotationName} and whose value matches the given {@code annotationValue} in a {@link JaxrsParameterAggregator} if the parent {@link JaxrsResource} has any
+	 * {@link JaxrsResourceField} or {@link JaxrsResourceProperty} of the {@link JaxrsParameterAggregator} type annotated with {@code javax.ws.rs.BeanParam},</li>
+	 * <li> {@link JaxrsParameterAggregatorField} and {@link JaxrsParameterAggregatorProperty} annotated with the given
+	 * {@code annotationName} and whose value matches the given {@code annotationValue} in a {@link JaxrsParameterAggregator} if any {@link JavaMethodParameter} of the {@link JaxrsParameterAggregator} type annotated with with {@code javax.ws.rs.BeanParam}.</li>
+	 * </ul>
+	 * @param annotationName the annotation fully qualified name to match
+	 * @param annotationValue the annotation value to match
+	 * @return all {@link IAnnotatedSourceType} matching the description above
+	 *         ;-)
+	 */
+	public IAnnotatedSourceType getRelatedTypeAnnotatedWith(final String annotationName, final String annotationValue) {
+		// 1 - method parameters annotated with annotationName
+		final IJavaMethodParameter methodParameter = getJavaMethodParameterAnnotatedWith(annotationName, annotationValue);
+		if(methodParameter != null) {
+			return methodParameter;
+		}
+		// 2 - retrieve all fields and methods annotated with annotationName
+		final JaxrsResourceField resourceField = getParentResource().getFieldAnnotatedWith(annotationName, annotationValue);
+		if(resourceField != null) {
+			return resourceField;
+		}
+		final JaxrsResourceProperty resourceProperty = getParentResource().getPropertyAnnotatedWith(annotationName, annotationValue);
+		if(resourceProperty != null) {
+			return resourceProperty;
+		}
+		// 3, 4 - all fields and properties annotated with 'annotationName' of parent resource fields and properties and of method parameters type annotated with @BeanParam 
+		final List<IAnnotatedSourceType> beanParameters = new ArrayList<IAnnotatedSourceType>(); 
+		beanParameters.addAll(getParentResource().getFieldsAnnotatedWith(BEAN_PARAM));
+		beanParameters.addAll(getParentResource().getPropertiesAnnotatedWith(BEAN_PARAM));
+		beanParameters.addAll(getJavaMethodParametersAnnotatedWith(BEAN_PARAM));
+		for(IAnnotatedSourceType beanParameter : beanParameters) {
+			final SourceType parameterAggregatorType = beanParameter.getType();
+			if(parameterAggregatorType != null) {
+				final JaxrsParameterAggregator parameterAggregator = (JaxrsParameterAggregator) getMetamodel().findElement(parameterAggregatorType.getErasureName(), EnumElementCategory.PARAMETER_AGGREGATOR);
+				if(parameterAggregator!= null) {
+					final JaxrsParameterAggregatorField aggregatorField = parameterAggregator.getFieldAnnotatedWith(annotationName, annotationValue);
+					if(aggregatorField != null) {
+						return aggregatorField;
+					}
+					final JaxrsParameterAggregatorProperty aggregatorProperty = parameterAggregator.getPropertyAnnotatedWith(annotationName, annotationValue);
+					if(aggregatorProperty != null) {
+						return aggregatorProperty;
+					}
+				}
+			}
+		}
+		return null;
 	}
 	
 	/**

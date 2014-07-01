@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -163,8 +162,8 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 			case IJavaElement.COMPILATION_UNIT:
 				final IType primaryType = ((ICompilationUnit) javaElement).findPrimaryType();
 				if (primaryType != null) {
-					final IField field = primaryType.getField(getJavaElement().getElementName());
-					update(field, ast);
+					final IMethod method = primaryType.getMethod(getJavaElement().getElementName(), getJavaElement().getParameterTypes());
+					update(from(method, ast).buildTransient());
 				}
 				break;
 			case IJavaElement.METHOD:
@@ -173,11 +172,11 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 		} 
 	}
 
-	void update(final JaxrsParameterAggregatorProperty transientField) throws CoreException {
-		if (transientField == null) {
+	void update(final JaxrsParameterAggregatorProperty transientProperty) throws CoreException {
+		if (transientProperty == null) {
 			remove();
 		} else {
-			final Flags upateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
+			final Flags upateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
 			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, upateAnnotationsFlags);
 			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
 				remove();

@@ -172,7 +172,7 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 		} else {
 			final Flags upateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
 			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, upateAnnotationsFlags);
-			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
+			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval() || !this.getType().equals(transientField.getType())) {
 				remove();
 			} else if(hasMetamodel()){
 				getMetamodel().update(delta);
@@ -214,7 +214,7 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 	@Override
 	public String toString() {
 		return "ResourceField '" + getJavaElement().getParent().getElementName() + "."
-			+ getJavaElement().getElementName() + "' | annotations=" + getAnnotations();
+			+ getJavaElement().getElementName() + "' (" + getType().getDisplayableTypeName() + ") | annotations=" + getAnnotations();
 	}
 
 }
