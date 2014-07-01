@@ -55,12 +55,21 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 			},
 			JBossJaxrsUIPlugin.PLUGIN_ID
 			);
+	private SectionDescription SECTION_RESOURCES = new SectionDescription(
+			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_resources,
+			new String[][]{
+					{JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceInvalidPathAnnotationValue_label}
+			},
+			JBossJaxrsUIPlugin.PLUGIN_ID
+			);
+
 	private SectionDescription SECTION_RESOURCE_METHODS = new SectionDescription(
 			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_resourceMethods,
 			new String[][]{
 					{JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodNoPublicModifier_label},
 					{JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodUnboundPathAnnotationTemplateParameter_label},
 					{JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodUnboundPathParameterAnnotationValue_label},
+					{JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodInvalidPathAnnotationValue_label},
 					{JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodInvalidPathParamAnnotationValue_label},
 					{JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodInvalidAnnotatedParameterType_label},
 					{JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceMethodMoreThanOneUnannotatedParameter_label},
@@ -85,6 +94,7 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 	private SectionDescription[] ALL_SECTIONS = new SectionDescription[]{
 			SECTION_ACTIVATORS,
 			SECTION_HTTP_METHODS,
+			SECTION_RESOURCES,
 			SECTION_RESOURCE_METHODS,
 			SECTION_PROVIDERS
 	};

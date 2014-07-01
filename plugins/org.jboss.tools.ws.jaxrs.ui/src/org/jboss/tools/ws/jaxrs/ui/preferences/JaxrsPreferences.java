@@ -60,7 +60,14 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 	public static final String NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE = INSTANCE
 			.createSeverityOption("nameBindingInvalidTargetAnnotationValue"); //$NON-NLS-1$
 	
+	// Resource group
+	public static final String RESOURCE_INVALID_PATH_ANNOTATION_VALUE = INSTANCE
+			.createSeverityOption("resourceInvalidPathAnnotationValue"); //$NON-NLS-1$
+	
 	// Resource Method group
+	public static final String RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE = INSTANCE
+			.createSeverityOption("resourceMethodInvalidPathAnnotationValue"); //$NON-NLS-1$
+	
 	public static final String RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION = INSTANCE
 			.createSeverityOption("resourceMethodIllegalContextAnnotation"); //$NON-NLS-1$
 

@@ -45,6 +45,8 @@ public class JaxrsPreferencesMessages extends NLS {
 	public static String JaxrsValidatorConfigurationBlock_pb_httpMethodInvalidTargetAnnotationValue_label;
 	
 	// Section Resource 
+	public static String JaxrsValidatorConfigurationBlock_section_resources;
+	public static String JaxrsValidatorConfigurationBlock_pb_resourceInvalidPathAnnotationValue_label;
 	
 	// Section Resource Methods
  	public static String JaxrsValidatorConfigurationBlock_section_resourceMethods; 
@@ -52,6 +54,7 @@ public class JaxrsPreferencesMessages extends NLS {
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodUnboundPathParameterAnnotationValue_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodUnboundPathAnnotationTemplateParameter_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodMoreThanOneUnannotatedParameter_label;
+	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodInvalidPathAnnotationValue_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodInvalidPathParamAnnotationValue_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodInvalidAnnotatedParameterType_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodNoPublicModifier_label;

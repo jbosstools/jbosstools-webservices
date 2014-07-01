@@ -56,15 +56,18 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 /**
  * @author Xi
  * 
  */
 @SuppressWarnings("restriction")
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JaxrsResourceValidatorTestCase {
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
@@ -817,5 +820,95 @@ public class JaxrsResourceValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
 		assertThat(markers.length, equalTo(0));
 	}
-	
+
+	@Test
+	public void shouldReporProblemWhenMissingBeginBracketInResourceMethodPathAnnotationValue() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"id}\")", false);
+		// removing other items to avoid unwanted markers here
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field",
+				"//@PathParam(\"type\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"id\")", "", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE));
+		
+	}
+
+	@Test
+	public void shouldReporProblemWhenMissingEndBracketInResourceMethodPathAnnotationValue() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{id\")", false);
+		// removing other items to avoid unwanted markers here
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "//@PathParam(\"type\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"id\")", "", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE));
+		
+	}
+
+	@Test
+	public void shouldReporProblemWhenMissingBeginBracketInResourcePathAnnotationValue() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"/\")", "@Path(\"{type}/foo}\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
+		
+	}
+
+	@Test
+	public void shouldReporProblemWhenMissingEndBracketInResourcePathAnnotationValue() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"/\")", "@Path(\"{type}/{foo\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
+		
+	}
 }

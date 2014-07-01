@@ -44,6 +44,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ObjectUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IAnnotatedSourceType;
@@ -356,6 +357,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * @return the displayable URI Path Template as a {@link String}
 	 */
 	private static String getDisplayablePathTemplate(final JaxrsResource resource, final JaxrsResourceMethod resourceMethod) {
+		// skip if the resource's path annotation value is invalid
+		if(!AnnotationUtils.isValidAnnotationValue(resource.getPathTemplate())) {
+			return "";
+		}
 		final StringBuilder pathTemplateBuilder = new StringBuilder();
 		int index = 0;
 		if(resource.getPathTemplate() != null) {
@@ -363,7 +368,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				// make sure the path template starts with a '/'. 
 				if(!resource.getPathTemplate().startsWith("/")) {
 					pathTemplateBuilder.append('/');
-				}
+				}  
 				final int beginIndex = resource.getPathTemplate().indexOf('{', index);
 				final int endIndex = resource.getPathTemplate().indexOf('}', beginIndex + 1);
 				// let's keep everything in between the current index and the
@@ -408,6 +413,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * @param resourceMethod
 	 */
 	private String getDisplayablePathTemplate(final JaxrsResourceMethod resourceMethod) {
+		// skip if the resource method's path annotation value is invalid
+		if(!AnnotationUtils.isValidAnnotationValue(resourceMethod.getPathTemplate())) {
+			return "";
+		}
+
 		final StringBuilder pathTemplateBuilder = new StringBuilder();
 		int index = 0;
 		if (resourceMethod.getPathTemplate() != null) {
@@ -418,6 +428,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			while (index < resourceMethod.getPathTemplate().length()) {
 				final int beginIndex = resourceMethod.getPathTemplate().indexOf('{', index);
 				final int endIndex = resourceMethod.getPathTemplate().indexOf('}', beginIndex + 1);
+				
 				// let's keep everything in between the current index and the
 				// next path arg to process
 				if (beginIndex > index) {
@@ -425,7 +436,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				} else if (beginIndex == -1) {
 					pathTemplateBuilder.append(resourceMethod.getPathTemplate().substring(index));
 					break;
+				} else if(beginIndex != -1 && endIndex == -1) {
+					// missing end bracket.
+					break;
 				}
+				
 				// retrieve path arg without surrounding curly brackets
 				final String pathArg = resourceMethod.getPathTemplate().substring(beginIndex + 1, endIndex)
 						.replace(" ", "");

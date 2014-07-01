@@ -45,8 +45,10 @@ public class JaxrsPreferenceInitializer extends AbstractPreferenceInitializer {
 		defaultPreferences.put(JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 		
-		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_MORE_THAN_ONE_UNANNOTATED_PARAMETER, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_NO_PUBLIC_MODIFIER, JaxrsPreferences.WARNING);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER, JaxrsPreferences.WARNING);

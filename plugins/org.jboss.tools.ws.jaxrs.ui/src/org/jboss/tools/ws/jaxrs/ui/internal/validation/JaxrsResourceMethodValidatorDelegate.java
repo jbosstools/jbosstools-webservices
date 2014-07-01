@@ -47,6 +47,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceFiel
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -88,12 +89,36 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 		// of the same parent resource may already have been validated and have
 		// markers created.
 		validatePublicModifierOnJavaMethod(resourceMethod);
+		validatePathAnnotationValue(resourceMethod);
 		validateNoUnboundPathAnnotationTemplateParameters(resourceMethod);
 		validateNoUnboundPathParamAnnotationValues(resourceMethod);
 		validateNoUnauthorizedContextAnnotationOnJavaMethodParameters(resourceMethod);
 		validateAtMostOneMethodParameterWithoutAnnotation(resourceMethod);
 		validateAtLeastOneProviderWithBinding(resourceMethod);
 		validateParameterTypes(resourceMethod);
+	}
+
+	/**
+	 * Validates that if the {@code @Path} annotation value contains brackets, the end bracket is not missing.
+	 * 
+	 * @param resourceMethod
+	 *            the resource method to validate
+	 * @throws JavaModelException 
+	 * @throws CoreException
+	 * @see JaxrsParameterValidatorDelegate
+	 */
+	private void validatePathAnnotationValue(final JaxrsResourceMethod resourceMethod) throws JavaModelException, CoreException {
+		final Annotation pathAnnotation = resourceMethod.getPathAnnotation();
+		if(pathAnnotation != null && pathAnnotation.getValue() != null) {
+			if(!AnnotationUtils.isValidAnnotationValue(pathAnnotation.getValue())) {
+				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
+						pathAnnotation.getJavaAnnotation(), VALUE);
+				markerManager.addMarker(resourceMethod, range,
+						JaxrsValidationMessages.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE,
+						new String[] { pathAnnotation.getValue() },
+						JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE);
+			}
+		}
 	}
 
 	/**

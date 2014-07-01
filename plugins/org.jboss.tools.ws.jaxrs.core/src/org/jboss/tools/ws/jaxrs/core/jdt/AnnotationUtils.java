@@ -72,9 +72,41 @@ public class AnnotationUtils {
 			int closingCurlyBraketIndex = value.indexOf("}", beginIndex);
 			int endIndex = (semicolonIndex != -1) ? Math.min(semicolonIndex, closingCurlyBraketIndex)
 					: closingCurlyBraketIndex;
+			if(endIndex == -1) {
+				// missing end bracket
+				break;
+			}
 			params.add(value.substring(beginIndex + 1, endIndex).trim());
 		}
 		return params;
+	}
+
+	/**
+	 * Checks if the given annotation value is valid by checking if brackets are correctly balanced (no missing '{' or '}').
+	 * @param value the annotation value to check
+	 * @return {@code true} is valid, {@code false} otherwise.
+	 */
+	public static boolean isValidAnnotationValue(String value) {
+		// skip empty/null values.
+		if(value == null || value.isEmpty()) {
+			return true;
+		}
+		int beginIndex = -1;
+		int lastMatchIndex = -1;
+		// looking for missing '}' 
+		while ((beginIndex = value.indexOf("{", beginIndex + 1)) != -1) {
+			int endIndex = value.indexOf("}", beginIndex);
+				
+			if(beginIndex != -1 && endIndex == -1) {
+				return false;
+			}
+			lastMatchIndex = endIndex + 1;
+		}
+		// looking for missing '{' 
+		if(value.indexOf("}", lastMatchIndex) > -1) {
+			return false;
+		}
+		return true;
 	}
 
 }
