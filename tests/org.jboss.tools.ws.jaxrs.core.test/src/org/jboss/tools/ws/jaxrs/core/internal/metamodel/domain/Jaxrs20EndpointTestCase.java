@@ -661,4 +661,84 @@ public class Jaxrs20EndpointTestCase {
 		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer}?query={Integer}"));
 	}
 	
+	@Test
+	// @see JBIDE-17712
+	public void shouldRetrieveMatrixParamTypeInParameterAggregatorField() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "Query", "Matrix", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "query", "matrix", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
+		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={String}"));
+	}
+	
+	@Test
+	// @see JBIDE-17712
+	public void shouldRetrieveMatrixParamTypeChangeInParameterAggregatorField() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "Query", "Matrix", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "query", "matrix", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
+		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={String}"));
+		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String ", "Integer ", true);
+		for(JaxrsParameterAggregatorField aggregatorField : parameterAggregator.getAllFields()) {
+			metamodelMonitor.processEvent(aggregatorField.getJavaElement(), CHANGED);
+		}
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer};matrix={Integer}"));
+	}
+
+	@Test
+	// @see JBIDE-17712
+	public void shouldRetrieveMatrixParamTypeInParameterAggregatorProperty() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "Query", "Matrix", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "query", "matrix", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
+		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={String}"));
+	}
+	
+	@Test
+	// @see JBIDE-17712
+	public void shouldRetrieveMatrixParamTypeChangeInParameterAggregatorProperty() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "Query", "Matrix", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "query", "matrix", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@PathParam(\"path\")", "", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "// PLACEHOLDER", "@PathParam(\"path\")", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
+		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={String}"));
+		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String ", "Integer ", true);
+		metamodelMonitor.processEvent(paramAggregatorUnit, CHANGED);
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer};matrix={Integer}"));
+	}
+	
 }

@@ -1203,8 +1203,8 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourcePropertyWhenAddingMatrixParamAnnotationOnProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux2");
-		metamodelMonitor.removeResourceProperty(resource, "getQux2");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux2");
+		metamodelMonitor.removeResourceProperty(resource, "setQux2");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation annotation = getAnnotation(method, MATRIX_PARAM);
@@ -1221,8 +1221,8 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourcePropertyWhenAddingPathParamAnnotationOnProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux3");
-		metamodelMonitor.removeResourceProperty(resource, "getQux3");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux3");
+		metamodelMonitor.removeResourceProperty(resource, "setQux3");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation annotation = getAnnotation(method, PATH_PARAM);
@@ -1256,8 +1256,8 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourcePropertyWhenAddingMatrixParamAnnotatedProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux2");
-		metamodelMonitor.removeResourceProperty(resource, "getQux2");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux2");
+		metamodelMonitor.removeResourceProperty(resource, "setQux2");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(method, ADDED);
@@ -1273,8 +1273,8 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourcePropertyWhenAddingPathParamAnnotatedProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux3");
-		metamodelMonitor.removeResourceProperty(resource, "getQux3");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux3");
+		metamodelMonitor.removeResourceProperty(resource, "setQux3");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(method, ADDED);
@@ -1310,7 +1310,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldUpdateResourcePropertyWhenUpdatingMatrixParamAnnotationOnProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux2");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux2");
 		final Annotation queryParamAnnotation = resource.getProperties().get(method.getHandleIdentifier()).getAnnotation(MATRIX_PARAM);
 		queryParamAnnotation.update(createAnnotation(PATH_PARAM, "foobar"));
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1330,7 +1330,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldUpdateResourcePropertyWhenUpdatingPathParamAnnotationOnProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux3");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux3");
 		final Annotation queryParamAnnotation = resource.getProperties().get(method.getHandleIdentifier()).getAnnotation(PATH_PARAM);
 		queryParamAnnotation.update(createAnnotation(PATH_PARAM, "foobar"));
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1367,7 +1367,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourcePropertyWhenRemovingMatrixParamAnnotationOnProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux2");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux2");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation annotation = getAnnotation(method, MATRIX_PARAM);
@@ -1384,7 +1384,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourcePropertyWhenRemovingPathParamAnnotationOnProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux3");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux3");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation annotation = getAnnotation(method, PATH_PARAM);
@@ -1417,7 +1417,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourcePropertyWhenRemovingMatrixParamAnnotatedProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux2");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux2");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(method, REMOVED);
@@ -1433,7 +1433,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourcePropertyWhenRemovingPathParamAnnotatedProperty() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "getQux3");
+		final IMethod method = metamodelMonitor.resolveMethod(resource.getJavaElement(), "setQux3");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(method, REMOVED);

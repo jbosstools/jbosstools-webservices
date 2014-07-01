@@ -47,12 +47,10 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IAnnotatedSourceType;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 
 public class JaxrsEndpoint implements IJaxrsEndpoint {
@@ -385,7 +383,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				// TODO: implement a preference to let the user decide if she wants to 
 				// have the type of the associated PathParam
 				else {
-					boolean match = false;
 					final IAnnotatedSourceType parameterType = ((JaxrsResourceMethod) resourceMethod).getRelatedTypeAnnotatedWith(PATH_PARAM, pathArg);
 					if (parameterType != null) {
 						pathTemplateBuilder.append('{').append(pathArg);
@@ -393,20 +390,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 							pathTemplateBuilder.append(":").append(parameterType.getType().getDisplayableTypeName());
 						}
 						pathTemplateBuilder.append('}');
-						match = true;
-					}
-					if (!match) {
-						for (IJaxrsResourceField resourceField : resource.getAllFields()) {
-							final Annotation pathParamAnnotation = ((JaxrsResourceField) resourceField)
-									.getAnnotation(PATH_PARAM);
-							if (pathParamAnnotation != null && pathParamAnnotation.getValue().equals(pathArg)) {
-								pathTemplateBuilder.append('{').append(pathArg).append(":")
-										.append(resourceField.getType().getDisplayableTypeName()).append('}');
-								match = true;
-							}
-						}
-					}
-					if (!match) {
+					} else {
 						pathTemplateBuilder.append('{').append(pathArg).append(":.*").append('}');
 					}
 				}
@@ -424,7 +408,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * @param resourceMethod
 	 */
 	private String getDisplayablePathTemplate(final JaxrsResourceMethod resourceMethod) {
-		final JaxrsResource parentResource = resourceMethod.getParentResource();
 		final StringBuilder pathTemplateBuilder = new StringBuilder();
 		int index = 0;
 		if (resourceMethod.getPathTemplate() != null) {
@@ -454,7 +437,6 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				// the first resource methods
 				// which provides it
 				else {
-					boolean match = false;
 					final IAnnotatedSourceType parameterType = ((JaxrsResourceMethod) resourceMethod).getRelatedTypeAnnotatedWith(PATH_PARAM, pathArg);
 					if (parameterType != null) {
 						pathTemplateBuilder.append('{').append(pathArg);
@@ -462,21 +444,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 							pathTemplateBuilder.append(":").append(parameterType.getType().getDisplayableTypeName());
 						}
 						pathTemplateBuilder.append('}');
-						match = true;
-					}
-					if (!match) {
-						for (IJaxrsResourceField resourceField : parentResource.getAllFields()) {
-							final Annotation pathParamAnnotation = ((JaxrsResourceField) resourceField)
-									.getAnnotation(PATH_PARAM);
-							if (pathParamAnnotation != null && pathParamAnnotation.getValue().equals(pathArg)) {
-								pathTemplateBuilder.append('{').append(pathArg).append(":")
-										.append(resourceField.getType().getDisplayableTypeName()).append('}');
-								match = true;
-								break;
-							}
-						}
-					}
-					if (!match) {
+					} else {
 						pathTemplateBuilder.append('{').append(pathArg).append(":.*").append('}');
 					}
 				}
@@ -484,30 +452,17 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 			}
 		}
 		final List<String> matrixParamFieldAnnotationValues = new ArrayList<String>();
-		final List<JaxrsResourceField> matrixParamFields = resourceMethod.getParentResource().getFieldsAnnotatedWith(MATRIX_PARAM);
-		for (JaxrsResourceField matrixParamField : matrixParamFields) {
+		final List<IAnnotatedSourceType> matrixParams = resourceMethod.getRelatedTypesAnnotatedWith(MATRIX_PARAM);
+		
+		for (IAnnotatedSourceType matrixParam : matrixParams) {
 			pathTemplateBuilder.append(';');
-			final String matrixParamFieldAnnotationValue = matrixParamField.getAnnotation(
+			final String matrixParamFieldAnnotationValue = matrixParam.getAnnotation(
 					MATRIX_PARAM).getValue();
 			matrixParamFieldAnnotationValues.add(matrixParamFieldAnnotationValue);
 			pathTemplateBuilder.append(matrixParamFieldAnnotationValue).append("={")
-					.append(matrixParamField.getType().getDisplayableTypeName());
-			if(matrixParamField.hasAnnotation(DEFAULT_VALUE)) {
-				pathTemplateBuilder.append(':').append('\"').append(matrixParamField.getAnnotation(DEFAULT_VALUE).getValue()).append('\"');
-			}
-			pathTemplateBuilder.append('}');
-		}
-		// look at the method arguments but skip matrix params already defined at the parent resource (java type) level
-		final List<IJavaMethodParameter> matrixParams = resourceMethod.getJavaMethodParametersAnnotatedWith(MATRIX_PARAM);
-		for (IJavaMethodParameter matrixParam : matrixParams) {
-			pathTemplateBuilder.append(';');
-			final String matrixParamAnnotationValue = matrixParam.getAnnotation(
-					MATRIX_PARAM).getValue();
-			pathTemplateBuilder.append(matrixParamAnnotationValue).append("={")
 					.append(matrixParam.getType().getDisplayableTypeName());
-			final Annotation matrixParamAnnotation = matrixParam.getAnnotation(DEFAULT_VALUE);
-			if(matrixParamAnnotation != null && !matrixParamFieldAnnotationValues.contains(matrixParamAnnotation.getValue())) {
-				pathTemplateBuilder.append(':').append('\"').append(matrixParamAnnotation.getValue()).append('\"');
+			if(matrixParam.hasAnnotation(DEFAULT_VALUE)) {
+				pathTemplateBuilder.append(':').append('\"').append(matrixParam.getAnnotation(DEFAULT_VALUE).getValue()).append('\"');
 			}
 			pathTemplateBuilder.append('}');
 		}

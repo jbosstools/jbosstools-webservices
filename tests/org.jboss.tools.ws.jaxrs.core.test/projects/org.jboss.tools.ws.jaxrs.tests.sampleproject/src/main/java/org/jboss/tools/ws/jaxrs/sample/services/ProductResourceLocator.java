@@ -34,13 +34,13 @@ public class ProductResourceLocator {
 	
 	@MatrixParam("qux2")
 	@DefaultValue("qux2!")
-	public String getQux2() {
-		return null;
+	public void setQux2(String qux) {
+		//...
 	}
 	
 	@PathParam("qux3")
-	public String getQux3() {
-		return null;
+	public void setQux3(String qux) {
+		//...
 	}
 	
 	@Path("/{productType}")

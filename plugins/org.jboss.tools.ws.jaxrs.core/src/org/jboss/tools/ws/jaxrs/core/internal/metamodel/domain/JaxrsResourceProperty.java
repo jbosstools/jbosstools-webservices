@@ -124,6 +124,9 @@ public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements 
 				}
 				
 				this.javaPropertyType = JdtUtils.getPropertyType(methodSignature);
+				if(this.javaPropertyType == null) {
+					return null;
+				}
 				final JaxrsResourceProperty resourceProperty = new JaxrsResourceProperty(this);
 				if(parentResource != null) {
 					resourceProperty.joinMetamodel();

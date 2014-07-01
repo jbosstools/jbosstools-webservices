@@ -121,10 +121,10 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 	}
 	
 	/** The underlying field type. */
-	private final SourceType fieldType;
+	private SourceType fieldType;
 
 	/** The surrounding parent element. */
-	private JaxrsParameterAggregator parentParameterAggregator;
+	private final JaxrsParameterAggregator parentParameterAggregator;
 
 	/**
 	 * Full constructor.
@@ -170,14 +170,28 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 		if (transientField == null) {
 			remove();
 		} else {
-			final Flags upateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, upateAnnotationsFlags);
-			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval() || !this.getType().equals(transientField.getType())) {
+			final Flags updateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
+			updateAnnotationsFlags.addFlags(updateType(transientField.getType()));
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+			if (updateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
 				remove();
 			} else if(hasMetamodel()){
 				getMetamodel().update(delta);
 			}
 		}
+	}
+
+	/**
+	 * Updates the {@link SourceType} associated with this {@link JaxrsParameterAggregatorField}.
+	 * @param fieldType the new {@link SourceType}
+	 * @return a {@link Flags} indicating if there were some changes
+	 */
+	private Flags updateType(final SourceType fieldType) {
+		if(this.fieldType.equals(fieldType)) {
+			return Flags.NONE;
+		}
+		this.fieldType = fieldType;
+		return new Flags(JaxrsElementDelta.F_SOURCE_TYPE);
 	}
 
 	/**

@@ -34,49 +34,51 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
 	public static final int F_ELEMENT_KIND = 0x2;
 
-	public static final int F_PATH_ANNOTATION = 0x4;
+	public static final int F_SOURCE_TYPE = 0x4;
 
-	public static final int F_APPLICATION_PATH_ANNOTATION = 0x8;
+	public static final int F_PATH_ANNOTATION = 0x8;
 
-	public static final int F_APPLICATION_CLASS_NAME = 0x10;
+	public static final int F_APPLICATION_PATH_ANNOTATION = 0x10;
 
-	public static final int F_APPLICATION_PATH_VALUE_OVERRIDE = 0x20;
+	public static final int F_APPLICATION_CLASS_NAME = 0x20;
 
-	public static final int F_APPLICATION_HIERARCHY = 0x40;
+	public static final int F_APPLICATION_PATH_VALUE_OVERRIDE = 0x40;
 
-	public static final int F_HTTP_METHOD_ANNOTATION = 0x80;
+	public static final int F_APPLICATION_HIERARCHY = 0x80;
 
-	public static final int F_PATH_PARAM_ANNOTATION = 0x100;
+	public static final int F_HTTP_METHOD_ANNOTATION = 0x100;
 
-	public static final int F_QUERY_PARAM_ANNOTATION = 0x200;
+	public static final int F_PATH_PARAM_ANNOTATION = 0x200;
 
-	public static final int F_MATRIX_PARAM_ANNOTATION = 0x400;
+	public static final int F_QUERY_PARAM_ANNOTATION = 0x400;
 
-	public static final int F_DEFAULT_VALUE_ANNOTATION = 0x800;
+	public static final int F_MATRIX_PARAM_ANNOTATION = 0x800;
 
-	public static final int F_CONSUMES_ANNOTATION = 0x1000;
+	public static final int F_DEFAULT_VALUE_ANNOTATION = 0x1000;
 
-	public static final int F_PRODUCES_ANNOTATION = 0x2000;
+	public static final int F_CONSUMES_ANNOTATION = 0x2000;
 
-	public static final int F_METHOD_PARAMETERS = 0x4000;
+	public static final int F_PRODUCES_ANNOTATION = 0x4000;
 
-	public static final int F_METHOD_RETURN_TYPE = 0x8000;
+	public static final int F_METHOD_PARAMETERS = 0x8000;
 
-	public static final int F_TARGET_ANNOTATION = 0x10000;
+	public static final int F_METHOD_RETURN_TYPE = 0x10000;
 
-	public static final int F_RETENTION_ANNOTATION = 0x20000;
+	public static final int F_TARGET_ANNOTATION = 0x20000;
 
-	public static final int F_PROVIDER_ANNOTATION = 0x40000;
+	public static final int F_RETENTION_ANNOTATION = 0x40000;
 
-	public static final int F_ENCODED_ANNOTATION = 0x80000;
+	public static final int F_PROVIDER_ANNOTATION = 0x80000;
 
-	public static final int F_PROVIDER_HIERARCHY = 0x100000;
+	public static final int F_ENCODED_ANNOTATION = 0x100000;
 
-	public static final int F_NAME_BINDING_ANNOTATION = 0x200000;
+	public static final int F_PROVIDER_HIERARCHY = 0x200000;
 
-	public static final int F_PARAM_CONVERTER_PROVIDER_HIERARCHY = 0x400000;
+	public static final int F_NAME_BINDING_ANNOTATION = 0x400000;
 
-	public static final int F_BEAN_PARAM_ANNOTATION = 0x800000;
+	public static final int F_PARAM_CONVERTER_PROVIDER_HIERARCHY = 0x800000;
+
+	public static final int F_BEAN_PARAM_ANNOTATION = 0x1000000;
 	
 	private final IJaxrsElement element;
 

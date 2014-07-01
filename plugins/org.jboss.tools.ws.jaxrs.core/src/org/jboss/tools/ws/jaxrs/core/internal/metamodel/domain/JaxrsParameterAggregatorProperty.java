@@ -163,7 +163,7 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 				final IType primaryType = ((ICompilationUnit) javaElement).findPrimaryType();
 				if (primaryType != null) {
 					final IMethod method = primaryType.getMethod(getJavaElement().getElementName(), getJavaElement().getParameterTypes());
-					update(from(method, ast).buildTransient());
+					update(method, ast);
 				}
 				break;
 			case IJavaElement.METHOD:

@@ -107,7 +107,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResourceMethod subresourceMethod = metamodelMonitor.resolveResourceMethod(bookResource, "getProduct");
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(subresourceMethod).iterator().next();
 		assertThat(endpoint.getHttpMethod(), equalTo((IJaxrsHttpMethod) httpMethod));
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/products/{productType:String};bar={String}/{id:Integer}?foo={String:\"foo!\"}&qux1={String:\"qux1!\"}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/products/{productType:String};bar={String};qux2={String:\"qux2!\"}/{id:Integer}?foo={String:\"foo!\"}&qux1={String:\"qux1!\"}"));
 		assertThat(endpoint.getConsumedMediaTypes(), equalTo(Arrays.asList("*/*")));
 		assertThat(endpoint.getProducedMediaTypes(), equalTo(Arrays.asList("application/xml", "application/json")));
 	}

@@ -178,7 +178,7 @@ public class JaxrsEndpointTestCase {
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		// verifications
-		assertThat(uriPathTemplate, equalTo("/hello/products/{productType:String};bar={String}/{id:Integer};color={String}?foo={String:\"foo!\"}&qux1={String:\"qux1!\"}"));
+		assertThat(uriPathTemplate, equalTo("/hello/products/{productType:String};bar={String};qux2={String:\"qux2!\"}/{id:Integer};color={String}?foo={String:\"foo!\"}&qux1={String:\"qux1!\"}"));
 	}
 
 	@Test

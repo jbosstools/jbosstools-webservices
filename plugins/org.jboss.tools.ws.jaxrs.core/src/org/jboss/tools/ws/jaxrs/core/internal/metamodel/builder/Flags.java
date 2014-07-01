@@ -24,7 +24,10 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
  */
 public class Flags {
 
-	int flags;
+	public static final Flags NONE = new Flags();
+	
+	/** The wrapped flags. */
+	private int flags;
 
 	/**
 	 * Default constructor. Starting with <code>flags=0</code>.

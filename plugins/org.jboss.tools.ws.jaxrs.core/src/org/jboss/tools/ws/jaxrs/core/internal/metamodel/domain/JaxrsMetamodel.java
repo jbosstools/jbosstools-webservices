@@ -434,26 +434,26 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	/**
 	 * Process {@link IJavaElement} change.
 	 * 
-	 * @param element
+	 * @param javaElement
 	 * @param deltaKind
 	 * @param ast
 	 * @param progressMonitor
 	 * @throws JavaModelException
 	 * @throws CoreException
 	 */
-	private void processJavaElementChange(final IJavaElement element, final int deltaKind, final CompilationUnit ast,
+	private void processJavaElementChange(final IJavaElement javaElement, final int deltaKind, final CompilationUnit ast,
 			final IProgressMonitor progressMonitor) throws JavaModelException, CoreException {
 		if (deltaKind == ADDED) {
-			JaxrsElementFactory.createElements(element, ast, this, progressMonitor);
+			JaxrsElementFactory.createElements(javaElement, ast, this, progressMonitor);
 		} else {
-			final List<IJaxrsElement> jaxrsElements = searchJaxrsElements(element);
+			final List<IJaxrsElement> jaxrsElements = searchJaxrsElements(javaElement);
 			if (deltaKind == CHANGED) {
 				if (jaxrsElements.isEmpty()) {
-					JaxrsElementFactory.createElements(element, ast, this, progressMonitor);
+					JaxrsElementFactory.createElements(javaElement, ast, this, progressMonitor);
 				} else {
 					for (Iterator<IJaxrsElement> iterator = jaxrsElements.iterator(); iterator.hasNext();) {
-						JaxrsJavaElement<?> jaxrsElement = (JaxrsJavaElement<?>) iterator.next();
-						jaxrsElement.update(element, ast);
+						JaxrsJavaElement<?> element = (JaxrsJavaElement<?>) iterator.next();
+						element.update(javaElement, ast);
 					}
 				}
 			} else {
