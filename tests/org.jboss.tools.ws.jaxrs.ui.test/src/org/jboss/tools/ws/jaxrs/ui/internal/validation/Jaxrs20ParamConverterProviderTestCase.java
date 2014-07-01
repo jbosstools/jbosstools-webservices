@@ -40,6 +40,7 @@ import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -141,5 +142,72 @@ public class Jaxrs20ParamConverterProviderTestCase {
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));
 	}
 	
+	@Test
+	public void shouldResolveProblemWhenAddingParamConverterProvider() throws CoreException, ValidationException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("Plane.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Plane.java");
+		final ICompilationUnit planeResourceCompilationUnit = metamodelMonitor.createCompilationUnit("PlaneResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "PlaneResource.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.Plane", "org.jboss.tools.ws.jaxrs.sample.services.PlaneResource");
+		final JaxrsResource planeResource = metamodelMonitor.createResource(planeResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+
+		// operation 1 : validate without ParamConverterProvider
+		new JaxrsMetamodelValidator().validate(toSet(planeResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// validation: expect 1 problem
+		final IMarker[] markers = findJaxrsMarkers(planeResource);
+		assertThat(markers.length, equalTo(1));
+
+		// operation 2: add the param converter provider
+		final ICompilationUnit planeParamConverterProviderCompilationUnit = metamodelMonitor.createCompilationUnit("PlaneParamConverterProvider.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "PlaneParamConverterProvider.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.PlaneParamConverterProvider");
+
+		metamodelMonitor.resetElementChangesNotifications();
+
+		// operation 2 : validate from ParamConverterProvider
+		new JaxrsMetamodelValidator().validate(toSet(planeParamConverterProviderCompilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// validation: expect 0 problem on PlaneResource since there's now a ParamConverterProvider
+		final IMarker[] updatedMarkers = findJaxrsMarkers(planeResource);
+		assertThat(updatedMarkers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldReportProblemWhenRemovingParamConverterProvider() throws CoreException, ValidationException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("Plane.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Plane.java");
+		final ICompilationUnit planeResourceCompilationUnit = metamodelMonitor.createCompilationUnit("PlaneResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "PlaneResource.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.Plane", "org.jboss.tools.ws.jaxrs.sample.services.PlaneResource");
+		final JaxrsResource planeResource = metamodelMonitor.createResource(planeResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.createCompilationUnit("PlaneParamConverterProvider.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "PlaneParamConverterProvider.java");
+		final JaxrsParamConverterProvider planeParameterConverterProvider = metamodelMonitor.createParameterConverterProvider("org.jboss.tools.ws.jaxrs.sample.services.PlaneParamConverterProvider");
+		metamodelMonitor.resetElementChangesNotifications();
+
+		// operation 1 : validate with the ParamConverterProvider
+		new JaxrsMetamodelValidator().validate(toSet(planeResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// validation: expect 0 problem
+		final IMarker[] markers = findJaxrsMarkers(planeResource);
+		assertThat(markers.length, equalTo(0));
+
+		// operation 2: remove the param converter provider
+		planeParameterConverterProvider.remove();
+		metamodelMonitor.resetElementChangesNotifications();
+
+		// operation 2 : validate from ParamConverterProvider
+		new JaxrsMetamodelValidator().validate(toSet(planeParameterConverterProvider.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// validation: expect 1 problem on PlaneResource since there's no ParamConverterProvider
+		final IMarker[] updatedMarkers = findJaxrsMarkers(planeResource);
+		assertThat(updatedMarkers.length, equalTo(1));
+	}
 	
 }

@@ -32,6 +32,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
@@ -387,6 +388,14 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	
 	public JaxrsParameterAggregator createParameterAggregator(final IType type) throws JavaModelException, CoreException {
 		return JaxrsParameterAggregator.from(type).buildInMetamodel(metamodel);
+	}
+
+	public JaxrsParamConverterProvider createParameterConverterProvider(final String typeName) throws JavaModelException, CoreException {
+		return createParameterConverterProvider(JdtUtils.resolveType(typeName, metamodel.getJavaProject(), new NullProgressMonitor()));
+	}
+	
+	public JaxrsParamConverterProvider createParameterConverterProvider(final IType type) throws JavaModelException, CoreException {
+		return JaxrsParamConverterProvider.from(type).withMetamodel(metamodel).build();
 	}
 
 	/**

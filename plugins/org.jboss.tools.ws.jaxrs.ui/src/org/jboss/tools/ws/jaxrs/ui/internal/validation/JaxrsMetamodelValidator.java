@@ -46,10 +46,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.NodeFinder;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -72,7 +69,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsShadowElementsCache;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -199,6 +195,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 */
 	private List<IResource> completeValidationSet(final JaxrsMetamodel metamodel, final IFile... changedResources)
 			throws CoreException {
+		final IProject project = metamodel.getProject();
 		final Set<IResource> resources = new HashSet<IResource>();
 		// add all given changed resources
 		resources.addAll(Arrays.asList(changedResources));
@@ -214,7 +211,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		// duplicate/overrides)
 		if (applicationsChanged) {
 			resources.addAll(getApplicationUnderlyingResources(metamodel));
-			resources.add(metamodel.getProject());
+			resources.add(project);
 		}
 		// if there are Applications, Resources (incl. ResourceMethods), then
 		// also include Filters and Interceptors (to check for NameBindings).
@@ -246,6 +243,11 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				}
 			}
 		}
+		// if the given changedFile matches a ParamConverterProvider, add all JAX-RS resources (naive approach).
+		if(elementKindChanges.contains(EnumElementKind.PARAM_CONVERTER_PROVIDER)) {
+			resources.addAll(getResourceUnderlyingResources(metamodel));
+		}
+		
 		
 		// put the result in a list that will be sorted
 		final ArrayList<IResource> result = new ArrayList<IResource>(resources);
@@ -410,8 +412,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				changedFile.getFullPath());
 		try {
 			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(changedFile.getProject());
-			if (metamodel != null) {
-				final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(changedFile);
+			final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(changedFile);
+			if (metamodel != null && compilationUnit != null) {
 				final CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 				final Set<IJaxrsElement> changedJaxrsElements = new HashSet<IJaxrsElement>();
 				for(IRegion dirtyRegion : dirtyRegions) {
@@ -514,7 +516,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		case RESOURCE:
 			// this validator delegate also deals with ResourceMethods and
 			// ResourceFields when validating a whole resource
-			return new JaxrsResourceValidatorDelegate(this);
+			return new JaxrsResourceValidatorDelegate(this); 
 		case RESOURCE_FIELD:
 			return new JaxrsResourceFieldValidatorDelegate(this);
 		case RESOURCE_METHOD:

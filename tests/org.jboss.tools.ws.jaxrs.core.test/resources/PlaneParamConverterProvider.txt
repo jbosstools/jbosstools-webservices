@@ -1,0 +1,37 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+
+import javax.ws.rs.ext.ParamConverter;
+import javax.ws.rs.ext.ParamConverterProvider;
+import javax.ws.rs.ext.Provider;
+
+@Provider
+public class PlaneParamConverterProvider implements ParamConverterProvider {
+
+	private ParamConverter<Plane> planeConverter = new ParamConverter<Plane>() {
+
+		@Override
+		public Plane fromString(String arg0) {
+			Plane plane = new Plane();
+			plane.setBrand(arg0);
+			return plane;
+		}
+
+		@Override
+		public String toString(Plane arg0) {
+			return arg0.getBrand();
+		}
+
+	};
+	@Override
+	public <T> ParamConverter<T> getConverter(Class<T> arg0, Type arg1,
+			Annotation[] arg2) {
+		if(arg0.equals(Plane.class)) {
+			return (ParamConverter<T>) planeConverter;
+		}
+		return null;
+	}
+
+}
