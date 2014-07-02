@@ -1,7 +1,7 @@
 package org.jboss.tools.ws.jaxrs.core.junitrules;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -185,7 +185,7 @@ public class ResourcesUtils {
 		final IFile file = project.getFile(resource.getProjectRelativePath());
 		final String content = IOUtils.toString(file.getContents());
 		// pre-condition: verify that resource contains old content
-		assertThat(content.indexOf(oldContent), not(-1));
+		assertNotEquals("Could not find occurrence of" + oldContent + "\nin\n" + content, content.indexOf(oldContent), -1);
 		// operation
 		final String modifiedContent = content.replace(oldContent, newContent);
 		file.delete(true, new NullProgressMonitor());
