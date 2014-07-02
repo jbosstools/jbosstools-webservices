@@ -19,10 +19,8 @@ import static org.junit.Assert.assertThat;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
-import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.Assert;
@@ -36,7 +34,7 @@ public class ProjectBuilderUtilsTestCase {
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
 	
 	@Rule
-	public TestProjectMonitor sampleProject = new TestProjectMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject");
+	public TestProjectMonitor projectMonitor = new TestProjectMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject");
 
 	
 	/**
@@ -64,55 +62,50 @@ public class ProjectBuilderUtilsTestCase {
 	@Test
 	public void shouldVerifyProjectBuilderIsNotInstalled() throws Exception {
 		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
 	}
 
 	@Test
 	public void shouldVerifyProjectBuilderIsInstalled() throws Exception {
-		Assert.assertTrue("Wrong result", ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(),
+		Assert.assertTrue("Wrong result", ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(),
 				"org.eclipse.jdt.core.javabuilder"));
 	}
 
 	@Test
 	public void shouldInstallAndUninstallProjectBuilder() throws Exception {
 		// pre-conditions
-		ProjectBuilderUtils.uninstallProjectBuilder(sampleProject.getProject(), BUILDER_ID);
+		ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID);
 		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertTrue("Wrong result",
-				ProjectBuilderUtils.installProjectBuilder(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.installProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.installProjectBuilder(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.installProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertTrue("Wrong result",
-				ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertTrue("Wrong result",
-				ProjectBuilderUtils.uninstallProjectBuilder(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.uninstallProjectBuilder(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
 	}
 
 	@Test
 	public void shouldInstallProjectFacetAndCheckPositionIsBeforeValidator() throws Exception {
 		// pre-conditions
-		ProjectBuilderUtils.uninstallProjectBuilder(sampleProject.getProject(), BUILDER_ID);
+		ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID);
 		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(), BUILDER_ID));
-		final IResource dotProjectFile = sampleProject.getProject().findMember(".project");
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
 		// pre-conditions: activating the validation builder
-		ResourcesUtils
-				.replaceContent(
-						dotProjectFile,
-						"<!-- PLACEHOLDER -->",
-						"<buildCommand><name>org.eclipse.wst.validation.validationbuilder</name><arguments></arguments></buildCommand>");
-		assertThat(getCommandNames(sampleProject.getProject()).length, equalTo(3));
+		projectMonitor.replaceDotProjectFileWith("dotProject.txt");
+		assertThat(getCommandNames(projectMonitor.getProject()).length, equalTo(3));
 		// operation
-		ProjectBuilderUtils.installProjectBuilder(sampleProject.getProject(), BUILDER_ID);
+		ProjectBuilderUtils.installProjectBuilder(projectMonitor.getProject(), BUILDER_ID);
 		// post-conditions
-		final int p = ProjectBuilderUtils.getBuilderPosition(sampleProject.getProject(), BUILDER_ID);
+		final int p = ProjectBuilderUtils.getBuilderPosition(projectMonitor.getProject(), BUILDER_ID);
 		assertThat(p, equalTo(2));
-		final String[] names = getCommandNames(sampleProject.getProject());
+		final String[] names = getCommandNames(projectMonitor.getProject());
 		assertThat(names.length, equalTo(4));
 		for(int i = 0; i < names.length; i++) {
 			assertThat(names[i], notNullValue());
@@ -122,15 +115,15 @@ public class ProjectBuilderUtilsTestCase {
 	@Test
 	public void shouldInstallProjectFacetAndCheckPositionIsLast() throws Exception {
 		// pre-conditions
-		ProjectBuilderUtils.uninstallProjectBuilder(sampleProject.getProject(), BUILDER_ID);
+		ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID);
 		Assert.assertFalse("Wrong result",
-				ProjectBuilderUtils.isProjectBuilderInstalled(sampleProject.getProject(), BUILDER_ID));
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
 		// operation
-		ProjectBuilderUtils.installProjectBuilder(sampleProject.getProject(), BUILDER_ID);
+		ProjectBuilderUtils.installProjectBuilder(projectMonitor.getProject(), BUILDER_ID);
 		// post-conditions
-		int p = ProjectBuilderUtils.getBuilderPosition(sampleProject.getProject(), BUILDER_ID);
+		int p = ProjectBuilderUtils.getBuilderPosition(projectMonitor.getProject(), BUILDER_ID);
 		assertThat(p, equalTo(2));
-		final String[] names = getCommandNames(sampleProject.getProject());
+		final String[] names = getCommandNames(projectMonitor.getProject());
 		assertThat(names.length, equalTo(3));
 		for(int i = 0; i < names.length; i++) {
 			assertThat(names[i], notNullValue());

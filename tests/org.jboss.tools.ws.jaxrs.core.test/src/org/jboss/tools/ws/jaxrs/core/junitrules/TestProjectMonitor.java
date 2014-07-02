@@ -356,6 +356,28 @@ public class TestProjectMonitor extends ExternalResource {
 		}
 	}
 
+	public IFile replaceDotProjectFileWith(final String dotProjectReplacementName) throws Exception {
+		IFile dotProjectResource = project.getFile(".project");
+		if (dotProjectResource != null && dotProjectReplacementName == null) {
+			dotProjectResource.delete(true, new NullProgressMonitor());
+		} else if (dotProjectResource == null && dotProjectReplacementName == null) {
+			// nothing to do: file does not exist and should be removed ;-)
+			return null;
+		}
+		if (dotProjectReplacementName == null) {
+			return null;
+		}
+		Bundle bundle = JBossJaxrsCoreTestPlugin.getDefault().getBundle();
+		InputStream stream = FileLocator.openStream(bundle, new Path("resources").append(dotProjectReplacementName), false);
+		assertThat(stream, notNullValue());
+		if (dotProjectResource != null) {
+			ResourcesUtils.replaceContent(dotProjectResource, stream);
+			return dotProjectResource;
+		} else {
+			return ResourcesUtils.createFileFromStream(project.getFolder("."), ".project", stream);
+		}
+	}
+
 	/**
 	 * @return
 	 * @throws CoreException
