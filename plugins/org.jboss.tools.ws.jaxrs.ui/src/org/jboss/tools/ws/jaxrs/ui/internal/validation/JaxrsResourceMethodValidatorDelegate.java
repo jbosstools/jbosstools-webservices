@@ -29,7 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
@@ -144,8 +143,11 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 				continue;
 			}
 			final SourceType type = methodParameter.getType();
-			final boolean isValid = parameterValidatorDelegate.validate(type, resourceMethod.getMetamodel()
-					.getJavaProject(), new NullProgressMonitor());
+			// skip if the type does not exist, there will already be a compilation error reported by JDT.
+			if(!type.exists()) {
+				return;
+			}
+			final boolean isValid = parameterValidatorDelegate.validate(type);
 			if (!isValid) {
 				markerManager.addMarker(resourceMethod, methodParameter.getType().getNameRange(),
 						JaxrsValidationMessages.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE,
@@ -273,7 +275,9 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			if (beanParamAnnotation != null) {
 				final SourceType beanParameterType = parameter.getType();
 				final JaxrsParameterAggregator parameterAggregator = (JaxrsParameterAggregator) resourceMethod.getMetamodel().findElement(beanParameterType.getErasureName(), EnumElementCategory.PARAMETER_AGGREGATOR);
-				actualPathParamValues.addAll(parameterAggregator.getPathParamValues());
+				if(parameterAggregator != null) {
+					actualPathParamValues.addAll(parameterAggregator.getPathParamValues());
+				}
 			}
 		}
 		actualPathParamValues.addAll(resourceMethod.getParentResource().getPathParamValues());
@@ -317,7 +321,13 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 				final Annotation beanParamAnnotation = parameter.getAnnotation(BEAN_PARAM);
 				if (beanParamAnnotation != null) {
 					final SourceType beanParameterType = parameter.getType();
+					if(beanParameterType == null) {
+						continue;
+					}
 					final JaxrsParameterAggregator parameterAggregator = (JaxrsParameterAggregator) resourceMethod.getMetamodel().findElement(beanParameterType.getErasureName(), EnumElementCategory.PARAMETER_AGGREGATOR);
+					if(parameterAggregator == null) {
+						continue;
+					}
 					// iterate on resource properties
 					for (JaxrsParameterAggregatorProperty aggregatorProperty : parameterAggregator.getAllProperties()) {
 						validatePathParamAnnotation(aggregatorProperty, parameterAggregator, parameter, resourceMethod, pathParamValueProposals);

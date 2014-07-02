@@ -84,6 +84,20 @@ public class SourceType {
 		return null;
 	}
 
+	/**
+	 * @return {@code true} if the source type exists, false otherwise.
+	 */
+	public boolean exists() {
+		if(this.erasureType == null || !this.erasureType.exists()) {
+			return false;
+		}
+		for(IType typeArg : typeArguments) {
+			if(typeArg == null || !typeArg.exists()) {
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	/**
 	 * The qualified name of the parameter's type, including erasure and type

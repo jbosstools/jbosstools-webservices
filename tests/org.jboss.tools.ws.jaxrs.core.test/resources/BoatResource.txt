@@ -13,7 +13,7 @@ public class BoatResource {
 	
 	//@PathParam("type") //property
 	public void setType(String type) {
-	  this.type = type;
+	  //this.type = type;
 	}
 	
 	@GET

@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
@@ -112,8 +111,11 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 		
 		final JaxrsParameterValidatorDelegate parameterValidatorDelegate = new JaxrsParameterValidatorDelegate();
 		final SourceType type = resourceField.getType();
-		final boolean isValid = parameterValidatorDelegate.validate(type, resourceField.getMetamodel()
-				.getJavaProject(), new NullProgressMonitor());
+		// skip if the type does not exist, there will already be a compilation error reported by JDT.
+		if(!type.exists()) {
+			return;
+		}
+		final boolean isValid = parameterValidatorDelegate.validate(type);
 		if (!isValid) {
 			markerManager.addMarker((JaxrsBaseElement)resourceField, resourceField.getJavaElement().getNameRange(),
 					JaxrsValidationMessages.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE,

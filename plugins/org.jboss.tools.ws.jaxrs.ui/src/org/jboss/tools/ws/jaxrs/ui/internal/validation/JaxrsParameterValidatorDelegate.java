@@ -16,9 +16,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -52,13 +50,9 @@ public class JaxrsParameterValidatorDelegate {
 	 *         specification, {@code false} otherwise.
 	 * @throws CoreException
 	 */
-	public boolean validate(final SourceType type, final IJavaProject javaProject,
-			final IProgressMonitor progressMonitor) throws CoreException {
+	public boolean validate(final SourceType type) throws CoreException {
 		if (type.isPrimitive()) {
 			return true;
-		}
-		if(type.getErasureType() == null) {
-			return false;
 		}
 		if (validate(type.getErasureType())) {
 			return true;

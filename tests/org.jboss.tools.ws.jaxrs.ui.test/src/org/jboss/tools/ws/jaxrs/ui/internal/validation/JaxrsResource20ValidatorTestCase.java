@@ -173,4 +173,65 @@ public class JaxrsResource20ValidatorTestCase {
 		assertThat(markers.length, equalTo(0));
 	}
 	
+	@Test
+	public void shouldNotReportProblemOnMethodParameterWhenBoundToMissingParamAggregator() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"id\") int id", "@BeanParam BoatParameterAggregator aggregator", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, ""),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+	}
+
+	@Test
+	public void shouldNotReportProblemOnResourceFieldWhenBoundToMissingParamAggregator() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "private String type;", "private BoatParameterAggregator aggregator", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldNotReportProblemOnResourcePropertyWhenBoundToMissingParamAggregator() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "public void setType(String type)", "public void setType(BoatParameterAggregator aggregator)", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "//@PathParam(\"type\") //property", "@PathParam(\"type\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(0));
+	}
+	
 }

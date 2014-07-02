@@ -677,8 +677,9 @@ public class JaxrsResourceValidatorTestCase {
 				validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(carResource);
-		assertThat(markers.length, equalTo(6));
-		for (IMarker marker : markers) {
+		// 5 markers: missing import/unknown type does not count
+				assertThat(markers.length, equalTo(5));
+				for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
@@ -700,7 +701,8 @@ public class JaxrsResourceValidatorTestCase {
 				validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(truckResource);
-		assertThat(markers.length, equalTo(6));
+		// 5 markers: missing import/unknown type does not count
+		assertThat(markers.length, equalTo(5));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
@@ -723,7 +725,8 @@ public class JaxrsResourceValidatorTestCase {
 				validatorManager, reporter);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(truckResource);
-		assertThat(markers.length, equalTo(6));
+		// 5 markers: missing import/unknown type does not count
+		assertThat(markers.length, equalTo(5));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
@@ -749,8 +752,9 @@ public class JaxrsResourceValidatorTestCase {
 		
 		// validation 1: the JAX-RS resource methods have errors
 		final IMarker[] markers = findJaxrsMarkers(truckResource);
-		assertThat(markers.length, equalTo(6));
-		for (IMarker marker : markers) {
+		// 5 markers: missing import/unknown type does not count
+				assertThat(markers.length, equalTo(5));
+				for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
