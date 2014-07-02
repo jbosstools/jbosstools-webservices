@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -94,7 +95,8 @@ public class JaxrsElementCreationUtils {
 	 */
 	public static void addAnnotation(final IMember member, final String annotationFullyQualifiedName,
 			final List<String> annotationValues, final ImportsManager imports) throws JavaModelException {
-		final ISourceRange range = member.getSourceRange();
+		final ISourceRange sourceRange = member.getSourceRange();
+		final ISourceRange javaDocRange = member.getJavadocRange();
 		final IBuffer buf = member.getCompilationUnit().getBuffer();
 		final String lineDelimiter = StubUtility.getLineDelimiterUsed(member.getJavaProject());
 		final StringBuffer sb = new StringBuffer();
@@ -121,7 +123,13 @@ public class JaxrsElementCreationUtils {
 		// insert the annotation ending with a line delimiter just before the
 		// beginning of the code for the created type (but after the import
 		// declarations)
-		buf.replace(range.getOffset(), 0, sb.toString());
+		if(javaDocRange == null) {
+			buf.replace(sourceRange.getOffset(), 0, sb.toString());
+		} else {
+			buf.replace(javaDocRange.getOffset() + javaDocRange.getLength() + lineDelimiter.length(), 0, sb.toString());
+		}
+		buf.save(new NullProgressMonitor(), true);
+		
 	}
 
 	/**

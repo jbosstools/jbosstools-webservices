@@ -65,6 +65,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
@@ -129,15 +130,27 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 		}
 	}
 
+	/** The Target class associated with the JAX-RS Resource to create. */
+	private String targetClass = "";
+	
+	/** The Target classname selection text. */
+	private Text targetClassText = null;
+	
+	/** The Target classname status. */
+	private Status targetClassStatus = new Status(IStatus.OK, JBossJaxrsUIPlugin.PLUGIN_ID, null);
+	
+	/** The button to select a class in the selected project's classpath. */
+	private Button browseClassesButton = null;
+	
 	/** The Resource Path value text. */
 	private Text resourcePathText = null;
-
+	
 	/** The Resource Path status. */
 	private Status resourcePathStatus = new Status(IStatus.OK, JBossJaxrsUIPlugin.PLUGIN_ID, null);
-
+	
 	/** Value of the @Path annotation on the JAX-RS Resource class to create. */
 	private String resourcePath = "";
-
+	
 	/** The Mediatypes text. */
 	private TableViewer mediaTypesList = null;
 
@@ -149,6 +162,9 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 
 	/** The button to remove mediatypes. */
 	private Button removeMediaTypesButton = null;
+	
+	/** The container for the method stubs selection buttons. */
+	private Composite methodStubsContainer = null; 
 
 	/** Flag to create the 'findById()' stub method. Default to {@code true}. */
 	private boolean includeFindByIdMethod = false;
@@ -164,18 +180,6 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 
 	/** Flag to create the 'update()' stub method. Default to {@code true}. */
 	private boolean includeDeleteByIdMethod = false;
-
-	/** The Target class associated with the JAX-RS Resource to create. */
-	private String targetClass = "";
-
-	/** The Target classname selection text. */
-	private Text targetClassText = null;
-
-	/** The Target classname status. */
-	private Status targetClassStatus = new Status(IStatus.OK, JBossJaxrsUIPlugin.PLUGIN_ID, null);
-
-	/** The button to select a class in the selected project's classpath. */
-	private Button browseClassesButton = null;
 
 	/** Java SourceType completion processor for content assist on Text control. */
 	private JavaTypeCompletionProcessor targetClassCompletionProcessor = new JavaTypeCompletionProcessor(true, false,
@@ -193,18 +197,6 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 	@Override
 	public void init(final IStructuredSelection selection) {
 		super.init(selection);
-		setDefaultValues(selection);
-	}
-
-	/**
-	 * Sets the default values applicable from the given {@code selection}
-	 * argument.
-	 * 
-	 * @param selection
-	 *            the first element selected in the Project Explorer when
-	 *            calling the Wizard.
-	 */
-	public void setDefaultValues(final IStructuredSelection selection) {
 		final IJavaElement selectedJavaElement = getInitialJavaElement(selection);
 		if (selectedJavaElement instanceof ICompilationUnit) {
 			setDefaultValues((ICompilationUnit) selectedJavaElement);
@@ -308,8 +300,6 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 		createSeparator(composite, nColumns);
 
 		createTypeNameControls(composite, nColumns);
-		// createSuperClassControls(composite, nColumns);
-		// createSuperInterfacesControls(composite, nColumns);
 
 		createResourcePathControls(composite);
 		createMediaTypesControls(composite);
@@ -369,6 +359,11 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 
 	private void onTargetClassChange() {
 		setTargetClass(this.targetClassText.getText());
+		if(this.targetClass == null || this.targetClass.isEmpty() && methodStubsContainer != null) {
+			setAllMethodStubsButtonsEnabled(false);
+		} else if(this.targetClass != null || !this.targetClass.isEmpty() && methodStubsContainer != null) {
+			setAllMethodStubsButtonsEnabled(true);
+		}
 	}
 
 	private void onResourcePathChange() {
@@ -383,7 +378,7 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 		GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(false, false)
 				.applyTo(new Label(composite, SWT.NONE));
 
-		final Composite methodStubsContainer = new Composite(composite, SWT.NONE);
+		this.methodStubsContainer = new Composite(composite, SWT.NONE);
 		GridLayoutFactory.fillDefaults().numColumns(3).margins(0, 0).applyTo(methodStubsContainer);
 		GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).span(2, 3).grab(true, false)
 				.applyTo(methodStubsContainer);
@@ -447,6 +442,21 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 		});
 		GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(false, false)
 				.applyTo(includeDeleteByIdMethodButton);
+		if(this.targetClass == null || this.targetClass.isEmpty()) {
+			setAllMethodStubsButtonsEnabled(false);
+		}
+	}
+
+	/**
+	 * Enables or disables the method stubs creation button
+	 * @param enabled {@code true} to enable, {@code false} otherwise.
+	 */
+	public void setAllMethodStubsButtonsEnabled(final boolean enabled) {
+		if(methodStubsContainer != null) {
+			for (Control control : methodStubsContainer.getChildren()) {
+				control.setEnabled(enabled);
+			}
+		}
 	}
 
 	private void createMediaTypesControls(final Composite composite) {
@@ -693,6 +703,11 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 	}
 
 	public void setTargetClass(final String targetClass) {
+		if(targetClass == null || targetClass.isEmpty()) {
+			setAllMethodStubsButtonsEnabled(false);
+		} else {
+			setAllMethodStubsButtonsEnabled(true);
+		}
 		if(targetClass != null && targetClass.equals(this.targetClass)) {
 			// skip, because there's no change
 			return;
@@ -742,7 +757,9 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 			throws JavaModelException {
 		final String targetClassSimpleName = getSimpleName(this.targetClass);
 		final String targetClassParamName = targetClassSimpleName.toLowerCase();
-		imports.addImport(this.targetClass);
+		if(this.targetClass != null && !this.targetClass.isEmpty()) {
+			imports.addImport(this.targetClass);
+		}
 		imports.addImport(JaxrsClassnames.RESPONSE);
 		imports.addImport(JaxrsClassnames.URI_BUILDER);
 		if (isIncludeCreateMethod()) {
