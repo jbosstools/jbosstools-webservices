@@ -43,9 +43,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAgg
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -291,8 +289,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 						resourceMethod,
 						range,
 						JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER,
-						new String[] { pathTemplateParameter,
-								JdtUtils.getReadableMethodSignature(resourceMethod.getJavaElement()) },
+						new String[] { pathTemplateParameter},
 						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER);
 			}
 		}
@@ -332,15 +329,6 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 				}
 			}
 		}
-		// iterate on resource properties
-		for (JaxrsResourceProperty resourceProperty : resourceMethod.getParentResource().getAllProperties()) {
-			validatePathParamAnnotation(resourceProperty, resourceMethod, pathParamValueProposals);
-		}
-		// iterate on resource fields
-		for (JaxrsResourceField resourceField : resourceMethod.getParentResource().getAllFields()) {
-			validatePathParamAnnotation(resourceField, resourceMethod, pathParamValueProposals);
-		}
-		
 	}
 	
 	/**

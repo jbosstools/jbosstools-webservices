@@ -25,12 +25,14 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 
@@ -66,6 +68,9 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 		}
 		for (IJaxrsResourceField resourceField : resource.getAllFields()) {
 			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, false);
+		}
+		for (IJaxrsResourceProperty resourceProperty : resource.getAllProperties()) {
+			new JaxrsResourcePropertyValidatorDelegate(markerManager).validate((JaxrsResourceProperty) resourceProperty, false);
 		}
 	}
 

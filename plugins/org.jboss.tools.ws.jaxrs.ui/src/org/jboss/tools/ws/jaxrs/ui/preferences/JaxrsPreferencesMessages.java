@@ -59,6 +59,10 @@ public class JaxrsPreferencesMessages extends NLS {
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodInvalidAnnotatedParameterType_label;
 	public static String JaxrsValidatorConfigurationBlock_pb_resourceMethodNoPublicModifier_label;
 
+	// Section Resource Fields
+	public static String JaxrsValidatorConfigurationBlock_section_resourceFields;
+	public static String JaxrsValidatorConfigurationBlock_pb_resourceFieldUnboundPathParameterAnnotationValue_label;
+	
 	// Section Providers
 	public static String JaxrsValidatorConfigurationBlock_section_providers; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerMissingValidConstructor_label;

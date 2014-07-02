@@ -89,6 +89,12 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 	public static final String RESOURCE_METHOD_NO_PUBLIC_MODIFIER = INSTANCE
 			.createSeverityOption("resourceMethodNoPublicModifier"); //$NON-NLS-1$
 
+	public static final String RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE = INSTANCE
+			.createSeverityOption("resourceFieldUnboundPathParameterAnnotationValue"); //$NON-NLS-1$
+
+	
+	
+	
 	public static final String APPLICATION_NO_OCCURRENCE_FOUND = INSTANCE
 			.createSeverityOption("applicationNoOccurrenceFound"); //$NON-NLS-1$
 
@@ -102,7 +108,6 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 			.createSeverityOption("applicationInvalidTypeHierarchy"); //$NON-NLS-1$
 
 	// Provider Group
-
 	public static final String PROVIDER_MISSING_VALID_CONSTRUCTOR = INSTANCE
 			.createSeverityOption("providerMissingValidConstructor"); //$NON-NLS-1$
 

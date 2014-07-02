@@ -544,13 +544,28 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	/**
 	 * Returns the JAX-RS Resource Field whose name matches the given fieldName
 	 * 
-	 * @param fieldName
+	 * @param fieldName the field name
 	 * @return the JAX-RS Resource Field or null
 	 */
 	public JaxrsResourceField getField(final String fieldName) {
 		for (IJaxrsResourceField field : resourceFields.values()) {
 			if (field.getJavaElement().getElementName().equals(fieldName)) {
 				return (JaxrsResourceField) field;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the JAX-RS Resource Property whose name matches the given propertyName
+	 * 
+	 * @param propertyName the name of the setter method for the property
+	 * @return the JAX-RS Resource Property or null
+	 */
+	public JaxrsResourceProperty getProperty(final String propertyName) {
+		for (IJaxrsResourceProperty property : resourceProperties.values()) {
+			if (property.getJavaElement().getElementName().equals(propertyName)) {
+				return (JaxrsResourceProperty) property;
 			}
 		}
 		return null;

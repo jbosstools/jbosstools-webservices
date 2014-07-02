@@ -26,16 +26,21 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -47,7 +52,9 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -686,13 +693,36 @@ public class JaxrsResourceValidatorTestCase {
 		metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
 		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("TruckResourceWithFields.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
-		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		final JaxrsResource truckResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
+		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
 		// validation
-		final IMarker[] markers = findJaxrsMarkers(carResource);
+		final IMarker[] markers = findJaxrsMarkers(truckResource);
+		assertThat(markers.length, equalTo(6));
+		for (IMarker marker : markers) {
+			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
+		}
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+	}
+	
+	@Test
+	public void shouldReportProblemsOnAllPropertiesParams() throws CoreException, ValidationException {
+		// pre-conditions
+		metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("TruckResourceWithProperties.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
+		final JaxrsResource truckResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(truckResource);
 		assertThat(markers.length, equalTo(6));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
@@ -758,9 +788,102 @@ public class JaxrsResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
-				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 	}
 
+	@Test
+	public void shouldReportProblemWhenUnboundPathParamAnnotatedResourceField_AsYouType() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		
+		// operation: validate
+		final IRegion fieldRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fieldRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+	}
+
+	@Test
+	public void shouldResolveProblemWhenPathParamAnnotatedResourceFieldBoundToResourceMethodPath_AsYouType() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		
+		// operation 1: validate
+		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+
+		// operation 2: fix the value and revalidate
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
+		assertThat(updatedMarkers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldResolveProblemWhenPathParamAnnotatedResourceFieldBoundToResourcePath_AsYouType() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"/\")", "@Path(\"/{type}\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		
+		// operation 1: validate
+		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+
+		// operation 2: fix the value and revalidate
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
+		assertThat(updatedMarkers.length, equalTo(0));
+	}
+	
 	@Test
 	public void shouldNotReportProblemWhenPathParamAnnotatedResourceFieldBoundToPath() throws CoreException, ValidationException {
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
@@ -798,7 +921,106 @@ public class JaxrsResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
-				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+	}
+	
+	@Test
+	public void shouldReportProblemWhenUnboundPathParamAnnotatedResourceProperty_AsYouType() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "//@PathParam(\"type\") //property", "@PathParam(\"type\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		final Annotation pathParamAnnotation = boatResource.getProperty("setType").getPathParamAnnotation();
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		
+		// operation: validate
+		final IRegion propertyRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(propertyRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+	}
+	
+	@Test
+	public void shouldResolveProblemWhenPathParamAnnotatedResourcePropertyBoundToResourceMethodPath_AsYouType() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "//@PathParam(\"type\") //property", "@PathParam(\"type\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		final Annotation pathParamAnnotation = boatResource.getProperty("setType").getPathParamAnnotation();
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		
+		// operation 1: validate
+		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		
+		// operation 2: fix the value and revalidate
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
+		assertThat(updatedMarkers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldResolveProblemWhenPathParamAnnotatedResourcePropertyBoundToResourcePath_AsYouType() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"/\")", "@Path(\"/{type}\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "//@PathParam(\"type\") //property", "@PathParam(\"type\")", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		final Annotation pathParamAnnotation = boatResource.getProperty("setType").getPathParamAnnotation();
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		
+		// operation 1: validate
+		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		
+		// operation 2: fix the value and revalidate
+		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		
+		// verifications 1 : expect 1 problem
+		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
+		assertThat(updatedMarkers.length, equalTo(0));
 	}
 	
 	@Test
@@ -909,6 +1131,6 @@ public class JaxrsResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
-		
 	}
+	
 }

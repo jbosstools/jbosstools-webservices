@@ -19,7 +19,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -34,7 +34,7 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  * @author Xavier Coulon
  * 
  */
-public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsResourceField> {
+public class JaxrsResourcePropertyValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsResourceProperty> {
 
 	/** The underlying marker manager.*/
 	private final IMarkerManager markerManager;
@@ -43,7 +43,7 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 	 * Constructor
 	 * @param markerManager the underlying marker manager to use
 	 */
-	public JaxrsResourceFieldValidatorDelegate(final IMarkerManager markerManager) {
+	public JaxrsResourcePropertyValidatorDelegate(final IMarkerManager markerManager) {
 		this.markerManager = markerManager;
 	}
 
@@ -52,14 +52,14 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsResourceField resourceField) throws CoreException {
-		Logger.debug("Validating element {}", resourceField);
+	void internalValidate(final JaxrsResourceProperty resourceProperty) throws CoreException {
+		Logger.debug("Validating element {}", resourceProperty);
 		// markers were already removed at the Resource level, they should *not*
 		// be removed again here (because another resource method
 		// of the same parent resource may already have been validated and have
 		// markers created.
-		validateParameterType(resourceField);
-		validateNotUnboundPathParamAnnotationValue(resourceField);
+		validateParameterType(resourceProperty);
+		validateNotUnboundPathParamAnnotationValue(resourceProperty);
 	}
 
 	/**
@@ -67,15 +67,15 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 	 * {@code @Path} template parameter at the parent {@link JaxrsResource}
 	 * level or on any sibling {@link JaxrsResourceMethod}.
 	 * 
-	 * @param resourceField the resource field to validate.
+	 * @param resourceProperty the resource property to validate.
 	 * @throws CoreException 
 	 */
-	private void validateNotUnboundPathParamAnnotationValue(final JaxrsResourceField resourceField) throws CoreException {
-		final Annotation pathParamAnnotation = resourceField.getPathParamAnnotation();
+	private void validateNotUnboundPathParamAnnotationValue(final JaxrsResourceProperty resourceProperty) throws CoreException {
+		final Annotation pathParamAnnotation = resourceProperty.getPathParamAnnotation();
 		if(pathParamAnnotation == null) {
 			return;
 		}
-		final JaxrsResource parentResource = resourceField.getParentResource();
+		final JaxrsResource parentResource = resourceProperty.getParentResource();
 		final Set<String> pathTemplateParameters = new HashSet<String>();
 		// put all path template parameters at the parent resource level
 		pathTemplateParameters.addAll(parentResource.getPathTemplateParameters().keySet());
@@ -87,7 +87,7 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 		// now, check:
 		if(!pathTemplateParameters.contains(pathParamAnnotation.getValue())) {
 			final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
-			markerManager.addMarker((JaxrsBaseElement)resourceField, annotationValueRange,
+			markerManager.addMarker((JaxrsBaseElement)resourceProperty, annotationValueRange,
 					JaxrsValidationMessages.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 					new String[] { pathParamAnnotation.getValue(), parentResource.getJavaElement().getFullyQualifiedName() },
 					JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
@@ -98,24 +98,24 @@ public class JaxrsResourceFieldValidatorDelegate extends AbstractJaxrsElementVal
 	 * Validates the type of the parameter when annotated with {@code @PathParam},
 	 * {@code @QueryParam} and {@code @MatrixParam}.
 	 * 
-	 * @param resourceField
-	 *            the resource field to validate
+	 * @param resourceProperty
+	 *            the resource property to validate
 	 * @throws CoreException
 	 * @see JaxrsParameterValidatorDelegate
 	 */
-	private void validateParameterType(final JaxrsResourceField resourceField) throws CoreException {
+	private void validateParameterType(final JaxrsResourceProperty resourceProperty) throws CoreException {
 		// for now, we bypass this validation if the metamodel has at least one ParamConverterProvider
-		final Collection<IJaxrsParamConverterProvider> allParamConverterProviders = resourceField.getMetamodel().findAllParamConverterProviders();
+		final Collection<IJaxrsParamConverterProvider> allParamConverterProviders = resourceProperty.getMetamodel().findAllParamConverterProviders();
 		if(allParamConverterProviders != null && ! allParamConverterProviders.isEmpty()) {
 			return;
 		}
 		
 		final JaxrsParameterValidatorDelegate parameterValidatorDelegate = new JaxrsParameterValidatorDelegate();
-		final SourceType type = resourceField.getType();
-		final boolean isValid = parameterValidatorDelegate.validate(type, resourceField.getMetamodel()
+		final SourceType type = resourceProperty.getType();
+		final boolean isValid = parameterValidatorDelegate.validate(type, resourceProperty.getMetamodel()
 				.getJavaProject(), new NullProgressMonitor());
 		if (!isValid) {
-			markerManager.addMarker((JaxrsBaseElement)resourceField, resourceField.getJavaElement().getNameRange(),
+			markerManager.addMarker((JaxrsBaseElement)resourceProperty, resourceProperty.getJavaElement().getNameRange(),
 					JaxrsValidationMessages.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE,
 					new String[] { type.getErasureName() },
 					JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE);

@@ -1,0 +1,43 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+
+@Path("/")
+public class TruckResource {
+	@PathParam("type")
+	public void setType(String type) { };
+	
+	@PathParam("id") 
+	public void setTruck(Truck truck) { };
+	
+	@QueryParam("q1")
+	public void setTrucks(List<Truck> listOfTrucks) { };
+	
+	@QueryParam("q2") 
+	public void setTrucks(Set<Truck> setOfTrucks) { };
+	
+	@QueryParam("q3") 
+	public void setTrucks(ArrayList<String> arrayListOfTrucks) { };
+	
+	@QueryParam("q4") 
+	public void setTrucks(java.util.ArrayList<String> arrayListOfTrucks2) { };
+	
+	@QueryParam("q5") 
+	public void setTrucks(SortedSet<Truck> sortedSetOfTrucks) { };
+	
+	@POST
+	@Path("{type}/{id}") 
+	public Object createTruck() {
+		return null;
+	}
+
+
+}

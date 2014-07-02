@@ -52,6 +52,8 @@ public class JaxrsValidationMessages {
 	public static String RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE;
 	public static String RESOURCE_METHOD_NO_PUBLIC_MODIFIER;
 
+	public static String RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE;
+	
 	public static String PROVIDER_MISSING_VALID_CONSTRUCTOR;
 	public static String PROVIDER_MISSING_ANNOTATION;
 	public static String PROVIDER_MISSING_IMPLEMENTATION;

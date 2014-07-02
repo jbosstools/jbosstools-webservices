@@ -519,6 +519,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			return new JaxrsResourceValidatorDelegate(this); 
 		case RESOURCE_FIELD:
 			return new JaxrsResourceFieldValidatorDelegate(this);
+		case RESOURCE_PROPERTY:
+			return new JaxrsResourcePropertyValidatorDelegate(this);
 		case RESOURCE_METHOD:
 			return new JaxrsResourceMethodValidatorDelegate(this);
 		default:
