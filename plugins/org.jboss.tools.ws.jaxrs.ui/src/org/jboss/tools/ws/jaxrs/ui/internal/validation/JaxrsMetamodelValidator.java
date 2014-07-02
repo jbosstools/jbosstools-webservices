@@ -596,7 +596,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			return;
 		}
 		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
-		// metamodel.removeMarkers(resource);
 	}
 
 	/**
@@ -621,6 +620,9 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	@Override
 	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
 			final String[] messageArguments, final String preferenceKey) throws CoreException {
+		if(element == null || range == null) {
+			return null;
+		}
 		final IResource resource = element.getResource();
 		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
 		final IMarker marker = addProblem(message, preferenceKey, messageArguments, range.getLength(),
@@ -639,7 +641,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
 			final String[] messageArguments, final String preferenceKey, final int quickFixId) throws CoreException {
 		// (range == null) occurs when there is no value at all for the annotation
-		if(range == null) {
+		if(element == null || range == null) {
 			return null;
 		}
 		final IResource resource = element.getResource();
