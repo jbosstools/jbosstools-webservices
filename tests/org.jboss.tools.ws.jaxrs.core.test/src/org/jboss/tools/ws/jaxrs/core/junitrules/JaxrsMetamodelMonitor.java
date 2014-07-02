@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
@@ -239,6 +240,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 	 */
 	public JaxrsMetamodel buildMetamodel() throws CoreException, OperationCanceledException, InterruptedException {
 		ProjectNatureUtils.installProjectNature(getProject(), ProjectNatureUtils.JAXRS_NATURE_ID);
+		// remove the validation builder to avoid blocking during tests
+		ProjectBuilderUtils.uninstallProjectBuilder(getProject(), ProjectBuilderUtils.VALIDATOR_BUILDER_ID);
 		buildProject();		
 		return this.metamodel;
 	}

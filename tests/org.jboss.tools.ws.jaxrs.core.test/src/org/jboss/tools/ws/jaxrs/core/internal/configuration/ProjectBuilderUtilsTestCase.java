@@ -72,8 +72,10 @@ public class ProjectBuilderUtilsTestCase {
 	}
 
 	@Test
-	public void shouldInstallAndUninstallProjectBuilder() throws Exception {
+	public void shouldInstallAndUninstallProjectBuilderWithValidationBuilderMissing() throws Exception {
 		// pre-conditions
+		Assert.assertFalse("Wrong result",
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), ProjectBuilderUtils.VALIDATOR_BUILDER_ID));
 		ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID);
 		Assert.assertFalse("Wrong result",
 				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
@@ -83,6 +85,31 @@ public class ProjectBuilderUtilsTestCase {
 				ProjectBuilderUtils.installProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertTrue("Wrong result",
 				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
+		Assert.assertTrue("Wrong result",
+				ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
+		Assert.assertFalse("Wrong result",
+				ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
+		Assert.assertFalse("Wrong result",
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
+	}
+
+	@Test
+	public void shouldInstallAndUninstallProjectBuilderWithValidationBuilderAlreadyInstalled() throws Exception {
+		// pre-conditions
+		projectMonitor.replaceDotProjectFileWith("dotProject.txt");
+		Assert.assertTrue("Wrong result",
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), ProjectBuilderUtils.VALIDATOR_BUILDER_ID));
+		ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID);
+		Assert.assertFalse("Wrong result",
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
+		Assert.assertTrue("Wrong result",
+				ProjectBuilderUtils.installProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
+		Assert.assertFalse("Wrong result",
+				ProjectBuilderUtils.installProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
+		Assert.assertTrue("Wrong result",
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), BUILDER_ID));
+		Assert.assertTrue("Wrong result",
+				ProjectBuilderUtils.isProjectBuilderInstalled(projectMonitor.getProject(), ProjectBuilderUtils.VALIDATOR_BUILDER_ID));
 		Assert.assertTrue("Wrong result",
 				ProjectBuilderUtils.uninstallProjectBuilder(projectMonitor.getProject(), BUILDER_ID));
 		Assert.assertFalse("Wrong result",
@@ -124,7 +151,7 @@ public class ProjectBuilderUtilsTestCase {
 		int p = ProjectBuilderUtils.getBuilderPosition(projectMonitor.getProject(), BUILDER_ID);
 		assertThat(p, equalTo(2));
 		final String[] names = getCommandNames(projectMonitor.getProject());
-		assertThat(names.length, equalTo(3));
+		assertThat(names.length, equalTo(4));
 		for(int i = 0; i < names.length; i++) {
 			assertThat(names[i], notNullValue());
 		}

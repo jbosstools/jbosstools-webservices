@@ -717,7 +717,7 @@ public class JaxrsApplicationValidatorTestCase {
 		deleteJaxrsMarkers(metamodel);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		new JaxrsMetamodelValidator().validate(toSet(project.findMember(".project")), project, validationHelper,
+		new JaxrsMetamodelValidator().validate(toSet(project.findMember(".classpath")), project, validationHelper,
 				context, validatorManager, reporter);
 		// validation: validation did not occur on JAX-RS applications.
 		final IMarker[] markers = findJaxrsMarkers(project);

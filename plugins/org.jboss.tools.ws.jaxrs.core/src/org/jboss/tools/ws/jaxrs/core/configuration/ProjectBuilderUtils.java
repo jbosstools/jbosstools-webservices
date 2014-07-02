@@ -23,7 +23,7 @@ import org.eclipse.core.runtime.CoreException;
  */
 public final class ProjectBuilderUtils {
 
-	private static final String VALIDATOR_BUILDER_ID = "org.eclipse.wst.validation.validationbuilder";
+	public static final String VALIDATOR_BUILDER_ID = "org.eclipse.wst.validation.validationbuilder";
 	
 	/** Hidden constructor of the utility method. Prevents instantiation. */
 	private ProjectBuilderUtils() {
@@ -72,20 +72,25 @@ public final class ProjectBuilderUtils {
 			return false;
 		}
 		// prepare a long array to store the JAX-RS builder id
-		final ICommand command = desc.newCommand();
-		command.setBuilderName(builderId);
-		final ICommand[] newCommands = new ICommand[commands.length + 1];
+		final ICommand jaxrsBuilderCommand = desc.newCommand();
+		jaxrsBuilderCommand.setBuilderName(builderId);
 		final int validatorBuilderIdIndex = locatorValidatorBuilderId(commands);
 		if(validatorBuilderIdIndex == -1) {
+			final ICommand[] newCommands = new ICommand[commands.length + 2];
 			System.arraycopy(commands, 0, newCommands, 0, commands.length);
-			newCommands[newCommands.length - 1] = command;
+			newCommands[newCommands.length - 2] = jaxrsBuilderCommand;
+			final ICommand validationBuilderCommand = desc.newCommand();
+			validationBuilderCommand.setBuilderName(VALIDATOR_BUILDER_ID);
+			newCommands[newCommands.length - 1] = validationBuilderCommand;
+			desc.setBuildSpec(newCommands);
 		} else {
+			final ICommand[] newCommands = new ICommand[commands.length + 1];
 			System.arraycopy(commands, 0, newCommands, 0, validatorBuilderIdIndex);
 			System.arraycopy(commands, validatorBuilderIdIndex, newCommands, validatorBuilderIdIndex + 1,
 					commands.length - validatorBuilderIdIndex);
-			newCommands[validatorBuilderIdIndex] = command;
+			newCommands[validatorBuilderIdIndex] = jaxrsBuilderCommand;
+			desc.setBuildSpec(newCommands);
 		}
-		desc.setBuildSpec(newCommands);
 		project.setDescription(desc, null);
 		return true;
 	}

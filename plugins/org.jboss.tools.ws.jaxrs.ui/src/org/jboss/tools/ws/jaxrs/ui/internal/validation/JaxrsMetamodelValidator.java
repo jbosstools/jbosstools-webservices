@@ -145,7 +145,9 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final long startTime = System.currentTimeMillis();
 		init(project, validationHelper, context, manager, reporter);
 		try {
-			if (!changedFiles.isEmpty()) {
+			if(changedFiles.size() == 1 && changedFiles.contains(project.findMember(".project"))) {
+				validateAll(project, validationHelper, context, manager, reporter);
+			} else if (!changedFiles.isEmpty()) {
 				Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
 						changedFiles.toString());
 				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
