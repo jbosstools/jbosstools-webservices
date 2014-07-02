@@ -297,6 +297,9 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 			final IStatus[] status = new IStatus[] { new Status(IStatus.WARNING, JBossJaxrsUIPlugin.PLUGIN_ID,
 					JaxrsApplicationCreationMessages.JaxrsApplicationCreationWizardPage_SkipApplicationCreationWarning) };
 			updateStatus(status);
+		} else if (applicationMode == SKIP_APPLICATION && this.applicationAlreadyExists) {
+			final IStatus[] status = new IStatus[] { new Status(IStatus.WARNING, JBossJaxrsUIPlugin.PLUGIN_ID, "")};
+			updateStatus(status);
 		}
 	}
 
