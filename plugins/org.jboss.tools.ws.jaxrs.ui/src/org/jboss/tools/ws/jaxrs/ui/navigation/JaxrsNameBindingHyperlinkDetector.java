@@ -94,7 +94,9 @@ public class JaxrsNameBindingHyperlinkDetector extends AbstractHyperlinkDetector
 		try {
 			return ((ICodeAssist) input).codeSelect(wordRegion.getOffset(), wordRegion.getLength());
 		} catch (JavaModelException e) {
-			Logger.error("Failed to retrieve the selected Java Elements in the editor for" + input.getElementName(), e);
+			// element does not exist or wordRegion was out of range.
+			// We should silently ignore such a case, in which case, no navigation hyperlink shall be provided.
+			Logger.debug("Failed to retrieve the selected Java Elements in the editor for" + input.getElementName(), e);
 			return new IJavaElement[0];
 		}
 	}
