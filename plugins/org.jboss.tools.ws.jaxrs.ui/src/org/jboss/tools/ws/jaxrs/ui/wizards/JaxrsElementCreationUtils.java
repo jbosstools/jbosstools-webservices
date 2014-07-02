@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -27,6 +26,7 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
+import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.ui.wizards.NewTypeWizardPage.ImportsManager;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.web.WebApp;
@@ -128,8 +128,7 @@ public class JaxrsElementCreationUtils {
 		} else {
 			buf.replace(javaDocRange.getOffset() + javaDocRange.getLength() + lineDelimiter.length(), 0, sb.toString());
 		}
-		buf.save(new NullProgressMonitor(), true);
-		
+		JavaModelUtil.reconcile(member.getCompilationUnit());
 	}
 
 	/**
