@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.SourceRange;
@@ -76,7 +77,13 @@ public class SourceType {
 			final List<IType> typeArguments = new ArrayList<IType>();
 			final ISourceRange nameRange = new SourceRange(startPosition, length);
 			for (ITypeBinding typeArgumentBinding : typeBinding.getTypeArguments()) {
-				typeArguments.add((IType) typeArgumentBinding.getJavaElement());
+				IJavaElement je = typeArgumentBinding.getJavaElement();
+				// For template classes it could be <T> and je above would be instance of
+				// org.eclipse.jdt.internal.core.TypeParameter so instanceof check is required 
+				// before converting to IType
+				if (je instanceof IType) {
+					typeArguments.add((IType) je);
+				}
 			}
 			return new SourceType(erasureName, erasureType, typeArguments, typeBinding.isPrimitive(), nameRange);
 			
