@@ -100,7 +100,7 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 					this.metamodel = this.parentParameterAggregator.getMetamodel();
 				}
 				final IJavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(javaMethod, ast);
-				javaMethodParameterType = JdtUtils.getPropertyType(methodSignature);
+				this.javaMethodParameterType = JdtUtils.getPropertyType(methodSignature);
 				final IType parentType = (IType) javaMethod.getParent();
 				// lookup parent resource in metamodel
 				if (parentParameterAggregator == null && metamodel != null) {

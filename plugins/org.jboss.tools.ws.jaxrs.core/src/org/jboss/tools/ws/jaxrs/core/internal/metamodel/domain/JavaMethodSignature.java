@@ -91,7 +91,11 @@ public class JavaMethodSignature implements IJavaMethodSignature {
 			for (Entry<String, Annotation> entry : methodParam.getAnnotations().entrySet()) {
 				stb.append(entry.getValue()).append(" ");
 			}
-			stb.append(methodParam.getType().getDisplayableTypeName());
+			if(methodParam.getType() != null) {
+				stb.append(methodParam.getType().getDisplayableTypeName());
+			} else {
+				stb.append("unknown");
+			}
 			if (paramIterator.hasNext()) {
 				stb.append(", ");
 			}

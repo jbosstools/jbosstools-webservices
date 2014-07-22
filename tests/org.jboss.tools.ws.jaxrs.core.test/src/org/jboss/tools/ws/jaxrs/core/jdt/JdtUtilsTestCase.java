@@ -620,6 +620,19 @@ public class JdtUtilsTestCase {
 	}
 
 	@Test
+	public void shouldNotResolveJavaMethodSignature() throws CoreException {
+		// preconditions
+		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IMethod method = projectMonitor.resolveMethod(type, "getCustomers");
+		method.delete(true, null);
+		// operation
+		final JavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method,
+				JdtUtils.parse(type, progressMonitor));
+		// verification
+		assertThat(methodSignature, nullValue());
+	}
+
+	@Test
 	public void shouldConfirmSuperType() throws CoreException {
 		// preconditions
 		final IType bookType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BookResource");

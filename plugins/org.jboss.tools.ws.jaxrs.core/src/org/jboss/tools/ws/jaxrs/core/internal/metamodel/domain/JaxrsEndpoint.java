@@ -518,8 +518,12 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	public String createDisplayableQueryParam(final SourceType type, final Map<String, Annotation> annotations) {
 		final StringBuilder queryParamBuilder = new StringBuilder();
 		final String queryParamAnnotationValue = annotations.get(QUERY_PARAM).getValue();
-		queryParamBuilder.append(queryParamAnnotationValue).append("={")
-				.append(type.getDisplayableTypeName());
+		queryParamBuilder.append(queryParamAnnotationValue).append("={");
+		if(type != null) {
+			queryParamBuilder.append(type.getDisplayableTypeName());
+		} else {
+			queryParamBuilder.append("unknown");
+		}
 		if(annotations.containsKey(DEFAULT_VALUE)) {
 			queryParamBuilder.append(':').append('\"').append(annotations.get(DEFAULT_VALUE).getValue()).append('\"');
 		}
