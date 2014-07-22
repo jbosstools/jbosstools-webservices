@@ -423,10 +423,12 @@ public class LuceneDocumentFactory {
 	 */
 	private static Document createParameterAggregatorPropertyDocument(final JaxrsParameterAggregatorProperty parameterAggregatorMethod) {
 		final Document document = createBaseDocument(parameterAggregatorMethod);
-		addFieldToDocument(document, FIELD_TYPE, parameterAggregatorMethod.getType().getErasureName());
-		final List<IType> typeArguments = parameterAggregatorMethod.getType().getTypeArguments();
-		for(IType typeArg: typeArguments) {
-			addFieldToDocument(document, FIELD_TYPE, typeArg.getFullyQualifiedName());
+		if(parameterAggregatorMethod.getType() != null) {
+			addFieldToDocument(document, FIELD_TYPE, parameterAggregatorMethod.getType().getErasureName());
+			final List<IType> typeArguments = parameterAggregatorMethod.getType().getTypeArguments();
+			for(IType typeArg: typeArguments) {
+				addFieldToDocument(document, FIELD_TYPE, typeArg.getFullyQualifiedName());
+			}
 		}
 		return document;
 	}

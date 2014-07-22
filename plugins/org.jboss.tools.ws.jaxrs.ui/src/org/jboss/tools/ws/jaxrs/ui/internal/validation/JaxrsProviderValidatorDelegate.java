@@ -219,7 +219,7 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 				}
 				for (Entry<String, Annotation> annotation : parameter.getAnnotations().entrySet()) {
 					if (!annotation.getValue().getFullyQualifiedName().equals(JaxrsClassnames.CONTEXT)
-							|| !CONTEXT_TYPE_NAMES.contains(parameter.getType().getErasureName())) {
+							|| (parameter.getType() != null && !CONTEXT_TYPE_NAMES.contains(parameter.getType().getErasureName()))) {
 						return false;
 					}
 				}

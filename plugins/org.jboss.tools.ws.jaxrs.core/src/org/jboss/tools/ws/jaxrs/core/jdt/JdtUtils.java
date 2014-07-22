@@ -1034,7 +1034,10 @@ public final class JdtUtils {
 		}
 		final Map<String, JavaMethodSignature> signatures = new HashMap<String, JavaMethodSignature>();
 		for(IMethod method : type.getMethods()) {
-			signatures.put(method.getHandleIdentifier(), resolveMethodSignature(method, ast));
+			final JavaMethodSignature resolvedMethodSignature= resolveMethodSignature(method, ast);
+			if(resolvedMethodSignature != null) {
+				signatures.put(method.getHandleIdentifier(), resolvedMethodSignature);
+			}
 		}
 		return signatures;
 	}
@@ -1046,12 +1049,12 @@ public final class JdtUtils {
 	 *            the java method
 	 * @param ast
 	 *            the associated Compilation Unit AST
-	 * @return the JavaMethodSignature or null if the given AST is null.
+	 * @return the JavaMethodSignature or null if the given {@code ast} is null or if the given {@code method} does not exist (anymore).
 	 * @throws JavaModelException 
 	 */
 	public static JavaMethodSignature resolveMethodSignature(
 			final IMethod method, final CompilationUnit ast) throws JavaModelException {
-		if (ast == null) {
+		if (ast == null || !method.exists()) {
 			return null;
 		}
 		final ASTNode matchNode = NodeFinder.perform(ast, method.getNameRange());
@@ -1243,9 +1246,11 @@ public final class JdtUtils {
 	 * @throws IllegalArgumentException 
 	 */
 	public static SourceType getPropertyType(final IJavaMethodSignature methodSignature) throws IllegalArgumentException, JavaModelException {
-		final IMethod javaMethod = methodSignature.getJavaMethod();
-		if(javaMethod != null && javaMethod.getElementName().startsWith("set") && Signature.getParameterCount(javaMethod.getSignature()) == 1) {
-			return methodSignature.getMethodParameters().get(0).getType();
+		if(methodSignature != null) {
+			final IMethod javaMethod = methodSignature.getJavaMethod();
+			if(javaMethod != null && javaMethod.getElementName().startsWith("set") && Signature.getParameterCount(javaMethod.getSignature()) == 1) {
+				return methodSignature.getMethodParameters().get(0).getType();
+			}
 		}
 		return null;
 	}
