@@ -239,7 +239,7 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			throws CoreException {
 		for (IJavaMethodParameter parameter : resourceMethod.getJavaMethodParameters()) {
 			final Annotation contextAnnotation = parameter.getAnnotation(CONTEXT);
-			final String typeName = parameter.getType().getErasureName();
+			final String typeName = parameter.getType() != null ? parameter.getType().getErasureName() : null;
 			if (contextAnnotation != null && typeName != null && !CONTEXT_TYPE_NAMES.contains(typeName)) {
 				final ISourceRange range = contextAnnotation.getJavaAnnotation().getSourceRange();
 				markerManager.addMarker(resourceMethod, range,
@@ -274,6 +274,9 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 			final Annotation beanParamAnnotation = parameter.getAnnotation(BEAN_PARAM);
 			if (beanParamAnnotation != null) {
 				final SourceType beanParameterType = parameter.getType();
+				if(beanParameterType == null) {
+					continue;
+				}
 				final JaxrsParameterAggregator parameterAggregator = (JaxrsParameterAggregator) resourceMethod.getMetamodel().findElement(beanParameterType.getErasureName(), EnumElementCategory.PARAMETER_AGGREGATOR);
 				if(parameterAggregator != null) {
 					actualPathParamValues.addAll(parameterAggregator.getPathParamValues());
@@ -373,11 +376,14 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 						JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 						new String[] { pathParamValue, resourceMethod.getName(), resourceMethod.getParentResource().getName() },
 						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
-				final ISourceRange range = resourceMethodParameter.getType().getNameRange();
-				markerManager.addMarker(resourceMethod, range,
-						JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE_IN_AGGREGATOR,
-						new String[] { pathParamValue, parameterAggregator.getName(), resourceMethod.getName(), resourceMethod.getParentResource().getName() },
-						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
+				final SourceType type = resourceMethodParameter.getType();
+				if(type != null) {
+					final ISourceRange range = type.getNameRange();
+					markerManager.addMarker(resourceMethod, range,
+							JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE_IN_AGGREGATOR,
+							new String[] { pathParamValue, parameterAggregator.getName(), resourceMethod.getName(), resourceMethod.getParentResource().getName() },
+							JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
+				}
 			}
 		}		
 	}
