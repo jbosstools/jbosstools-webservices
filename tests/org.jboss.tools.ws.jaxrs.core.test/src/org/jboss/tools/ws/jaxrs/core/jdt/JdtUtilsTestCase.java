@@ -837,7 +837,7 @@ public class JdtUtilsTestCase {
 		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final int offset = method.getSourceRange().getOffset() + method.getSourceRange().getLength() - 2;
 		// operation
-		TestLogger.info("Compilation unit: \n{}", CompilationUnitsRepository.getInstance()
+		TestLogger.debug("Compilation unit: \n{}", CompilationUnitsRepository.getInstance()
 				.getAST(customerType.getCompilationUnit()));
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification

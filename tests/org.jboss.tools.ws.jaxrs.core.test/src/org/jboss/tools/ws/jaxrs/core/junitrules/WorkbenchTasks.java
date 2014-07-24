@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.internal.ide.filesystem.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
@@ -137,10 +138,10 @@ public class WorkbenchTasks {
 			project.open(new NullProgressMonitor());
 			project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
 			Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
-			IMarker[] projectMarkers = project.findMarkers(null, true, IResource.DEPTH_INFINITE);
-			for(IMarker marker : projectMarkers) {
+			IMarker[] javaMarkers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+			for(IMarker marker : javaMarkers) {
 				if(marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_ERROR) {
-					System.out.println(" " + marker.getAttribute(IMarker.MESSAGE, ""));
+					TestLogger.warn(" Found marker of type " + marker.getType() + " on " + marker.getResource().getName() + ": " + marker.getAttribute(IMarker.MESSAGE, ""));
 				}
 			}
 			return project;

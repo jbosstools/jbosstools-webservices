@@ -1,4 +1,4 @@
-package org.jboss.tools.ws.jaxrs.sample.domain;
+package org.jboss.tools.ws.jaxrs.sample.services;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -7,7 +7,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.Context;
+import javax.ws.rs.core.Context;
 
 public class CarParameterAggregator {
 

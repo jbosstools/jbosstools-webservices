@@ -99,6 +99,7 @@ public class JaxrsElementsIndexationDelegate {
 	 * @throws IOException
 	 */
 	public void dispose() throws CorruptIndexException, IOException {
+		indexWriter.close(true);
 		index.close();
 	}
 
