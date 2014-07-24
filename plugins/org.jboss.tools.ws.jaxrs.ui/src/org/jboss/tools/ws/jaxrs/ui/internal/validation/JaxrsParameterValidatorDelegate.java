@@ -85,6 +85,10 @@ public class JaxrsParameterValidatorDelegate {
 	 * @throws JavaModelException
 	 */
 	private boolean validate(final IType type) throws JavaModelException {
+		// All Java enum have a built-in valueOf method.
+		if(type.isEnum()) {
+			return true;
+		}
 		final String qualifiedName = type.getFullyQualifiedName();
 		final String simpleName = Signature.getSimpleName(qualifiedName);
 		// trying with variations of the simpleName vs qualifiedName, resolved or not.

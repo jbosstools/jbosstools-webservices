@@ -1,0 +1,25 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+@javax.ws.rs.Path("hello")
+public class HelloWorld {
+	
+	public enum MessageType {
+		A, B, C
+	}
+	
+	@javax.ws.rs.QueryParam("type2") 
+	MessageType type2;
+	
+	private MessageType type3;
+	
+	@javax.ws.rs.QueryParam("type3") 
+	public void setType3(MessageType type3) {
+		this.type3 = type3;
+	}
+	@javax.ws.rs.GET
+	public String getMessage(@javax.ws.rs.QueryParam("type1") MessageType type1) {
+		return (type1 != null ? type1 : "?") + " " + (type2 != null ? type2 : "?") + " " + (type3 != null ? type3 : "?");
+	}
+
+	
+}

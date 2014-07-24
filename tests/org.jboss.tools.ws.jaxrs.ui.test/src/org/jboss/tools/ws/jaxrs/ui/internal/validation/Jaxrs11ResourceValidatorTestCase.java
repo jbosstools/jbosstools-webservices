@@ -75,7 +75,7 @@ import org.junit.runners.MethodSorters;
  */
 @SuppressWarnings("restriction")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class JaxrsResourceValidatorTestCase {
+public class Jaxrs11ResourceValidatorTestCase {
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
@@ -1135,6 +1135,23 @@ public class JaxrsResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
+	}
+	
+	@Test
+	public void shouldNotReportProblemOnMethodParamOfTypeEnumeration() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("ResourceWithEnumMethodParams.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "HelloWorld.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.HelloWorld");
+		final JaxrsResource resource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(resource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(resource);
+		assertThat(markers.length, equalTo(0));
 	}
 	
 }

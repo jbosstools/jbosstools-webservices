@@ -46,7 +46,7 @@ import org.junit.Test;
  * 
  */
 @SuppressWarnings("restriction")
-public class JaxrsResource20ValidatorTestCase {
+public class Jaxrs20ResourceValidatorTestCase {
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final ContextValidationHelper validationHelper = new ContextValidationHelper();
