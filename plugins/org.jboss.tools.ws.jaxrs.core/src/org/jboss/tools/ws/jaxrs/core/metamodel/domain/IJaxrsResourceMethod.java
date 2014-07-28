@@ -18,7 +18,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 
-public interface IJaxrsResourceMethod extends IJaxrsElement {
+public interface IJaxrsResourceMethod extends IJaxrsElement, IAnnotatedElement {
 
 	abstract IMethod getJavaElement();
 

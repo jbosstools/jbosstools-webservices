@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DEFAULT_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MATRIX_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH_PARAM;
@@ -26,9 +25,10 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -152,9 +152,9 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 	}
 
 	@Override
-	public void update(IJavaElement javaElement, CompilationUnit ast) throws CoreException {
+	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
-			remove();
+			remove(FlagsUtils.computeElementFlags(this));
 		} else {
 			// NOTE: the given javaElement may be an ICompilationUnit (after
 			// resource change) !!
@@ -172,14 +172,20 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 		} 
 	}
 
+	/**
+	 * Updates this {@link JaxrsParameterAggregatorProperty} from the given {@code transientProperty}.
+	 * @param transientProperty
+	 * @throws CoreException
+	 */
 	void update(final JaxrsParameterAggregatorProperty transientProperty) throws CoreException {
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		if (transientProperty == null) {
-			remove();
+			remove(annotationsFlags);
 		} else {
-			final Flags upateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, upateAnnotationsFlags);
-			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
-				remove();
+			final Flags updateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+			if (isMarkedForRemoval()) {
+				remove(annotationsFlags);
 			} else if(hasMetamodel()){
 				getMetamodel().update(delta);
 			}
@@ -204,9 +210,9 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 	 * Remove {@code this} from the parent {@link IJaxrsResource} before calling {@code super.remove()} which deals with removal from the {@link JaxrsMetamodel}. 
 	 */
 	@Override
-	public void remove() throws CoreException {
+	public void remove(final Flags flags) throws CoreException {
 		getParentParameterAggregator().removeProperty(this);
-		super.remove();
+		super.remove(flags);
 	}
 
 	public Annotation getPathParamAnnotation() {

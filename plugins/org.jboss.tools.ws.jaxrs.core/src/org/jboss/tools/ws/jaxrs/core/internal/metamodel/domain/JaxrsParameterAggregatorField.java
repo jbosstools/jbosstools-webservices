@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ELEMENT_KIND;
 
 import java.util.Map;
 
@@ -22,9 +21,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -146,9 +146,9 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 	}
 
 	@Override
-	public void update(IJavaElement javaElement, CompilationUnit ast) throws CoreException {
+	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
-			remove();
+			remove(FlagsUtils.computeElementFlags(this));
 		} else {
 			// NOTE: the given javaElement may be an ICompilationUnit (after
 			// resource change) !!
@@ -167,31 +167,18 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 	}
 
 	void update(final JaxrsParameterAggregatorField transientField) throws CoreException {
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		if (transientField == null) {
-			remove();
+			remove(annotationsFlags);
 		} else {
 			final Flags updateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
-			updateAnnotationsFlags.addFlags(updateType(transientField.getType()));
 			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (updateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
-				remove();
+			if (isMarkedForRemoval()) {
+				remove(annotationsFlags);
 			} else if(hasMetamodel()){
 				getMetamodel().update(delta);
 			}
 		}
-	}
-
-	/**
-	 * Updates the {@link SourceType} associated with this {@link JaxrsParameterAggregatorField}.
-	 * @param fieldType the new {@link SourceType}
-	 * @return a {@link Flags} indicating if there were some changes
-	 */
-	private Flags updateType(final SourceType fieldType) {
-		if(this.fieldType.equals(fieldType)) {
-			return Flags.NONE;
-		}
-		this.fieldType = fieldType;
-		return new Flags(JaxrsElementDelta.F_SOURCE_TYPE);
 	}
 
 	/**
@@ -211,9 +198,9 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 	 * Remove {@code this} from the parent {@link IJaxrsResource} before calling {@code super.remove()} which deals with removal from the {@link JaxrsMetamodel}. 
 	 */
 	@Override
-	public void remove() throws CoreException {
+	public void remove(final Flags flags) throws CoreException {
 		getParentParameterAggregator().removeField(this);
-		super.remove();
+		super.remove(flags);
 	}
 
 	public SourceType getType() {

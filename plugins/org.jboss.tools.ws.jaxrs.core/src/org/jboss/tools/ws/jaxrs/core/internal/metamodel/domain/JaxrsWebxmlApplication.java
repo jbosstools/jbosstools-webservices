@@ -14,7 +14,6 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_CLASS_NAME;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_APPLICATION_PATH_ANNOTATION;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION;
 
 import java.util.List;
@@ -27,6 +26,8 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -185,17 +186,16 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 		return javaClassName;
 	}
 	
-	public int update(IResource webxmlResource) throws CoreException {
-		return update(from(webxmlResource).build(false));
+	public void update(final IResource webxmlResource) throws CoreException {
+		update(from(webxmlResource).build(false));
 	}
 
 
-	public int update(JaxrsWebxmlApplication transientWebXmlAppl) throws CoreException {
-		int flags = F_NONE;
+	public void update(final JaxrsWebxmlApplication transientWebXmlAppl) throws CoreException {
 		if(transientWebXmlAppl == null) {
-			remove();
+			remove(FlagsUtils.computeElementFlags(transientWebXmlAppl));
 		} else {
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED);
+			final Flags flags = new Flags();
 			final String eventApplicationPath = normalizeApplicationPath(transientWebXmlAppl.getApplicationPath());
 			if (!(eventApplicationPath.equals(this.applicationPath))) {
 				final JaxrsJavaApplication currentJavaApplication = getMetamodel().findJavaApplicationByTypeName(javaClassName);
@@ -203,7 +203,7 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 					currentJavaApplication.setApplicationPathOverride(eventApplicationPath);
 				}	
 				this.applicationPath = eventApplicationPath;
-				delta.addFlag(F_APPLICATION_PATH_ANNOTATION);
+				flags.addFlags(F_APPLICATION_PATH_ANNOTATION);
 			}
 			final String eventJavaClassName = transientWebXmlAppl.getJavaClassName();
 			if (!(eventJavaClassName.equals(this.javaClassName))) {
@@ -216,13 +216,13 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 					nextJavaApplication.setApplicationPathOverride(applicationPath);
 				}	
 				this.javaClassName = eventJavaClassName;
-				delta.addFlag(F_APPLICATION_CLASS_NAME);
+				flags.addFlags(F_APPLICATION_CLASS_NAME);
 			}
-			if(hasMetamodel()) {
+			if(flags.hasValue() && hasMetamodel()) {
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
 				getMetamodel().update(delta);
 			}
 		}
-		return flags;
 	}
 	
 	private String normalizeApplicationPath(final String eventApplicationPath) {
@@ -236,12 +236,12 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 	
 
 	@Override
-	public void remove() throws CoreException {
+	public void remove(final Flags flags) throws CoreException {
 		final JaxrsJavaApplication overridenJaxrsJavaApplication = getOverridenJaxrsJavaApplication();
 		if(overridenJaxrsJavaApplication != null) {
 			overridenJaxrsJavaApplication.unsetApplicationPathOverride();
 		}
-		super.remove();
+		super.remove(flags);
 	}
 
 	/**

@@ -25,9 +25,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
@@ -220,18 +221,20 @@ public class JaxrsNameBinding extends JaxrsJavaElement<IType> implements IJaxrsN
 	 * @param ast the {@link ICompilationUnit} associated with the given element
 	 * @throws CoreException
 	 */
+	@Override
 	public void update(final IJavaElement element, final CompilationUnit ast) throws CoreException {
 		final JaxrsNameBinding transientNameBinding = JaxrsNameBinding.from(element, ast).build(false);
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		if (transientNameBinding == null) {
-			remove();
+			remove(annotationsFlags);
 		} else {
-			final Flags flags = updateAnnotations(transientNameBinding.getAnnotations());
+			final Flags updateAnnotationsFlags = updateAnnotations(transientNameBinding.getAnnotations());
 			if (isMarkedForRemoval()) {
-				remove();
+				remove(annotationsFlags);
 			}
 			// update indexes for this element.
 			else if(hasMetamodel()){
-				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
 				getMetamodel().update(delta);
 			}
 		}

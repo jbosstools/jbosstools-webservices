@@ -24,9 +24,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsJavaApplication;
@@ -273,19 +274,21 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	 * @return
 	 * @throws CoreException
 	 */
+	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		final JaxrsJavaApplication transientApplication = from(javaElement, ast).build(false);
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		if (transientApplication == null) {
-			remove();
+			remove(annotationsFlags);
 		} else {
-			final Flags updateAnnotationsFlag = updateAnnotations(transientApplication.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlag);
+			final Flags updateAnnotationsFlags = updateAnnotations(transientApplication.getAnnotations());
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
 			if (this.isJaxrsCoreApplicationSubclass() != transientApplication.isJaxrsCoreApplicationSubclass()) {
 				this.isApplicationSubclass = transientApplication.isJaxrsCoreApplicationSubclass();
 				delta.addFlag(F_APPLICATION_HIERARCHY);
 			}
 			if (isMarkedForRemoval()) {
-				remove();
+				remove(annotationsFlags);
 			}
 			// update indexes for this element.
 			else if(hasMetamodel()){

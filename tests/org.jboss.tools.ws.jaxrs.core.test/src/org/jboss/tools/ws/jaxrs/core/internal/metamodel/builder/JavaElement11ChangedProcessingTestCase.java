@@ -18,7 +18,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
 import static org.jboss.tools.ws.jaxrs.core.internal.utils.HamcrestExtras.flagMatches;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.createAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.createMethod;
@@ -71,6 +70,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceFiel
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
@@ -345,7 +345,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(type, "extends Application", "", false);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(type, CHANGED, IJavaElementDeltaFlag.F_SUPER_TYPES);
+		metamodelMonitor.processEvent(type, CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
@@ -880,7 +880,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingPathParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("_pType").remove();
+		resource.getField("_pType").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_pType"),
@@ -898,7 +898,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingQueryParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("_foo").remove();
+		resource.getField("_foo").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_foo"),
@@ -917,7 +917,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingMatrixParamAnnotationOnField() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("_bar").remove();
+		resource.getField("_bar").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final Annotation fieldAnnotation = getAnnotation(resource.getJavaElement().getField("_bar"),
@@ -935,7 +935,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithPathParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("_pType").remove();
+		resource.getField("_pType").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IField field = resource.getJavaElement().getField("_pType");
@@ -952,7 +952,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithQueryParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("_foo").remove();
+		resource.getField("_foo").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IField field = resource.getJavaElement().getField("_foo");
@@ -969,7 +969,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenAddingFieldAnnotatedWithMatrixParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		resource.getField("_bar").remove();
+		resource.getField("_bar").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IField field = resource.getJavaElement().getField("_bar");
@@ -1447,20 +1447,6 @@ public class JavaElement11ChangedProcessingTestCase {
 	
 
 	@Test
-	public void shouldDoNothingWhenAnnotationValueRemainsSameOnResource() throws CoreException {
-		// pre-conditions
-		final JaxrsResource resource = metamodelMonitor
-				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		metamodelMonitor.resetElementChangesNotifications();
-		// operation
-		metamodelMonitor.processEvent(getAnnotation(resource.getJavaElement(), PATH), CHANGED);
-		// verifications
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
-		// 6 built-in HTTP Methods + 1 resource + 6 methods
-		assertThat(metamodel.findAllElements().size(), equalTo(13));
-	}
-
-	@Test
 	public void shouldDoNothingWhenChangingUnrelatedResourceAnnotationValue() throws CoreException {
 		// pre-conditions
 		final JaxrsResource resource = metamodelMonitor
@@ -1517,7 +1503,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		final List<JaxrsResourceMethod> resourceMethods = new ArrayList<JaxrsResourceMethod>(resource.getMethods()
 				.values());
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
-			resourceMethod.remove();
+			resourceMethod.remove(Flags.NONE);
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1542,7 +1528,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		final List<JaxrsResourceMethod> resourceMethods = new ArrayList<JaxrsResourceMethod>(resource.getMethods()
 				.values());
 		for (JaxrsResourceMethod resourceMethod : resourceMethods) {
-			resourceMethod.remove();
+			resourceMethod.remove(Flags.NONE);
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
@@ -1669,7 +1655,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourceMethodWhenHttpMethodRemovedOnAnnotation() throws CoreException {
 		// precondition: @BAR exists and is already an HTTP Method
 		final IType fooType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.FOO");
-		metamodelMonitor.createHttpMethod(fooType);
+		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod(fooType);
 		// precondition: annotate a method with @BAR, the method is a JAX-RS Resource Method
 		final IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		ResourcesUtils.replaceAllOccurrencesOfCode(customerType.getCompilationUnit(), "@POST", "@FOO", false);
@@ -1679,7 +1665,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		assertThat(resource.getMethods().get(method.getHandleIdentifier()), notNullValue());
 		// operation: remove @HttpMethod annotation on FOO
 		ResourcesUtils.replaceAllOccurrencesOfCode(fooType.getCompilationUnit(), "@HttpMethod(\"FOO\")", "", false);
-		metamodelMonitor.processEvent(fooType, CHANGED);
+		metamodelMonitor.processEvent(httpMethod.getHttpMethodAnnotation(), REMOVED);
 		// verification: method is not a JAX-RS Resource Method anymore
 		assertThat(resource.getAllMethods().size(), equalTo(5));
 		assertThat(resource.getMethods().get(method.getHandleIdentifier()), nullValue());
@@ -1955,7 +1941,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		javaMethodParameter.removeAnnotation(annotation);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1976,7 +1962,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		annotation.update(createAnnotation(annotation, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1997,7 +1983,7 @@ public class JavaElement11ChangedProcessingTestCase {
 				.addAnnotation(createAnnotation(PATH_PARAM, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2017,7 +2003,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		resourceMethod.removeJavaMethodParameter("size");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2038,7 +2024,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		resourceMethod.removeJavaMethodParameter("c");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2060,7 +2046,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		((JavaMethodParameter) resourceMethod.getJavaMethodParameterByName("size")).removeAnnotation(QUERY_PARAM);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2082,7 +2068,7 @@ public class JavaElement11ChangedProcessingTestCase {
 				.update(createAnnotation(QUERY_PARAM, "length"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2104,7 +2090,7 @@ public class JavaElement11ChangedProcessingTestCase {
 				createAnnotation(QUERY_PARAM, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2123,7 +2109,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		((JavaMethodParameter) resourceMethod.getJavaMethodParameterByName("c")).removeAnnotation(MATRIX_PARAM);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2146,7 +2132,7 @@ public class JavaElement11ChangedProcessingTestCase {
 				.update(createAnnotation(MATRIX_PARAM, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2168,7 +2154,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		((JavaMethodParameter) resourceMethod.getJavaMethodParameterByName("id")).addAnnotation(createAnnotation(MATRIX_PARAM, "foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2190,7 +2176,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		resourceMethod.setReturnedType(null);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -2217,7 +2203,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		((JavaMethodParameter) resourceMethod.getJavaMethodParameterByName("uriInfo")).removeAnnotation(CONTEXT);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED, F_SIGNATURE);
+		metamodelMonitor.processEvent(resourceMethod.getJavaElement(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 		assertThat(metamodel.findAllElements().size(), equalTo(1));
@@ -2542,7 +2528,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", "", false);
-		metamodelMonitor.processEvent(type, CHANGED, IJavaElementDeltaFlag.F_SUPER_TYPES);
+		metamodelMonitor.processEvent(type, CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),

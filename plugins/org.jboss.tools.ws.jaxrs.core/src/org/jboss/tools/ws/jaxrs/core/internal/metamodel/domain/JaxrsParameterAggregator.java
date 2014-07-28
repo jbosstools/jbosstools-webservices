@@ -36,10 +36,11 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParameterAggregator;
@@ -347,8 +348,9 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		final JaxrsParameterAggregator transientAggregator = from(javaElement, ast).buildTransient();
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		if (transientAggregator == null) {
-			remove();
+			remove(annotationsFlags);
 			return;
 		} 
 		final Flags updateAnnotationsFlags = updateAnnotations(transientAggregator.getAnnotations());
@@ -357,7 +359,7 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 		updateFields(transientAggregator, ast);
 
 		if (isMarkedForRemoval()) {
-			remove();
+			remove(annotationsFlags);
 		}
 		// update indexes for this element.
 		else if (hasMetamodel()) {
@@ -390,7 +392,7 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 		final List<JaxrsParameterAggregatorProperty> removedProperties = CollectionUtils.difference(allCurrentProperties,
 				allTransientInstanceProperties);
 		for (JaxrsParameterAggregatorProperty removedProperty: removedProperties) {
-			removedProperty.remove();
+			removedProperty.remove(FlagsUtils.computeElementFlags(removedProperty));
 		}
 	}
 	
@@ -419,7 +421,7 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 		final List<JaxrsParameterAggregatorField> removedFields = CollectionUtils.difference(allCurrentFields,
 				allTransientInstanceFields);
 		for (JaxrsParameterAggregatorField removedField : removedFields) {
-			removedField.remove();
+			removedField.remove(FlagsUtils.computeElementFlags(removedField));
 		}
 	}
 
@@ -440,13 +442,13 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 	 *      #remove()
 	 */
 	@Override
-	public void remove() throws CoreException {
-		super.remove();
+	public void remove(final Flags flags) throws CoreException {
+		super.remove(flags);
 		for (JaxrsParameterAggregatorField field : getAllFields()) {
-			((JaxrsParameterAggregatorField) field).remove();
+			((JaxrsParameterAggregatorField) field).remove(FlagsUtils.computeElementFlags(field));
 		}
 		for (JaxrsParameterAggregatorProperty property : getAllProperties()) {
-			((JaxrsParameterAggregatorProperty) property).remove();
+			((JaxrsParameterAggregatorProperty) property).remove(FlagsUtils.computeElementFlags(property));
 		}
 	}
 

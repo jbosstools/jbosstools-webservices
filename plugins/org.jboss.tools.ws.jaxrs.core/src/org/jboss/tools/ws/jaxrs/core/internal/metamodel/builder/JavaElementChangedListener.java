@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 
 /**
  * Listens to all change events (Java elements and resources) and triggers a new job for each change.<br>
@@ -92,11 +93,11 @@ public class JavaElementChangedListener implements IElementChangedListener {
 	}
 
 	private void logDelta(final IJavaElementDelta delta, final int eventType) {
-		IJavaElement element = delta.getElement();
+		final IJavaElement element = delta.getElement();
 		// skip as the project is closed
-		int deltaKind = retrieveDeltaKind(delta);
-		int flags = delta.getFlags();
-		CompilationUnit compilationUnitAST = null;
+		final int deltaKind = retrieveDeltaKind(delta);
+		final Flags flags = new Flags(delta.getFlags());
+		final CompilationUnit compilationUnitAST = null;
 		final JavaElementChangedEvent event = new JavaElementChangedEvent(element, deltaKind, eventType, compilationUnitAST, flags);
 		Logger.trace("Event {}", event);
 		// carry on with children elements.

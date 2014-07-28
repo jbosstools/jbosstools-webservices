@@ -72,6 +72,8 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JaxrsElementsInde
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneDocumentFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -458,8 +460,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				}
 			} else {
 				for (Iterator<IJaxrsElement> iterator = jaxrsElements.iterator(); iterator.hasNext();) {
-					JaxrsJavaElement<?> jaxrsElement = (JaxrsJavaElement<?>) iterator.next();
-					jaxrsElement.remove();
+					final JaxrsJavaElement<?> jaxrsElement = (JaxrsJavaElement<?>) iterator.next();
+					jaxrsElement.remove(FlagsUtils.computeElementFlags(jaxrsElement));
 				}
 			}
 		}
@@ -484,13 +486,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		// element
 		final JaxrsJavaElement<?> matchingElement = (JaxrsJavaElement<?>) findElement(javaAnnotation.getParent());
 		if (matchingElement != null) {
-			final Annotation annotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
 			switch (deltaKind) {
 			case ADDED:
-				matchingElement.addAnnotation(annotation);
+				matchingElement.addAnnotation(JdtUtils.resolveAnnotation(javaAnnotation, ast));
 				break;
 			case CHANGED:
-				matchingElement.updateAnnotation(annotation);
+				matchingElement.updateAnnotation(JdtUtils.resolveAnnotation(javaAnnotation, ast));
 				break;
 			case REMOVED:
 				matchingElement.removeAnnotation(javaAnnotation);
@@ -526,9 +527,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			Logger.debug("Processing project '" + getProject().getName() + "'...");
 			if (WtpUtils.hasWebDeploymentDescriptor(getProject())) {
 				processWebDeploymentDescriptorChange(
-						new ResourceDelta(WtpUtils.getWebDeploymentDescriptor(getProject()), ADDED, 0));
+						new ResourceDelta(WtpUtils.getWebDeploymentDescriptor(getProject()), ADDED, Flags.NONE));
 			}
-			processResourceChange(new ResourceDelta(getProject(), ADDED, 0), progressMonitor);
+			processResourceChange(new ResourceDelta(getProject(), ADDED, Flags.NONE), progressMonitor);
 			progressMonitor.worked(1);
 		} catch (CoreException e) {
 			Logger.error("Failed while processing resource results", e);
@@ -590,7 +591,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (javaElement != null && !JdtUtils.isArchive(javaElement)) {
 			processJavaElement(javaElement, event.getDeltaKind(), progressMonitor);
 		} else if (WtpUtils.isWebDeploymentDescriptor(resource)) {
-			processWebDeploymentDescriptorChange(new ResourceDelta(resource, event.getDeltaKind(), 0));
+			processWebDeploymentDescriptorChange(new ResourceDelta(resource, event.getDeltaKind(), Flags.NONE));
 		}
 
 	}
@@ -603,7 +604,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	private void processJavaElement(final IJavaElement javaElement, final int deltaKind,
+	private void processJavaElement(final IJavaElement javaElement, final int deltaKind, 
 			final IProgressMonitor progressMonitor) throws CoreException, JavaModelException {
 		final Set<JaxrsJavaElement<?>> matchingElements = findElements(javaElement);
 		switch (deltaKind) {
@@ -629,7 +630,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			break;
 		case REMOVED:
 			for (JaxrsJavaElement<?> element : matchingElements) {
-				element.remove();
+				element.remove(FlagsUtils.computeElementFlags(element));
 			}
 			break;
 		}
@@ -659,7 +660,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				break;
 			case REMOVED:
 				if (webxmlElement != null) {
-					webxmlElement.remove();
+					webxmlElement.remove(FlagsUtils.computeElementFlags(webxmlElement));
 				}
 				break;
 			}
@@ -689,8 +690,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			}
 			this.elements.put(element.getIdentifier(), element);
 			indexationService.indexElement(element);
-			notifyListeners(new JaxrsElementDelta(element, ADDED));
-			processElementChange(new JaxrsElementDelta(element, ADDED));
+			final JaxrsElementDelta delta = new JaxrsElementDelta(element, ADDED, FlagsUtils.computeElementFlags(element));
+			notifyListeners(delta);
+			processElementChange(delta);
 		} finally {
 			readWriteLock.writeLock().unlock();
 		}
@@ -788,21 +790,22 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * 
 	 * @param elements
 	 *            the element to remove
+	 * @param flags optional flags to descrive the cause of the removal.           
 	 * @throws CoreException
 	 */
-	protected void remove(final IJaxrsElement element) throws CoreException {
+	protected void remove(final IJaxrsElement element, final Flags flags) throws CoreException {
 		if (element == null) {
 			return;
 		}
 		try {
 			readWriteLock.writeLock().lock();
-			processElementChange(new JaxrsElementDelta(element, REMOVED));
+			processElementChange(new JaxrsElementDelta(element, REMOVED, flags));
 			// actual removal and unindexing should be done at the end
 			elements.remove(element.getIdentifier());
 			indexationService.unindexElement(element);
 			// index the element in the validation cache because we may need it during validation
 			shadowElementsCache.index(element);
-			notifyListeners(new JaxrsElementDelta(element, REMOVED));
+			notifyListeners(new JaxrsElementDelta(element, REMOVED, flags));
 		} finally {
 			readWriteLock.writeLock().unlock();
 		}

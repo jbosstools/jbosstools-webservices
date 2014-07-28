@@ -55,6 +55,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplicat
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -249,7 +250,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// annotation on java-based application
 		for (IJaxrsApplication application : applications) {
 			if (application.isWebXmlApplication()) {
-				((JaxrsBaseElement) application).remove();
+				((JaxrsBaseElement) application).remove(Flags.NONE);
 				new JaxrsMetamodelValidator().validate(toSet(application.getResource()), project, validationHelper, context, validatorManager, reporter);
 			} else {
 				javaApplication = (JaxrsJavaApplication) application;
@@ -410,7 +411,7 @@ public class JaxrsApplicationValidatorTestCase {
 			}
 		}
 		// operation 2: remove second JAX-RS application
-		javaApplication2.remove();
+		javaApplication2.remove(Flags.NONE);
 		final IFile app2Resource = (IFile) javaApplication2.getResource();
 		// app2Resource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset).
@@ -452,7 +453,7 @@ public class JaxrsApplicationValidatorTestCase {
 			}
 		}
 		// operation 2: remove second JAX-RS application
-		javaApplication2.remove();
+		javaApplication2.remove(Flags.NONE);
 		final IFile app2Resource = (IFile) javaApplication2.getResource();
 		app2Resource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset).
@@ -522,7 +523,7 @@ public class JaxrsApplicationValidatorTestCase {
 			}
 		}
 		// operation 2: remove JAX-RS application
-		javaApplication.remove();
+		javaApplication.remove(Flags.NONE);
 		final IFile appResource = (IFile) javaApplication.getResource();
 		appResource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset).
@@ -560,7 +561,7 @@ public class JaxrsApplicationValidatorTestCase {
 			}
 		}
 		// operation 2: remove web.xml application definition
-		webxmlApplication.remove();
+		webxmlApplication.remove(Flags.NONE);
 		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
 		webxmlResource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset).
@@ -597,7 +598,7 @@ public class JaxrsApplicationValidatorTestCase {
 			}
 		}
 		// operation 2: remove web.xml application definition
-		webxmlApplication.remove();
+		webxmlApplication.remove(Flags.NONE);
 		final IFile webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-without-servlet-mapping.xml");
 		// then validate again, only the *changed files* (and without reset).
@@ -640,7 +641,7 @@ public class JaxrsApplicationValidatorTestCase {
 			}
 		}
 		// operation 2: remove Web.xml override
-		webxmlApplication.remove();
+		webxmlApplication.remove(Flags.NONE);
 		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
 		webxmlResource.delete(true, new NullProgressMonitor());
 		// then validate again, only the *changed files* (and without reset).
@@ -687,7 +688,7 @@ public class JaxrsApplicationValidatorTestCase {
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation 2: remove Web.xml override
-		webxmlApplication.remove();
+		webxmlApplication.remove(Flags.NONE);
 		IFile webxmlResource = (IFile) webxmlApplication.getResource();
 		// remove content, no remove resource
 		webxmlResource = (IFile) metamodelMonitor
@@ -737,7 +738,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// preconditions
 		final Collection<IJaxrsApplication> applications = metamodel.findAllApplications();
 		for (IJaxrsApplication application : applications) {
-			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).remove(Flags.NONE);
 		}
 		deleteJaxrsMarkers(metamodel);
 		metamodelMonitor.resetElementChangesNotifications();

@@ -34,17 +34,17 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.junit.Before;
 import org.junit.Test;
 
 public class JavaElementDeltaFilterTestCase {
 
-	private final int NO_FLAG = 0;
 	private final JavaElementDeltaFilter filter = new JavaElementDeltaFilter();
 	private ICompilationUnit workingCopy;
 	private ICompilationUnit primaryCopy;
 
-	private static JavaElementChangedEvent createEvent(IJavaElement element, int deltaKind, int eventType, int flags) {
+	private static JavaElementChangedEvent createEvent(IJavaElement element, int deltaKind, int eventType, Flags flags) {
 		return new JavaElementChangedEvent(element, deltaKind, eventType, null, flags);
 	}
 
@@ -68,70 +68,70 @@ public class JavaElementDeltaFilterTestCase {
 
 	@Test
 	public void shouldAcceptAnyChangeEvent() throws JavaModelException {
-		assertTrue("Wrong result", filter.apply(createEvent(workingCopy, REMOVED, POST_RECONCILE, NO_FLAG)));
-		assertTrue("Wrong result", filter.apply(createEvent(primaryCopy, REMOVED, POST_RECONCILE, NO_FLAG)));
+		assertTrue("Wrong result", filter.apply(createEvent(workingCopy, REMOVED, POST_RECONCILE, Flags.NONE)));
+		assertTrue("Wrong result", filter.apply(createEvent(primaryCopy, REMOVED, POST_RECONCILE, Flags.NONE)));
 	}
 	
 	@Test
 	public void shouldAcceptPostChangeEventOnly() throws JavaModelException {
-		IJavaElement element = createMock(IType.class, TYPE, workingCopy);
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
-		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
+		final IJavaElement element = createMock(IType.class, TYPE, workingCopy);
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
+		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, Flags.NONE)));
 	}
 
 	@Test
 	public void shouldAcceptPostReconcileEventOnly() throws JavaModelException {
-		IJavaElement element = createMock(IType.class, ANNOTATION, workingCopy);
-		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
+		final IJavaElement element = createMock(IType.class, ANNOTATION, workingCopy);
+		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
 	}
 
 	@Test
 	public void shouldAcceptWithValidFlags() throws JavaModelException {
-		IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
-		assertTrue("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, F_PRIMARY_RESOURCE + F_CONTENT)));
+		final IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
+		assertTrue("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, new Flags(F_PRIMARY_RESOURCE + F_CONTENT))));
 	}
 
 	@Test
 	public void shouldNotAcceptWithIncompleteFlags() throws JavaModelException {
-		IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, F_CONTENT)));
+		final IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, new Flags(F_CONTENT))));
 	}
 
 	@Test
 	public void shouldNotAcceptWithMissingFlags() throws JavaModelException {
-		IJavaElement element = createMock(IMethod.class, METHOD);
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
+		final IJavaElement element = createMock(IMethod.class, METHOD);
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, Flags.NONE)));
 	}
 	
 	@Test
 	public void shouldNotAcceptChangesInPackageInfoFile() {
-		IJavaElement element = createMock(IType.class, ANNOTATION, workingCopy);
-		IResource resource = mock(IResource.class);
+		final IJavaElement element = createMock(IType.class, ANNOTATION, workingCopy);
+		final IResource resource = mock(IResource.class);
 		when(element.getResource()).thenReturn(resource);
 		when(resource.getType()).thenReturn(IResource.FILE);
 		when(resource.getName()).thenReturn("package-info.java");
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_CHANGE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_RECONCILE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_CHANGE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_CHANGE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_RECONCILE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_CHANGE, Flags.NONE)));
 	}
 
 	@Test
 	public void shouldNotAcceptChangesInJarFile() {
-		IPackageFragmentRoot element = createMock(IPackageFragmentRoot.class, PACKAGE_FRAGMENT_ROOT);
-		IResource resource = mock(IResource.class);
+		final IPackageFragmentRoot element = createMock(IPackageFragmentRoot.class, PACKAGE_FRAGMENT_ROOT);
+		final IResource resource = mock(IResource.class);
 		when(element.getResource()).thenReturn(resource);
 		when(element.isArchive()).thenReturn(true);
 		when(resource.getType()).thenReturn(IResource.FILE);
 		when(resource.getName()).thenReturn("somearchive.jar");
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_CHANGE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_RECONCILE, NO_FLAG)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_CHANGE, NO_FLAG)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_CHANGE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_RECONCILE, Flags.NONE)));
+		assertFalse("Wrong result", filter.apply(createEvent(element, REMOVED, POST_CHANGE, Flags.NONE)));
 	}
 }

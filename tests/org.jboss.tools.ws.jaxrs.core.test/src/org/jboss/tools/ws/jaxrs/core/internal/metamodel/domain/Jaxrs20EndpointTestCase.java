@@ -29,6 +29,7 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
@@ -36,6 +37,7 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -611,18 +613,21 @@ public class Jaxrs20EndpointTestCase {
 		// pre-conditions
 		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
 		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
-		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
 		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
 		// operation 1: retrieve the endpoint for the Resource Method
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
 		// verification 1: check the URI template
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String}?query={String}"));
 		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String ", "Integer ", true);
-		metamodelMonitor.processEvent(paramAggregatorUnit, CHANGED);
+		final IField removedField = JavaElementsUtils.getField(parameterAggregator.getJavaElement(), "path");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String path", "Integer path", true);
+		final IField addedField = JavaElementsUtils.getField(parameterAggregator.getJavaElement(), "path");
+		metamodelMonitor.processEvent(removedField, REMOVED);
+		metamodelMonitor.processEvent(addedField, ADDED);
 		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
 		// verification 1: check the URI template
-		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer}?query={Integer}"));
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer}?query={String}"));
 	}
 
 	@Test
@@ -647,18 +652,21 @@ public class Jaxrs20EndpointTestCase {
 		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@PathParam(\"path\")", "", true);
 		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "// PLACEHOLDER", "@PathParam(\"path\")", true);
 		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
-		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
 		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
 		// operation 1: retrieve the endpoint for the Resource Method
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
 		// verification 1: check the URI template
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String}?query={String}"));
 		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String ", "Integer ", true);
-		metamodelMonitor.processEvent(paramAggregatorUnit, CHANGED);
+		final IMethod removedProperty = JavaElementsUtils.getMethod(parameterAggregator.getJavaElement(), "setPath");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "setPath(String ", "setPath(Integer ", true);
+		final IMethod addedProperty = JavaElementsUtils.getMethod(parameterAggregator.getJavaElement(), "setPath");
+		metamodelMonitor.processEvent(removedProperty, REMOVED);
+		metamodelMonitor.processEvent(addedProperty, ADDED);
 		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
 		// verification 1: check the URI template
-		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer}?query={Integer}"));
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer}?query={String}"));
 	}
 	
 	@Test
@@ -692,14 +700,45 @@ public class Jaxrs20EndpointTestCase {
 		// verification 1: check the URI template
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={String}"));
 		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String ", "Integer ", true);
+		final IField removedField = JavaElementsUtils.getField(parameterAggregator.getJavaElement(), "matrix");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String matrix", "Integer matrix", true);
+		final IField addedField = JavaElementsUtils.getField(parameterAggregator.getJavaElement(), "matrix");
+		metamodelMonitor.processEvent(removedField, REMOVED);
+		metamodelMonitor.processEvent(addedField, ADDED);
 		for(JaxrsParameterAggregatorField aggregatorField : parameterAggregator.getAllFields()) {
 			metamodelMonitor.processEvent(aggregatorField.getJavaElement(), CHANGED);
 		}
 		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
 		// verification 1: check the URI template
-		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer};matrix={Integer}"));
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={Integer}"));
 	}
+	
+	@Test
+	// @see JBIDE-17712
+	public void shouldRetrieveMatrixParamTypeChangeInParameterAggregatorProperty() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@QueryParam(\"query\")", "", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "public void setQuery", "@MatrixParam(\"matrix\") public void setMatrix", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
+		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={String}"));
+		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
+		final IMethod removedProperty = JavaElementsUtils.getMethod(parameterAggregator.getJavaElement(), "setMatrix");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "setMatrix(String ", "setMatrix(Integer ", true);
+		final IMethod addedProperty = JavaElementsUtils.getMethod(parameterAggregator.getJavaElement(), "setMatrix");
+		metamodelMonitor.processEvent(removedProperty, REMOVED);
+		metamodelMonitor.processEvent(addedProperty, ADDED);
+		// verification 2: check the URI template
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={Integer}"));
+	}
+	
+
 
 	@Test
 	// @see JBIDE-17712
@@ -719,26 +758,146 @@ public class Jaxrs20EndpointTestCase {
 	
 	@Test
 	// @see JBIDE-17712
-	public void shouldRetrieveMatrixParamTypeChangeInParameterAggregatorProperty() throws CoreException {
+	public void shouldRetrieveQueryParamTypeChangeInParameterAggregatorField() throws CoreException {
 		// pre-conditions
 		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "Query", "Matrix", true);
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "query", "matrix", true);
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@PathParam(\"path\")", "", true);
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "// PLACEHOLDER", "@PathParam(\"path\")", true);
 		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
-		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
 		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
 		// operation 1: retrieve the endpoint for the Resource Method
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
 		// verification 1: check the URI template
-		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String};matrix={String}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String}?query={String}"));
 		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
-		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String ", "Integer ", true);
-		metamodelMonitor.processEvent(paramAggregatorUnit, CHANGED);
+		final IField removedField = JavaElementsUtils.getField(parameterAggregator.getJavaElement(), "query");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "String query", "Integer query", true);
+		final IField addedField = JavaElementsUtils.getField(parameterAggregator.getJavaElement(), "query");
+		metamodelMonitor.processEvent(removedField, REMOVED);
+		metamodelMonitor.processEvent(addedField, ADDED);
+		// verification 2: check the URI template
 		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:String}?query={Integer}"));
+	}
+
+	@Test
+	// @see JBIDE-17712
+	public void shouldRetrieveQueryParamTypeChangeInParameterAggregatorProperty() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@QueryParam(\"query\")", "", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "public void setQuery", "@QueryParam(\"query\") public void setQuery", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services", "MyPathParamsResource.java");
+		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
 		// verification 1: check the URI template
-		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:Integer};matrix={Integer}"));
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String}?query={String}"));
+		// operation 2: update the field annotated with @PathParam in the Parameter Aggregator
+		final IMethod removedProperty = JavaElementsUtils.getMethod(parameterAggregator.getJavaElement(), "setQuery");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "setQuery(String ", "setQuery(Integer ", true);
+		final IMethod addedProperty = JavaElementsUtils.getMethod(parameterAggregator.getJavaElement(), "setQuery");
+		metamodelMonitor.processEvent(removedProperty, REMOVED);
+		metamodelMonitor.processEvent(addedProperty, ADDED);
+		// verification 2: check the URI template
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:String}?query={Integer}"));
+	}
+
+	@Test
+	// @see JBIDE-17663
+	public void shouldAddParameterTypeInEndpointWhenAddingPathParamAnnotationOnField() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramResourceUnit = metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"MyPathParamsResource.java");
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:.*}"));
+		// operation 2: uncomment the @PathParam annotation on the 'path' field in the Parameter Aggregator
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramResourceUnit, "//PLACEHOLDER", "@PathParam(\"path\") private String path;", true);
+		final IField pathField = JavaElementsUtils.getField(paramResourceUnit.findPrimaryType(), "path");
+		metamodelMonitor.processEvent(JavaElementsUtils.getAnnotation(pathField, JaxrsClassnames.PATH_PARAM), ADDED);
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 2: check the URI template
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:String}"));
+	}
+	
+	@Test
+	// @see JBIDE-17663
+	public void shouldRemoveParameterTypeInEndpointWhenRemovingPathParamAnnotationOnField() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramResourceUnit = metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"MyPathParamsResource.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramResourceUnit, "//PLACEHOLDER", "@PathParam(\"path\") private String path;", true);
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String}"));
+		// operation 2: uncomment the @PathParam annotation on the 'path' field in the Parameter Aggregator
+		final IField pathField = JavaElementsUtils.getField(paramResourceUnit.findPrimaryType(), "path");
+		final Annotation pathParamAnnotation = JavaElementsUtils.getAnnotation(pathField, JaxrsClassnames.PATH_PARAM);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramResourceUnit, "@PathParam(\"path\") private String path;", "private String path;", true);
+		metamodelMonitor.processEvent(pathParamAnnotation, REMOVED);
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 2: check the URI template
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:.*}"));
+	}
+	
+	@Test
+	// @see JBIDE-17663
+	public void shouldAddParameterTypeInEndpointWhenAddingPathParamAnnotationOnBeanParamField() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@PathParam(\"path\")", "//@PathParam(\"path\")", true);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@QueryParam(\"query\")", "", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"MyPathParamsResource.java");
+		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:.*}"));
+		// operation 2: uncomment the @PathParam annotation on the 'path' field in the Parameter Aggregator
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "//@PathParam(\"path\")", "@PathParam(\"path\")", true);
+		final IField pathField = JavaElementsUtils.getField(paramAggregatorUnit.findPrimaryType(), "path");
+		metamodelMonitor.processEvent(JavaElementsUtils.getAnnotation(pathField, JaxrsClassnames.PATH_PARAM), ADDED);
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 2: check the URI template
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:String}"));
+	}
+	
+	@Test
+	// @see JBIDE-17663
+	public void shouldRemoveParameterTypeInEndpointWhenRemovingPathParamAnnotationOnBeanParamField() throws CoreException {
+		// pre-conditions
+		final ICompilationUnit paramAggregatorUnit = metamodelMonitor.createCompilationUnit("MyPathParams.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "MyPathParams.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@QueryParam(\"query\")", "", true);
+		metamodelMonitor.createCompilationUnit("MyPathParamsResource.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"MyPathParamsResource.java");
+		metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.MyPathParams");
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.MyPathParamsResource");
+		// operation 1: retrieve the endpoint for the Resource Method
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 1: check the URI template
+		assertThat(endpoint.getUriPathTemplate(), equalTo("/test/{path:String}"));
+		// operation 2: comment out the @PathParam annotation on the 'path' field in the Parameter Aggregator
+		final IField pathField = JavaElementsUtils.getField(paramAggregatorUnit.findPrimaryType(), "path");
+		final Annotation annotation = JavaElementsUtils.getAnnotation(pathField, JaxrsClassnames.PATH_PARAM);
+		ResourcesUtils.replaceAllOccurrencesOfCode(paramAggregatorUnit, "@PathParam(\"path\")", "//@PathParam(\"path\")", true);
+		metamodelMonitor.processEvent(annotation, REMOVED);
+		final JaxrsEndpoint updatedEndpoint = metamodel.findEndpoints(resource).iterator().next();
+		// verification 2: check the URI template
+		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:.*}"));
 	}
 	
 }

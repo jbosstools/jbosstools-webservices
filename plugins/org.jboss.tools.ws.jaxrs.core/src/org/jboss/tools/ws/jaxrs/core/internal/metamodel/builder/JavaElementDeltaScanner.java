@@ -15,10 +15,11 @@ import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
 import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.eclipse.jdt.core.IJavaElementDelta.*;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_AST_AFFECTED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_OPENED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_PROBLEM_SOLVED;
@@ -45,6 +46,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignatu
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 
@@ -105,9 +107,9 @@ public class JavaElementDeltaScanner {
 		}
 		final int elementKind = element.getElementType();
 		final int deltaKind = retrieveDeltaKind(delta);
-		final int flags = delta.getFlags();
+		final Flags flags = new Flags(delta.getFlags());
 		if(elementKind == JAVA_PROJECT ){
-			final JavaElementChangedEvent event = new JavaElementChangedEvent(element, delta.getKind(), eventType, null, delta.getFlags());
+			final JavaElementChangedEvent event = new JavaElementChangedEvent(element, delta.getKind(), eventType, null, new Flags(delta.getFlags()));
 			if (javaElementChangedEventFilter.apply(event)) {
 				events.add(event);
 				// skip anything below
@@ -135,7 +137,7 @@ public class JavaElementDeltaScanner {
 				for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
 					final IJavaMethodSignature methodSignature = diff.getValue();
 					final JavaElementChangedEvent event = new JavaElementChangedEvent(methodSignature.getJavaMethod(), CHANGED, eventType,
-							compilationUnitAST, F_SIGNATURE);
+							compilationUnitAST, new Flags(F_SIGNATURE));
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
 					}
@@ -148,7 +150,7 @@ public class JavaElementDeltaScanner {
 				for (Entry<IProblem, IJavaElement> solvedProblem : solvedProblems.entrySet()) {
 					final IJavaElement solvedElement = solvedProblem.getValue();
 					final JavaElementChangedEvent event = new JavaElementChangedEvent(solvedElement, CHANGED, eventType,
-							compilationUnitAST, F_PROBLEM_SOLVED);
+							compilationUnitAST, new Flags(F_PROBLEM_SOLVED));
 					if (javaElementChangedEventFilter.apply(event)) {
 						events.add(event);
 					}
@@ -216,8 +218,8 @@ public class JavaElementDeltaScanner {
 	 * @param flags
 	 * @return
 	 */
-	private boolean requiresDiffsComputation(int flags) {
-		return flags == (F_CONTENT + F_FINE_GRAINED + F_AST_AFFECTED);
+	private boolean requiresDiffsComputation(final Flags flags) {
+		return flags.hasExactValue(F_CONTENT, F_FINE_GRAINED, F_AST_AFFECTED);
 	}
 
 	/**

@@ -6,7 +6,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.utils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 
 /**
  * Utility class to provide with custom {@link Matcher} for the test cases

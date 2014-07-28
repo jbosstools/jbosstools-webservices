@@ -25,7 +25,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_ADDED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent.NO_FLAG;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addFieldAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addMethodAnnotation;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.addMethodParameter;
@@ -79,6 +78,7 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -185,30 +185,32 @@ public class JavaElementDeltaScannerTestCase {
 		}
 	}
 
-	private void verifyEventNotification(IJavaElement element, int deltaKind, int eventType, int flags,
-			VerificationMode numberOfTimes) throws JavaModelException {
+	private void verifyEventNotification(final IJavaElement element, final int deltaKind, final int eventType, final int flags,
+			final VerificationMode numberOfTimes) throws JavaModelException {
+		verifyEventNotification(element, deltaKind, eventType, new Flags(flags), numberOfTimes);
+	}
+	
+	private void verifyEventNotification(final IJavaElement element, final int deltaKind, final int eventType, final Flags flags,
+			final VerificationMode numberOfTimes) throws JavaModelException {
 		TestLogger.info("Verifying method calls..");
 		if (element == null) {
 			verify(javaElementEvents, numberOfTimes).add(null);
 		} else {
-			// verify(scanner,
-			// numberOfTimes).notifyJavaElementChanged(eq(element),
-			// eq(elementKind), eq(deltaKind),
-			// any(CompilationUnit.class), eq(flags));
-			ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(element);
-			CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
+			final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(element);
+			final CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
 			verify(javaElementEvents, numberOfTimes).add(
 					new JavaElementChangedEvent(element, deltaKind, eventType, ast, flags));
 		}
 	}
 
-	private void verifyEventNotification(IResource resource, int deltaKind, int eventType, int flags,
-			VerificationMode numberOfTimes) throws JavaModelException {
+	private void verifyEventNotification(final IResource resource, final int deltaKind, final int eventType, final int flags,
+			final VerificationMode numberOfTimes) throws JavaModelException {
+		verifyEventNotification(resource, deltaKind, eventType, new Flags(flags), numberOfTimes);
+	}
+
+	private void verifyEventNotification(final IResource resource, final int deltaKind, final int eventType, final Flags flags,
+			final VerificationMode numberOfTimes) throws JavaModelException {
 		TestLogger.info("Verifying method calls..");
-		// verify(scanner,
-		// numberOfTimes).notifyJavaElementChanged(eq(element),
-		// eq(elementKind), eq(deltaKind),
-		// any(CompilationUnit.class), eq(flags));
 		verify(resourceEvents, numberOfTimes).add(new ResourceDelta(resource, deltaKind, flags));
 	}
 
@@ -218,7 +220,7 @@ public class JavaElementDeltaScannerTestCase {
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"EmptyCompilationUnit.txt", "org.jboss.tools.ws.jaxrs.sample.services", "FOO2.java");
 		// verifications:
-		verifyEventNotification(compilationUnit.getResource(), ADDED, POST_CHANGE, NO_FLAG, times(1));
+		verifyEventNotification(compilationUnit.getResource(), ADDED, POST_CHANGE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -229,7 +231,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", WORKING_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit, CHANGED, POST_RECONCILE, NO_FLAG, never());
+		verifyEventNotification(compilationUnit, CHANGED, POST_RECONCILE, Flags.NONE, never());
 	}
 
 	@Test
@@ -240,7 +242,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		appendCompilationUnitType(compilationUnit, "FooBarHTTPMethodMember.txt", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, NO_FLAG, atLeastOnce());
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, Flags.NONE, atLeastOnce());
 	}
 
 	@Test
@@ -249,7 +251,7 @@ public class JavaElementDeltaScannerTestCase {
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit( "FooResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "FooResource.java");
 		// verifications: 1 times
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -277,7 +279,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		compilationUnit.getResource().delete(true, null);
 		// verifications: 1 time
-		verifyEventNotification(compilationUnit, REMOVED, POST_RECONCILE, NO_FLAG, times(2));
+		verifyEventNotification(compilationUnit, REMOVED, POST_RECONCILE, Flags.NONE, times(2));
 	}
 
 	@Test
@@ -288,7 +290,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		compilationUnit.getResource().delete(true, null);
 		// verifications: 1 time
-		verifyEventNotification(compilationUnit.getResource(), REMOVED, POST_CHANGE, NO_FLAG, times(1));
+		verifyEventNotification(compilationUnit.getResource(), REMOVED, POST_CHANGE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -300,7 +302,7 @@ public class JavaElementDeltaScannerTestCase {
 		IType addedType = appendCompilationUnitType(compilationUnit, "FooResourceMember.txt",
 				WORKING_COPY);
 		// verifications:
-		verifyEventNotification(addedType, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(addedType, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -312,7 +314,7 @@ public class JavaElementDeltaScannerTestCase {
 		IType addedType = appendCompilationUnitType(compilationUnit, "FooResourceMember.txt",
 				PRIMARY_COPY);
 		// verifications: one call PostReconcile + one call on PostChange
-		verifyEventNotification(addedType.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(addedType.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -322,7 +324,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeType(type, WORKING_COPY);
 		// verifications
-		verifyEventNotification(type, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(type, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -332,7 +334,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeType(type, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, times(1));
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), times(1));
 	}
 
 	@Test
@@ -346,7 +348,7 @@ public class JavaElementDeltaScannerTestCase {
 		replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", WORKING_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, F_SUPER_TYPES, times(1));
+		verifyEventNotification(compilationUnit.findPrimaryType(), CHANGED, POST_RECONCILE, new Flags(F_SUPER_TYPES), times(1));
 	}
 
 	@Test
@@ -360,7 +362,7 @@ public class JavaElementDeltaScannerTestCase {
 		replaceAllOccurrencesOfCode(compilationUnit, "ExceptionMapper<>",
 				"ExceptionMapper<FooException>", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -382,7 +384,7 @@ public class JavaElementDeltaScannerTestCase {
 		type = replaceFirstOccurrenceOfCode(type, "implements", "implements Serializable, ",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -404,7 +406,7 @@ public class JavaElementDeltaScannerTestCase {
 		type = replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>",
 				"", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -426,7 +428,7 @@ public class JavaElementDeltaScannerTestCase {
 		type = replaceFirstOccurrenceOfCode(type, "implements", "extends Object implements",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -446,7 +448,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		type = replaceFirstOccurrenceOfCode(type, "extends Product", "", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -474,7 +476,7 @@ public class JavaElementDeltaScannerTestCase {
 		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<FooException>",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -500,7 +502,7 @@ public class JavaElementDeltaScannerTestCase {
 		TestLogger.info("Performing Test Operation(s)...");
 		replaceAllOccurrencesOfCode(compilationUnit, "<PersistenceException>", "<>", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(compilationUnit.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -511,7 +513,7 @@ public class JavaElementDeltaScannerTestCase {
 		IAnnotation addedAnnotation = addTypeAnnotation(type,
 				"import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -521,7 +523,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		addTypeAnnotation(type, "import javax.ws.rs.Consumes;\n@Consumes(\"foo/bar\")", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -544,7 +546,7 @@ public class JavaElementDeltaScannerTestCase {
 		type = replaceFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)",
 				"@Path(\"/foo\")", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -555,7 +557,7 @@ public class JavaElementDeltaScannerTestCase {
 		IAnnotation annotation = type.getAnnotation("Path");
 		removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", WORKING_COPY);
 		// verifications
-		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -565,7 +567,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -573,7 +575,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IPackageFragmentRoot addedEntry = metamodelMonitor.addClasspathEntry("slf4j-api-1.5.2.jar");
 		// verifications
-		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(0));
+		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, Flags.NONE, times(0));
 	}
 
 	@Test
@@ -581,7 +583,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IPackageFragmentRoot addedEntry = metamodelMonitor.addClasspathEntry("slf4j-api-1.5.xyz.jar");
 		// verifications
-		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, NO_FLAG, times(0));
+		verifyEventNotification(addedEntry, ADDED, POST_CHANGE, Flags.NONE, times(0));
 	}
 
 	@Test
@@ -602,7 +604,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IField addedField = createField(type, "private int i;", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(addedField, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -612,7 +614,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		createField(type, "private int i;", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -622,7 +624,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IField addedField = createField(type, "@PathParam() private int i;", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(addedField, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -632,7 +634,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IField addedField = createField(type, "@PathParam() private int i;", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(addedField.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(addedField.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -644,8 +646,8 @@ public class JavaElementDeltaScannerTestCase {
 		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", WORKING_COPY);
 		IField newField = type.getField("em");
 		// verifications
-		verifyEventNotification(oldField, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
-		verifyEventNotification(newField, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(oldField, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
+		verifyEventNotification(newField, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -655,7 +657,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "entityManager", "em", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -678,7 +680,7 @@ public class JavaElementDeltaScannerTestCase {
 		replaceAllOccurrencesOfCode(type.getCompilationUnit(), "private EntityManager",
 				"private HibernateEntityManager", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -689,7 +691,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeField(field, WORKING_COPY);
 		// verifications
-		verifyEventNotification(field, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(field, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -700,7 +702,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeField(field, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -711,7 +713,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IAnnotation addedAnnotation = addFieldAnnotation(field, "@PathParam()", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -722,7 +724,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		addFieldAnnotation(field, "@PathParam()", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -748,7 +750,7 @@ public class JavaElementDeltaScannerTestCase {
 				"@PersistenceContext(value=\"foo\")", PRIMARY_COPY);
 		// verifications
 		IAnnotation annotation = field.getAnnotation("PersistenceContext");
-		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -760,7 +762,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeFieldAnnotation(field, "@PersistenceContext", WORKING_COPY);
 		// verifications
-		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -772,7 +774,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeFieldAnnotation(field, "@PersistenceContext", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -783,7 +785,7 @@ public class JavaElementDeltaScannerTestCase {
 		IMethod addedMethod = createMethod(type, "public Object fooLocator() { return null; }",
 				WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(addedMethod, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -794,7 +796,7 @@ public class JavaElementDeltaScannerTestCase {
 		IMethod addedMethod = createMethod(type, "public Object fooLocator() { return null; }",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(addedMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(addedMethod.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -804,7 +806,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IMethod method = removeMethod(type.getCompilationUnit(), "createCustomer", WORKING_COPY);
 		// verifications
-		verifyEventNotification(method, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(method, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -814,7 +816,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IMethod method = removeMethod(type.getCompilationUnit(), "createCustomer", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -826,8 +828,8 @@ public class JavaElementDeltaScannerTestCase {
 		renameMethod(type.getCompilationUnit(), "getEntityManager", "getEM", WORKING_COPY);
 		// verifications
 		IMethod newMethod = metamodelMonitor.resolveMethod(type, "getEM");
-		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
-		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -839,8 +841,8 @@ public class JavaElementDeltaScannerTestCase {
 				PRIMARY_COPY);
 		// verifications
 		IMethod newMethod = metamodelMonitor.resolveMethod(type, "getEM");
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
-		verifyEventNotification(newMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
+		verifyEventNotification(newMethod.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -851,8 +853,8 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IMethod newMethod = addMethodParameter(oldMethod, "int i", WORKING_COPY);
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
-		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -863,7 +865,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		addMethodParameter(oldMethod, "int i", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(type.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -875,8 +877,8 @@ public class JavaElementDeltaScannerTestCase {
 		IMethod newMethod = replaceFirstOccurrenceOfCode(oldMethod, "Customer customer",
 				"String customer", WORKING_COPY);
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
-		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -889,7 +891,7 @@ public class JavaElementDeltaScannerTestCase {
 		// verifications
 		// 1 invocation for both the old method removal and the new method
 		// addition
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -926,8 +928,8 @@ public class JavaElementDeltaScannerTestCase {
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
 				"@Context UriInfo uriInfo, @PathParam(\"id\") Integer id", WORKING_COPY);
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
-		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -940,7 +942,7 @@ public class JavaElementDeltaScannerTestCase {
 				"@PathParam(\"id\") Integer id, @Context UriInfo uriInfo",
 				"@Context UriInfo uriInfo, @PathParam(\"id\") Integer id", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -955,8 +957,8 @@ public class JavaElementDeltaScannerTestCase {
 				WORKING_COPY);
 		TestLogger.info("Method signature: " + newMethod.getSignature());
 		// verifications
-		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
-		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(oldMethod, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
+		verifyEventNotification(newMethod, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -971,7 +973,7 @@ public class JavaElementDeltaScannerTestCase {
 				PRIMARY_COPY);
 		TestLogger.info("Method signature: " + newMethod.getSignature());
 		// verifications
-		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(oldMethod.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -997,7 +999,7 @@ public class JavaElementDeltaScannerTestCase {
 		method = replaceFirstOccurrenceOfCode(method, "Customer customer",
 				"@PathParam(\"id\") Customer customer", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -1023,7 +1025,7 @@ public class JavaElementDeltaScannerTestCase {
 		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\")", "@PathParam(\"bar\")",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -1049,7 +1051,7 @@ public class JavaElementDeltaScannerTestCase {
 		method = replaceFirstOccurrenceOfCode(method, "@PathParam(\"id\") Integer id", "Integer id",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -1060,7 +1062,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		IAnnotation addedAnnotation = addMethodAnnotation(method, "@Path(\"/foo\")", WORKING_COPY);
 		// verifications
-		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(addedAnnotation, ADDED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -1071,7 +1073,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		addMethodAnnotation(method, "@Path(\"/foo\")", PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -1097,7 +1099,7 @@ public class JavaElementDeltaScannerTestCase {
 		method = replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
 				PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -1109,7 +1111,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeMethodAnnotation(method, annotation, WORKING_COPY);
 		// verifications
-		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, NO_FLAG, times(1));
+		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
 	}
 
 	@Test
@@ -1121,7 +1123,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		removeMethodAnnotation(method, annotation, PRIMARY_COPY);
 		// verifications
-		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, CONTENT, atLeastOnce());
+		verifyEventNotification(method.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}
 
 	@Test
@@ -1183,7 +1185,7 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		project.close(new NullProgressMonitor());
 		// verification
-		verify(resourceEvents, never()).add(new ResourceDelta(project, CHANGED, 0));
+		verify(resourceEvents, never()).add(new ResourceDelta(project, CHANGED, Flags.NONE));
 	}
 
 	@Test
@@ -1192,6 +1194,6 @@ public class JavaElementDeltaScannerTestCase {
 		// operation
 		javaProject.close();
 		// verification
-		verify(resourceEvents, never()).add(new ResourceDelta(project, CHANGED, 0));
+		verify(resourceEvents, never()).add(new ResourceDelta(project, CHANGED, Flags.NONE));
 	}
 }

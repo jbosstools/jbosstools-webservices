@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 
 /** @author xcoulon */
@@ -97,7 +98,7 @@ public class ResourceChangedBuildJob extends Job {
 			events.addAll(new ResourceDeltaScanner().scanAndFilterEvent(delta, new SubProgressMonitor(progressMonitor,
 					SCALE)));
 		} else {
-			events.add(new ResourceDelta(javaProject.getProject(), CHANGED, 0));
+			events.add(new ResourceDelta(javaProject.getProject(), CHANGED, Flags.NONE));
 		}
 		return events;
 	}

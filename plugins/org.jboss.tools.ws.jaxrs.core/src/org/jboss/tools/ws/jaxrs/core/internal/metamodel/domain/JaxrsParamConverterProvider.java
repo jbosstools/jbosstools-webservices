@@ -23,9 +23,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParamConverterProvider;
@@ -168,9 +169,10 @@ public class JaxrsParamConverterProvider extends JaxrsJavaElement<IType> impleme
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		final JaxrsParamConverterProvider transientProvider = JaxrsParamConverterProvider.from(javaElement, ast).build(false);
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		// clear this element if the given transient element is null
 		if (transientProvider == null) {
-			remove();
+			remove(annotationsFlags);
 		} else {
 			final Flags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
 			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
@@ -179,7 +181,7 @@ public class JaxrsParamConverterProvider extends JaxrsJavaElement<IType> impleme
 				delta.addFlag(F_PARAM_CONVERTER_PROVIDER_HIERARCHY);
 			}
 			if (isMarkedForRemoval()) {
-				remove();
+				remove(annotationsFlags);
 			}
 			// update indexes for this element.
 			else if(hasMetamodel()){

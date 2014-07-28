@@ -33,6 +33,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -248,7 +249,7 @@ public class Jaxrs11MetamodelTestCase {
 		// pre-conditions
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodel.update(new JaxrsElementDelta(null, 0));
+		metamodel.update(new JaxrsElementDelta(null, 0, Flags.NONE));
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
@@ -261,7 +262,7 @@ public class Jaxrs11MetamodelTestCase {
 		final IJaxrsResourceMethod bazResourceMethod = (IJaxrsResourceMethod) metamodel.findElement(bazMethod);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		metamodel.update(new JaxrsElementDelta(bazResourceMethod, CHANGED, JaxrsElementDelta.F_NONE));
+		metamodel.update(new JaxrsElementDelta(bazResourceMethod, CHANGED, Flags.NONE));
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}

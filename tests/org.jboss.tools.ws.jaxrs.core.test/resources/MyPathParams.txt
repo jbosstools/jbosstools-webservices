@@ -2,6 +2,7 @@ package org.jboss.tools.ws.jaxrs.sample.rest;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.MatrixParam;
 
 public class MyPathParams {
 	

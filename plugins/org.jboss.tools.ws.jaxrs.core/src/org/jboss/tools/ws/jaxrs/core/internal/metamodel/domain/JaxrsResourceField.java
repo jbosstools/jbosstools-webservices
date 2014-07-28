@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_ELEMENT_KIND;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.BEAN_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DEFAULT_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MATRIX_PARAM;
@@ -27,9 +26,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -168,9 +168,9 @@ public class JaxrsResourceField extends JaxrsJavaElement<IField> implements IJax
 	}
 	
 	@Override
-	public void update(IJavaElement javaElement, CompilationUnit ast) throws CoreException {
+	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
-			remove();
+			remove(FlagsUtils.computeElementFlags(this));
 		} else {
 			// NOTE: the given javaElement may be an ICompilationUnit (after
 			// resource change) !!
@@ -188,14 +188,20 @@ public class JaxrsResourceField extends JaxrsJavaElement<IField> implements IJax
 		} 
 	}
 
+	/**
+	 * Updates this {@link JaxrsResourceField} from the given {@code transientField}
+	 * @param transientField
+	 * @throws CoreException
+	 */
 	void update(final JaxrsResourceField transientField) throws CoreException {
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		if (transientField == null) {
-			remove();
+			remove(annotationsFlags);
 		} else {
-			final Flags upateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, upateAnnotationsFlags);
-			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
-				remove();
+			final Flags updateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+			if (isMarkedForRemoval()) {
+				remove(annotationsFlags);
 			} else if(hasMetamodel()){
 				getMetamodel().update(delta);
 			}
@@ -219,14 +225,9 @@ public class JaxrsResourceField extends JaxrsJavaElement<IField> implements IJax
 	 * Remove {@code this} from the parent {@link IJaxrsResource} before calling {@code super.remove()} which deals with removal from the {@link JaxrsMetamodel}. 
 	 */
 	@Override
-	public void remove() throws CoreException {
-		// no need to remove again if this element is not part of the metamodel anymore
-		//if(getParentResource().hasMethod(this)) {
-			getParentResource().removeField(this);
-		//}
-		//if(getMetamodel().containsElement(this)) {
-			super.remove();
-		//}
+	public void remove(final Flags flags) throws CoreException {
+		getParentResource().removeField(this);
+		super.remove(flags);
 	}
 
 

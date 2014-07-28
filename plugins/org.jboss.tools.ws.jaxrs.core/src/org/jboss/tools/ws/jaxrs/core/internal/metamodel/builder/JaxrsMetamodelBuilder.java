@@ -55,7 +55,7 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 	@Override
 	protected final IProject[] build(final int kind, @SuppressWarnings("rawtypes") final Map args,
 			final IProgressMonitor monitor) throws CoreException {
-		IProject project = getProject();
+		final IProject project = getProject();
 		if (!ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID)) {
 			Logger.warn("Project '" + project.getName() + "' is not a JAX-RS project.");
 			return null;

@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 
 public abstract class JaxrsBaseElement implements IJaxrsElement {
@@ -94,11 +95,11 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	 * Removes this JAX-RS element from the Metamodel.
 	 * @throws CoreException 
 	 */
-	public void remove() throws CoreException {
+	public void remove(final Flags flags) throws CoreException {
 		// mark this element as non existing so that it can be filtered from search results.
 		this.exist = false;
 		if (getMetamodel().containsElement(this)) {
-			getMetamodel().remove(this);
+			getMetamodel().remove(this, flags);
 		} else {
 			Logger.debug("Element {} was already removed from the metamodel", this.getName());
 		}

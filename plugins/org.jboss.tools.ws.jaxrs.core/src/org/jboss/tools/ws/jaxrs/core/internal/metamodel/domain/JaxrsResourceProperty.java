@@ -28,9 +28,10 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -177,9 +178,9 @@ public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements 
 	}
 	
 	@Override
-	public void update(IJavaElement javaElement, CompilationUnit ast) throws CoreException {
+	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
-			remove();
+			remove(FlagsUtils.computeElementFlags(this));
 		} else {
 			// NOTE: the given javaElement may be an ICompilationUnit (after
 			// resource change) !!
@@ -197,14 +198,22 @@ public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements 
 		} 
 	}
 
-	void update(final JaxrsResourceProperty transientField) throws CoreException {
-		if (transientField == null) {
-			remove();
+	/**
+	 * Updates this {@link JaxrsResourceProperty} from the given {@code transientProperty}.  
+	 * @param transientProperty
+	 * @param flags
+	 * @throws CoreException
+	 */
+	void update(final JaxrsResourceProperty transientProperty) throws CoreException {
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+		if (transientProperty == null) {
+			// give a hint about the existing JAX-RS annotations before the element is removed.
+			remove(annotationsFlags);
 		} else {
-			final Flags upateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, upateAnnotationsFlags);
-			if (upateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
-				remove();
+			final Flags updateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+			if (updateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
+				remove(annotationsFlags);
 			} else if(hasMetamodel()){
 				getMetamodel().update(delta);
 			}
@@ -228,14 +237,9 @@ public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements 
 	 * Remove {@code this} from the parent {@link IJaxrsResource} before calling {@code super.remove()} which deals with removal from the {@link JaxrsMetamodel}. 
 	 */
 	@Override
-	public void remove() throws CoreException {
-		// no need to remove again if this element is not part of the metamodel anymore
-		//if(getParentResource().hasMethod(this)) {
-			getParentResource().removeProperty(this);
-		//}
-		//if(getMetamodel().containsElement(this)) {
-			super.remove();
-		//}
+	public void remove(final Flags flags) throws CoreException {
+		getParentResource().removeProperty(this);
+		super.remove(flags);
 	}
 
 

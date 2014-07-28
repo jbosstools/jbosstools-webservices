@@ -9,7 +9,7 @@ import org.eclipse.jdt.core.IJavaElement;
  * @author xcoulon
  *
  */
-public interface IJaxrsJavaElement extends IJaxrsElement {
+public interface IJaxrsJavaElement extends IJaxrsElement, IAnnotatedElement {
 
 	/**
 	 * @return the underlying {@link IJaxrsElement} for this JAX-RS Element.

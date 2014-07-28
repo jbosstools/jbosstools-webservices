@@ -23,6 +23,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -39,7 +40,6 @@ import org.junit.Test;
 
 public class JavaElement20ChangedProcessingTestCase {
 	private final static int ANY_EVENT_TYPE = 0;
-	private final static int NO_FLAG = 0;
 	private static final boolean PRIMARY_COPY = false;
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule(
@@ -57,13 +57,13 @@ public class JavaElement20ChangedProcessingTestCase {
 
 	private void processEvent(final IJavaElement element, final int deltaKind) throws CoreException {
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
-				new NullProgressMonitor()), NO_FLAG);
+				new NullProgressMonitor()), Flags.NONE);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
 
 	private void processEvent(final ICompilationUnit element, final int deltaKind) throws CoreException {
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
-				new NullProgressMonitor()), NO_FLAG);
+				new NullProgressMonitor()), Flags.NONE);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
 	

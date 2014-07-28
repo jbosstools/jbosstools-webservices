@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
@@ -79,11 +80,9 @@ public class ResourceDeltaScanner {
 		}
 		// FIXME: duplicate code: testing that the resouce if a java file here,
 		// and in the filter too.
-		final int flags = delta.getFlags();
 		if (WtpUtils.isWebDeploymentDescriptor(resource)) {
-			events.add(new ResourceDelta(resource, delta.getKind(), 0));
+			events.add(new ResourceDelta(resource, delta.getKind(), Flags.NONE));
 		} else {
-
 			final boolean isJavaFile = resource.getType() == IResource.FILE
 					&& ("java").equals(resource.getFileExtension());
 			final boolean javaFileAdded = isJavaFile && delta.getKind() == ADDED;
@@ -93,32 +92,34 @@ public class ResourceDeltaScanner {
 			if ((javaFileAdded || javaFileRemoved)) {
 				Logger.debug("File {}  {}", resource,
 						ConstantUtils.getStaticFieldName(IResourceDelta.class, delta.getKind()));
-				ResourceDelta event = new ResourceDelta(resource, delta.getKind(), flags);
+				final Flags flags = new Flags(delta.getFlags());
+				final ResourceDelta event = new ResourceDelta(resource, delta.getKind(), flags);
 				if (filter.applyRules(event)) {
 					events.add(event);
 				}
 			} else if (javaFileChanged && !javaFileMarkersChanged) {
 				Logger.debug("File {}  {}", resource,
 						ConstantUtils.getStaticFieldName(IResourceDelta.class, delta.getKind()));
-				ResourceDelta event = new ResourceDelta(resource, delta.getKind(), flags);
+				final Flags flags = new Flags(delta.getFlags());
+				final ResourceDelta event = new ResourceDelta(resource, delta.getKind(), flags);
 				if (filter.applyRules(event)) {
 					events.add(event);
 				}
 			} else if (javaFileChanged && javaFileMarkersChanged) {
-				IMarkerDelta[] markerDeltas = delta.getMarkerDeltas();
+				final IMarkerDelta[] markerDeltas = delta.getMarkerDeltas();
 				for (IMarkerDelta markerDelta : markerDeltas) {
-					int severity = markerDelta.getAttribute(IMarker.SEVERITY, 0);
-					String type = markerDelta.getType();
-					String message = markerDelta.getAttribute(IMarker.MESSAGE, "");
+					final int severity = markerDelta.getAttribute(IMarker.SEVERITY, 0);
+					final String type = markerDelta.getType();
+					final String message = markerDelta.getAttribute(IMarker.MESSAGE, "");
 					if (severity == IMarker.SEVERITY_ERROR && type.equals(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER)) {
 						Logger.debug("Marker delta: {} [{}] {}: \"{}\" at line {} (id={})", markerDelta.getResource()
 								.getName(), ConstantUtils.getStaticFieldName(IResourceDelta.class,
 								markerDelta.getKind()), ConstantUtils.getStaticFieldName(IMarker.class, severity,
 								"SEVERITY_"), message, markerDelta.getAttribute(IMarker.LINE_NUMBER), markerDelta
 								.getId());
-						int flag = markerDelta.getKind() == IResourceDelta.ADDED ? IJavaElementDeltaFlag.F_MARKER_ADDED
-								: IJavaElementDeltaFlag.F_MARKER_REMOVED;
-						ResourceDelta event = new ResourceDelta(resource, CHANGED, flag);
+						final Flags markerFlags = markerDelta.getKind() == IResourceDelta.ADDED ? new Flags(IJavaElementDeltaFlag.F_MARKER_ADDED)
+								: new Flags(IJavaElementDeltaFlag.F_MARKER_REMOVED);
+						ResourceDelta event = new ResourceDelta(resource, CHANGED, markerFlags);
 						if (filter.applyRules(event)) {
 							events.add(event);
 						}

@@ -4,7 +4,6 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -52,23 +51,6 @@ import org.junit.Assert;
 @SuppressWarnings("restriction")
 public class ValidationUtils {
 
-	@Deprecated
-	public static void removeAllElementsExcept(final JaxrsMetamodel metamodel, final IJaxrsElement... elementsToKeep) throws CoreException {
-		final Set<String> resourcesToKeep = new HashSet<String>();
-		for (IJaxrsElement element : elementsToKeep) {
-			if (element != null) {
-				resourcesToKeep.add(element.getIdentifier());
-			}
-		}
-		final List<IJaxrsElement> allElements = metamodel.getAllElements();
-		for (Iterator<IJaxrsElement> iterator = allElements.iterator(); iterator.hasNext();) {
-			JaxrsBaseElement element = (JaxrsBaseElement) iterator.next();
-			if (element.getResource() == null || !resourcesToKeep.contains(element.getIdentifier())) {
-				element.remove();
-			}
-		}
-	}
-	
 	/**
 	 * Converts the given {@link IResource} elements into a set of {@link IFile}
 	 * s

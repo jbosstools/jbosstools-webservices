@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.*;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
 import static org.junit.Assert.assertThat;
@@ -27,7 +27,7 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -352,12 +352,12 @@ public class JaxrsEndpointTestCase {
 		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
-		final IField queryParamField = resourceType.getField("l");
+		final IField matrixParamField = resourceType.getField("l");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		JavaElementsUtils.addFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
-		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
+		JavaElementsUtils.addFieldAnnotation(matrixParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
+		final IType modifiedType = (IType) matrixParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);
@@ -422,12 +422,12 @@ public class JaxrsEndpointTestCase {
 		// pre-condition
 		final IType resourceType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		ResourcesUtils.replaceFirstOccurrenceOfCode(resourceType, "//PlaceHolder", "private String l; //PlaceHolder", PRIMARY_COPY);
-		final IField queryParamField = resourceType.getField("l");
+		final IField matrixParamField = resourceType.getField("l");
 		final JaxrsResource resource = metamodelMonitor.createResource(resourceType);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		JavaElementsUtils.addFieldAnnotation(queryParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
-		final IType modifiedType = (IType) queryParamField.getAncestor(IJavaElement.TYPE);
+		JavaElementsUtils.addFieldAnnotation(matrixParamField, "@MatrixParam(\"lang\")", WORKING_COPY);
+		final IType modifiedType = (IType) matrixParamField.getAncestor(IJavaElement.TYPE);
 		resource.update(modifiedType, JdtUtils.parse(modifiedType, null));
 		// verifications
 		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(resource);

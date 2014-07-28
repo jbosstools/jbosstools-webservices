@@ -15,7 +15,6 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_PARAMETERS;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_METHOD_RETURN_TYPE;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_NONE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.BEAN_PARAM;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PATH;
@@ -37,12 +36,13 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.CollectionComparison;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -239,9 +239,10 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	 * @throws CoreException
 	 */
 	// TODO: add support for java method thrown exceptions..
+	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
-			remove();
+			remove(FlagsUtils.computeElementFlags(this));
 		} else {
 			// NOTE: the given javaElement may be an ICompilationUnit (after
 			// resource change) !!
@@ -262,15 +263,15 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 
 	public void update(final JaxrsResourceMethod transientMethod) throws CoreException {
 		if (transientMethod == null) {
-			remove();
+			remove(FlagsUtils.computeElementFlags(this));
 		} else {
-			Flags flags = internalUpdate(transientMethod);
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
+			final Flags updateFlags = internalUpdate(transientMethod);
 			if (isMarkedForRemoval()) {
-				remove();
+				remove(updateFlags);
 			}
 			// update indexes for this element.
 			else if (hasMetamodel()) {
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateFlags);
 				getMetamodel().update(delta);
 			}
 		}
@@ -280,18 +281,13 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	 * Remove {@code this} from the parent {@link IJaxrsResource} before calling {@code super.remove()} which deals with removal from the {@link JaxrsMetamodel}. 
 	 */
 	@Override
-	public void remove() throws CoreException {
-		// no need to remove again if this element is not part of the metamodel anymore
-		//if(getParentResource().hasMethod(this)) {
-			getParentResource().removeMethod(this);
-		//}
-		//if(getMetamodel().containsElement(this)) {
-			super.remove();
-		//}
+	public void remove(final Flags flags) throws CoreException {
+		getParentResource().removeMethod(this);
+		super.remove(flags);
 	}
 
 	Flags internalUpdate(final JaxrsResourceMethod transientMethod) throws CoreException {
-		Flags flags = new Flags();
+		final Flags flags = new Flags();
 		flags.addFlags(updateAnnotations(transientMethod.getAnnotations()));
 		// method parameters, including their own annotations
 		flags.addFlags(updateMethodParameters(transientMethod.getJavaMethodParameters()));
@@ -307,15 +303,15 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	 *         {@link JaxrsElementDelta.F_METHOD_RETURN_TYPE}) or no change (
 	 *         {@link JaxrsElementDelta.F_NONE})
 	 */
-	private int updateReturnedType(final SourceType returnedType) {
+	private Flags updateReturnedType(final SourceType returnedType) {
 		if ((this.returnedJavaType != null && returnedType == null)
 				|| (this.returnedJavaType == null && returnedType != null)
 				|| (this.returnedJavaType != null && returnedType != null && !this.returnedJavaType
 						.equals(returnedType))) {
 			this.returnedJavaType = returnedType;
-			return F_METHOD_RETURN_TYPE;
+			return new Flags(F_METHOD_RETURN_TYPE);
 		}
-		return F_NONE;
+		return Flags.NONE;
 	}
 
 	/**
@@ -325,7 +321,7 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	 *         {@link JaxrsElementDelta.F_METHOD_PARAMETERS}) or no change (
 	 *         {@link JaxrsElementDelta.F_NONE})
 	 */
-	private int updateMethodParameters(final List<IJavaMethodParameter> otherMethodParameters) {
+	private Flags updateMethodParameters(final List<IJavaMethodParameter> otherMethodParameters) {
 		final CollectionComparison<IJavaMethodParameter> comparison = CollectionUtils.compare(this.javaMethodParameters,
 				otherMethodParameters);
 		boolean changed = hasChanges(otherMethodParameters, comparison);
@@ -334,9 +330,9 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 		this.javaMethodParameters.clear();
 		this.javaMethodParameters.addAll(otherMethodParameters);
 		if (changed) {
-			return F_METHOD_PARAMETERS;
+			return new Flags(F_METHOD_PARAMETERS);
 		}
-		return F_NONE;
+		return Flags.NONE;
 	}
 
 	/**

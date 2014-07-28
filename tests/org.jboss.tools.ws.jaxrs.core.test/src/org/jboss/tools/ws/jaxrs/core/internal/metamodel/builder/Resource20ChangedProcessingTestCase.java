@@ -32,6 +32,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorProperty;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -41,8 +42,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class Resource20ChangedProcessingTestCase {
-
-	public final static int NO_FLAG = 0;
 
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject2");
@@ -60,11 +59,11 @@ public class Resource20ChangedProcessingTestCase {
 		javaProject = metamodel.getJavaProject();
 	}
 	
-	protected ResourceDelta createResourceDelta(IResource resource, int deltaKind) {
-		return new ResourceDelta(resource, deltaKind, NO_FLAG);
+	protected ResourceDelta createResourceDelta(final IResource resource, final int deltaKind) {
+		return new ResourceDelta(resource, deltaKind, Flags.NONE);
 	}
 
-	protected void processAffectedResources(ResourceDelta event) throws CoreException {
+	protected void processAffectedResources(final ResourceDelta event) throws CoreException {
 		metamodel.processAffectedResources(Arrays.asList(event), new NullProgressMonitor());
 	}
 
@@ -119,7 +118,7 @@ public class Resource20ChangedProcessingTestCase {
 	public void shouldAddParameterAggregatorFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.CarParameterAggregator");
-		parameterAggregator.getAllFields().get(0).remove();
+		parameterAggregator.getAllFields().get(0).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(parameterAggregator.getJavaElement().getResource(), CHANGED);
@@ -183,7 +182,7 @@ public class Resource20ChangedProcessingTestCase {
 	public void shouldAddParameterAggregatorPropertyWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsParameterAggregator parameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.CarParameterAggregator");
-		parameterAggregator.getAllProperties().get(0).remove();
+		parameterAggregator.getAllProperties().get(0).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(parameterAggregator.getJavaElement().getResource(), CHANGED);

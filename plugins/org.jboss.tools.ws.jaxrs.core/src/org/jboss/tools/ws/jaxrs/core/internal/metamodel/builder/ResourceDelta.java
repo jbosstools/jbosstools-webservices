@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 
 /**
  * Event raised when a Resource of interest for the metamodel is changed.
@@ -23,8 +24,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
  */
 public class ResourceDelta {
 
-	public static final int NO_FLAG = 0;
-
 	/** The resource that changed. */
 	private final IResource resource;
 
@@ -32,7 +31,7 @@ public class ResourceDelta {
 	private final int deltaKind;
 
 	/** Some flags to describe more precisely the kind of change. */
-	private final int flags;
+	private final Flags flags;
 
 	/**
 	 * Full constructor.
@@ -52,7 +51,7 @@ public class ResourceDelta {
 	 *            the detailed kind of change.
 	 * @see IJavaElementDelta for element change kind values.
 	 */
-	public ResourceDelta(final IResource resource, final int deltaKind, final int flags) {
+	public ResourceDelta(final IResource resource, final int deltaKind, final Flags flags) {
 		this.resource = resource;
 		this.deltaKind = deltaKind;
 		this.flags = flags;
@@ -75,7 +74,7 @@ public class ResourceDelta {
 	/**
 	 * @return the flags
 	 */
-	public int getFlags() {
+	public Flags getFlags() {
 		return flags;
 	}
 
@@ -90,8 +89,8 @@ public class ResourceDelta {
 				IResource.class, resource.getType()));
 		result.append(" '").append(resource.getFullPath()).append("' ");
 		result.append(ConstantUtils.getStaticFieldName(IResourceDelta.class, deltaKind).toLowerCase());
-		if (flags > 0) {
-			int[] f = ConstantUtils.splitConstants(IResourceDelta.class, flags, ""); //$NON-NLS-1$
+		if (flags.hasValue()) {
+			int[] f = ConstantUtils.splitConstants(IResourceDelta.class, flags.getValue(), ""); //$NON-NLS-1$
 			result.append(":{");
 			for (int i = 0; i < f.length; i++) {
 				result.append(ConstantUtils.getStaticFieldName(IResourceDelta.class, f[i], ""));

@@ -22,10 +22,10 @@ import static org.eclipse.jdt.core.IJavaElement.TYPE;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
-import static org.eclipse.jdt.core.IJavaElementDelta.F_OPENED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_AST_AFFECTED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_OPENED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_PRIMARY_RESOURCE;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_SUPER_TYPES;
@@ -45,6 +45,7 @@ import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 
 public class JavaElementDeltaFilter {
@@ -113,21 +114,21 @@ public class JavaElementDeltaFilter {
 	 * @param event the  Java Element Delta
 	 * @return true if the event should be processed, false otherwise
 	 */
-	public boolean apply(JavaElementChangedEvent event) {
+	public boolean apply(final JavaElementChangedEvent event) {
 		if(event.getElement() == null) {
 			return false;
 		}
-		int elementKind = event.getElement().getElementType();
-		int deltaKind = event.getKind();
-		IJavaElement element = event.getElement();
+		final int elementKind = event.getElement().getElementType();
+		final int deltaKind = event.getKind();
+		final IJavaElement element = event.getElement();
 		// prevent processing java elements in a closed java project
 		// prevent processing of any file named 'package-info.java'
 		// prevent processing of any jar file
 		if (isPackageInfoFile(element) || isJarArchive(element)) {
 			return false;
 		}
-		int flags = event.getFlags();
-		if (flags == IJavaElementDelta.F_ANNOTATIONS) {
+		final Flags flags = event.getFlags();
+		if (flags.hasExactValue(IJavaElementDelta.F_ANNOTATIONS)) {
 			return false;
 		}
 		boolean workingCopy = JdtUtils.isWorkingCopy(element);
@@ -155,19 +156,18 @@ public class JavaElementDeltaFilter {
 	 * @param element
 	 * @return
 	 */
-	private boolean isPackageInfoFile(IJavaElement element) {
+	private boolean isPackageInfoFile(final IJavaElement element) {
 		return element.getResource() != null && element.getResource().getType() == IResource.FILE && element.getResource().getName().equals("package-info.java");
 	}
 
-	protected boolean apply(int elementKind, int deltaKind, int eventType, int flags, boolean workingCopy) {
-		Rule matcher = new Rule(elementKind, deltaKind, eventType, workingCopy ? WORKING_COPY : PRIMARY_COPY, flags);
+	protected boolean apply(final int elementKind, final int deltaKind, final int eventType, final Flags flags, final boolean workingCopy) {
+		final Rule matcher = new Rule(elementKind, deltaKind, eventType, workingCopy ? WORKING_COPY : PRIMARY_COPY, flags);
 		for (Iterator<Rule> iterator = rules.iterator(); iterator.hasNext();) {
-			Rule rule = iterator.next();
+			final Rule rule = iterator.next();
 			if (rule.match(matcher)) {
 				Logger.trace("Rule {} matched", rule);
 				return true;
 			}
-
 		}
 		return false;
 
@@ -185,32 +185,32 @@ public class JavaElementDeltaFilter {
 		private int deltaKind;
 		private int eventType;
 		private int unitContext;
-		private int flags;
+		private Flags flags = Flags.NONE;
 
 		private RuleBuilder() {
 		}
 
-		public RuleBuilder when(int elementKind) {
+		public RuleBuilder when(final int elementKind) {
 			this.elementKind = elementKind;
 			return this;
 		}
 
-		public RuleBuilder withFlags(int flags) {
-			this.flags = flags;
+		public RuleBuilder withFlags(final int flags) {
+			this.flags = new Flags(flags);
 			return this;
 		}
 
-		public RuleBuilder is(int deltaKind) {
+		public RuleBuilder is(final int deltaKind) {
 			this.deltaKind = deltaKind;
 			return this;
 		}
 
-		public RuleBuilder after(int eventType) {
+		public RuleBuilder after(final int eventType) {
 			this.eventType = eventType;
 			return this;
 		}
 
-		public void in(int unitContext) {
+		public void in(final int unitContext) {
 			this.unitContext = unitContext;
 			Rule rule = new Rule(this.elementKind, this.deltaKind, this.eventType, this.unitContext, this.flags);
 			rules.add(rule);
@@ -223,9 +223,9 @@ public class JavaElementDeltaFilter {
 		private final int deltaKind;
 		private final int eventType;
 		private final int unitContext;
-		private final int flags;
+		private final Flags flags;
 
-		Rule(int elementKind, int deltaKind, int eventType, int unitContext, int flags) {
+		Rule(final int elementKind, final int deltaKind, final int eventType, final int unitContext, final Flags flags) {
 			this.elementKind = elementKind;
 			this.deltaKind = deltaKind;
 			this.eventType = eventType;
@@ -236,7 +236,7 @@ public class JavaElementDeltaFilter {
 		public boolean match(Rule matcher) {
 			return this.elementKind == matcher.elementKind && this.deltaKind == matcher.deltaKind
 					&& this.eventType == matcher.eventType && ((this.unitContext & matcher.unitContext) != 0)
-					&& (this.flags == matcher.flags);
+					&& (this.flags.equals(matcher.flags));
 		}
 
 		@Override

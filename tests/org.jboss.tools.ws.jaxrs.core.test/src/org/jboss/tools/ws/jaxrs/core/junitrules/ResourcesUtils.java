@@ -54,22 +54,22 @@ public class ResourcesUtils {
 	public static IType replaceFirstOccurrenceOfCode(final String typeName, final IJavaProject javaProject,
 			final String oldContent, String newContent, final boolean useWorkingCopy) throws CoreException {
 		final IType type = JdtUtils.resolveType(typeName, javaProject, new NullProgressMonitor());
-		ICompilationUnit unit = JavaElementsUtils.getCompilationUnit(type.getCompilationUnit(), useWorkingCopy);
-		IBuffer buffer = ((IOpenable) unit).getBuffer();
-		int offset = buffer.getContents().indexOf(oldContent);
+		final ICompilationUnit unit = JavaElementsUtils.getCompilationUnit(type.getCompilationUnit(), useWorkingCopy);
+		final IBuffer buffer = ((IOpenable) unit).getBuffer();
+		final int offset = buffer.getContents().indexOf(oldContent);
 		Assert.assertTrue("Old content '" + oldContent + "' not found", offset != -1);
 		buffer.replace(offset, oldContent.length(), newContent);
 		JavaElementsUtils.saveAndClose(unit);
 		return type;
 	}
 
-	public static <T extends IMember> T replaceFirstOccurrenceOfCode(T member, String oldContent, String newContent,
-			boolean useWorkingCopy) throws JavaModelException {
-		ICompilationUnit compilationUnit = member.getCompilationUnit();
-		ICompilationUnit unit = useWorkingCopy ? JavaElementsUtils.createWorkingCopy(compilationUnit) : member.getCompilationUnit();
-		ISourceRange sourceRange = member.getSourceRange();
-		IBuffer buffer = ((IOpenable) unit).getBuffer();
-		int offset = buffer.getContents().indexOf(oldContent, sourceRange.getOffset());
+	public static <T extends IMember> T replaceFirstOccurrenceOfCode(final T member, final String oldContent, final String newContent,
+			final boolean useWorkingCopy) throws JavaModelException {
+		final ICompilationUnit compilationUnit = member.getCompilationUnit();
+		final ICompilationUnit unit = useWorkingCopy ? JavaElementsUtils.createWorkingCopy(compilationUnit) : member.getCompilationUnit();
+		final ISourceRange sourceRange = member.getSourceRange();
+		final IBuffer buffer = ((IOpenable) unit).getBuffer();
+		final int offset = buffer.getContents().indexOf(oldContent, sourceRange.getOffset());
 		Assert.assertTrue("Old content not found: '" + oldContent + "'", offset != -1);
 		buffer.replace(offset, oldContent.length(), newContent);
 		// IJavaElement modifiedMethod =

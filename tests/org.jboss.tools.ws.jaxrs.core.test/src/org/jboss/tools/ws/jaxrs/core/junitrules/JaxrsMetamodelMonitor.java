@@ -20,9 +20,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
@@ -43,6 +42,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplic
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
@@ -199,33 +199,21 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 
 	public void processEvent(final Annotation annotation, final int deltaKind) throws CoreException {
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, ANY_EVENT_TYPE,
-				JdtUtils.parse(((IMember) annotation.getJavaParent()), new NullProgressMonitor()), NO_FLAG);
+				JdtUtils.parse(((IMember) annotation.getJavaParent()), new NullProgressMonitor()), Flags.NONE);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
 	
-	public void processEvent(IMember element, int deltaKind) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
-				new NullProgressMonitor()), NO_FLAG);
-		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
+	public void processEvent(final IJavaElement element, final int deltaKind) throws CoreException {
+		processEvent(element, deltaKind, Flags.NONE);
 	}
-
-	public void processEvent(IMember element, int deltaKind, int flags) throws CoreException {
+	
+	public void processEvent(final IJavaElement element, final int deltaKind, final Flags flags) throws CoreException {
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
 				new NullProgressMonitor()), flags);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
-
-	public void processEvent(ICompilationUnit element, int deltaKind) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
-				new NullProgressMonitor()), NO_FLAG);
-		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
-	}
-
-	public void processEvent(IPackageFragmentRoot element, int deltaKind) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, null, NO_FLAG);
-		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
-	}
 	
+
 	/********************************************************************************************
 	 * 
 	 * JAX-RS Metamodel manipulation utility methods (a.k.a., Helpers)
@@ -418,7 +406,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		final List<IJaxrsResourceMethod> allMethods = new ArrayList<IJaxrsResourceMethod>(resource.getAllMethods());
 		for(IJaxrsResourceMethod resourceMethod : allMethods) {
 			if(resourceMethod.getJavaElement().getElementName().equals(methodName)) {
-				((JaxrsResourceMethod)resourceMethod).remove();
+				((JaxrsResourceMethod)resourceMethod).remove(Flags.NONE);
 				return;
 			}
 		}
@@ -440,7 +428,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 		final List<IJaxrsResourceProperty> allProperties = new ArrayList<IJaxrsResourceProperty>(resource.getAllProperties());
 		for(IJaxrsResourceProperty resourceProperty : allProperties) {
 			if(resourceProperty.getJavaElement().getElementName().equals(propertyName)) {
-				((JaxrsResourceProperty)resourceProperty).remove();
+				((JaxrsResourceProperty)resourceProperty).remove(Flags.NONE);
 				return;
 			}
 		}

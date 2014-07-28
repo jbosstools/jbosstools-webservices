@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -159,7 +160,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// given
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).remove(Flags.NONE);
 			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
@@ -187,7 +188,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// given
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).remove(Flags.NONE);
 			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 
@@ -218,7 +219,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// given
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).remove(Flags.NONE);
 			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 		metamodelMonitor.replaceDeploymentDescriptorWith("web-3_0-without-servlet-mapping.xml");
@@ -247,7 +248,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// given
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
-			((JaxrsBaseElement) application).remove();
+			((JaxrsBaseElement) application).remove(Flags.NONE);
 			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
 		}
 

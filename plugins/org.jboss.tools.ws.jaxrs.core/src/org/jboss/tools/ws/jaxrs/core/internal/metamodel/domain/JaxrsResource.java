@@ -36,12 +36,13 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
+import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
@@ -223,9 +224,10 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Updating {}", this.toString());
+		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethodNames()).build(false);
 		if (transientResource == null) {
-			remove();
+			remove(annotationsFlags);
 			return;
 		} 
 		final Flags updateAnnotationsFlags = updateAnnotations(transientResource.getAnnotations());
@@ -235,7 +237,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		updateFields(transientResource, ast);
 
 		if (isMarkedForRemoval()) {
-			remove();
+			remove(annotationsFlags);
 		}
 		// update indexes for this element.
 		else if (hasMetamodel()) {
@@ -268,7 +270,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		final List<JaxrsResourceProperty> removedProperties = CollectionUtils.difference(allCurrentProperties,
 				allTransientInstanceProperties);
 		for (JaxrsResourceProperty removedProperty: removedProperties) {
-			removedProperty.remove();
+			removedProperty.remove(Flags.NONE);
 		}
 	}
 	
@@ -298,7 +300,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		final List<JaxrsResourceField> removedFields = CollectionUtils.difference(allCurrentFields,
 				allTransientInstanceFields);
 		for (JaxrsResourceField removedField : removedFields) {
-			removedField.remove();
+			removedField.remove(FlagsUtils.computeElementFlags(removedField));
 		}
 	}
 
@@ -308,8 +310,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 * @param ast its associated AST.
 	 * @throws CoreException
 	 */
-	private void updateMethods(final JaxrsResource transientResource, final CompilationUnit ast)
-			throws CoreException {
+	private void updateMethods(final JaxrsResource transientResource, final CompilationUnit ast) throws CoreException {
 		final List<IJaxrsResourceMethod> allTransientInstanceMethods = transientResource.getAllMethods();
 		final List<IJaxrsResourceMethod> allCurrentMethods = this.getAllMethods();
 		final List<IJaxrsResourceMethod> addedMethods = CollectionUtils.difference(
@@ -328,7 +329,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 		final List<IJaxrsResourceMethod> removedMethods = CollectionUtils.difference(allCurrentMethods,
 				allTransientInstanceMethods);
 		for (IJaxrsResourceMethod removedMethod : removedMethods) {
-			((JaxrsResourceMethod)removedMethod).remove();
+			((JaxrsResourceMethod)removedMethod).remove(Flags.NONE);
 		}
 	}
 	
@@ -655,20 +656,20 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 *      #remove()
 	 */
 	@Override
-	public void remove() throws CoreException {
-		super.remove();
+	public void remove(final Flags flags) throws CoreException {
+		super.remove(flags);
 		// removing methods first will remove associated endpoints immediately. 
 		for (IJaxrsResourceMethod method : getAllMethods()) {
-			((JaxrsResourceMethod) method).remove();
+			((JaxrsResourceMethod) method).remove(FlagsUtils.computeElementFlags(method));
 		}
 		// if we removed fields first, there could be some unnecessary 'CHANGED' events for fields with 
 		// @QueryParam or @MatrixParam annotations, that affect the Endpoint's URL Path Template.
 		// 
 		for (IJaxrsResourceField field : getAllFields()) {
-			((JaxrsResourceField) field).remove();
+			((JaxrsResourceField) field).remove(FlagsUtils.computeElementFlags(field));
 		}
 		for (IJaxrsResourceProperty property : getAllProperties()) {
-			((JaxrsResourceProperty) property).remove();
+			((JaxrsResourceProperty) property).remove(FlagsUtils.computeElementFlags(property));
 		}
 	}
 

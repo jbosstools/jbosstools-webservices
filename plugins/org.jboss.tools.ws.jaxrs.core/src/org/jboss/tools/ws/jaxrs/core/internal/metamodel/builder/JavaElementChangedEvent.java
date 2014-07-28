@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 
 /**
@@ -49,7 +50,7 @@ public class JavaElementChangedEvent extends EventObject {
 	private final int deltaKind;
 
 	/** Some flags to describe more precisely the kind of change. */
-	private final int flags;
+	private final Flags flags;
 
 	/**
 	 * the compilation unit AST retrieved from the change event, or null if the
@@ -74,7 +75,7 @@ public class JavaElementChangedEvent extends EventObject {
 	 * @see IJavaElementDelta for element change kind values.
 	 */
 	public JavaElementChangedEvent(final IJavaElement element, final int deltaKind, final int eventType,
-			final CompilationUnit compilationUnitAST, final int flags) {
+			final CompilationUnit compilationUnitAST, final Flags flags) {
 		super(element);
 		this.element = element;
 		this.deltaKind = deltaKind;
@@ -114,7 +115,7 @@ public class JavaElementChangedEvent extends EventObject {
 	/**
 	 * @return the flags
 	 */
-	public int getFlags() {
+	public Flags getFlags() {
 		return flags;
 	}
 
@@ -138,8 +139,8 @@ public class JavaElementChangedEvent extends EventObject {
 			result.append("[*without* AST] ");
 		}
 		result.append(ConstantUtils.getStaticFieldName(IJavaElementDeltaFlag.class, deltaKind).toLowerCase());
-		if (flags > 0) {
-			int[] f = ConstantUtils.splitConstants(IJavaElementDeltaFlag.class, flags, "F_"); //$NON-NLS-1$
+		if (flags.hasValue()) {
+			int[] f = ConstantUtils.splitConstants(IJavaElementDeltaFlag.class, flags.getValue(), "F_"); //$NON-NLS-1$
 			result.append(":{");
 
 			for (int i = 0; i < f.length; i++) {
@@ -169,7 +170,7 @@ public class JavaElementChangedEvent extends EventObject {
 		result = prime * result + eventType;
 		result = prime * result + ((element == null) ? 0 : element.getElementType());
 		result = prime * result + ((element == null) ? 0 : element.getElementName().hashCode());
-		result = prime * result + flags;
+		result = prime * result + flags.getValue();
 		return result;
 	}
 
@@ -205,7 +206,7 @@ public class JavaElementChangedEvent extends EventObject {
 						|| element.getElementType() != other.element.getElementType())) {
 			return false;
 		}
-		if (flags != other.flags) {
+		if (!flags.equals(other.flags)) {
 			return false;
 		}
 		return true;

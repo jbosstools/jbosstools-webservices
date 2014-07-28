@@ -314,7 +314,7 @@ public class JavaElementsUtils {
 		TestLogger.info("Adding annotation " + annotationStmt + " on type " + field.getElementName());
 		insertCodeAtLocation(field.getCompilationUnit(), annotationStmt, field.getSourceRange().getOffset(),
 				useWorkingCopy);
-		String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
+		final String annotationName = StringUtils.substringBetween(annotationStmt, "@", "(");
 		for (IAnnotation annotation : field.getAnnotations()) {
 			if (annotation.getElementName().equals(annotationName)) {
 				return annotation;
@@ -325,11 +325,11 @@ public class JavaElementsUtils {
 
 	public static void removeFieldAnnotation(final IField field, final String annotationStmt, final boolean useWorkingCopy)
 			throws JavaModelException {
-		ICompilationUnit compilationUnit = field.getCompilationUnit();
-		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
-		ISourceRange sourceRange = field.getSourceRange();
-		IBuffer buffer = ((IOpenable) unit).getBuffer();
-		int index = buffer.getContents().indexOf(annotationStmt, sourceRange.getOffset());
+		final ICompilationUnit compilationUnit = field.getCompilationUnit();
+		final ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		final ISourceRange sourceRange = field.getSourceRange();
+		final IBuffer buffer = ((IOpenable) unit).getBuffer();
+		final int index = buffer.getContents().indexOf(annotationStmt, sourceRange.getOffset());
 		Assert.assertTrue("SimpleAnnotation not found: '" + annotationStmt + "'", (index >= sourceRange.getOffset())
 				&& (index <= sourceRange.getOffset() + sourceRange.getLength()));
 		buffer.replace(index, annotationStmt.length(), "");

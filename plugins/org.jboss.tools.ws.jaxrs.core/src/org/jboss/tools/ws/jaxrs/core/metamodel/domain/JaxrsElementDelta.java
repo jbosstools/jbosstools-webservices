@@ -20,14 +20,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.Flags;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 
 public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
-
-	/** No change. */
-	public static final int F_NONE = 0;
 
 	/** Meaning that the change occurred at a finer level. */
 	public static final int F_FINE_GRAINED = 0x1;
@@ -80,21 +77,15 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 
 	public static final int F_BEAN_PARAM_ANNOTATION = 0x1000000;
 	
+	public static final int F_FORM_PARAM_ANNOTATION = 0x2000000;
+	
+	public static final int F_HEADER_PARAM_ANNOTATION = 0x4000000;
+	
 	private final IJaxrsElement element;
 
 	private final int deltaKind;
 
 	private Flags flags;
-
-	/**
-	 * Full constructor.
-	 * 
-	 * @param element
-	 * @param deltaKind
-	 */
-	public JaxrsElementDelta(final IJaxrsElement element, final int deltaKind) {
-		this(element, deltaKind, 0);
-	}
 
 	/**
 	 * Full constructor.
@@ -168,7 +159,18 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	 * @param flags
 	 *            the flags to add.
 	 */
-	public void addFlag(int flags) {
+	public void addFlag(final Flags flags) {
+		this.flags.addFlags(flags);
+	}
+
+	/**
+	 * Adds the given flag to the current flags unless these particular flags have
+	 * already been set.
+	 * 
+	 * @param flags
+	 *            the flags to add.
+	 */
+	public void addFlag(final int flags) {
 		this.flags.addFlags(flags);
 	}
 

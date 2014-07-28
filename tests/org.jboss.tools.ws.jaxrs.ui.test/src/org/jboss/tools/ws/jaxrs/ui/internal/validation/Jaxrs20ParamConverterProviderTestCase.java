@@ -42,6 +42,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParamConverterProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -197,7 +198,7 @@ public class Jaxrs20ParamConverterProviderTestCase {
 		assertThat(markers.length, equalTo(0));
 
 		// operation 2: remove the param converter provider
-		planeParameterConverterProvider.remove();
+		planeParameterConverterProvider.remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 
 		// operation 2 : validate from ParamConverterProvider

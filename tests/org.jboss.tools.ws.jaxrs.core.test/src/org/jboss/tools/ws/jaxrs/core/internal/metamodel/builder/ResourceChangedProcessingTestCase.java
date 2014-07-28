@@ -74,6 +74,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProp
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -91,8 +92,6 @@ import org.junit.Test;
 
 public class ResourceChangedProcessingTestCase {
 
-	public final static int NO_FLAG = 0;
-
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
 	
@@ -109,11 +108,11 @@ public class ResourceChangedProcessingTestCase {
 		javaProject = metamodel.getJavaProject();
 	}
 	
-	protected ResourceDelta createResourceDelta(IResource resource, int deltaKind) {
-		return new ResourceDelta(resource, deltaKind, NO_FLAG);
+	protected ResourceDelta createResourceDelta(final IResource resource, final int deltaKind) {
+		return new ResourceDelta(resource, deltaKind, Flags.NONE);
 	}
 
-	protected void processAffectedResources(ResourceDelta event) throws CoreException {
+	protected void processAffectedResources(final ResourceDelta event) throws CoreException {
 		metamodel.processAffectedResources(Arrays.asList(event), new NullProgressMonitor());
 	}
 
@@ -1010,7 +1009,7 @@ public class ResourceChangedProcessingTestCase {
 	public void shouldAddResourceMethodWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsResource bookResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		((JaxrsResourceMethod)bookResource.getAllMethods().get(0)).remove();
+		((JaxrsResourceMethod)bookResource.getAllMethods().get(0)).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
@@ -1083,7 +1082,7 @@ public class ResourceChangedProcessingTestCase {
 	public void shouldAddResourceFieldWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		productResourceLocator.getAllFields().get(0).remove();
+		productResourceLocator.getAllFields().get(0).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
@@ -1150,7 +1149,7 @@ public class ResourceChangedProcessingTestCase {
 	public void shouldAddResourcePropertyWhenChangingResource() throws CoreException {
 		// pre-conditions
 		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		productResourceLocator.getAllProperties().get(0).remove();
+		productResourceLocator.getAllProperties().get(0).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);

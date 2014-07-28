@@ -43,6 +43,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
@@ -140,7 +141,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 	public void shouldCreateEndpointWhenAddingResourceMethodInRootResource() throws JavaModelException, CoreException {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		metamodelMonitor.resolveResourceMethod(customerResource, "getCustomers").remove();
+		metamodelMonitor.resolveResourceMethod(customerResource, "getCustomers").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IMethod javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomers");
@@ -155,7 +156,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 			CoreException {
 		// pre-conditions
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		metamodelMonitor.resolveResourceMethod(customerResource, "getCustomer").remove();
+		metamodelMonitor.resolveResourceMethod(customerResource, "getCustomer").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IMethod javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomer");
@@ -172,7 +173,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		final JaxrsResource productResourceLocator = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		metamodelMonitor.resolveResourceMethod(productResourceLocator, "getProductResourceLocator").remove();
+		metamodelMonitor.resolveResourceMethod(productResourceLocator, "getProductResourceLocator").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IMethod javaMethod = metamodelMonitor.resolveMethod(productResourceLocator.getJavaElement(), "getProductResourceLocator");
@@ -191,7 +192,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		// pre-conditions
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final JaxrsResource bookResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
-		metamodelMonitor.resolveResourceMethod(bookResource, "getProduct").remove();
+		metamodelMonitor.resolveResourceMethod(bookResource, "getProduct").remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IMethod javaMethod = metamodelMonitor.resolveMethod(bookResource.getJavaElement(), "getProduct");
@@ -224,7 +225,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.resolveResourceMethod(productResourceLocator, "getProductResourceLocator");
 		final JaxrsResource bookResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.BookResource");
 		final JaxrsResourceMethod bookResourceMethod = metamodelMonitor.resolveResourceMethod(bookResource, "getProduct");
-		bookResourceMethod.remove();
+		bookResourceMethod.remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		assertThat(metamodel.getAllEndpoints().size(), equalTo(2));
 		// operation
@@ -261,7 +262,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		application.remove();
+		application.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
 		for (int i = 0; i < 6; i++) {
@@ -374,7 +375,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		webxmlApplication.remove();
+		webxmlApplication.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
 		for(int i = 0; i < 6; i++) {
@@ -418,7 +419,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		webxmlApplication.remove();
+		webxmlApplication.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
 		final JaxrsEndpointDelta change = metamodelMonitor.getEndpointChanges().iterator().next();
@@ -573,7 +574,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/app/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation : no 'application' left in the metamodel
-		application.remove();
+		application.remove(Flags.NONE);
 		// verifications: all 6 methods changed
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
 		for (int i = 0; i < 6; i++) {
@@ -877,7 +878,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/customers/{id:Integer}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		httpMethod.remove();
+		httpMethod.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
 		final JaxrsEndpointDelta change = metamodelMonitor.getEndpointChanges().iterator().next();
@@ -895,7 +896,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(endpoint.getUriPathTemplate(), equalTo("/foo/baz/{param3:String}"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		httpMethod.remove();
+		httpMethod.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
 		final JaxrsEndpointDelta change = metamodelMonitor.getEndpointChanges().iterator().next();
@@ -924,7 +925,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		customerResource.remove();
+		customerResource.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(6));
 		for (JaxrsEndpointDelta change : metamodelMonitor.getEndpointChanges()) {
@@ -941,7 +942,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		bookResource.remove();
+		bookResource.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(3));
 		assertThat(metamodelMonitor.getEndpointChanges().iterator().next().getKind(), equalTo(REMOVED));
@@ -1031,7 +1032,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		productResourceLocator.remove();
+		productResourceLocator.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(5));
 		for (JaxrsEndpointDelta change : metamodelMonitor.getEndpointChanges()) {
@@ -1047,7 +1048,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		assertThat(metamodel.getAllEndpoints().size(), equalTo(6));
 		// operation
 		final JaxrsResourceMethod customerResourceMethod = metamodelMonitor.resolveResourceMethod(customerResource, "getCustomers");
-		customerResourceMethod.remove();
+		customerResourceMethod.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getEndpointChanges().iterator().next().getKind(), equalTo(REMOVED));
@@ -1079,7 +1080,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.GameResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		productResourceLocatorMethod.remove();
+		productResourceLocatorMethod.remove(Flags.NONE);
 		// verifications
 		assertThat(metamodelMonitor.getEndpointChanges().size(), equalTo(5));
 	}
