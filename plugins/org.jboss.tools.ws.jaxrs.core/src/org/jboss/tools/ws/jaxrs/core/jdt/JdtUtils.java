@@ -69,6 +69,7 @@ import org.eclipse.jdt.internal.core.CreateTypeHierarchyOperation;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 
 /**
@@ -397,15 +398,14 @@ public final class JdtUtils {
 	 * parameter.
 	 * 
 	 * @param location
-	 * @param scope
-	 * @return the {@link IAnnotation} or null if the element at the given
+	 * @param compilationUnit
+	 * @return the {@link Annotation} or null if the element at the given
 	 *         location is not an IJavaAnnotation
 	 * @throws JavaModelException
 	 */
 	public static Annotation resolveAnnotationAt(final int location,
 			final ICompilationUnit compilationUnit) throws JavaModelException {
-		final CompilationUnit ast = CompilationUnitsRepository.getInstance()
-				.getAST(compilationUnit);
+		final CompilationUnit ast = parse(compilationUnit, new NullProgressMonitor());
 		if (ast != null) {
 			return findAnnotation(NodeFinder.perform(ast, location, 1), location);
 		}
@@ -681,15 +681,15 @@ public final class JdtUtils {
 	 * 
 	 * @param annotation
 	 * @param memberName
+	 * @param ast
 	 * @return the sourceRange or null if it could not be evaluated.
 	 * @throws JavaModelException
 	 */
 	public static ISourceRange resolveMemberPairValueRange(
-			final IAnnotation annotation, final String memberName)
+			final IAnnotation annotation, final String memberName, final CompilationUnit ast)
 			throws JavaModelException {
 		final IType ancestor = (IType) annotation.getAncestor(IJavaElement.TYPE);
 		if (ancestor != null && ancestor.exists()) {
-			final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(ancestor.getCompilationUnit());
 			final ASTNode node = findMemberValuePair(annotation, memberName, ast);
 			if(node != null) {
 				return new SourceRange(node.getStartPosition(), node.getLength());
@@ -719,10 +719,9 @@ public final class JdtUtils {
 						return memberValuePair;
 					}
 				}
-			}
-			if (node instanceof SingleMemberAnnotation) {
+			} else if (node instanceof SingleMemberAnnotation) {
 				return ((SingleMemberAnnotation)node).getValue();
-			}
+			} 
 		}
 		return null;
 	}
@@ -1007,9 +1006,6 @@ public final class JdtUtils {
 						arguments.add((IType) javaElement);
 					}
 				}
-				// FIXME : path for a sample result with the help of
-				// bindings
-				// superClassBinding.getSuperclass().getInterfaces()[0].getInterfaces()[0].getTypeArguments()[0];
 			}
 		}
 
@@ -1069,7 +1065,7 @@ public final class JdtUtils {
 		}
 		final SourceType returnedType = getReturnType(methodBinding, methodDeclaration);
 		// .getReturnType().getJavaElement() : null;
-		final List<JavaMethodParameter> methodParameters = new ArrayList<JavaMethodParameter>();
+		final List<IJavaMethodParameter> methodParameters = new ArrayList<IJavaMethodParameter>();
 		@SuppressWarnings("unchecked")
 		final List<SingleVariableDeclaration> parameters = methodDeclaration.parameters();
 		for (int i = 0; i < parameters.size(); i++) {

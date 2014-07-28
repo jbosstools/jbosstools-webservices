@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -58,14 +59,11 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 	 * 
 	 * @param element
 	 *            the JAX-RS element to validate
-	 * @param removeMarkers
-	 *            boolean to indicate if JAX-RS Problem SourceType markers related to
-	 *            the given element should be removed prior to validation, or
-	 *            not (assuming they were already removed).
+	 
 	 * @throws CoreException
 	 */
-	public void validate(final T element) throws CoreException {
-		validate(element, true);
+	public void validate(final T element, final CompilationUnit ast) throws CoreException {
+		validate(element, ast, true);
 	}
 	
 	/**
@@ -79,13 +77,13 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 	 *            not (assuming they were already removed).
 	 * @throws CoreException
 	 */
-	public void validate(final T element, final boolean removeMarkers) throws CoreException {
+	public void validate(final T element, final CompilationUnit ast, final boolean removeMarkers) throws CoreException {
 		final int previousProblemLevel = element.getMarkerSeverity();
 		if(removeMarkers) {
 			removeMarkers(element);
 		}
 		element.resetProblemLevel();
-		internalValidate(element);
+		internalValidate(element, ast);
 		final int currentProblemLevel = element.getMarkerSeverity();
 		if(currentProblemLevel != previousProblemLevel) {
 			Logger.debug("Informing metamodel that problem level changed from {} to {}", previousProblemLevel,
@@ -94,7 +92,7 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 		}
 	}
 
-	abstract void internalValidate(final T element) throws CoreException;
+	abstract void internalValidate(final T element, final CompilationUnit ast) throws CoreException;
 	
 	/**
 	 * Removes the JAX-RS {@link IMarker}s on the underlying {@link IResource}

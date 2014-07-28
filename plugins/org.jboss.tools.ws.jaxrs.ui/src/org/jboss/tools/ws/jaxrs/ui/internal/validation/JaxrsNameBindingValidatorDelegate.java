@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -46,12 +47,10 @@ public class JaxrsNameBindingValidatorDelegate extends AbstractJaxrsElementValid
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsNameBinding nameBinding) throws CoreException {
+	void internalValidate(final JaxrsNameBinding nameBinding, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", nameBinding);
-		if (!nameBinding.isBuiltIn()) {
-			validateRetentionAnnotation(nameBinding);
-			validateTargetAnnotation(nameBinding);
-		}
+		validateRetentionAnnotation(nameBinding, ast);
+		validateTargetAnnotation(nameBinding, ast);
 	}
 
 	/**
@@ -61,7 +60,7 @@ public class JaxrsNameBindingValidatorDelegate extends AbstractJaxrsElementValid
 	 * @param messages
 	 * @throws CoreException
 	 */
-	private void validateTargetAnnotation(final JaxrsNameBinding nameBinding) throws CoreException {
+	private void validateTargetAnnotation(final JaxrsNameBinding nameBinding, final CompilationUnit ast) throws CoreException {
 		final Annotation targetAnnotation = nameBinding.getTargetAnnotation();
 		if (targetAnnotation == null) {
 			final ISourceRange range = nameBinding.getJavaElement().getNameRange();
@@ -73,7 +72,7 @@ public class JaxrsNameBindingValidatorDelegate extends AbstractJaxrsElementValid
 			final List<String> expectedValues = Arrays.asList(ElementType.METHOD.name(), ElementType.TYPE.name());
 			if (!CollectionUtils.containsInAnyOrder(annotationValues, expectedValues)) {
 				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(targetAnnotation.getJavaAnnotation(),
-						VALUE);
+						VALUE, ast);
 				markerManager.addMarker(nameBinding, range,
 						JaxrsValidationMessages.NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE, new String[0],
 						JaxrsPreferences.NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE,
@@ -89,7 +88,7 @@ public class JaxrsNameBindingValidatorDelegate extends AbstractJaxrsElementValid
 	 * @param messages
 	 * @throws CoreException
 	 */
-	private void validateRetentionAnnotation(final JaxrsNameBinding nameBinding) throws CoreException {
+	private void validateRetentionAnnotation(final JaxrsNameBinding nameBinding, final CompilationUnit ast) throws CoreException {
 		final Annotation retentionAnnotation = nameBinding.getRetentionAnnotation();
 		if (retentionAnnotation == null) {
 			final ISourceRange range = nameBinding.getJavaElement().getNameRange();
@@ -99,7 +98,7 @@ public class JaxrsNameBindingValidatorDelegate extends AbstractJaxrsElementValid
 					JaxrsMarkerResolutionIds.NAME_BINDING_MISSING_RETENTION_ANNOTATION_QUICKFIX_ID);
 		} else if (retentionAnnotation.getValue() != null && !retentionAnnotation.getValue().equals(RetentionPolicy.RUNTIME.name())) {
 			final ISourceRange range = JdtUtils.resolveMemberPairValueRange(retentionAnnotation.getJavaAnnotation(),
-					VALUE);
+					VALUE, ast);
 			markerManager.addMarker(nameBinding, range,
 					JaxrsValidationMessages.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE, new String[0],
 					JaxrsPreferences.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE,

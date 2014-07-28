@@ -19,6 +19,7 @@ import java.util.Set;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
@@ -56,18 +57,18 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsResource resource) throws CoreException {
+	void internalValidate(final JaxrsResource resource, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", resource);
-		validatePathAnnotationValue(resource);
+		validatePathAnnotationValue(resource, ast);
 		validateAtLeastOneProviderWithBinding(resource);
 		for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
-			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod, false);
+			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod, ast, false);
 		}
 		for (IJaxrsResourceField resourceField : resource.getAllFields()) {
-			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, false);
+			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, ast, false);
 		}
 		for (IJaxrsResourceProperty resourceProperty : resource.getAllProperties()) {
-			new JaxrsResourcePropertyValidatorDelegate(markerManager).validate((JaxrsResourceProperty) resourceProperty, false);
+			new JaxrsResourcePropertyValidatorDelegate(markerManager).validate((JaxrsResourceProperty) resourceProperty, ast, false);
 		}
 	}
 
@@ -80,12 +81,12 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 	 * @throws CoreException
 	 * @see JaxrsParameterValidatorDelegate
 	 */
-	private void validatePathAnnotationValue(final JaxrsResource resource) throws JavaModelException, CoreException {
+	private void validatePathAnnotationValue(final JaxrsResource resource, final CompilationUnit ast) throws JavaModelException, CoreException {
 		final Annotation pathAnnotation = resource.getPathAnnotation();
 		if(pathAnnotation != null && pathAnnotation.getValue() != null) {
 			if(!AnnotationUtils.isValidAnnotationValue(pathAnnotation.getValue())) {
 				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
-						pathAnnotation.getJavaAnnotation(), VALUE);
+						pathAnnotation.getJavaAnnotation(), VALUE, ast);
 				markerManager.addMarker(resource, range,
 						JaxrsValidationMessages.RESOURCE_INVALID_PATH_ANNOTATION_VALUE,
 						new String[] { pathAnnotation.getValue() },

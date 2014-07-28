@@ -23,13 +23,14 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
@@ -61,9 +62,9 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsProvider provider) throws CoreException {
+	void internalValidate(final JaxrsProvider provider, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", provider);
-		validateAtLeastOneValidConstructor(provider);
+		validateAtLeastOneValidConstructor(provider, ast);
 		validateNoMissingProviderAnnotation(provider);
 		validateNoDuplicateProvider(provider);
 		validateAtLeastOneImplementation(provider);
@@ -169,7 +170,7 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	 * </quote>
 	 * @throws CoreException 
 	 * */
-	private void validateAtLeastOneValidConstructor(JaxrsProvider provider) throws CoreException {
+	private void validateAtLeastOneValidConstructor(final JaxrsProvider provider, final CompilationUnit ast) throws CoreException {
 		final IType providerType = provider.getJavaElement();
 		final IMethod[] methods = providerType.getMethods();
 		int validConstructorsCounter = 0;
@@ -179,7 +180,7 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		for (IMethod method : methods) {
 			if (isContructor(method)) {
 				hasConstructors = true;
-				if (isValidConstructor(method)) {
+				if (isValidConstructor(method, ast)) {
 					validConstructorsCounter++;
 				}
 			}
@@ -196,7 +197,7 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		return method.getElementName().equals(method.getParent().getElementName());
 	}
 
-	private static boolean isValidConstructor(final IMethod method) throws JavaModelException {
+	private static boolean isValidConstructor(final IMethod method, final CompilationUnit ast) throws JavaModelException {
 		// refusing non-public contructors
 		if ((method.getFlags() & Flags.AccPublic) == 0) {
 			return false;
@@ -208,7 +209,7 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		}
 		// only accepting constructors with parameters annotated with
 		// @javax.ws.rs.core.Context
-		final IJavaMethodSignature methodSignature = CompilationUnitsRepository.getInstance().getMethodSignature(method);
+		final IJavaMethodSignature methodSignature = JdtUtils.resolveMethodSignature(method, ast);
 		if(methodSignature != null) {
 			for (IJavaMethodParameter parameter : methodSignature.getMethodParameters()) {
 				if (parameter.getAnnotations().isEmpty()) {

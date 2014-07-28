@@ -69,7 +69,7 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	@Override
 	public final List<ICompletionProposal> computeCompletionProposals(final ContentAssistInvocationContext context,
 			final IProgressMonitor monitor) {
-		JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
+		final JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
 		try {
 			final IJavaProject project = javaContext.getProject();
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);

@@ -26,6 +26,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.wst.validation.ReporterHelper;
@@ -61,7 +63,6 @@ public class JaxrsMetamodelValidatorAsYouTypeTestCase {
 
 	private final IReporter reporter = new ReporterHelper(new NullProgressMonitor());
 	private final IProjectValidationContext projectValidationContext = new ProjectValidationContext();
-	private EditorValidationContext editorValidationContext = null;
 	private final IValidationContext validationContext = new WorkbenchContext();
 	private final ValidatorManager validatorManager = new ValidatorManager();
 	private JaxrsMetamodelValidator metamodelValidator;
@@ -103,6 +104,8 @@ public class JaxrsMetamodelValidatorAsYouTypeTestCase {
 		final Annotation pathParamAnnotation = javaMethodParameter.getAnnotation(JaxrsClassnames.PATH_PARAM);
 		final ISourceRange annotationRange = pathParamAnnotation.getJavaAnnotation().getSourceRange();
 		final IRegion dirtyRegion = new Region(annotationRange.getOffset() + "@PathParam(".length(), "\"param3\"".length());
+		final IDocument document = new Document(barType.getCompilationUnit().getSource());
+		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		// operation
 		metamodelValidator.validate(validatorManager, project, Arrays.asList(dirtyRegion), validationContext, reporter,
 				editorValidationContext, projectValidationContext, (IFile) barResourceMethod.getResource());

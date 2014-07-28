@@ -95,9 +95,11 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	 * @param metamodel
 	 *            the metamodel in which this element exist, or null if this
 	 *            element is transient.
+	 * @param primaryCopy
+	 * 			the associated primary copy or {@code null} if this instance is already the primary copy.
 	 */
-	public JaxrsJavaElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel) {
-		super(metamodel);
+	JaxrsJavaElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel, final JaxrsJavaElement<?> primaryCopy) {
+		super(metamodel, primaryCopy);
 		this.javaElement = element;
 		if (annotations != null) {
 			this.annotations.putAll(annotations);

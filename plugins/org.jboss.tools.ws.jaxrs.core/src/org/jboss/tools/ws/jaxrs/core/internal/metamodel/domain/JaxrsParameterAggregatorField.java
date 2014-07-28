@@ -23,6 +23,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -127,10 +128,53 @@ public class JaxrsParameterAggregatorField extends JaxrsParameterAggregatorEleme
 	 *            the fluent builder.
 	 */
 	private JaxrsParameterAggregatorField(final Builder builder) {
-		super(builder.javaField, builder.annotations, builder.metamodel, builder.javaFieldType, builder.parentParameterAggregator);
-		if(getParentParameterAggregator()!= null) {
+		this(builder.javaField, builder.annotations, builder.metamodel, builder.javaFieldType,
+				builder.parentParameterAggregator, null);
+	}
+	
+	/**
+	 * Full constructor.
+	 * 
+	 * @param javaField
+	 *            the java field
+	 * @param annotations
+	 *            the java element annotations (or null)
+	 * @param metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
+	 * @param javaFieldType the {@link SourceType} associated with the given javaField
+	 * @param parentParameterAggregator
+	 * 			the parent element
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsParameterAggregatorField(final IField javaField, final Map<String, Annotation> annotations,
+			final JaxrsMetamodel metamodel, final SourceType javaFieldType,
+			final JaxrsParameterAggregator parentParameterAggregator, final JaxrsParameterAggregatorField primaryCopy) {
+		super(javaField, annotations, metamodel, javaFieldType, parentParameterAggregator, primaryCopy);
+		if(getParentParameterAggregator() != null) {
 			getParentParameterAggregator().addElement(this);
 		}
+	}
+
+	@Override
+	public JaxrsParameterAggregatorField createWorkingCopy() {
+		synchronized (this) {
+			final JaxrsParameterAggregator parentWorkingCopy = getParentParameterAggregator().getWorkingCopy();
+			return parentWorkingCopy.getFields().get(this.javaElement.getHandleIdentifier());
+		}
+	}
+	
+	protected JaxrsParameterAggregatorField createWorkingCopy(final JaxrsParameterAggregator parentWorkingCopy) {
+		return new JaxrsParameterAggregatorField(getJavaElement(),
+				AnnotationUtils.createWorkingCopies(getAnnotations()), getMetamodel(), getType().createWorkingCopy(),
+				parentWorkingCopy, this);
+	}
+	
+	@Override
+	public JaxrsParameterAggregatorField getWorkingCopy() {
+		return (JaxrsParameterAggregatorField) super.getWorkingCopy();
 	}
 	
 	@Override
@@ -155,16 +199,18 @@ public class JaxrsParameterAggregatorField extends JaxrsParameterAggregatorEleme
 	}
 
 	void update(final JaxrsParameterAggregatorField transientField) throws CoreException {
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		if (transientField == null) {
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (isMarkedForRemoval()) {
+		synchronized (this) {
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			if (transientField == null) {
 				remove(annotationsFlags);
-			} else if(hasMetamodel()){
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				} else if(hasMetamodel()){
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

@@ -11,7 +11,7 @@ import javax.ws.rs.core.Context;
 
 public class BoatParameterAggregator {
 
-	@PathParam("id") // field 
+	@PathParam("id") //field 
 	private String id;
 
 	@PathParam("type") //field

@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IResource;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 
@@ -66,7 +67,32 @@ public class JavaMethodParameter implements IJavaMethodParameter {
 		}
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * Full constructor.
+	 * 
+	 * @param name
+	 *            the parameter name
+	 * @param erasureName
+	 *            the qualified name of the parameter's erasure
+	 * @param typeArgumentNames
+	 *            the qualified names of the parameter's type argument (or empty
+	 *            list)
+	 * @param annotations
+	 *            the parameter's relevant annotations
+	 */
+	private JavaMethodParameter(final String name, final SourceType type, final Map<String, Annotation> annotations, final IResource resource) {
+		this.name = name;
+		this.type = type;
+		this.resource = resource;
+		this.annotations = annotations;
+	}
+	
+	public JavaMethodParameter createWorkingCopy() {
+		return new JavaMethodParameter(new String(name), type.createWorkingCopy(), AnnotationUtils.createWorkingCopies(getAnnotations()), resource);
+		
+	}
+	
+	/**
 	 * @see org.jboss.tools.ws.jaxrs.core.utils.IJavaMethodParameter#getName()
 	 */
 	@Override

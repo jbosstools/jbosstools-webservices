@@ -196,7 +196,51 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 *            the fluent builder.
 	 */
 	private JaxrsResource(final Builder builder) {
-		super(builder.javaType, builder.annotations, builder.metamodel);
+		this(builder.javaType, builder.annotations, builder.metamodel, null);
+	}
+
+	/**
+	 * Full constructor
+	 * 
+	 * @param javaType
+	 *            the underlying java type.
+	 * @param annotations
+	 *            the relevant annotations.
+	 * @param metamodel
+	 *            the metamodel or <code>null</code> if the instance is
+	 *            transient.
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 * 
+	 */
+	private JaxrsResource(final IType javaType, final Map<String, Annotation> annotations,
+			final JaxrsMetamodel metamodel, final JaxrsResource primaryCopy) {
+		super(javaType, annotations, metamodel, primaryCopy);
+	}
+	
+	@Override
+	public JaxrsResource createWorkingCopy() {
+		synchronized (this) {
+			final JaxrsResource parentWorkingCopy = new JaxrsResource(getJavaElement(),
+					AnnotationUtils.createWorkingCopies(getAnnotations()), getMetamodel(), this);
+			// working copies of the children elements add themselves to the given parent resource
+			for(Entry<String, JaxrsResourceField> resourceFieldEntry : this.resourceFields.entrySet()) {
+				resourceFieldEntry.getValue().createWorkingCopy(parentWorkingCopy);
+			}
+			for(Entry<String, JaxrsResourceMethod> resourceMethodEntry : this.resourceMethods.entrySet()) {
+				resourceMethodEntry.getValue().createWorkingCopy(parentWorkingCopy);
+			}
+			for(Entry<String, JaxrsResourceProperty> resourcePropertyEntry : this.resourceProperties.entrySet()) {
+				resourcePropertyEntry.getValue().createWorkingCopy(parentWorkingCopy);
+			}
+			return parentWorkingCopy;
+		}
+	}
+	
+	@Override
+	public JaxrsResource getWorkingCopy() {
+		return (JaxrsResource) super.getWorkingCopy();
 	}
 
 	@Override
@@ -223,25 +267,27 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		Logger.debug("Updating {}", this.toString());
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethodNames()).build(false);
-		if (transientResource == null) {
-			remove(annotationsFlags);
-			return;
-		} 
-		final Flags updateAnnotationsFlags = updateAnnotations(transientResource.getAnnotations());
-		final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-		updateMethods(transientResource, ast);
-		updateProperties(transientResource, ast);
-		updateFields(transientResource, ast);
-
-		if (isMarkedForRemoval()) {
-			remove(annotationsFlags);
-		}
-		// update indexes for this element.
-		else if (hasMetamodel()) {
-			getMetamodel().update(delta);
+		synchronized (this) {
+			Logger.debug("Updating {}", this.toString());
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethodNames()).build(false);
+			if (transientResource == null) {
+				remove(annotationsFlags);
+				return;
+			} 
+			final Flags updateAnnotationsFlags = updateAnnotations(transientResource.getAnnotations());
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+			updateMethods(transientResource, ast);
+			updateProperties(transientResource, ast);
+			updateFields(transientResource, ast);
+	
+			if (isMarkedForRemoval()) {
+				remove(annotationsFlags);
+			}
+			// update indexes for this element.
+			else if (hasMetamodel()) {
+				getMetamodel().update(delta);
+			}
 		}
 	}
 

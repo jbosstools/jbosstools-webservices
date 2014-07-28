@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 
@@ -107,6 +108,14 @@ public class AnnotationUtils {
 			return false;
 		}
 		return true;
+	}
+	
+	public static Map<String, Annotation> createWorkingCopies(final Map<String, Annotation> originals) {
+		final Map<String, Annotation> workingCopies = new HashMap<String, Annotation>();
+		for(Entry<String, Annotation> entry : originals.entrySet()) {
+			workingCopies.put(entry.getKey(), entry.getValue().createWorkingCopy());
+		}
+		return workingCopies;
 	}
 
 }

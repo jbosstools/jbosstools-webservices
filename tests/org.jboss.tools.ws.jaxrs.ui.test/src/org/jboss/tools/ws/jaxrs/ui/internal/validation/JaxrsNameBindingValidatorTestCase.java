@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
-import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsElementsUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.RETENTION;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.TARGET;
@@ -455,8 +455,8 @@ public class JaxrsNameBindingValidatorTestCase {
 		// verification: problem level is set to '2'
 		assertThat(customNameBinding.getMarkerSeverity(), equalTo(2));
 		// now, fix the problem
-		replaceFirstOccurrenceOfCode(customNameBinding.getJavaElement().getCompilationUnit(), "@Retention(RetentionPolicy.SOURCE)",
-				"@Retention(RetentionPolicy.RUNTIME)", true);
+		replaceFirstOccurrenceOfCode(customNameBinding, "@Retention(RetentionPolicy.SOURCE)",
+				"@Retention(RetentionPolicy.RUNTIME)", false);
 		// revalidate
 		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
 				context, validatorManager, reporter);

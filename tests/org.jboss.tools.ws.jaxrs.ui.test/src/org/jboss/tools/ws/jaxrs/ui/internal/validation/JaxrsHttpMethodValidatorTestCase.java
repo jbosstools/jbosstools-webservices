@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsElementsUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.RETENTION;
@@ -527,8 +527,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 		assertThat(httpMethod.getMarkerSeverity(), equalTo(2));
 		
 		// now, fix the problem 
-		replaceFirstOccurrenceOfCode(fooType.getCompilationUnit(), "@Retention(value=RetentionPolicy.SOURCE)", "@Retention(value=RetentionPolicy.RUNTIME)", true);
-		
+		replaceFirstOccurrenceOfCode(httpMethod, "@Retention(value=RetentionPolicy.SOURCE)", "@Retention(value=RetentionPolicy.RUNTIME)", false);
 		// revalidate
 		new JaxrsMetamodelValidator().validate(toSet(httpMethod.getResource()), project, validationHelper, context,
 				validatorManager, reporter);

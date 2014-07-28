@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -152,7 +153,7 @@ public class JaxrsNameBinding extends JaxrsJavaElement<IType> implements IJaxrsN
 	 * 
 	 */
 	private JaxrsNameBinding(final Builder builder) {
-		this(builder.javaType, builder.annotations, builder.metamodel);
+		this(builder.javaType, builder.annotations, builder.metamodel, null);
 	}
 
 	/**
@@ -165,16 +166,29 @@ public class JaxrsNameBinding extends JaxrsJavaElement<IType> implements IJaxrsN
 	 * @param metamodel
 	 *            the metamodel or <code>null</code> if the instance is
 	 *            transient.
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 * 
 	 */
-	protected JaxrsNameBinding(final IType javaType, final Map<String, Annotation> annotations,
-			final JaxrsMetamodel metamodel) {
-		super(javaType, annotations, metamodel);
+	private JaxrsNameBinding(final IType javaType, final Map<String, Annotation> annotations,
+			final JaxrsMetamodel metamodel, final JaxrsNameBinding primaryCopy) {
+		super(javaType, annotations, metamodel, primaryCopy);
 	}
 
-	public boolean isBuiltIn() {
-		return false;
+	@Override
+	public JaxrsNameBinding createWorkingCopy() {
+		synchronized (this) {
+			return new JaxrsNameBinding(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+					getMetamodel(), this);
+		}
 	}
-
+	
+	@Override
+	public JaxrsNameBinding getWorkingCopy() {
+		return (JaxrsNameBinding) super.getWorkingCopy();
+	}
+	
 	/**
 	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsNameBinding} anymore) 
 	 */
@@ -223,19 +237,21 @@ public class JaxrsNameBinding extends JaxrsJavaElement<IType> implements IJaxrsN
 	 */
 	@Override
 	public void update(final IJavaElement element, final CompilationUnit ast) throws CoreException {
-		final JaxrsNameBinding transientNameBinding = JaxrsNameBinding.from(element, ast).build(false);
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		if (transientNameBinding == null) {
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientNameBinding.getAnnotations());
-			if (isMarkedForRemoval()) {
+		synchronized (this) {
+			final JaxrsNameBinding transientNameBinding = JaxrsNameBinding.from(element, ast).build(false);
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			if (transientNameBinding == null) {
 				remove(annotationsFlags);
-			}
-			// update indexes for this element.
-			else if(hasMetamodel()){
-				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientNameBinding.getAnnotations());
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				}
+				// update indexes for this element.
+				else if(hasMetamodel()){
+					final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

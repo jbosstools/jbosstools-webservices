@@ -417,7 +417,7 @@ public class JdtUtilsTestCase {
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
 		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(PATH));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
-		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
+		assertThat(javaAnnotation.getJavaAnnotationElements().get(Annotation.VALUE).get(0), equalTo("/customers"));
 	}
 
 	@Test
@@ -449,7 +449,7 @@ public class JdtUtilsTestCase {
 		assertThat(javaAnnotation.getJavaAnnotation(), equalTo(annotation));
 		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(PATH));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
-		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("/customers"));
+		assertThat(javaAnnotation.getJavaAnnotationElements().get(Annotation.VALUE).get(0), equalTo("/customers"));
 	}
 
 	@Test
@@ -475,7 +475,7 @@ public class JdtUtilsTestCase {
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
 		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(HTTP_METHOD));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
-		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
+		assertThat(javaAnnotation.getJavaAnnotationElements().get(Annotation.VALUE).get(0), equalTo("GET"));
 	}
 
 	@Test
@@ -493,7 +493,7 @@ public class JdtUtilsTestCase {
 		assertThat(javaAnnotation.getJavaAnnotation(), notNullValue());
 		assertThat(javaAnnotation.getFullyQualifiedName(), equalTo(HTTP_METHOD));
 		assertThat(javaAnnotation.getJavaAnnotationElements().size(), equalTo(1));
-		assertThat(javaAnnotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
+		assertThat(javaAnnotation.getJavaAnnotationElements().get(Annotation.VALUE).get(0), equalTo("GET"));
 	}
 	
 	@Test
@@ -509,7 +509,7 @@ public class JdtUtilsTestCase {
 		assertThat(annotation.getJavaAnnotation(), equalTo(javaAnnotation));
 		assertThat(annotation.getFullyQualifiedName(), equalTo(HTTP_METHOD));
 		assertThat(annotation.getJavaAnnotationElements().size(), equalTo(1));
-		assertThat(annotation.getJavaAnnotationElements().get("value").get(0), equalTo("GET"));
+		assertThat(annotation.getJavaAnnotationElements().get(Annotation.VALUE).get(0), equalTo("GET"));
 	}
 
 	@Test
@@ -584,7 +584,7 @@ public class JdtUtilsTestCase {
 						+ " is null", annotationEntry.getValue().getJavaAnnotation());
 			}
 		}
-		assertNull(methodSignature.getMethodParameter("id").getAnnotation(PATH_PARAM).getValue("value"));
+		assertNull(methodSignature.getMethodParameter("id").getAnnotation(PATH_PARAM).getValue(Annotation.VALUE));
 	}
 
 	@Test
@@ -861,8 +861,9 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerType, PATH);
+		final CompilationUnit ast = JdtUtils.parse(customerType, null);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -876,8 +877,9 @@ public class JdtUtilsTestCase {
 		// preconditions
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation annotation = getAnnotation(customerType, CONSUMES);
+		final CompilationUnit ast = JdtUtils.parse(customerType, null);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -892,8 +894,9 @@ public class JdtUtilsTestCase {
 		final IType customerType = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final Annotation annotation = getAnnotation(method, PATH);
+		final CompilationUnit ast = JdtUtils.parse(method, null);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -907,8 +910,9 @@ public class JdtUtilsTestCase {
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
 		final IField field = getField(type, "_foo");
 		final Annotation annotation = getAnnotation(field, QUERY_PARAM);
+		final CompilationUnit ast = JdtUtils.parse(field, null);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getJavaAnnotation().getSourceRange();
@@ -923,8 +927,9 @@ public class JdtUtilsTestCase {
 		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final ILocalVariable localVariable = getLocalVariable(method, "id");
 		final IAnnotation annotation = localVariable.getAnnotations()[0];
+		final CompilationUnit ast = JdtUtils.parse(method, null);
 		// operation
-		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation, "value");
+		final ISourceRange range = JdtUtils.resolveMemberPairValueRange(annotation, Annotation.VALUE, ast);
 		// verification
 		assertThat(range, notNullValue());
 		final ISourceRange annotationRange = annotation.getSourceRange();

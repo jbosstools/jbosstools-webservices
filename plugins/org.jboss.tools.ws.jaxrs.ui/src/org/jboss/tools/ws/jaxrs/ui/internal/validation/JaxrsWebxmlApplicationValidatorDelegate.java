@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
@@ -34,7 +35,7 @@ public class JaxrsWebxmlApplicationValidatorDelegate extends AbstractJaxrsElemen
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsWebxmlApplication webxmlApplication) throws CoreException {
+	void internalValidate(final JaxrsWebxmlApplication webxmlApplication, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", webxmlApplication);
 	}
 

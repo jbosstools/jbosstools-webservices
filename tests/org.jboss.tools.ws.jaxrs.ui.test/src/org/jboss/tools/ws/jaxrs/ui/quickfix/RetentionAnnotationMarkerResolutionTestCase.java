@@ -171,7 +171,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		final ICompilationUnit compilationUnit = bazMethod.getJavaElement().getCompilationUnit();
 		final IJavaCompletionProposal completionProposal = new AddHttpMethodRetentionValueCompletionProposal(compilationUnit,
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
-		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod.getResource());
+		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod);
 		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
@@ -203,7 +203,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		final ICompilationUnit compilationUnit = bazMethod.getJavaElement().getCompilationUnit();
 		final IJavaCompletionProposal completionProposal = new AddHttpMethodRetentionValueCompletionProposal(compilationUnit,
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
-		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod.getResource());
+		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod);
 		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
@@ -233,7 +233,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		
 		// operation 2: now, use the quickfix to fix the problem
 		final IJavaCompletionProposal completionProposal = new UpdateHttpMethodRetentionAnnotationValueMarkerResolution(bazMethod.getJavaElement());
-		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod.getResource());
+		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod);
 		metamodelMonitor.processEvent(bazMethod.getJavaElement().getCompilationUnit(), IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
@@ -327,7 +327,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		final ICompilationUnit compilationUnit = nameBinding.getJavaElement().getCompilationUnit();
 		final IJavaCompletionProposal completionProposal = new AddNameBindingRetentionValueCompletionProposal(compilationUnit,
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
-		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding.getResource());
+		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding);
 		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
@@ -359,7 +359,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		final ICompilationUnit compilationUnit = nameBinding.getJavaElement().getCompilationUnit();
 		final IJavaCompletionProposal completionProposal = new AddNameBindingRetentionValueCompletionProposal(compilationUnit,
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
-		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding.getResource());
+		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding);
 		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
@@ -389,7 +389,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		
 		// operation 2: now, use the quickfix to fix the problem
 		final IJavaCompletionProposal completionProposal = new UpdateNameBindingRetentionAnnotationValueMarkerResolution(nameBinding.getJavaElement());
-		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding.getResource());
+		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding);
 		metamodelMonitor.processEvent(nameBinding.getJavaElement().getCompilationUnit(), IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error

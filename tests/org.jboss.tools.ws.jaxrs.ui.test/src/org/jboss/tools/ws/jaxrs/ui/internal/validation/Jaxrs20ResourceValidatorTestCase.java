@@ -32,6 +32,7 @@ import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
@@ -93,6 +94,78 @@ public class Jaxrs20ResourceValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+	}
+	
+	@Test
+	public void shouldReportAndFixProblemWhenUnboundPathParamAnnotatedParamAggregatorFieldFixedInResourceMethod() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		final ICompilationUnit boatParameterAggregatorCompilationUnit = metamodelMonitor.createCompilationUnit("BoatParameterAggregator.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatParameterAggregator.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"id\") int id", "@BeanParam BoatParameterAggregator aggregator", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{i}\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatParameterAggregatorCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource", "org.jboss.tools.ws.jaxrs.sample.services.BoatParameterAggregator");
+		final JaxrsResource boatResource = (JaxrsResource) metamodel.findElement(boatResourceCompilationUnit.findPrimaryType());
+		final JaxrsParameterAggregator boatParameterAggregator = (JaxrsParameterAggregator) metamodel.findElement(boatParameterAggregatorCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation 1 : validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResourceCompilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications 1: 1 problem reported
+		final IMarker[] markers = findJaxrsMarkers(boatParameterAggregator);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+
+		// operation 2: fix problem on resource method and revalidate
+		JaxrsElementsUtils.replaceFirstOccurrenceOfCode(boatResource, "@Path(\"{i}\")", "@Path(\"{id}\")", false);
+		new JaxrsMetamodelValidator().validate(toSet(boatResourceCompilationUnit.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications 2: no problem reported
+		final IMarker[] updatedMarkers = findJaxrsMarkers(boatParameterAggregator);
+		assertThat(updatedMarkers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldReportAndFixProblemWhenUnboundPathParamAnnotatedParamAggregatorFieldFixedInParameterAggregator() throws CoreException, ValidationException {
+		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
+		final ICompilationUnit boatParameterAggregatorCompilationUnit = metamodelMonitor.createCompilationUnit("BoatParameterAggregator.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "BoatParameterAggregator.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"id\") int id", "@BeanParam BoatParameterAggregator aggregator", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{i}\")", false);
+		ResourcesUtils.replaceAllOccurrencesOfCode(boatParameterAggregatorCompilationUnit, "@PathParam(\"type\") //field", "", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource", "org.jboss.tools.ws.jaxrs.sample.services.BoatParameterAggregator");
+		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
+		final JaxrsParameterAggregator boatParameterAggregator = (JaxrsParameterAggregator) metamodel.findElement(boatParameterAggregatorCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation 1 : validate
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications 1: 1 problem reported
+		final IMarker[] markers = findJaxrsMarkers(boatParameterAggregator);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		
+		// operation 2: fix problem on resource method and revalidate
+		JaxrsElementsUtils.replaceFirstOccurrenceOfCode(boatParameterAggregator, "@PathParam(\"id\") //field", "@PathParam(\"i\") //field", false);
+		new JaxrsMetamodelValidator().validate(toSet(boatParameterAggregator.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications 2: no problem reported
+		final IMarker[] updatedMarkers = findJaxrsMarkers(boatParameterAggregator);
+		assertThat(updatedMarkers.length, equalTo(0));
 	}
 	
 	@Test

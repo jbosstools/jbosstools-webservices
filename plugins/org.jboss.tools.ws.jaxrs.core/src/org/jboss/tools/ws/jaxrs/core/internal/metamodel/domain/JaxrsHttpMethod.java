@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -205,7 +206,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * 
 	 */
 	private JaxrsHttpMethod(final Builder builder) {
-		this(builder.javaType, builder.annotations, builder.metamodel);
+		this(builder.javaType, builder.annotations, builder.metamodel, null);
 	}
 
 	/**
@@ -218,16 +219,31 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 * @param metamodel
 	 *            the metamodel or <code>null</code> if the instance is
 	 *            transient.
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
 	 */
 	protected JaxrsHttpMethod(final IType javaType, final Map<String, Annotation> annotations,
-			final JaxrsMetamodel metamodel) {
-		super(javaType, annotations, metamodel);
+			final JaxrsMetamodel metamodel, final JaxrsHttpMethod primaryCopy) {
+		super(javaType, annotations, metamodel, primaryCopy);
 	}
 
 	public boolean isBuiltIn() {
 		return false;
 	}
 
+	@Override
+	public JaxrsHttpMethod createWorkingCopy() {
+		synchronized (this) {
+			return new JaxrsHttpMethod(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+					getMetamodel(), this);
+		}
+	}
+	
+	@Override
+	public JaxrsHttpMethod getWorkingCopy() {
+		return (JaxrsHttpMethod) super.getWorkingCopy();
+	}
 	
 	@Override
 	public String getJavaClassName() {
@@ -310,19 +326,21 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	 */
 	@Override
 	public void update(final IJavaElement element, final CompilationUnit ast) throws CoreException {
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		final JaxrsHttpMethod transientHttpMethod = JaxrsHttpMethod.from(element, ast).build(false);
-		if (transientHttpMethod == null) {
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientHttpMethod.getAnnotations());
-			if (isMarkedForRemoval()) {
+		synchronized (this) {
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			final JaxrsHttpMethod transientHttpMethod = JaxrsHttpMethod.from(element, ast).build(false);
+			if (transientHttpMethod == null) {
 				remove(annotationsFlags);
-			}
-			// update indexes for this element.
-			else if(hasMetamodel()){
-				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientHttpMethod.getAnnotations());
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				}
+				// update indexes for this element.
+				else if(hasMetamodel()){
+					final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

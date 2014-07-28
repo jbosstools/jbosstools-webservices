@@ -211,14 +211,66 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	 * 
 	 */
 	private JaxrsResourceMethod(final Builder builder) {
-		super(builder.javaMethod, builder.annotations, builder.metamodel);
-		this.parentResource = builder.parentResource;
+		this(builder.javaMethod, builder.annotations, builder.metamodel, builder.parentResource,
+				builder.returnedJavaType, builder.javaMethodParameters, null);
+	}
+	
+	@Override
+	public JaxrsResourceMethod createWorkingCopy() {
+		synchronized (this) {
+			final JaxrsResource parentWorkingCopy = getParentResource().getWorkingCopy();
+			return parentWorkingCopy.getMethods().get(this.javaElement.getHandleIdentifier());
+		}
+	}
+	
+	protected JaxrsResourceMethod createWorkingCopy(final JaxrsResource parentWorkingCopy) {
+		final List<IJavaMethodParameter> methodParametersWorkingCopies = new ArrayList<IJavaMethodParameter>();
+		for(IJavaMethodParameter methodParameter : this.javaMethodParameters) {
+			final IJavaMethodParameter workingCopy = ((JavaMethodParameter)methodParameter).createWorkingCopy();
+			methodParametersWorkingCopies.add(workingCopy);
+		}
+		return new JaxrsResourceMethod(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+				getMetamodel(), parentWorkingCopy, getReturnedType(), methodParametersWorkingCopies, this);
+	}
+	
+	@Override
+	public JaxrsResourceMethod getWorkingCopy() {
+		return (JaxrsResourceMethod) super.getWorkingCopy();
+	}
+
+	/**
+	 * Full constructor.
+	 * 
+	 * @param javaMethod
+	 *            the java method
+	 * @param annotations
+	 *            the java element annotations (or null)
+	 * @param metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
+	 * @param parentResource
+	 *            the parent element
+	 * @param returnedJavaType
+	 *            the {@link SourceType} returned by the underlying
+	 *            {@link IMethod}
+	 * @param javaMethodParameters
+	 *            the list of {@link JavaMethodParameter} of the underlying
+	 *            {@link IMethod}
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsResourceMethod(final IMethod javaMethod, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel,
+			final JaxrsResource parentResource, final SourceType returnedJavaType,
+			final List<IJavaMethodParameter> javaMethodParameters, final JaxrsResourceMethod primaryCopy) {
+		super(javaMethod, annotations, metamodel, primaryCopy);
+		this.parentResource = parentResource;
 		if(this.parentResource != null) {
 			this.parentResource.addMethod(this);
 		}
-		this.returnedJavaType = builder.returnedJavaType;
+		this.returnedJavaType = returnedJavaType;
 		if (javaMethodParameters != null) {
-			this.javaMethodParameters.addAll(builder.javaMethodParameters);
+			this.javaMethodParameters.addAll(javaMethodParameters);
 		}
 	}
 
@@ -262,17 +314,19 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	}
 
 	public void update(final JaxrsResourceMethod transientMethod) throws CoreException {
-		if (transientMethod == null) {
-			remove(FlagsUtils.computeElementFlags(this));
-		} else {
-			final Flags updateFlags = internalUpdate(transientMethod);
-			if (isMarkedForRemoval()) {
-				remove(updateFlags);
-			}
-			// update indexes for this element.
-			else if (hasMetamodel()) {
-				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateFlags);
-				getMetamodel().update(delta);
+		synchronized (this) {
+			if (transientMethod == null) {
+				remove(FlagsUtils.computeElementFlags(this));
+			} else {
+				final Flags updateFlags = internalUpdate(transientMethod);
+				if (isMarkedForRemoval()) {
+					remove(updateFlags);
+				}
+				// update indexes for this element.
+				else if (hasMetamodel()) {
+					final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateFlags);
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

@@ -62,13 +62,13 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.hamcrest.Matchers;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
@@ -1311,7 +1311,7 @@ public class ResourceChangedProcessingTestCase {
 		}
 		for (Iterator<JaxrsResourceField> iterator = resourceLocator.getFields().values().iterator(); iterator
 				.hasNext();) {
-			JaxrsResourceElement resourceField = iterator.next();
+			JaxrsResourceField resourceField = iterator.next();
 			delete(resourceField.getJavaElement());
 		}
 		for (Iterator<JaxrsResourceProperty> iterator = resourceLocator.getProperties().values().iterator(); iterator
@@ -1343,8 +1343,9 @@ public class ResourceChangedProcessingTestCase {
 		// pre-condition: using the CustomerResource type
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation pathAnnotation = customerResource.getAnnotation(PATH);
+		final CompilationUnit ast = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), "value");
+				pathAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1355,8 +1356,9 @@ public class ResourceChangedProcessingTestCase {
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
 		processAffectedResources(event);
 		// verifications
+		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), "value");
+				pathAnnotation.getJavaAnnotation(), Annotation.VALUE, updatedAst);
 		assertThat(afterChangeSourceRange.getOffset(), lessThan(offset));
 		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
 	}
@@ -1400,10 +1402,11 @@ public class ResourceChangedProcessingTestCase {
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IMethod javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomer");
 		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
-		Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
+		final Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
 				.get(PATH_PARAM);
+		final CompilationUnit ast = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathParamAnnotation.getJavaAnnotation(), "value");
+				pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		final int beforeLength = beforeChangeSourceRange.getLength();
 		final int beforeOffset = beforeChangeSourceRange.getOffset();
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1415,10 +1418,11 @@ public class ResourceChangedProcessingTestCase {
 		processAffectedResources(event);
 		// verifications
 		// reference has changed (local variable)
-		pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
+		final Annotation updatedPathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
 				.get(PATH_PARAM);
+		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathParamAnnotation.getJavaAnnotation(), "value");
+				updatedPathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, updatedAst);
 		final int afterLength = afterChangeSourceRange.getLength();
 		final int afterOffset = afterChangeSourceRange.getOffset();
 		assertThat(afterOffset, lessThan(beforeOffset));
@@ -1471,8 +1475,9 @@ public class ResourceChangedProcessingTestCase {
 		// pre-condition: using the CustomerResource type
 		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final Annotation pathAnnotation = customerResource.getAnnotation(PATH);
+		final CompilationUnit ast = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), "value");
+				pathAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1483,8 +1488,9 @@ public class ResourceChangedProcessingTestCase {
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
 		processAffectedResources(event);
 		// verifications
+		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathAnnotation.getJavaAnnotation(), "value");
+				pathAnnotation.getJavaAnnotation(), Annotation.VALUE, updatedAst);
 		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
 		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
 	}
@@ -1529,8 +1535,9 @@ public class ResourceChangedProcessingTestCase {
 		final JaxrsResourceMethod resourceMethod = customerResource.getMethods().get(javaMethod.getHandleIdentifier());
 		final Annotation pathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
 				.get(PATH_PARAM);
+		final CompilationUnit ast = JdtUtils.parse(resourceMethod.getJavaElement(), null);
 		final ISourceRange beforeChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathParamAnnotation.getJavaAnnotation(), "value");
+				pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		final int length = beforeChangeSourceRange.getLength();
 		final int offset = beforeChangeSourceRange.getOffset();
 		metamodelMonitor.resetElementChangesNotifications();
@@ -1541,8 +1548,9 @@ public class ResourceChangedProcessingTestCase {
 		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
 		processAffectedResources(event);
 		// verifications
+		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
-				pathParamAnnotation.getJavaAnnotation(), "value");
+				pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, updatedAst);
 		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
 		assertThat(afterChangeSourceRange.getLength(), equalTo(length));
 	}

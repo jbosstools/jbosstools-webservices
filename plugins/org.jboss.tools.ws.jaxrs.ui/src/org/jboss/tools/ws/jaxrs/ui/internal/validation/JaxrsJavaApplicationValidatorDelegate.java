@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
@@ -49,7 +50,7 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsJavaApplication application) throws CoreException {
+	void internalValidate(final JaxrsJavaApplication application, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", application);
 		validateApplicationOverride(application);
 		validateApplicationSubclass(application);

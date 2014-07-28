@@ -25,21 +25,28 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IAnnotatedSourceType;
 public abstract class JaxrsParameterAggregatorElement<T extends IMember> extends JaxrsJavaElement<T> implements IAnnotatedSourceType {
 
 	
-	/** The underlying field type. */
-	private final SourceType fieldType;
+	/** The underlying element type. */
+	private final SourceType elementType;
 
 	/** The surrounding parent element. */
 	private final JaxrsParameterAggregator parentParameterAggregator;
 
 	/**
-	 * Full constructor.
 	 * 
-	 * @param builder
-	 *            the fluent builder.
+	 * @param javaElement
+	 * @param annotations
+	 * @param metamodel
+	 * @param sourceType
+	 * @param parentParameterAggregator
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
 	 */
-	JaxrsParameterAggregatorElement(final T javaElement, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel, final SourceType sourceType, final JaxrsParameterAggregator parentParameterAggregator) {
-		super(javaElement, annotations, metamodel);
-		this.fieldType = sourceType;
+	JaxrsParameterAggregatorElement(final T javaElement, final Map<String, Annotation> annotations,
+			final JaxrsMetamodel metamodel, final SourceType sourceType,
+			final JaxrsParameterAggregator parentParameterAggregator, final JaxrsParameterAggregatorElement<T> primaryCopy) {
+		super(javaElement, annotations, metamodel, primaryCopy);
+		this.elementType = sourceType;
 		this.parentParameterAggregator = parentParameterAggregator;
 	}
 	
@@ -48,7 +55,7 @@ public abstract class JaxrsParameterAggregatorElement<T extends IMember> extends
 	}
 
 	public SourceType getType() {
-		return this.fieldType;
+		return this.elementType;
 	}
 	
 

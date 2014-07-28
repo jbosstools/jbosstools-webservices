@@ -189,6 +189,44 @@ public class Jaxrs20BeanParamValidatorTestCase {
 	}
 
 	@Test
+	public void shouldReportAndFixProblemWhenValidatingResourceMethodUsingParameterAggregatorWithUnboundAnnotationValuesInParameterAggregator() throws CoreException, ValidationException {
+		// pre-conditions: change @Path value in CarResource#update(CarParameterAggregator)
+		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.CarResource", javaProject, "final CarParameterAggregator car", "@BeanParam final CarParameterAggregator car", false);
+		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.CarParameterAggregator", javaProject, "@PathParam(\"id1\")", "@PathParam(\"ide\")", false);
+		final JaxrsResource carResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CarResource");
+		final JaxrsParameterAggregator carParameterAggregator = metamodelMonitor.createParameterAggregator("org.jboss.tools.ws.jaxrs.sample.services.CarParameterAggregator");
+		
+		deleteJaxrsMarkers(project);
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation 1: validate the *JAX-RS Resource*
+		final Set<IFile> resources = toSet(carParameterAggregator.getResource());
+		new JaxrsMetamodelValidator().validate(resources, project, validationHelper, context, validatorManager,
+				reporter);
+		
+		// validation 1: one problem reported in both classes
+		final IMarker[] carResourceMarkers = findJaxrsMarkers(metamodel.findElement(JavaElementsUtils.getMethod(carResource.getJavaElement(), "update")));
+		assertThat(carResourceMarkers.length, equalTo(2));
+		final IMarker[] carParameterAggregatorMarkers = findJaxrsMarkers(metamodel.findElement(JavaElementsUtils.getField(carParameterAggregator.getJavaElement(), "id1")));
+		assertThat(carParameterAggregatorMarkers.length, equalTo(1));
+		assertThat(carParameterAggregatorMarkers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, ""),
+				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		assertThat(carParameterAggregatorMarkers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		
+		// operation 2: fix the problems
+		replaceFirstOccurrenceOfCode(carParameterAggregator, "@PathParam(\"ide\")", "@PathParam(\"id1\")", false);
+		final Set<IFile> changedResources = toSet(carParameterAggregator.getResource());
+		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
+				reporter);
+		
+		// validation 1: one problem reported
+		final IMarker[] updatedCarResourceMarkers = findJaxrsMarkers(metamodel.findElement(JavaElementsUtils.getMethod(carResource.getJavaElement(), "update")));
+		assertThat(updatedCarResourceMarkers.length, equalTo(0));
+		final IMarker[] updatedCarParameterAggregatorMarkers = findJaxrsMarkers(metamodel.findElement(JavaElementsUtils.getField(carParameterAggregator.getJavaElement(), "id1")));
+		assertThat(updatedCarParameterAggregatorMarkers.length, equalTo(0));
+	}
+	
+	@Test
 	public void shouldReportProblemWhenValidatingResourceMethodUsingParameterAggregatorWithMissingAnnotationOnProperty() throws CoreException, ValidationException {
 		// pre-conditions: remove @PathParam on ParameterAggregator property ("setId2")
 		replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.CarParameterAggregator", javaProject, "@PathParam(\"id2\")", "", false);

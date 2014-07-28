@@ -90,6 +90,13 @@ public class SourceType {
 		}
 		return null;
 	}
+	
+	public SourceType createWorkingCopy() {
+		synchronized (this) {
+			return new SourceType(erasureName, erasureType, new ArrayList<IType>(typeArguments), isPrimitive,
+				new SourceRange(nameRange.getOffset(), nameRange.getLength()));
+		}
+	}
 
 	/**
 	 * @return {@code true} if the source type exists, false otherwise.

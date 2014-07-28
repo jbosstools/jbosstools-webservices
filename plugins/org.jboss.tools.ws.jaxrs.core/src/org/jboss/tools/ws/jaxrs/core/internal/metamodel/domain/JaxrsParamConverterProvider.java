@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -136,7 +137,7 @@ public class JaxrsParamConverterProvider extends JaxrsJavaElement<IType> impleme
 		}
 	}
 
-	/** Flag to indicate if this class implements the required interface.*/
+	/** Flag to indicate if the associated Java type implements the required interface.*/
 	private boolean isParamConvertProviderImpl = false;
 
 	/**
@@ -147,8 +148,41 @@ public class JaxrsParamConverterProvider extends JaxrsJavaElement<IType> impleme
 	 * 
 	 */
 	private JaxrsParamConverterProvider(final Builder builder) {
-		super(builder.javaType, builder.annotations, builder.metamodel);
-		this.isParamConvertProviderImpl = builder.isParamConvertProviderImpl;
+		this(builder.javaType, builder.annotations, builder.isParamConvertProviderImpl, builder.metamodel, null);
+	}
+	
+	/**
+	 * Full constructor
+	 * @param javaType
+	 *            the underlying java type.
+	 * @param annotations
+	 *            the relevant annotations.
+	 * @param isParamConvertProviderImpl 
+	 * 		flag to indicate if the associated Java type implements the required interface
+	 * @param metamodel
+	 *            the metamodel or <code>null</code> if the instance is
+	 *            transient.
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsParamConverterProvider(final IType javaType, final Map<String, Annotation> annotations,
+			final boolean isParamConvertProviderImpl, final JaxrsMetamodel metamodel, final JaxrsParamConverterProvider primaryCopy) {
+		super(javaType, annotations, metamodel, primaryCopy);
+		this.isParamConvertProviderImpl = isParamConvertProviderImpl;
+	}
+
+	@Override
+	public JaxrsParamConverterProvider createWorkingCopy() {
+		synchronized (this) {
+			return new JaxrsParamConverterProvider(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+					isParamConvertProviderImpl(), getMetamodel(), this);
+		}
+	}
+
+	@Override
+	public JaxrsParamConverterProvider getWorkingCopy() {
+		return (JaxrsParamConverterProvider) super.getWorkingCopy();
 	}
 	
 	public boolean isParamConvertProviderImpl() {
@@ -168,27 +202,28 @@ public class JaxrsParamConverterProvider extends JaxrsJavaElement<IType> impleme
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsParamConverterProvider transientProvider = JaxrsParamConverterProvider.from(javaElement, ast).build(false);
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		// clear this element if the given transient element is null
-		if (transientProvider == null) {
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (this.isParamConvertProviderImpl() != transientProvider.isParamConvertProviderImpl()) {
-				this.isParamConvertProviderImpl = transientProvider.isParamConvertProviderImpl();
-				delta.addFlag(F_PARAM_CONVERTER_PROVIDER_HIERARCHY);
-			}
-			if (isMarkedForRemoval()) {
+		synchronized (this) {
+			final JaxrsParamConverterProvider transientProvider = JaxrsParamConverterProvider.from(javaElement, ast).build(false);
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			// clear this element if the given transient element is null
+			if (transientProvider == null) {
 				remove(annotationsFlags);
-			}
-			// update indexes for this element.
-			else if(hasMetamodel()){
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+				if (this.isParamConvertProviderImpl() != transientProvider.isParamConvertProviderImpl()) {
+					this.isParamConvertProviderImpl = transientProvider.isParamConvertProviderImpl();
+					delta.addFlag(F_PARAM_CONVERTER_PROVIDER_HIERARCHY);
+				}
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				}
+				// update indexes for this element.
+				else if(hasMetamodel()){
+					getMetamodel().update(delta);
+				}
 			}
 		}
-
 	}
 
 	/**

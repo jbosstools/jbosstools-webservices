@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -146,10 +147,55 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	 *            the fluent builder.
 	 */
 	private JaxrsResourceField(final Builder builder) {
-		super(builder.javaField, builder.annotations, builder.metamodel, builder.javaFieldType, builder.parentResource);
+		this(builder.javaField, builder.annotations, builder.metamodel, builder.javaFieldType, builder.parentResource,
+				null);
+	}
+
+	/**
+	 * Full constructor.
+	 * 
+	 * @param javaField
+	 *            the java field
+	 * @param annotations
+	 *            the java element annotations (or null)
+	 * @param metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
+	 * @param javaFieldType the {@link SourceType} associated with the given javaField
+	 * @param parentResource
+	 * 			the parent element
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsResourceField(final IField javaField, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel,
+			final SourceType javaFieldType, final JaxrsResource parentResource, final JaxrsResourceField primaryCopy) {
+		super(javaField, annotations, metamodel, javaFieldType, parentResource, primaryCopy);
 		if(getParentResource() != null) {
 			getParentResource().addField(this);
 		}
+	}
+
+	/**
+	 * Creates a working copy of this {@link JaxrsResourceField}, but detached
+	 * from the primary copy parent {@link JaxrsResource} element.
+	 */
+	@Override
+	public JaxrsResourceField createWorkingCopy() {
+		synchronized (this) {
+			final JaxrsResource parentWorkingCopy = getParentResource().getWorkingCopy();
+			return parentWorkingCopy.getFields().get(this.javaElement.getHandleIdentifier());
+		}
+	}
+	
+	protected JaxrsResourceField createWorkingCopy(final JaxrsResource parentWorkingCopy) {
+		return new JaxrsResourceField(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+				getMetamodel(), getType(), parentWorkingCopy, this);
+	}
+	
+	@Override
+	public JaxrsResourceField getWorkingCopy() {
+		return (JaxrsResourceField) super.getWorkingCopy();
 	}
 
 	@Override
@@ -179,16 +225,18 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 	 * @throws CoreException
 	 */
 	void update(final JaxrsResourceField transientField) throws CoreException {
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		if (transientField == null) {
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (isMarkedForRemoval()) {
+		synchronized (this) {
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			if (transientField == null) {
 				remove(annotationsFlags);
-			} else if(hasMetamodel()){
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientField.getAnnotations());
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				} else if(hasMetamodel()){
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

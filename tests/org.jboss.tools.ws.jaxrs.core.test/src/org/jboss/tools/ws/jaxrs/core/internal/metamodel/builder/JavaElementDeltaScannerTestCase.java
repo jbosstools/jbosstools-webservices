@@ -552,9 +552,9 @@ public class JavaElementDeltaScannerTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationRemovedInWorkingCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
-		IAnnotation annotation = type.getAnnotation("Path");
+		final IAnnotation annotation = type.getAnnotation("Path");
 		removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", WORKING_COPY);
 		// verifications
 		verifyEventNotification(annotation, REMOVED, POST_RECONCILE, Flags.NONE, times(1));
@@ -563,7 +563,7 @@ public class JavaElementDeltaScannerTestCase {
 	@Test
 	public void shouldNotifyWhenTypeAnnotationRemovedInPrimaryCopy() throws CoreException, InterruptedException {
 		// pre-condition
-		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
 		removeFirstOccurrenceOfCode(type, "@Path(value=CustomerResource.URI_BASE)", PRIMARY_COPY);
 		// verifications

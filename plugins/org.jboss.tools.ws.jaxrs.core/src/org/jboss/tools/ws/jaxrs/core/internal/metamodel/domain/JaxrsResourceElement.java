@@ -21,9 +21,13 @@ public abstract class JaxrsResourceElement<T extends IMember> extends JaxrsJavaE
 	 * @param metamodel
 	 * @param javaType
 	 * @param parentResource
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
 	 */
-	JaxrsResourceElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel, final SourceType javaType, final JaxrsResource parentResource) {
-		super(element, annotations, metamodel);
+	JaxrsResourceElement(final T element, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel,
+			final SourceType javaType, final JaxrsResource parentResource, final JaxrsResourceElement<T> primaryCopy) {
+		super(element, annotations, metamodel, primaryCopy);
 		this.javaType = javaType;
 		this.parentResource = parentResource;
 

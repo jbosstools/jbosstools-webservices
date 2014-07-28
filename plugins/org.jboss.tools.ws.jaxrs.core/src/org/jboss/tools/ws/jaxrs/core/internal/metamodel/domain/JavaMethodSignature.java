@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -30,16 +31,19 @@ public class JavaMethodSignature implements IJavaMethodSignature {
 	/** Method parameters.*/
 	private final List<IJavaMethodParameter> methodParameters;
 
-	public JavaMethodSignature(final IMethod javaMethod, final SourceType returnedType, final List<JavaMethodParameter> methodParameters) {
+	public JavaMethodSignature(final IMethod javaMethod, final SourceType returnedType, final List<IJavaMethodParameter> methodParameters) {
 		this.javaMethod = javaMethod;
 		this.returnedType = returnedType;
-		this.methodParameters = new ArrayList<IJavaMethodParameter>(methodParameters != null ? methodParameters.size()*2 : 0);
-		if (methodParameters != null) {
-			this.methodParameters.addAll(methodParameters);
+		this.methodParameters = new ArrayList<IJavaMethodParameter>(methodParameters);
+	}
+	
+	public JavaMethodSignature createWorkingcopy() {
+		synchronized (this) {
+			return new JavaMethodSignature(javaMethod, returnedType, new ArrayList<IJavaMethodParameter>(methodParameters));
 		}
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see org.jboss.tools.ws.jaxrs.core.utils.IJavaMethodSignature#getJavaMethod()
 	 */
 	@Override
@@ -47,7 +51,7 @@ public class JavaMethodSignature implements IJavaMethodSignature {
 		return javaMethod;
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see org.jboss.tools.ws.jaxrs.core.utils.IJavaMethodSignature#getReturnedType()
 	 */
 	@Override
@@ -55,15 +59,15 @@ public class JavaMethodSignature implements IJavaMethodSignature {
 		return returnedType;
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see org.jboss.tools.ws.jaxrs.core.utils.IJavaMethodSignature#getMethodParameters()
 	 */
 	@Override
 	public List<IJavaMethodParameter> getMethodParameters() {
-		return methodParameters;
+		return Collections.unmodifiableList(methodParameters);
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see org.jboss.tools.ws.jaxrs.core.utils.IJavaMethodSignature#getMethodParameter(java.lang.String)
 	 */
 	@Override

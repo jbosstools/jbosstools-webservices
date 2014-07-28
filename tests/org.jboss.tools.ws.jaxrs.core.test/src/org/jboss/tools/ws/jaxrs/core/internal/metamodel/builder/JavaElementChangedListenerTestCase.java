@@ -60,6 +60,7 @@ public class JavaElementChangedListenerTestCase {
 	}
 	
 	@Test
+	// FIXME: should be ignored if the JavaElementChangedListener feature is removed. This would now take place during validation. 
 	public void shouldRemoveApplicationWhenRemovingUnderlyingType() throws JavaModelException {
 		// pre-conditions
 		final IType applicationType = metamodel.findJavaApplications().iterator().next().getJavaElement();

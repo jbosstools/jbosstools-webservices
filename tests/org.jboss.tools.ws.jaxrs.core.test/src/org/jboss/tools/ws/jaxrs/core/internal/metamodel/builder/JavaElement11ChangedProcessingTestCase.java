@@ -66,7 +66,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplicat
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
@@ -1126,7 +1125,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithPathParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceElement field = resource.getField("_pType");
+		final JaxrsResourceField field = resource.getField("_pType");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(field.getJavaElement(), REMOVED);
@@ -1141,7 +1140,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithQueryParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceElement field = resource.getField("_foo");
+		final JaxrsResourceField field = resource.getField("_foo");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(field.getJavaElement(), REMOVED);
@@ -1156,7 +1155,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void shouldRemoveResourceFieldWhenRemovingFieldAnnotatedWithMatrixParam() throws CoreException {
 		final JaxrsResource resource = metamodelMonitor
 				.createResource("org.jboss.tools.ws.jaxrs.sample.services.ProductResourceLocator");
-		final JaxrsResourceElement field = resource.getField("_bar");
+		final JaxrsResourceField field = resource.getField("_bar");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(field.getJavaElement(), REMOVED);

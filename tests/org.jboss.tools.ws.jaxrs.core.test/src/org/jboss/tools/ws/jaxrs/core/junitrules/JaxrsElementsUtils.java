@@ -41,6 +41,8 @@ public class JaxrsElementsUtils {
 	public static void replaceFirstOccurrenceOfCode(final JaxrsJavaElement<?> element, final String oldContent,
 			final String newContent, final boolean useWorkingCopy) throws CoreException {
 		JavaElementsUtils.replaceFirstOccurrenceOfCode(element.getJavaElement().getCompilationUnit(), oldContent, newContent, useWorkingCopy);
-		element.update(element.getJavaElement(), JdtUtils.parse(element.getJavaElement().getCompilationUnit(), null));
+		if(!useWorkingCopy) {
+			element.update(element.getJavaElement(), JdtUtils.parse(element.getJavaElement().getCompilationUnit(), null));
+		}
 	}
 }

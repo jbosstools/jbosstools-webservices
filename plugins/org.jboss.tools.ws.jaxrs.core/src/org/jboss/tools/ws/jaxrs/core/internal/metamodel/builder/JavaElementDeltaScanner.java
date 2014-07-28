@@ -219,7 +219,8 @@ public class JavaElementDeltaScanner {
 	 * @return
 	 */
 	private boolean requiresDiffsComputation(final Flags flags) {
-		return flags.hasExactValue(F_CONTENT, F_FINE_GRAINED, F_AST_AFFECTED);
+		return flags.hasExactValue(F_CONTENT, F_FINE_GRAINED) 
+				|| flags.hasExactValue(F_CONTENT, F_FINE_GRAINED, F_AST_AFFECTED);
 	}
 
 	/**

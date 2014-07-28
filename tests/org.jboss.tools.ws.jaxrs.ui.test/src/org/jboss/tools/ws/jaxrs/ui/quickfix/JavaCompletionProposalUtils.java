@@ -23,6 +23,7 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jface.text.IDocument;
 import org.jboss.tools.common.quickfix.IQuickFix;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 
 /**
  * Utility class to execute the completion proposals during the tests.
@@ -34,16 +35,17 @@ public class JavaCompletionProposalUtils {
 	/**
 	 * apply the completion proposal on the underlying {@link IResource} of the given {@link JaxrsJavaElement}.
 	 */
-	public static void applyCompletionProposal(final IJavaCompletionProposal completionProposal, final IResource resource) throws CoreException {
+	public static void applyCompletionProposal(final IJavaCompletionProposal completionProposal, final JaxrsJavaElement<?> element) throws CoreException {
 		final ITextFileBufferManager manager= FileBuffers.getTextFileBufferManager();
-		final IPath path= resource.getFullPath();
+		final IPath path= element.getResource().getFullPath();
 		manager.connect(path, LocationKind.IFILE, new NullProgressMonitor());
 		final ITextFileBuffer fBuffer = manager.getTextFileBuffer(path, LocationKind.IFILE);
 		final IDocument document = fBuffer.getDocument();
 		completionProposal.apply(document);
-		//ResourcesUtils.replaceContent(resource, document.get());
 		fBuffer.commit(null, true);
 		manager.disconnect(path, LocationKind.IFILE, null);
+		// now, update the element with the latest changes
+		element.update(element.getJavaElement(), JdtUtils.parse(element.getJavaElement().getCompilationUnit(), null));
 	}
 
 	/**

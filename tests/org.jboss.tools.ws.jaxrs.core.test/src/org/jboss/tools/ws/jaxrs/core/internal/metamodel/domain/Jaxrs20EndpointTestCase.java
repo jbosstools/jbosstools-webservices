@@ -900,4 +900,6 @@ public class Jaxrs20EndpointTestCase {
 		assertThat(updatedEndpoint.getUriPathTemplate(), equalTo("/test/{path:.*}"));
 	}
 	
+	
+	
 }

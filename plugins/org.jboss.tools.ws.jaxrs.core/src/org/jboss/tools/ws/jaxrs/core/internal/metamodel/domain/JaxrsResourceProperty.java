@@ -30,12 +30,12 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
@@ -76,7 +76,7 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 		private JaxrsResource parentResource;
 		private JaxrsMetamodel metamodel;
 		private SourceType javaPropertyType;
-		private IJavaMethodSignature methodSignature;
+		private JavaMethodSignature methodSignature;
 		
 		private Builder(final IMethod javaMethod, final CompilationUnit ast) {
 			this.javaMethod = javaMethod;
@@ -88,7 +88,7 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 			return this;
 		}
 
-		public Builder withJavaMethodSignature(final IJavaMethodSignature javaMethodSignature) {
+		public Builder withJavaMethodSignature(final JavaMethodSignature javaMethodSignature) {
 			this.methodSignature = javaMethodSignature;
 			return this;
 		}
@@ -142,7 +142,7 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 	}
 	
 	/** the underlying method signature. */
-	private IJavaMethodSignature methodSignature;
+	private JavaMethodSignature methodSignature;
 	
 	/**
 	 * Full constructor.
@@ -151,11 +151,59 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 	 *            the fluent builder.
 	 */
 	private JaxrsResourceProperty(final Builder builder) {
-		super(builder.javaMethod, builder.annotations, builder.metamodel, builder.javaPropertyType, builder.parentResource);
-		this.methodSignature = builder.methodSignature;
+		this(builder.javaMethod, builder.annotations, builder.metamodel, builder.javaPropertyType,
+				builder.methodSignature, builder.parentResource, null);
+	}
+
+	/**
+	 * Full constructor.
+	 * 
+	 * @param javaMethod
+	 *            the java method
+	 * @param annotations
+	 *            the java element annotations (or null)
+	 * @param metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
+	 * @param parentResource
+	 *            the parent element
+	 * @param returnedJavaType
+	 *            the {@link SourceType} returned by the underlying
+	 *            {@link IMethod}
+	 * @param javaMethodParameters
+	 *            the list of {@link JavaMethodParameter} of the underlying
+	 *            {@link IMethod}
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsResourceProperty(final IMethod javaMethod, final Map<String, Annotation> annotations,
+			final JaxrsMetamodel metamodel, final SourceType javaPropertyType,
+			final JavaMethodSignature methodSignature, final JaxrsResource parentResource,
+			final JaxrsResourceProperty primaryCopy) {
+	super(javaMethod, annotations, metamodel, javaPropertyType, parentResource, primaryCopy);
+		this.methodSignature = methodSignature;
 		if(getParentResource() != null) {
 			getParentResource().addProperty(this);
 		}
+	}
+
+	@Override
+	public JaxrsResourceProperty createWorkingCopy() {
+		synchronized (this) {
+			final JaxrsResource parentWorkingCopy = getParentResource().getWorkingCopy();
+			return parentWorkingCopy.getProperties().get(this.javaElement.getHandleIdentifier());
+		}
+	}
+	
+	protected JaxrsResourceProperty createWorkingCopy(final JaxrsResource parentWorkingCopy) {
+		return new JaxrsResourceProperty(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+			getMetamodel(), getType(), getMethodSignature().createWorkingcopy(), parentWorkingCopy, this);
+	}
+	
+	@Override
+	public JaxrsResourceProperty getWorkingCopy() {
+		return (JaxrsResourceProperty) super.getWorkingCopy();
 	}
 
 	/**
@@ -165,7 +213,7 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 		return parentResource;
 	}
 	
-	public IJavaMethodSignature getMethodSignature() {
+	public JavaMethodSignature getMethodSignature() {
 		return methodSignature;
 	}
 	
@@ -197,17 +245,19 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 	 * @throws CoreException
 	 */
 	void update(final JaxrsResourceProperty transientProperty) throws CoreException {
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		if (transientProperty == null) {
-			// give a hint about the existing JAX-RS annotations before the element is removed.
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (updateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
+		synchronized (this) {
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			if (transientProperty == null) {
+				// give a hint about the existing JAX-RS annotations before the element is removed.
 				remove(annotationsFlags);
-			} else if(hasMetamodel()){
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+				if (updateAnnotationsFlags.hasValue(F_ELEMENT_KIND) && isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				} else if(hasMetamodel()){
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

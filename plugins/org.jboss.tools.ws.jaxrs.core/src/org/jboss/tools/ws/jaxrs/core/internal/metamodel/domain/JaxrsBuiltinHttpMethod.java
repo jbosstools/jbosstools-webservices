@@ -62,7 +62,7 @@ public class JaxrsBuiltinHttpMethod extends JaxrsHttpMethod {
 	 * @param metamodel
 	 */
 	private JaxrsBuiltinHttpMethod(final Builder builder) {
-		super(null, builder.annotations, builder.metamodel);
+		super(null, builder.annotations, builder.metamodel, null);
 		this.annotationName = builder.annotationName;
 		this.httpVerb = builder.httpVerb;
 	}

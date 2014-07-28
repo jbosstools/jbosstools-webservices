@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceElement;
@@ -48,9 +49,10 @@ public abstract class JaxrsResourceElementValidatorDelegate<T extends JaxrsResou
 	 * level or on any sibling {@link JaxrsResourceMethod}.
 	 * 
 	 * @param resourceElement the resource field to validate.
+	 * @param ast the associated compilation unit
 	 * @throws CoreException 
 	 */
-	void validateNotUnboundPathParamAnnotationValue(final T resourceElement) throws CoreException {
+	void validateNotUnboundPathParamAnnotationValue(final T resourceElement, final CompilationUnit ast) throws CoreException {
 		final Annotation pathParamAnnotation = resourceElement.getAnnotation(PATH_PARAM);
 		if(pathParamAnnotation == null) {
 			return;
@@ -66,7 +68,7 @@ public abstract class JaxrsResourceElementValidatorDelegate<T extends JaxrsResou
 		}
 		// now, check:
 		if(!pathTemplateParameters.contains(pathParamAnnotation.getValue())) {
-			final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+			final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
 			markerManager.addMarker((JaxrsBaseElement)resourceElement, annotationValueRange,
 					JaxrsValidationMessages.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
 					new String[] { pathParamAnnotation.getValue(), parentResource.getJavaElement().getFullyQualifiedName() },

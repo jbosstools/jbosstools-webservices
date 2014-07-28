@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -157,9 +158,24 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	 * @param builder
 	 *            the fluent builder
 	 */
-	public JaxrsJavaApplication(final Builder builder) {
-		super(builder.javaType, builder.annotations, builder.metamodel);
-		this.isApplicationSubclass = builder.isApplicationSubclass;
+	private JaxrsJavaApplication(final Builder builder) {
+		this(builder.javaType, builder.annotations, builder.metamodel, builder.isApplicationSubclass, null);
+	}
+
+	/**
+	 * 
+	 * @param javaType
+	 * @param annotations
+	 * @param metamodel
+	 * @param isApplicationSubclass
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsJavaApplication(final IType javaType, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel,
+			final boolean isApplicationSubclass, final JaxrsJavaApplication primaryCopy) {
+		super(javaType, annotations, metamodel, primaryCopy);
+		this.isApplicationSubclass = isApplicationSubclass;
 		if (hasMetamodel()) {
 			final JaxrsWebxmlApplication webxmlApplication = getMetamodel().findWebxmlApplicationByClassName(
 					getJavaClassName());
@@ -169,6 +185,19 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 		}
 	}
 
+	@Override
+	public JaxrsBaseElement createWorkingCopy() {
+		synchronized (this) {
+			return new JaxrsJavaApplication(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+					getMetamodel(), isJaxrsCoreApplicationSubclass(), this);
+		}
+	}
+
+	@Override
+	public JaxrsJavaApplication getWorkingCopy() {
+		return (JaxrsJavaApplication) super.getWorkingCopy();
+	}
+	
 	/**
 	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsJavaApplication} anymore) 
 	 */
@@ -276,23 +305,25 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsJavaApplication transientApplication = from(javaElement, ast).build(false);
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		if (transientApplication == null) {
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientApplication.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (this.isJaxrsCoreApplicationSubclass() != transientApplication.isJaxrsCoreApplicationSubclass()) {
-				this.isApplicationSubclass = transientApplication.isJaxrsCoreApplicationSubclass();
-				delta.addFlag(F_APPLICATION_HIERARCHY);
-			}
-			if (isMarkedForRemoval()) {
+		synchronized (this) {
+			final JaxrsJavaApplication transientApplication = from(javaElement, ast).build(false);
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			if (transientApplication == null) {
 				remove(annotationsFlags);
-			}
-			// update indexes for this element.
-			else if(hasMetamodel()){
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientApplication.getAnnotations());
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+				if (this.isJaxrsCoreApplicationSubclass() != transientApplication.isJaxrsCoreApplicationSubclass()) {
+					this.isApplicationSubclass = transientApplication.isJaxrsCoreApplicationSubclass();
+					delta.addFlag(F_APPLICATION_HIERARCHY);
+				}
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				}
+				// update indexes for this element.
+				else if(hasMetamodel()){
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

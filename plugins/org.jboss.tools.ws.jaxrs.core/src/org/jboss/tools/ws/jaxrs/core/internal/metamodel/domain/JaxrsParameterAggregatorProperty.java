@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -133,10 +134,53 @@ public class JaxrsParameterAggregatorProperty extends JaxrsParameterAggregatorEl
 	 *            the fluent builder.
 	 */
 	private JaxrsParameterAggregatorProperty(final Builder builder) {
-		super(builder.javaMethod, builder.annotations, builder.metamodel, builder.javaMethodParameterType, builder.parentParameterAggregator);
+		this(builder.javaMethod, builder.annotations, builder.metamodel, builder.javaMethodParameterType,
+				builder.parentParameterAggregator, null);
+	}
+	
+	/**
+	 * Full constructor.
+	 * 
+	 * @param javaMethod
+	 *            the java method
+	 * @param annotations
+	 *            the java element annotations (or null)
+	 * @param metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
+	 * @param javaMethodParameterType the {@link SourceType} associated with the given javaMethod
+	 * @param parentParameterAggregator
+	 * 			the parent element
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsParameterAggregatorProperty(final IMethod javaMethod, final Map<String, Annotation> annotations,
+			final JaxrsMetamodel metamodel, final SourceType javaMethodParameterType,
+			final JaxrsParameterAggregator parentParameterAggregator, final JaxrsParameterAggregatorProperty primaryCopy) {
+		super(javaMethod, annotations, metamodel, javaMethodParameterType, parentParameterAggregator, primaryCopy);
 		if(getParentParameterAggregator() != null) {
 			getParentParameterAggregator().addElement(this);
 		}
+	}
+
+	@Override
+	public JaxrsParameterAggregatorProperty createWorkingCopy() {
+		synchronized (this) {
+			final JaxrsParameterAggregator parentWorkingCopy = getParentParameterAggregator().getWorkingCopy();
+			return parentWorkingCopy.getProperties().get(this.javaElement.getHandleIdentifier());
+		}
+	}
+	
+	protected JaxrsParameterAggregatorProperty createWorkingCopy(final JaxrsParameterAggregator parentWorkingCopy) {
+		return new JaxrsParameterAggregatorProperty(getJavaElement(),
+				AnnotationUtils.createWorkingCopies(getAnnotations()), getMetamodel(), getType(),
+				parentWorkingCopy, this);
+	}
+	
+	@Override
+	public JaxrsParameterAggregatorProperty getWorkingCopy() {
+		return (JaxrsParameterAggregatorProperty) super.getWorkingCopy();
 	}
 	
 	@Override
@@ -166,16 +210,18 @@ public class JaxrsParameterAggregatorProperty extends JaxrsParameterAggregatorEl
 	 * @throws CoreException
 	 */
 	void update(final JaxrsParameterAggregatorProperty transientProperty) throws CoreException {
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		if (transientProperty == null) {
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (isMarkedForRemoval()) {
+		synchronized (this) {
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			if (transientProperty == null) {
 				remove(annotationsFlags);
-			} else if(hasMetamodel()){
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientProperty.getAnnotations());
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				} else if(hasMetamodel()){
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}
@@ -185,7 +231,6 @@ public class JaxrsParameterAggregatorProperty extends JaxrsParameterAggregatorEl
 	 */
 	@Override
 	boolean isMarkedForRemoval() {
-		//FIXME: this looks wrong
 		final boolean hasPathParamAnnotation = hasAnnotation(PATH_PARAM);
 		final boolean hasQueryParamAnnotation = hasAnnotation(QUERY_PARAM);
 		final boolean hasMatrixParamAnnotation = hasAnnotation(MATRIX_PARAM);

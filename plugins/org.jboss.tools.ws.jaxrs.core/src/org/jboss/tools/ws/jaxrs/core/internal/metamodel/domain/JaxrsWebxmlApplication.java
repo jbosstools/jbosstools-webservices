@@ -131,10 +131,44 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 	 * 
 	 */
 	private JaxrsWebxmlApplication(final Builder builder) {
-		super(builder.metamodel);
-		this.applicationPath = normalizeApplicationPath(builder.applicationPath);
-		this.javaClassName = builder.javaClassName;
-		this.webxmlResource = builder.webxmlResource;
+		this(builder.metamodel, normalizeApplicationPath(builder.applicationPath), builder.javaClassName,
+				builder.webxmlResource, null);
+	}
+
+	/**
+	 * Full Constructor.
+	 * 
+	 * @param metamodel
+	 *            the metamodel or <code>null</code> if the instance is
+	 *            transient.
+	 * @param applicationPath
+	 *            The application path defined by the servlet mapping.
+	 * @param javaClassName
+	 *            The Application class name, defined by the servlet name.
+	 * @param webxmlResource
+	 *            The underlying web.xml resource.
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsWebxmlApplication(final JaxrsMetamodel metamodel, final String applicationPath, final String javaClassName,
+			final IResource webxmlResource, final JaxrsWebxmlApplication primaryCopy) {
+		super(metamodel, primaryCopy);
+		this.applicationPath = applicationPath;
+		this.javaClassName = javaClassName;
+		this.webxmlResource = webxmlResource;
+	}
+	
+	@Override
+	public JaxrsWebxmlApplication createWorkingCopy() {
+		synchronized (this) {
+			return new JaxrsWebxmlApplication(getMetamodel(), getApplicationPath(), getJavaClassName(), getResource(), this);
+		}
+	}
+	
+	@Override
+	public JaxrsWebxmlApplication getWorkingCopy() {
+		return (JaxrsWebxmlApplication) super.getWorkingCopy();
 	}
 
 	@Override
@@ -192,40 +226,42 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 
 
 	public void update(final JaxrsWebxmlApplication transientWebXmlAppl) throws CoreException {
-		if(transientWebXmlAppl == null) {
-			remove(FlagsUtils.computeElementFlags(transientWebXmlAppl));
-		} else {
-			final Flags flags = new Flags();
-			final String eventApplicationPath = normalizeApplicationPath(transientWebXmlAppl.getApplicationPath());
-			if (!(eventApplicationPath.equals(this.applicationPath))) {
-				final JaxrsJavaApplication currentJavaApplication = getMetamodel().findJavaApplicationByTypeName(javaClassName);
-				if(currentJavaApplication != null) {
-					currentJavaApplication.setApplicationPathOverride(eventApplicationPath);
-				}	
-				this.applicationPath = eventApplicationPath;
-				flags.addFlags(F_APPLICATION_PATH_ANNOTATION);
-			}
-			final String eventJavaClassName = transientWebXmlAppl.getJavaClassName();
-			if (!(eventJavaClassName.equals(this.javaClassName))) {
-				final JaxrsJavaApplication previousJavaApplication = getMetamodel().findJavaApplicationByTypeName(javaClassName);
-				if(previousJavaApplication != null) {
-					previousJavaApplication.unsetApplicationPathOverride();
-				}	
-				final JaxrsJavaApplication nextJavaApplication = getMetamodel().findJavaApplicationByTypeName(eventJavaClassName);
-				if(nextJavaApplication != null) {
-					nextJavaApplication.setApplicationPathOverride(applicationPath);
-				}	
-				this.javaClassName = eventJavaClassName;
-				flags.addFlags(F_APPLICATION_CLASS_NAME);
-			}
-			if(flags.hasValue() && hasMetamodel()) {
-				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
-				getMetamodel().update(delta);
+		synchronized (this) {
+			if(transientWebXmlAppl == null) {
+				remove(FlagsUtils.computeElementFlags(transientWebXmlAppl));
+			} else {
+				final Flags flags = new Flags();
+				final String eventApplicationPath = normalizeApplicationPath(transientWebXmlAppl.getApplicationPath());
+				if (!(eventApplicationPath.equals(this.applicationPath))) {
+					final JaxrsJavaApplication currentJavaApplication = getMetamodel().findJavaApplicationByTypeName(javaClassName);
+					if(currentJavaApplication != null) {
+						currentJavaApplication.setApplicationPathOverride(eventApplicationPath);
+					}	
+					this.applicationPath = eventApplicationPath;
+					flags.addFlags(F_APPLICATION_PATH_ANNOTATION);
+				}
+				final String eventJavaClassName = transientWebXmlAppl.getJavaClassName();
+				if (!(eventJavaClassName.equals(this.javaClassName))) {
+					final JaxrsJavaApplication previousJavaApplication = getMetamodel().findJavaApplicationByTypeName(javaClassName);
+					if(previousJavaApplication != null) {
+						previousJavaApplication.unsetApplicationPathOverride();
+					}	
+					final JaxrsJavaApplication nextJavaApplication = getMetamodel().findJavaApplicationByTypeName(eventJavaClassName);
+					if(nextJavaApplication != null) {
+						nextJavaApplication.setApplicationPathOverride(applicationPath);
+					}	
+					this.javaClassName = eventJavaClassName;
+					flags.addFlags(F_APPLICATION_CLASS_NAME);
+				}
+				if(flags.hasValue() && hasMetamodel()) {
+					final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, flags);
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}
 	
-	private String normalizeApplicationPath(final String eventApplicationPath) {
+	private static String normalizeApplicationPath(final String eventApplicationPath) {
 		String path = eventApplicationPath.replace("/*", "/");
 		if (path.length() > 1 && path.endsWith("/")) {
 			path = path.substring(0, path.length() - 1);

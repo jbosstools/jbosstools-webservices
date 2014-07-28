@@ -39,6 +39,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -175,11 +176,58 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 	/** The map of {@link JaxrsParameterAggregatorProperty} indexed by the underlying java element identifier. */
 	private final Map<String, JaxrsParameterAggregatorProperty> properties = new HashMap<String, JaxrsParameterAggregatorProperty>();
 
+	/**
+	 * Full constructor 
+	 * @param builder the fluent builder
+	 */
 	private JaxrsParameterAggregator(final Builder builder) {
-		super(builder.javaType, null, builder.metamodel);
+		this(builder.javaType, null, builder.metamodel, null);
 		
 	}
 	
+	/**
+	 * Full constructor.
+	 * 
+	 * @param element
+	 *            the java element
+	 * @param annotations
+	 *            the java element annotations (or null)
+	 * @param metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsParameterAggregator(final IType javaType, Map<String, Annotation> annotations, final JaxrsMetamodel metamodel, final JaxrsParameterAggregator primaryCopy) {
+		super(javaType, annotations, metamodel, primaryCopy);
+	}
+
+	/**
+	 * Returns a working copy of this {@link JaxrsParameterAggregator}, including working copies of all its
+	 * {@link JaxrsParameterAggregatorField} and {@link JaxrsParameterAggregatorProperty} children.
+	 */
+	@Override
+	public JaxrsParameterAggregator createWorkingCopy() {
+		synchronized (this) {
+			final JaxrsParameterAggregator paramAggregatorWorkingCopy = new JaxrsParameterAggregator(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+					getMetamodel(), this);
+			// working copies of the children elements add themselves to the given parent aggregator
+			for(Entry<String, JaxrsParameterAggregatorField> fieldEntry : this.fields.entrySet()) {
+				fieldEntry.getValue().createWorkingCopy(paramAggregatorWorkingCopy);
+			}
+			for(Entry<String, JaxrsParameterAggregatorProperty> propertyEntry : this.properties.entrySet()) {
+				propertyEntry.getValue().createWorkingCopy(paramAggregatorWorkingCopy);
+			}
+			return paramAggregatorWorkingCopy;
+		}
+	}
+	
+	@Override
+	public JaxrsParameterAggregator getWorkingCopy() {
+		return (JaxrsParameterAggregator) super.getWorkingCopy();
+	}
+
 	public void addElement(final JaxrsParameterAggregatorField field) {
 		if (field != null) {
 			this.fields.put(field.getIdentifier(), field);
@@ -347,23 +395,25 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsParameterAggregator transientAggregator = from(javaElement, ast).buildTransient();
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		if (transientAggregator == null) {
-			remove(annotationsFlags);
-			return;
-		} 
-		final Flags updateAnnotationsFlags = updateAnnotations(transientAggregator.getAnnotations());
-		final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-		updateProperties(transientAggregator, ast);
-		updateFields(transientAggregator, ast);
-
-		if (isMarkedForRemoval()) {
-			remove(annotationsFlags);
-		}
-		// update indexes for this element.
-		else if (hasMetamodel()) {
-			getMetamodel().update(delta);
+		synchronized (this) {
+			final JaxrsParameterAggregator transientAggregator = from(javaElement, ast).buildTransient();
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			if (transientAggregator == null) {
+				remove(annotationsFlags);
+				return;
+			} 
+			final Flags updateAnnotationsFlags = updateAnnotations(transientAggregator.getAnnotations());
+			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+			updateProperties(transientAggregator, ast);
+			updateFields(transientAggregator, ast);
+	
+			if (isMarkedForRemoval()) {
+				remove(annotationsFlags);
+			}
+			// update indexes for this element.
+			else if (hasMetamodel()) {
+				getMetamodel().update(delta);
+			}
 		}
 	}
 	

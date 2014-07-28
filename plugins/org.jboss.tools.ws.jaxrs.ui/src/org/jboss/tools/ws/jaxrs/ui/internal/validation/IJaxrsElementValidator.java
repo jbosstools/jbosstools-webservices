@@ -11,6 +11,8 @@
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 
 /**
@@ -24,9 +26,14 @@ public interface IJaxrsElementValidator<T extends IJaxrsElement> {
 	/**
 	 * Validate the given {@link IJaxrsElement}.
 	 * 
-	 * @param element the JAX-RS element to validate
+	 * @param element
+	 *            the JAX-RS element to validate
+	 * @param ast
+	 *            the AST associated with the underlying {@link IJavaElement},
+	 *            or {@code null} if the {@link IJaxrsElement} is not associated
+	 *            with an {@link IJavaElement}.
 	 * @throws CoreException
 	 */
-	public abstract void validate(final T element) throws CoreException;
+	public abstract void validate(final T element, final CompilationUnit ast) throws CoreException;
 
 }

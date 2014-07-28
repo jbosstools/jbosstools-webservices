@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
@@ -35,14 +36,14 @@ public class JaxrsResourcePropertyValidatorDelegate extends JaxrsResourceElement
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsResourceProperty resourceProperty) throws CoreException {
+	void internalValidate(final JaxrsResourceProperty resourceProperty, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", resourceProperty);
 		// markers were already removed at the Resource level, they should *not*
 		// be removed again here (because another resource method
 		// of the same parent resource may already have been validated and have
 		// markers created.
 		validateParameterType(resourceProperty);
-		validateNotUnboundPathParamAnnotationValue(resourceProperty);
+		validateNotUnboundPathParamAnnotationValue(resourceProperty, ast);
 	}
 
 }

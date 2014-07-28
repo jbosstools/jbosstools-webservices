@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorField;
 
 /**
@@ -29,8 +30,8 @@ public class JaxrsParameterAggregatorFieldValidatorDelegate extends JaxrsParamet
 	}
 
 	@Override
-	void internalValidate(final JaxrsParameterAggregatorField aggregatorField) throws CoreException {
-		validateNoUnboundPathAnnotationTemplateParameters(aggregatorField);
+	void internalValidate(final JaxrsParameterAggregatorField aggregatorField, final CompilationUnit ast) throws CoreException {
+		validateNoUnboundPathAnnotationTemplateParameters(aggregatorField, ast);
 	}
 	
 }

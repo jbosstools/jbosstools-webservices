@@ -16,9 +16,11 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsElementsUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMessages;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.hasPreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER;
@@ -39,12 +41,17 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
+import org.eclipse.wst.validation.internal.provisional.core.IMessage;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.jboss.tools.common.validation.ContextValidationHelper;
+import org.jboss.tools.common.validation.EditorValidationContext;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
@@ -109,9 +116,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		deleteJaxrsMarkers(customerResource);
 		metamodelMonitor.resetElementChangesNotifications();
 
-		// operation
-		new JaxrsMetamodelValidator().validate(toSet(customerResource.getResource()), project, validationHelper,
-				context, validatorManager, reporter);
+		validate(customerResource);
 		
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
@@ -128,9 +133,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		deleteJaxrsMarkers(barResource);
 		metamodelMonitor.resetElementChangesNotifications();
 
-		// operation
-		new JaxrsMetamodelValidator().validate(toSet(barResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(barResource);
 		
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(barResource);
@@ -152,9 +155,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		deleteJaxrsMarkers(bazResource);
 		metamodelMonitor.resetElementChangesNotifications();
 
-		// operation
-		new JaxrsMetamodelValidator().validate(toSet(bazResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(bazResource);
 		
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(bazResource);
@@ -210,7 +211,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 	public void shouldReportProblemOnNonPublicJavaMethodInImplementationClass() throws CoreException,
 			ValidationException {
 		// pre-conditions
-		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		replaceFirstOccurrenceOfCode(compilationUnit, "public Response", "private Response", false);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ValidationResource");
@@ -282,7 +283,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 	@Test
 	public void shouldReportProblemOnUnboundMethodPathArgument() throws ValidationException, CoreException {
 		// pre-conditions
-		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ValidationResource");
@@ -311,7 +312,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 	public void shouldReportProblemOnUnboundMethodPathArgumentWithWhitespaces() throws ValidationException,
 			CoreException {
 		// pre-conditions
-		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		removeFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"format\") String format,", false);
 		replaceFirstOccurrenceOfCode(compilationUnit, "{format", "{  format", false);
@@ -340,7 +341,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 	@Test
 	public void shouldReportProblemOnUnboundPathParamArgument() throws CoreException, ValidationException {
 		// pre-conditions
-		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		replaceFirstOccurrenceOfCode(compilationUnit, "@Path(\"/{id}", "@Path(\"", false);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ValidationResource");
@@ -375,7 +376,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 	public void shouldReportErrorWhenUnauthorizedContextAnnotationOnJavaMethodParameters() throws CoreException,
 			ValidationException {
 		// pre-conditions
-		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		replaceFirstOccurrenceOfCode(compilationUnit, "@QueryParam(\"start\")", "@Context", false);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ValidationResource");
@@ -403,7 +404,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 	@Test
 	public void shouldIncreaseAndResetProblemLevelOnResourceMethod() throws CoreException, ValidationException {
 		// pre-conditions
-		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
 		replaceFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"id\")", "@PathParam(\"ide\")", false);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ValidationResource");
@@ -477,7 +478,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -531,7 +532,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -585,7 +586,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -615,7 +616,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -656,9 +657,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 				"org.jboss.tools.ws.jaxrs.sample.services", "CarResource.java");
 		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
-		// operation
-		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(carResource);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(carResource);
 		assertThat(markers.length, equalTo(0));
@@ -672,9 +671,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
 		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
-		// operation
-		new JaxrsMetamodelValidator().validate(toSet(carResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(carResource);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(carResource);
 		// 5 markers: missing import/unknown type does not count
@@ -682,7 +679,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 				for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -696,9 +693,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
 		final JaxrsResource truckResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
-		// operation
-		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(truckResource);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(truckResource);
 		// 5 markers: missing import/unknown type does not count
@@ -706,7 +701,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -720,9 +715,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
 		final JaxrsResource truckResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
-		// operation
-		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(truckResource);
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(truckResource);
 		// 5 markers: missing import/unknown type does not count
@@ -730,7 +723,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -746,9 +739,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource truckResource = metamodel.findResource(truckResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation 1 : first validation
-		new JaxrsMetamodelValidator().validate(toSet(truckResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(truckResource);
 		
 		// validation 1: the JAX-RS resource methods have errors
 		final IMarker[] markers = findJaxrsMarkers(truckResource);
@@ -757,7 +748,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 				for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
-			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
 		
@@ -784,8 +775,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		
 		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
@@ -793,6 +783,15 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+	}
+
+	/**
+	 * @param boatResource
+	 * @throws ValidationException
+	 */
+	public void validate(final JaxrsResource boatResource) throws ValidationException {
+		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
 	}
 
 	@Test
@@ -804,19 +803,22 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
-		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
 		
 		// operation: validate
 		final IRegion fieldRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fieldRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
+		final EditorValidationContext validationContext = new EditorValidationContext(project, document);
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fieldRegion), validationHelper, reporter, validationContext, null, (IFile)boatResourceCompilationUnit.getResource());
 		
 		// verifications
-		final IMarker[] markers = findJaxrsMarkers(boatResource);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
+		assertThat(messages.length, equalTo(1));
+		assertThat(messages[0].getText(), not(containsString("{")));
+		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 	}
 
@@ -829,29 +831,33 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
-		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
+		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
+		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
 		
 		// operation 1: validate
 		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, editorValidationContext, null, (IFile)boatResourceCompilationUnit.getResource());
 		
 		// verifications 1 : expect 1 problem
-		final IMarker[] markers = findJaxrsMarkers(boatResource);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
+		assertThat(messages.length, equalTo(1));
+		assertThat(messages[0].getText(), not(containsString("{")));
+		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 
 		// operation 2: fix the value and revalidate
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", false);
+		document.set(boatResourceCompilationUnit.getSource());
 		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, new EditorValidationContext(project, document), null, (IFile)boatResourceCompilationUnit.getResource());
 		
-		// verifications 1 : expect 1 problem
-		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
-		assertThat(updatedMarkers.length, equalTo(0));
+		// verifications 2 : expect 0 problem
+		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
+		assertThat(updatedMessages.length, equalTo(0));
 	}
 	
 	@Test
@@ -863,29 +869,33 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
-		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
+		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
+		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
 		
 		// operation 1: validate
 		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, editorValidationContext, null, (IFile)boatResourceCompilationUnit.getResource());
 		
 		// verifications 1 : expect 1 problem
-		final IMarker[] markers = findJaxrsMarkers(boatResource);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
+		assertThat(messages.length, equalTo(1));
+		assertThat(messages[0].getText(), not(containsString("{")));
+		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 
 		// operation 2: fix the value and revalidate
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		document.set(boatResourceCompilationUnit.getSource());
 		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, new EditorValidationContext(project, document), null, (IFile)boatResourceCompilationUnit.getResource());
 		
-		// verifications 1 : expect 1 problem
-		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
-		assertThat(updatedMarkers.length, equalTo(0));
+		// verifications 2 : expect 0 problem
+		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
+		assertThat(updatedMessages.length, equalTo(0));
 	}
 	
 	@Test
@@ -897,9 +907,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
@@ -916,9 +924,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
@@ -939,19 +945,22 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getProperty("setType").getPathParamAnnotation();
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
-		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
+		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
+		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
 		
 		// operation: validate
 		final IRegion propertyRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(propertyRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(propertyRegion), validationHelper, reporter, editorValidationContext, null, (IFile)boatResourceCompilationUnit.getResource());
 		
 		// verifications
-		final IMarker[] markers = findJaxrsMarkers(boatResource);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
+		assertThat(messages.length, equalTo(1));
+		assertThat(messages[0].getText(), not(containsString("{")));
+		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 	}
 	
@@ -966,29 +975,33 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getProperty("setType").getPathParamAnnotation();
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
-		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
+		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
+		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
 		
 		// operation 1: validate
 		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, editorValidationContext, null, (IFile)boatResourceCompilationUnit.getResource());
 		
 		// verifications 1 : expect 1 problem
-		final IMarker[] markers = findJaxrsMarkers(boatResource);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
+		assertThat(messages.length, equalTo(1));
+		assertThat(messages[0].getText(), not(containsString("{")));
+		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 		
 		// operation 2: fix the value and revalidate
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		document.set(boatResourceCompilationUnit.getSource());
 		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, new EditorValidationContext(project, document), null, (IFile)boatResourceCompilationUnit.getResource());
 		
-		// verifications 1 : expect 1 problem
-		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
-		assertThat(updatedMarkers.length, equalTo(0));
+		// verifications 2 : expect 0 problem
+		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
+		assertThat(updatedMessages.length, equalTo(0));
 	}
 	
 	@Test
@@ -1002,29 +1015,33 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getProperty("setType").getPathParamAnnotation();
-		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
-		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), "value");
+		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
+		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
+		final ISourceRange annotationValueRange = JdtUtils.resolveMemberPairValueRange(pathParamAnnotation.getJavaAnnotation(), Annotation.VALUE, ast);
+		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
+		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
 		
 		// operation 1: validate
 		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(modifiedRegion), validationHelper, reporter, editorValidationContext, null, (IFile)boatResourceCompilationUnit.getResource());
 		
 		// verifications 1 : expect 1 problem
-		final IMarker[] markers = findJaxrsMarkers(boatResource);
-		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
+		assertThat(messages.length, equalTo(1));
+		assertThat(messages[0].getText(), not(containsString("{")));
+		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 		
 		// operation 2: fix the value and revalidate
 		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
+		document.set(boatResourceCompilationUnit.getSource());
 		final IRegion fixedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
-		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, null, null, (IFile)boatResourceCompilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(fixedRegion), validationHelper, reporter, new EditorValidationContext(project, document), null, (IFile)boatResourceCompilationUnit.getResource());
 		
-		// verifications 1 : expect 1 problem
-		final IMarker[] updatedMarkers = findJaxrsMarkers(boatResource);
-		assertThat(updatedMarkers.length, equalTo(0));
+		// verifications 2 : expect 0 problem
+		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
+		assertThat(updatedMessages.length, equalTo(0));
 	}
 	
 	@Test
@@ -1038,9 +1055,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
@@ -1060,14 +1075,12 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
 		assertThat(markers.length, equalTo(1));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE));
 		
 	}
@@ -1084,14 +1097,12 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
 		assertThat(markers.length, equalTo(1));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE));
 		
 	}
@@ -1105,14 +1116,12 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
 		assertThat(markers.length, equalTo(1));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
 		
 	}
@@ -1126,14 +1135,12 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(boatResource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(boatResource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
 		assertThat(markers.length, equalTo(1));
-		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
+		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
 	}
 	
@@ -1145,9 +1152,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final JaxrsResource resource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
-		// operation: validate
-		new JaxrsMetamodelValidator().validate(toSet(resource.getResource()), project, validationHelper, context,
-				validatorManager, reporter);
+		validate(resource);
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(resource);

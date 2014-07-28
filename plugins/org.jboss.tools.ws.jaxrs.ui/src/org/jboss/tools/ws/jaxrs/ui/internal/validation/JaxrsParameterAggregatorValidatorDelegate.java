@@ -12,6 +12,7 @@
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorProperty;
@@ -32,13 +33,13 @@ public class JaxrsParameterAggregatorValidatorDelegate extends AbstractJaxrsElem
 	}
 
 	@Override
-	void internalValidate(final JaxrsParameterAggregator parameterAggregator) throws CoreException {
+	void internalValidate(final JaxrsParameterAggregator parameterAggregator, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", parameterAggregator);
 		for (JaxrsParameterAggregatorField parameterAggregatorField : parameterAggregator.getAllFields()) {
-			new JaxrsParameterAggregatorFieldValidatorDelegate(markerManager).validate(parameterAggregatorField, false);
+			new JaxrsParameterAggregatorFieldValidatorDelegate(markerManager).validate(parameterAggregatorField, ast, false);
 		}
 		for (JaxrsParameterAggregatorProperty parameterAggregatorProperty : parameterAggregator.getAllProperties()) {
-			new JaxrsParameterAggregatorPropertyValidatorDelegate(markerManager).validate(parameterAggregatorProperty, false);
+			new JaxrsParameterAggregatorPropertyValidatorDelegate(markerManager).validate(parameterAggregatorProperty, ast, false);
 		}
 	}
 

@@ -30,6 +30,8 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.DocumentProviderRegistry;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.wst.validation.internal.provisional.core.IMessage;
+import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -117,6 +119,13 @@ public class ValidationUtils {
 		}
 		printMarkers(markers);
 		return markers.toArray(new IMarker[markers.size()]);
+	}
+	
+	public static IMessage[] findJaxrsMessages(final IReporter reporter, final IJaxrsElement... elements) {
+		@SuppressWarnings("unchecked")
+		final List<IMessage> messages = reporter.getMessages();
+		
+		return messages.toArray(new IMessage[messages.size()]);
 	}
 
 	/**

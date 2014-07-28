@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -46,12 +47,12 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	 * @see org.jboss.tools.ws.jaxrs.ui.internal.validation.AbstractJaxrsElementValidatorDelegate#internalValidate(Object)
 	 */
 	@Override
-	void internalValidate(final JaxrsHttpMethod httpMethod) throws CoreException {
+	void internalValidate(final JaxrsHttpMethod httpMethod, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", httpMethod);
 		if (!httpMethod.isBuiltIn()) {
-			validateHttpMethodAnnotation(httpMethod);
-			validateRetentionAnnotation(httpMethod);
-			validateTargetAnnotation(httpMethod);
+			validateHttpMethodAnnotation(httpMethod, ast);
+			validateRetentionAnnotation(httpMethod, ast);
+			validateTargetAnnotation(httpMethod, ast);
 		}
 	}
 
@@ -61,14 +62,14 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	 * @param messages
 	 * @throws CoreException
 	 */
-	private void validateHttpMethodAnnotation(final JaxrsHttpMethod httpMethod) throws CoreException {
+	private void validateHttpMethodAnnotation(final JaxrsHttpMethod httpMethod, final CompilationUnit ast) throws CoreException {
 		final Annotation httpMethodAnnotation = httpMethod.getHttpMethodAnnotation();
 		// if annotation is null, the resource is not a JaxrsHttpMethod anymore.
 		if (httpMethodAnnotation != null) {
 			final String httpValue = httpMethodAnnotation.getValue();
 			if (httpValue != null && httpValue.isEmpty()) {
 				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
-						httpMethodAnnotation.getJavaAnnotation(), VALUE);
+						httpMethodAnnotation.getJavaAnnotation(), VALUE, ast);
 				markerManager.addMarker(httpMethod, range,
 						JaxrsValidationMessages.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE, new String[0],
 						JaxrsPreferences.HTTP_METHOD_INVALID_HTTP_METHOD_ANNOTATION_VALUE);
@@ -82,7 +83,7 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	 * @param messages
 	 * @throws CoreException
 	 */
-	private void validateTargetAnnotation(final JaxrsHttpMethod httpMethod) throws CoreException {
+	private void validateTargetAnnotation(final JaxrsHttpMethod httpMethod, final CompilationUnit ast) throws CoreException {
 		final Annotation targetAnnotation = httpMethod.getTargetAnnotation();
 		if (targetAnnotation == null) {
 			final ISourceRange range = httpMethod.getJavaElement().getNameRange();
@@ -94,7 +95,7 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 			final List<String> expectedValue = Arrays.asList(ElementType.METHOD.name());
 			if (!CollectionUtils.containsInAnyOrder(annotationValues, expectedValue)) {
 				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(targetAnnotation.getJavaAnnotation(),
-						VALUE);
+						VALUE, ast);
 				markerManager.addMarker(httpMethod, range,
 						JaxrsValidationMessages.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE, new String[0],
 						JaxrsPreferences.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE,
@@ -109,7 +110,7 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 	 * @param messages
 	 * @throws CoreException
 	 */
-	private void validateRetentionAnnotation(final JaxrsHttpMethod httpMethod) throws CoreException {
+	private void validateRetentionAnnotation(final JaxrsHttpMethod httpMethod, final CompilationUnit ast) throws CoreException {
 		final Annotation retentionAnnotation = httpMethod.getRetentionAnnotation();
 		if (retentionAnnotation == null) {
 			final ISourceRange range = httpMethod.getJavaElement().getNameRange();
@@ -121,7 +122,7 @@ public class JaxrsHttpMethodValidatorDelegate extends AbstractJaxrsElementValida
 			final String annotationValue = retentionAnnotation.getValue();
 			if (annotationValue != null && !annotationValue.equals(RetentionPolicy.RUNTIME.name())) {
 				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
-						retentionAnnotation.getJavaAnnotation(), VALUE);
+						retentionAnnotation.getJavaAnnotation(), VALUE, ast);
 				markerManager.addMarker(httpMethod, range,
 						JaxrsValidationMessages.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, new String[0],
 						JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE,

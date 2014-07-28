@@ -46,6 +46,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
+import org.jboss.tools.ws.jaxrs.core.jdt.AnnotationUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.FlagsUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
@@ -267,10 +268,43 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	 *            the fluent builder
 	 */
 	private JaxrsProvider(final Builder builder) {
-		super(builder.javaType, builder.annotations, builder.metamodel);
-		this.providedTypes = builder.providedKinds;
+		this(builder.javaType, builder.annotations, builder.metamodel, builder.providedKinds, null);
 	}
 
+	/**
+	 * Full constructor.
+	 * 
+	 * @param javaType
+	 *            the java type
+	 * @param annotations
+	 *            the java element annotations (or null)
+	 * @param metamodel
+	 *            the metamodel in which this element exist, or null if this
+	 *            element is transient.
+	 * @param providedKinds the {@link EnumElementKind} that this {@link JaxrsProvider} provides
+	 * @param primaryCopy
+	 *            the associated primary copy element, or {@code null} if this
+	 *            instance is already the primary element
+	 */
+	private JaxrsProvider(final IType javaType, final Map<String, Annotation> annotations, final JaxrsMetamodel metamodel,
+			final Map<EnumElementKind, IType> providedKinds, final JaxrsProvider primaryCopy) {
+		super(javaType, annotations, metamodel, primaryCopy);
+		this.providedTypes = providedKinds;
+	}
+	
+	@Override
+	public JaxrsProvider createWorkingCopy() {
+		synchronized (this) {
+			return new JaxrsProvider(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
+					getMetamodel(), new HashMap<EnumElementKind, IType>(providedTypes), this);
+		}
+	}
+
+	@Override
+	public JaxrsProvider getWorkingCopy() {
+		return (JaxrsProvider) super.getWorkingCopy();
+	}
+	
 	/**
 	 * @return {@code true} if this element should be removed (ie, it does not meet the requirements to be a {@link JaxrsProvider} anymore) 
 	 */
@@ -372,26 +406,28 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	 */
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		final JaxrsProvider transientProvider = JaxrsProvider.from(javaElement, ast).build(false);
-		final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
-		// clear this element if the given transient element is null
-		if (transientProvider == null) {
-			this.getProvidedTypes().clear();
-			remove(annotationsFlags);
-		} else {
-			final Flags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
-			final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
-			if (!this.getProvidedTypes().equals(transientProvider.getProvidedTypes())) {
+		synchronized (this) {
+			final JaxrsProvider transientProvider = JaxrsProvider.from(javaElement, ast).build(false);
+			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
+			// clear this element if the given transient element is null
+			if (transientProvider == null) {
 				this.getProvidedTypes().clear();
-				this.getProvidedTypes().putAll(transientProvider.getProvidedTypes());
-				delta.addFlag(F_PROVIDER_HIERARCHY);
-			}
-			if (isMarkedForRemoval()) {
 				remove(annotationsFlags);
-			}
-			// update indexes for this element.
-			else if(hasMetamodel()){
-				getMetamodel().update(delta);
+			} else {
+				final Flags updateAnnotationsFlags = updateAnnotations(transientProvider.getAnnotations());
+				final JaxrsElementDelta delta = new JaxrsElementDelta(this, CHANGED, updateAnnotationsFlags);
+				if (!this.getProvidedTypes().equals(transientProvider.getProvidedTypes())) {
+					this.getProvidedTypes().clear();
+					this.getProvidedTypes().putAll(transientProvider.getProvidedTypes());
+					delta.addFlag(F_PROVIDER_HIERARCHY);
+				}
+				if (isMarkedForRemoval()) {
+					remove(annotationsFlags);
+				}
+				// update indexes for this element.
+				else if(hasMetamodel()){
+					getMetamodel().update(delta);
+				}
 			}
 		}
 	}

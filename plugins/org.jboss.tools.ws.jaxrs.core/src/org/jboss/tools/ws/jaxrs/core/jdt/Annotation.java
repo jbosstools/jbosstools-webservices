@@ -10,10 +10,12 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.jdt;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
@@ -51,21 +53,51 @@ public class Annotation {
 
 	/** The java annotation member value pairs. */
 	private final Map<String, List<String>> javaAnnotationElements;
+	
+	/** the primary copy of this annotation, or {@code this}. */
+	private final Annotation primaryCopy;
 
+	private final boolean isWorkingCopy;
+	
+	/** the working copy of this annotation, or {@code null} if none exists (yet). */
+	private Annotation workingCopy = null;
+	
 	/**
 	 * Full constructor
 	 * 
-	 * @param annotation
-	 * @param annotationName
-	 * @param annotationElements
+	 * @param annotation the underlying {@link IAnnotation}
+	 * @param annotationName the fully qualified name of the underlying {@link IAnnotation} 
+	 * @param annotationElements the members of the annotation, indexed by their key.
 	 * @param sourceRange
 	 * @throws JavaModelException
 	 */
-	public Annotation(final IAnnotation annotation, final String annotationName,
-			final Map<String, List<String>> annotationElements) {
-		this.javaAnnotation = annotation;
-		this.javaAnnotationName = annotationName;
-		this.javaAnnotationElements = new HashMap<String, List<String>>(annotationElements);
+	public Annotation(final IAnnotation javaAnnotation, final String javaAnnotationName,
+			final Map<String, List<String>> javaAnnotationElements) {
+		this.javaAnnotation = javaAnnotation;
+		this.javaAnnotationName = javaAnnotationName;
+		this.javaAnnotationElements = new HashMap<String, List<String>>(javaAnnotationElements);
+		this.primaryCopy = null;
+		this.isWorkingCopy = false;
+	}
+
+	/**
+	 * Full constructor for the working copy
+	 * 
+	 * @param annotation the underlying {@link IAnnotation}
+	 * @param annotationName the fully qualified name of the underlying {@link IAnnotation} 
+	 * @param annotationElements the members of the annotation, indexed by their key.
+	 * @param sourceRange
+	 * @throws JavaModelException
+	 */
+	private Annotation(final IAnnotation javaAnnotation, final String javaAnnotationName,
+			final Map<String, List<String>> javaAnnotationElements, final Annotation primaryCopy) {
+		this.javaAnnotation = javaAnnotation;
+		this.javaAnnotationName = javaAnnotationName;
+		this.javaAnnotationElements = new HashMap<String, List<String>>(javaAnnotationElements);
+		this.primaryCopy = primaryCopy;
+		this.isWorkingCopy = true;
+		this.workingCopy = this;
+		primaryCopy.workingCopy = this;
 	}
 
 	/**
@@ -82,6 +114,32 @@ public class Annotation {
 	}
 
 	/**
+	 * @return a working copy of this Annotation.
+	 */
+	public Annotation createWorkingCopy() {
+		synchronized (this) {
+			final Map<String, List<String>> duplicateJavaAnnotationElements = new HashMap<String, List<String>>();
+			for(Entry<String, List<String>> entry : javaAnnotationElements.entrySet()) {
+				duplicateJavaAnnotationElements.put(entry.getKey(), new ArrayList<String>(entry.getValue()));
+			}
+			return new Annotation(javaAnnotation, javaAnnotationName, duplicateJavaAnnotationElements, this);
+		}
+	}
+
+	public Annotation getWorkingCopy() {
+		return workingCopy;
+	}
+	
+	public Annotation getPrimaryCopy() {
+		return primaryCopy;
+	}
+	
+	public boolean isWorkingCopy() {
+		return isWorkingCopy;
+	}
+
+
+	/**
 	 * Update this Annotation from the given other annotation.
 	 * 
 	 * @param otherAnnotation
@@ -89,12 +147,14 @@ public class Annotation {
 	 *         values) were performed, false otherwise.
 	 */
 	public boolean update(final Annotation otherAnnotation) {
-		if (otherAnnotation == null || !hasChanges(otherAnnotation)) {
-			return false;
+		synchronized (this) {
+			if (otherAnnotation == null || !hasChanges(otherAnnotation)) {
+				return false;
+			}
+			this.javaAnnotationElements.clear();
+			this.javaAnnotationElements.putAll(otherAnnotation.getJavaAnnotationElements());
+			return true;
 		}
-		this.javaAnnotationElements.clear();
-		this.javaAnnotationElements.putAll(otherAnnotation.getJavaAnnotationElements());
-		return true;
 	}
 
 	/**
