@@ -79,9 +79,10 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 			);
 
 	private SectionDescription SECTION_RESOURCE_FIELDS_PROPERTIES = new SectionDescription(
-			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_resourceFields,
+			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_resourceElements,
 			new String[][]{
-					{JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceFieldUnboundPathParameterAnnotationValue_label}
+					{JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceElementUnboundPathParameterAnnotationValue_label},
+					{JaxrsPreferences.RESOURCE_ELEMENT_INVALID_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_resourceElementInvalidPathParamAnnotationValue_label}
 			},
 			JBossJaxrsUIPlugin.PLUGIN_ID
 			);

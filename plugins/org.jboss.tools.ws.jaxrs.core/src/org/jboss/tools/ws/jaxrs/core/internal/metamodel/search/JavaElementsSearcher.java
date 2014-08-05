@@ -362,7 +362,7 @@ public final class JavaElementsSearcher {
 		// searchRequestor defined above
 		new SearchEngine().search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
 				searchScope, collector, progressMonitor);
-		return collector.getResult(IType.class);
+		return collector.getResult();
 	}
 
 	/**
@@ -421,7 +421,7 @@ public final class JavaElementsSearcher {
 		// searchRequestor defined above
 		new SearchEngine().search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
 				searchScope, collector, progressMonitor);
-		return collector.getResult(IMethod.class);
+		return collector.getResult();
 	}
 	
 
@@ -458,33 +458,54 @@ public final class JavaElementsSearcher {
 		// searchRequestor defined above
 		new SearchEngine().search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
 				searchScope, collector, progressMonitor);
-		return collector.getResult(IField.class);
+		return collector.getResult();
 	}
 	
 	/**
-	 * Returns all related {@link IType}s from the given 'scope' argument that reference the given {@link IType}
-	 * @param type the type that is referenced
-	 * @param types the search scope
+	 * Returns all related {@link IType} from the given {@code otherTypes} argument that reference the given {@code sourceType} and the other way around. The result excludes the given {@code sourceType} itself. 
+	 * @param sourceType the type that is referenced
+	 * @param otherTypes the other types that may be related to the given 'sourceType'
 	 * @param progressMonitor the progress monitor
 	 * @return the set of related types
 	 * @throws CoreException 
 	 */
-	public static Set<IType> findRelatedTypes(final IType type,
-			final List<IType> types, final IProgressMonitor progressMonitor) throws CoreException {
-		if(type == null || types == null || types.isEmpty()) {
+	public static Set<IType> findRelatedTypes(final IType sourceType,
+			final List<IType> otherTypes, final IProgressMonitor progressMonitor) throws CoreException {
+		if(sourceType == null || otherTypes == null || otherTypes.isEmpty()) {
 			return Collections.emptySet();
 		}
-		final IJavaSearchScope searchScope = createSearchScope(types);
-		final JavaMemberSearchResultCollector collector = new JavaMemberSearchResultCollector(IJavaElement.TYPE,
-				searchScope);
-		final SearchPattern pattern = SearchPattern.createPattern(type,
-				IJavaSearchConstants.ALL_OCCURRENCES ,
+		// search #1: occurrences of given 'sourceType' in given 'otherTypes'
+		final IJavaSearchScope firstSearchScope = createSearchScope(otherTypes);
+		final JavaMemberSearchResultCollector firstCollector = new JavaMemberSearchResultCollector(IJavaElement.TYPE,
+				firstSearchScope);
+		final SearchPattern firstPattern = SearchPattern.createPattern(sourceType,
+				IJavaSearchConstants.ALL_OCCURRENCES,
 				SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE);
-		// perform search, results are added/filtered by the custom
-		// searchRequestor defined above
-		new SearchEngine().search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
-				searchScope, collector, progressMonitor);
-		return collector.getResult(IType.class);
+		new SearchEngine().search(firstPattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
+				firstSearchScope, firstCollector, progressMonitor);
+		final Set<IType> globalResult = new HashSet<IType>();
+		final Set<IType> firstSearchResult = firstCollector.getResult();
+		globalResult.addAll(firstSearchResult);
+		// set of searches #2: references of given 'otherTypes' in 'sourceType' (one search per given entry in 'types')
+		final IJavaSearchScope secondSearchScope = createSearchScope(sourceType);
+		for(IType otherType: otherTypes) {
+			if(otherType.equals(sourceType)) {
+				continue;
+			}
+			final SearchPattern otherPattern = SearchPattern.createPattern(otherType,
+					IJavaSearchConstants.ALL_OCCURRENCES,
+					SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE);
+			final JavaMemberSearchResultCollector otherCollector = new JavaMemberSearchResultCollector(IJavaElement.TYPE,
+					secondSearchScope);
+			new SearchEngine().search(otherPattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
+					secondSearchScope, otherCollector, progressMonitor);
+			if(otherCollector.hasResult()) {
+				globalResult.add(otherType);
+			}
+		}
+		globalResult.remove(sourceType);
+		return globalResult;
 	}
 
+	
 }

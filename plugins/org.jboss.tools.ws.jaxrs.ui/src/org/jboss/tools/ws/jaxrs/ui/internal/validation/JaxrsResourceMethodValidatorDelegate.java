@@ -63,15 +63,12 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  */
 public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsResourceMethod> {
 
-	/** The underlying marker manager.*/
-	private final IMarkerManager markerManager;
-
 	/**
 	 * Constructor
 	 * @param markerManager the underlying marker manager to use
 	 */
 	public JaxrsResourceMethodValidatorDelegate(final IMarkerManager markerManager) {
-		this.markerManager = markerManager;
+		super(markerManager);
 	}
 
 	/**
@@ -369,13 +366,8 @@ public class JaxrsResourceMethodValidatorDelegate extends AbstractJaxrsElementVa
 						JaxrsValidationMessages.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE,
 						new String[] { pathParamValue },
 						JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE);
-			} else if (!pathParamValueProposals.keySet().contains(pathParamValue)) {
-				final ISourceRange annotatedElementRange = JdtUtils.resolveMemberPairValueRange(
-						pathParamAnnotation.getJavaAnnotation(), VALUE);
-				markerManager.addMarker(aggregatorElement, annotatedElementRange,
-						JaxrsValidationMessages.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE,
-						new String[] { pathParamValue, resourceMethod.getName(), resourceMethod.getParentResource().getName() },
-						JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE);
+			} 
+			if (!pathParamValueProposals.keySet().contains(pathParamValue)) {
 				final SourceType type = resourceMethodParameter.getType();
 				if(type != null) {
 					final ISourceRange range = type.getNameRange();

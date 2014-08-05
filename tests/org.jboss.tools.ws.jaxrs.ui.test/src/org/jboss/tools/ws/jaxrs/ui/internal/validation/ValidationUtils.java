@@ -35,8 +35,8 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jboss.tools.common.validation.ValidationErrorManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
@@ -97,10 +97,13 @@ public class ValidationUtils {
 				}
 				break;
 			case RESOURCE_METHOD:
-				final IMarker[] resourceMarkers = elementMarkers;
-				final ISourceRange methodSourceRange = ((JaxrsResourceMethod) element).getJavaElement()
+			case RESOURCE_FIELD:
+			case RESOURCE_PROPERTY:
+			case PARAMETER_AGGREGATOR_FIELD:
+			case PARAMETER_AGGREGATOR_PROPERTY:
+				final ISourceRange methodSourceRange = ((JaxrsJavaElement<?>) element).getJavaElement()
 						.getSourceRange();
-				for (IMarker marker : resourceMarkers) {
+				for (IMarker marker : elementMarkers) {
 					final int markerCharStart = marker.getAttribute(IMarker.CHAR_START, -1);
 					if (markerCharStart >= methodSourceRange.getOffset()
 							&& markerCharStart <= (methodSourceRange.getOffset() + methodSourceRange.getLength())) {

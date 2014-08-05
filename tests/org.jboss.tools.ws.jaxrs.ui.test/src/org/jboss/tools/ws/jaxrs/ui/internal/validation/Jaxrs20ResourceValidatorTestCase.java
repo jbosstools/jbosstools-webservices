@@ -146,7 +146,7 @@ public class Jaxrs20ResourceValidatorTestCase {
 		final IMarker[] aggregatorMarker = findJaxrsMarkers(boatAggregator);
 		assertThat(aggregatorMarker.length, equalTo(1));
 		assertThat((String) aggregatorMarker[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
-				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 	}
 	
 	@Test

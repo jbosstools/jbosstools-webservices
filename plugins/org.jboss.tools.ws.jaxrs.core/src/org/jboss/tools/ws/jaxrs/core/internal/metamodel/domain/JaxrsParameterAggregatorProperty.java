@@ -42,7 +42,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> implements IJaxrsParameterAggregatorProperty {
+public class JaxrsParameterAggregatorProperty extends JaxrsParameterAggregatorElement<IMethod> implements IJaxrsParameterAggregatorProperty {
 
 	/**
 	 * Builder initializer
@@ -126,12 +126,6 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 
 	}
 	
-	/** The underlying field type. */
-	private final SourceType methodParameterType;
-
-	/** The surrounding parent element. */
-	private JaxrsParameterAggregator parentParameterAggregator;
-
 	/**
 	 * Full constructor.
 	 * 
@@ -139,18 +133,12 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 	 *            the fluent builder.
 	 */
 	private JaxrsParameterAggregatorProperty(final Builder builder) {
-		super(builder.javaMethod, builder.annotations, builder.metamodel);
-		this.methodParameterType = builder.javaMethodParameterType;
-		this.parentParameterAggregator = builder.parentParameterAggregator;
-		if(this.parentParameterAggregator != null) {
-			this.parentParameterAggregator.addElement(this);
+		super(builder.javaMethod, builder.annotations, builder.metamodel, builder.javaMethodParameterType, builder.parentParameterAggregator);
+		if(getParentParameterAggregator() != null) {
+			getParentParameterAggregator().addElement(this);
 		}
 	}
 	
-	public JaxrsParameterAggregator getParentParameterAggregator() {
-		return parentParameterAggregator;
-	}
-
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
@@ -229,10 +217,6 @@ public class JaxrsParameterAggregatorProperty extends JaxrsJavaElement<IMethod> 
 
 	public Annotation getDefaultValueAnnotation() {
 		return getAnnotation(DEFAULT_VALUE);
-	}
-	
-	public SourceType getType() {
-		return this.methodParameterType;
 	}
 	
 	@Override

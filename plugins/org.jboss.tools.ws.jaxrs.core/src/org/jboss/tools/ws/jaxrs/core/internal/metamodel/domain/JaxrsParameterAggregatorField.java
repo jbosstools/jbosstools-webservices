@@ -37,7 +37,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> implements IJaxrsParameterAggregatorField {
+public class JaxrsParameterAggregatorField extends JaxrsParameterAggregatorElement<IField> implements IJaxrsParameterAggregatorField {
 
 	/**
 	 * Builder initializer
@@ -120,12 +120,6 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 
 	}
 	
-	/** The underlying field type. */
-	private SourceType fieldType;
-
-	/** The surrounding parent element. */
-	private final JaxrsParameterAggregator parentParameterAggregator;
-
 	/**
 	 * Full constructor.
 	 * 
@@ -133,18 +127,12 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 	 *            the fluent builder.
 	 */
 	private JaxrsParameterAggregatorField(final Builder builder) {
-		super(builder.javaField, builder.annotations, builder.metamodel);
-		this.fieldType = builder.javaFieldType;
-		this.parentParameterAggregator = builder.parentParameterAggregator;
-		if(this.parentParameterAggregator != null) {
-			this.parentParameterAggregator.addElement(this);
+		super(builder.javaField, builder.annotations, builder.metamodel, builder.javaFieldType, builder.parentParameterAggregator);
+		if(getParentParameterAggregator()!= null) {
+			getParentParameterAggregator().addElement(this);
 		}
 	}
 	
-	public JaxrsParameterAggregator getParentParameterAggregator() {
-		return parentParameterAggregator;
-	}
-
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
@@ -203,10 +191,6 @@ public class JaxrsParameterAggregatorField extends JaxrsJavaElement<IField> impl
 		super.remove(flags);
 	}
 
-	public SourceType getType() {
-		return this.fieldType;
-	}
-	
 	@Override
 	public EnumElementKind getElementKind() {
 		return EnumElementKind.PARAMETER_AGGREGATOR_FIELD;

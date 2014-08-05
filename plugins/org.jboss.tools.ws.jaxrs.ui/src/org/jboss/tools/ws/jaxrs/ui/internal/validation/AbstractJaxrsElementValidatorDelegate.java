@@ -46,6 +46,13 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 
 	protected static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]([a-zA-Z1-9]|\\.|-|_)*");
 
+	/** The underlying marker manager.*/
+	final IMarkerManager markerManager;
+
+	public AbstractJaxrsElementValidatorDelegate(final IMarkerManager markerManager) {
+		this.markerManager = markerManager;
+	}
+
 	/**
 	 * Validates the given {@link IJaxrsElement} after having removed the JAX-RS Problem markers on the given element.
 	 * 

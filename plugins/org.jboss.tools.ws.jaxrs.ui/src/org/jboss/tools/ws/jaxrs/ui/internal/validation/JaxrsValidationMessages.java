@@ -53,6 +53,7 @@ public class JaxrsValidationMessages {
 	public static String RESOURCE_METHOD_NO_PUBLIC_MODIFIER;
 
 	public static String RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE;
+	public static String RESOURCE_FIELD_INVALID_PATHPARAM_ANNOTATION_VALUE;
 	
 	public static String PROVIDER_MISSING_VALID_CONSTRUCTOR;
 	public static String PROVIDER_MISSING_ANNOTATION;

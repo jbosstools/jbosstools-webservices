@@ -89,8 +89,12 @@ public class JaxrsPreferences extends ValidationSeverityPreferences {
 	public static final String RESOURCE_METHOD_NO_PUBLIC_MODIFIER = INSTANCE
 			.createSeverityOption("resourceMethodNoPublicModifier"); //$NON-NLS-1$
 
-	public static final String RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE = INSTANCE
-			.createSeverityOption("resourceFieldUnboundPathParameterAnnotationValue"); //$NON-NLS-1$
+	public static final String RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE = INSTANCE
+			.createSeverityOption("resourceElementUnboundPathParameterAnnotationValue"); //$NON-NLS-1$
+
+	public static final String RESOURCE_ELEMENT_INVALID_PATHPARAM_ANNOTATION_VALUE = INSTANCE
+			.createSeverityOption("resourceElementInvalidPathParamAnnotationValue"); //$NON-NLS-1$
+	
 
 	
 	

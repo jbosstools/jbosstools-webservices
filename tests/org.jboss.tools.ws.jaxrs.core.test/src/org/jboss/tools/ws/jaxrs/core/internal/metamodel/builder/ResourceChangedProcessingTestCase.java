@@ -68,6 +68,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplicat
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
@@ -1310,7 +1311,7 @@ public class ResourceChangedProcessingTestCase {
 		}
 		for (Iterator<JaxrsResourceField> iterator = resourceLocator.getFields().values().iterator(); iterator
 				.hasNext();) {
-			JaxrsResourceField resourceField = iterator.next();
+			JaxrsResourceElement resourceField = iterator.next();
 			delete(resourceField.getJavaElement());
 		}
 		for (Iterator<JaxrsResourceProperty> iterator = resourceLocator.getProperties().values().iterator(); iterator

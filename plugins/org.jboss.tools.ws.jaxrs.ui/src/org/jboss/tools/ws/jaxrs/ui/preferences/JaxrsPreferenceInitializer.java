@@ -46,6 +46,7 @@ public class JaxrsPreferenceInitializer extends AbstractPreferenceInitializer {
 		defaultPreferences.put(JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 		
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
+		
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_ILLEGAL_CONTEXT_ANNOTATION, JaxrsPreferences.ERROR);
@@ -54,7 +55,8 @@ public class JaxrsPreferenceInitializer extends AbstractPreferenceInitializer {
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER, JaxrsPreferences.WARNING);
 		defaultPreferences.put(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 
-		defaultPreferences.put(JaxrsPreferences.RESOURCE_FIELD_UNBOUND_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
+		defaultPreferences.put(JaxrsPreferences.RESOURCE_ELEMENT_INVALID_PATHPARAM_ANNOTATION_VALUE, JaxrsPreferences.ERROR);
 
 		defaultPreferences.put(JaxrsPreferences.PROVIDER_MISSING_ANNOTATION, JaxrsPreferences.WARNING);
 		defaultPreferences.put(JaxrsPreferences.PROVIDER_MISSING_IMPLEMENTATION, JaxrsPreferences.ERROR);

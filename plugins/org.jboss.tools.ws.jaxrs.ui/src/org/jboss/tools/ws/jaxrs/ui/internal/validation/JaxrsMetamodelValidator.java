@@ -525,6 +525,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			return new JaxrsResourcePropertyValidatorDelegate(this);
 		case RESOURCE_METHOD:
 			return new JaxrsResourceMethodValidatorDelegate(this);
+		case PARAMETER_AGGREGATOR:
+			return new JaxrsParameterAggregatorValidatorDelegate(this);
+		case PARAMETER_AGGREGATOR_FIELD:
+			return new JaxrsParameterAggregatorFieldValidatorDelegate(this);
+		case PARAMETER_AGGREGATOR_PROPERTY:
+			return new JaxrsParameterAggregatorPropertyValidatorDelegate(this);
 		default:
 			// skipping other categories of elements at this validator level.
 			// (see above)

@@ -45,7 +45,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements IJaxrsResourceProperty {
+public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> implements IJaxrsResourceProperty {
 
 	/**
 	 * Builder initializer
@@ -144,12 +144,6 @@ public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements 
 	/** the underlying method signature. */
 	private IJavaMethodSignature methodSignature;
 	
-	/** The underlying field type. */
-	private final SourceType propertyType;
-
-	/** The parent JAX-RS Resource for this element. */
-	private final JaxrsResource parentResource;
-
 	/**
 	 * Full constructor.
 	 * 
@@ -157,12 +151,10 @@ public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements 
 	 *            the fluent builder.
 	 */
 	private JaxrsResourceProperty(final Builder builder) {
-		super(builder.javaMethod, builder.annotations, builder.metamodel);
-		this.propertyType = builder.javaPropertyType;
+		super(builder.javaMethod, builder.annotations, builder.metamodel, builder.javaPropertyType, builder.parentResource);
 		this.methodSignature = builder.methodSignature;
-		this.parentResource = builder.parentResource;
-		if(this.parentResource != null) {
-			this.parentResource.addProperty(this);
+		if(getParentResource() != null) {
+			getParentResource().addProperty(this);
 		}
 	}
 
@@ -261,10 +253,6 @@ public class JaxrsResourceProperty extends JaxrsJavaElement<IMethod> implements 
 	
 	public Annotation getBeanParamAnnotation() {
 		return getAnnotation(BEAN_PARAM);
-	}
-	
-	public SourceType getType() {
-		return this.propertyType;
 	}
 	
 	@Override

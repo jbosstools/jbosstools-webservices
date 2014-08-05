@@ -43,7 +43,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
  * 
  * @author xcoulon
  */
-public class JaxrsResourceField extends JaxrsJavaElement<IField> implements IJaxrsResourceField {
+public class JaxrsResourceField extends JaxrsResourceElement<IField> implements IJaxrsResourceField {
 
 	/**
 	 * Builder initializer
@@ -139,12 +139,6 @@ public class JaxrsResourceField extends JaxrsJavaElement<IField> implements IJax
 
 	}
 	
-	/** The underlying field type. */
-	private final SourceType fieldType;
-
-	/** The parent JAX-RS Resource for this element. */
-	private final JaxrsResource parentResource;
-
 	/**
 	 * Full constructor.
 	 * 
@@ -152,21 +146,12 @@ public class JaxrsResourceField extends JaxrsJavaElement<IField> implements IJax
 	 *            the fluent builder.
 	 */
 	private JaxrsResourceField(final Builder builder) {
-		super(builder.javaField, builder.annotations, builder.metamodel);
-		this.fieldType = builder.javaFieldType;
-		this.parentResource = builder.parentResource;
-		if(this.parentResource != null) {
-			this.parentResource.addField(this);
+		super(builder.javaField, builder.annotations, builder.metamodel, builder.javaFieldType, builder.parentResource);
+		if(getParentResource() != null) {
+			getParentResource().addField(this);
 		}
 	}
 
-	/**
-	 * @return the parent JAX-RS Resource
-	 */
-	public JaxrsResource getParentResource() {
-		return parentResource;
-	}
-	
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		if (javaElement == null) {
@@ -249,11 +234,6 @@ public class JaxrsResourceField extends JaxrsJavaElement<IField> implements IJax
 	
 	public Annotation getBeanParamAnnotation() {
 		return getAnnotation(BEAN_PARAM);
-	}
-	
-	@Override
-	public SourceType getType() {
-		return this.fieldType;
 	}
 	
 	@Override

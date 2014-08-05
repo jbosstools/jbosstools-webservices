@@ -78,12 +78,19 @@ public class JavaMemberSearchResultCollector extends SearchRequestor {
 	 * @return the resultMembers
 	 */
 	@SuppressWarnings("unchecked")
-	public final <T> Set<T> getResult(final Class<T> clazz) {
+	public final <T> Set<T> getResult() {
 		final Set<T> results = new HashSet<T>();
 		for (IMember member : resultMembers) {
 			results.add((T) member);
 		}
 		return results;
+	}
+
+	/**
+	 * @return {@code false} if no element was found during the search, {@code true} otherwise. 
+	 */
+	public boolean hasResult() {
+		return !resultMembers.isEmpty();
 	}
 
 }

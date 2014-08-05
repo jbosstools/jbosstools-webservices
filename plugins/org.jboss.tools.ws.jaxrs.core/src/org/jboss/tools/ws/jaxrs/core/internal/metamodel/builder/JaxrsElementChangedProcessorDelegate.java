@@ -31,10 +31,11 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpointFact
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorField;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceField;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
@@ -69,7 +70,7 @@ public class JaxrsElementChangedProcessorDelegate {
 				processAddition((JaxrsResourceMethod) element);
 				break;
 			case RESOURCE_FIELD:
-				processAddition((JaxrsResourceField) element);
+				processAddition((JaxrsResourceElement<?>) element);
 				break;
 			case RESOURCE_PROPERTY:
 				processAddition((JaxrsResourceProperty) element);
@@ -100,7 +101,7 @@ public class JaxrsElementChangedProcessorDelegate {
 				processChange((JaxrsResourceMethod) element, flags);
 				break;
 			case RESOURCE_FIELD:
-				processChange((JaxrsResourceField) element, flags);
+				processChange((JaxrsResourceElement<?>) element, flags);
 				break;
 			case RESOURCE_PROPERTY:
 				processChange((JaxrsResourceProperty) element, flags);
@@ -128,7 +129,7 @@ public class JaxrsElementChangedProcessorDelegate {
 				processRemoval((JaxrsResourceMethod) element);
 				break;
 			case RESOURCE_FIELD:
-				processRemoval((JaxrsResourceField) element, flags);
+				processRemoval((JaxrsResourceElement<?>) element, flags);
 				break;
 			case RESOURCE_PROPERTY:
 				processRemoval((JaxrsResourceProperty) element, flags);
@@ -196,13 +197,13 @@ public class JaxrsElementChangedProcessorDelegate {
 		}
 	}
 
-	private static void processAddition(final JaxrsResourceField resourceField) throws CoreException {
-		final JaxrsResource resource = resourceField.getParentResource();
+	private static void processAddition(final JaxrsResourceElement<?> resourceElement) throws CoreException {
+		final JaxrsResource resource = resourceElement.getParentResource();
 		if (resource == null) {
-			Logger.warn("Found an orphan resource field: " + resourceField);
+			Logger.warn("Found an orphan resource element: " + resourceElement);
 		} else {
 			final Set<JaxrsEndpoint> resourceEndpoints = resource.getMetamodel().findEndpoints(resource);
-			final Flags flags = computeAnnotationChangeFlags(resourceField);
+			final Flags flags = computeAnnotationChangeFlags(resourceElement);
 			if(flags.hasValue()) {
 				for(JaxrsEndpoint endpoint : resourceEndpoints) {
 					endpoint.update(flags);
@@ -211,72 +212,30 @@ public class JaxrsElementChangedProcessorDelegate {
 		}
 	}
 
-	private static void processAddition(final JaxrsResourceProperty resourceProperty) throws CoreException {
-		final JaxrsResource resource = resourceProperty.getParentResource();
-		if (resource == null) {
-			Logger.warn("Found an orphan resource property: " + resourceProperty);
-		} else {
-			final Set<JaxrsEndpoint> resourceEndpoints = resource.getMetamodel().findEndpoints(resource);
-			final Flags flags = computeAnnotationChangeFlags(resourceProperty);
-			if(flags.hasValue()) {
-				for(JaxrsEndpoint endpoint : resourceEndpoints) {
-					endpoint.update(flags);
-				}
-			}
-		}
-	}
-
-	private static void processAddition(final JaxrsParameterAggregatorProperty resourceProperty, final Flags flags) throws CoreException {
-		final JaxrsParameterAggregator parentAggregator = resourceProperty.getParentParameterAggregator();
+	private static void processAddition(final JaxrsParameterAggregatorElement<?> aggregatorElement, final Flags flags) throws CoreException {
+		final JaxrsParameterAggregator parentAggregator = aggregatorElement.getParentParameterAggregator();
 		if (parentAggregator == null) {
-			Logger.warn("Found an orphan resource property: " + resourceProperty);
+			Logger.warn("Found an orphan aggregator element: " + aggregatorElement);
 		} else {
-			processCascadeChange(resourceProperty, parentAggregator, flags);
+			processCascadeChange(aggregatorElement, parentAggregator, flags);
 		}
 	}
 	
-	private static void processAddition(final JaxrsParameterAggregatorField resourceField, final Flags flags) throws CoreException {
-		final JaxrsParameterAggregator parentAggregator = resourceField.getParentParameterAggregator();
+	private static void processChange(final JaxrsParameterAggregatorElement<?> aggregatorElement, final Flags flags) throws CoreException {
+		final JaxrsParameterAggregator parentAggregator = aggregatorElement.getParentParameterAggregator();
 		if (parentAggregator == null) {
-			Logger.warn("Found an orphan resource property: " + resourceField);
+			Logger.warn("Found an orphan aggregator element: " + aggregatorElement);
 		} else {
-			processCascadeChange(resourceField, parentAggregator, flags);
+			processCascadeChange(aggregatorElement, parentAggregator, flags);
 		}
 	}
 	
-	private static void processChange(final JaxrsParameterAggregatorProperty resourceProperty, final Flags flags) throws CoreException {
-		final JaxrsParameterAggregator parentAggregator = resourceProperty.getParentParameterAggregator();
+	private static void processRemoval(final JaxrsParameterAggregatorElement<?> aggregatorElement, final Flags flags) throws CoreException {
+		final JaxrsParameterAggregator parentAggregator = aggregatorElement.getParentParameterAggregator();
 		if (parentAggregator == null) {
-			Logger.warn("Found an orphan resource property: " + resourceProperty);
+			Logger.warn("Found an orphan aggregator element: " + aggregatorElement);
 		} else {
-			processCascadeChange(resourceProperty, parentAggregator, flags);
-		}
-	}
-	
-	private static void processChange(final JaxrsParameterAggregatorField resourceField, final Flags flags) throws CoreException {
-		final JaxrsParameterAggregator parentAggregator = resourceField.getParentParameterAggregator();
-		if (parentAggregator == null) {
-			Logger.warn("Found an orphan resource property: " + resourceField);
-		} else {
-			processCascadeChange(resourceField, parentAggregator, flags);
-		}
-	}
-	
-	private static void processRemoval(final JaxrsParameterAggregatorProperty resourceProperty, final Flags flags) throws CoreException {
-		final JaxrsParameterAggregator parentAggregator = resourceProperty.getParentParameterAggregator();
-		if (parentAggregator == null) {
-			Logger.warn("Found an orphan resource property: " + resourceProperty);
-		} else {
-			processCascadeChange(resourceProperty, parentAggregator, flags);
-		}
-	}
-	
-	private static void processRemoval(final JaxrsParameterAggregatorField resourceField, final Flags flags) throws CoreException {
-		final JaxrsParameterAggregator parentAggregator = resourceField.getParentParameterAggregator();
-		if (parentAggregator == null) {
-			Logger.warn("Found an orphan resource property: " + resourceField);
-		} else {
-			processCascadeChange(resourceField, parentAggregator, flags);
+			processCascadeChange(aggregatorElement, parentAggregator, flags);
 		}
 	}
 	
@@ -300,7 +259,7 @@ public class JaxrsElementChangedProcessorDelegate {
 		return flags;
 	}
 	
-	private static void processCascadeChange(final IAnnotatedSourceType parameterAggregatorChildElement, final JaxrsParameterAggregator parentAggregator, final Flags flags) throws CoreException {
+	private static void processCascadeChange(final IAnnotatedSourceType parameterAggregatorElement, final JaxrsParameterAggregator parentAggregator, final Flags flags) throws CoreException {
 		final JaxrsMetamodel metamodel = parentAggregator.getMetamodel();
 		final List<IType> knownTypes = metamodel.getAllJavaElements(IJavaElement.TYPE);
 		final Set<IType> relatedTypes = JavaElementsSearcher.findRelatedTypes(parentAggregator.getJavaElement(), knownTypes, null);
@@ -384,17 +343,9 @@ public class JaxrsElementChangedProcessorDelegate {
 		}
 	}
 
-	private static void processChange(final JaxrsResourceField changedResourceField, final Flags flags) throws CoreException {
-		final JaxrsMetamodel metamodel = changedResourceField.getMetamodel();
-		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(changedResourceField.getParentResource());
-		for (JaxrsEndpoint endpoint : endpoints) {
-			endpoint.update(flags);
-		}
-	}
-	
-	private static void processChange(final JaxrsResourceProperty changedResourceProperty, final Flags flags) throws CoreException {
-		final JaxrsMetamodel metamodel = changedResourceProperty.getMetamodel();
-		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(changedResourceProperty.getParentResource());
+	private static void processChange(final JaxrsResourceElement<?> changedResourceElement, final Flags flags) throws CoreException {
+		final JaxrsMetamodel metamodel = changedResourceElement.getMetamodel();
+		final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(changedResourceElement.getParentResource());
 		for (JaxrsEndpoint endpoint : endpoints) {
 			endpoint.update(flags);
 		}
@@ -418,22 +369,10 @@ public class JaxrsElementChangedProcessorDelegate {
 		}
 	}
 
-	private static void processRemoval(final JaxrsResourceField resourceField, final Flags flags) throws CoreException {
-		final JaxrsMetamodel metamodel = resourceField.getMetamodel();
+	private static void processRemoval(final JaxrsResourceElement<?> resourceElement, final Flags flags) throws CoreException {
+		final JaxrsMetamodel metamodel = resourceElement.getMetamodel();
 		if(metamodel != null) {
-			final Collection<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(resourceField.getParentResource());
-			if(flags.hasValue()) {
-				for(JaxrsEndpoint endpoint : affectedEndpoints) {
-					endpoint.update(flags);
-				}
-			}
-		}
-	}
-
-	private static void processRemoval(final JaxrsResourceProperty resourceProperty, final Flags flags) throws CoreException {
-		final JaxrsMetamodel metamodel = resourceProperty.getMetamodel();
-		if(metamodel != null) {
-			final Collection<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(resourceProperty.getParentResource());
+			final Collection<JaxrsEndpoint> affectedEndpoints = metamodel.findEndpoints(resourceElement.getParentResource());
 			if(flags.hasValue()) {
 				for(JaxrsEndpoint endpoint : affectedEndpoints) {
 					endpoint.update(flags);
