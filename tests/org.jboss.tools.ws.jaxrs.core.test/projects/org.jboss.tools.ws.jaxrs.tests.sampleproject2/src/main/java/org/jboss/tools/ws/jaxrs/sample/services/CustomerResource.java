@@ -23,7 +23,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.jboss.tools.ws.jaxrs.sample.domain.Customer;
-import org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding;
+import org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomInterceptorBinding; // do not remove: used for tests
+import org.jboss.tools.ws.jaxrs.sample.services.interceptors.AnotherCustomInterceptorBinding; // do not remove: used for tests
 
 @Encoded
 @Path(value=CustomerResource.URI_BASE) // leave as-is: this form is required by a test

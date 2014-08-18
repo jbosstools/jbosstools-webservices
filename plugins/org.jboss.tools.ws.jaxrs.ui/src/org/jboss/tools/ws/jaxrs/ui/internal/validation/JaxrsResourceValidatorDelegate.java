@@ -14,7 +14,7 @@ import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
@@ -44,10 +44,12 @@ import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
  * 
  */
 public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidatorDelegate<JaxrsResource> {
-	
+
 	/**
 	 * Constructor
-	 * @param markerManager the underlying marker manager to use
+	 * 
+	 * @param markerManager
+	 *            the underlying marker manager to use
 	 */
 	public JaxrsResourceValidatorDelegate(final IMarkerManager markerManager) {
 		super(markerManager);
@@ -62,31 +64,36 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 		validatePathAnnotationValue(resource, ast);
 		validateAtLeastOneProviderWithBinding(resource);
 		for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
-			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod, ast, false);
+			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod, ast,
+					false);
 		}
 		for (IJaxrsResourceField resourceField : resource.getAllFields()) {
-			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, ast, false);
+			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, ast,
+					false);
 		}
 		for (IJaxrsResourceProperty resourceProperty : resource.getAllProperties()) {
-			new JaxrsResourcePropertyValidatorDelegate(markerManager).validate((JaxrsResourceProperty) resourceProperty, ast, false);
+			new JaxrsResourcePropertyValidatorDelegate(markerManager).validate(
+					(JaxrsResourceProperty) resourceProperty, ast, false);
 		}
 	}
 
 	/**
-	 * Validates that if the {@code @Path} annotation value contains brackets, the end bracket is not missing.
+	 * Validates that if the {@code @Path} annotation value contains brackets,
+	 * the end bracket is not missing.
 	 * 
 	 * @param resource
 	 *            the resource to validate
-	 * @throws JavaModelException 
+	 * @throws JavaModelException
 	 * @throws CoreException
 	 * @see JaxrsParameterValidatorDelegate
 	 */
-	private void validatePathAnnotationValue(final JaxrsResource resource, final CompilationUnit ast) throws JavaModelException, CoreException {
+	private void validatePathAnnotationValue(final JaxrsResource resource, final CompilationUnit ast)
+			throws JavaModelException, CoreException {
 		final Annotation pathAnnotation = resource.getPathAnnotation();
-		if(pathAnnotation != null && pathAnnotation.getValue() != null) {
-			if(!AnnotationUtils.isValidAnnotationValue(pathAnnotation.getValue())) {
-				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(
-						pathAnnotation.getJavaAnnotation(), VALUE, ast);
+		if (pathAnnotation != null && pathAnnotation.getValue() != null) {
+			if (!AnnotationUtils.isValidAnnotationValue(pathAnnotation.getValue())) {
+				final ISourceRange range = JdtUtils.resolveMemberPairValueRange(pathAnnotation.getJavaAnnotation(),
+						VALUE, ast);
 				markerManager.addMarker(resource, range,
 						JaxrsValidationMessages.RESOURCE_INVALID_PATH_ANNOTATION_VALUE,
 						new String[] { pathAnnotation.getValue() },
@@ -94,6 +101,7 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 			}
 		}
 	}
+
 	/**
 	 * Validates that there is at least one {@link JaxrsProvider} annotated with
 	 * exactly the same custom {@link JaxrsNameBinding} annotation(s) in the
@@ -101,7 +109,7 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 	 * 
 	 * @param resource
 	 *            the {@link JaxrsResource} to validate.
-	 * @throws CoreException 
+	 * @throws CoreException
 	 */
 	private void validateAtLeastOneProviderWithBinding(final JaxrsResource resource) throws CoreException {
 		if (resource == null) {
@@ -112,23 +120,26 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 			return;
 		}
 		final JaxrsMetamodel metamodel = resource.getMetamodel();
-		// take the first NameBinding annotation and look for Providers that
-		// have this annotation, too
-		final String firstNameBindingAnnotationClassName = nameBindingAnnotations.keySet().iterator().next();
-		final Set<String> allBindingAnnotationNames = nameBindingAnnotations.keySet();
-		final Collection<IJaxrsProvider> annotatedProviders = metamodel
-				.findProvidersByAnnotation(firstNameBindingAnnotationClassName);
-		for (IJaxrsProvider provider : annotatedProviders) {
-			if (provider.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
-				// provider is valid, at least one method has all those bindings
-				return;
+		annotations_loop: for (Entry<String, Annotation> entry : nameBindingAnnotations.entrySet()) {
+			final String nameBindingAnnotationClassName = entry.getKey();
+			final Collection<IJaxrsProvider> annotatedProviders = metamodel
+					.findProvidersByAnnotation(nameBindingAnnotationClassName);
+			// if provider binding annotation(s) match the application binding
+			// annotations
+			for (IJaxrsProvider provider : annotatedProviders) {
+				if (resource.getNameBindingAnnotations().keySet()
+						.containsAll(provider.getNameBindingAnnotations().keySet())) {
+					// provider is valid, at least one method has all those
+					// bindings
+					continue annotations_loop;
+				}
 			}
+			// otherwise, add a problem marker
+			final ISourceRange nameRange = entry.getValue().getJavaAnnotation().getNameRange();
+			markerManager.addMarker(resource, nameRange, JaxrsValidationMessages.PROVIDER_MISSING_BINDING,
+					new String[] { nameBindingAnnotationClassName }, JaxrsPreferences.PROVIDER_MISSING_BINDING);
+
 		}
-		// otherwise, add a problem marker
-		final ISourceRange nameRange = nameBindingAnnotations.get(firstNameBindingAnnotationClassName)
-				.getJavaAnnotation().getNameRange();
-		markerManager.addMarker(resource, nameRange, JaxrsValidationMessages.PROVIDER_MISSING_BINDING, new String[]{firstNameBindingAnnotationClassName},
-				JaxrsPreferences.PROVIDER_MISSING_BINDING);
 	}
 
 	@SuppressWarnings("unused")

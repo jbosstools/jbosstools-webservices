@@ -24,6 +24,7 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
@@ -73,9 +74,9 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 	}
 
 	/**
-	 * Validates that at least one {@link JaxrsResource} or
-	 * {@link JaxrsResourceMethod} is annotated with *all the same*
-	 * {@link JaxrsNameBinding} annotation(s) than this provider
+	 * Validates that at least one {@link JaxrsResource}
+	 * {@link JaxrsResourceMethod} or {@link JaxrsJavaApplication} contains all the 
+	 * {@link JaxrsNameBinding} annotation(s) declared on this provider
 	 * 
 	 * @param provider
 	 *            the provider to validate
@@ -95,21 +96,21 @@ public class JaxrsProviderValidatorDelegate extends AbstractJaxrsElementValidato
 		final Set<String> allBindingAnnotationNames = nameBindingAnnotations.keySet();
 		final Collection<IJaxrsResourceMethod> annotatedResourceMethods = metamodel.findResourceMethodsByAnnotation(firstNameBindingAnnotationClassName);
 		for(IJaxrsResourceMethod resourceMethod : annotatedResourceMethods) {
-			if(resourceMethod.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
+			if(resourceMethod.getNameBindingAnnotations().keySet().containsAll(allBindingAnnotationNames)) {
 				// provider is valid, at least one method has all those bindings
 				return;
 			}
 		}
 		final Collection<IJaxrsResource> annotatedResources = metamodel.findResourcesByAnnotation(firstNameBindingAnnotationClassName);
 		for(IJaxrsResource resource : annotatedResources) {
-			if(resource.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
+			if(resource.getNameBindingAnnotations().keySet().containsAll(allBindingAnnotationNames)) {
 				// provider is valid, at least one method has all those bindings
 				return;
 			}
 		}
 		final Collection<IJaxrsJavaApplication> annotatedApplications = metamodel.findApplicationsByAnnotation(firstNameBindingAnnotationClassName);
 		for(IJaxrsJavaApplication application : annotatedApplications) {
-			if(application.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
+			if(application.getNameBindingAnnotations().keySet().containsAll(allBindingAnnotationNames)) {
 				// provider is valid, at least one method has all those bindings
 				return;
 			}

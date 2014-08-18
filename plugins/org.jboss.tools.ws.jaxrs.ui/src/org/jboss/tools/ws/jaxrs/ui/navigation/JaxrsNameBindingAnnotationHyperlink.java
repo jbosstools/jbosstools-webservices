@@ -57,7 +57,7 @@ public class JaxrsNameBindingAnnotationHyperlink implements IHyperlink {
 	 */
 	@Override
 	public String getHyperlinkText() {
-		return "Jump to " + getDisplayNameText(targetElement);
+		return "Open " + getDisplayNameText(targetElement);
 	}
 
 	public static String getDisplayNameText(final IJaxrsJavaElement element) {

@@ -12,7 +12,7 @@ package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
@@ -112,23 +112,26 @@ public class JaxrsJavaApplicationValidatorDelegate extends AbstractJaxrsElementV
 			return;
 		}
 		final JaxrsMetamodel metamodel = javaApplication.getMetamodel();
-		// take the first NameBinding annotation and look for Providers that
+		// take each NameBinding annotation and look for Providers that
 		// have this annotation, too
-		final String firstNameBindingAnnotationClassName = nameBindingAnnotations.keySet().iterator().next();
-		final Set<String> allBindingAnnotationNames = nameBindingAnnotations.keySet();
-		final Collection<IJaxrsProvider> annotatedProviders = metamodel
-				.findProvidersByAnnotation(firstNameBindingAnnotationClassName);
-		for (IJaxrsProvider provider : annotatedProviders) {
-			if (provider.getNameBindingAnnotations().keySet().equals(allBindingAnnotationNames)) {
-				// provider is valid, at least one method has all those bindings
-				return;
+		annotations_loop:
+		for(Entry<String, Annotation> entry : nameBindingAnnotations.entrySet()) {
+			final String nameBindingAnnotationClassName = entry.getKey();
+			final Collection<IJaxrsProvider> annotatedProviders = metamodel
+					.findProvidersByAnnotation(nameBindingAnnotationClassName);
+			// if provider binding annotation(s) match the application binding annotations
+			for (IJaxrsProvider provider : annotatedProviders) {
+				if (javaApplication.getNameBindingAnnotations().keySet().containsAll(provider.getNameBindingAnnotations().keySet())) {
+					// provider is valid, at least one method has all those bindings
+					continue annotations_loop;
+				}
 			}
+			// otherwise, add a problem marker
+			final ISourceRange nameRange = entry.getValue().getJavaAnnotation().getNameRange();
+			markerManager.addMarker(javaApplication, nameRange, JaxrsValidationMessages.PROVIDER_MISSING_BINDING, new String[]{nameBindingAnnotationClassName},
+					JaxrsPreferences.PROVIDER_MISSING_BINDING);
+			
 		}
-		// otherwise, add a problem marker
-		final ISourceRange nameRange = nameBindingAnnotations.get(firstNameBindingAnnotationClassName)
-				.getJavaAnnotation().getNameRange();
-		markerManager.addMarker(javaApplication, nameRange, JaxrsValidationMessages.PROVIDER_MISSING_BINDING, new String[]{firstNameBindingAnnotationClassName},
-				JaxrsPreferences.PROVIDER_MISSING_BINDING);
 	}
 
 }

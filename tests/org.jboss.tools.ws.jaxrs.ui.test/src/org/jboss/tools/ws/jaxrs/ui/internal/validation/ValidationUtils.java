@@ -63,7 +63,7 @@ public class ValidationUtils {
 	public static Set<IFile> toSet(final IResource... elements) {
 		final Set<IFile> result = new HashSet<IFile>();
 		for (IResource element : elements) {
-			if(element == null) {
+			if (element == null) {
 				continue;
 			}
 			result.add((IFile) element);
@@ -81,7 +81,7 @@ public class ValidationUtils {
 	public static IMarker[] findJaxrsMarkers(final IJaxrsElement... elements) throws CoreException {
 		final List<IMarker> markers = new ArrayList<IMarker>();
 		for (IJaxrsElement element : elements) {
-			if(element.getResource() == null) {
+			if (element.getResource() == null) {
 				continue;
 			}
 			final IMarker[] elementMarkers = element.getResource().findMarkers(
@@ -120,11 +120,11 @@ public class ValidationUtils {
 		printMarkers(markers);
 		return markers.toArray(new IMarker[markers.size()]);
 	}
-	
+
 	public static IMessage[] findJaxrsMessages(final IReporter reporter, final IJaxrsElement... elements) {
 		@SuppressWarnings("unchecked")
 		final List<IMessage> messages = reporter.getMessages();
-		
+
 		return messages.toArray(new IMessage[messages.size()]);
 	}
 
@@ -145,7 +145,7 @@ public class ValidationUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final JaxrsBaseElement element) throws CoreException {
-		if(element.getResource() == null) {
+		if (element.getResource() == null) {
 			return;
 		}
 		element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false,
@@ -178,37 +178,49 @@ public class ValidationUtils {
 		}
 	}
 
-	public static Matcher<IMarker[]> hasPreferenceKey(String javaApplicationInvalidTypeHierarchy) {
-		return new MarkerPreferenceKeyMatcher(javaApplicationInvalidTypeHierarchy);
-	}
-
-	static class MarkerPreferenceKeyMatcher extends BaseMatcher<IMarker[]> {
-
-		final String expectedProblemType;
-
-		MarkerPreferenceKeyMatcher(final String expectedProblemType) {
-			this.expectedProblemType = expectedProblemType;
-		}
-
-		@Override
-		public boolean matches(Object item) {
-			if (item instanceof IMarker[]) {
-				for (IMarker marker : (IMarker[]) item) {
-					final String preferenceKey = marker.getAttribute(
-							ValidationErrorManager.PREFERENCE_KEY_ATTRIBUTE_NAME, "");
-					if (preferenceKey.equals(expectedProblemType)) {
-						return true;
+	public static Matcher<IMarker[]> hasPreferenceKey(final String expectedProblemType) {
+		return new BaseMatcher<IMarker[]>() {
+			@Override
+			public boolean matches(Object item) {
+				if (item instanceof IMarker[]) {
+					for (IMarker marker : (IMarker[]) item) {
+						final String preferenceKey = marker.getAttribute(
+								ValidationErrorManager.PREFERENCE_KEY_ATTRIBUTE_NAME, "");
+						if (preferenceKey.equals(expectedProblemType)) {
+							return true;
+						}
 					}
 				}
+				return false;
 			}
-			return false;
-		}
 
-		@Override
-		public void describeTo(Description description) {
-			description.appendText("marker contains preference_key (\"" + expectedProblemType + "\" problem type)");
-		}
+			@Override
+			public void describeTo(Description description) {
+				description.appendText("marker contains preference_key (\"" + expectedProblemType + "\" problem type)");
+			}
+		};
+	}
 
+	public static Matcher<IMarker> matchesLocation(final ISourceRange range) {
+		return new BaseMatcher<IMarker>() {
+
+			@Override
+			public boolean matches(Object item) {
+				if (item instanceof IMarker) {
+					final IMarker marker = (IMarker) item;
+					final int markerStart = marker.getAttribute(IMarker.CHAR_START, 0);
+					final int markerEnd = marker.getAttribute(IMarker.CHAR_END, 0);
+					return (markerStart == range.getOffset() && markerEnd == (range.getOffset() + range.getLength()));
+				}
+				return false;
+			}
+
+			@Override
+			public void describeTo(Description description) {
+				description.appendText("marker location:" + range);
+			}
+
+		};
 	}
 
 	public static void printMarkers(final List<IMarker> markers) {
@@ -227,14 +239,17 @@ public class ValidationUtils {
 	public static IJavaCompletionProposal[] getJavaCompletionProposals(final Annotation annotation)
 			throws JavaModelException, CoreException {
 		final IAnnotation javaAnnotation = annotation.getJavaAnnotation();
-		final ICompilationUnit compilationUnit = (ICompilationUnit) javaAnnotation.getAncestor(IJavaElement.COMPILATION_UNIT);
+		final ICompilationUnit compilationUnit = (ICompilationUnit) javaAnnotation
+				.getAncestor(IJavaElement.COMPILATION_UNIT);
 		final ISourceRange sourceRange = javaAnnotation.getSourceRange();
-		final IInvocationContext invocationContext = getInvocationContext(compilationUnit, sourceRange.getOffset(), sourceRange.getLength());
+		final IInvocationContext invocationContext = getInvocationContext(compilationUnit, sourceRange.getOffset(),
+				sourceRange.getLength());
 		final IProblemLocation[] problemLocations = getProblemLocations(javaAnnotation);
-		final IJavaCompletionProposal[] proposals = new JaxrsMarkerResolutionGenerator().getCorrections(invocationContext, problemLocations);
+		final IJavaCompletionProposal[] proposals = new JaxrsMarkerResolutionGenerator().getCorrections(
+				invocationContext, problemLocations);
 		return proposals;
 	}
-	
+
 	private static IInvocationContext getInvocationContext(final ICompilationUnit compilationUnit, final int offset,
 			final int length) {
 		return new IInvocationContext() {
@@ -289,7 +304,8 @@ public class ValidationUtils {
 		return null;
 	}
 
-	public static void applyProposals(final IJaxrsElement jaxrsElement, final IJavaCompletionProposal[] proposals) throws CoreException {
+	public static void applyProposals(final IJaxrsElement jaxrsElement, final IJavaCompletionProposal[] proposals)
+			throws CoreException {
 		final FileEditorInput input = new FileEditorInput((IFile) jaxrsElement.getResource());
 		final IDocumentProvider provider = DocumentProviderRegistry.getDefault().getDocumentProvider(input);
 		try {
@@ -298,23 +314,23 @@ public class ValidationUtils {
 			fail("Failed to connect provider to input:" + e.getMessage());
 		}
 		final IDocument document = provider.getDocument(input);
-		for(IJavaCompletionProposal proposal : proposals) {
+		for (IJavaCompletionProposal proposal : proposals) {
 			proposal.apply(document);
 		}
 		provider.saveDocument(new NullProgressMonitor(), input, document, true);
 	}
 
 	public static IProblem[] findJavaProblems(final IResource resource) throws JavaModelException {
-		final CompilationUnit ast = JdtUtils.parse(JavaCore.create(resource),null);
+		final CompilationUnit ast = JdtUtils.parse(JavaCore.create(resource), null);
 		final IProblem[] problems = ast.getProblems();
 		// only care about errors
 		final List<IProblem> errors = new ArrayList<IProblem>();
-		for(IProblem problem : problems) {
-			if(problem.isError()) {
+		for (IProblem problem : problems) {
+			if (problem.isError()) {
 				errors.add(problem);
 			}
 		}
 		return errors.toArray(new IProblem[errors.size()]);
 	}
-	
+
 }
