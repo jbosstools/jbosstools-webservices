@@ -1,6 +1,13 @@
-/**
+/******************************************************************************* 
+ * Copyright (c) 2013 - 2014 Red Hat, Inc. and others. 
+ * Distributed under license by Red Hat, Inc. All rights reserved. 
+ * This program is made available under the terms of the 
+ * Eclipse Public License v1.0 which accompanies this distribution, 
+ * and is available at http://www.eclipse.org/legal/epl-v10.html 
  * 
- */
+ * Contributors: 
+ * Xavier Coulon - Initial API and implementation 
+ ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -11,7 +18,6 @@ import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.de
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.matchesLocation;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;

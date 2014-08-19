@@ -1,8 +1,5 @@
 /**
- * JBoss by Red Hat
- * Copyright 2011, Red Hat Middleware, LLC, and individual contributors as indicated
- * by the @authors tag. See the copyright.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright (c) 2011 - 2014 Red Hat, Inc. and others.  
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
