@@ -62,7 +62,6 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 	private boolean useDefaultServiceName = true;
 	private boolean useDefaultClassName = true;
 	private boolean updateWebXML = true;
-	private boolean addJarsFromRootRuntime = false;
 
 	private IStructuredSelection selection;
 	private IProject project;
@@ -224,14 +223,6 @@ public class JBossWSAnnotatedClassWizard extends Wizard implements INewWizard {
 
 	public boolean getUpdateWebXML() {
 		return updateWebXML;
-	}
-
-	public boolean getAddJarsFromRootRuntime() {
-		return addJarsFromRootRuntime;
-	}
-
-	public void setAddJarsFromRootRuntime(boolean addJarsFromRootRuntime) {
-		this.addJarsFromRootRuntime = addJarsFromRootRuntime;
 	}
 
 	public IProject getProject() {

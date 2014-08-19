@@ -61,7 +61,6 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 	private Text className;
 	private Text name;
 	private Button updateWebXML;
-	private Button addJarsIfFound;
 	private Button btnPackageBrowse;
 	private Button btnServiceClassBrowse;
 
@@ -230,21 +229,6 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 			}
 		});
 		
-		addJarsIfFound = new Button(group, SWT.CHECK);
-		addJarsIfFound.setText(JBossWSUIMessages.JBossRSGenerateWizardPage_AddJarsIfFoundCheckbox);
-		gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = 2;
-		addJarsIfFound.setLayoutData(gd);
-		addJarsIfFound.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				wizard.setAddJarsFromRootRuntime(updateWebXML.getSelection());
-				setPageComplete(isPageComplete());
-			}
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
-		});
-
 		setWebXMLSelectionValueBasedOnProjectFacet();
 	}
 	
@@ -445,8 +429,6 @@ public class JBossWSAnnotatedClassWizardPage extends WizardPage {
 
 		JBossWSGenerateWizardValidator.setServiceModel(model);
 		
-		addJarsIfFound.setEnabled(false);
-
 		if (!projects.isDisposed() && projects.getText().length() > 0) {
 			model.setWebProjectName(projects.getText());
 		}
