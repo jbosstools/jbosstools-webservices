@@ -1,0 +1,30 @@
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import java.io.IOException;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
+
+@Path("/")
+public class RestService {
+	 
+	@GET
+	public Response get() {
+		System.out.println("Just passed in method");
+		return Response.ok().build();
+	}
+	
+	//@Provider
+    public static class AuthorizedResponseFilter implements ContainerResponseFilter {
+		@Override
+		public void filter(ContainerRequestContext arg0,
+				ContainerResponseContext arg1) throws IOException {
+			System.out.println("Just passed in filter");
+		}
+    }
+}

@@ -17,8 +17,13 @@ import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFir
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.matchesLocation;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.junit.Assert.assertThat;
 
+import java.util.Arrays;
+import java.util.Set;
+
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -27,13 +32,19 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.wst.validation.ReporterHelper;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.jboss.tools.common.validation.ContextValidationHelper;
+import org.jboss.tools.common.validation.EditorValidationContext;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
@@ -48,6 +59,7 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
@@ -1005,5 +1017,67 @@ public class Jaxrs20ProviderValidatorTestCase {
 				equalTo(JaxrsPreferences.PROVIDER_UNUSED_BINDING));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 	}
+	
+	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-17178
+	public void shouldReportProblemWhenMissingProviderAnnotationInInnerProvider() throws CoreException, ValidationException {
+		// pre-conditions
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
+				"ResourceWithInnerProvider.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"RestService.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestService");
+		final IJaxrsProvider provider = metamodel.findProvider("org.jboss.tools.ws.jaxrs.sample.services.RestService$AuthorizedResponseFilter");
+		deleteJaxrsMarkers(project);
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation
+		final Set<IFile> changedResources = toSet(compilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
+				reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(provider);
+		for (IMarker marker : markers) {
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+					marker.getAttribute(IMarker.MESSAGE));
+		}
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, ""),
+				equalTo(JaxrsPreferences.PROVIDER_MISSING_ANNOTATION));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+	}
 
+	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-17178
+	public void shouldReportProblemWhenMissingProviderAnnotationInInnerProvider_AsYouType() throws CoreException, ValidationException {
+		// pre-conditions
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
+				"ResourceWithInnerProvider.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"RestService.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestService");
+		final JaxrsProvider provider = (JaxrsProvider) metamodel.findProvider("org.jboss.tools.ws.jaxrs.sample.services.RestService$AuthorizedResponseFilter");
+		deleteJaxrsMarkers(project);
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation
+		final IRegion annotationRegion = new Region(provider.getJavaElement().getSourceRange().getOffset(), 0);
+		final IDocument document = new Document(compilationUnit.getSource());
+		final EditorValidationContext validationContext = new EditorValidationContext(project, document);
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(annotationRegion), validationHelper, reporter, validationContext, null, (IFile)compilationUnit.getResource());
+		
+		final Set<IFile> changedResources = toSet(compilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
+				reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(provider);
+		for (IMarker marker : markers) {
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+					marker.getAttribute(IMarker.MESSAGE));
+		}
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, ""),
+				equalTo(JaxrsPreferences.PROVIDER_MISSING_ANNOTATION));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+	}
+
+	
 }

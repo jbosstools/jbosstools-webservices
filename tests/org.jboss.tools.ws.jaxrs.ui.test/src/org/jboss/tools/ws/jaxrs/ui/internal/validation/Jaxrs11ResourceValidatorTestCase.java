@@ -816,9 +816,12 @@ public class Jaxrs11ResourceValidatorTestCase {
 		
 		// verifications
 		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
-		assertThat(messages.length, equalTo(1));
+		assertThat(messages.length, equalTo(2));
 		assertThat(messages[0].getText(), not(containsString("{")));
 		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+		assertThat(messages[1].getText(), not(containsString("{")));
+		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 	}
 
@@ -844,9 +847,12 @@ public class Jaxrs11ResourceValidatorTestCase {
 		
 		// verifications 1 : expect 1 problem
 		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
-		assertThat(messages.length, equalTo(1));
+		assertThat(messages.length, equalTo(2));
 		assertThat(messages[0].getText(), not(containsString("{")));
 		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+		assertThat(messages[1].getText(), not(containsString("{")));
+		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 
 		// operation 2: fix the value and revalidate
@@ -882,11 +888,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		
 		// verifications 1 : expect 1 problem
 		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
-		assertThat(messages.length, equalTo(1));
+		assertThat(messages.length, equalTo(2));
 		assertThat(messages[0].getText(), not(containsString("{")));
 		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+		assertThat(messages[1].getText(), not(containsString("{")));
+		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
-
+		
 		// operation 2: fix the value and revalidate
 		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
 		document.set(boatResourceCompilationUnit.getSource());
@@ -958,9 +967,12 @@ public class Jaxrs11ResourceValidatorTestCase {
 		
 		// verifications
 		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
-		assertThat(messages.length, equalTo(1));
+		assertThat(messages.length, equalTo(2));
 		assertThat(messages[0].getText(), not(containsString("{")));
 		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+		assertThat(messages[1].getText(), not(containsString("{")));
+		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
 	}
 	
@@ -988,11 +1000,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		
 		// verifications 1 : expect 1 problem
 		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
-		assertThat(messages.length, equalTo(1));
+		assertThat(messages.length, equalTo(2));
 		assertThat(messages[0].getText(), not(containsString("{")));
 		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+		assertThat(messages[1].getText(), not(containsString("{")));
+		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
-		
+
 		// operation 2: fix the value and revalidate
 		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
 		document.set(boatResourceCompilationUnit.getSource());
@@ -1028,11 +1043,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		
 		// verifications 1 : expect 1 problem
 		final IMessage[] messages = findJaxrsMessages(reporter, boatResource);
-		assertThat(messages.length, equalTo(1));
+		assertThat(messages.length, equalTo(2));
 		assertThat(messages[0].getText(), not(containsString("{")));
 		assertThat((String) messages[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
+				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
+		assertThat(messages[1].getText(), not(containsString("{")));
+		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
-		
+
 		// operation 2: fix the value and revalidate
 		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
 		document.set(boatResourceCompilationUnit.getSource());

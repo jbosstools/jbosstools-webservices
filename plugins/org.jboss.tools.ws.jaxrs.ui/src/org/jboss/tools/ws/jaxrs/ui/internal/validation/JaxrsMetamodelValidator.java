@@ -441,22 +441,17 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			final ICompilationUnit compilationUnit = JdtUtils.getCompilationUnit(changedFile);
 			if (metamodel != null && compilationUnit != null) {
 				final CompilationUnit ast = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
-				final Set<JaxrsJavaElement<?>> changedJaxrsElements = new HashSet<JaxrsJavaElement<?>>();
-				for(IRegion dirtyRegion : dirtyRegions) {
-					final IJavaElement changedElement = compilationUnit.getElementAt(dirtyRegion.getOffset());
-					if(changedElement == null) {
-						continue;
+				final Set<JaxrsJavaElement<?>> changedWorkingCopies = new HashSet<JaxrsJavaElement<?>>();
+				final Set<IJaxrsElement> changedElements = metamodel.findElements(changedFile);
+				for(IJaxrsElement changedElement : changedElements) {
+					if(changedElement instanceof JaxrsJavaElement<?>) {
+						final JaxrsJavaElement<?> changedJavaElement = (JaxrsJavaElement<?>) changedElement;
+						final JaxrsJavaElement<?> workingCopyElement =  (JaxrsJavaElement<?>) changedJavaElement.getWorkingCopy();
+						workingCopyElement.update(changedJavaElement.getJavaElement(), ast);
+						changedWorkingCopies.add(workingCopyElement);
 					}
-					final JaxrsJavaElement<?> changedJaxrsElement = (JaxrsJavaElement<?>) metamodel.findElement(changedElement);
-					// there may not be any JAX-RS element anymore (eg: no annotation -> element was removed)
-					if(changedJaxrsElement == null) {
-						continue;
-					}
-					final JaxrsJavaElement<?> workingCopyElement =  (JaxrsJavaElement<?>) changedJaxrsElement.getWorkingCopy();
-					workingCopyElement.update(changedElement, ast);
-					changedJaxrsElements.add(workingCopyElement);
 				}
-				for(IJaxrsElement workingCopyElement : changedJaxrsElements) {
+				for(IJaxrsElement workingCopyElement : changedWorkingCopies) {
 					Logger.debug("Going to validate {}:\n{}", workingCopyElement.getName());
 					reporter.removeAllMessages(validatorManager, workingCopyElement.getResource());
 					validate(workingCopyElement, ast);
