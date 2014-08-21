@@ -90,6 +90,13 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	public final int getMarkerSeverity() {
 		return markerSeverity;
 	}
+	
+	/**
+	 * @return {@code true} if this element has a marker severity > 0, {@code false} otherwise.
+	 */
+	public boolean hasProblem() {
+		return markerSeverity > 0;
+	}
 
 	/** @return the metamodel */
 	public final JaxrsMetamodel getMetamodel() {

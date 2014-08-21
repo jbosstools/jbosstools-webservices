@@ -12,7 +12,6 @@ package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import java.util.Collection;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
@@ -52,8 +51,7 @@ public class JaxrsMetamodelValidatorDelegate {
 	 */
 	void validate(JaxrsMetamodel metamodel) throws CoreException {
 		Logger.debug("Validating element {}", metamodel);
-		final IProject project = metamodel.getProject();
-		JaxrsMetamodelValidator.removeMarkers(metamodel, project);
+		JaxrsMetamodelValidator.removeMarkers(metamodel);
 		metamodel.resetProblemLevel();
 		final Collection<JaxrsJavaApplication> javaApplications = metamodel.findJavaApplications();
 		final Collection<JaxrsWebxmlApplication> webxmlApplications = metamodel.findWebxmlApplications();

@@ -64,16 +64,14 @@ public class JaxrsResourceValidatorDelegate extends AbstractJaxrsElementValidato
 		validatePathAnnotationValue(resource, ast);
 		validateAtLeastOneProviderWithBinding(resource);
 		for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
-			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod, ast,
-					false);
+			new JaxrsResourceMethodValidatorDelegate(markerManager).validate((JaxrsResourceMethod) resourceMethod, ast);
 		}
 		for (IJaxrsResourceField resourceField : resource.getAllFields()) {
-			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, ast,
-					false);
+			new JaxrsResourceFieldValidatorDelegate(markerManager).validate((JaxrsResourceField) resourceField, ast);
 		}
 		for (IJaxrsResourceProperty resourceProperty : resource.getAllProperties()) {
 			new JaxrsResourcePropertyValidatorDelegate(markerManager).validate(
-					(JaxrsResourceProperty) resourceProperty, ast, false);
+					(JaxrsResourceProperty) resourceProperty, ast);
 		}
 	}
 

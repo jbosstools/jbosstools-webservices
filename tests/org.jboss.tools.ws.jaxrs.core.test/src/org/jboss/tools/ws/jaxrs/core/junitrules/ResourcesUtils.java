@@ -80,8 +80,18 @@ public class ResourcesUtils {
 		return modifiedElement;
 	}
 
-	public static void replaceAllOccurrencesOfCode(ICompilationUnit compilationUnit, String oldContent,
-			String newContent, boolean useWorkingCopy) throws JavaModelException {
+	public static void removeSourceRange(final ICompilationUnit compilationUnit, final ISourceRange rangeToRemove,
+			final boolean useWorkingCopy) throws JavaModelException {
+		final ICompilationUnit unit = useWorkingCopy ? JavaElementsUtils.createWorkingCopy(compilationUnit) : compilationUnit;
+		final IBuffer buffer = ((IOpenable) unit).getBuffer();
+		buffer.replace(rangeToRemove.getOffset(), rangeToRemove.getLength(), "");
+		// IJavaElement modifiedMethod =
+		// workingCopy.getElementAt(sourceRange.getOffset());
+		JavaElementsUtils.saveAndClose(unit);
+	}
+	
+	public static void replaceAllOccurrencesOfCode(final ICompilationUnit compilationUnit, final String oldContent,
+			final String newContent, final boolean useWorkingCopy) throws JavaModelException {
 	
 		ICompilationUnit unit = JavaElementsUtils.getCompilationUnit(compilationUnit, useWorkingCopy);
 		IBuffer buffer = ((IOpenable) unit).getBuffer();

@@ -141,13 +141,16 @@ public final class JdtUtils {
 	 * 
 	 * @param type
 	 *            the type to check
-	 * @return true if the type is abstract, false otherwise
+	 * @return {@code true} if the type is abstract or {@code null}, {@code false} otherwise
 	 * @throws JavaModelException
 	 *             the underlying JavaModelException thrown by the manipulated
 	 *             JDT APIs
 	 */
 	public static boolean isAbstractType(final IType type)
 			throws JavaModelException {
+		if(type == null) {
+			return true;
+		}
 		return Flags.isAbstract(type.getFlags());
 	}
 
@@ -780,6 +783,23 @@ public final class JdtUtils {
 		}
 		return findType;
 	}
+	
+	/**
+	 * @param compilationUnit the compilation unit to analyze
+	 * @param handleIdentifier the target type identifier
+	 * @return the found {@link IType} or {@code null} if none was found.
+	 * @throws JavaModelException
+	 */
+	public static IType resolveType(final ICompilationUnit compilationUnit, final String handleIdentifier) throws JavaModelException {
+		final IType[] allTypes = compilationUnit.getAllTypes();
+		for(IType type: allTypes) {
+			if(type.getHandleIdentifier().equals(handleIdentifier)) {
+				return type;
+			}
+		}
+		return null;
+	}
+
 
 	/**
 	 * Returns the hierarchy for the given type, or null if it could not be
@@ -1259,5 +1279,6 @@ public final class JdtUtils {
 	public static boolean isSetter(final IMethod javaMethod) throws JavaModelException {
 		return javaMethod != null && javaMethod.getElementName().startsWith("set") ;
 	}
+
 	
 }

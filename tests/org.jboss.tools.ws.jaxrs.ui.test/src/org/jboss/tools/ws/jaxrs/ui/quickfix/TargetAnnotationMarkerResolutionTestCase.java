@@ -166,6 +166,7 @@ public class TargetAnnotationMarkerResolutionTestCase {
 		final IJavaCompletionProposal completionProposal = new AddHttpMethodTargetValuesCompletionProposal(compilationUnit,
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
 		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod);
+		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
 		new JaxrsMetamodelValidator().validate(toSet(resource), project, validationHelper, context,
@@ -197,6 +198,7 @@ public class TargetAnnotationMarkerResolutionTestCase {
 		final IJavaCompletionProposal completionProposal = new AddHttpMethodTargetValuesCompletionProposal(compilationUnit,
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
 		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, bazMethod);
+		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
 		new JaxrsMetamodelValidator().validate(toSet(resource), project, validationHelper, context,
@@ -319,6 +321,7 @@ public class TargetAnnotationMarkerResolutionTestCase {
 		final IJavaCompletionProposal completionProposal = new AddNameBindingTargetValuesCompletionProposal(compilationUnit,
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
 		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding);
+		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
 		new JaxrsMetamodelValidator().validate(toSet(resource), project, validationHelper, context,
@@ -350,6 +353,7 @@ public class TargetAnnotationMarkerResolutionTestCase {
 		final IJavaCompletionProposal completionProposal = new AddNameBindingTargetValuesCompletionProposal(compilationUnit, 
 				JaxrsMarkerResolutionGenerator.findEffectiveSourceRange(compilationUnit, new ProblemLocation(javaProblems[0])));
 		JavaCompletionProposalUtils.applyCompletionProposal(completionProposal, nameBinding);
+		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
 		
 		// verification 2: revalidate, there should be 0 JAX-RS/Java error
 		new JaxrsMetamodelValidator().validate(toSet(resource), project, validationHelper, context,

@@ -622,8 +622,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 					// IFields nor IMethods
 					// those elements will internally update their own
 					// children elements based on IMethods and IFields
-					if (element.getJavaElement().getElementType() == IJavaElement.TYPE) {
+					if (element.getJavaElement().getElementType() == IJavaElement.TYPE && javaElement.getElementType() == IJavaElement.TYPE) {
 						element.update(javaElement, ast);
+					} else if(element.getJavaElement().getElementType() == IJavaElement.TYPE && javaElement.getElementType() == IJavaElement.COMPILATION_UNIT) {
+						final ICompilationUnit compilationUnit = (ICompilationUnit) javaElement;
+						final IType type = JdtUtils.resolveType(compilationUnit, element.getJavaElement().getHandleIdentifier());
+						if(type != null) {
+							element.update(type, ast);
+						} else {
+							element.remove(FlagsUtils.computeElementFlags(element));
+						}
 					}
 				}
 			}

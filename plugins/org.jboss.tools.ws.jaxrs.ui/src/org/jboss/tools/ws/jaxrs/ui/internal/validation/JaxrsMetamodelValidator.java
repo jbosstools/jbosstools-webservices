@@ -375,11 +375,9 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 					// then make
 					// sure no JAX-RS Problem marker remains on that resource
 					if (elements.isEmpty()) {
-						removeMarkers(metamodel, changedResource);
+						removeMarkers(metamodel);
 					} else {
-						for (IJaxrsElement element : elements) {
-							validate(element, getAST(element));
-						}
+						validate(elements);
 					}
 				}
 			}
@@ -452,10 +450,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 					}
 				}
 				for(IJaxrsElement workingCopyElement : changedWorkingCopies) {
-					Logger.debug("Going to validate {}:\n{}", workingCopyElement.getName());
+					Logger.debug("Removing message before validating {}", workingCopyElement.getName());
 					reporter.removeAllMessages(validatorManager, workingCopyElement.getResource());
-					validate(workingCopyElement, ast);
 				}
+				validate(changedWorkingCopies);
 			}
 		} catch (CoreException e) {
 			Logger.error(
@@ -482,9 +480,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				//metamodel.getShadowElements().reset();
 				final int previousProblemLevel = metamodel.getMarkerSeverity();
 				final List<IJaxrsElement> allElements = metamodel.getAllElements();
-				for (IJaxrsElement element : allElements) {
-					validate(element, getAST(element));
-				}
+				validate(allElements);
 				validate(metamodel);
 				final int currentProblemLevel = metamodel.getMarkerSeverity();
 				if (currentProblemLevel != previousProblemLevel) {
@@ -510,15 +506,28 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 * @param ast the associated AST
 	 * @throws CoreException
 	 */
-	private void validate(final IJaxrsElement element, final CompilationUnit ast) throws CoreException {
-		// skip validation on binary JAX-RS elements (if metamodel contains any)
-		if (!element.isBinary()) {
+	private void validate(final Collection<? extends IJaxrsElement> elements) throws CoreException {
+		final List<IJaxrsElement> elementsToValidate = new ArrayList<IJaxrsElement>();
+		for(IJaxrsElement element : elements) {
+			// skip validation on binary JAX-RS elements (if metamodel contains any)
+			if (element.isBinary()) {
+				continue;
+			}
+			if (element instanceof JaxrsJavaElement<?> && !((JaxrsJavaElement<?>) element).isBasedOnJavaType()) {
+				continue;
+			}
+			elementsToValidate.add(element);
+			removeMarkers(element);
+		}
+		
+		for(IJaxrsElement element : elementsToValidate) {
 			@SuppressWarnings("unchecked")
 			final IJaxrsElementValidator<IJaxrsElement> validator = (IJaxrsElementValidator<IJaxrsElement>) getValidator(element);
 			if (validator != null) {
-				validator.validate(element, ast);
+				validator.validate(element, getAST(element));
 			}
 		}
+		
 	}
 
 	private IJaxrsElementValidator<? extends IJaxrsElement> getValidator(final IJaxrsElement element) {
@@ -613,8 +622,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	}
 
 	/**
-	 * Removes JAX-RS {@link IMarker}s on the {@link IJaxrsElement}s assciated
-	 * with the given {@link IResource} inthe given {@link JaxrsMetamodel}.
+	 * Removes JAX-RS {@link IMarker}s on the underlying {@link IProject} associated
+	 * with the given {@link JaxrsMetamodel}.
 	 * 
 	 * @param metamodel
 	 *            the JAX-RS Metamodel
@@ -622,11 +631,26 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 *            the JAX-RS Elements' underlying resource
 	 * @throws CoreException
 	 */
-	public static void removeMarkers(final JaxrsMetamodel metamodel, final IResource resource) throws CoreException {
-		if (resource == null) {
+	public static void removeMarkers(final JaxrsMetamodel metamodel) throws CoreException {
+		if (metamodel == null || metamodel.getProject() == null) {
 			return;
 		}
-		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+		metamodel.getProject().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+	}
+
+	/**
+	 * Removes JAX-RS {@link IMarker}s on the underlying {@link IResource} of the given {@link IJaxrsElement}
+	 * 
+	 * @param element
+	 *            the JAX-RS Element to clean
+	 * @throws CoreException
+	 */
+	public static void removeMarkers(final IJaxrsElement element) throws CoreException {
+		if (element == null || element.getResource() == null) {
+			return;
+		}
+		element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+		((JaxrsBaseElement) element).resetProblemLevel();
 	}
 
 	/**

@@ -420,7 +420,6 @@ public class JaxrsApplicationValidatorTestCase {
 				validatorManager, reporter);
 		// validation
 		assertThat(findJaxrsMarkers(javaApplication1).length, equalTo(0));
-		assertThat(findJaxrsMarkers(javaApplication2).length, equalTo(0));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 

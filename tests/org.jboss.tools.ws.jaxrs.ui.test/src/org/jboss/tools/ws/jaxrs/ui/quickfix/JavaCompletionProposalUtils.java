@@ -23,7 +23,6 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jface.text.IDocument;
 import org.jboss.tools.common.quickfix.IQuickFix;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
-import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 
 /**
  * Utility class to execute the completion proposals during the tests.
@@ -45,7 +44,7 @@ public class JavaCompletionProposalUtils {
 		fBuffer.commit(null, true);
 		manager.disconnect(path, LocationKind.IFILE, null);
 		// now, update the element with the latest changes
-		element.update(element.getJavaElement(), JdtUtils.parse(element.getJavaElement().getCompilationUnit(), null));
+		//element.update(element.getJavaElement(), JdtUtils.parse(element.getJavaElement().getCompilationUnit(), null));
 	}
 
 	/**

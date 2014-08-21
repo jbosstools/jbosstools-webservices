@@ -63,33 +63,16 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 	 * @throws CoreException
 	 */
 	public void validate(final T element, final CompilationUnit ast) throws CoreException {
-		validate(element, ast, true);
-	}
-	
-	/**
-	 * Validates the given {@link IJaxrsElement}.
-	 * 
-	 * @param element
-	 *            the JAX-RS element to validate
-	 * @param removeMarkers
-	 *            boolean to indicate if JAX-RS Problem markers related to
-	 *            the given element should be removed prior to validation, or
-	 *            not (assuming they were already removed).
-	 * @throws CoreException
-	 */
-	public void validate(final T element, final CompilationUnit ast, final boolean removeMarkers) throws CoreException {
-		final int previousProblemLevel = element.getMarkerSeverity();
-		if(removeMarkers) {
-			removeMarkers(element);
+		// skip if the element was removed (during as-you-type for example)
+		if(!element.exists()) {
+			return;
 		}
-		element.resetProblemLevel();
 		internalValidate(element, ast);
-		final int currentProblemLevel = element.getMarkerSeverity();
-		if(currentProblemLevel != previousProblemLevel) {
-			Logger.debug("Informing metamodel that problem level changed from {} to {}", previousProblemLevel,
-					currentProblemLevel);
+		if(element.hasProblem()) {
+			Logger.debug("Informing metamodel that problem level changed to {}", element.getMarkerSeverity());
 			((JaxrsMetamodel)element.getMetamodel()).notifyElementProblemLevelChanged(element);
 		}
+		
 	}
 
 	abstract void internalValidate(final T element, final CompilationUnit ast) throws CoreException;

@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.removeSourceRange;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
@@ -35,6 +36,7 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
@@ -48,6 +50,7 @@ import org.jboss.tools.common.validation.EditorValidationContext;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
@@ -55,6 +58,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.LogListener;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
@@ -1079,5 +1083,40 @@ public class Jaxrs20ProviderValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 	}
 
+	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-17178
+	public void shouldNotReportProblemWhenInnerProviderDeleted_AsYouType() throws CoreException, ValidationException {
+		// pre-conditions
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
+				"ResourceWithInnerProvider.txt", "org.jboss.tools.ws.jaxrs.sample.services",
+				"RestService.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestService");
+		final JaxrsProvider provider = (JaxrsProvider) metamodel.findProvider("org.jboss.tools.ws.jaxrs.sample.services.RestService$AuthorizedResponseFilter");
+		deleteJaxrsMarkers(project);
+		metamodelMonitor.resetElementChangesNotifications();
+		// use a LogListener to track events
+		final LogListener logListener = new LogListener(JBossJaxrsUIPlugin.PLUGIN_ID);
+		JBossJaxrsUIPlugin.getDefault().getLog().addLogListener(logListener);
+		// operation
+		final ISourceRange sourceRange = provider.getJavaElement().getSourceRange();
+		final IRegion providerRegion = new Region(sourceRange.getOffset(), 0);
+		removeSourceRange(compilationUnit, sourceRange, true);
+		final IDocument document = new Document(compilationUnit.getSource());
+		final EditorValidationContext validationContext = new EditorValidationContext(project, document);
+		new JaxrsMetamodelValidator().validate(null, project, Arrays.asList(providerRegion), validationHelper, reporter, validationContext, null, (IFile)compilationUnit.getResource());
+		
+		final Set<IFile> changedResources = toSet(compilationUnit.getResource());
+		new JaxrsMetamodelValidator().validate(changedResources, project, validationHelper, context, validatorManager,
+				reporter);
+		// validation
+		final IMarker[] markers = findJaxrsMarkers(provider);
+		for (IMarker marker : markers) {
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+					marker.getAttribute(IMarker.MESSAGE));
+		}
+		assertThat(markers.length, equalTo(0));
+		JBossJaxrsCorePlugin.getDefault().getLog().removeLogListener(logListener);
+		assertThat(logListener.isErrorOccurred(), equalTo(false));
+	}
 	
 }

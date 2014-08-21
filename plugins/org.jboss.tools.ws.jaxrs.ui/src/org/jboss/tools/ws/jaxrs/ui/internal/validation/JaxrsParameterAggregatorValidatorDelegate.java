@@ -36,10 +36,10 @@ public class JaxrsParameterAggregatorValidatorDelegate extends AbstractJaxrsElem
 	void internalValidate(final JaxrsParameterAggregator parameterAggregator, final CompilationUnit ast) throws CoreException {
 		Logger.debug("Validating element {}", parameterAggregator);
 		for (JaxrsParameterAggregatorField parameterAggregatorField : parameterAggregator.getAllFields()) {
-			new JaxrsParameterAggregatorFieldValidatorDelegate(markerManager).validate(parameterAggregatorField, ast, false);
+			new JaxrsParameterAggregatorFieldValidatorDelegate(markerManager).validate(parameterAggregatorField, ast);
 		}
 		for (JaxrsParameterAggregatorProperty parameterAggregatorProperty : parameterAggregator.getAllProperties()) {
-			new JaxrsParameterAggregatorPropertyValidatorDelegate(markerManager).validate(parameterAggregatorProperty, ast, false);
+			new JaxrsParameterAggregatorPropertyValidatorDelegate(markerManager).validate(parameterAggregatorProperty, ast);
 		}
 	}
 

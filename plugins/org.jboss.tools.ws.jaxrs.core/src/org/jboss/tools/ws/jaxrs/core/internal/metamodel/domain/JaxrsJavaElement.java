@@ -54,6 +54,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.CollectionUtils.MapComparison;
@@ -120,7 +121,15 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		}
 		return this.javaElement.isBinary();
 	}
-
+	
+	/**
+	 * @return {@code true} if the underlying {@link IJavaElement} is not
+	 *         {@code null} and is an {@link IType}, {@code false} otherwise.
+	 */
+	public boolean isBasedOnJavaType() {
+		return this.javaElement != null && this.javaElement.getElementType() == IJavaElement.TYPE;
+	}
+	
 	/**
 	 * @param className
 	 *            the fully qualified name of the annotation to retrieve.
