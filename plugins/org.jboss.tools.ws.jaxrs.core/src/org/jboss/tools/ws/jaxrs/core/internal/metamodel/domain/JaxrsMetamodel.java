@@ -10,6 +10,7 @@
  ******************************************************************************/
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
@@ -81,7 +82,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
@@ -92,7 +92,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsStatus;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
@@ -134,9 +133,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	/** The Listeners for JAX-RS Element changes. */
 	private final Set<IJaxrsElementChangedListener> elementChangedListeners = new HashSet<IJaxrsElementChangedListener>();
 
-	/** The Listeners for JAX-RS Endpoint changes. */
-	private final Set<IJaxrsEndpointChangedListener> endpointChangedListeners = new HashSet<IJaxrsEndpointChangedListener>();
-
 	/** A boolean marker that indicates if the metamodel is being initialized (ie, first/full build).*/
 	private boolean initializing=true;
 
@@ -164,7 +160,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		this.javaProject = javaProject;
 		indexationService = new JaxrsElementsIndexationDelegate(this);
 		addBuiltinHttpMethods();
-		elementChangedListeners.add(new JaxrsHttpMethodChangedListener());
+		addJaxrsElementChangedListener(new JaxrsHttpMethodChangedListener());
 	}
 	
 	/**
@@ -211,25 +207,27 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @see IMarker for the severity level (value "0" meaning
 	 *      "no problem, dude")
 	 */
-	public final int getMarkerSeverity() {
+	public final int getProblemSeverity() {
 		int globalLevel = problemLevel;
 		for(Entry<String, JaxrsBaseElement> entry : this.elements.entrySet()) {
-			globalLevel = Math.max(globalLevel, entry.getValue().getMarkerSeverity());
+			globalLevel = Math.max(globalLevel, entry.getValue().getProblemSeverity());
 		}
 		return globalLevel;
 	}
 	
 	/**
-	 * Registers a marker (from the underlying {@link IResource}) and sets the
-	 * problem level on this element. If this element already has a problem
-	 * level, the highest value is kept.
+	 * Registers the given severity, keeping the highest known value (comparing
+	 * the current value with the given one)
 	 * 
-	 * @param marker: the marker that has been added to the underlying resource.
-	 *            
+	 * @param severity
+	 *            : the marker or message severity that was added on this
+	 *            element or on a child element that has been added to the
+	 *            underlying resource.
+	 * 
 	 * @throws CoreException
 	 */
-	public void registerMarker(final IMarker marker) {
-		this.problemLevel = Math.max(this.problemLevel, marker.getAttribute(IMarker.SEVERITY, 0));
+	public void setProblemSeverity(final int severity) {
+		this.problemLevel = Math.max(this.problemLevel, severity);
 	}
 
 	/**
@@ -278,6 +276,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		final JaxrsMetamodel metamodel = new JaxrsMetamodel(javaProject);
 		Logger.debug("JAX-RS Metamodel created for project {}", javaProject.getElementName());
 		javaProject.getProject().setSessionProperty(METAMODEL_QUALIFIED_NAME, metamodel);
+		JBossJaxrsCorePlugin.notifyMetamodelChanged(metamodel, ADDED);
 		return metamodel;
 	}
 
@@ -290,10 +289,15 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public final void remove() throws CoreException {
 		try {
 			readWriteLock.writeLock().lock();
+			JBossJaxrsCorePlugin.notifyMetamodelChanged(this, REMOVED);
+			this.elementChangedListeners.clear();
 			indexationService.dispose();
 			final IProject project = getProject();
 			if(project.exists() && project.isOpen()) {
 				project.setSessionProperty(METAMODEL_QUALIFIED_NAME, null);
+				if(!project.getWorkspace().isTreeLocked()) {
+					project.deleteMarkers(JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
+				}
 			}
 		} catch (IOException e) {
 			Logger.error("Failed to remove JAX-RS Metamodel for project " + javaProject.getElementName(), e);
@@ -336,31 +340,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Registers the given listener for further notifications when JAX-RS
-	 * Endpoints changed in this metamodel.
-	 * 
-	 * @param listener
-	 */
-	@Override
-	public void addJaxrsEndpointChangedListener(final IJaxrsEndpointChangedListener listener) {
-		if(!endpointChangedListeners.contains(listener)) { 
-			Logger.debug("*** Registering EndpointChangedListener for project {} ***", javaProject.getElementName());
-			this.endpointChangedListeners.add(listener);
-		}
-	}
-
-	/**
-	 * Unregisters the given listener for further notifications when JAX-RS
-	 * Endpoints changed in this metamodel.
-	 * 
-	 * @param listener
-	 */
-	@Override
-	public void removeListener(final IJaxrsEndpointChangedListener listener) {
-		this.endpointChangedListeners.remove(listener);
-	}
-
-	/**
 	 * Notify that a JAX-RS Element changed
 	 * 
 	 * @param delta
@@ -374,29 +353,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		Logger.trace("Notify elementChangedListeners after {}", delta);
 		for (IJaxrsElementChangedListener listener : elementChangedListeners) {
 			listener.notifyElementChanged(delta);
-		}
-	}
-
-	/**
-	 * Notify that a JAX-RS Endpoint was added/changed/removed
-	 * 
-	 * @param endpoint
-	 *            the endpoint that was added/changed/removed
-	 * @param deltaKind
-	 *            the kind of change
-	 * @param flags
-	 *            some optional flags (use {@link JaxrsElementDelta#F_NONE} if
-	 *            no change occurred)
-	 */
-	private void notifyListeners(final IJaxrsEndpoint endpoint, final int deltaKind) {
-		if (endpoint != null && !endpointChangedListeners.isEmpty()) {
-			JaxrsEndpointDelta delta = new JaxrsEndpointDelta(endpoint, deltaKind);
-			Logger.trace("Notify project '{}' elementChangedListeners after {}", javaProject.getElementName(), delta);
-			for (IJaxrsEndpointChangedListener listener : endpointChangedListeners) {
-				listener.notifyEndpointChanged(delta);
-			}
-		} else if(endpointChangedListeners.isEmpty()) {
-			Logger.trace(" No Listener for project '{}' to notify after endpoint changed (type={}): {}", javaProject.getElementName(), deltaKind, endpoint);
 		}
 	}
 
@@ -415,7 +371,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			throws CoreException {
 		try {
 			Logger.debug("Processing {}", delta);
-			this.initializing = false;
 			readWriteLock.writeLock().lock();
 			final IJavaElement element = delta.getElement();
 			final CompilationUnit ast = delta.getCompilationUnitAST();
@@ -426,6 +381,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 				processJavaElementChange(element, deltaKind, ast, progressMonitor);
 			}
 		} finally {
+			this.initializing = false;
 			progressMonitor.done();
 			readWriteLock.writeLock().unlock();
 			setBuildStatus(Status.OK_STATUS);
@@ -517,7 +473,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	public void processProject(final IProgressMonitor progressMonitor) throws CoreException {
 		try {
 			readWriteLock.writeLock().lock();
-			this.initializing = false;
 			progressMonitor.beginTask("Processing project '" + getProject().getName() + "'...", 1);
 			// start with a fresh new metamodel
 			this.elements.clear();
@@ -534,6 +489,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		} catch (CoreException e) {
 			Logger.error("Failed while processing resource results", e);
 		} finally {
+			this.initializing = false;
 			progressMonitor.done();
 			readWriteLock.writeLock().unlock();
 			setBuildStatus(Status.OK_STATUS);
@@ -563,6 +519,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		} catch (CoreException e) {
 			Logger.error("Failed while processing Resource results", e);
 		} finally {
+			this.initializing = false;
 			progressMonitor.done();
 			readWriteLock.writeLock().unlock();
 			setBuildStatus(Status.OK_STATUS);
@@ -705,6 +662,17 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			readWriteLock.writeLock().unlock();
 		}
 	}
+	
+	/**
+	 * Notifies all registered listeners that the problem level of the given {@link IJaxrsElement} changed
+	 * @param element the JAX-RS element whose problem level changed
+	 */
+	public void notifyElementProblemLevelChanged(final IJaxrsElement element) {
+		final Set<JaxrsEndpoint> affectedEndpoints = findEndpoints(element);
+		for (JaxrsEndpoint affectedEndpoint : affectedEndpoints) {
+			JBossJaxrsCorePlugin.notifyEndpointProblemLevelChanged(affectedEndpoint);
+		}
+	}
 
 	/**
 	 * Cascade effect on JAX-RS Endpoints
@@ -722,6 +690,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			JaxrsElementChangedProcessorDelegate.processEvent(delta);
 		} finally {
 			readWriteLock.writeLock().unlock();
+			this.initializing = false;
 			final long end = System.currentTimeMillis();
 			Logger.tracePerf("JAX-RS Element change processed in {}ms", (end - start));
 		}
@@ -751,28 +720,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 	
 	/**
-	 * Notifies all registered listeners that the problem level of the given {@link IJaxrsElement} changed
-	 * @param element the JAX-RS element whose problem level changed
-	 */
-	public void notifyElementProblemLevelChanged(final IJaxrsElement element) {
-		final Set<JaxrsEndpoint> affectedEndpoints = findEndpoints(element);
-		for (JaxrsEndpoint affectedEndpoint : affectedEndpoints) {
-			for (IJaxrsEndpointChangedListener listener : endpointChangedListeners) {
-				listener.notifyEndpointProblemLevelChanged(affectedEndpoint);
-			}
-		}
-	}
-
-	/**
-	 * Notifies all registered listeners that the problem level of this {@link JaxrsMetamodel} changed
-	 */
-	public void notifyMetamodelProblemLevelChanged() {
-		for (IJaxrsEndpointChangedListener listener : endpointChangedListeners) {
-			listener.notifyMetamodelProblemLevelChanged(this);
-		}
-	}
-
-	/**
 	 * Updates the given JAX-RS Endpoint in the Metamodel index.
 	 * 
 	 * @param element
@@ -786,7 +733,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		try {
 			readWriteLock.writeLock().lock();
 			indexationService.reindexElement(endpoint);
-			notifyListeners(endpoint, CHANGED);
+			JBossJaxrsCorePlugin.notifyEndpointChanged(endpoint, CHANGED);
 		} finally {
 			readWriteLock.writeLock().unlock();
 		}
@@ -798,10 +745,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * 
 	 * @param elements
 	 *            the element to remove
-	 * @param flags optional flags to descrive the cause of the removal.           
+	 * @param flags optional flags to describe the cause of the removal.           
 	 * @throws CoreException
 	 */
-	protected void remove(final IJaxrsElement element, final Flags flags) throws CoreException {
+	public void remove(final IJaxrsElement element, final Flags flags) throws CoreException {
 		if (element == null) {
 			return;
 		}
@@ -827,7 +774,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 *            the element to remove
 	 * @throws CoreException
 	 */
-	protected void remove(final JaxrsEndpoint endpoint) {
+	public void remove(final JaxrsEndpoint endpoint) {
 		if (endpoint == null) {
 			return;
 		}
@@ -835,7 +782,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			readWriteLock.writeLock().lock();
 			endpoints.remove(endpoint.getIdentifier());
 			indexationService.unindexEndpoint(endpoint);
-			notifyListeners(endpoint, REMOVED);
+			JBossJaxrsCorePlugin.notifyEndpointChanged(endpoint, REMOVED);
 		} finally {
 			readWriteLock.writeLock().unlock();
 		}
@@ -958,13 +905,6 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		return javaElements;
 	}
 	
-	/**
-	 * @return {@code true} if the metamodel has custom {@link IJaxrsElement}s (ie any element, except the 6 built-in {@link JaxrsHttpMethod}), {@code  false} otherwise.
-	 */
-	public boolean hasCustomElements() {
-		return this.elements.size() > 6;
-	}
-
 	/**
 	 * Returns the {@link IJaxrsElement} for the given identifier.
 	 * 
@@ -1723,7 +1663,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			}
 			this.endpoints.put(endpoint.getIdentifier(), endpoint);
 			indexationService.indexElement(endpoint);
-			notifyListeners(endpoint, ADDED);
+			JBossJaxrsCorePlugin.notifyEndpointChanged(endpoint, ADDED);
 			return true;
 		} finally {
 			readWriteLock.writeLock().unlock();

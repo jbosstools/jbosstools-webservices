@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2008 - 2014 Red Hat, Inc. and others. 
+ * Copyright (c) 2008 Red Hat, Inc. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -9,12 +9,8 @@
  * Xavier Coulon - Initial API and implementation 
  ******************************************************************************/
 
-package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
-
 /**
  * @author xcoulon
  *
  */
-public interface IJaxrsParameterAggregatorField extends IJaxrsElement, IAnnotatedSourceType {
-
-}
+package org.jboss.tools.ws.jaxrs.core.validation;

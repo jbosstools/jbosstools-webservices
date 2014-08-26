@@ -24,6 +24,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
@@ -47,13 +48,14 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpointChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodelChangedListener;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
@@ -61,8 +63,7 @@ import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
  * @author xcoulon
  *
  */
-public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsElementChangedListener,
-		IJaxrsEndpointChangedListener {
+public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsMetamodelChangedListener, IJaxrsElementChangedListener {
 	
 	public final static int ANY_EVENT_TYPE = 0;
 
@@ -76,6 +77,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 
 	private final List<IJaxrsEndpoint> endpointProblemLevelChanges = new ArrayList<IJaxrsEndpoint>();
 
+	private final List<JaxrsMetamodelDelta> metamodelChanges = new ArrayList<JaxrsMetamodelDelta>();
+	
 	private final List<IJaxrsMetamodel> metamodelProblemLevelChanges = new ArrayList<IJaxrsMetamodel>();
 
 	private final boolean buildMetamodel;
@@ -106,8 +109,9 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 			this.metamodelProblemLevelChanges.clear();
 			// register listeners:
 			this.metamodel.addJaxrsElementChangedListener(this);
-			this.metamodel.addJaxrsEndpointChangedListener(this);
+			JBossJaxrsCorePlugin.addJaxrsMetamodelChangedListener(this);
 		} catch (CoreException e) {
+			e.printStackTrace();
 			fail(e.getMessage());
 		} finally {
 			long endTime = System.currentTimeMillis();
@@ -133,7 +137,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 			// remove listener before sync' to avoid desync...
 			if (metamodel != null) {
 				metamodel.removeListener((IJaxrsElementChangedListener) this);
-				metamodel.removeListener((IJaxrsEndpointChangedListener) this);
+				JBossJaxrsCorePlugin.removeListener((IJaxrsMetamodelChangedListener) this);
 				metamodel.remove();
 			}
 		} catch (CoreException e) {
@@ -149,23 +153,28 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 
 	@Override
 	public void notifyElementChanged(final JaxrsElementDelta delta) {
-		elementChanges.add(delta);
+		this.elementChanges.add(delta);
 	}
 
 	@Override
 	public void notifyEndpointChanged(final JaxrsEndpointDelta delta) {
-		endpointChanges.add(delta);
+		this.endpointChanges.add(delta);
 	}
 
 	@Override
-	public void notifyEndpointProblemLevelChanged(IJaxrsEndpoint endpoint) {
-		endpointProblemLevelChanges.add(endpoint);
+	public void notifyEndpointProblemLevelChanged(final IJaxrsEndpoint endpoint) {
+		this.endpointProblemLevelChanges.add(endpoint);
 
 	}
 
 	@Override
-	public void notifyMetamodelProblemLevelChanged(IJaxrsMetamodel metamodel) {
-		metamodelProblemLevelChanges.add(metamodel);
+	public void notifyMetamodelChanged(final JaxrsMetamodelDelta delta) {
+		this.metamodelChanges.add(delta);
+	}
+	
+	@Override
+	public void notifyMetamodelProblemLevelChanged(final IJaxrsMetamodel metamodel) {
+		this.metamodelProblemLevelChanges.add(metamodel);
 
 	}
 
@@ -184,6 +193,10 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsE
 
 	public List<IJaxrsMetamodel> getMetamodelProblemLevelChanges() {
 		return metamodelProblemLevelChanges;
+	}
+	
+	public List<JaxrsMetamodelDelta> getMetamodelChanges() {
+		return metamodelChanges;
 	}
 
 	public JaxrsMetamodel getMetamodel() {

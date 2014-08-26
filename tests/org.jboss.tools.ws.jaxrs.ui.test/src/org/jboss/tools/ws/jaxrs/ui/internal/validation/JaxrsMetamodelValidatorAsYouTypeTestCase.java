@@ -112,7 +112,7 @@ public class JaxrsMetamodelValidatorAsYouTypeTestCase {
 		// validation
 		final IMarker[] markers = ValidationUtils.findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 	}
 
 }

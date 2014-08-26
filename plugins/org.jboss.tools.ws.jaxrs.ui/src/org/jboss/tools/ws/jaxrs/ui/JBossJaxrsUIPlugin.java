@@ -145,7 +145,6 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 			return createDecoratedImageDescriptor(baseImageDescriptor, ISharedImages.IMG_DEC_FIELD_ERROR);
 		case IMarker.SEVERITY_WARNING:
 			return createDecoratedImageDescriptor(baseImageDescriptor, ISharedImages.IMG_DEC_FIELD_WARNING);
-
 		default:
 			return baseImageDescriptor;
 		}
@@ -167,5 +166,5 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 				new Point(16, 16));
 		return result;
 	}
-	
+
 }

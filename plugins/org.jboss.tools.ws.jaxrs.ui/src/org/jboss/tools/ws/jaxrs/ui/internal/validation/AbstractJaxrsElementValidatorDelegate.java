@@ -10,6 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,11 +26,8 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.jdt.RangeUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
-import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
-
 /**
  * Abstract validator delegate. 
  * 
@@ -68,11 +67,6 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 			return;
 		}
 		internalValidate(element, ast);
-		if(element.hasProblem()) {
-			Logger.debug("Informing metamodel that problem level changed to {}", element.getMarkerSeverity());
-			((JaxrsMetamodel)element.getMetamodel()).notifyElementProblemLevelChanged(element);
-		}
-		
 	}
 
 	abstract void internalValidate(final T element, final CompilationUnit ast) throws CoreException;
@@ -92,7 +86,7 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 		case RESOURCE_METHOD:
 		case RESOURCE_FIELD:
 			final ISourceRange sourceRange = ((JaxrsJavaElement<?>) element).getJavaElement().getSourceRange();
-			final IMarker[] markers = element.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+			final IMarker[] markers = element.getResource().findMarkers(JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
 			for(IMarker marker : markers) {
 				final int markerStartPosition = marker.getAttribute(IMarker.CHAR_START, 0);
 				if(RangeUtils.matches(sourceRange, markerStartPosition)) {
@@ -101,7 +95,7 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 			}
 			break;
 		default:
-			element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+			element.getResource().deleteMarkers(JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
 		}
 	}
 

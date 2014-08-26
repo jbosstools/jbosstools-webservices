@@ -157,7 +157,9 @@ public class JavaElementDeltaScanner {
 				}
 
 			}
-		} else if(compilationUnitAST != null){
+		} 
+		// element is part of the compilation unit
+		else if(compilationUnitAST != null){
 			final JavaElementChangedEvent event = new JavaElementChangedEvent(element, deltaKind, eventType, compilationUnitAST,
 					flags);
 			if (javaElementChangedEventFilter.apply(event)) {
@@ -247,4 +249,5 @@ public class JavaElementDeltaScanner {
 			return delta.getKind();
 		}
 	}
+	
 }

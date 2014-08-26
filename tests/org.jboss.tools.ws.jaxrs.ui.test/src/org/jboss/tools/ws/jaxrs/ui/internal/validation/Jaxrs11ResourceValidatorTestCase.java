@@ -18,19 +18,16 @@ import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.removeF
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsElementsUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMessages;
-import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.hasPreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
-import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -58,7 +55,6 @@ import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
@@ -121,7 +117,11 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));
+
 	}
 
 	@Test
@@ -143,7 +143,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		}
 		assertThat(markers.length, equalTo(8));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported per marker on each endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(barResource.getAllMethods().size()));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -160,31 +163,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(bazResource);
 		assertThat(markers.length, equalTo(6));
-		final Map<String, JaxrsResourceMethod> resourceMethods = bazResource.getMethods();
-		for (Entry<String, JaxrsResourceMethod> entry : resourceMethods.entrySet()) {
-			final IMarker[] methodMarkers = findJaxrsMarkers(entry.getValue());
-			if (entry.getKey().contains("getContent1")) {
-				assertThat(entry.getValue().getMarkerSeverity(), is(IMarker.SEVERITY_WARNING));
-				assertThat(methodMarkers.length, equalTo(IMarker.SEVERITY_WARNING));
-				assertThat(methodMarkers, hasPreferenceKey(RESOURCE_METHOD_UNBOUND_PATH_ANNOTATION_TEMPLATE_PARAMETER));
-			} else if (entry.getKey().contains("getContent2")) {
-				assertThat(entry.getValue().getMarkerSeverity(), is(IMarker.SEVERITY_ERROR));
-				assertThat(methodMarkers.length, equalTo(2));
-			} else if (entry.getKey().contains("update1")) {
-				assertThat(entry.getValue().getMarkerSeverity(), is(IMarker.SEVERITY_ERROR));
-				assertThat(methodMarkers.length, equalTo(2));
-			} else if (entry.getKey().contains("update2")) {
-				assertThat(entry.getValue().getMarkerSeverity(), is(IMarker.SEVERITY_INFO));
-				assertThat(methodMarkers.length, equalTo(0));
-			} else if (entry.getKey().contains("update3")) {
-				assertThat(entry.getValue().getMarkerSeverity(), is(IMarker.SEVERITY_ERROR));
-				assertThat(methodMarkers.length, equalTo(1));
-			} else {
-				fail("Unexpected method " + entry.getKey());
-			}
-		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported per marker on each of the 3 endpoint (@FOO is ignored here)
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(3));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -204,7 +186,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(resource);
 		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -228,8 +213,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.LINE_NUMBER, 0), equalTo(15));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -249,6 +236,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(resource);
 		assertThat(markers.length, equalTo(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -276,8 +267,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(10));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(6));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -304,8 +297,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(26));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -334,8 +329,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_WARNING));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(14));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(28));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -362,8 +359,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_ERROR));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(15));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(4));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -397,8 +396,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(marker.getAttribute(IMarker.SEVERITY, 0), equalTo(IMarker.SEVERITY_ERROR));
 		assertThat(marker.getAttribute(IMarker.LINE_NUMBER, 0), equalTo(19));
 		assertThat(marker.getAttribute(IMarker.CHAR_END, 0) - marker.getAttribute(IMarker.CHAR_START, 0), equalTo(8));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -418,7 +419,11 @@ public class Jaxrs11ResourceValidatorTestCase {
 				context, validatorManager, reporter);
 		
 		// verification: problem level is set to '2'
-		assertThat(resource.getAllMethods().get(0).getMarkerSeverity(), equalTo(2));
+		assertThat(resource.getAllMethods().get(0).getProblemSeverity(), equalTo(2));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 		// now, fix the problem
 		replaceFirstOccurrenceOfCode(compilationUnit, "@PathParam(\"ide\")", "@PathParam(\"id\")", false);
 		metamodelMonitor.processEvent(compilationUnit, IJavaElementDelta.CHANGED);
@@ -426,7 +431,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		new JaxrsMetamodelValidator().validate(toSet(compilationUnit.getResource()), project, validationHelper,
 				context, validatorManager, reporter);
 		// verification: problem level is set to '0'
-		assertThat(resource.getAllMethods().get(0).getMarkerSeverity(), equalTo(0));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -450,7 +458,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -477,11 +488,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(4));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported per marker on each endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(markers.length));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -505,7 +519,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -531,11 +548,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(4));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported per marker on each endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(markers.length));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -559,7 +579,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -585,11 +608,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(4));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported per marker on each endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(markers.length));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -615,11 +641,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(4));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATHPARAM_ANNOTATION_VALUE));
 		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported per marker on each endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(markers.length));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -643,6 +672,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customerResource);
 		assertThat(markers.length, equalTo(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -661,6 +694,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(carResource);
 		assertThat(markers.length, equalTo(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -678,11 +715,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 				assertThat(markers.length, equalTo(5));
 				for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported per marker on each endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(markers.length));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
@@ -700,11 +740,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(5));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
@@ -722,11 +765,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(5));
 		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		// 1 problem level changes reported on the endpoint (1 per resource method / endpoint)
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
@@ -744,14 +790,20 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation 1: the JAX-RS resource methods have errors
 		final IMarker[] markers = findJaxrsMarkers(truckResource);
 		// 5 markers: missing import/unknown type does not count
-				assertThat(markers.length, equalTo(5));
-				for (IMarker marker : markers) {
+		assertThat(markers.length, equalTo(5));
+		for (IMarker marker : markers) {
 			assertThat(marker.getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-			assertThat((String) marker.getType(), equalTo(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID));
+			assertThat((String) marker.getType(), equalTo(JAXRS_PROBLEM_MARKER_ID));
 			assertThat((String) marker.getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 					equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_ANNOTATED_PARAMETER_TYPE));
 		}
-		
+		// 1 problem level changes reported on each endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(5));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
+
+		// precondition 2
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 2: now, let's update the 'Truck' class to fix the problem, by adding a 'valueOf(String)' method, and let's replace all 'ArrayList' with 'List'
 		ResourcesUtils.replaceContent(truckCompilationUnit.getResource(), "public Truck valueOf(String value)", "public static Truck valueOf(String value)");
 		ResourcesUtils.replaceContent(truckResourceCompilationUnit.getResource(), "ArrayList<String>", "List<String>");
@@ -764,6 +816,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// validation 2: the JAX-RS resource methods errors are gone \o/
 		final IMarker[] updatedMarkers = findJaxrsMarkers(truckResource);
 		assertThat(updatedMarkers.length, equalTo(0));
+		// 1 problem level changes reported on each concerned endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(4));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));		
 	}
 	
 	@Test
@@ -783,6 +839,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// no problem level changes reported on the endpoint, since field is unbound
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	/**
@@ -823,16 +883,19 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(messages[1].getText(), not(containsString("{")));
 		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 
 	@Test
-	public void shouldResolveProblemWhenPathParamAnnotatedResourceFieldBoundToResourceMethodPath_AsYouType() throws CoreException, ValidationException {
+	public void shouldReportAndFixProblemWhenPathParamAnnotatedResourceFieldBoundToResourceMethodPath_AsYouType() throws CoreException, ValidationException {
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
-		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
 		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
 		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
@@ -840,6 +903,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
 		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		metamodelMonitor.resetElementChangesNotifications();
 		
 		// operation 1: validate
 		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
@@ -854,7 +918,13 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(messages[1].getText(), not(containsString("{")));
 		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 
+		// pre-condition 2
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 2: fix the value and revalidate
 		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", false);
 		document.set(boatResourceCompilationUnit.getSource());
@@ -864,16 +934,19 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// verifications 2 : expect 0 problem
 		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
 		assertThat(updatedMessages.length, equalTo(0));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
-	public void shouldResolveProblemWhenPathParamAnnotatedResourceFieldBoundToResourcePath_AsYouType() throws CoreException, ValidationException {
+	public void shouldReportAndFixProblemWhenPathParamAnnotatedResourceFieldBoundToResourcePath_AsYouType() throws CoreException, ValidationException {
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"/\")", "@Path(\"/{type}\")", false);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
-		metamodelMonitor.resetElementChangesNotifications();
 		final Annotation pathParamAnnotation = boatResource.getField("type").getPathParamAnnotation();
 		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"type\")", "@PathParam(\"t\")", true);
 		final CompilationUnit ast = JdtUtils.parse(boatResourceCompilationUnit, null);
@@ -881,6 +954,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final IDocument document = new Document(boatResourceCompilationUnit.getSource());
 		final EditorValidationContext editorValidationContext = new EditorValidationContext(project, document);
 		assertThat(boatResourceCompilationUnit.getSource().substring(annotationValueRange.getOffset(), annotationValueRange.getOffset() + annotationValueRange.getLength()), equalTo("\"t\""));
+		metamodelMonitor.resetElementChangesNotifications();
 		
 		// operation 1: validate
 		final IRegion modifiedRegion = new Region(annotationValueRange.getOffset(), annotationValueRange.getLength());
@@ -895,7 +969,13 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(messages[1].getText(), not(containsString("{")));
 		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
-		
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
+
+		// pre-condition 2:
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 2: fix the value and revalidate
 		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
 		document.set(boatResourceCompilationUnit.getSource());
@@ -905,6 +985,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// verifications 2 : expect 0 problem
 		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
 		assertThat(updatedMessages.length, equalTo(0));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
@@ -921,6 +1005,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
 		assertThat(markers.length, equalTo(0));
+		// 0 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// 0 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 	
 	@Test
@@ -941,6 +1029,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// no problem level changes reported on the endpoint since property is unbound
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
@@ -974,10 +1066,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(messages[1].getText(), not(containsString("{")));
 		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
-	public void shouldResolveProblemWhenPathParamAnnotatedResourcePropertyBoundToResourceMethodPath_AsYouType() throws CoreException, ValidationException {
+	public void shouldReportAndFixProblemWhenPathParamAnnotatedResourcePropertyBoundToResourceMethodPath_AsYouType() throws CoreException, ValidationException {
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
@@ -1007,7 +1103,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(messages[1].getText(), not(containsString("{")));
 		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 
+		// pre-condition 2:
+		metamodelMonitor.resetElementChangesNotifications();
+				
 		// operation 2: fix the value and revalidate
 		replaceFirstOccurrenceOfCode(boatResource, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
 		document.set(boatResourceCompilationUnit.getSource());
@@ -1017,10 +1120,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// verifications 2 : expect 0 problem
 		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
 		assertThat(updatedMessages.length, equalTo(0));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
-	public void shouldResolveProblemWhenPathParamAnnotatedResourcePropertyBoundToResourcePath_AsYouType() throws CoreException, ValidationException {
+	public void shouldReportAndFixProblemWhenPathParamAnnotatedResourcePropertyBoundToResourcePath_AsYouType() throws CoreException, ValidationException {
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"/\")", "@Path(\"/{type}\")", false);
@@ -1050,7 +1157,14 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(messages[1].getText(), not(containsString("{")));
 		assertThat((String) messages[1].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 
+		// pre-condition 2:
+		metamodelMonitor.resetElementChangesNotifications();
+				
 		// operation 2: fix the value and revalidate
 		JavaElementsUtils.replaceFirstOccurrenceOfCode(boatResourceCompilationUnit, "@PathParam(\"t\")", "@PathParam(\"type\")", true);
 		document.set(boatResourceCompilationUnit.getSource());
@@ -1060,6 +1174,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// verifications 2 : expect 0 problem
 		final IMessage[] updatedMessages = findJaxrsMessages(reporter, boatResource);
 		assertThat(updatedMessages.length, equalTo(0));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));
 	}
 	
 	@Test
@@ -1078,6 +1196,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
 		assertThat(markers.length, equalTo(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 
 	@Test
@@ -1100,7 +1222,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE));
-		
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));		
 	}
 
 	@Test
@@ -1122,7 +1247,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_METHOD_INVALID_PATH_ANNOTATION_VALUE));
-		
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));		
 	}
 
 	@Test
@@ -1141,7 +1269,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
-		
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));		
 	}
 
 	@Test
@@ -1160,6 +1291,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		assertThat(markers.length, equalTo(1));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.PREFERENCE_KEY_ATTRIBUTE_NAME),
 				equalTo(JaxrsPreferences.RESOURCE_INVALID_PATH_ANNOTATION_VALUE));
+		// 1 problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(1));
+		// 1 problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(1));		
 	}
 	
 	@Test
@@ -1175,6 +1310,10 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(resource);
 		assertThat(markers.length, equalTo(0));
+		// no problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), equalTo(0));
+		// no problem level change reported on the metamodel
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), equalTo(0));		
 	}
 	
 }

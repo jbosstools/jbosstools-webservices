@@ -75,7 +75,7 @@ public final class ProjectNatureUtils {
 		if (isProjectNatureInstalled(project, natureId)) {
 			return false;
 		}
-		IProjectDescription description = project.getDescription();
+		final IProjectDescription description = project.getDescription();
 		String[] natures = description.getNatureIds();
 		String[] newNatures = new String[natures.length + 1];
 		System.arraycopy(natures, 0, newNatures, 0, natures.length);

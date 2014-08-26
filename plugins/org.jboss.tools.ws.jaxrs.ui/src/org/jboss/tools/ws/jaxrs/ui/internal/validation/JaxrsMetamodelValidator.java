@@ -24,14 +24,17 @@ import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.SUB
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.SUBRESOURCE_LOCATOR;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.UNDEFINED_PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind.UNDEFINED_RESOURCE;
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -51,6 +54,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.validation.internal.core.ValidationException;
+import org.eclipse.wst.validation.internal.provisional.core.IMessage;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.eclipse.wst.validation.internal.provisional.core.IValidationContext;
 import org.jboss.tools.common.validation.ContextValidationHelper;
@@ -65,6 +69,7 @@ import org.jboss.tools.common.validation.IValidator;
 import org.jboss.tools.common.validation.PreferenceInfoManager;
 import org.jboss.tools.common.validation.TempMarkerManager;
 import org.jboss.tools.common.validation.ValidatorManager;
+import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsMetamodelBuilder;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
@@ -76,6 +81,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
@@ -101,16 +107,14 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	public static final String ID = "org.jboss.tools.ws.jaxrs.JaxrsMetamodelValidator"; //$NON-NLS-1$
 	/** The name of the message bundle. */
 	private static final String BUNDLE_NAME = JaxrsMetamodelValidator.class.getPackage().getName() + ".messages";
-	/** The custom 'JAX-RS Problem' problem marker id. */
-	public static final String JAXRS_PROBLEM_MARKER_ID = "org.jboss.tools.ws.jaxrs.metamodelMarker"; 
 	/** The type of JAX-RS problem. */
 	public static final String JAXRS_PROBLEM_TYPE = "problemType";
-
+	
 	/**
 	 * Constructor.
 	 */
 	public JaxrsMetamodelValidator() {
-		super.setProblemType(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID);
+		super.setProblemType(JAXRS_PROBLEM_MARKER_ID);
 	}
 	
 	/**
@@ -141,42 +145,34 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			final IProjectValidationContext context, final ValidatorManager manager, final IReporter reporter) throws ValidationException {
 		final long startTime = System.currentTimeMillis();
 		init(project, validationHelper, context, manager, reporter, false);
-		try {
-			if(changedFiles.size() == 1 && changedFiles.contains(project.findMember(".project"))) {
-				validateAll(project, validationHelper, context, manager, reporter);
-			} else if (!changedFiles.isEmpty()) {
+		// switch to full validation when '.project' file was altered
+		if (changedFiles.size() == 1 && changedFiles.contains(project.findMember(".project"))) {
+			validateAll(project, validationHelper, context, manager, reporter);
+		} else if (!changedFiles.isEmpty()) {
+			try {
 				Logger.debug("*** Validating project {} after files {} changed... ***", project.getName(),
 						changedFiles.toString());
+				displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE, new String[] { project.getName() });
 				final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 				// prevent failure in case validation would be called at
 				// workbench startup, even before metamodel is built.
 				if (metamodel != null) {
-					final int previousProblemLevel = metamodel.getMarkerSeverity();
 					// validate each JAX-RS element individually
 					final List<IResource> allResources = completeValidationSet(metamodel,
 							changedFiles.toArray(new IFile[changedFiles.size()]));
+					final List<IJaxrsElement> elementsToValidate = new ArrayList<IJaxrsElement>();
+					boolean includeMetamodel = allResources.contains(project);
 					for (IResource changedResource : allResources) {
-						validate(changedResource, metamodel, reporter);
+						elementsToValidate.addAll(metamodel.findElements(changedResource));
 					}
-					// validate at the metamodel level for cross-elements
-					// validation
-					//validate(metamodel);
-					final int currentProblemLevel = metamodel.getMarkerSeverity();
-					if (currentProblemLevel != previousProblemLevel) {
-						Logger.debug("Informing metamodel that problem level changed from {} to {}",
-								previousProblemLevel, currentProblemLevel);
-						metamodel.notifyMetamodelProblemLevelChanged();
-					}
+					validate(elementsToValidate, metamodel, includeMetamodel);
 				}
-			} else {
-				Logger.debug("*** Validating full project {} because no file changed... ***", project.getName());
-				validateAll(project, validationHelper, context, manager, reporter);
+			} catch (CoreException e) {
+				Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);
+			} finally {
+				final long endTime = System.currentTimeMillis();
+				Logger.debug("Validation of {} files done in {} ms.", changedFiles.size(), (endTime - startTime));
 			}
-		} catch (CoreException e) {
-			Logger.error("Failed to validate changed files " + changedFiles + " in project " + project, e);
-		} finally {
-			final long endTime = System.currentTimeMillis();
-			Logger.debug("Validation done in {} ms.", (endTime - startTime));
 		}
 		return Status.OK_STATUS;
 	}
@@ -347,45 +343,6 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		return resourceResources;
 	}
 
-	/**
-	 * Validate the given {@link IResource} in the given {@link JaxrsMetamodel}
-	 * and reports
-	 * 
-	 * @param changedResource
-	 *            the changed resource
-	 * @param metamodel
-	 *            the metamodel
-	 * @param reporter
-	 *            the problem reportoe
-	 * @throws CoreException
-	 */
-	private void validate(final IResource changedResource, final JaxrsMetamodel metamodel, final IReporter reporter) {
-		if (reporter.isCancelled() || !changedResource.isAccessible()) {
-			return;
-		}
-		displaySubtask(JaxrsValidationMessages.VALIDATING_RESOURCE, new String[] {
-				changedResource.getProject().getName(), changedResource.getName() });
-		try {
-			if (metamodel != null && changedResource != null && changedResource.exists()) {
-				if(changedResource.getType() == IResource.PROJECT) {
-					validate(metamodel);
-				} else {
-					final Collection<IJaxrsElement> elements = metamodel.findElements(changedResource);
-					// if no (more) JAX-RS element matches the resource to validate,
-					// then make
-					// sure no JAX-RS Problem marker remains on that resource
-					if (elements.isEmpty()) {
-						removeMarkers(metamodel);
-					} else {
-						validate(elements);
-					}
-				}
-			}
-		} catch (CoreException e) {
-			Logger.error("Failed to validate the resource change", e);
-		}
-	}
-
 	/** 
 	 * 
 	 * @param element the {@link IJaxrsElement}
@@ -453,7 +410,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 					Logger.debug("Removing message before validating {}", workingCopyElement.getName());
 					reporter.removeAllMessages(validatorManager, workingCopyElement.getResource());
 				}
-				validate(changedWorkingCopies);
+				validate(changedWorkingCopies, metamodel, false);
 			}
 		} catch (CoreException e) {
 			Logger.error(
@@ -461,7 +418,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 							+ changedFile.getProject(), e);
 		} finally {
 			final long endTime = System.currentTimeMillis();
-			Logger.debug("Validation done in {} ms.", (endTime - startTime));
+			Logger.debug("As-you-type validation done in {} ms.", (endTime - startTime));
 		}
 	}
 
@@ -472,28 +429,18 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final long startTime = System.currentTimeMillis();
 		Logger.debug("*** Validating all files in project {} ***", project.getName());
 		init(project, validationHelper, validationContext, manager, reporter, false);
-		displaySubtask(JaxrsValidationMessages.VALIDATING_PROJECT, new String[] { project.getName() });
 		try {
 			final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
 			if (metamodel != null) {
-				// immediately index the JAX-RS elements for this metamodel
-				//metamodel.getShadowElements().reset();
-				final int previousProblemLevel = metamodel.getMarkerSeverity();
+				displaySubtask(JaxrsValidationMessages.VALIDATING_PROJECT, new String[] { project.getName() });
 				final List<IJaxrsElement> allElements = metamodel.getAllElements();
-				validate(allElements);
-				validate(metamodel);
-				final int currentProblemLevel = metamodel.getMarkerSeverity();
-				if (currentProblemLevel != previousProblemLevel) {
-					Logger.debug("Informing metamodel that problem level changed from {} to {}", previousProblemLevel,
-							currentProblemLevel);
-					metamodel.notifyMetamodelProblemLevelChanged();
-				}
+				validate(allElements, metamodel, true);
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to validate project '", e);
 		} finally {
 			final long endTime = System.currentTimeMillis();
-			Logger.debug("Validation done in {} ms.", (endTime - startTime));
+			Logger.debug("Full validation of project '{}' done in {} ms.", project.getName(), (endTime - startTime));
 		}
 		return Status.OK_STATUS;
 	}
@@ -506,8 +453,15 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 * @param ast the associated AST
 	 * @throws CoreException
 	 */
-	private void validate(final Collection<? extends IJaxrsElement> elements) throws CoreException {
+	private void validate(final Collection<? extends IJaxrsElement> elements, final JaxrsMetamodel metamodel, final boolean validateMetamodel) throws CoreException {
 		final List<IJaxrsElement> elementsToValidate = new ArrayList<IJaxrsElement>();
+		// record the problem severity level at the endpoints level *before* the validation begins
+		final int previousMetamodelProblemSeverity = metamodel.getProblemSeverity();
+		final List<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
+		final Map<String, Integer> endpointProblemSeverities = new HashMap<String, Integer>();
+		for(IJaxrsEndpoint endpoint : endpoints) {
+			endpointProblemSeverities.put(endpoint.getIdentifier(), endpoint.getProblemLevel());
+		}
 		for(IJaxrsElement element : elements) {
 			// skip validation on binary JAX-RS elements (if metamodel contains any)
 			if (element.isBinary()) {
@@ -519,7 +473,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			elementsToValidate.add(element);
 			removeMarkers(element);
 		}
-		
+		// perform the validation
 		for(IJaxrsElement element : elementsToValidate) {
 			@SuppressWarnings("unchecked")
 			final IJaxrsElementValidator<IJaxrsElement> validator = (IJaxrsElementValidator<IJaxrsElement>) getValidator(element);
@@ -527,6 +481,23 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 				validator.validate(element, getAST(element));
 			}
 		}
+		if(validateMetamodel) {
+			validate(metamodel);
+		}
+		// check if problem level changed on endpoints, notify the UI if changes occurred
+		for(IJaxrsEndpoint endpoint : endpoints) {
+			final int previousProblemLevel = endpointProblemSeverities.get(endpoint.getIdentifier());
+			final int currentProblemLevel = endpoint.getProblemLevel();
+			if(currentProblemLevel != previousProblemLevel) {
+				JBossJaxrsCorePlugin.notifyEndpointProblemLevelChanged(endpoint);
+			}
+		}
+		// check if problem level changed at the metamodel level, too
+		final int currentMetamodelProblemSeverity = metamodel.getProblemSeverity();
+		if(currentMetamodelProblemSeverity != previousMetamodelProblemSeverity) {
+			JBossJaxrsCorePlugin.notifyMetamodelProblemLevelChanged(metamodel);
+		}
+				
 		
 	}
 
@@ -631,13 +602,30 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 *            the JAX-RS Elements' underlying resource
 	 * @throws CoreException
 	 */
-	public static void removeMarkers(final JaxrsMetamodel metamodel) throws CoreException {
-		if (metamodel == null || metamodel.getProject() == null) {
+	public static void removeJaxrsMarkers(final IProject project) throws CoreException {
+		if (project == null || !project.isOpen()) {
 			return;
 		}
-		metamodel.getProject().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+		project.deleteMarkers(JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
 	}
-
+	
+	/**
+	 * Removes JAX-RS {@link IMarker}s on the underlying {@link IProject} associated
+	 * with the given {@link JaxrsMetamodel}.
+	 * 
+	 * @param metamodel
+	 *            the JAX-RS Metamodel
+	 * @param resource
+	 *            the JAX-RS Elements' underlying resource
+	 * @throws CoreException
+	 */
+	public static void removeAllJaxrsMarkers(final IProject project) throws CoreException {
+		if (project == null || !project.isOpen()) {
+			return;
+		}
+		project.deleteMarkers(JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
+	}
+	
 	/**
 	 * Removes JAX-RS {@link IMarker}s on the underlying {@link IResource} of the given {@link IJaxrsElement}
 	 * 
@@ -649,8 +637,60 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		if (element == null || element.getResource() == null) {
 			return;
 		}
-		element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
+		element.getResource().deleteMarkers(JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_ONE);
 		((JaxrsBaseElement) element).resetProblemLevel();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
+			final String[] messageArguments, final String preferenceKey) throws CoreException {
+		addProblem(element, range, message, messageArguments, preferenceKey);
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
+			final String[] messageArguments, final String preferenceKey, final int quickFixId) throws CoreException {
+		addProblem(element, range, message, messageArguments, preferenceKey);
+		return null;
+	}
+
+	/**
+	 * @param element
+	 * @param range
+	 * @param message
+	 * @param messageArguments
+	 * @param preferenceKey
+	 * @param resource
+	 * @throws CoreException
+	 */
+	private void addProblem(final JaxrsBaseElement element, final ISourceRange range, final String message,
+			final String[] messageArguments, final String preferenceKey) throws CoreException {
+		// (range == null) occurs when there is no value at all for the annotation
+		if(element == null || range == null) {
+			return;
+		}
+		final IResource resource = element.getResource();
+		if(asYouTypeValidation) {
+			Logger.debug("Reporting message '{}' on resource '{}'", message, resource.getFullPath().toString());
+			final IMessage validationMessage = addMessage(resource, range.getOffset(), range.getLength(), preferenceKey, message, messageArguments);
+			if (validationMessage != null) {
+				element.setProblemSeverity(validationMessage.getSeverity());
+			}
+		} else {
+			Logger.debug("Reporting marker '{}' on resource '{}'", message, resource.getFullPath().toString());
+			final IMarker marker = addError(message, preferenceKey, messageArguments, range.getLength(), range.getOffset(), resource);
+			if (marker != null) {
+				marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
+				element.setProblemSeverity(marker.getAttribute(IMarker.SEVERITY, 0));
+			}
+		}
 	}
 
 	/**
@@ -660,56 +700,24 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	public IMarker addMarker(final JaxrsMetamodel metamodel, final String message, final String[] messageArguments,
 			final String preferenceKey) throws CoreException {
 		final IProject project = metamodel.getProject();
-		Logger.debug("Reporting problem '{}' on project '{}'", message, project.getName());
-		final IMarker marker = addProblem(message, preferenceKey, messageArguments, 0, 0, project);
-		if (marker != null) {
-			marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
-			metamodel.registerMarker(marker);
+		if(asYouTypeValidation) {
+			Logger.debug("Reporting message '{}' on resource '{}'", message, project.getFullPath().toString());
+			final IMessage validationMessage = addMessage(project, 0, 0, preferenceKey, message, messageArguments);
+			if (validationMessage != null) {
+				metamodel.setProblemSeverity(validationMessage.getSeverity());
+			}
+		} else {
+			Logger.debug("Reporting marker '{}' on resource '{}'", message, project.getFullPath().toString());
+			final IMarker marker = addError(message, preferenceKey, messageArguments, 0, 0, project);
+			if (marker != null) {
+				marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
+				metamodel.setProblemSeverity(marker.getAttribute(IMarker.SEVERITY, 0));
+			}
 		}
-		return marker;
+		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
-			final String[] messageArguments, final String preferenceKey) throws CoreException {
-		if(element == null || range == null) {
-			return null;
-		}
-		final IResource resource = element.getResource();
-		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
-		final IMarker marker = addProblem(message, preferenceKey, messageArguments, range.getLength(),
-				range.getOffset(), resource);
-		if (marker != null) {
-			marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
-			element.registerMarker(marker);
-		}
-		return marker;
-	}
 	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
-			final String[] messageArguments, final String preferenceKey, final int quickFixId) throws CoreException {
-		// (range == null) occurs when there is no value at all for the annotation
-		if(element == null || range == null) {
-			return null;
-		}
-		final IResource resource = element.getResource();
-		Logger.debug("Reporting problem '{}' on resource '{}'", message, resource.getFullPath().toString());
-		final IMarker marker = addProblem(message, preferenceKey, messageArguments, range.getLength(),
-				range.getOffset(), resource, quickFixId);
-		if (marker != null) {
-			marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
-			element.registerMarker(marker);
-		}
-		return marker;
-	}
-
 	class JaxrsPreferenceInfo implements IPreferenceInfo {
 		@Override
 		public String getPreferencePageId() {
@@ -728,7 +736,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	}
 
 	@Override
-	public boolean shouldValidateAsYouType(IProject project) {
+	public boolean shouldValidateAsYouType(final IProject project) {
 		return shouldValidate(project);
 	}
+
 }

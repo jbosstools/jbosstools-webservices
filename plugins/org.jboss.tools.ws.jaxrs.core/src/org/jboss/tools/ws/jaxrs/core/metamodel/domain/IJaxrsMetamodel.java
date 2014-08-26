@@ -58,16 +58,6 @@ public interface IJaxrsMetamodel extends IJaxrsStatus {
 	public abstract IJavaProject getJavaProject();
 
 	/**
-	 * Adds the given {@link IJaxrsEndpointChangedListener} listener to the metamodel. Has no effect if 
-	 * the same listener has already been registered.
-	 * 
-	 * @param listener
-	 */
-	public abstract void addJaxrsEndpointChangedListener(IJaxrsEndpointChangedListener listener);
-
-	public void removeListener(IJaxrsEndpointChangedListener listener);
-
-	/**
 	 * @return {@code true} if this metamodel already has (at least) one JAX-RS Application, {@code false} otherwise.
 	 */
 	public boolean hasApplication();

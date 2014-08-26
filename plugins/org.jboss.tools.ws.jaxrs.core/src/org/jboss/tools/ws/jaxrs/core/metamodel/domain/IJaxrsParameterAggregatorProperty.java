@@ -15,6 +15,6 @@ package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
  * @author xcoulon
  *
  */
-public interface IJaxrsParameterAggregatorProperty extends IAnnotatedSourceType {
+public interface IJaxrsParameterAggregatorProperty extends IJaxrsElement, IAnnotatedSourceType {
 
 }

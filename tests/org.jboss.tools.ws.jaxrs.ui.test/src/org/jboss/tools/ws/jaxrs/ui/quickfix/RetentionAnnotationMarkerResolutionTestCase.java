@@ -15,7 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJavaProblems;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.havePreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.NAME_BINDING_MISSING_RETENTION_ANNOTATION;
@@ -104,7 +104,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		// verification 1: there should be 1 error: missing @Retention annotation
 		final IMarker[] markers = findJaxrsMarkers(bazMethod);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
+		assertThat(markers, havePreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
 		
 		// operation 2: now, use the quickfix to fix the problem
 		final ICompilationUnit compilationUnit = bazMethod.getJavaElement().getCompilationUnit();
@@ -133,7 +133,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		// verification 1: there should be 1 error: missing @Retention annotation
 		final IMarker[] markers = findJaxrsMarkers(bazMethod);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
+		assertThat(markers, havePreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
 		
 		// operation 2: now, use the quickfix to fix the problem
 		final ICompilationUnit compilationUnit = bazMethod.getJavaElement().getCompilationUnit();
@@ -260,7 +260,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		// verification 1: there should be 1 error: missing @Retention annotation
 		final IMarker[] markers = findJaxrsMarkers(nameBinding);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_MISSING_RETENTION_ANNOTATION));
+		assertThat(markers, havePreferenceKey(NAME_BINDING_MISSING_RETENTION_ANNOTATION));
 		
 		// operation 2: now, use the quickfix to fix the problem
 		final ICompilationUnit compilationUnit = nameBinding.getJavaElement().getCompilationUnit();
@@ -289,7 +289,7 @@ public class RetentionAnnotationMarkerResolutionTestCase {
 		// verification 1: there should be 1 error: missing @Retention annotation
 		final IMarker[] markers = findJaxrsMarkers(nameBinding);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_MISSING_RETENTION_ANNOTATION));
+		assertThat(markers, havePreferenceKey(NAME_BINDING_MISSING_RETENTION_ANNOTATION));
 		
 		// operation 2: now, use the quickfix to fix the problem
 		final ICompilationUnit compilationUnit = nameBinding.getJavaElement().getCompilationUnit();

@@ -20,7 +20,7 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.RETENTION;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.TARGET;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.havePreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE;
@@ -143,7 +143,7 @@ public class JaxrsNameBindingValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_MISSING_TARGET_ANNOTATION));
+		assertThat(markers, havePreferenceKey(NAME_BINDING_MISSING_TARGET_ANNOTATION));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
@@ -254,7 +254,7 @@ public class JaxrsNameBindingValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE));
+		assertThat(markers, havePreferenceKey(NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE));
 		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
@@ -280,7 +280,7 @@ public class JaxrsNameBindingValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_MISSING_RETENTION_ANNOTATION));
+		assertThat(markers, havePreferenceKey(NAME_BINDING_MISSING_RETENTION_ANNOTATION));
 		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
@@ -408,7 +408,7 @@ public class JaxrsNameBindingValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
-		assertThat(markers, hasPreferenceKey(NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE));
+		assertThat(markers, havePreferenceKey(NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE));
 		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
@@ -453,7 +453,7 @@ public class JaxrsNameBindingValidatorTestCase {
 		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
 				context, validatorManager, reporter);
 		// verification: problem level is set to '2'
-		assertThat(customNameBinding.getMarkerSeverity(), equalTo(2));
+		assertThat(customNameBinding.getProblemSeverity(), equalTo(2));
 		// now, fix the problem
 		replaceFirstOccurrenceOfCode(customNameBinding, "@Retention(RetentionPolicy.SOURCE)",
 				"@Retention(RetentionPolicy.RUNTIME)", false);
@@ -461,7 +461,7 @@ public class JaxrsNameBindingValidatorTestCase {
 		new JaxrsMetamodelValidator().validate(toSet(customNameBinding.getResource()), project, validationHelper,
 				context, validatorManager, reporter);
 		// verification: problem level is set to '0'
-		assertThat(customNameBinding.getMarkerSeverity(), equalTo(0));
+		assertThat(customNameBinding.getProblemSeverity(), equalTo(0));
 	}
 
 }

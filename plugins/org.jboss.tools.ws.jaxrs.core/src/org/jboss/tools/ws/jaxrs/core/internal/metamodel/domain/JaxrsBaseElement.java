@@ -11,7 +11,6 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
@@ -26,7 +25,7 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	private final JaxrsMetamodel metamodel;
 
 	/** Indicates if the element has problems. */
-	private int markerSeverity;
+	private int problemSeverity;
 	
 	/** Exist until its is removed. */
 	public boolean exist = true;
@@ -66,20 +65,31 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	 * Sets the problem level to {@code 0} for this element.
 	 */
 	public void resetProblemLevel() {
-		this.markerSeverity = 0;
+		if(isWorkingCopy) {
+			getPrimaryCopy().resetProblemLevel();
+		} else {
+			this.problemSeverity = 0;
+		}
+		
 	}
 	
 	/**
-	 * Registers a marker (from the underlying {@link IResource}) and sets the
-	 * problem level on this element. If this element already has a problem
-	 * level, the highest value is kept.
+	 * Registers the given severity, keeping the highest known value (comparing
+	 * the current value with the given one)
 	 * 
-	 * @param marker: the marker that has been added to the underlying resource.
-	 *            
+	 * @param severity
+	 *            : the marker or message severity that was added on this
+	 *            element or on a child element that has been added to the
+	 *            underlying resource.
+	 * 
 	 * @throws CoreException
 	 */
-	public void registerMarker(final IMarker marker) {
-		this.markerSeverity = Math.max(this.markerSeverity, marker.getAttribute(IMarker.SEVERITY, 0));
+	public void setProblemSeverity(final int severity) {
+		if(isWorkingCopy) {
+			getPrimaryCopy().setProblemSeverity(severity);
+		} else {
+			this.problemSeverity = Math.max(this.problemSeverity, severity);
+		}
 	}
 
 	/**
@@ -87,15 +97,19 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 	 * @see IMarker for the severity level (value "0" meaning
 	 *      "no problem, dude")
 	 */
-	public final int getMarkerSeverity() {
-		return markerSeverity;
+	public final int getProblemSeverity() {
+		if(isWorkingCopy()) {
+			return getPrimaryCopy().getProblemSeverity();
+		} else {
+			return problemSeverity;
+		}
 	}
 	
 	/**
 	 * @return {@code true} if this element has a marker severity > 0, {@code false} otherwise.
 	 */
 	public boolean hasProblem() {
-		return markerSeverity > 0;
+		return problemSeverity > 0;
 	}
 
 	/** @return the metamodel */
@@ -163,6 +177,18 @@ public abstract class JaxrsBaseElement implements IJaxrsElement {
 		return this.workingCopy;
 	}
 	
+	/**
+	 * 
+	 * @return {@code true} if this element already has an associated working copy, false otherwise.
+	 */
+	public boolean hasWorkingCopy() {
+		return this.workingCopy != null;
+	}
+	
+	/**
+	 * Sets the working copy for this element.
+	 * @param workingCopy the associated working copy
+	 */
 	private void setWorkingCopy(final JaxrsBaseElement workingCopy) {
 		this.workingCopy = workingCopy;
 	}

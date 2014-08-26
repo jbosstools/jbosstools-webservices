@@ -49,8 +49,10 @@ import org.jboss.tools.ws.jaxrs.core.jdt.SourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IAnnotatedSourceType;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 
@@ -64,7 +66,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 
 	/** The chain of JAX-RS Resource Methods that map to this endpoint. */
 	private final LinkedList<JaxrsResourceMethod> resourceMethods;
-
+	
+	/** The list of related all related JAX-RS elements that are used by this endpoint (resource fields and properties, parameter aggregator fields and properties). */
+	private final List<IJaxrsElement> relatedElements = new ArrayList<IJaxrsElement>();
+	
 	/** The HTTP Method to invoke when calling this endpoint. */
 	private IJaxrsHttpMethod httpMethod;
 
@@ -105,6 +110,11 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		if (metamodel != null) {
 			metamodel.add(this);
 		}
+	}
+	
+	@Override
+	public IJaxrsMetamodel getMetamodel() {
+		return metamodel;
 	}
 
 	/**
@@ -311,6 +321,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 *         {@code false} otherwise.
 	 */
 	private boolean refreshUriPathTemplate() {
+		relatedElements.clear();
 		// compute the URI Path Template from the chain of Methods/Resources
 		final StringBuilder uriPathTemplateBuilder = new StringBuilder();
 		final List<String> queryParams = new ArrayList<String>();
@@ -356,7 +367,7 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 *            the JAX-RS Resource Method
 	 * @return the displayable URI Path Template as a {@link String}
 	 */
-	private static String getDisplayablePathTemplate(final JaxrsResource resource, final JaxrsResourceMethod resourceMethod) {
+	private String getDisplayablePathTemplate(final JaxrsResource resource, final JaxrsResourceMethod resourceMethod) {
 		// skip if the resource's path annotation value is invalid
 		if(!AnnotationUtils.isValidAnnotationValue(resource.getPathTemplate())) {
 			return "";
@@ -395,6 +406,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 							pathTemplateBuilder.append(":").append(parameterType.getType().getDisplayableTypeName());
 						}
 						pathTemplateBuilder.append('}');
+						// add the queryParam as a related element if it is a JaxrsElement
+						if(parameterType instanceof IJaxrsElement) {
+							this.relatedElements.add((IJaxrsElement) parameterType);
+						}
 					} else {
 						pathTemplateBuilder.append('{').append(pathArg).append(":.*").append('}');
 					}
@@ -459,6 +474,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 							pathTemplateBuilder.append(":").append(parameterType.getType().getDisplayableTypeName());
 						}
 						pathTemplateBuilder.append('}');
+						// add the queryParam as a related element if it is a JaxrsElement
+						if(parameterType instanceof IJaxrsElement) {
+							this.relatedElements.add((IJaxrsElement) parameterType);
+						}
 					} else {
 						pathTemplateBuilder.append('{').append(pathArg).append(":.*").append('}');
 					}
@@ -480,6 +499,10 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 				pathTemplateBuilder.append(':').append('\"').append(matrixParam.getAnnotation(DEFAULT_VALUE).getValue()).append('\"');
 			}
 			pathTemplateBuilder.append('}');
+			// add the matrixParam as a related element if it is a JaxrsElement
+			if(matrixParam instanceof IJaxrsElement) {
+				this.relatedElements.add((IJaxrsElement) matrixParam);
+			}
 		}
 		return pathTemplateBuilder.toString();
 	}
@@ -493,18 +516,23 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * @return the ordered list of query parameters as they should appear in the UI.
 	 */
 	private List<String> getDisplayableQueryParameters(final JaxrsResourceMethod resourceMethod) {
-		final Set<String> queryParams = new HashSet<String>();
+		final Set<String> queryParamValues = new HashSet<String>();
 		final List<String> displayableQueryParams = new ArrayList<String>();
-		final List<IAnnotatedSourceType> queryParamTypes = resourceMethod.getRelatedTypesAnnotatedWith(QUERY_PARAM);
-		for(IAnnotatedSourceType annotatedSourceType : queryParamTypes) {
-			final String annotationValue = annotatedSourceType.getAnnotation(QUERY_PARAM).getValue();
-			final String annotationDisplayableValue = createDisplayableQueryParam(annotatedSourceType.getType(), annotatedSourceType.getAnnotations());
+		final List<IAnnotatedSourceType> queryParams = resourceMethod.getRelatedTypesAnnotatedWith(QUERY_PARAM);
+		for(IAnnotatedSourceType queryParam : queryParams) {
+			final String annotationValue = queryParam.getAnnotation(QUERY_PARAM).getValue();
+			final String annotationDisplayableValue = createDisplayableQueryParam(queryParam.getType(), queryParam.getAnnotations());
 			// skip if this query param was already known
-			if(queryParams.contains(annotationValue)) {
+			if(queryParamValues.contains(annotationValue)) {
 				continue;
 			}
-			queryParams.add(annotationValue);
+			queryParamValues.add(annotationValue);
 			displayableQueryParams.add(annotationDisplayableValue);
+			// add the queryParam as a related element if it is a JaxrsElement
+			if(queryParam instanceof IJaxrsElement) {
+				this.relatedElements.add((IJaxrsElement) queryParam);
+			}
+
 		}
 		return displayableQueryParams;
 	}
@@ -594,16 +622,21 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 *         level is the highest value from all the resource methods this
 	 *         endpoint is made of.
 	 */
+	//TODO: rename to "getProblemSeverity" to be consistent with IJaxrsElement#getProblemSeverity
 	@Override
 	public int getProblemLevel() {
 		int level = IMarker.SEVERITY_INFO; // Severity NONE
-		for (IJaxrsResourceMethod resourceMethod : getResourceMethods()) {
-			level = Math.max(level, resourceMethod.getMarkerSeverity());
+		for (JaxrsResourceMethod resourceMethod : this.resourceMethods) {
+			level = Math.max(level, resourceMethod.getProblemSeverity());
+			level = Math.max(level, resourceMethod.getParentResource().getProblemSeverity());
 		}
-		/*level = Math.max(level, httpMethod.getProblemLevel());
+		for (IJaxrsElement relatedElement : this.relatedElements) {
+			level = Math.max(level, relatedElement.getProblemSeverity());
+		}
+		level = Math.max(level, httpMethod.getProblemSeverity());
 		if(application != null) {
-			level = Math.max(level, application.getProblemLevel());
-		}*/
+			level = Math.max(level, application.getProblemSeverity());
+		}
 		return level;
 	}
 

@@ -102,18 +102,21 @@ public class JaxrsMetamodelLocator {
 		if (javaProject == null) {
 			return null;
 		}
-		if (!force && !javaProject.isOpen()) {
-			Logger.debug("*** Returning a null Metamodel because the javaProject '{}' is closed (or not opened yet) ***", javaProject.getElementName());
-			return null;
+		// avoiding concurrent duplicate creation of metamodel by different threads at workspace startup
+		synchronized (javaProject) {
+			if (!force && !javaProject.isOpen()) {
+				Logger.debug("*** Returning a null Metamodel because the javaProject '{}' is closed (or not opened yet) ***", javaProject.getElementName());
+				return null;
+			}
+	
+			final IProject project = javaProject.getProject();
+			final JaxrsMetamodel metamodel = (JaxrsMetamodel) project.getSessionProperty(
+					JaxrsMetamodel.METAMODEL_QUALIFIED_NAME);
+			if (metamodel == null && force) {
+				return JaxrsMetamodel.create(javaProject);
+			}
+			return metamodel;	
 		}
-
-		final IProject project = javaProject.getProject();
-		final JaxrsMetamodel metamodel = (JaxrsMetamodel) project.getSessionProperty(
-				JaxrsMetamodel.METAMODEL_QUALIFIED_NAME);
-		if (metamodel == null && force) {
-			return JaxrsMetamodel.create(javaProject);
-		}
-		return metamodel;	
 	}
 
 }

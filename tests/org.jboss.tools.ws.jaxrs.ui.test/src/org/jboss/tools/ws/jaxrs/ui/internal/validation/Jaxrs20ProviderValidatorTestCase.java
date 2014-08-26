@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.removeSourceRange;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.matchesLocation;
@@ -260,7 +261,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 		// verification: there's no problem, the Interceptor became a Global
 		// Interceptor ;-)
 		final IMarker[] markers = nameBindingType.getResource().findMarkers(
-				JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
+				JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
 		for (IMarker marker : markers) {
 			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
 					marker.getAttribute(IMarker.MESSAGE));

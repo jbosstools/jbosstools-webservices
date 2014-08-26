@@ -501,5 +501,16 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 			((JaxrsParameterAggregatorProperty) property).remove(FlagsUtils.computeElementFlags(property));
 		}
 	}
+	
+	@Override
+	public void resetProblemLevel() {
+		super.resetProblemLevel();
+		for(Entry<String, JaxrsParameterAggregatorField> entry : this.fields.entrySet()) {
+			entry.getValue().resetProblemLevel();
+		}
+		for(Entry<String, JaxrsParameterAggregatorProperty> entry : this.properties.entrySet()) {
+			entry.getValue().resetProblemLevel();
+		}
+	}
 
 }

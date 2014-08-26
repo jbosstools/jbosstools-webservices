@@ -22,6 +22,10 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 /**
  * Class to configure (add/remove) the JAX-RS Metamodel Builder on a project.
  * 
+ * Note: This {@link ProjectBuilderConfigurer} is automatically called when the
+ * {@value ProjectNatureUtils#JAXRS_NATURE_ID} is added to the
+ * {@link IProject#getDescription()}.
+ * 
  * @author xcoulon
  */
 public class ProjectBuilderConfigurer implements IProjectNature {
@@ -35,7 +39,8 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 			return;
 		}
 		// project nature installation triggers the project builder
-		// installation, by configuration/association in the plugin.xml file.
+		// installation, by configuration/association in the
+		// plugin.xml file.
 		if (ProjectBuilderUtils.installProjectBuilder(project, JaxrsMetamodelBuilder.BUILDER_ID)) {
 			Logger.debug("JAX-RS Builder is now installed.");
 		} else {
@@ -59,7 +64,7 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 			metamodel.remove();
 		}
 	}
-
+	
 	/** {@inheritDoc} */
 	@Override
 	public final IProject getProject() {
@@ -71,5 +76,5 @@ public class ProjectBuilderConfigurer implements IProjectNature {
 	public final void setProject(final IProject p) {
 		this.project = p;
 	}
-
+	
 }

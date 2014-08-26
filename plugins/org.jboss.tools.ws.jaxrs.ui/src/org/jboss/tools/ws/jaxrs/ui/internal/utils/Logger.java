@@ -147,7 +147,7 @@ public final class Logger {
 					&& "true".equalsIgnoreCase(debugOption)) {
 				final String valuedMessage = getMessage(message, items);
 				System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName()
-						+ "] " + valuedMessage);
+						+ "] " + toLevel(level) + " " + valuedMessage);
 			}
 		} catch (RuntimeException e) {
 			System.err.println("Failed to write proper debug message with template:\n " + message + "\n and items:");
@@ -155,6 +155,16 @@ public final class Logger {
 				System.err.println(" " + item);
 			}
 		}
+	}
+
+	private static String toLevel(final String level) {
+		if(level.equals(DEBUG)) {
+			return "DEBUG";
+		}
+		if(level.equals(TRACE)) {
+			return "TRACE";
+		}
+		return "UNKNOWN_LEVEL";
 	}
 
 	/**

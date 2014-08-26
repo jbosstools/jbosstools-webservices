@@ -11,12 +11,23 @@
 
 package org.jboss.tools.ws.jaxrs.core;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.jdt.core.JavaCore;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedListener;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceChangedListener;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodelChangedListener;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelDelta;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -35,6 +46,9 @@ public class JBossJaxrsCorePlugin extends Plugin {
 
 	/** The resource changes listener. */
 	private final ResourceChangedListener resourceChangedListener = new ResourceChangedListener();
+
+	/** The Listeners for JAX-RS Metamodel changes. */
+	private final Set<IJaxrsMetamodelChangedListener> metamodelChangedListeners = new HashSet<IJaxrsMetamodelChangedListener>();
 
 	/**
 	 * The constructor.
@@ -110,5 +124,93 @@ public class JBossJaxrsCorePlugin extends Plugin {
 	public static JBossJaxrsCorePlugin getDefault() {
 		return plugin;
 	}
+	
+	/**
+	 * Registers the given listener for further notifications when JAX-RS
+	 * Endpoints changed in this metamodel.
+	 * 
+	 * @param listener
+	 */
+	public static void addJaxrsMetamodelChangedListener(final IJaxrsMetamodelChangedListener listener) {
+		if(!getDefault().metamodelChangedListeners.contains(listener)) { 
+			Logger.debug("Registering JaxrsMetamodelChangedListener");
+			getDefault().metamodelChangedListeners.add(listener);
+		}
+	}
+
+	/**
+	 * Unregisters the given listener for further notifications when JAX-RS
+	 * Endpoints changed in this metamodel.
+	 * 
+	 * @param listener
+	 */
+	public static void removeListener(final IJaxrsMetamodelChangedListener listener) {
+		getDefault().metamodelChangedListeners.remove(listener);
+	}
+
+	/**
+	 * Notify that a JAX-RS Endpoint was added/changed/removed
+	 * 
+	 * @param endpoint
+	 *            the endpoint that was added/changed/removed
+	 * @param deltaKind
+	 *            the kind of change
+	 * @param flags
+	 *            some optional flags (use {@link JaxrsElementDelta#F_NONE} if
+	 *            no change occurred)
+	 */
+	public static void notifyEndpointChanged(final IJaxrsEndpoint endpoint, final int deltaKind) {
+		if (endpoint != null && !getDefault().metamodelChangedListeners.isEmpty()) {
+			final JaxrsEndpointDelta delta = new JaxrsEndpointDelta(endpoint, deltaKind);
+			Logger.trace("Notify elementChangedListeners after {}", delta);
+			for (IJaxrsMetamodelChangedListener listener : getDefault().metamodelChangedListeners) {
+				listener.notifyEndpointChanged(delta);
+			}
+		} else if(getDefault().metamodelChangedListeners.isEmpty()) {
+			Logger.trace(" No Listener to notify about endpoint changed (type={}): {}", deltaKind, endpoint);
+		}
+	}
+
+	/**
+	 * Notifies all registered listeners that the problem level of the given
+	 * {@link IJaxrsEndpoint} changed
+	 * 
+	 * @param element
+	 *            the JAX-RS {@link IJaxrsEndpoint} whose problem level changed
+	 */
+	public static void notifyEndpointProblemLevelChanged(final IJaxrsEndpoint endpoint) {
+		Logger.debug("Notifying that problem severity changed to {} for endpoint {} {}", endpoint.getProblemLevel(),
+				endpoint.getHttpMethod().getHttpVerb(), endpoint.getUriPathTemplate());
+		for (IJaxrsMetamodelChangedListener listener : getDefault().metamodelChangedListeners) {
+			listener.notifyEndpointProblemLevelChanged(endpoint);
+		}
+	}
+
+	/**
+	 * Notifies all registered listeners that the problem level of this {@link JaxrsMetamodel} changed
+	 */
+	public static void notifyMetamodelProblemLevelChanged(final IJaxrsMetamodel metamodel) {
+		if(getDefault().metamodelChangedListeners.isEmpty()) {
+			Logger.debug("No metamodelChangedListeners to notify that the metamodel problem level changed :(");
+			return;
+		}
+		for (IJaxrsMetamodelChangedListener listener : getDefault().metamodelChangedListeners) {
+			listener.notifyMetamodelProblemLevelChanged(metamodel);
+		}
+	}
+
+	/**
+	 * Notifies all registered listeners that this {@link JaxrsMetamodel} changed
+	 */
+	public static void notifyMetamodelChanged(final IJaxrsMetamodel metamodel, final int deltaKind) {
+		if(getDefault().metamodelChangedListeners.isEmpty()) {
+			Logger.debug("No metamodelChangedListener to notify of the metamodel changed :(");
+			return;
+		}
+		for (IJaxrsMetamodelChangedListener listener : getDefault().metamodelChangedListeners) {
+			listener.notifyMetamodelChanged(new JaxrsMetamodelDelta(metamodel, deltaKind));
+		}
+	}
+
 
 }

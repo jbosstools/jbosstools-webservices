@@ -16,8 +16,16 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 
+/**
+ * Interface to a JAX-RS Endpoint
+ * 
+ * @author xcoulon
+ *
+ */
 public interface IJaxrsEndpoint extends Comparable<IJaxrsEndpoint> {
 	
+	public abstract IJaxrsMetamodel getMetamodel();
+
 	/** The endpoint category. */
 	public abstract EnumElementCategory getElementCategory();
 
@@ -44,5 +52,6 @@ public interface IJaxrsEndpoint extends Comparable<IJaxrsEndpoint> {
 	public abstract IJaxrsApplication getApplication();
 
 	public abstract IProject getProject();
+	
 
 }

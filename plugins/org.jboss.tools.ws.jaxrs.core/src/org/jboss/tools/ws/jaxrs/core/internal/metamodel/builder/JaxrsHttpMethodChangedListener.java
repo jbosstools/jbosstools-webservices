@@ -51,7 +51,7 @@ public class JaxrsHttpMethodChangedListener implements IJaxrsElementChangedListe
 	 *            if relevant
 	 */
 	@Override
-	public void notifyElementChanged(JaxrsElementDelta delta) {
+	public void notifyElementChanged(final JaxrsElementDelta delta) {
 		// FIXME: report this whole fix in a separate JIRA
 		if (delta != null && delta.getElement().getElementKind() == EnumElementKind.HTTP_METHOD) {
 			try {

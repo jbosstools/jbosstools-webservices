@@ -22,8 +22,9 @@ public class JaxrsValidationMessages {
 	private static final String BUNDLE_NAME = JaxrsValidationMessages.class.getName(); //$NON-NLS-1$
 
 	public static String SEARCHING_RESOURCES;
-	public static String VALIDATING_RESOURCE;
 	public static String VALIDATING_PROJECT;
+	public static String VALIDATING_RESOURCE;
+	public static String VALIDATING_RESOURCES;
 
 	public static String APPLICATION_NO_OCCURRENCE_FOUND;
 	public static String APPLICATION_TOO_MANY_OCCURRENCES;

@@ -51,11 +51,11 @@ public class JaxrsMetamodelValidatorDelegate {
 	 */
 	void validate(JaxrsMetamodel metamodel) throws CoreException {
 		Logger.debug("Validating element {}", metamodel);
-		JaxrsMetamodelValidator.removeMarkers(metamodel);
+		JaxrsMetamodelValidator.removeJaxrsMarkers(metamodel.getProject());
 		metamodel.resetProblemLevel();
 		final Collection<JaxrsJavaApplication> javaApplications = metamodel.findJavaApplications();
 		final Collection<JaxrsWebxmlApplication> webxmlApplications = metamodel.findWebxmlApplications();
-		if (javaApplications.isEmpty() && webxmlApplications.isEmpty() && metamodel.hasCustomElements()) {
+		if (javaApplications.isEmpty() && webxmlApplications.isEmpty()) {
 			markerManager.addMarker(metamodel,
 					JaxrsValidationMessages.APPLICATION_NO_OCCURRENCE_FOUND, new String[0], JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND);
 		} else if (javaApplications.size() >= 2 || (javaApplications.size() >= 1 && webxmlApplications.size() >= 1)) {

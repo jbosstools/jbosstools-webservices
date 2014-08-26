@@ -20,9 +20,10 @@ import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFir
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.RETENTION;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.TARGET;
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.hasPreferenceKey;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.havePreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE;
@@ -91,6 +92,8 @@ public class JaxrsHttpMethodValidatorTestCase {
 		metamodel = metamodelMonitor.getMetamodel();
 		project = metamodel.getProject();
 		javaProject = metamodel.getJavaProject();
+		// remove 'org.jboss.tools.ws.jaxrs.sample.services.BazResource' to avoid side effects on this resource which uses the 'FOO' HTTP Method annotation.
+		metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource").getResource().delete(true, null);
 	}
 	
 	@After
@@ -254,7 +257,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_TARGET_ANNOTATION));
+		assertThat(markers, havePreferenceKey(HTTP_METHOD_MISSING_TARGET_ANNOTATION));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 		assertThat(new JaxrsMarkerResolutionGenerator().getResolutions(markers[0]), notNullValue());
@@ -334,7 +337,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE));
+		assertThat(markers, havePreferenceKey(HTTP_METHOD_INVALID_TARGET_ANNOTATION_VALUE));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -357,7 +360,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
+		assertThat(markers, havePreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -456,7 +459,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(httpMethod);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE));
+		assertThat(markers, havePreferenceKey(HTTP_METHOD_INVALID_RETENTION_ANNOTATION_VALUE));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
@@ -486,7 +489,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 				validatorManager, reporter);
 
 		// validation
-		final IMarker[] markers = foobarType.getResource().findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
+		final IMarker[] markers = foobarType.getResource().findMarkers(JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
 		assertThat(markers.length, equalTo(0));
 	}
 	
@@ -524,7 +527,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 				validatorManager, reporter);
 		
 		// verification: problem level is set to '2'
-		assertThat(httpMethod.getMarkerSeverity(), equalTo(2));
+		assertThat(httpMethod.getProblemSeverity(), equalTo(2));
 		
 		// now, fix the problem 
 		replaceFirstOccurrenceOfCode(httpMethod, "@Retention(value=RetentionPolicy.SOURCE)", "@Retention(value=RetentionPolicy.RUNTIME)", false);
@@ -533,7 +536,7 @@ public class JaxrsHttpMethodValidatorTestCase {
 				validatorManager, reporter);
 		
 		// verification: problem level is set to '0'
-		assertThat(httpMethod.getMarkerSeverity(), equalTo(0));
+		assertThat(httpMethod.getProblemSeverity(), equalTo(0));
 	}
 
 }

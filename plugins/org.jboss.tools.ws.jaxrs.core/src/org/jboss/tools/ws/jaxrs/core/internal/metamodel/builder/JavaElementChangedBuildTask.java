@@ -80,6 +80,7 @@ public class JavaElementChangedBuildTask {
 				}
 			}
 		} catch (Exception e) {
+			Logger.error("Failed to process Java element change", e);
 			if (element != null) {
 				return new Status(IStatus.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID,
 						"Failed to build or refresh the JAX-RS metamodel while processing " + element.getElementName()

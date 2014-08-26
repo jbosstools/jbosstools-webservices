@@ -18,15 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -43,7 +35,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	private final IJavaProject javaProject;
 
 	private final UriMappingsContentProvider parent;
-
+	
 	private final Map<IJaxrsEndpoint, UriPathTemplateElement> wrapperCache = new HashMap<IJaxrsEndpoint, UriPathTemplateElement>();
 
 	/**
@@ -72,74 +64,28 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		try {
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 			if (metamodel != null && !metamodel.isInitializing()) {
-				// register for endpoint changes against the metamodel (in case it's not already done)
-				metamodel.addJaxrsEndpointChangedListener(parent);
-				
 				final Collection<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
 				Logger.debug("UriPathTemplateCategory contains {} endpoints", endpoints.size());
-				List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
+				final List<UriPathTemplateElement> uriPathTemplateElements = new ArrayList<UriPathTemplateElement>();
 				// Collections.sort(uriMappings);
 				for (IJaxrsEndpoint endpoint : endpoints) {
-					UriPathTemplateElement element = wrapperCache.get(endpoint);
-					// LinkedList<IJaxrsResourceMethod> resourceMethods =
-					// endpoint.getResourceMethods();
-					if (element == null) {
-						Logger.trace("Creating element for endpoint '{}' (was not found in wrapperCache)", endpoint);
-						element = new UriPathTemplateElement(endpoint, this);
-						wrapperCache.put(endpoint, element);
-					}
-					// after a clean build, the 'endpoint' reference should be
-					// updated
-					else if (element.getEndpoint().equals(endpoint)) {
-						element.setEndpoint(endpoint);
-					}
+					final UriPathTemplateElement element = getUriPathTemplateElement(endpoint);
 					uriPathTemplateElements.add(element);
 				}
 				return uriPathTemplateElements.toArray();
-			} else if (metamodel == null || !metamodel.isInitializing()) {
-				// immediately create a new metamodel to avoid entering this block twice (once for hasChildren() and once for getChildren())
-				JaxrsMetamodelLocator.get(javaProject, true);
-				launchLoadingMetamodelJob(this);
+			} else if(metamodel != null && metamodel.isInitializing()){
 				// return a stub object that says loading...
 				Logger.debug("Displaying the 'Loading...' stub for project '{}' and launching a build", javaProject.getElementName());
 				return new Object[] { new LoadingStub(javaProject) };
 			} else {
-				// return a stub object that says loading while the metamodel is already initializing...
-				Logger.debug("Just displaying the 'Loading...' stub for project '{}'", javaProject.getElementName());
-				return new Object[] { new LoadingStub(javaProject) };
+				Logger.debug("*** There's no JAX-RS Metamodel for project '{}' -> no element to display ***", javaProject.getElementName());
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + javaProject.getElementName() + "'", e);
 		}
-		Logger.debug("*** There's no JAX-RS Metamodel for project '{}' -> no element to display ***", javaProject.getElementName());
 		return new Object[0];
 	}
 
-	private void launchLoadingMetamodelJob(final UriPathTemplateCategory uriPathTemplateCategory) {
-		final IProject project = uriPathTemplateCategory.getProject();
-		Job job = new Job("Loading JAX-RS metamodel for project '" + javaProject.getElementName() + "'...") {
-
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				monitor.beginTask("Loading JAX-RS metamodel for project '" + javaProject.getElementName() + "'...",
-						3);
-				try {
-					project.refreshLocal(IResource.DEPTH_INFINITE, new SubProgressMonitor(monitor, 1));
-					project.build(IncrementalProjectBuilder.FULL_BUILD, new SubProgressMonitor(monitor, 1));
-					Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
-				} catch (Exception e) {
-					Logger.error("Failed to build project '" + javaProject.getElementName() + "'", e);
-				}
-				monitor.worked(1);
-				refreshContent();
-				monitor.done();
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.LONG);
-		job.schedule();
-	}
-	
 	@Override
 	public Object getParent(Object element) {
 		return javaProject.getProject();
@@ -165,8 +111,8 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 			if (metamodel != null && !metamodel.isInitializing()) {
 				final Collection<IJaxrsEndpoint> endpoints = metamodel.getAllEndpoints();
-				Logger.debug("UriPathTemplateCategory contains {} endpoints", endpoints.size());
-				return endpoints.size() > 0;
+				Logger.debug("UriPathTemplateCategory has endpoints: {}", (!endpoints.isEmpty()));
+				return (!endpoints.isEmpty());
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + javaProject.getElementName() + "'", e);
@@ -189,7 +135,13 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	 * @return its associated {@link UriPathTemplateElement} in the viewer
 	 */
 	public UriPathTemplateElement getUriPathTemplateElement(final IJaxrsEndpoint endpoint) {
-		return wrapperCache.get(endpoint);
+		if(wrapperCache.containsKey(endpoint)) {
+			return wrapperCache.get(endpoint);
+		}
+		Logger.trace("Creating element for endpoint '{}' (was not found in wrapperCache)", endpoint);
+		final UriPathTemplateElement element = new UriPathTemplateElement(endpoint, this);
+		wrapperCache.put(endpoint, element);
+		return element;
 	}
 
 	@Override
@@ -202,7 +154,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		try {
 			final IJaxrsMetamodel metamodel= JaxrsMetamodelLocator.get(javaProject);
 			if (metamodel != null) {
-				level = metamodel.getMarkerSeverity();
+				level = metamodel.getProblemSeverity();
 				for (IJaxrsEndpoint endpoint : metamodel.getAllEndpoints()) {
 					level = Math.max(level, endpoint.getProblemLevel());
 				}
@@ -223,22 +175,14 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	 */
 	public void refreshContent() {
 		try {
-			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
-			// let's make sure this listener is registered
-			if (metamodel != null) {
-				// metamodel.addListener() avoids duplicate entries
-				metamodel.addJaxrsEndpointChangedListener(this.parent);
-			}
+			final IJaxrsMetamodel metamodel= JaxrsMetamodelLocator.get(javaProject);
+			parent.refreshContent(metamodel);
 		} catch (CoreException e) {
-			Logger.error("Failed to retrieve the JAX-RS Metamodel for project '" + javaProject.getElementName() + "'", e);
+			Logger.error("Failed to determine the problem severity for the JAX-RS Web Services", e);
 		}
-		parent.refreshContent(javaProject.getProject());
+		
 	}
 
-	public Object[] getChildren() {
-		return getChildren(this);
-	}
-	
 	@Override
 	public String toString() {
 		return "UriPathTemplateCategory on project '" + javaProject.getElementName() + "'";

@@ -13,6 +13,11 @@ package org.jboss.tools.ws.jaxrs.core.metamodel.domain;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 
+/**
+ * Delta in a given {@link IJaxrsEndpoint}.
+ * @author xcoulon
+ *
+ */
 public class JaxrsEndpointDelta {
 
 	private final IJaxrsEndpoint endpoint;
@@ -22,10 +27,11 @@ public class JaxrsEndpointDelta {
 	/**
 	 * Full constructor.
 	 * 
-	 * @param element
-	 * @param deltaKind
+	 * @param endpoint the {@link IJaxrsEndpoint} that changed
+	 * @param deltaKind the kind of change
+	 * @see {@link IJavaElementDelta.ADDED}, {@link IJavaElementDelta.CHANGED}, {@link IJavaElementDelta.REMOVED}
 	 */
-	public JaxrsEndpointDelta(IJaxrsEndpoint endpoint, int deltaKind) {
+	public JaxrsEndpointDelta(final IJaxrsEndpoint endpoint, final int deltaKind) {
 		this.endpoint = endpoint;
 		this.deltaKind = deltaKind;
 	}

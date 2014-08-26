@@ -18,6 +18,6 @@ public interface IJaxrsStatus {
 	 * @return the highest marker severity this element has.
 	 * @see {@link IMarker} for severity levels and values.
 	 */
-	public abstract int getMarkerSeverity();
+	public abstract int getProblemSeverity();
 
 }

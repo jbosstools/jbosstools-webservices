@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -49,10 +50,19 @@ import org.jboss.tools.common.validation.ValidationErrorManager;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.jdt.RangeUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParameterAggregatorField;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParameterAggregatorProperty;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceField;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.quickfix.JaxrsMarkerResolutionGenerator;
 import org.junit.Assert;
@@ -95,7 +105,7 @@ public class ValidationUtils {
 				continue;
 			}
 			final IMarker[] elementMarkers = element.getResource().findMarkers(
-					JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
+					JAXRS_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
 			switch (element.getElementKind().getCategory()) {
 			case APPLICATION:
 			case HTTP_METHOD:
@@ -147,7 +157,7 @@ public class ValidationUtils {
 	 * @throws CoreException
 	 */
 	public static IMarker[] findJaxrsMarkers(IProject project) throws CoreException {
-		return project.findMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false, 0);
+		return project.findMarkers(JAXRS_PROBLEM_MARKER_ID, false, 0);
 	}
 
 	/**
@@ -158,7 +168,7 @@ public class ValidationUtils {
 		if (element.getResource() == null) {
 			return;
 		}
-		element.getResource().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false,
+		element.getResource().deleteMarkers(JAXRS_PROBLEM_MARKER_ID, false,
 				IResource.DEPTH_INFINITE);
 	}
 
@@ -167,7 +177,7 @@ public class ValidationUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final IResource resource) throws CoreException {
-		resource.deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
+		resource.deleteMarkers(JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
 	}
 
 	/**
@@ -179,7 +189,7 @@ public class ValidationUtils {
 	 * @throws CoreException
 	 */
 	public static void deleteJaxrsMarkers(final JaxrsMetamodel metamodel) throws CoreException {
-		metamodel.getProject().deleteMarkers(JaxrsMetamodelValidator.JAXRS_PROBLEM_MARKER_ID, false,
+		metamodel.getProject().deleteMarkers(JAXRS_PROBLEM_MARKER_ID, false,
 				IResource.DEPTH_INFINITE);
 		metamodel.resetProblemLevel();
 		final List<IJaxrsElement> allElements = metamodel.getAllElements();
@@ -188,7 +198,7 @@ public class ValidationUtils {
 		}
 	}
 
-	public static Matcher<IMarker[]> hasPreferenceKey(final String expectedProblemType) {
+	public static Matcher<IMarker[]> havePreferenceKey(final String expectedProblemType) {
 		return new BaseMatcher<IMarker[]>() {
 			@Override
 			public boolean matches(Object item) {
@@ -204,6 +214,28 @@ public class ValidationUtils {
 				return false;
 			}
 
+			@Override
+			public void describeTo(Description description) {
+				description.appendText("marker contains preference_key (\"" + expectedProblemType + "\" problem type)");
+			}
+		};
+	}
+	
+	public static Matcher<IMarker> hasPreferenceKey(final String expectedProblemType) {
+		return new BaseMatcher<IMarker>() {
+			@Override
+			public boolean matches(Object item) {
+				if (item instanceof IMarker) {
+					final  IMarker marker = (IMarker) item;
+					final String preferenceKey = marker.getAttribute(
+							ValidationErrorManager.PREFERENCE_KEY_ATTRIBUTE_NAME, "");
+					if (preferenceKey.equals(expectedProblemType)) {
+						return true;
+					}
+				}
+				return false;
+			}
+			
 			@Override
 			public void describeTo(Description description) {
 				description.appendText("marker contains preference_key (\"" + expectedProblemType + "\" problem type)");
@@ -234,6 +266,7 @@ public class ValidationUtils {
 	}
 
 	public static void printMarkers(final List<IMarker> markers) {
+		TestLogger.debug("Found {} markers", markers.size());
 		for (IMarker marker : markers) {
 			TestLogger.debug(" Marker with severity={}: {}", marker.getAttribute(IMarker.SEVERITY, 0),
 					marker.getAttribute(IMarker.MESSAGE, ""));
@@ -343,4 +376,75 @@ public class ValidationUtils {
 		return errors.toArray(new IProblem[errors.size()]);
 	}
 
+	/**
+	 * @param markers
+	 * @param metamodel
+	 * @return a set of {@link IJaxrsEndpoint} whose underlying {@link IJaxrsElement} have one of the given {@link IMarker}s
+	 * @throws JavaModelException 
+	 */
+	public static List<IJaxrsEndpoint> findEndpointsByMarkers(final IMarker[] markers, final JaxrsMetamodel metamodel) throws JavaModelException {
+		final Set<IJaxrsEndpoint> endpoints = new HashSet<IJaxrsEndpoint>();
+		for(IMarker marker : markers) {
+			final Set<IJaxrsElement> elements = metamodel.findElements(marker.getResource());
+			for(IJaxrsElement element : elements) {
+				switch (element.getElementKind().getCategory()) {
+				case RESOURCE:
+					final JaxrsResource resource = (JaxrsResource) element;
+					for (IJaxrsResourceField resourceField : resource.getAllFields()) {
+						if(matchesLocation(marker, resourceField)) {
+							endpoints.addAll(metamodel.findEndpoints(resourceField));
+						}
+					}
+					for (IJaxrsResourceProperty resourceProperty : resource.getAllProperties()) {
+						if(matchesLocation(marker, resourceProperty)) {
+							endpoints.addAll(metamodel.findEndpoints(resourceProperty));
+						}
+					}
+					for (IJaxrsResourceMethod resourceMethod : resource.getAllMethods()) {
+						if(matchesLocation(marker, resourceMethod)) {
+							endpoints.addAll(metamodel.findEndpoints(resourceMethod));
+						}
+					}
+					break;
+				case PARAMETER_AGGREGATOR:
+					final JaxrsParameterAggregator parameterAggregator = (JaxrsParameterAggregator) element;
+					for (IJaxrsParameterAggregatorField parameterAggregatorField : parameterAggregator.getAllFields()) {
+						if(matchesLocation(marker, parameterAggregatorField)) {
+							endpoints.addAll(metamodel.findEndpoints(parameterAggregatorField));
+						}
+					}
+					for (IJaxrsParameterAggregatorProperty parameterAggregatorProperty : parameterAggregator.getAllProperties()) {
+						if(matchesLocation(marker, parameterAggregatorProperty)) {
+							endpoints.addAll(metamodel.findEndpoints(parameterAggregatorProperty));
+						}
+					}
+					continue;
+				default:
+					if(matchesLocation(marker, element)) {
+						endpoints.addAll(metamodel.findEndpoints(element));
+					}
+				}
+			}
+		}
+		
+		return new ArrayList<IJaxrsEndpoint>(endpoints);
+	}
+
+	/**
+	 * @return {@code true} if the given {@link IMarker} is located in the underlying {@link IJavaElement} of the given {@link IJaxrsElement}, {@code false} otherwise.
+	 * 
+	 * @param marker
+	 * @param element
+	 * @throws JavaModelException
+	 */
+	private static boolean matchesLocation(IMarker marker, IJaxrsElement element) throws JavaModelException {
+		if (element instanceof JaxrsJavaElement<?>) {
+			final ISourceRange sourceRange = ((JaxrsJavaElement<?>) element).getJavaElement().getSourceRange();
+			final int markerStartPosition = marker.getAttribute(IMarker.CHAR_START, 0);
+			if (RangeUtils.matches(sourceRange, markerStartPosition)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

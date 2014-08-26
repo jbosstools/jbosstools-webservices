@@ -473,6 +473,20 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	public List<JaxrsResourceProperty> getAllProperties() {
 		return Collections.unmodifiableList(new ArrayList<JaxrsResourceProperty>(resourceProperties.values()));
 	}
+	
+	@Override
+	public void resetProblemLevel() {
+		super.resetProblemLevel();
+		for(Entry<String, JaxrsResourceMethod> entry : this.resourceMethods.entrySet()) {
+			entry.getValue().resetProblemLevel();
+		}
+		for(Entry<String, JaxrsResourceField> entry : this.resourceFields.entrySet()) {
+			entry.getValue().resetProblemLevel();
+		}
+		for(Entry<String, JaxrsResourceProperty> entry : this.resourceProperties.entrySet()) {
+			entry.getValue().resetProblemLevel();
+		}
+	}
 
 	/**
 	 * @return the values of all annotations whose fully qualified name is

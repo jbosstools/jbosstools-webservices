@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.junit.Assert.assertThat;
@@ -94,6 +95,10 @@ public class Jaxrs20ResourceValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_METHOD_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
+		// 1 or more problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), greaterThanOrEqualTo(1));
+		// 1 or more problem level change reported on the endpoint
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), greaterThanOrEqualTo(1));
 	}
 	
 	@Test
@@ -121,8 +126,13 @@ public class Jaxrs20ResourceValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
-
+		// 1 or more problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), greaterThanOrEqualTo(1));
+		// 1 or more problem level change reported on the endpoint
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), greaterThanOrEqualTo(1));
+		
 		// operation 2: fix problem on resource method and revalidate
+		metamodelMonitor.resetElementChangesNotifications();
 		JaxrsElementsUtils.replaceFirstOccurrenceOfCode(boatResource, "@Path(\"{i}\")", "@Path(\"{id}\")", false);
 		new JaxrsMetamodelValidator().validate(toSet(boatResourceCompilationUnit.getResource()), project, validationHelper, context,
 				validatorManager, reporter);
@@ -130,10 +140,15 @@ public class Jaxrs20ResourceValidatorTestCase {
 		// verifications 2: no problem reported
 		final IMarker[] updatedMarkers = findJaxrsMarkers(boatParameterAggregator);
 		assertThat(updatedMarkers.length, equalTo(0));
+		// 1 or more problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), greaterThanOrEqualTo(1));
+		// 1 or more problem level change reported on the endpoint
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), greaterThanOrEqualTo(1));
 	}
 	
 	@Test
 	public void shouldReportAndFixProblemWhenUnboundPathParamAnnotatedParamAggregatorFieldFixedInParameterAggregator() throws CoreException, ValidationException {
+		// pre-conditions 1
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
 		final ICompilationUnit boatParameterAggregatorCompilationUnit = metamodelMonitor.createCompilationUnit("BoatParameterAggregator.txt",
@@ -157,7 +172,13 @@ public class Jaxrs20ResourceValidatorTestCase {
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat((String) markers[0].getAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE),
 				equalTo(JaxrsPreferences.RESOURCE_ELEMENT_UNBOUND_PATHPARAM_ANNOTATION_VALUE));
-		
+		// 1 or more problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), greaterThanOrEqualTo(1));
+		// 1 or more problem level change reported on the endpoint
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), greaterThanOrEqualTo(1));
+
+		// pre-conditions 2
+		metamodelMonitor.resetElementChangesNotifications();
 		// operation 2: fix problem on resource method and revalidate
 		JaxrsElementsUtils.replaceFirstOccurrenceOfCode(boatParameterAggregator, "@PathParam(\"id\") //field", "@PathParam(\"i\") //field", false);
 		new JaxrsMetamodelValidator().validate(toSet(boatParameterAggregator.getResource()), project, validationHelper, context,
@@ -166,6 +187,10 @@ public class Jaxrs20ResourceValidatorTestCase {
 		// verifications 2: no problem reported
 		final IMarker[] updatedMarkers = findJaxrsMarkers(boatParameterAggregator);
 		assertThat(updatedMarkers.length, equalTo(0));
+		// 1 or more problem level changes reported on the endpoint
+		assertThat(metamodelMonitor.getEndpointProblemLevelChanges().size(), greaterThanOrEqualTo(1));
+		// 1 or more problem level change reported on the endpoint
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), greaterThanOrEqualTo(1));
 	}
 	
 	@Test

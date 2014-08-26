@@ -19,6 +19,7 @@ import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAll
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.havePreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.hasPreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND;
@@ -150,25 +151,26 @@ public class JaxrsApplicationValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
+		assertThat(markers, havePreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
-		assertThat(metamodel.getMarkerSeverity(), equalTo(IMarker.SEVERITY_WARNING));
+		assertThat(metamodel.getProblemSeverity(), equalTo(IMarker.SEVERITY_WARNING));
 	}
 
 	@Test
-	public void shouldNotReportProblemOnProjectIfNoElementExists() throws CoreException, ValidationException {
+	public void shouldReportProblemOnProjectIfNoElementExists() throws CoreException, ValidationException {
 		// preconditions (empty metamodel, except the 6 built-in HTTP Methods)
 		assertThat(metamodel.getAllElements().size(), equalTo(6));
 		deleteJaxrsMarkers(metamodel);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
-		// validation
+		// validation: missing application
 		final IMarker[] markers = findJaxrsMarkers(project);
-		assertThat(markers.length, equalTo(0));
-		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(false));
-		assertThat(metamodel.getMarkerSeverity(), equalTo(IMarker.SEVERITY_INFO));
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers[0], hasPreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
+		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
 	@Test
@@ -188,7 +190,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (IJaxrsApplication application : metamodel.findAllApplications()) {
 			final IMarker[] appMarkers = findJaxrsMarkers(application);
 			assertThat(appMarkers.length, equalTo(1));
-			assertThat(appMarkers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(appMarkers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(appMarkers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		}
 		// associated endpoints don't have the problem, though
@@ -223,7 +225,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (IJaxrsApplication application : metamodel.findAllApplications()) {
 			final IMarker[] appMarkers = findJaxrsMarkers(application);
 			assertThat(appMarkers.length, equalTo(1));
-			assertThat(appMarkers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(appMarkers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(appMarkers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		}
 		// associated endpoints don't have the problem, though
@@ -263,7 +265,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(javaApplication);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers, hasPreferenceKey(JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION));
+		assertThat(markers, havePreferenceKey(JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
@@ -283,7 +285,7 @@ public class JaxrsApplicationValidatorTestCase {
 		
 		// validation
 		final IMarker[] markers = findJaxrsMarkers(javaApplication);
-		assertThat(markers, hasPreferenceKey(JAVA_APPLICATION_INVALID_TYPE_HIERARCHY));
+		assertThat(markers, havePreferenceKey(JAVA_APPLICATION_INVALID_TYPE_HIERARCHY));
 		// associated endpoints don't have the problem, though
 		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
 			assertThat(endpoint.getProblemLevel(), equalTo(0));
@@ -338,7 +340,7 @@ public class JaxrsApplicationValidatorTestCase {
 		new JaxrsMetamodelValidator().validate(toSet(javaApplication.getResource()), project, validationHelper, context, validatorManager, reporter);
 		// validation after operation #1
 		IMarker[] markers = findJaxrsMarkers(javaApplication);
-		assertThat(markers, hasPreferenceKey(JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION));
+		assertThat(markers, havePreferenceKey(JAVA_APPLICATION_MISSING_APPLICATION_PATH_ANNOTATION));
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		// preconditions operation #2
@@ -372,7 +374,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// validation
 		for (JaxrsJavaApplication app : new JaxrsJavaApplication[] { javaApplication1, javaApplication2 }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers.length, equalTo(1));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
@@ -404,7 +406,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (JaxrsJavaApplication app : new JaxrsJavaApplication[] { javaApplication1, javaApplication2 }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers.length, equalTo(1));
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			// associated endpoints don't have the problem, though
 			for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
 				assertThat(endpoint.getProblemLevel(), equalTo(0));
@@ -444,7 +446,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (JaxrsJavaApplication app : new JaxrsJavaApplication[] { javaApplication1, javaApplication2 }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers.length, equalTo(1));
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
 			for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
@@ -485,7 +487,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// validation
 		for (IJaxrsApplication app : new IJaxrsApplication[] { webxmlApplication, javaApplication1, javaApplication2 }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers.length, equalTo(1));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
@@ -514,7 +516,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (IJaxrsApplication app : new IJaxrsApplication[] { javaApplication, webxmlApplication }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers.length, equalTo(1));
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
 			for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
@@ -552,7 +554,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (IJaxrsApplication app : new IJaxrsApplication[] { javaApplication, webxmlApplication }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers.length, equalTo(1));
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
 			for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
@@ -589,7 +591,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (IJaxrsApplication app : new IJaxrsApplication[] { javaApplication, webxmlApplication }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers.length, equalTo(1));
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
 			for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
@@ -632,7 +634,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (IJaxrsApplication app : new IJaxrsApplication[] { javaApplication1, javaApplication2, webxmlApplication }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers.length, equalTo(1));
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
 			for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
@@ -678,7 +680,7 @@ public class JaxrsApplicationValidatorTestCase {
 		for (IJaxrsApplication app : new IJaxrsApplication[] { javaApplication1, webxmlApplication }) {
 			final IMarker[] markers = findJaxrsMarkers(app);
 			assertThat(markers.length, equalTo(1));
-			assertThat(markers, hasPreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
+			assertThat(markers, havePreferenceKey(APPLICATION_TOO_MANY_OCCURRENCES));
 			assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 			// associated endpoints don't have the problem, though
 			for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(metamodel.findApplication())) {
@@ -770,7 +772,7 @@ public class JaxrsApplicationValidatorTestCase {
 				project, validationHelper, context, validatorManager, reporter);
 		
 		// verification: problem level is set to '2'
-		assertThat(javaApplication.getMarkerSeverity(), equalTo(2));
+		assertThat(javaApplication.getProblemSeverity(), equalTo(2));
 		
 		// now, fix the problem
 		replaceFirstOccurrenceOfCode(javaApplication.getJavaElement(), "extends Object", "extends Application", false);
@@ -780,7 +782,7 @@ public class JaxrsApplicationValidatorTestCase {
 		new JaxrsMetamodelValidator().validate(toSet(javaApplication.getResource()), project, validationHelper,
 				context, validatorManager, reporter);
 		// verification: problem level is set to '0'
-		assertThat(javaApplication.getMarkerSeverity(), equalTo(0));
+		assertThat(javaApplication.getProblemSeverity(), equalTo(0));
 	}
 
 	// @see https://issues.jboss.org/browse/JBIDE-17276
@@ -802,7 +804,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// verification: problem level is set to '2' on the application but not
 		// on endpoints
 		final JaxrsJavaApplication javaApplication = metamodel.findJavaApplications().iterator().next();
-		assertThat(javaApplication.getMarkerSeverity(), equalTo(2));
+		assertThat(javaApplication.getProblemSeverity(), equalTo(2));
 		for (IJaxrsEndpoint endpoint : metamodel.getAllEndpoints()) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(2)));
 		}
