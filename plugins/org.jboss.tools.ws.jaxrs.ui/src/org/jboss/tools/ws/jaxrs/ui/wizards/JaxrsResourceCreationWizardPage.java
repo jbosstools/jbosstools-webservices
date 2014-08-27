@@ -718,10 +718,7 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 			this.targetClassText.setText(targetClass);
 		}
 		try {
-			if (this.targetClass == null) {
-				this.targetClassStatus = new Status(IStatus.WARNING, JBossJaxrsUIPlugin.PLUGIN_ID,
-						JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_EmptyTargetClass);
-			} else if (getJavaProject() != null && getJavaProject().findType(this.targetClass) == null) {
+			if (this.targetClass != null && !this.targetClass.isEmpty() && getJavaProject() != null && getJavaProject().findType(this.targetClass) == null) {
 				this.targetClassStatus = new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID,
 						JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_InvalidTargetClass);
 			} else {
