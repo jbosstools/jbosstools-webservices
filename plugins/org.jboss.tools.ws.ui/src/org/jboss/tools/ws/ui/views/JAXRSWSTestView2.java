@@ -1809,6 +1809,9 @@ public class JAXRSWSTestView2 extends ViewPart {
 	private IStatus handleWSTest(final IProgressMonitor monitor, String url, String action, String body, String uid, String pwd) {
 		try {
 
+			// count the request submission events
+			JBossWSUIPlugin.getDefault().countRequestSubmitted("JAX-WS"); //$NON-NLS-1$
+			
 			envelope = null;
 			soapbody = null;
 			monitor.worked(10);
@@ -1914,7 +1917,6 @@ public class JAXRSWSTestView2 extends ViewPart {
 	 * Actually call the RESTful WS to test it
 	 */
 	private IStatus handleRSTest(final IProgressMonitor monitor, String address, String method, String body, String parms, String headersStr, String uid, String pwd) {
-
 		if (method.equalsIgnoreCase(GET))
 			body = EMPTY_STRING;
 
@@ -1959,6 +1961,9 @@ public class JAXRSWSTestView2 extends ViewPart {
 		// now actually call it
 		try {
 
+			// count the request submission events
+			JBossWSUIPlugin.getDefault().countRequestSubmitted(method);
+			
 			// call the service
 			tester.doTest(address, parameters, headers, method, body, null, -1, uid, pwd);
 

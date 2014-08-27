@@ -16,6 +16,9 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.jboss.tools.usage.event.UsageEvent;
+import org.jboss.tools.usage.event.UsageEventType;
+import org.jboss.tools.usage.event.UsageReporter;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 import org.osgi.framework.BundleContext;
 
@@ -30,10 +33,14 @@ public class JBossWSUIPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static JBossWSUIPlugin plugin;
 	
+	// record event of requests submitted with the WS Tester
+	private final UsageEventType requestSubmittedEventType;
+
 	/**
 	 * The constructor
 	 */
 	public JBossWSUIPlugin() {
+		this.requestSubmittedEventType = new UsageEventType(this, "wstester", "Request method (JAX-WS|GET|POST|PUT|DELETE|OPTIONS)", UsageEventType.HOW_MANY_TIMES_VALUE_DESCRIPTION); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/*
@@ -43,6 +50,7 @@ public class JBossWSUIPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		UsageReporter.getInstance().registerEvent(requestSubmittedEventType);
 	}
 
 	/*
@@ -92,5 +100,14 @@ public class JBossWSUIPlugin extends AbstractUIPlugin {
 	
 	public static IWorkbenchWindow getActiveWorkbenchWindow() {
 		return getDefault().internalGetActiveWorkbenchWindow();
+	}
+	
+	/**
+	 * Counts a request submission with the Web Service Tester, using the given {@code method}.
+	 * @param method the request method to track or count. 
+	 */
+	public void countRequestSubmitted(final String method) {
+		final UsageEvent requestSubmittedEvent = requestSubmittedEventType.event(method);
+		UsageReporter.getInstance().countEvent(requestSubmittedEvent);
 	}
 }
