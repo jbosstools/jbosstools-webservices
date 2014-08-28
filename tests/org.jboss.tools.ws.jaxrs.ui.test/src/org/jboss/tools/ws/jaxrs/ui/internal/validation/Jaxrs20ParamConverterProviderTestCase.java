@@ -44,7 +44,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
-import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
@@ -76,7 +76,7 @@ public class Jaxrs20ParamConverterProviderTestCase {
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject2", false);
 	
 	@Rule
-	public TestWatcher testWatcher = new TestWatcher();
+	public TestBanner testWatcher = new TestBanner();
 	
 	private JaxrsMetamodel metamodel = null;
 	private IProject project = null;

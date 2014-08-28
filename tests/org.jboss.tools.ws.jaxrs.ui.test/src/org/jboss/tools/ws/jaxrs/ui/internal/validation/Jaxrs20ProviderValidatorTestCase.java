@@ -60,7 +60,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMeth
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.LogListener;
-import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -96,7 +96,7 @@ public class Jaxrs20ProviderValidatorTestCase {
 	private IJavaProject javaProject = null;
 
 	@Rule
-	public TestWatcher watcher = new TestWatcher();
+	public TestBanner watcher = new TestBanner();
 
 	@Before
 	public void setup() throws CoreException {

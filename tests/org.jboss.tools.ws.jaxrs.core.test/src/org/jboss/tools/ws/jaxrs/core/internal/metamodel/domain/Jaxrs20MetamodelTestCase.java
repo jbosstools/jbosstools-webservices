@@ -12,7 +12,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
-import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
@@ -36,7 +36,7 @@ public class Jaxrs20MetamodelTestCase {
 	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor(
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject2", true);
 	@Rule
-	public TestWatcher watcher = new TestWatcher();
+	public TestBanner watcher = new TestBanner();
 	private JaxrsMetamodel metamodel = null;
 
 	@Before

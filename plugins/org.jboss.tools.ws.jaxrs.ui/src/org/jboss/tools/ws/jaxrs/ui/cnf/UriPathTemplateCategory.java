@@ -175,8 +175,10 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 	 */
 	public void refreshContent() {
 		try {
-			final IJaxrsMetamodel metamodel= JaxrsMetamodelLocator.get(javaProject);
-			parent.refreshContent(metamodel);
+			final IJaxrsMetamodel metamodel= JaxrsMetamodelLocator.get(javaProject, true);
+			if(metamodel != null) {
+				parent.refreshContent(metamodel);
+			}
 		} catch (CoreException e) {
 			Logger.error("Failed to determine the problem severity for the JAX-RS Web Services", e);
 		}

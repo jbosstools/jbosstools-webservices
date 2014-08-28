@@ -398,7 +398,7 @@ public class JavaElementsUtils {
 						new NullProgressMonitor());
 				// Commit changes
 				TestLogger.debug("Commiting working copy...");
-				unit.commitWorkingCopy(true, null);
+				unit.commitWorkingCopy(false, null);
 				// Destroy working copy
 				TestLogger.debug("Discarding working copy...");
 				unit.discardWorkingCopy();

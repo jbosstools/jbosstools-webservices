@@ -28,6 +28,7 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDeltaFilter;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
@@ -56,7 +57,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelDelta;
-import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
@@ -65,8 +65,6 @@ import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
  */
 public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsMetamodelChangedListener, IJaxrsElementChangedListener {
 	
-	public final static int ANY_EVENT_TYPE = 0;
-
 	public final static int NO_FLAG = 0;
 
 	private JaxrsMetamodel metamodel;
@@ -209,7 +207,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 	}
 
 	public void processEvent(final Annotation annotation, final int deltaKind) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, ANY_EVENT_TYPE,
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, JavaElementDeltaFilter.ANY_EVENT,
 				JdtUtils.parse(((IMember) annotation.getJavaParent()), new NullProgressMonitor()), Flags.NONE);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}
@@ -219,7 +217,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 	}
 	
 	public void processEvent(final IJavaElement element, final int deltaKind, final Flags flags) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, JavaElementDeltaFilter.ANY_EVENT, JdtUtils.parse(element,
 				new NullProgressMonitor()), flags);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
 	}

@@ -12,18 +12,15 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
-import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -39,7 +36,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class JavaElement20ChangedProcessingTestCase {
-	private final static int ANY_EVENT_TYPE = 0;
 	private static final boolean PRIMARY_COPY = false;
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule(
@@ -55,18 +51,6 @@ public class JavaElement20ChangedProcessingTestCase {
 		assertThat(metamodel, notNullValue());
 	}
 
-	private void processEvent(final IJavaElement element, final int deltaKind) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
-				new NullProgressMonitor()), Flags.NONE);
-		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
-	}
-
-	private void processEvent(final ICompilationUnit element, final int deltaKind) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, ANY_EVENT_TYPE, JdtUtils.parse(element,
-				new NullProgressMonitor()), Flags.NONE);
-		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
-	}
-	
 	private List<IJaxrsElement> createElement(final IType type) throws CoreException, JavaModelException {
 		return JaxrsElementFactory.createElements(type, JdtUtils.parse(type, null), metamodel, null);
 	}
@@ -81,7 +65,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(compilationUnit, "public class CustomJAXRS2Provider",
 				"public class CustomJAXRS2Provider implements ContainerRequestFilter", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider provider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(provider, notNullValue());
@@ -100,7 +84,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomRequestFilter implements ContainerRequestFilter",
 				"CustomRequestFilter", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), nullValue());
 	}
@@ -116,7 +100,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomRequestFilter implements ContainerRequestFilter",
 				"CustomRequestFilter", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), equalTo(provider));
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.UNDEFINED_PROVIDER));
@@ -131,7 +115,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(compilationUnit, "public class CustomJAXRS2Provider",
 				"public class CustomJAXRS2Provider implements ContainerResponseFilter", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider provider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(provider, notNullValue());
@@ -150,7 +134,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomResponseFilter implements ContainerResponseFilter",
 				"CustomResponseFilter", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), nullValue());
 		
@@ -167,7 +151,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomResponseFilter implements ContainerResponseFilter",
 				"CustomResponseFilter", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), equalTo(provider));
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.UNDEFINED_PROVIDER));
@@ -182,11 +166,11 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(compilationUnit, "public class CustomJAXRS2Provider",
 				"public class CustomJAXRS2Provider implements ContainerResponseFilter", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		replaceAllOccurrencesOfCode(compilationUnit,
 				"public class CustomJAXRS2Provider implements ContainerResponseFilter",
 				"public class CustomJAXRS2Provider implements ContainerRequestFilter, ContainerResponseFilter", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider provider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(provider, notNullValue());
@@ -206,7 +190,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(compilationUnit,
 				"CustomJAXRS2ContainerFilter implements ContainerRequestFilter, ContainerResponseFilter",
 				"CustomJAXRS2ContainerFilter implements ContainerResponseFilter", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider modifiedProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(modifiedProvider, notNullValue());
@@ -226,7 +210,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(compilationUnit,
 				"CustomJAXRS2ContainerFilter implements ContainerRequestFilter, ContainerResponseFilter",
 				"CustomJAXRS2ContainerFilter implements ContainerRequestFilter", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider modifiedProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(modifiedProvider, notNullValue());
@@ -242,7 +226,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(compilationUnit, "public class CustomJAXRS2Provider",
 				"public class CustomJAXRS2Provider implements ReaderInterceptor", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider provider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(provider, notNullValue());
@@ -260,7 +244,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomReaderInterceptor implements ReaderInterceptor",
 				"CustomReaderInterceptor", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), nullValue());
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.UNDEFINED_PROVIDER));
@@ -277,7 +261,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomReaderInterceptor implements ReaderInterceptor",
 				"CustomReaderInterceptor", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), equalTo(provider));
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.UNDEFINED_PROVIDER));
@@ -292,7 +276,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(compilationUnit, "public class CustomJAXRS2Provider",
 				"public class CustomJAXRS2Provider implements WriterInterceptor", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider provider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(provider, notNullValue());
@@ -310,7 +294,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomWriterInterceptor implements WriterInterceptor",
 				"CustomWriterInterceptor", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), nullValue());
 	}
@@ -326,7 +310,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(providerType, "CustomWriterInterceptor implements WriterInterceptor",
 				"CustomWriterInterceptor", false);
-		processEvent(providerType, CHANGED);
+		metamodelMonitor.processEvent(providerType, CHANGED);
 		// verification
 		assertThat(metamodel.findProvider(providerType), equalTo(provider));
 		assertThat(provider.getElementKind(), equalTo(EnumElementKind.UNDEFINED_PROVIDER));
@@ -341,10 +325,10 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(compilationUnit, "public class CustomJAXRS2Provider",
 				"public class CustomJAXRS2Provider implements ReaderInterceptor", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		replaceAllOccurrencesOfCode(compilationUnit, "public class CustomJAXRS2Provider implements ReaderInterceptor",
 				"public class CustomJAXRS2Provider implements ReaderInterceptor, WriterInterceptor", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider provider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(provider, notNullValue());
@@ -364,7 +348,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(compilationUnit,
 				"CustomJAXRS2EntityInterceptor implements ReaderInterceptor, WriterInterceptor",
 				"CustomJAXRS2EntityInterceptor implements ReaderInterceptor", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider modifiedProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(modifiedProvider, notNullValue());
@@ -384,7 +368,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(compilationUnit,
 				"CustomJAXRS2EntityInterceptor implements ReaderInterceptor, WriterInterceptor",
 				"CustomJAXRS2EntityInterceptor implements WriterInterceptor", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsProvider modifiedProvider = metamodel.findProvider(compilationUnit.findPrimaryType());
 		assertThat(modifiedProvider, notNullValue());
@@ -400,7 +384,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(compilationUnit, "public @interface CustomJAXRS2NameBinding",
 				"@NameBinding public @interface CustomJAXRS2NameBinding", false);
-		processEvent(compilationUnit, CHANGED);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
 		// verification
 		final IJaxrsNameBinding nameBinding = metamodel.findNameBinding(compilationUnit.findPrimaryType().getFullyQualifiedName());
 		assertThat(nameBinding, notNullValue());
@@ -414,7 +398,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		assertThat(nameBindingType, notNullValue());
 		// operation
 		replaceAllOccurrencesOfCode(nameBindingType, "@NameBinding", "", false);
-		processEvent(nameBindingType, CHANGED);
+		metamodelMonitor.processEvent(nameBindingType, CHANGED);
 		// verification
 		final IJaxrsNameBinding nameBinding = metamodel.findNameBinding(nameBindingType.getFullyQualifiedName());
 		assertThat(nameBinding, nullValue());
@@ -446,7 +430,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation: add the @NameBinding annotation
 		replaceAllOccurrencesOfCode(nameBindingCompilationUnit, "public @interface CustomJAXRS2NameBinding",
 				"@NameBinding @interface class CustomJAXRS2NameBinding", false);
-		processEvent(nameBindingCompilationUnit, CHANGED);
+		metamodelMonitor.processEvent(nameBindingCompilationUnit, CHANGED);
 		// verification: NameBinding exist in metamodel and on the 2 providers
 		final IJaxrsNameBinding nameBinding = metamodel.findNameBinding(nameBindingCompilationUnit.findPrimaryType().getFullyQualifiedName());
 		assertThat(nameBinding, notNullValue());
@@ -468,7 +452,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		assertThat(customResponseFilterWithBinding.getNameBindingAnnotations().size(), equalTo(1));
 		// operation: remove the @NameBinding annotation
 		replaceAllOccurrencesOfCode(nameBindingType, "@NameBinding", "", false);
-		processEvent(nameBindingType, CHANGED);
+		metamodelMonitor.processEvent(nameBindingType, CHANGED);
 		// verification
 		final IJaxrsProvider provider = metamodel.findProvider(nameBindingType);
 		assertThat(provider, nullValue());
@@ -485,7 +469,7 @@ public class JavaElement20ChangedProcessingTestCase {
 				"@PathParam(\"id1\") private String id1;", false);
 		assertThat(parameterAggregatorType, notNullValue());
 		// operation
-		processEvent(parameterAggregatorType, ADDED);
+		metamodelMonitor.processEvent(parameterAggregatorType, ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(aggregator, notNullValue());
@@ -502,7 +486,7 @@ public class JavaElement20ChangedProcessingTestCase {
 				"@PathParam(\"id2\") public void setId2(String id2) {}", false);
 		assertThat(parameterAggregatorType, notNullValue());
 		// operation
-		processEvent(parameterAggregatorType, ADDED);
+		metamodelMonitor.processEvent(parameterAggregatorType, ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(aggregator, notNullValue());
@@ -514,7 +498,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IType carType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CarResource");
 		assertThat(carType, notNullValue());
 		// operation
-		processEvent(carType, ADDED);
+		metamodelMonitor.processEvent(carType, ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(carType.getFullyQualifiedName());
 		assertThat(aggregator, nullValue());
@@ -529,7 +513,7 @@ public class JavaElement20ChangedProcessingTestCase {
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.ParameterAggregator");
 		assertThat(parameterAggregatorType, notNullValue());
 		// operation: type added
-		processEvent(parameterAggregatorType, ADDED);
+		metamodelMonitor.processEvent(parameterAggregatorType, ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(aggregator, nullValue());
@@ -550,7 +534,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "private String id1;",
 				"@PathParam(\"id1\") private String id1;", false);
 		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id1");
-		processEvent(field.getAnnotations()[0], ADDED);
+		metamodelMonitor.processEvent(field.getAnnotations()[0], ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(aggregator, notNullValue());
@@ -571,7 +555,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
 				"@PathParam(\"id1\") private String id1;", false);
 		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id1");
-		processEvent(field, ADDED);
+		metamodelMonitor.processEvent(field, ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType
 				.getFullyQualifiedName());
@@ -595,7 +579,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "public void setId2(String id2)",
 				"@PathParam(\"id2\") public void setId2(String id2)", false);
 		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2");
-		processEvent(method.getAnnotations()[0], ADDED);
+		metamodelMonitor.processEvent(method.getAnnotations()[0], ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(aggregator, notNullValue());
@@ -616,7 +600,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
 				"@PathParam(\"id2\") public void setId2(String id2) {}", false);
 		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2");
-		processEvent(method, ADDED);
+		metamodelMonitor.processEvent(method, ADDED);
 		// verification
 		final IJaxrsParameterAggregator aggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(aggregator, notNullValue());
@@ -640,7 +624,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType,
 				"private String id2;", "@PathParam(\"id2\") private String id2;", false);
 		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
-		processEvent(field.getAnnotations()[0], ADDED);
+		metamodelMonitor.processEvent(field.getAnnotations()[0], ADDED);
 		// verification
 		assertThat(aggregator, notNullValue());
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
@@ -664,7 +648,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id1\") private String id1;",
 				"@PathParam(\"id1\") private String id1; \n @PathParam(\"id2\") private String id2;", false);
 		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
-		processEvent(field, ADDED);
+		metamodelMonitor.processEvent(field, ADDED);
 		// verification
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
 		assertThat(aggregator.getAllFields().size(), equalTo(2));
@@ -688,7 +672,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "public void setId3(String id3)",
 				"@PathParam(\"id3\") public void setId3(String id3)", false);
 		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3");
-		processEvent(method.getAnnotations()[0], ADDED);
+		metamodelMonitor.processEvent(method.getAnnotations()[0], ADDED);
 		// verification
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
 		assertThat(aggregator.getAllProperties().size(), equalTo(2));
@@ -711,7 +695,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "// PLACEHOLDER",
 				"// PLACEHOLDER \n @PathParam(\"id3\") public void setId3(String id3) {}", false);
 		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3");
-		processEvent(method, ADDED);
+		metamodelMonitor.processEvent(method, ADDED);
 		// verification
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
 		assertThat(aggregator.getAllProperties().size(), equalTo(2));
@@ -735,7 +719,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IAnnotation annotation = JavaElementsUtils.getField(parameterAggregatorType, "id2").getAnnotations()[0];
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;",
 				"private String id2;", false);
-		processEvent(annotation, REMOVED);
+		metamodelMonitor.processEvent(annotation, REMOVED);
 		// verification
 		assertThat(aggregator, notNullValue());
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
@@ -760,7 +744,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;",
 				"", false);
-		processEvent(field, REMOVED);
+		metamodelMonitor.processEvent(field, REMOVED);
 		// verification
 		assertThat(aggregator, notNullValue());
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
@@ -786,7 +770,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IAnnotation annotation = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3").getAnnotations()[0];
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id3\") public void setId3(String id3) {}",
 				"public void setId3(String id3) {}", false);
-		processEvent(annotation, REMOVED);
+		metamodelMonitor.processEvent(annotation, REMOVED);
 		// verification
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
 		assertThat(aggregator.getAllProperties().size(), equalTo(1));
@@ -811,7 +795,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId3");
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id3\") public void setId3(String id3) {}",
 				"", false);
-		processEvent(method, REMOVED);
+		metamodelMonitor.processEvent(method, REMOVED);
 		// verification
 		assertThat(aggregator.getElementKind(), equalTo(EnumElementKind.PARAMETER_AGGREGATOR));
 		assertThat(aggregator.getAllProperties().size(), equalTo(1));
@@ -835,7 +819,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IAnnotation annotation = JavaElementsUtils.getField(parameterAggregatorType, "id2").getAnnotations()[0];
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;",
 				"private String id2;", false);
-		processEvent(annotation, REMOVED);
+		metamodelMonitor.processEvent(annotation, REMOVED);
 		// verification: parameter aggregator still exists, but it is empty
 		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel
 				.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
@@ -861,7 +845,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		// operation: annotated field removed
 		final IField field = JavaElementsUtils.getField(parameterAggregatorType, "id2");
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") private String id2;", "", false);
-		processEvent(field, REMOVED);
+		metamodelMonitor.processEvent(field, REMOVED);
 		// verification: parameter aggregator still exists, but it is empty
 		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel
 				.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
@@ -893,7 +877,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IAnnotation annotation = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2").getAnnotations()[0];
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") public void setId2(String id2) {}",
 				"public void setId2(String id2) {}", false);
-		processEvent(annotation, REMOVED);
+		metamodelMonitor.processEvent(annotation, REMOVED);
 		// verification: parameter aggregator still exists, but it is empty
 		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(remainingParameterAggregator, notNullValue());
@@ -924,7 +908,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		final IMethod method = JavaElementsUtils.getMethod(parameterAggregatorType, "setId2");
 		replaceAllOccurrencesOfCode(parameterAggregatorType, "@PathParam(\"id2\") public void setId2(String id2) {}",
 				"", false);
-		processEvent(method, REMOVED);
+		metamodelMonitor.processEvent(method, REMOVED);
 		// verification: parameter aggregator still exists, but it is empty
 		final IJaxrsParameterAggregator remainingParameterAggregator = metamodel.findParameterAggregator(parameterAggregatorType.getFullyQualifiedName());
 		assertThat(remainingParameterAggregator, notNullValue());

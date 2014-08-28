@@ -42,7 +42,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAgg
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
-import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.Before;
@@ -70,7 +70,7 @@ public class Jaxrs20BeanParamValidatorTestCase {
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject2", false);
 
 	@Rule
-	public TestWatcher testWatcher = new TestWatcher();
+	public TestBanner testWatcher = new TestBanner();
 
 	private JaxrsMetamodel metamodel = null;
 	private IProject project = null;

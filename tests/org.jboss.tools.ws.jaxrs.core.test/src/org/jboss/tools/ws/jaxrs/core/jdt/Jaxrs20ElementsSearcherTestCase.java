@@ -15,7 +15,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAgg
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
-import org.jboss.tools.ws.jaxrs.core.junitrules.TestWatcher;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -32,7 +32,7 @@ public class Jaxrs20ElementsSearcherTestCase {
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject2", false);
 
 	@Rule
-	public TestWatcher testWatcher = new TestWatcher();
+	public TestBanner testWatcher = new TestBanner();
 
 	private IJavaProject javaProject = null;
 

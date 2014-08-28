@@ -10,7 +10,7 @@ import org.junit.runner.Description;
  * @author xcoulon
  *
  */
-public class TestWatcher extends org.junit.rules.TestWatcher {
+public class TestBanner extends org.junit.rules.TestWatcher {
 
 	protected void starting(org.junit.runner.Description description) {
 		TestLogger.debug("***********************************************");

@@ -62,7 +62,7 @@ public class LuceneIndexationTestCase {
 	private StandardAnalyzer analyzer;
 
 	private Map<String, IJaxrsElement> elements = new HashMap<String, IJaxrsElement>();
-	private IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_35, analyzer);
+	private IndexWriterConfig config = null;
 
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule("org.jboss.tools.ws.jaxrs.tests.sampleproject");
@@ -74,6 +74,7 @@ public class LuceneIndexationTestCase {
 	public void setup() throws CoreException, CorruptIndexException, IOException {
 		metamodelMonitor.getMetamodel();
 		analyzer = new StandardAnalyzer(Version.LUCENE_35);
+		config = new IndexWriterConfig(Version.LUCENE_35, analyzer);
 		index = new RAMDirectory();
 		w = new IndexWriter(index, config);
 		w.commit();

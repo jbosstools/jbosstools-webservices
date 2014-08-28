@@ -73,17 +73,10 @@ public class JavaElementDeltaFilterTestCase {
 	}
 	
 	@Test
-	public void shouldAcceptPostChangeEventOnly() throws JavaModelException {
+	public void shouldAcceptPostChangeAndPostReconcileEvents() throws JavaModelException {
 		final IJavaElement element = createMock(IType.class, TYPE, workingCopy);
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
+		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
 		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, Flags.NONE)));
-	}
-
-	@Test
-	public void shouldAcceptPostReconcileEventOnly() throws JavaModelException {
-		final IJavaElement element = createMock(IType.class, ANNOTATION, workingCopy);
-		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, Flags.NONE)));
-		assertFalse("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
 	}
 
 	@Test
