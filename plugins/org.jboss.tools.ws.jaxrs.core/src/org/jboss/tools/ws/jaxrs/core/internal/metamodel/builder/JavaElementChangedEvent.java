@@ -201,9 +201,8 @@ public class JavaElementChangedEvent extends EventObject {
 			return false;
 		} else if (other.element == null) {
 			return false;
-		} else if (other.element != null
-				&& (!element.getElementName().equals(other.element.getElementName())
-						|| element.getElementType() != other.element.getElementType())) {
+		} else if (!element.getElementName().equals(other.element.getElementName())
+						|| element.getElementType() != other.element.getElementType()) {
 			return false;
 		}
 		if (!flags.equals(other.flags)) {

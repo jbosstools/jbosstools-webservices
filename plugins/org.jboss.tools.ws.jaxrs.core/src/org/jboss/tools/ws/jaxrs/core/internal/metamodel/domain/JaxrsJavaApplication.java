@@ -189,7 +189,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 	public JaxrsBaseElement createWorkingCopy() {
 		synchronized (this) {
 			return new JaxrsJavaApplication(getJavaElement(), AnnotationUtils.createWorkingCopies(getAnnotations()),
-					getMetamodel(), isJaxrsCoreApplicationSubclass(), this);
+					getMetamodel(), this.isApplicationSubclass, this);
 		}
 	}
 

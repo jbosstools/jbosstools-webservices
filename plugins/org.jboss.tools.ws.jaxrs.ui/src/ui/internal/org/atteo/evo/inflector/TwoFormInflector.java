@@ -54,7 +54,9 @@ public abstract class TwoFormInflector {
 		public CategoryRule(String[] list, String singular, String plural) {
 			if(list != null) {
 				this.list = new String[list.length];
-				System.arraycopy(list, 0, this.list, 0, list.length);
+				for (int i = 0; i < list.length; i++) {
+					this.list[i] = list[i];
+				}
 			} else {
 				this.list = new String[0]; 
 			}

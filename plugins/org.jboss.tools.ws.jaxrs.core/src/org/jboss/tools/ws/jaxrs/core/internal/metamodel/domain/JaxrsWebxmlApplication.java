@@ -228,7 +228,7 @@ public class JaxrsWebxmlApplication extends JaxrsBaseElement implements IJaxrsAp
 	public void update(final JaxrsWebxmlApplication transientWebXmlAppl) throws CoreException {
 		synchronized (this) {
 			if(transientWebXmlAppl == null) {
-				remove(FlagsUtils.computeElementFlags(transientWebXmlAppl));
+				remove(FlagsUtils.computeElementFlags(this));
 			} else {
 				final Flags flags = new Flags();
 				final String eventApplicationPath = normalizeApplicationPath(transientWebXmlAppl.getApplicationPath());

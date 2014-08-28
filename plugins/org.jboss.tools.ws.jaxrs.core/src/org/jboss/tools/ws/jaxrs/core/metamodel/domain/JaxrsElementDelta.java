@@ -217,5 +217,55 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 		return elementKind.ordinal() - otherElementKind.ordinal();
 	}
 
+	/**
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + deltaKind;
+		result = prime * result + ((element == null) ? 0 : element.hashCode());
+		result = prime * result + ((flags == null) ? 0 : flags.hashCode());
+		return result;
+	}
+
+	/**
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		JaxrsElementDelta other = (JaxrsElementDelta) obj;
+		if (deltaKind != other.deltaKind) {
+			return false;
+		}
+		if (element == null) {
+			if (other.element != null) {
+				return false;
+			}
+		} else if (!element.equals(other.element)) {
+			return false;
+		}
+		if (flags == null) {
+			if (other.flags != null) {
+				return false;
+			}
+		} else if (!flags.equals(other.flags)) {
+			return false;
+		}
+		return true;
+	}
+	
+	
+
 
 }

@@ -11,7 +11,6 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
-
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
@@ -41,6 +40,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.Term;
@@ -471,8 +471,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	public void processProject(final IProgressMonitor progressMonitor) throws CoreException {
+		final WriteLock writeLock = readWriteLock.writeLock();
+		writeLock.lock();
 		try {
-			readWriteLock.writeLock().lock();
 			progressMonitor.beginTask("Processing project '" + getProject().getName() + "'...", 1);
 			// start with a fresh new metamodel
 			this.elements.clear();
@@ -491,7 +492,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		} finally {
 			this.initializing = false;
 			progressMonitor.done();
-			readWriteLock.writeLock().unlock();
+			writeLock.unlock();
 			setBuildStatus(Status.OK_STATUS);
 			Logger.debug("Done processing resource results.");
 		}
@@ -507,8 +508,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	public void processAffectedResources(final List<ResourceDelta> affectedResources,
 			final IProgressMonitor progressMonitor) {
+		final WriteLock writeLock = readWriteLock.writeLock();
+		writeLock.lock();
 		try {
-			readWriteLock.writeLock().lock();
 			progressMonitor.beginTask("Processing Resource " + affectedResources.size() + " change(s)...",
 					affectedResources.size());
 			Logger.debug("Processing {} Resource change(s)...", affectedResources.size());
@@ -521,7 +523,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		} finally {
 			this.initializing = false;
 			progressMonitor.done();
-			readWriteLock.writeLock().unlock();
+			writeLock.unlock();
 			setBuildStatus(Status.OK_STATUS);
 			Logger.debug("Done processing Resource results.");
 		}
@@ -648,8 +650,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @throws CoreException
 	 */
 	public void add(final JaxrsBaseElement element) throws CoreException {
+		final WriteLock writeLock = readWriteLock.writeLock();
+		writeLock.lock();
 		try {
-			readWriteLock.writeLock().lock();
 			if (element == null || findElementByIdentifier(element) != null) {
 				return;
 			}
@@ -659,7 +662,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			notifyListeners(delta);
 			processElementChange(delta);
 		} finally {
-			readWriteLock.writeLock().unlock();
+			writeLock.unlock();
 		}
 	}
 	
@@ -685,11 +688,12 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	public void processElementChange(final JaxrsElementDelta delta) throws CoreException {
 		final long start = System.currentTimeMillis();
+		final WriteLock writeLock = readWriteLock.writeLock();
+		writeLock.lock();
 		try {
-			readWriteLock.writeLock().lock();
 			JaxrsElementChangedProcessorDelegate.processEvent(delta);
 		} finally {
-			readWriteLock.writeLock().unlock();
+			writeLock.unlock();
 			this.initializing = false;
 			final long end = System.currentTimeMillis();
 			Logger.tracePerf("JAX-RS Element change processed in {}ms", (end - start));
@@ -706,13 +710,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 */
 	public void update(final JaxrsElementDelta delta) throws CoreException {
 		if (delta.isRelevant()) {
+			final WriteLock writeLock = readWriteLock.writeLock();
+			writeLock.lock();
 			try {
-				readWriteLock.writeLock().lock();
 				indexationService.reindexElement(delta.getElement());
 				notifyListeners(delta);
 				processElementChange(delta);
 			} finally {
-				readWriteLock.writeLock().unlock();
+				writeLock.unlock();
 			}
 		} else {
 			Logger.trace("{} is not relevant. No propagation amongst other elements is happening", delta);
@@ -730,12 +735,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (endpoint == null) {
 			return;
 		}
+		final WriteLock writeLock = readWriteLock.writeLock();
+		writeLock.lock();
 		try {
-			readWriteLock.writeLock().lock();
 			indexationService.reindexElement(endpoint);
 			JBossJaxrsCorePlugin.notifyEndpointChanged(endpoint, CHANGED);
 		} finally {
-			readWriteLock.writeLock().unlock();
+			writeLock.unlock();
 		}
 	}
 
