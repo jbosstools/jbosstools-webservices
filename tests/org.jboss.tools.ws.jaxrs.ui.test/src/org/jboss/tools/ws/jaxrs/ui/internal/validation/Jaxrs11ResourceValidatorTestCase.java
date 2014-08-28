@@ -106,7 +106,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 	@Test
 	public void shouldValidateCustomerResourceMethod() throws CoreException, ValidationException {
 		// preconditions
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsResource customerResource = (JaxrsResource) metamodel
 				.findElement("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", EnumElementCategory.RESOURCE);
 		deleteJaxrsMarkers(customerResource);
@@ -174,7 +175,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// pre-conditions
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("ValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "ValidationResource.java");
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ValidationResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.ValidationResource");
 		final JaxrsResource resource = (JaxrsResource) metamodel.findElement(compilationUnit.findPrimaryType());
 		deleteJaxrsMarkers(resource);
 		metamodelMonitor.resetElementChangesNotifications();
@@ -224,7 +226,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 		// pre-conditions
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("IValidationResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "IValidationResource.java");
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.IValidationResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.IValidationResource");
 		final JaxrsResource resource = (JaxrsResource) metamodel.findElement(compilationUnit.findPrimaryType());
 		deleteJaxrsMarkers(resource);
 		metamodelMonitor.resetElementChangesNotifications();
@@ -441,7 +444,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 	public void shouldValidateCustomerResourceMethodWithDotCharacterInPathParam() throws CoreException,
 			ValidationException {
 		// preconditions
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IType customerJavaType = metamodelMonitor
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i.d}\")", false);
@@ -506,7 +510,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i-d}\")", false);
 		replaceAllOccurrencesOfCode(customerJavaType, "@PathParam(\"id\")", "@PathParam(\"i-d\")", false);
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final JaxrsBaseElement customerResource = (JaxrsBaseElement) metamodel
 				.findElement(customerJavaType);
 		deleteJaxrsMarkers(customerResource);
@@ -562,7 +567,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 	public void shouldValidateCustomerResourceMethodWithUnderscoreCharacterInPathParam() throws CoreException,
 			ValidationException {
 		// preconditions
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IType customerJavaType = metamodelMonitor
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i_d}\")", false);
@@ -655,7 +661,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 	public void shouldReportProblemOnCustomerResourceMethodWithSingleCharacterInPathParam() throws CoreException,
 			ValidationException {
 		// preconditions
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		final IType customerJavaType = metamodelMonitor
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		replaceAllOccurrencesOfCode(customerJavaType, "@Path(\"{id}\")", "@Path(\"{i}\")", false);
@@ -689,6 +696,7 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("CarResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "CarResource.java");
 		final JaxrsResource carResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		metamodelMonitor.resetElementChangesNotifications();
 		validate(carResource);
 		// validation
@@ -996,7 +1004,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("BoatResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "BoatResource.java");
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -1187,7 +1196,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@PathParam(\"type\") //field", "//@PathParam(\"type\")", false);
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "//@PathParam(\"type\") //property", "@PathParam(\"type\")", false);
 		ResourcesUtils.replaceAllOccurrencesOfCode(boatResourceCompilationUnit, "@Path(\"{id}\")", "@Path(\"{type}/{id}\")", false);
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.BoatResource");
 		final JaxrsResource boatResource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		
@@ -1301,7 +1311,8 @@ public class Jaxrs11ResourceValidatorTestCase {
 	public void shouldNotReportProblemOnMethodParamOfTypeEnumeration() throws CoreException, ValidationException {
 		final ICompilationUnit boatResourceCompilationUnit = metamodelMonitor.createCompilationUnit("ResourceWithEnumMethodParams.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "HelloWorld.java");
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.HelloWorld");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.HelloWorld");
 		final JaxrsResource resource = metamodel.findResource(boatResourceCompilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 		

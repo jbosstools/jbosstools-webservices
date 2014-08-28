@@ -12,8 +12,10 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
@@ -38,7 +40,7 @@ public class JaxrsShadowElementsCache {
 	 * {@link IJaxrsElement} are indexed by their underlying resource *portable
 	 * path*. The indexed value is the {@link EnumElementKind} of the element.
 	 */
-	private Map<String, EnumElementKind> elements = new HashMap<String, EnumElementKind>();
+	private Map<String, Set<EnumElementKind>> elements = new HashMap<String, Set<EnumElementKind>>();
 
 	/**
 	 * Constructor
@@ -58,7 +60,11 @@ public class JaxrsShadowElementsCache {
 		final List<IJaxrsElement> allElements = metamodel.getAllElements();
 		for (IJaxrsElement element : allElements) {
 			if (isRelevantForIndexation(element)) {
-				elements.put(element.getResource().getLocation().toPortableString(), element.getElementKind());
+				final String key = element.getResource().getLocation().toPortableString();
+				if(!elements.containsKey(key)) {
+					elements.put(key, new HashSet<EnumElementKind>());
+				}
+				elements.get(key).add(element.getElementKind());
 			}
 		}
 	}
@@ -99,7 +105,11 @@ public class JaxrsShadowElementsCache {
 		if (element == null || element.getResource() == null) {
 			return;
 		}
-		elements.put(element.getResource().getLocation().toPortableString(), element.getElementKind());
+		final String key = element.getResource().getLocation().toPortableString();
+		if(!elements.containsKey(key)) {
+			elements.put(key, new HashSet<EnumElementKind>());
+		}
+		elements.get(key).add(element.getElementKind());
 	}
 
 	/**
@@ -109,7 +119,7 @@ public class JaxrsShadowElementsCache {
 	 * @param resource
 	 *            the resource whose data should be retrieved.
 	 */
-	public EnumElementKind lookup(final IResource resource) {
+	public Set<EnumElementKind> lookup(final IResource resource) {
 		if (resource == null) {
 			return null;
 		}

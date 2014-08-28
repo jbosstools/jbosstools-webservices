@@ -227,7 +227,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			resources.addAll(getFiltersAndInterceptorsUnderlyingResources(metamodel));
 			resources.addAll(getResourceUnderlyingResources(metamodel));
 		}
-		// check if the given changedFile is referenced in JAX-RS elements of the metamodel
+		// check if the given changedFile is *referenced* in JAX-RS elements of the metamodel (for cross-type validation)
 		final List<IType> knownTypes = metamodel.getAllJavaElements(IJavaElement.TYPE);
 		for(IFile changedResource : changedResources) {
 			final ICompilationUnit changedCompilationUnit = JdtUtils.getCompilationUnit(changedResource);
@@ -241,6 +241,10 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		// if the given changedFile matches a ParamConverterProvider, add all JAX-RS resources (naive approach).
 		if(elementKindChanges.contains(EnumElementKind.PARAM_CONVERTER_PROVIDER)) {
 			resources.addAll(getResourceUnderlyingResources(metamodel));
+		}
+		// check if there are JAX-RS element changes in the given resources 
+		if(!elementKindChanges.isEmpty()) {
+			resources.add(project);
 		}
 		
 		
@@ -264,12 +268,12 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final Set<EnumElementKind> elementKindChanges = new HashSet<EnumElementKind>();
 		for(IFile changedResource : changedResources) {
 			// retrieve the previous known element kind associated with this resource
-			final EnumElementKind previousElementKind = metamodel.getShadowElementKind(changedResource);
+			final Set<EnumElementKind> previousElementKinds = metamodel.getShadowElementKinds(changedResource);
 			// now, see what the metamodel has for this resource
 			final IJaxrsElement currentElement = metamodel.findElement(changedResource);
 			// now, let's add the data we have: both the old and the new, in case of changes (addition, deletion and even change...)
-			if(previousElementKind != null) {
-				elementKindChanges.add(previousElementKind);
+			if(previousElementKinds != null) {
+				elementKindChanges.addAll(previousElementKinds);
 			}
 			if(currentElement != null) {
 				elementKindChanges.add(currentElement.getElementKind());

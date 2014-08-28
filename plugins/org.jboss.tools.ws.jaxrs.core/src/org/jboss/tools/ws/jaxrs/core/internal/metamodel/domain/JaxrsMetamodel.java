@@ -906,6 +906,13 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 	
 	/**
+	 * @return {@code true} if the metamodel has custom {@link IJaxrsElement}s (ie any element, except the 6 built-in {@link JaxrsBuiltinHttpMethod}), {@code  false} otherwise.
+	 */
+	public boolean hasCustomElements() {
+		return this.elements.size() > 6;
+	}
+
+	/**
 	 * Returns the {@link IJaxrsElement} for the given identifier.
 	 * 
 	 * @param identifier the element identifier
@@ -938,14 +945,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
-	 * Returns the {@link EnumElementKind} for the given {@link IFile} if it
+	 * Returns the {@link EnumElementKind} for the given {@link IResource} if it
 	 * matches a known "shadow" element (ie, that was maybe removed or validated
 	 * during a previous operation), {@code null} otherwise.
 	 * 
 	 * @param changedResource
 	 * @return
 	 */
-	public EnumElementKind getShadowElementKind(final IFile changedResource) {
+	public Set<EnumElementKind> getShadowElementKinds(final IResource changedResource) {
 		return shadowElementsCache.lookup(changedResource);
 	}
 	

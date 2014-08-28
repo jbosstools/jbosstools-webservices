@@ -128,7 +128,10 @@ public class Jaxrs20ParamConverterProviderTestCase {
 		metamodelMonitor.createCompilationUnit("Truck.txt", "org.jboss.tools.ws.jaxrs.sample.services", "Truck.java");
 		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("TruckResource.txt",
 				"org.jboss.tools.ws.jaxrs.sample.services", "TruckResource.java");
-		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.Truck", "org.jboss.tools.ws.jaxrs.sample.services.TruckResource", "org.jboss.tools.ws.jaxrs.sample.services.CarParamConverterProvider");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
+				"org.jboss.tools.ws.jaxrs.sample.services.Truck",
+				"org.jboss.tools.ws.jaxrs.sample.services.TruckResource",
+				"org.jboss.tools.ws.jaxrs.sample.services.CarParamConverterProvider");
 		final JaxrsResource truckResource = metamodelMonitor.createResource(compilationUnit.findPrimaryType());
 		metamodelMonitor.resetElementChangesNotifications();
 

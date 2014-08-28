@@ -54,6 +54,7 @@ import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsBaseElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
@@ -158,7 +159,7 @@ public class JaxrsApplicationValidatorTestCase {
 	}
 
 	@Test
-	public void shouldReportProblemOnProjectIfNoElementExists() throws CoreException, ValidationException {
+	public void shouldNotReportProblemOnProjectIfNoElementExists() throws CoreException, ValidationException {
 		// preconditions (empty metamodel, except the 6 built-in HTTP Methods)
 		assertThat(metamodel.getAllElements().size(), equalTo(6));
 		deleteJaxrsMarkers(metamodel);
@@ -167,9 +168,34 @@ public class JaxrsApplicationValidatorTestCase {
 		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
 		// validation: missing application
 		final IMarker[] markers = findJaxrsMarkers(project);
+		assertThat(markers.length, equalTo(0));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(false));
+	}
+
+	@Test
+	public void shouldNotReportProblemOnProjectIfNoElementExistsAfterElementRemoval() throws CoreException, ValidationException {
+		// pre-condition 1: a resource with some resource methods exists
+		final JaxrsResource customerResource = metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		deleteJaxrsMarkers(metamodel);
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation: missing no application
+		final IMarker[] markers = findJaxrsMarkers(project);
 		assertThat(markers.length, equalTo(1));
-		assertThat(markers[0], hasPreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
+		assertThat(markers, havePreferenceKey(APPLICATION_NO_OCCURRENCE_FOUND));
 		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
+		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
+		
+		// preconditions (empty metamodel, except the 6 built-in HTTP Methods)
+		customerResource.remove(Flags.NONE);
+		assertThat(metamodel.getAllElements().size(), equalTo(6));
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		new JaxrsMetamodelValidator().validate(toSet(customerResource.getResource()), project, validationHelper, context, validatorManager, reporter);
+		// validation: missing no application
+		final IMarker[] updatedMarkers = findJaxrsMarkers(project);
+		assertThat(updatedMarkers.length, equalTo(0));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().contains(metamodel), is(true));
 	}
 
