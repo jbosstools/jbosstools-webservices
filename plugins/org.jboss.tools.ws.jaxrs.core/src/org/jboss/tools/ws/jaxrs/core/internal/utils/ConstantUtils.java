@@ -61,13 +61,13 @@ public class ConstantUtils {
 		return result;
 	}
 
-	public static String toCamelCase(String s) {
-		String[] parts = s.split("_");
-		String camelCaseString = "";
+	public static String toCamelCase(final String s) {
+		final String[] parts = s.split("_");
+		final StringBuilder camelCaseString = new StringBuilder();
 		for (String part : parts) {
-			camelCaseString = camelCaseString + toProperCase(part);
+			camelCaseString.append(toProperCase(part));
 		}
-		return camelCaseString;
+		return camelCaseString.toString();
 	}
 
 	static String toProperCase(String s) {

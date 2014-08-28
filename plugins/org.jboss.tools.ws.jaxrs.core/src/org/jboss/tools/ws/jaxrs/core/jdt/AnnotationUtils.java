@@ -45,13 +45,11 @@ public class AnnotationUtils {
 	 */
 	public static Map<String, Annotation> extractTemplateParameters(final Annotation pathAnnotation) {
 		final Map<String, Annotation> proposals = new HashMap<String, Annotation>();
-		if (pathAnnotation != null && pathAnnotation.getFullyQualifiedName().equals(JaxrsClassnames.PATH)) {
-			if (pathAnnotation != null && pathAnnotation.getValue() != null) {
-				final String value = pathAnnotation.getValue();
-				final List<String> params = extractParamsFromUriTemplateFragment(value);
-				for (String param : params) {
-					proposals.put(param, pathAnnotation);
-				}
+		if (pathAnnotation != null && pathAnnotation.getFullyQualifiedName().equals(JaxrsClassnames.PATH) && pathAnnotation.getValue() != null) {
+			final String value = pathAnnotation.getValue();
+			final List<String> params = extractParamsFromUriTemplateFragment(value);
+			for (String param : params) {
+				proposals.put(param, pathAnnotation);
 			}
 		}
 		return proposals;

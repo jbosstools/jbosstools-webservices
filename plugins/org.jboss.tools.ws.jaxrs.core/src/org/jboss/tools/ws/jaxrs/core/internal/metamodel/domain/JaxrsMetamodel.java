@@ -302,8 +302,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		} catch (IOException e) {
 			Logger.error("Failed to remove JAX-RS Metamodel for project " + javaProject.getElementName(), e);
 		} finally {
-			Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());
 			readWriteLock.writeLock().unlock();
+			Logger.debug("JAX-RS Metamodel removed for project " + javaProject.getElementName());
 		}
 	}
 

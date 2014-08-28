@@ -58,22 +58,24 @@ public class MethodParametersCompletionProposalComputer implements IJavaCompleti
 	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context,
 			IProgressMonitor monitor) {
 		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-		final JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
-		final IJavaProject javaProject = javaContext.getProject();
-		try {
-			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
-			// skip if the JAX-RS Nature is not configured for this project
-			if (metamodel == null) {
-				return Collections.emptyList();
+		if(context instanceof JavaContentAssistInvocationContext) {
+			final JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
+			final IJavaProject javaProject = javaContext.getProject();
+			try {
+				final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
+				// skip if the JAX-RS Nature is not configured for this project
+				if (metamodel == null) {
+					return Collections.emptyList();
+				}
+				final IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
+						context.getInvocationOffset());
+				if (invocationElement.getElementType() == IJavaElement.TYPE) {
+						final ITypedRegion region = new TypedRegion(javaContext.getInvocationOffset(), 0, null);
+						//proposals.add(new MethodParametersCompletionProposal("Foo !", new StyledString("Foo!"), region, icon, (IMember) invocationElement));
+				}
+			} catch (CoreException e) {
+				Logger.error("Failed to compute completion proposal", e);
 			}
-			final IJavaElement invocationElement = javaContext.getCompilationUnit().getElementAt(
-					context.getInvocationOffset());
-			if (invocationElement.getElementType() == IJavaElement.TYPE) {
-					final ITypedRegion region = new TypedRegion(javaContext.getInvocationOffset(), 0, null);
-					//proposals.add(new MethodParametersCompletionProposal("Foo !", new StyledString("Foo!"), region, icon, (IMember) invocationElement));
-			}
-		} catch (CoreException e) {
-			Logger.error("Failed to compute completion proposal", e);
 		}
 		return proposals; 
 	}

@@ -1083,8 +1083,7 @@ public class JavaElementDeltaScannerTestCase {
 		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
-		method = replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
-				WORKING_COPY);
+		replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")", WORKING_COPY);
 		// verifications
 		verifyEventNotification(annotation, CHANGED, POST_RECONCILE, F_CONTENT, times(1));
 	}
@@ -1096,8 +1095,7 @@ public class JavaElementDeltaScannerTestCase {
 		IMethod method = metamodelMonitor.resolveMethod(type, "createCustomer");
 		IAnnotation annotation = method.getAnnotation("Path");
 		// operation
-		method = replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")",
-				PRIMARY_COPY);
+		replaceFirstOccurrenceOfCode(method, "@Path(\"{id}\")", "@Path(\"{foo}\")", PRIMARY_COPY);
 		// verifications
 		verifyEventNotification(annotation.getResource(), CHANGED, POST_CHANGE, new Flags(CONTENT), atLeastOnce());
 	}

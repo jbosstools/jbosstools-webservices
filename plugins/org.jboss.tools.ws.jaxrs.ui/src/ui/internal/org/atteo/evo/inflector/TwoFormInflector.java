@@ -14,6 +14,7 @@
 package ui.internal.org.atteo.evo.inflector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,7 +52,13 @@ public abstract class TwoFormInflector {
 		private final String plural;
 
 		public CategoryRule(String[] list, String singular, String plural) {
-			this.list = list;
+			if(list != null) {
+				this.list = new String[list.length];
+				System.arraycopy(list, 0, this.list, 0, list.length);
+			} else {
+				this.list = new String[0]; 
+			}
+			
 			this.singular = singular;
 			this.plural = plural;
 		}

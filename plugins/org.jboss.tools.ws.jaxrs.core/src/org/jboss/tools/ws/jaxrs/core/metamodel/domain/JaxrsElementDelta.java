@@ -211,7 +211,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	}
 
 	@Override
-	public int compareTo(JaxrsElementDelta other) {
+	public int compareTo(final JaxrsElementDelta other) {
 		final EnumElementCategory elementKind = this.element.getElementKind().getCategory();
 		final EnumElementCategory otherElementKind = other.getElement().getElementKind().getCategory();
 		return elementKind.ordinal() - otherElementKind.ordinal();

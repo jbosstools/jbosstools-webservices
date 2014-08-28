@@ -68,7 +68,7 @@ public class JavaElementChangedBuildTask {
 						if (progressMonitor.isCanceled()) {
 							return Status.CANCEL_STATUS;
 						}
-					} catch(Throwable e) {
+					} catch(Exception e) {
 						final IStatus status = Logger.error("Failed to build or refresh the JAX-RS metamodel", e);
 						metamodel.setBuildStatus(status);
 						return status;

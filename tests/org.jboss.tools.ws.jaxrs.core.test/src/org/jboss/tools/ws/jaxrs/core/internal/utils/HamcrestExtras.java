@@ -3,6 +3,8 @@
  */
 package org.jboss.tools.ws.jaxrs.core.internal.utils;
 
+import java.util.Arrays;
+
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -33,8 +35,7 @@ public class HamcrestExtras {
 
 			@Override
 			public void describeTo(Description description) {
-				description.appendText("Flags contains one or more of " + values);
-				
+				description.appendText("Flags contains one or more of " + Arrays.toString(values));
 			}
 
 		};

@@ -199,9 +199,9 @@ public class JavaElementChangedEvent extends EventObject {
 		}
 		if (this.element == null) {
 			return false;
-		} else if (this.element != null && other.element == null) {
+		} else if (other.element == null) {
 			return false;
-		} else if (this.element != null && other.element != null
+		} else if (other.element != null
 				&& (!element.getElementName().equals(other.element.getElementName())
 						|| element.getElementType() != other.element.getElementType())) {
 			return false;

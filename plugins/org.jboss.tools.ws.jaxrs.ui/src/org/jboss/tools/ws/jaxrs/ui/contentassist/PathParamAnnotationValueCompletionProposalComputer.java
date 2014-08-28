@@ -69,29 +69,31 @@ public class PathParamAnnotationValueCompletionProposalComputer implements IJava
 	@Override
 	public final List<ICompletionProposal> computeCompletionProposals(final ContentAssistInvocationContext context,
 			final IProgressMonitor monitor) {
-		final JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
-		try {
-			final IJavaProject project = javaContext.getProject();
-			final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
-			// skip if the JAX-RS Nature is not configured for this project
-			if (metamodel == null) {
-				return Collections.emptyList();
-			}
-			synchronized(metamodel) {
-			final int invocationOffset = context.getInvocationOffset();
-			final ICompilationUnit compilationUnit = javaContext.getCompilationUnit();
-			final Annotation annotation = JdtUtils.resolveAnnotationAt(invocationOffset, compilationUnit);
-			if (annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM)) {
-				final IJavaElement javaMethod = annotation.getJavaAnnotation().getAncestor(IJavaElement.METHOD);
-				final IJaxrsResourceMethod resourceMethod = (IJaxrsResourceMethod) metamodel.findElement(javaMethod);
-				if (resourceMethod != null) {
-					return internalComputePathParamProposals(javaContext, resourceMethod);
+		if(context instanceof JavaContentAssistInvocationContext) {
+			final JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
+			try {
+				final IJavaProject project = javaContext.getProject();
+				final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(project);
+				// skip if the JAX-RS Nature is not configured for this project
+				if (metamodel == null) {
+					return Collections.emptyList();
 				}
+				synchronized(metamodel) {
+				final int invocationOffset = context.getInvocationOffset();
+				final ICompilationUnit compilationUnit = javaContext.getCompilationUnit();
+				final Annotation annotation = JdtUtils.resolveAnnotationAt(invocationOffset, compilationUnit);
+				if (annotation != null && annotation.getFullyQualifiedName().equals(PATH_PARAM)) {
+					final IJavaElement javaMethod = annotation.getJavaAnnotation().getAncestor(IJavaElement.METHOD);
+					final IJaxrsResourceMethod resourceMethod = (IJaxrsResourceMethod) metamodel.findElement(javaMethod);
+					if (resourceMethod != null) {
+						return internalComputePathParamProposals(javaContext, resourceMethod);
+					}
+				}
+				}
+	
+			} catch (Exception e) {
+				Logger.error("Failed to compute completion proposal", e);
 			}
-			}
-
-		} catch (Exception e) {
-			Logger.error("Failed to compute completion proposal", e);
 		}
 		return Collections.emptyList();
 	}

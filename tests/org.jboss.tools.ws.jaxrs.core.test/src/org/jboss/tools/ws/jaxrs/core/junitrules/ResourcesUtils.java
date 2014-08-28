@@ -137,8 +137,8 @@ public class ResourcesUtils {
 		TestLogger.debug("Content of {}", folder.getFile(fileName).getProjectRelativePath().toPortableString());
 		final InputStream contents = folder.getFile(fileName).getContents();
 		final char[] buffer = new char[0x10000];
-		StringBuilder out = new StringBuilder();
-		Reader in = new InputStreamReader(contents, "UTF-8");
+		final StringBuilder out = new StringBuilder();
+		final Reader in = new InputStreamReader(contents, "UTF-8");
 		int read;
 		do {
 			read = in.read(buffer, 0, buffer.length);
@@ -146,6 +146,7 @@ public class ResourcesUtils {
 				out.append(buffer, 0, read);
 			}
 		} while (read >= 0);
+		in.close();
 		TestLogger.debug(out.toString());
 		return (IFile) folder.findMember(fileName);
 	}
@@ -167,8 +168,8 @@ public class ResourcesUtils {
 		file.create(stream, true, null);
 		final InputStream contents = file.getContents();
 		final char[] buffer = new char[0x10000];
-		StringBuilder out = new StringBuilder();
-		Reader in = new InputStreamReader(contents, "UTF-8");
+		final StringBuilder out = new StringBuilder();
+		final Reader in = new InputStreamReader(contents, "UTF-8");
 		int read;
 		do {
 			read = in.read(buffer, 0, buffer.length);
@@ -176,6 +177,7 @@ public class ResourcesUtils {
 				out.append(buffer, 0, read);
 			}
 		} while (read >= 0);
+		in.close();
 		TestLogger.debug("Content:\n" + out.toString());
 	}
 
@@ -202,8 +204,8 @@ public class ResourcesUtils {
 		file.create(IOUtils.toInputStream(modifiedContent), true, null);
 		final InputStream contents = file.getContents();
 		final char[] buffer = new char[0x10000];
-		StringBuilder out = new StringBuilder();
-		Reader in = new InputStreamReader(contents, "UTF-8");
+		final StringBuilder out = new StringBuilder();
+		final Reader in = new InputStreamReader(contents, "UTF-8");
 		int read;
 		do {
 			read = in.read(buffer, 0, buffer.length);
@@ -211,6 +213,7 @@ public class ResourcesUtils {
 				out.append(buffer, 0, read);
 			}
 		} while (read >= 0);
+		in.close();
 		TestLogger.debug("Content:\n" + out.toString());
 	}
 

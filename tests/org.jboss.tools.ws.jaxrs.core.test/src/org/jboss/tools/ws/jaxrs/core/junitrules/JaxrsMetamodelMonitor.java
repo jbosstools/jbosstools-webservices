@@ -135,11 +135,9 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		try {
 			TestLogger.info("Destroying metamodel...");
 			// remove listener before sync' to avoid desync...
-			if (metamodel != null) {
-				metamodel.removeListener((IJaxrsElementChangedListener) this);
-				JBossJaxrsCorePlugin.removeListener((IJaxrsMetamodelChangedListener) this);
-				metamodel.remove();
-			}
+			metamodel.removeListener((IJaxrsElementChangedListener) this);
+			JBossJaxrsCorePlugin.removeListener((IJaxrsMetamodelChangedListener) this);
+			metamodel.remove();
 		} catch (CoreException e) {
 			e.printStackTrace();
 			fail("Failed to remove metamodel: " + e.getMessage());
@@ -333,16 +331,6 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		return JaxrsWebxmlApplication.from(webDeploymentDescriptor).inMetamodel(metamodel).build();
 	}
 
-	/**
-	 * @return
-	 * @throws CoreException
-	 * @throws JavaModelException
-	 */
-	public JaxrsHttpMethod createHttpMethod(final JaxrsClassnames httpMethodElement) throws CoreException,
-			JavaModelException {
-		return createHttpMethod(httpMethodElement);
-	}
-	
 	public JaxrsHttpMethod createHttpMethod(final String typeName) throws CoreException, JavaModelException {
 		final IType type = JdtUtils.resolveType(typeName, metamodel.getJavaProject(), new NullProgressMonitor());
 		return createHttpMethod(type);

@@ -359,9 +359,9 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 
 	private void onTargetClassChange() {
 		setTargetClass(this.targetClassText.getText());
-		if(this.targetClass == null || this.targetClass.isEmpty() && methodStubsContainer != null) {
+		if(this.targetClass == null || this.targetClass.isEmpty()) {
 			setAllMethodStubsButtonsEnabled(false);
-		} else if(this.targetClass != null || !this.targetClass.isEmpty() && methodStubsContainer != null) {
+		} else if(!this.targetClass.isEmpty()) {
 			setAllMethodStubsButtonsEnabled(true);
 		}
 	}

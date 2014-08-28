@@ -68,14 +68,11 @@ public class JaxrsNameBindingAnnotationHyperlink implements IHyperlink {
 	}
 
 	public static String getDisplayNameText(final IJaxrsJavaElement element) {
-		if(element instanceof IJaxrsJavaElement) {
-			final IJavaElement javaElement = ((IJaxrsJavaElement)element).getJavaElement();
-			if(javaElement.getElementType() == IJavaElement.TYPE) {
-				return ((IType)javaElement).getFullyQualifiedName();
-			}
-			return ((IJaxrsResourceMethod) element).getParentResource().getJavaElement().getFullyQualifiedName() + '.' + javaElement.getElementName() + "(...)";
+		final IJavaElement javaElement = ((IJaxrsJavaElement)element).getJavaElement();
+		if(javaElement.getElementType() == IJavaElement.TYPE) {
+			return ((IType)javaElement).getFullyQualifiedName();
 		}
-		return element.getName();
+		return ((IJaxrsResourceMethod) element).getParentResource().getJavaElement().getFullyQualifiedName() + '.' + javaElement.getElementName() + "(...)";
 	}
 	
 	/**
