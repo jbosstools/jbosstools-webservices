@@ -20,7 +20,6 @@ import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFir
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.havePreferenceKey;
-import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.hasPreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.APPLICATION_NO_OCCURRENCE_FOUND;
 import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.APPLICATION_TOO_MANY_OCCURRENCES;

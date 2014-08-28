@@ -115,4 +115,5 @@ public class JaxrsMetamodelValidatorAsYouTypeTestCase {
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
 	}
 
+
 }

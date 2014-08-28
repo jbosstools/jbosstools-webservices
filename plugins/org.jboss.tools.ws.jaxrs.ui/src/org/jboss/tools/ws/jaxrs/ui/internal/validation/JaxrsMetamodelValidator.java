@@ -44,6 +44,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -146,7 +147,9 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 		final long startTime = System.currentTimeMillis();
 		init(project, validationHelper, context, manager, reporter, false);
 		// switch to full validation when '.project' file was altered
-		if (changedFiles.size() == 1 && changedFiles.contains(project.findMember(".project"))) {
+		final IResource dotProject = project.findMember(".project");
+		final IResource facetSettings = project.findMember(new Path(".settings").append("org.eclipse.wst.common.project.facet.core.xml"));
+		if (changedFiles.size() == 1 && (changedFiles.contains(dotProject) || changedFiles.contains(facetSettings))) {
 			validateAll(project, validationHelper, context, manager, reporter);
 		} else if (!changedFiles.isEmpty()) {
 			try {
