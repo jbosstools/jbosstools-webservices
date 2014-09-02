@@ -37,11 +37,11 @@ public class JaxrsFacetedProjectListener implements IFacetedProjectListener {
 	 * @see org.eclipse.wst.common.project.facet.core.events.IFacetedProjectListener#handleEvent(org.eclipse.wst.common.project.facet.core.events.IFacetedProjectEvent)
 	 */
 	@Override
-	public void handleEvent(IFacetedProjectEvent e) {
+	public void handleEvent(final IFacetedProjectEvent e) {
 		if (e instanceof IProjectFacetActionEvent) {
 			IProjectFacetActionEvent event = (IProjectFacetActionEvent) e;
-			if (event.getProjectFacet().getId().equals("jst.jaxrs")
-					&& event.getProjectFacetVersion().getVersionString().equals("1.1")) {
+			// All versions of JAX-RS are supported.
+			if (event.getProjectFacet().getId().equals("jst.jaxrs")) {
 				try {
 					IProject project = event.getProject().getProject();
 					switch (e.getType()) {
@@ -61,7 +61,7 @@ public class JaxrsFacetedProjectListener implements IFacetedProjectListener {
 						break;
 					}
 				} catch (CoreException ex) {
-					Logger.error("Failed to add or remove JAX-RS 1.1 support Nature", ex);
+					Logger.error("Failed to add or remove JAX-RS nature on project '" + e.getProject().getProject().getName() + "'", ex);
 				}
 			}
 		}
