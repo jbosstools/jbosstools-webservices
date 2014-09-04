@@ -12,10 +12,11 @@ package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.deleteJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.havePreferenceKey;
 import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
+import static org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences.HTTP_METHOD_MISSING_RETENTION_ANNOTATION;
 import static org.junit.Assert.assertThat;
 
 import org.eclipse.core.resources.IMarker;
@@ -23,6 +24,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.wst.validation.ReporterHelper;
@@ -32,6 +35,7 @@ import org.jboss.tools.common.validation.ContextValidationHelper;
 import org.jboss.tools.common.validation.IProjectValidationContext;
 import org.jboss.tools.common.validation.ValidatorManager;
 import org.jboss.tools.common.validation.internal.ProjectValidationContext;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -77,7 +81,26 @@ public class JaxrsMetamodelValidatorTestCase {
 	}
 
 	@Test
-	public void shouldValidateMetamodelWhenProjectSettingsChanged() throws CoreException, ValidationException {
+	public void shouldRemoveMarkersWhenElementRemovedAfterProjectSettingsChanged() throws CoreException, ValidationException, OperationCanceledException, InterruptedException {
+		// preconditions
+		ResourcesUtils.replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.FOO", javaProject, "@Retention(value=RetentionPolicy.RUNTIME)", "", true);
+		final JaxrsHttpMethod fooHttpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
+		deleteJaxrsMarkers(project);
+		new JaxrsMetamodelValidator().validate(toSet(fooHttpMethod.getResource()), project, validationHelper, context,
+						validatorManager, reporter);
+		final IMarker[] markers = ValidationUtils.findJaxrsMarkers(fooHttpMethod);
+		assertThat(markers.length, equalTo(1));
+		assertThat(markers, havePreferenceKey(HTTP_METHOD_MISSING_RETENTION_ANNOTATION));
+		// operation: remove the jaxrs-api-2.0.1.GA.jar classpath entry
+		metamodelMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
+		metamodelMonitor.processEvent(javaProject, IJavaElementDelta.CHANGED);
+		// validation
+		final IMarker[] updatedMarkers = ValidationUtils.findJaxrsMarkers(fooHttpMethod);
+		assertThat(updatedMarkers.length, equalTo(0));
+	}
+	
+	@Test
+	public void shouldRemoveJaxrsMarkersWhenElementIsRemoved() throws CoreException, ValidationException {
 		// preconditions
 		ResourcesUtils.replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.BarResource", javaProject, "getContent1(@PathParam(\"param1\") int id)", "getContent1(@PathParam(\"param3\") int id)", true);
 		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.BarResource");
@@ -94,6 +117,7 @@ public class JaxrsMetamodelValidatorTestCase {
 		final IMarker[] markers = ValidationUtils.findJaxrsMarkers(barResource);
 		assertThat(markers.length, greaterThanOrEqualTo(1));
 		assertThat(metamodelMonitor.getMetamodelProblemLevelChanges().size(), is(1));
+		
 	}
 	
 }

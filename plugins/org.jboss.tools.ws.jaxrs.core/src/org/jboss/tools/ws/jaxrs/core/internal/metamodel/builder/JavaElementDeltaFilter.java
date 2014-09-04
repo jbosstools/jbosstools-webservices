@@ -21,7 +21,7 @@ import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
+import static org.eclipse.jdt.core.IJavaElementDelta.*;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_AST_AFFECTED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
@@ -64,6 +64,7 @@ public class JavaElementDeltaFilter {
 		accept().when(JAVA_PROJECT).is(ADDED).after(POST_RECONCILE).in(PRIMARY_COPY);
 		accept().when(JAVA_PROJECT).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY);
 		accept().when(JAVA_PROJECT).is(CHANGED).withFlags(F_OPENED).after(POST_CHANGE).in(PRIMARY_COPY);
+		accept().when(JAVA_PROJECT).is(CHANGED).withFlags(F_CONTENT+F_CHILDREN+F_CLASSPATH_CHANGED+F_RESOLVED_CLASSPATH_CHANGED).after(POST_CHANGE).in(PRIMARY_COPY);
 
 		accept().when(PACKAGE_FRAGMENT_ROOT).is(ADDED).after(POST_CHANGE).in(PRIMARY_COPY);
 		accept().when(PACKAGE_FRAGMENT_ROOT).is(ADDED).withFlags(F_ADDED_TO_CLASSPATH).after(POST_CHANGE)

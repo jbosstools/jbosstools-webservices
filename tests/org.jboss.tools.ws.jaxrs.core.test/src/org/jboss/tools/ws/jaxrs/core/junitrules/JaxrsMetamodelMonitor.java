@@ -29,6 +29,7 @@ import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDeltaFilter;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
@@ -206,6 +207,15 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		this.metamodelProblemLevelChanges.clear();
 	}
 
+	public void processProject() throws CoreException {
+		metamodel.processProject(new NullProgressMonitor());
+		
+	}
+	
+	public void processResourceEvent(final IResource resource, final int deltaKind) throws CoreException {
+		metamodel.processAffectedResources(Arrays.asList(new ResourceDelta(resource, deltaKind, Flags.NONE)), new NullProgressMonitor());
+	}
+	
 	public void processEvent(final Annotation annotation, final int deltaKind) throws CoreException {
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, JavaElementDeltaFilter.ANY_EVENT,
 				JdtUtils.parse(((IMember) annotation.getJavaParent()), new NullProgressMonitor()), Flags.NONE);

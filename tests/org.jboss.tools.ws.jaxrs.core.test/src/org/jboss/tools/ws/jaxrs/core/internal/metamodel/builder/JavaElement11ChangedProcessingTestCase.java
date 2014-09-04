@@ -12,10 +12,15 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_CHILDREN;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_CLASSPATH_CHANGED;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_RESOLVED_CLASSPATH_CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.internal.utils.HamcrestExtras.flagMatches;
@@ -55,6 +60,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -105,18 +111,19 @@ public class JavaElement11ChangedProcessingTestCase {
 
 	@Test
 	public void shouldAddElementsWhenAddingSourceFolder() throws CoreException {
-		// pre-conditions
-		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		// pre-conditions: remove noise from other folders
+		metamodelMonitor.removeFolder("src", "main", "webapp");
+		metamodelMonitor.removePackageFragmentRoot("src/test/java");
 		// 6 Built-in HTTP Methods
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
 		metamodelMonitor.processEvent(sourceFolder, ADDED);
 		// verifications
 		// 37 elements: 1 Application + 2 custom HTTP
 		// Method + 2 providers + 5 RootResources + 2 Subresources + all
 		// their methods and fields..
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(41));
 		assertThat(metamodelMonitor.getElementChanges(),
 				everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// 6 built-in HTTP Methods + all added items
@@ -125,14 +132,15 @@ public class JavaElement11ChangedProcessingTestCase {
 
 	@Test
 	public void shouldAdd6HttpMethodsAnd0ResourceWhenAddingBinaryLib() throws CoreException {
-		// pre-conditions
+		// pre-conditions: remove noise from other folders
+		metamodelMonitor.removeFolder("src", "main", "webapp");
+		metamodelMonitor.removePackageFragmentRoot("src/test/java");
+		metamodelMonitor.removePackageFragmentRoot("src/main/java");
 		final IPackageFragmentRoot lib = metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.processEvent(lib, ADDED);
-		// verifications. Damned : none in the jar...
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
-		// 6 built-in HTTP Methods only
+		// verification: only 6 built-in HTTP Methods in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
 
@@ -372,19 +380,16 @@ public class JavaElement11ChangedProcessingTestCase {
 
 	@Test
 	public void shouldRemoveApplicationWhenRemovingSourceFolder() throws CoreException {
-		// pre-conditions
+		// pre-conditions: remove noise from other folders
+		metamodelMonitor.removeFolder("src", "main", "webapp");
+		metamodelMonitor.removePackageFragmentRoot("src/test/java");
 		metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		sourceFolder.getResource().delete(true, null);	
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
-		// verifications
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
-				equalTo(EnumElementCategory.APPLICATION));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
-		// 6 Built-in HTTP Methods
+		// verification: only 6 Built-in HTTP Methods left in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
 
@@ -576,31 +581,29 @@ public class JavaElement11ChangedProcessingTestCase {
 
 	@Test
 	public void shouldRemoveHttpMethodWhenRemovingSourceFolder() throws CoreException {
-		// pre-conditions
+		// pre-conditions: remove noise from other folders
+		metamodelMonitor.removeFolder("src", "main", "webapp");
+		metamodelMonitor.removePackageFragmentRoot("src/test/java");
 		metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.BAR");
-		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
+		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		sourceFolder.getResource().delete(true, null);
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
-		// verifications
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
-				equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
-		// 6 Built-in HTTP Methods
+		// verification: only 6 Built-in HTTP Methods left in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
 
 	@Test
-	public void shouldNotRemoveHttpMethodWhenRemovingBinaryLib() throws CoreException {
+	public void shouldNotRemoveBuiltinHttpMethodWhenRemovingBinaryLib() throws CoreException, OperationCanceledException, InterruptedException {
 		// pre-conditions
-		final IPackageFragmentRoot lib = metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
+		metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.BAR");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
+		final IPackageFragmentRoot lib = metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
+		metamodelMonitor.removeClasspathEntry("lib/jaxrs-api-2.0.1.GA.jar");
 		metamodelMonitor.processEvent(lib, REMOVED);
 		// verifications
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
 
@@ -1593,15 +1596,16 @@ public class JavaElement11ChangedProcessingTestCase {
 
 	@Test
 	public void shouldRemoveResourceWhenRemovingSourceFolder() throws CoreException {
-		// pre-conditions
+		// pre-conditions: remove noise from other folders
+		metamodelMonitor.removeFolder("src", "main", "webapp");
+		metamodelMonitor.removePackageFragmentRoot("src/test/java");
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		sourceFolder.getResource().delete(true, null);
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
-		// verifications
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7));
-		// 6 built-in HTTP Methods
+		// verification: only 6 built-in HTTP Methods left in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
 
@@ -2555,21 +2559,18 @@ public class JavaElement11ChangedProcessingTestCase {
 
 	@Test
 	public void shouldRemoveProviderWhenRemovingSourceFolder() throws CoreException {
-		// pre-conditions
+		// pre-conditions: remove noise from other folders
+		metamodelMonitor.removeFolder("src", "main", "webapp");
+		metamodelMonitor.removePackageFragmentRoot("src/test/java");
 		final IType type = metamodelMonitor
 				.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		metamodelMonitor.createProvider(type);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
+		sourceFolder.getResource().delete(true, null);
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
-		// verifications
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
-				equalTo(EnumElementCategory.PROVIDER));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
-		// 6 built-in HTTP Methods
+		// verifications: only 6 built-in HTTP Methodsleft in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
 
@@ -2781,5 +2782,32 @@ public class JavaElement11ChangedProcessingTestCase {
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findAllElements().size(), equalTo(7));
 	}
+	
+	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-15825
+	public void shouldAddElementsWhenSettingTargetRuntime() throws CoreException {
+		// pre-conditions
+		// operation: trigger event when the project's classpath changed.
+		metamodelMonitor.processEvent(metamodelMonitor.getJavaProject(), CHANGED, new Flags(F_CONTENT+F_CHILDREN+F_CLASSPATH_CHANGED+F_RESOLVED_CLASSPATH_CHANGED));
+		// verifications: all elements in the project were created
+		assertThat(metamodelMonitor.getElementChanges().size(), greaterThan(1));
+		// 6 built-in HTTP Methods + 1 Provider
+		assertThat(metamodel.findAllElements().size(), greaterThan(6));
+	}
+	
+	@Test
+	public void shouldRemoveCustomHttpMethodWhenRemovingBinaryLib() throws CoreException, OperationCanceledException, InterruptedException {
+		// pre-conditions
+		metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.BAR");
+		assertThat(metamodel.findAllElements().size(), equalTo(7));
+		metamodelMonitor.resetElementChangesNotifications();
+		// operation
+		metamodelMonitor.removeClasspathEntry("lib/jaxrs-api-2.0.1.GA.jar");
+		metamodelMonitor.processEvent(metamodelMonitor.getJavaProject(), CHANGED, new Flags(F_CONTENT+F_CHILDREN+F_CLASSPATH_CHANGED+F_RESOLVED_CLASSPATH_CHANGED));
+		// verifications
+		assertThat(metamodel.findAllElements().size(), equalTo(6));
+	}
+	
+	
 	
 }
