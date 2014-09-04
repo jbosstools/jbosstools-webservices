@@ -10,7 +10,6 @@
  ******************************************************************************/
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
-import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
@@ -27,6 +26,7 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneFiel
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneFields.FIELD_RETURNED_TYPE_NAME;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneFields.FIELD_TYPE;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneFields.FIELD_WEBXML_APPLICATION;
+import static org.jboss.tools.ws.jaxrs.core.validation.IJaxrsValidation.JAXRS_PROBLEM_MARKER_ID;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,6 +54,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -68,6 +70,7 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorDelegate;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsHttpMethodChangedListener;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.MutexJobSchedulingRule;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JaxrsElementsIndexationDelegate;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneDocumentFactory;
@@ -375,10 +378,23 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			final IJavaElement element = delta.getElement();
 			final CompilationUnit ast = delta.getCompilationUnitAST();
 			final int deltaKind = delta.getKind();
-			if (element.getElementType() == IJavaElement.ANNOTATION) {
+			switch(element.getElementType()) {
+			case IJavaElement.JAVA_PROJECT:
+			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+				processProject(progressMonitor);
+				break;
+			case IJavaElement.ANNOTATION:
 				processJavaAnnotationChange((IAnnotation) element, deltaKind, ast, progressMonitor);
-			} else {
+				break;
+			case IJavaElement.COMPILATION_UNIT:
+			case IJavaElement.TYPE:
+			case IJavaElement.METHOD:
+			case IJavaElement.FIELD:
 				processJavaElementChange(element, deltaKind, ast, progressMonitor);
+				break;
+			default:
+				// ignore
+				break;
 			}
 		} finally {
 			this.initializing = false;
@@ -475,6 +491,8 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		writeLock.lock();
 		try {
 			progressMonitor.beginTask("Processing project '" + getProject().getName() + "'...", 1);
+			// remove previous markers
+			removePreviousJaxrsMarkers();
 			// start with a fresh new metamodel
 			this.elements.clear();
 			this.endpoints.clear();
@@ -499,6 +517,41 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	}
 
 	/**
+	 * Removes the JAX-RS markers of the JAX-RS elements. This operation *must
+	 * be performed in a separate job, because the resource tree is locked for
+	 * modification while the root changes are being processed.
+	 * @throws CoreException 
+	 */
+	private void removePreviousJaxrsMarkers() throws CoreException {
+		final List<IMarker> markersToRemove = new ArrayList<IMarker>();
+		for(Entry<String, JaxrsBaseElement> entry : elements.entrySet()) {
+			final IResource resource = entry.getValue().getResource();
+			if(resource != null && resource.exists()) {
+				final IMarker[] markers = resource.findMarkers(JAXRS_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
+				markersToRemove.addAll(Arrays.asList(markers));
+			}
+		}
+		final ISchedulingRule projectModificationRule = javaProject.getProject().getWorkspace().getRuleFactory().modifyRule(getProject());
+		final Job removeMarkersJob = new Job("Removing JAx-RS markers...") {
+
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				for(IMarker markerToRemove : markersToRemove) {
+					try {
+						markerToRemove.delete();
+					} catch (CoreException e) {
+						Logger.error("Failed to remove JAX-RS marker on '" + markerToRemove.getResource() + "'", e);
+					}
+				}
+				return Status.OK_STATUS;
+			}
+			
+		};
+		removeMarkersJob.setRule(projectModificationRule);
+		removeMarkersJob.schedule();
+	}
+
+	/**
 	 * Process the project resource that changed.
 	 * 
 	 * @param affectedResources
@@ -515,7 +568,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 					affectedResources.size());
 			Logger.debug("Processing {} Resource change(s)...", affectedResources.size());
 			for (ResourceDelta event : affectedResources) {
-				processResourceChange(event, progressMonitor);
+				if (event.getResource().getType() == IResource.PROJECT) {
+					processProject(progressMonitor);
+				} else {
+					processResourceChange(event, progressMonitor);
+				}
 				progressMonitor.worked(1);
 			}
 		} catch (CoreException e) {
@@ -544,9 +601,9 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (resource == null) {
 			return;
 		}
-		final IJavaElement javaElement = JavaCore.create(resource);
 		// ignore changes on binary files (added/removed/changed jars to improve
 		// builder performances)
+		final IJavaElement javaElement = JavaCore.create(resource);
 		if (javaElement != null && !JdtUtils.isArchive(javaElement)) {
 			processJavaElement(javaElement, event.getDeltaKind(), progressMonitor);
 		} else if (WtpUtils.isWebDeploymentDescriptor(resource)) {
@@ -817,6 +874,11 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			final List<IJaxrsElement> result = new ArrayList<IJaxrsElement>();
 			final Term javaElementTerm = new Term(FIELD_JAVA_ELEMENT, Boolean.TRUE.toString());
 			switch (element.getElementType()) {
+			case IJavaElement.JAVA_PROJECT:
+				final Term javaProjectIdentifier = new Term(FIELD_JAVA_PROJECT_IDENTIFIER,
+						element.getHandleIdentifier());
+				result.addAll(searchJaxrsElements(javaElementTerm, javaProjectIdentifier));
+				break;
 			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
 				final Term packageFragmentRootIdentifier = new Term(FIELD_PACKAGE_FRAGMENT_ROOT_IDENTIFIER,
 						element.getHandleIdentifier());

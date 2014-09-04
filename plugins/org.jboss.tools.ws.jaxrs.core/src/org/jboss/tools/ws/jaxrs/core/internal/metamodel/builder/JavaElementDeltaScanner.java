@@ -93,7 +93,7 @@ public class JavaElementDeltaScanner {
 		if (element == null) {
 			Logger.debug("** skipping this build because the delta element is null **");
 			return Collections.emptyList();
-		} else if(element.getElementType() == IJavaElement.JAVA_PROJECT && !element.getJavaProject().isOpen() && delta.getFlags() != F_OPENED) {
+		} else if(element.getElementType() == IJavaElement.JAVA_PROJECT && !element.getJavaProject().getProject().isOpen() && delta.getFlags() != F_OPENED) {
 			Logger.debug("** skipping this build because the java project is closed. **");
 			return Collections.emptyList();
 		} else if ((element.getElementType() == IJavaElement.PACKAGE_FRAGMENT_ROOT)) {
