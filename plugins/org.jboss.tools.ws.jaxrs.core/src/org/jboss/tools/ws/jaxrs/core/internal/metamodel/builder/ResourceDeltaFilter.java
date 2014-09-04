@@ -20,7 +20,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 
 public class ResourceDeltaFilter {
 
-	public boolean applyRules(ResourceDelta event) throws JavaModelException {
+	public boolean applyRules(final ResourceDelta event) throws JavaModelException {
 		final IResource resource = event.getResource();
 		// prevent processing resources in a closed project
 		if (!resource.getProject().isOpen()) {

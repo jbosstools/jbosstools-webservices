@@ -48,7 +48,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -56,6 +55,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -109,18 +109,6 @@ public class ResourceChangedProcessingTestCase {
 		javaProject = metamodel.getJavaProject();
 	}
 	
-	protected ResourceDelta createResourceDelta(final IResource resource, final int deltaKind) {
-		return new ResourceDelta(resource, deltaKind, Flags.NONE);
-	}
-
-	protected void processAffectedResources(final ResourceDelta event) throws CoreException {
-		metamodel.processAffectedResources(Arrays.asList(event), new NullProgressMonitor());
-	}
-
-	protected void processProject() throws CoreException {
-		metamodel.processProject(new NullProgressMonitor());
-	}
-
 	@Test
 	public void shouldAddApplicationHttpMethodsResourcesAndProvidersWhenAddingSourceFolderWithExistingMetamodel()
 			throws CoreException {
@@ -128,8 +116,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
-		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(sourceFolder.getResource(), ADDED);
 		// verifications
 		// 1 application + 1 HttpMethod + 7 Resources and their methods + 2
 		// Providers
@@ -147,7 +134,7 @@ public class ResourceChangedProcessingTestCase {
 		// pre-conditions
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		processProject();
+		metamodelMonitor.processProject();
 		// verifications
 		// 2 applications (java/webxml) + 6 built-in HttpMethods + 2 custom
 		// HttpMethod + 7 Resources and their methods + 5 Providers: the whole
@@ -173,8 +160,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
-		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(sourceFolder.getResource(), ADDED);
 		// verifications
 		// 1 application + 1 HttpMethod + 3 RootResources + 2 Subresources + 5
 		// Providers: the whole project is used to build the metamodel.
@@ -191,8 +177,7 @@ public class ResourceChangedProcessingTestCase {
 		final IPackageFragmentRoot lib = metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(lib.getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(lib.getResource(), ADDED);
 		// verifications: jar should not be taken into account, even if if it
 		// contains matching elements...
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
@@ -204,8 +189,7 @@ public class ResourceChangedProcessingTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BAR");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(type.getCompilationUnit().getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getCompilationUnit().getResource(), ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -221,8 +205,7 @@ public class ResourceChangedProcessingTestCase {
 		final Annotation annotation = getAnnotation(type, APPLICATION_PATH);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(annotation.getJavaParent().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -239,8 +222,7 @@ public class ResourceChangedProcessingTestCase {
 				"org.jboss.tools.ws.jaxrs.sample.services.RestApplication", "/bar");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(javaApplication.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -258,8 +240,7 @@ public class ResourceChangedProcessingTestCase {
 		delete(annotation.getJavaAnnotation(), false);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(annotation.getJavaParent().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
@@ -277,8 +258,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(javaApplication.getJavaElement().getCompilationUnit(),
 				"extends Application", "", false);
-		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(javaApplication.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), instanceOf(JaxrsJavaApplication.class));
@@ -294,8 +274,7 @@ public class ResourceChangedProcessingTestCase {
 		final JaxrsJavaApplication javaApplication = metamodelMonitor.createJavaApplication("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(javaApplication.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -312,8 +291,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(javaApplication.getJavaElement());
-		final ResourceDelta event = createResourceDelta(javaApplication.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(javaApplication.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -329,8 +307,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
-		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(sourceFolder.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -347,8 +324,7 @@ public class ResourceChangedProcessingTestCase {
 				"web-3_0-with-default-servlet-mapping.xml");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -366,8 +342,7 @@ public class ResourceChangedProcessingTestCase {
 				"web-3_0-without-servlet-mapping.xml");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 		// 6 built-in HTTP Methods
@@ -381,8 +356,7 @@ public class ResourceChangedProcessingTestCase {
 				"web-3_0-with-default-servlet-mapping.xml");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(((IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement()).isWebXmlApplication(), equalTo(true));
@@ -403,8 +377,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-custom-servlet-mapping.xml");
-		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, ADDED);
 		// verifications: the Web Application is created and the Java
 		// Application is impacted
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2));
@@ -431,8 +404,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), ADDED);
 		// verifications: the JAVA Application is the sole element to be really
 		// changed
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
@@ -459,8 +431,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "@ApplicationPath(\"/app\")", "", false);
-		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), ADDED);
 		// verifications: the JAVA Application is the sole element to be really
 		// changed
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
@@ -488,8 +459,7 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(javaApplication.isOverriden(), equalTo(true));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlApplication.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlApplication.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -514,8 +484,7 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(javaApplication.isOverriden(), equalTo(true));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlApplication.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlApplication.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -537,8 +506,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
-		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		final JaxrsWebxmlApplication webxmlApplication = (JaxrsWebxmlApplication) metamodelMonitor.getElementChanges().get(0).getElement();
@@ -572,8 +540,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		final IResource webxmlResource = metamodelMonitor.replaceDeploymentDescriptorWith(
 				"web-3_0-with-default-servlet-mapping.xml");
-		final ResourceDelta event = createResourceDelta(webxmlResource, ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
@@ -599,8 +566,7 @@ public class ResourceChangedProcessingTestCase {
 				JaxrsClassnames.APPLICATION, "/hello");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlApplication.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlApplication.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -622,8 +588,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "@ApplicationPath(\"/app\")", "", false);
-		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -642,8 +607,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		IType type = replaceFirstOccurrenceOfCode("org.jboss.tools.ws.jaxrs.sample.services.RestApplication",
 				javaProject, "extends Application", "", false);
-		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -662,8 +626,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		replaceContent(webxmlResource, "org.jboss.tools.ws.jaxrs.sample.services.RestApplication2", "org.jboss.tools.ws.jaxrs.sample.services.RestApplication");
-		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, CHANGED);
 		// verifications: 1 webxml app added and the old one (with
 		// "org..RestApplication"
 		// classname) removed.
@@ -691,8 +654,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		metamodelMonitor.replaceDeploymentDescriptorWith( "web-3_0-with-default-servlet-mapping.xml");
-		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, CHANGED);
 		// verifications
 		final IJaxrsApplication app = (IJaxrsApplication) metamodelMonitor.getElementChanges().get(0).getElement();
 		assertThat(app.isWebXmlApplication(), equalTo(true));
@@ -714,8 +676,7 @@ public class ResourceChangedProcessingTestCase {
 		// //metamodel.add(createApplication("/foo"));
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, CHANGED);
 		// verifications
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
@@ -729,8 +690,7 @@ public class ResourceChangedProcessingTestCase {
 				"web-3_0-without-servlet-mapping.xml");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(webxmlResource, CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -752,8 +712,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		webxmlResource.delete(true, new NullProgressMonitor());
-		final ResourceDelta event = createResourceDelta(webxmlResource, REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webxmlResource, REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -774,8 +733,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		final IContainer webInfFolder = webxmlResource.getParent();
 		webInfFolder.delete(IResource.FORCE, new NullProgressMonitor());
-		final ResourceDelta event = createResourceDelta(webInfFolder, REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(webInfFolder, REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
@@ -786,19 +744,19 @@ public class ResourceChangedProcessingTestCase {
 	}
 
 	@Test
-	public void shouldNotRemoveHttpMethodWhenRemovingBinaryLib() throws CoreException {
+	public void shouldNotRemoveBuiltinHttpMethodsWhenRemovingBinaryLib() throws CoreException, OperationCanceledException, InterruptedException {
 		// pre-conditions
 		// this jar also contains the 6 built-in HTTP Method, but its removal
 		// should have no effect
-		final IPackageFragmentRoot lib = metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
-		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
+		metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.BAR");
+		assertThat(metamodel.findElements(javaProject).size(), equalTo(7));
 		metamodelMonitor.resetElementChangesNotifications();
-		// operation
-		final ResourceDelta event = createResourceDelta(lib.getResource(), REMOVED);
-		processAffectedResources(event);
+		// operation: remove lib, process Resource event at the *project* level 
+		metamodelMonitor.resolvePackageFragmentRoot("lib/jaxrs-api-2.0.1.GA.jar");
+		metamodelMonitor.removeClasspathEntry("lib/jaxrs-api-2.0.1.GA.jar");
+		metamodelMonitor.processResourceEvent(metamodel.getProject(), CHANGED);
 		// verifications
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
-		// 6 built-in HTTP Methods
+		// 6 built-in HTTP Methods remaining
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
 	}
 
@@ -808,7 +766,7 @@ public class ResourceChangedProcessingTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BAR");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		processAffectedResources(createResourceDelta(type.getResource(), CHANGED));
+		metamodelMonitor.processResourceEvent(type.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -824,7 +782,7 @@ public class ResourceChangedProcessingTestCase {
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.BAR", "bar");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		processAffectedResources(createResourceDelta(httpMethod.getResource(), CHANGED));
+		metamodelMonitor.processResourceEvent(httpMethod.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -843,8 +801,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(annotation.getJavaAnnotation(), false);
-		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(annotation.getJavaParent().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -863,8 +820,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		addTypeAnnotation(type, "@Deprecated", false);
-		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 		// 6 built-in HTTP Methods + 1 custom one
@@ -879,8 +835,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(annotation.getJavaAnnotation(), false);
-		final ResourceDelta event = createResourceDelta(annotation.getJavaParent().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(annotation.getJavaParent().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -899,8 +854,7 @@ public class ResourceChangedProcessingTestCase {
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod(type);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(type.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -918,8 +872,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(type);
-		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -940,8 +893,7 @@ public class ResourceChangedProcessingTestCase {
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(sourceFolder.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
@@ -957,8 +909,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
-		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7)); // 1 resource + 6
 														// methods
@@ -977,8 +928,7 @@ public class ResourceChangedProcessingTestCase {
 		final IType customerType = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(customerType.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerType.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7)); // 1 resource + 6
 														// methods
@@ -996,8 +946,7 @@ public class ResourceChangedProcessingTestCase {
 		customerResource.removeAnnotation(customerResource.getProducesAnnotation().getJavaAnnotation());
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1013,8 +962,7 @@ public class ResourceChangedProcessingTestCase {
 		((JaxrsResourceMethod)bookResource.getAllMethods().get(0)).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(bookResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource method
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
@@ -1039,8 +987,7 @@ public class ResourceChangedProcessingTestCase {
 				delete(resourceMethod.getHttpMethodAnnotation().getJavaAnnotation(), false);
 			}
 		}
-		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(bookResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(2)); // 2 resource
 														// methods
@@ -1067,8 +1014,7 @@ public class ResourceChangedProcessingTestCase {
 				delete(resourceMethod.getHttpMethodAnnotation().getJavaAnnotation(), false);
 			}
 		}
-		final ResourceDelta event = createResourceDelta(bookResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(bookResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource method
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1086,8 +1032,7 @@ public class ResourceChangedProcessingTestCase {
 		productResourceLocator.getAllFields().get(0).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource field
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
@@ -1111,8 +1056,7 @@ public class ResourceChangedProcessingTestCase {
 			}
 		}
 		// operation
-		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource field
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1135,8 +1079,7 @@ public class ResourceChangedProcessingTestCase {
 		}
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource field
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1153,8 +1096,7 @@ public class ResourceChangedProcessingTestCase {
 		productResourceLocator.getAllProperties().get(0).remove(Flags.NONE);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource property
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
@@ -1178,8 +1120,7 @@ public class ResourceChangedProcessingTestCase {
 						"@DefaultValue(\"bar\")", false);
 			}
 		}
-		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource property
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1202,8 +1143,7 @@ public class ResourceChangedProcessingTestCase {
 				delete(resourceProperty.getQueryParamAnnotation().getJavaAnnotation(), false);
 			}
 		}
-		final ResourceDelta event = createResourceDelta(productResourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(productResourceLocator.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 resource property
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1223,8 +1163,7 @@ public class ResourceChangedProcessingTestCase {
 		for (IMethod method : resource.getJavaElement().getMethods()) {
 			delete(method);
 		}
-		final ResourceDelta event = createResourceDelta(resource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(resource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(3)); // 1 resource + 2
 														// methods
@@ -1241,8 +1180,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(resource.getJavaElement().getResource());
-		final ResourceDelta event = createResourceDelta(resource.getJavaElement().getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(resource.getJavaElement().getResource(), REMOVED);
 		// verifications: 1 resource and its 2 methods removed
 		final List<JaxrsElementDelta> elementChanges = metamodelMonitor.getElementChanges();
 		assertThat(elementChanges.size(), equalTo(3));
@@ -1266,8 +1204,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(resource.getJavaElement());
-		final ResourceDelta event = createResourceDelta(resource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(resource.getJavaElement().getResource(), CHANGED);
 		// verifications: 1 resource and its 2 methods removed
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(3));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.RESOURCE));
@@ -1284,8 +1221,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(sourceFolder.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(7));
 		// only built-in HTTP Methods left
@@ -1323,8 +1259,7 @@ public class ResourceChangedProcessingTestCase {
 			Annotation annotation = iterator.next();
 			delete(annotation.getJavaAnnotation(), false);
 		}
-		final ResourceDelta event = createResourceDelta(resourceLocator.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(resourceLocator.getJavaElement().getResource(), CHANGED);
 		// verifications: 1 resource, its 1 method, 3 fields and 3 properties removed
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(8));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1353,8 +1288,7 @@ public class ResourceChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
@@ -1382,8 +1316,7 @@ public class ResourceChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final ISourceRange afterChangeSourceRange = resourceMethod.getAnnotation(POST)
 				.getJavaAnnotation().getSourceRange();
@@ -1414,8 +1347,7 @@ public class ResourceChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		// reference has changed (local variable)
 		final Annotation updatedPathParamAnnotation = resourceMethod.getJavaMethodParameters().get(0).getAnnotations()
@@ -1451,8 +1383,7 @@ public class ResourceChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@PathParam(\"id\") Integer id, ", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications: java method has changed, so all references must be
 		// looked-up again
 		javaMethod = metamodelMonitor.resolveMethod(customerResource.getJavaElement(), "getCustomer");
@@ -1485,8 +1416,7 @@ public class ResourceChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
@@ -1514,8 +1444,7 @@ public class ResourceChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final ISourceRange afterChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
 		assertThat(afterChangeSourceRange.getOffset(), equalTo(offset));
@@ -1545,8 +1474,7 @@ public class ResourceChangedProcessingTestCase {
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
 		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
 				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
-		final ResourceDelta event = createResourceDelta(customerResource.getJavaElement().getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
 		final ISourceRange afterChangeSourceRange = JdtUtils.resolveMemberPairValueRange(
@@ -1559,8 +1487,7 @@ public class ResourceChangedProcessingTestCase {
 	public void shouldAddProviderWhenAddingSourceCompilationUnit() throws CoreException {
 		// pre-conditions
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
-		final ResourceDelta event = createResourceDelta(type.getResource(), ADDED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), ADDED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
@@ -1575,8 +1502,7 @@ public class ResourceChangedProcessingTestCase {
 		final IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(ADDED));
@@ -1592,8 +1518,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		addTypeAnnotation(provider.getJavaElement(), "@Deprecated", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
@@ -1606,8 +1531,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		replaceAllOccurrencesOfCode(provider.getJavaElement().getCompilationUnit(),
 				"@SuppressWarnings(\"testing\")", "@SuppressWarnings(\"test\")", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0));
 	}
@@ -1619,8 +1543,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(provider.getResource());
-		final ResourceDelta event = createResourceDelta(provider.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1636,8 +1559,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(provider.getJavaElement().getCompilationUnit());
-		final ResourceDelta event = createResourceDelta(provider.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1653,8 +1575,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(provider.getJavaElement());
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1672,8 +1593,7 @@ public class ResourceChangedProcessingTestCase {
 		final IType type = provider.getJavaElement();
 		final IAnnotation annotation = provider.getAnnotation(PROVIDER).getJavaAnnotation();
 		removeTypeAnnotation(type, annotation, false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		// no change (validation warning may occur, though)
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
@@ -1687,8 +1607,7 @@ public class ResourceChangedProcessingTestCase {
 				false);
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		final ResourceDelta event = createResourceDelta(type.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(type.getResource(), CHANGED);
 		// verifications: 1 provider should be created
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(((JaxrsProvider) metamodelMonitor.getElementChanges().get(0).getElement()).getProvidedTypes().size(), equalTo(0));
@@ -1704,8 +1623,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation
 		replaceFirstOccurrenceOfCode(type, "implements ExceptionMapper<EntityNotFoundException>", "",
 				false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1722,8 +1640,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		replaceFirstOccurrenceOfCode(type, "@SuppressWarnings(\"testing\")", "", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(0)); // no change
 	}
@@ -1736,8 +1653,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		delete(sourceFolder.getResource());
-		final ResourceDelta event = createResourceDelta(sourceFolder.getResource(), REMOVED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(sourceFolder.getResource(), REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
@@ -1754,8 +1670,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1773,8 +1688,7 @@ public class ResourceChangedProcessingTestCase {
 		// from the model entity
 		replaceFirstOccurrenceOfCode(provider.getJavaElement(), "@Consumes(\"application/json\")",
 				"@Consumes(\"application/foo\")", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1791,8 +1705,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
 		removeFirstOccurrenceOfCode(provider.getJavaElement(), "@Consumes(\"application/json\")", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1809,8 +1722,7 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: should see the @Consumes annotation that was just removed
 		// from the model entity
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1828,8 +1740,7 @@ public class ResourceChangedProcessingTestCase {
 		// from the model entity
 		replaceFirstOccurrenceOfCode(provider.getJavaElement(), "@Produces(\"application/json\")",
 				"@Produces(\"application/foo\")", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1846,8 +1757,7 @@ public class ResourceChangedProcessingTestCase {
 		// operation: should see the @Produces annotation that was just removed
 		// from the model entity
 		removeFirstOccurrenceOfCode(provider.getJavaElement(), "@Produces(\"application/json\")", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1871,8 +1781,7 @@ public class ResourceChangedProcessingTestCase {
 		// replaceAllOccurrencesOfCode(provider.getJavaElement(),
 		// "(EntityNotFoundException exception)",
 		// "(NoResultException exception)", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1892,8 +1801,7 @@ public class ResourceChangedProcessingTestCase {
 		// from the model entity
 		replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
 				"AbstractEntityProvider<Integer, Number>", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1914,8 +1822,7 @@ public class ResourceChangedProcessingTestCase {
 		// from the model entity
 		replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
 				"AbstractEntityProvider<Foo, Number>", false);
-		final ResourceDelta event = createResourceDelta(provider.getResource(), CHANGED);
-		processAffectedResources(event);
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
@@ -1935,7 +1842,7 @@ public class ResourceChangedProcessingTestCase {
 		// from the model entity
 		replaceAllOccurrencesOfCode(provider.getJavaElement(), "AbstractEntityProvider<String, Number>",
 				"AbstractEntityProvider<Foo, Bar>", false);
-		processAffectedResources(createResourceDelta(provider.getResource(), CHANGED));
+		metamodelMonitor.processResourceEvent(provider.getResource(), CHANGED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1)); // 1 provider
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));

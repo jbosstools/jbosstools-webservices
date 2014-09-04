@@ -212,6 +212,30 @@ public class TestProjectMonitor extends ExternalResource {
 	}
 	
 	/**
+	 * Removes the underlying {@link IResource} of the {@link IPackageFragmentRoot} matching the given {@code path}.
+	 * @param path
+	 * @throws JavaModelException
+	 * @throws CoreException
+	 */
+	public void removePackageFragmentRoot(final String path) throws JavaModelException, CoreException {
+		resolvePackageFragmentRoot(path).getResource().delete(true, null);
+	}
+	
+	/**
+	 * Removes the underlying {@link IResource} matching the given {@code path}.
+	 * @param path
+	 * @throws JavaModelException
+	 * @throws CoreException
+	 */
+	public void removeFolder(final String... pathFragments) throws JavaModelException, CoreException {
+		IPath path = project.getProjectRelativePath();
+		for(String pathFragment : pathFragments) {
+			path = path.append(pathFragment);
+		}
+		project.findMember(path).delete(true, null);
+	}
+	
+	/**
 	 * Remove the first referenced library those absolute path contains the
 	 * given name.
 	 * 
