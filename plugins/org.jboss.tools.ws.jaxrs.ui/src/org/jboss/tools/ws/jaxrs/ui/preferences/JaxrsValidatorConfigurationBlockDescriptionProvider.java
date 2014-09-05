@@ -100,13 +100,26 @@ public class JaxrsValidatorConfigurationBlockDescriptionProvider {
 			JBossJaxrsUIPlugin.PLUGIN_ID
 			);
 
+	private SectionDescription SECTION_NAME_BINDINGS = new SectionDescription(
+			JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_section_nameBindings,
+			new String[][]{
+					{JaxrsPreferences.NAME_BINDING_INVALID_NAME_BINDING_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_nameBindingInvalidNameBindingAnnotationValue_label},
+					{JaxrsPreferences.NAME_BINDING_MISSING_RETENTION_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_nameBindingMissingRetentionAnnotation_label},
+					{JaxrsPreferences.NAME_BINDING_INVALID_RETENTION_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_nameBindingInvalidRetentionAnnotationValue_label},
+					{JaxrsPreferences.NAME_BINDING_MISSING_TARGET_ANNOTATION, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_nameBindingMissingTargetAnnotation_label},
+					{JaxrsPreferences.NAME_BINDING_INVALID_TARGET_ANNOTATION_VALUE, JaxrsPreferencesMessages.JaxrsValidatorConfigurationBlock_pb_nameBindingInvalidTargetAnnotationValue_label}
+			},
+			JBossJaxrsUIPlugin.PLUGIN_ID
+			);
+	
 	private SectionDescription[] ALL_SECTIONS = new SectionDescription[]{
 			SECTION_ACTIVATORS,
 			SECTION_HTTP_METHODS,
 			SECTION_RESOURCES,
 			SECTION_RESOURCE_METHODS,
 			SECTION_RESOURCE_FIELDS_PROPERTIES,
-			SECTION_PROVIDERS
+			SECTION_PROVIDERS,
+			SECTION_NAME_BINDINGS
 	};
 
 	public SectionDescription[] getSections() {

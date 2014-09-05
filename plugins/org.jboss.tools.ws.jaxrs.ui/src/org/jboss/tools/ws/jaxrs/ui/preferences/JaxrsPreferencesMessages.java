@@ -76,6 +76,14 @@ public class JaxrsPreferencesMessages extends NLS {
 	public static String JaxrsValidatorConfigurationBlock_pb_providerMissingBinding_label; 
 	public static String JaxrsValidatorConfigurationBlock_pb_providerUnusedBinding_label; 
 
+	// Section Name Bindings
+	public static String JaxrsValidatorConfigurationBlock_section_nameBindings;
+	public static String JaxrsValidatorConfigurationBlock_pb_nameBindingInvalidNameBindingAnnotationValue_label;
+	public static String JaxrsValidatorConfigurationBlock_pb_nameBindingMissingRetentionAnnotation_label;
+	public static String JaxrsValidatorConfigurationBlock_pb_nameBindingInvalidRetentionAnnotationValue_label;
+	public static String JaxrsValidatorConfigurationBlock_pb_nameBindingMissingTargetAnnotation_label;
+	public static String JaxrsValidatorConfigurationBlock_pb_nameBindingInvalidTargetAnnotationValue_label;
+	
 	public static String JAXRS_VALIDATOR_PREFERENCE_PAGE_JAXRS_VALIDATOR;
 
 	static {

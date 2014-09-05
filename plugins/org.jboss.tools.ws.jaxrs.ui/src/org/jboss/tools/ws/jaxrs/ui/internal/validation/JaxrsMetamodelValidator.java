@@ -110,6 +110,8 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	private static final String BUNDLE_NAME = JaxrsMetamodelValidator.class.getPackage().getName() + ".messages";
 	/** The type of JAX-RS problem. */
 	public static final String JAXRS_PROBLEM_TYPE = "problemType";
+	/** No quickfix */
+	private static final int NO_QUICKFIX = -1;
 	
 	/**
 	 * Constructor.
@@ -654,7 +656,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	@Override
 	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
 			final String[] messageArguments, final String preferenceKey) throws CoreException {
-		addProblem(element, range, message, messageArguments, preferenceKey);
+		addProblem(element, range, message, messageArguments, preferenceKey, NO_QUICKFIX);
 		return null;
 	}
 
@@ -664,7 +666,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	@Override
 	public IMarker addMarker(final JaxrsBaseElement element, final ISourceRange range, final String message,
 			final String[] messageArguments, final String preferenceKey, final int quickFixId) throws CoreException {
-		addProblem(element, range, message, messageArguments, preferenceKey);
+		addProblem(element, range, message, messageArguments, preferenceKey, quickFixId);
 		return null;
 	}
 
@@ -678,7 +680,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 	 * @throws CoreException
 	 */
 	private void addProblem(final JaxrsBaseElement element, final ISourceRange range, final String message,
-			final String[] messageArguments, final String preferenceKey) throws CoreException {
+			final String[] messageArguments, final String preferenceKey, final int quickfixId) throws CoreException {
 		// (range == null) occurs when there is no value at all for the annotation
 		if(element == null || range == null) {
 			return;
@@ -692,7 +694,7 @@ public class JaxrsMetamodelValidator extends TempMarkerManager implements IValid
 			}
 		} else {
 			Logger.debug("Reporting marker '{}' on resource '{}'", message, resource.getFullPath().toString());
-			final IMarker marker = addError(message, preferenceKey, messageArguments, range.getLength(), range.getOffset(), resource);
+			final IMarker marker = addError(message, preferenceKey, messageArguments, range.getLength(), range.getOffset(), resource, quickfixId);
 			if (marker != null) {
 				marker.setAttribute(JaxrsMetamodelValidator.JAXRS_PROBLEM_TYPE, preferenceKey);
 				element.setProblemSeverity(marker.getAttribute(IMarker.SEVERITY, 0));
