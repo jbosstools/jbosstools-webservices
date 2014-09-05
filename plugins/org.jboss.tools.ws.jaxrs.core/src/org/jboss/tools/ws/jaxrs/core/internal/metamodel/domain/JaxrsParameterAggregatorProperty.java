@@ -96,6 +96,7 @@ public class JaxrsParameterAggregatorProperty extends JaxrsParameterAggregatorEl
 				if (javaMethod == null || !javaMethod.exists() || !javaMethod.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaMethod);
 				this.parentParameterAggregator = parentParameterAggregator;
 				if(this.parentParameterAggregator != null) {
 					this.metamodel = this.parentParameterAggregator.getMetamodel();
@@ -267,12 +268,6 @@ public class JaxrsParameterAggregatorProperty extends JaxrsParameterAggregatorEl
 	@Override
 	public EnumElementKind getElementKind() {
 		return EnumElementKind.PARAMETER_AGGREGATOR_PROPERTY;
-	}
-
-	@Override
-	public String toString() {
-		return "ResourceField '" + getJavaElement().getParent().getElementName() + "."
-			+ getJavaElement().getElementName() + "' | annotations=" + getAnnotations();
 	}
 
 }

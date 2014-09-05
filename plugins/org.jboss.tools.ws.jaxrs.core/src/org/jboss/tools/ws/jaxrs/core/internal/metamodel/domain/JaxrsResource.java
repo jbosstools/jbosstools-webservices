@@ -148,7 +148,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 				if (javaType == null || !javaType.exists()) {
 					return null;
 				}
-				Logger.trace("Building a new JAX-RS Resource from {}", javaType.getElementName());
+				JdtUtils.makeConsistentIfNecessary(javaType);
 				// create the resource
 				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
 				final JaxrsResource resource = new JaxrsResource(this);
@@ -172,6 +172,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 				}
 				// well, sorry.. this is not a valid JAX-RS resource (requires at least one method)
 				if (resource.isSubresource() && resource.resourceMethods.isEmpty()) {
+					Logger.trace("Returning a *null* element for {}", javaType.getElementName());
 					return null;
 				}
 				// this operation is only performed if the resource is acceptable
@@ -268,9 +269,9 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
 		synchronized (this) {
-			Logger.debug("Updating {}", this.toString());
 			final Flags annotationsFlags = FlagsUtils.computeElementFlags(this);
 			final JaxrsResource transientResource = from(javaElement, ast, getMetamodel().findAllHttpMethodNames()).build(false);
+			Logger.debug("Updating {}\n\twith\n{}", this, transientResource);
 			if (transientResource == null) {
 				remove(annotationsFlags);
 				return;
@@ -515,8 +516,17 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 
 	@Override
 	public String toString() {
-		return new StringBuffer().append("Resource '").append(getName()).append("' (root=").append(isRootResource())
-				.append(") ").toString();
+		final StringBuilder builder = new StringBuilder().append(super.toString());
+		for(IJaxrsResourceField field : getAllFields()) {
+			builder.append("\n\t").append(field.toString());
+		}
+		for(IJaxrsResourceProperty property : getAllProperties()) {
+			builder.append("\n\t").append(property.toString());
+		}
+		for(IJaxrsResourceMethod method : getAllMethods()) {
+			builder.append("\n\t").append(method.toString());
+		}
+		return builder.toString();
 	}
 
 	/**
@@ -586,7 +596,7 @@ public final class JaxrsResource extends JaxrsJavaElement<IType> implements IJax
 	 *         handleIdentifier
 	 */
 	public Map<String, JaxrsResourceMethod> getMethods() {
-		return resourceMethods;
+		return Collections.unmodifiableMap(resourceMethods);
 	}
 
 	/**

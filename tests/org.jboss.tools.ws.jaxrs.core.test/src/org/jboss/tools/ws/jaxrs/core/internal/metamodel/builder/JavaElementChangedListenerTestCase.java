@@ -15,12 +15,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.After;
@@ -61,12 +62,13 @@ public class JavaElementChangedListenerTestCase {
 	
 	@Test
 	// FIXME: should be ignored if the JavaElementChangedListener feature is removed. This would now take place during validation. 
-	public void shouldRemoveApplicationWhenRemovingUnderlyingType() throws JavaModelException {
+	public void shouldRemoveApplicationWhenRemovingUnderlyingType() throws CoreException {
 		// pre-conditions
 		final IType applicationType = metamodel.findJavaApplications().iterator().next().getJavaElement();
 		// operation
 		final ICompilationUnit workingCopy = applicationType.getCompilationUnit().getWorkingCopy(new NullProgressMonitor());
-		workingCopy.findPrimaryType().delete(true, new NullProgressMonitor());
+		JavaElementsUtils.delete(workingCopy.findPrimaryType());
+		
 		// verifications
 		assertThat(metamodel.findJavaApplications().size(), equalTo(0));
 	}

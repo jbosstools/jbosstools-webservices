@@ -178,6 +178,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaType);
 				// assert that given java type is not abstract
 				if (JdtUtils.isAbstractType(javaType)) {
 					return null;
@@ -457,8 +458,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 	 */
 	@Override
 	public String toString() {
-		final StringBuilder builder = new StringBuilder("JaxrsProvider ").append(getJavaElement().getElementName())
-				.append("[");
+		final StringBuilder builder = new StringBuilder(super.toString()).append("[");
 		for (Iterator<Entry<EnumElementKind, IType>> iterator = this.providedTypes.entrySet().iterator(); iterator
 				.hasNext();) {
 			Entry<EnumElementKind, IType> entry = iterator.next();

@@ -124,8 +124,6 @@ public class JavaElement11ChangedProcessingTestCase {
 		// 37 elements: 1 Application + 2 custom HTTP
 		// Method + 2 providers + 5 RootResources + 2 Subresources + all
 		// their methods and fields..
-		assertThat(metamodelMonitor.getElementChanges(),
-				everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
 		// 6 built-in HTTP Methods + all added items
 		assertThat(metamodel.findAllElements().size(), equalTo(47));
 	}
@@ -593,7 +591,25 @@ public class JavaElement11ChangedProcessingTestCase {
 		// verification: only 6 Built-in HTTP Methods left in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
-
+	
+	@Test
+	public void shouldChangeResourceMethodKindWhenRemovingGETAnnotation() throws CoreException, OperationCanceledException, InterruptedException {
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod resourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomers");
+		final Annotation annotation = resourceMethod.getAnnotation(JaxrsClassnames.GET);
+		metamodelMonitor.resetElementChangesNotifications();
+		// before operation: metamodel has 6 built-in HTTP Methods + 1 resource
+		// + 6 methods
+		assertThat(metamodel.findAllElements().size(), equalTo(13));
+		// operation: remove import declaration for GET annotation
+		replaceAllOccurrencesOfCode(resource.getJavaElement().getCompilationUnit(), "@GET",
+				"", true);
+		metamodelMonitor.processEvent(annotation.getJavaAnnotation(), REMOVED);
+		// verifications
+		assertThat(resourceMethod.getElementKind(), equalTo(EnumElementKind.UNDEFINED_RESOURCE_METHOD));
+	}
+	
 	@Test
 	public void shouldNotRemoveBuiltinHttpMethodWhenRemovingBinaryLib() throws CoreException, OperationCanceledException, InterruptedException {
 		// pre-conditions
@@ -2807,7 +2823,5 @@ public class JavaElement11ChangedProcessingTestCase {
 		// verifications
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
-	
-	
-	
+
 }

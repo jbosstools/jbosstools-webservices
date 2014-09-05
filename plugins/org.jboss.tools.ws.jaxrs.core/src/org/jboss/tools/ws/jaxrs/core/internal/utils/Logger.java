@@ -50,6 +50,9 @@ public final class Logger {
 	/** The 'traceIndexing' level name, matching the .options file. */
 	private static final String TRACE_INDEXING = JBossJaxrsCorePlugin.PLUGIN_ID + "/traceIndexing";
 
+	/** The 'traceJobs' level name, matching the .options file. */
+	private static final String TRACE_JOBS = JBossJaxrsCorePlugin.PLUGIN_ID + "/traceJobs";
+	
 	/** The 'tracePerf' level name, matching the .options file. */
 	private static final String TRACE_PERF = JBossJaxrsCorePlugin.PLUGIN_ID + "/tracePerf";
 	
@@ -200,6 +203,18 @@ public final class Logger {
 	}
 
 	/**
+	 * Outputs a 'traceJobs' level message in the .log file (not the error view of
+	 * the runtime workbench). Traces must be activated for this plugin in order
+	 * to see the output messages.
+	 * 
+	 * @param message
+	 *            the message to trace.
+	 */
+	public static void traceJobs(final String message, final Object... items) {
+		log(TRACE_JOBS, message, items);
+	}
+	
+	/**
 	 * Outputs a 'tracePerf' level message in the .log file (not the error view of
 	 * the runtime workbench). Traces must be activated for this plugin in order
 	 * to see the output messages.
@@ -236,9 +251,11 @@ public final class Logger {
 	private static void log(final String level, final String message, final Object... items) {
 		try {
 			if (isOptionEnabled(level)) {
-				String valuedMessage = getMessage(message, items);
+				final String valuedMessage = getMessage(message, items);
+				final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+				final StackTraceElement caller = stackTrace[stackTrace.length - 2];
 				System.out.println(dateFormatter.get().format(new Date()) + " [" + Thread.currentThread().getName()
-						+ "] " + toLevel(level) + " " + valuedMessage);
+						+ "] [" + caller.getClassName() + "." + caller.getMethodName() + ":" + caller.getLineNumber() +"] " + toLevel(level) + " " + valuedMessage);
 			}
 		} catch (RuntimeException e) {
 			System.err.println("Failed to write proper debug message with template:\n " + message + "\n and items:");
@@ -249,11 +266,11 @@ public final class Logger {
 	}
 
 	/**
-	 * @param message
-	 * @param items
-	 * @return
+	 * @param message the message template to print in the console
+	 * @param items the items to substitute in the template
+	 * @return the actual message to print in the console
 	 */
-	public static String getMessage(final String message, final Object... items) {
+	private static String getMessage(final String message, final Object... items) {
 		String valuedMessage = message;
 		if (items != null) {
 			for (Object item : items) {
@@ -276,6 +293,9 @@ public final class Logger {
 		}
 		if(level.equals(TRACE_INDEXING)) {
 			return "TRACE_INDEXING";
+		}
+		if(level.equals(TRACE_JOBS)) {
+			return "TRACE_JOBS";
 		}
 		if(level.equals(TRACE_PERF)) {
 			return "TRACE_PERF";

@@ -48,7 +48,7 @@ public class ResourceChangedListener implements IResourceChangeListener {
 	 * .eclipse.core.resources.IResourceChangeEvent)
 	 */
 	@Override
-	public void resourceChanged(IResourceChangeEvent event) {
+	public void resourceChanged(final IResourceChangeEvent event) {
 		if(!active) {
 			return;
 		}

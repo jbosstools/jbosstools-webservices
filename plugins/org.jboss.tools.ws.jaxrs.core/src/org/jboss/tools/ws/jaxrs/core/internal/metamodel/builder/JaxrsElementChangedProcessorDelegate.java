@@ -338,7 +338,7 @@ public class JaxrsElementChangedProcessorDelegate {
 		else {
 			final Collection<JaxrsEndpoint> endpoints = metamodel.findEndpoints(changedResourceMethod);
 			for (JaxrsEndpoint endpoint : endpoints) {
-				endpoint.update(flags);
+				endpoint.update(changedResourceMethod, flags);
 			}
 		}
 	}

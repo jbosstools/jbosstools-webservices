@@ -18,7 +18,6 @@ import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IJavaElement;
@@ -60,36 +59,37 @@ public class JavaElementChangedListener implements IElementChangedListener {
 	 * @see org.eclipse.jdt.core.IElementChangedListener#elementChanged(org.eclipse.jdt.core.ElementChangedEvent)
 	 */
 	@Override
-	public void elementChanged(ElementChangedEvent event) {
+	public void elementChanged(final ElementChangedEvent event) {
 		if(!active) {
 			return;
 		}
 		try {
-			if (isApplicable(event.getDelta())) {
+			final IProject project = getProject(event.getDelta());
+			if (ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID)) {
 				logDelta(event.getDelta(), event.getType());
-				JavaElementChangedBuildTask task = new JavaElementChangedBuildTask(event);
-				task.execute(new NullProgressMonitor()); // not using this class as a job, just calling the execute() method for immediate execution.
+				final JavaElementChangedBuildJob job = new JavaElementChangedBuildJob(event);
+				job.setRule(project.getWorkspace().getRuleFactory().buildRule());
+				job.schedule();
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to process Java Element change", e);
 		}
 	}
-
-	private boolean isApplicable(IJavaElementDelta delta) throws CoreException {
-		IJavaProject javaProject = delta.getElement().getJavaProject();
+	
+	private IProject getProject(final IJavaElementDelta delta) {
+		final IJavaProject javaProject = delta.getElement().getJavaProject();
 		if (javaProject != null) {
-			IProject project = javaProject.getProject();
-			if (ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID)) {
-				return true;
-			}
+			return javaProject.getProject();
 		}
 		// carry on with children elements.
 		for (IJavaElementDelta affectedChild : delta.getAffectedChildren()) {
-			if(isApplicable(affectedChild)) {
-				return true;
+			final IProject project = getProject(affectedChild);
+			if(project != null) {
+				return project;
 			}
 		}
-		return false;
+		// if no child
+		return null;
 	}
 
 	private void logDelta(final IJavaElementDelta delta, final int eventType) {

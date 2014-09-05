@@ -19,25 +19,31 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.JobMonitor;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
 
 /** @author xcoulon */
-public class JavaElementChangedBuildTask {
+public class JavaElementChangedBuildJob extends Job {
 
 	private final ElementChangedEvent event;
 	
-	public JavaElementChangedBuildTask(final ElementChangedEvent event) {
-		super();
+	public JavaElementChangedBuildJob(final ElementChangedEvent event) {
+		super("Processing JAX-RS changes...");
+		Logger.debug("Kicking a JavaElementChangedBuildJob (#{}) to process {}", JobMonitor.getJobId(this), event);
+		this.setPriority(Job.SHORT);
 		this.event = event;
+		this.addJobChangeListener(new JobMonitor());
 	}
 	
-	public IStatus execute(final IProgressMonitor progressMonitor) {
+	
+	protected IStatus run(final IProgressMonitor progressMonitor) {
 		final long startTime = new Date().getTime();
 		IJavaElement element = null;
 		try {

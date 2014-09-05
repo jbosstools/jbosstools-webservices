@@ -22,11 +22,11 @@ import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_OPENED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
-import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_PROBLEM_SOLVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,14 +38,14 @@ import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
@@ -63,8 +63,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 public class JavaElementDeltaScanner {
 
 	private final JavaElementDeltaFilter javaElementChangedEventFilter = new JavaElementDeltaFilter();
-
-	private final CompilationUnitsRepository compilationUnitsRepository = CompilationUnitsRepository.getInstance();
 
 	public List<JavaElementChangedEvent> scanAndFilterEvent(ElementChangedEvent event, IProgressMonitor progressMonitor)
 			throws CoreException {
@@ -118,44 +116,33 @@ public class JavaElementDeltaScanner {
 		}
 		final CompilationUnit compilationUnitAST = getCompilationUnitAST(delta);
 		if (elementKind == COMPILATION_UNIT) {
-			ICompilationUnit compilationUnit = (ICompilationUnit) element;
+			final ICompilationUnit compilationUnit = (ICompilationUnit) element;
 			// compilationUnitAST is null when the given compilation unit'w
 			// working copy is being commited (ie, Java Editor is being closed
 			// for the given compilation unit, etc.)
 			if (compilationUnit.exists() // see https://issues.jboss.org/browse/JBIDE-12760: compilationUnit may not exist
 					&& compilationUnit.isWorkingCopy() && compilationUnitAST != null) {
-				// Looking for changes in the method signatures (return type,
+				// assuming possible changes in the method signatures (return type,
 				// param types and param annotations). Other changes in methods
 				// (renaming, adding/removing params) result in add+remove
 				// events on the given method itself.
-
-				// FIXME: must make sure that the methodDeclarationsMap remains
-				// in sync with the working copy after each change.
-				final boolean computeDiffs = requiresDiffsComputation(flags);
-				final Map<String, JavaMethodSignature> diffs = compilationUnitsRepository.mergeAST(compilationUnit,
-						compilationUnitAST, computeDiffs);
-				for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
-					final IJavaMethodSignature methodSignature = diff.getValue();
-					final JavaElementChangedEvent event = new JavaElementChangedEvent(methodSignature.getJavaMethod(), CHANGED, eventType,
-							compilationUnitAST, new Flags(F_SIGNATURE));
-					if (javaElementChangedEventFilter.apply(event)) {
-						events.add(event);
+				if(requiresDiffsComputation(flags)) {
+					final Map<String, JavaMethodSignature> diffs = new HashMap<String, JavaMethodSignature>();
+					for(IType type : compilationUnit.getAllTypes()) {
+						for(IMethod method : type.getMethods()) {
+							diffs.put(method.getHandleIdentifier(), JdtUtils.resolveMethodSignature(method, compilationUnitAST));
+						}
+					}
+					
+					for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
+						final IJavaMethodSignature methodSignature = diff.getValue();
+						final JavaElementChangedEvent event = new JavaElementChangedEvent(methodSignature.getJavaMethod(), CHANGED, eventType,
+								compilationUnitAST, new Flags(F_SIGNATURE));
+						if (javaElementChangedEventFilter.apply(event)) {
+							events.add(event);
+						}
 					}
 				}
-				// FIXME: why solved only ??
-				// looking for removed (ie solved) problems
-				final IProblem[] problems = compilationUnitAST.getProblems();
-				final Map<IProblem, IJavaElement> solvedProblems = compilationUnitsRepository.mergeProblems(compilationUnit,
-						problems);
-				for (Entry<IProblem, IJavaElement> solvedProblem : solvedProblems.entrySet()) {
-					final IJavaElement solvedElement = solvedProblem.getValue();
-					final JavaElementChangedEvent event = new JavaElementChangedEvent(solvedElement, CHANGED, eventType,
-							compilationUnitAST, new Flags(F_PROBLEM_SOLVED));
-					if (javaElementChangedEventFilter.apply(event)) {
-						events.add(event);
-					}
-				}
-
 			}
 		} 
 		// element is part of the compilation unit
@@ -187,31 +174,11 @@ public class JavaElementDeltaScanner {
 	 */
 	private CompilationUnit getCompilationUnitAST(final IJavaElementDelta delta) throws JavaModelException {
 		CompilationUnit compilationUnitAST = null;
-		IJavaElement element = delta.getElement();
-		int elementKind = element.getElementType();
-		int deltaKind = retrieveDeltaKind(delta);
-		if (elementKind == COMPILATION_UNIT) {
-			ICompilationUnit compilationUnit = (ICompilationUnit) element;
-			switch (deltaKind) {
-			case ADDED:
-				compilationUnitAST = compilationUnitsRepository.getAST(compilationUnit);
-				break;
-			case CHANGED:
-				if (compilationUnit.isWorkingCopy()) {
-					compilationUnitAST = delta.getCompilationUnitAST();
-					if (compilationUnitAST == null) {
-						compilationUnitAST = JdtUtils.parse(compilationUnit, new NullProgressMonitor());
-					}
-				} else {
-					compilationUnitAST = compilationUnitsRepository.getAST(compilationUnit);
-				}
-				break;
-			case REMOVED:
-				compilationUnitsRepository.removeAST(compilationUnit);
-				break;
-			}
-		} else {
-			compilationUnitAST = compilationUnitsRepository.getAST(element.getResource());
+		final IJavaElement element = delta.getElement();
+		compilationUnitAST = delta.getCompilationUnitAST();
+		if (compilationUnitAST == null) {
+			//compilationUnitAST = compilationUnitsRepository.getAST(compilationUnit);
+			compilationUnitAST = JdtUtils.parse(element, new NullProgressMonitor());
 		}
 		return compilationUnitAST;
 	}

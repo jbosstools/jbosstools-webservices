@@ -98,14 +98,8 @@ public class JaxrsMetamodelBuilder extends IncrementalProjectBuilder {
 		Logger.debug("Building JAX-RS metamodel for project '" + project.getName() + "'");
 		final IJavaProject javaProject = JavaCore.create(project);
 		final ResourceChangedBuildJob job = new ResourceChangedBuildJob(javaProject, getResourceChangeEvent(project, buildKind));
-		job.setRule(new MutexJobSchedulingRule(javaProject));
+		job.setRule(project.getWorkspace().getRuleFactory().buildRule());
 		job.schedule();
-		try {
-			job.join();
-		} catch (InterruptedException e) {
-			Logger.warn("JAX-RS Metamodel build job was interrupted", e);
-		}
-
 	}
 
 	private ResourceChangeEvent getResourceChangeEvent(final IProject project, final int buildKind) {

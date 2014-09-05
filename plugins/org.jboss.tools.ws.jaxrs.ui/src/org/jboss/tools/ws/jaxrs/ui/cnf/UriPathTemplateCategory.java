@@ -19,10 +19,16 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.jdt.core.ElementChangedEvent;
+import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedBuildJob;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsMetamodel;
@@ -177,7 +183,19 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		try {
 			final IJaxrsMetamodel metamodel= JaxrsMetamodelLocator.get(javaProject, true);
 			if(metamodel != null) {
-				parent.refreshContent(metamodel);
+				final JavaElementDelta delta = new JavaElementDelta(javaProject, null,
+						IJavaElementDelta.ADDED, 0);
+				final ElementChangedEvent event = new ElementChangedEvent(delta, ElementChangedEvent.POST_RECONCILE);
+				final JavaElementChangedBuildJob job = new JavaElementChangedBuildJob(event);
+				job.setRule(javaProject.getProject().getWorkspace().getRuleFactory().buildRule());
+				job.schedule();
+				job.addJobChangeListener(new JobChangeAdapter() {
+					@Override
+					public void done(final IJobChangeEvent event) {
+						parent.refreshContent(metamodel);
+					}
+				});
+				
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to determine the problem severity for the JAX-RS Web Services", e);

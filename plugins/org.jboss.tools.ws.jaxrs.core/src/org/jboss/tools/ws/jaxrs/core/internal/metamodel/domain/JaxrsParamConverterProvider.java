@@ -117,6 +117,7 @@ public class JaxrsParamConverterProvider extends JaxrsJavaElement<IType> impleme
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaType);
 				final IType paramConverterProviderSupertype = JdtUtils.resolveType(JaxrsClassnames.PARAM_CONVERTER_PROVIDER,
 						javaType.getJavaProject(), new NullProgressMonitor());
 				this.isParamConvertProviderImpl = JdtUtils.isTypeOrSuperType(paramConverterProviderSupertype, javaType);

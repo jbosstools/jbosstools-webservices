@@ -21,13 +21,16 @@ import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
 import static org.eclipse.jdt.core.IJavaElement.TYPE;
 import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.eclipse.jdt.core.IJavaElementDelta.*;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_ADDED_TO_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_AST_AFFECTED;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_CHILDREN;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_CLASSPATH_CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_FINE_GRAINED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_OPENED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_PRIMARY_RESOURCE;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
+import static org.eclipse.jdt.core.IJavaElementDelta.F_RESOLVED_CLASSPATH_CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_SUPER_TYPES;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_ADDED;
@@ -50,7 +53,6 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 
 public class JavaElementDeltaFilter {
 
-	public final static int ANY_EVENT = POST_RECONCILE + POST_CHANGE;
 	private final static int WORKING_COPY = 0x1;
 	private final static int PRIMARY_COPY = 0x2;
 
@@ -79,30 +81,30 @@ public class JavaElementDeltaFilter {
 				.after(POST_RECONCILE).in(WORKING_COPY);
 		accept().when(COMPILATION_UNIT).is(REMOVED).after(POST_RECONCILE).in(PRIMARY_COPY + WORKING_COPY);
 
-		accept().when(TYPE).is(ADDED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(TYPE).is(ADDED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
 		// Supertypes changes. Renaming a type ends up with
 		// remove+add operations
-		accept().when(TYPE).is(CHANGED).withFlags(F_SUPER_TYPES).after(ANY_EVENT).in(WORKING_COPY);
-		accept().when(TYPE).is(CHANGED).withFlags(F_MARKER_ADDED).after(ANY_EVENT).in(WORKING_COPY);
-		accept().when(TYPE).is(REMOVED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(TYPE).is(CHANGED).withFlags(F_SUPER_TYPES).after(POST_RECONCILE + POST_CHANGE).in(WORKING_COPY);
+		accept().when(TYPE).is(CHANGED).withFlags(F_MARKER_ADDED).after(POST_RECONCILE + POST_CHANGE).in(WORKING_COPY);
+		accept().when(TYPE).is(REMOVED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
 
-		accept().when(METHOD).is(ADDED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(METHOD).is(CHANGED).withFlags(F_SIGNATURE).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(METHOD).is(CHANGED).withFlags(F_MARKER_ADDED).after(ANY_EVENT)
+		accept().when(METHOD).is(ADDED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(CHANGED).withFlags(F_SIGNATURE).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(CHANGED).withFlags(F_MARKER_ADDED).after(POST_RECONCILE + POST_CHANGE)
 				.in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(METHOD).is(CHANGED).withFlags(F_MARKER_REMOVED).after(ANY_EVENT)
+		accept().when(METHOD).is(CHANGED).withFlags(F_MARKER_REMOVED).after(POST_RECONCILE + POST_CHANGE)
 				.in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(METHOD).is(REMOVED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(METHOD).is(REMOVED).withFlags(F_CONTENT).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(REMOVED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(METHOD).is(REMOVED).withFlags(F_CONTENT).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
 
-		accept().when(FIELD).is(ADDED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(FIELD).is(CHANGED).withFlags(F_CONTENT).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(FIELD).is(REMOVED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(FIELD).is(ADDED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(FIELD).is(CHANGED).withFlags(F_CONTENT).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(FIELD).is(REMOVED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
 
-		accept().when(ANNOTATION).is(ADDED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(ANNOTATION).is(CHANGED).withFlags(F_CONTENT).after(ANY_EVENT)
+		accept().when(ANNOTATION).is(ADDED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(ANNOTATION).is(CHANGED).withFlags(F_CONTENT).after(POST_RECONCILE + POST_CHANGE)
 				.in(PRIMARY_COPY + WORKING_COPY);
-		accept().when(ANNOTATION).is(REMOVED).after(ANY_EVENT).in(PRIMARY_COPY + WORKING_COPY);
+		accept().when(ANNOTATION).is(REMOVED).after(POST_RECONCILE + POST_CHANGE).in(PRIMARY_COPY + WORKING_COPY);
 
 	}
 

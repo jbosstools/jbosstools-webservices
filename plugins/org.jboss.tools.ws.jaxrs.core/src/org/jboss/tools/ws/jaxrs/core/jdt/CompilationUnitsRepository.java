@@ -21,6 +21,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -116,21 +117,27 @@ public class CompilationUnitsRepository {
 
 	public Map<String, JavaMethodSignature> mergeAST(final ICompilationUnit compilationUnit,
 			final CompilationUnit compilationUnitAST, final boolean computeDiffs) throws JavaModelException {
-		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(compilationUnit.findPrimaryType(), compilationUnitAST);
-		Map<String, JavaMethodSignature> diffs = null;
-		// FIXME: must make sure that the methodDeclarationsMap remains in sync
-		// with the working copy after each change.
+		final Map<String, JavaMethodSignature> diffs = new HashMap<String, JavaMethodSignature>();
+		for(IType type : compilationUnit.getTypes()) {
+			diffs.putAll(mergeAST(type, compilationUnitAST, computeDiffs));
+		}
+		return diffs;
+	}
+
+	private Map<String, JavaMethodSignature> mergeAST(final IType type,
+			final CompilationUnit compilationUnitAST, final boolean computeDiffs) throws JavaModelException {
+		final ICompilationUnit compilationUnit = type.getCompilationUnit();
+		final Map<String, JavaMethodSignature> methodSignatures = JdtUtils.resolveMethodSignatures(type, compilationUnitAST);
+		final Map<String, JavaMethodSignature> diffs = new HashMap<String, JavaMethodSignature>();
 		if (computeDiffs) {
 			Map<String, JavaMethodSignature> workingCopyDeclarations = methodSignatures;
 			Map<String, JavaMethodSignature> controlDeclarations = methodDeclarationsMap.get(compilationUnit);
-			diffs = CollectionUtils.difference(workingCopyDeclarations, controlDeclarations);
+			diffs.putAll(CollectionUtils.difference(workingCopyDeclarations, controlDeclarations));
 			if (diffs.size() > 0) {
 				Logger.trace("Found diffs in method signatures:", diffs);
 			}
-		} else {
-			diffs = new HashMap<String, JavaMethodSignature>();
 		}
-		// replace old values in "cache"
+		// replace old values in "cache" if the compilation is a working copy only
 		astMap.put(compilationUnit.getResource().getFullPath(), compilationUnitAST);
 		// TODO : improve performances here : do not override all method
 		// declaration, but only those that changed, because reparsing method

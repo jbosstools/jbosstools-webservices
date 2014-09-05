@@ -131,10 +131,10 @@ public class JBossJaxrsCorePlugin extends Plugin {
 	 * 
 	 * @param listener
 	 */
-	public static void addJaxrsMetamodelChangedListener(final IJaxrsMetamodelChangedListener listener) {
-		if(!getDefault().metamodelChangedListeners.contains(listener)) { 
+	public void addJaxrsMetamodelChangedListener(final IJaxrsMetamodelChangedListener listener) {
+		if(!metamodelChangedListeners.contains(listener)) { 
 			Logger.debug("Registering JaxrsMetamodelChangedListener");
-			getDefault().metamodelChangedListeners.add(listener);
+			metamodelChangedListeners.add(listener);
 		}
 	}
 
@@ -144,8 +144,8 @@ public class JBossJaxrsCorePlugin extends Plugin {
 	 * 
 	 * @param listener
 	 */
-	public static void removeListener(final IJaxrsMetamodelChangedListener listener) {
-		getDefault().metamodelChangedListeners.remove(listener);
+	public void removeListener(final IJaxrsMetamodelChangedListener listener) {
+		metamodelChangedListeners.remove(listener);
 	}
 
 	/**

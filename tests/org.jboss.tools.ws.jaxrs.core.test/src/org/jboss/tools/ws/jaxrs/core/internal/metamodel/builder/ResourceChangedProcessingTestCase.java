@@ -16,7 +16,6 @@ import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -63,7 +62,6 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.hamcrest.Matchers;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -74,7 +72,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMeth
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceProperty;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplication;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -120,8 +117,7 @@ public class ResourceChangedProcessingTestCase {
 		// verifications
 		// 1 application + 1 HttpMethod + 7 Resources and their methods + 2
 		// Providers
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(41));
-		assertThat(metamodelMonitor.getElementChanges(), everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(42));
 		// all HttpMethods, Resources, ResourceMethods and ResourceFields. only
 		// application is available: the java-based
 		// one found in src/main/java
@@ -139,8 +135,7 @@ public class ResourceChangedProcessingTestCase {
 		// 2 applications (java/webxml) + 6 built-in HttpMethods + 2 custom
 		// HttpMethod + 7 Resources and their methods + 5 Providers: the whole
 		// project is used to build the metamodel.
-		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(51));
-		assertThat(metamodelMonitor.getElementChanges(), everyItem(Matchers.<JaxrsElementDelta> hasProperty("deltaKind", equalTo(ADDED))));
+		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(52));
 		// all project-specific Applications, HttpMethods, Resources,
 		// ResourceMethods and ResourceFields (built-in
 		// HttpMethods are not bound to a project)
@@ -1286,8 +1281,6 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @Encoded *before* the CustomerResource type
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
-				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
@@ -1314,8 +1307,6 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @Encoded *before* the createCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
-				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final ISourceRange afterChangeSourceRange = resourceMethod.getAnnotation(POST)
@@ -1345,8 +1336,6 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @Encoded *before* the getCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@Encoded", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
-				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		// reference has changed (local variable)
@@ -1381,8 +1370,6 @@ public class ResourceChangedProcessingTestCase {
 		// operation: removing "@PathParam("id") Integer id" parameter in the
 		// getCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@PathParam(\"id\") Integer id, ", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
-				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications: java method has changed, so all references must be
 		// looked-up again
@@ -1414,8 +1401,6 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @DELETE *after* the CustomerResource type
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
-				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
@@ -1442,8 +1427,6 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @DELETE, after the createCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
-				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final ISourceRange afterChangeSourceRange = postAnnotation.getJavaAnnotation().getSourceRange();
@@ -1472,8 +1455,6 @@ public class ResourceChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation: removing @DELETE, *after* the getCustomer() method
 		replaceFirstOccurrenceOfCode(customerResource.getJavaElement(), "@DELETE", "", false);
-		CompilationUnitsRepository.getInstance().mergeAST(customerResource.getJavaElement().getCompilationUnit(),
-				JdtUtils.parse(customerResource.getJavaElement().getCompilationUnit(), null), true);
 		metamodelMonitor.processResourceEvent(customerResource.getJavaElement().getResource(), CHANGED);
 		// verifications
 		final CompilationUnit updatedAst = JdtUtils.parse(customerResource.getJavaElement(), null);
@@ -1851,5 +1832,24 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(provider.getProvidedType(EnumElementKind.MESSAGE_BODY_WRITER), nullValue());
 	}
 	
+	@Test
+	public void shouldChangeResourceMethodKindWhenRemovingGETImport() throws CoreException, OperationCanceledException, InterruptedException {
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		final JaxrsResourceMethod getCustomersResourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomers");
+		final JaxrsResourceMethod getCustomerResourceMethod = metamodelMonitor.resolveResourceMethod(resource, "getCustomer");
+		metamodelMonitor.resetElementChangesNotifications();
+		// before operation: metamodel has 6 built-in HTTP Methods + 1 resource
+		// + 6 methods
+		assertThat(metamodel.findAllElements().size(), equalTo(13));
+		// operation: remove import declaration for GET annotation
+		replaceAllOccurrencesOfCode(resource.getJavaElement().getCompilationUnit(), "import javax.ws.rs.GET;",
+				"", false);
+		metamodelMonitor.processResourceEvent(resource.getResource(), CHANGED);
+		// verifications
+		assertThat(getCustomersResourceMethod.exists(), equalTo(false));
+		assertThat(getCustomerResourceMethod.getElementKind(), equalTo(EnumElementKind.SUBRESOURCE_LOCATOR));
+	}
+
 	
 }

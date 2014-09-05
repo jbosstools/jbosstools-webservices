@@ -44,6 +44,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -65,6 +66,9 @@ public class Jaxrs11ElementFactoryTestCase {
 	@Rule
 	public JaxrsMetamodelMonitor metamodelMonitor = new JaxrsMetamodelMonitor("org.jboss.tools.ws.jaxrs.tests.sampleproject", false);
 
+	@Rule
+	public TestBanner bannerRule = new TestBanner();
+	
 	private JaxrsMetamodel metamodel = null;
 
 	@Before

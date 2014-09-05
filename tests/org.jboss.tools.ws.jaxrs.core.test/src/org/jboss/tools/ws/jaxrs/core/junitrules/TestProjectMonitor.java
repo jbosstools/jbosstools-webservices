@@ -25,7 +25,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
@@ -44,7 +43,6 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestPlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 import org.junit.Assert;
@@ -97,7 +95,6 @@ public class TestProjectMonitor extends ExternalResource {
 			TestLogger.info("Workspace auto-build disabled.");
 		}
 		// clear CompilationUnit repository
-		CompilationUnitsRepository.getInstance().clear();
 		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		this.project = WorkbenchTasks.getTargetWorkspaceProject(projectName);
 		this.project.open(new NullProgressMonitor());
@@ -147,13 +144,6 @@ public class TestProjectMonitor extends ExternalResource {
 		return javaProject;
 	}
 	
-	public static void buildWorkspace(final IProgressMonitor progressMonitor) throws CoreException,
-			OperationCanceledException, InterruptedException {
-		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, new NullProgressMonitor());
-		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-	}
-
-	
 	/********************************************************************************************
 	 * 
 	 * Java manipulation utility methods (a.k.a., Helpers)
@@ -169,6 +159,7 @@ public class TestProjectMonitor extends ExternalResource {
 		project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 		project.build(buildKind, new NullProgressMonitor());
 		Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+		WorkbenchTasks.waitForTasksToComplete(project);
 	}
 
 	/**
@@ -339,6 +330,7 @@ public class TestProjectMonitor extends ExternalResource {
 		ICompilationUnit foocompilationUnit = packageFragment.createCompilationUnit(unitName, contents, true,
 				new NullProgressMonitor());
 		JavaElementsUtils.saveAndClose(foocompilationUnit);
+		WorkbenchTasks.waitForTasksToComplete(javaProject);
 		return foocompilationUnit;
 	}
 

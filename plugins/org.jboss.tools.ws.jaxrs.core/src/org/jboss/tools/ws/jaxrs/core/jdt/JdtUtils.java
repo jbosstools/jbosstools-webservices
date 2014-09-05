@@ -478,8 +478,9 @@ public final class JdtUtils {
 			break;
 		default:
 		}
-		return NodeFinder.perform(ast, member.getSourceRange().getOffset(),
-				member.getSourceRange().getLength(), ast.getTypeRoot());
+		final NodeFinder finder = new NodeFinder(ast, member.getSourceRange().getOffset(),
+				member.getSourceRange().getLength());
+		return finder.getCoveredNode();
 	}
 
 	/**
@@ -1280,5 +1281,16 @@ public final class JdtUtils {
 		return javaMethod != null && javaMethod.getElementName().startsWith("set") ;
 	}
 
-	
+	/**
+	 * Makes the given {@link IMember}'s {@link ICompilationUnit} if it is not already the case (and if it exists).
+	 * @throws JavaModelException
+	 * @See {@link ICompilationUnit#isConsistent()}
+	 * @See {@link ICompilationUnit#makeConsistent(IProgressMonitor)}
+	 */
+	public static void makeConsistentIfNecessary(final IMember javaMember) throws JavaModelException {
+		if(javaMember!= null && javaMember.getCompilationUnit() != null && javaMember.getCompilationUnit().exists() && !javaMember.getCompilationUnit().isConsistent()) {
+			Logger.trace("Making {} consistent...", javaMember.getCompilationUnit().getElementName());
+			javaMember.getCompilationUnit().makeConsistent(new NullProgressMonitor());
+		}
+	}
 }

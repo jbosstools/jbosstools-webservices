@@ -11,6 +11,8 @@
 
 package org.jboss.tools.ws.jaxrs.core.junitrules;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -26,9 +28,13 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.internal.ide.filesystem.FileSystemStructureProvider;
@@ -161,4 +167,30 @@ public class WorkbenchTasks {
 		TestLogger.debug(projectName + " path=" + path.toOSString());
 		return path;
 	}
+	
+	/**
+	 * Waits for internal jobs to complete before returning, to be sure that assertions will be performed *after* jobs are done.
+	 * @param element
+	 */
+	public static void waitForTasksToComplete(final IJavaElement element) {
+		waitForTasksToComplete(element.getJavaProject().getProject());
+	}
+
+	/**
+	 * Waits for internal jobs to complete before returning, to be sure that assertions will be performed *after* jobs are done.
+	 * @param element
+	 */
+	public static void waitForTasksToComplete(final IProject project) {
+		// trigger a fake job with a scheduling rule to make sure any other job did complete
+		try {
+			final TimeLimitedJob waitJob = new TimeLimitedJob();
+			waitJob.setRule(project.getWorkspace().getRuleFactory().buildRule());
+			waitJob.scheduleWithTimeout(10*60);
+			waitJob.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			fail("Failed to wait for other jobs to complete: " + e.getMessage());
+		}
+	}
+
 }

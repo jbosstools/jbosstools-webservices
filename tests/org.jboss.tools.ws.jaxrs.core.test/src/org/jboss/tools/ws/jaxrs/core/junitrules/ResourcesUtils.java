@@ -66,7 +66,7 @@ public class ResourcesUtils {
 	public static <T extends IMember> T replaceFirstOccurrenceOfCode(final T member, final String oldContent, final String newContent,
 			final boolean useWorkingCopy) throws JavaModelException {
 		final ICompilationUnit compilationUnit = member.getCompilationUnit();
-		final ICompilationUnit unit = useWorkingCopy ? JavaElementsUtils.createWorkingCopy(compilationUnit) : member.getCompilationUnit();
+		final ICompilationUnit unit = useWorkingCopy ? JavaElementsUtils.createWorkingCopy(compilationUnit) : compilationUnit;
 		final ISourceRange sourceRange = member.getSourceRange();
 		final IBuffer buffer = ((IOpenable) unit).getBuffer();
 		final int offset = buffer.getContents().indexOf(oldContent, sourceRange.getOffset());
@@ -76,7 +76,7 @@ public class ResourcesUtils {
 		// workingCopy.getElementAt(sourceRange.getOffset());
 		JavaElementsUtils.saveAndClose(unit);
 		@SuppressWarnings("unchecked")
-		T modifiedElement = (T) compilationUnit.getElementAt(sourceRange.getOffset());
+		T modifiedElement = (T) unit.getElementAt(sourceRange.getOffset());
 		return modifiedElement;
 	}
 
@@ -114,8 +114,14 @@ public class ResourcesUtils {
 		replaceAllOccurrencesOfCode(type.getCompilationUnit(), oldContent, newContent, useWorkingCopy);
 	}
 
+	/**
+	 * Deletes the IResource and waits for jobs to complete
+	 * @param resource
+	 * @throws CoreException
+	 */
 	public static void delete(IResource resource) throws CoreException {
 		resource.delete(true, new NullProgressMonitor());
+		WorkbenchTasks.waitForTasksToComplete(resource.getProject());
 	}
 
 	/**

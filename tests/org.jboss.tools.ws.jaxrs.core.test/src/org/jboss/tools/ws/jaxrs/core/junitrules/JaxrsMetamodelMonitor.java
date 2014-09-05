@@ -3,6 +3,8 @@
  */
 package org.jboss.tools.ws.jaxrs.core.junitrules;
 
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_CHANGE;
+import static org.eclipse.jdt.core.ElementChangedEvent.POST_RECONCILE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
 import static org.junit.Assert.fail;
@@ -28,7 +30,6 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectBuilderUtils;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementDeltaFilter;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
@@ -108,7 +109,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 			this.metamodelProblemLevelChanges.clear();
 			// register listeners:
 			this.metamodel.addJaxrsElementChangedListener(this);
-			JBossJaxrsCorePlugin.addJaxrsMetamodelChangedListener(this);
+			JBossJaxrsCorePlugin.getDefault().addJaxrsMetamodelChangedListener(this);
+			JBossJaxrsCorePlugin.getDefault().resumeListeners();
 		} catch (CoreException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -135,7 +137,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 			TestLogger.info("Destroying metamodel...");
 			// remove listener before sync' to avoid desync...
 			metamodel.removeListener((IJaxrsElementChangedListener) this);
-			JBossJaxrsCorePlugin.removeListener((IJaxrsMetamodelChangedListener) this);
+			JBossJaxrsCorePlugin.getDefault().pauseListeners();
+			JBossJaxrsCorePlugin.getDefault().removeListener((IJaxrsMetamodelChangedListener) this);
 			metamodel.remove();
 		} catch (CoreException e) {
 			e.printStackTrace();
@@ -216,23 +219,45 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		metamodel.processAffectedResources(Arrays.asList(new ResourceDelta(resource, deltaKind, Flags.NONE)), new NullProgressMonitor());
 	}
 	
+	/**
+	 * Process the given change
+	 * @param element
+	 * @param deltaKind
+	 * @param flags
+	 * @throws CoreException
+	 */
 	public void processEvent(final Annotation annotation, final int deltaKind) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, JavaElementDeltaFilter.ANY_EVENT,
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, POST_RECONCILE + POST_CHANGE,
 				JdtUtils.parse(((IMember) annotation.getJavaParent()), new NullProgressMonitor()), Flags.NONE);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
+		WorkbenchTasks.waitForTasksToComplete(annotation.getJavaAnnotation());
 	}
 	
+	/**
+	 * Process the given change
+	 * @param element
+	 * @param deltaKind
+	 * @param flags
+	 * @throws CoreException
+	 */
 	public void processEvent(final IJavaElement element, final int deltaKind) throws CoreException {
 		processEvent(element, deltaKind, Flags.NONE);
 	}
 	
+	/**
+	 * Process the given change
+	 * @param element
+	 * @param deltaKind
+	 * @param flags
+	 * @throws CoreException
+	 */
 	public void processEvent(final IJavaElement element, final int deltaKind, final Flags flags) throws CoreException {
-		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, JavaElementDeltaFilter.ANY_EVENT, JdtUtils.parse(element,
+		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, POST_RECONCILE + POST_CHANGE, JdtUtils.parse(element,
 				new NullProgressMonitor()), flags);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
+		WorkbenchTasks.waitForTasksToComplete(element);
 	}
 	
-
 	/********************************************************************************************
 	 * 
 	 * JAX-RS Metamodel manipulation utility methods (a.k.a., Helpers)
@@ -250,6 +275,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		// remove the validation builder to avoid blocking during tests
 		ProjectBuilderUtils.uninstallProjectBuilder(getProject(), ProjectBuilderUtils.VALIDATOR_BUILDER_ID);
 		buildProject();		
+		WorkbenchTasks.waitForTasksToComplete(getJavaProject());
 		return this.metamodel;
 	}
 

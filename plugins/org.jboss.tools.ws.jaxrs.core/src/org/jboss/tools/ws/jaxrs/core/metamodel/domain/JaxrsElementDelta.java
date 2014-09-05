@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 
 public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
@@ -98,9 +97,6 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 		this.element = element;
 		this.deltaKind = deltaKind;
 		this.flags = new Flags(flags);
-		if (this.deltaKind == CHANGED && !this.flags.hasValue()) {
-			Logger.debug("*** No flag to describe the change ?!? ***");
-		}
 	}
 
 	/**
@@ -114,9 +110,6 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 		this.element = element;
 		this.deltaKind = deltaKind;
 		this.flags = flags;
-		if (this.deltaKind == CHANGED && !this.flags.hasValue()) {
-			Logger.debug("*** No flag to describe the change ?!? ***");
-		}
 	}
 
 	/**
@@ -182,7 +175,7 @@ public class JaxrsElementDelta implements Comparable<JaxrsElementDelta> {
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		s.append("JaxrsElementChange: ").append(element.toString()).append(" [")
+		s.append("JaxrsElementChange: ").append(element).append(" [")
 				.append(ConstantUtils.getStaticFieldName(IJavaElementDelta.class, deltaKind)).append("] ");
 		try {
 			if (flags.hasValue()) {

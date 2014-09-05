@@ -70,7 +70,6 @@ import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JavaElementChangedEvent;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsElementChangedProcessorDelegate;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.JaxrsHttpMethodChangedListener;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.MutexJobSchedulingRule;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.ResourceDelta;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JaxrsElementsIndexationDelegate;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.LuceneDocumentFactory;
@@ -353,7 +352,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	 * @see {@link JaxrsElementDelta}
 	 */
 	private void notifyListeners(final JaxrsElementDelta delta) {
-		Logger.trace("Notify elementChangedListeners after {}", delta);
+		Logger.debug("Notify elementChangedListeners after {}", delta);
 		for (IJaxrsElementChangedListener listener : elementChangedListeners) {
 			listener.notifyElementChanged(delta);
 		}
@@ -491,6 +490,7 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		writeLock.lock();
 		try {
 			progressMonitor.beginTask("Processing project '" + getProject().getName() + "'...", 1);
+			Logger.debug("Processing full project '{}'", getProject().getName());
 			// remove previous markers
 			removePreviousJaxrsMarkers();
 			// start with a fresh new metamodel
