@@ -118,6 +118,7 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaType);
 				final IType applicationSupertype = JdtUtils.resolveType(JaxrsClassnames.APPLICATION,
 						javaType.getJavaProject(), new NullProgressMonitor());
 				this.isApplicationSubclass = JdtUtils.isTypeOrSuperType(applicationSupertype, javaType);
@@ -326,11 +327,6 @@ public class JaxrsJavaApplication extends JaxrsJavaElement<IType> implements IJa
 				}
 			}
 		}
-	}
-
-	@Override
-	public String toString() {
-		return ("JavaApplication '" + getJavaElement().getElementName() + "': path=" + getApplicationPath());
 	}
 
 }

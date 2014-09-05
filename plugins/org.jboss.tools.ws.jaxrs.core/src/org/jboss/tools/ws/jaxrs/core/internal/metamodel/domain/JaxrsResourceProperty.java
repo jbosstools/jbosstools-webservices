@@ -104,6 +104,7 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 				if (javaMethod == null || !javaMethod.exists() || !javaMethod.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaMethod);
 				this.parentResource = parentResource;
 				if(parentResource != null) {
 					this.metamodel = parentResource.getMetamodel();
@@ -320,12 +321,6 @@ public class JaxrsResourceProperty extends JaxrsResourceElement<IMethod> impleme
 			return EnumElementKind.BEAN_PARAM_PROPERTY;
 		}
 		return EnumElementKind.UNDEFINED_RESOURCE_PROPERTY;
-	}
-
-	@Override
-	public String toString() {
-		return "ResourceProperty'" + getJavaElement().getParent().getElementName() + "."
-			+ getJavaElement().getElementName() + "' | annotations=" + getAnnotations();
 	}
 
 }

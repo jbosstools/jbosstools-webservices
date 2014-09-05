@@ -290,7 +290,7 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 			flags.addFlags(internalUpdateAnnotation(entry.getValue()));
 		}
 		for (Entry<String, Annotation> entry : removedAnnotations.entrySet()) {
-			flags.addFlags(internalRemoveAnnotation(entry.getValue().getJavaAnnotation()));
+			flags.addFlags(internalRemoveAnnotation(entry.getValue()));
 		}
 
 		return flags;
@@ -383,30 +383,38 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 	 * flag to qualify the type of annotation that was removed. If the given
 	 * identifier is null, the returned flag is {@link JaxrsElementDelta#F_NONE}
 	 * 
-	 * @param annotation
+	 * @param javaAnnotation
 	 * @return the change flag.
 	 */
-	private Flags internalRemoveAnnotation(final IAnnotation annotation) {
-		String annotationName = null;
-		if (annotation != null) {
-			final EnumElementKind previousKind = getElementKind();
+	private Flags internalRemoveAnnotation(final IAnnotation javaAnnotation) {
+		if (javaAnnotation != null) {
 			for(Iterator<Entry<String, Annotation>> iterator = annotations.entrySet().iterator(); iterator.hasNext();) {
 				final Entry<String, Annotation> entry = iterator.next();
-				if(entry.getValue().getJavaAnnotation().getHandleIdentifier().equals(annotation.getHandleIdentifier())) {
-					annotationName = entry.getKey();
-					iterator.remove();
-					break;
+				final Annotation annotation = entry.getValue();
+				if(annotation.getJavaAnnotation().getHandleIdentifier().equals(javaAnnotation.getHandleIdentifier())) {
+					return internalRemoveAnnotation(annotation);
 				}
-			}
-			// this removes the annotation, which can cause a change of the
-			// element type as well.
-			if(annotationName != null) {
-				return qualifyChange(annotationName, previousKind);
 			}
 		}
 		return Flags.NONE;
 	}
 	
+	/**
+	 * Removes the given {@link Annotation} and returns a
+	 * flag to qualify the type of annotation that was removed or {@link JaxrsElementDelta#F_NONE}
+	 * 
+	 * @param annotation the annotation to remove
+	 * @return the change flag to qualify the type of change
+	 */
+	private Flags internalRemoveAnnotation(final Annotation annotation) {
+		if (annotation != null) {
+			final EnumElementKind previousKind = getElementKind();
+			annotations.remove(annotation.getFullyQualifiedName());
+			return qualifyChange(annotation.getFullyQualifiedName(), previousKind);
+		}
+		return Flags.NONE;
+	}
+
 	public IResource getResource() {
 		return this.javaElement.getResource();
 	}
@@ -484,5 +492,26 @@ public abstract class JaxrsJavaElement<T extends IMember> extends JaxrsBaseEleme
 		}
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		if(hasMetamodel()) {
+			builder.append(getElementKind().toString());
+		} else {
+			builder.append("TRANSIENT");
+		}
+		builder.append(" ").append(getJavaElement().getElementName()).append(" ");
+		if(getAnnotations().isEmpty()) {
+			builder.append(" (no annotation)");
+		} else {
+			for(Entry<String, Annotation> entry : getAnnotations().entrySet()) {
+				final Annotation annotation = entry.getValue();
+				builder.append(" ").append(annotation);
+			}
+		}
+		return builder.toString();
+	}
+
 
 }

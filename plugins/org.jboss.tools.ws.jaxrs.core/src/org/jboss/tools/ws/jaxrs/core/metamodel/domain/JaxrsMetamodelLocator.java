@@ -116,7 +116,7 @@ public class JaxrsMetamodelLocator {
 				return JaxrsMetamodel.create(javaProject);
 			}
 			return metamodel;	
-		}
+		}	
 	}
 
 }

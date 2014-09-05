@@ -278,8 +278,8 @@ public class JavaElementsUtils {
 
 	private static void insertCodeAtLocation(final ICompilationUnit compilationUnit, final String content, final int offset,
 			final boolean useWorkingCopy) throws CoreException {
-		ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
-		IBuffer buffer = ((IOpenable) unit).getBuffer();
+		final ICompilationUnit unit = getCompilationUnit(compilationUnit, useWorkingCopy);
+		final IBuffer buffer = ((IOpenable) unit).getBuffer();
 		buffer.replace(offset, 0, content + "\n"); // append a new line at the
 													// same time
 		saveAndClose(unit);
@@ -354,10 +354,12 @@ public class JavaElementsUtils {
 	}
 
 	public static ICompilationUnit createWorkingCopy(final ICompilationUnit compilationUnit) throws JavaModelException {
+		if(compilationUnit.isWorkingCopy()) {
+			TestLogger.debug("Using existing working copy...");
+			return compilationUnit;
+		}
 		TestLogger.debug("Creating working copy...");
-		// ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new
-		// NullProgressMonitor());
-		ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new WorkingCopyOwner() {
+		final ICompilationUnit workingCopy = compilationUnit.getWorkingCopy(new WorkingCopyOwner() {
 	
 			@Override
 			public IProblemRequestor getProblemRequestor(ICompilationUnit workingCopy) {
@@ -387,28 +389,27 @@ public class JavaElementsUtils {
 	}
 
 	/**
-	 * @param unit
+	 * @param compilationUnit
 	 * @throws JavaModelException
 	 */
-	public static void saveAndClose(final ICompilationUnit unit) throws JavaModelException {
+	public static void saveAndClose(final ICompilationUnit compilationUnit) throws JavaModelException {
 		try {
-			if (unit.isWorkingCopy()) {
+			if (compilationUnit.isWorkingCopy()) {
 				TestLogger.debug("Reconciling unit...");
-				unit.reconcile(AST.JLS8, ICompilationUnit.FORCE_PROBLEM_DETECTION, unit.getOwner(),
-						new NullProgressMonitor());
+				compilationUnit.reconcile(AST.JLS8, ICompilationUnit.FORCE_PROBLEM_DETECTION, compilationUnit.getOwner(), new NullProgressMonitor());
 				// Commit changes
 				TestLogger.debug("Commiting working copy...");
-				unit.commitWorkingCopy(false, null);
-				// Destroy working copy
-				TestLogger.debug("Discarding working copy...");
-				unit.discardWorkingCopy();
+				compilationUnit.commitWorkingCopy(true, null);
+				// Discard the working copy
+				//TestLogger.debug("Discarding working copy...");
+				//compilationUnit.discardWorkingCopy();
 			} else {
-				unit.save(new NullProgressMonitor(), true);
+				compilationUnit.save(new NullProgressMonitor(), true);
 			}
 			// explicitly trigger the project build
-			unit.getResource().refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
-			unit.getJavaProject().getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-	
+			compilationUnit.getResource().refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
+			compilationUnit.getJavaProject().getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+			WorkbenchTasks.waitForTasksToComplete(compilationUnit.getJavaProject());
 		} catch (Exception e) {
 			TestLogger.error("Failed to build project", e);
 		}
@@ -416,6 +417,7 @@ public class JavaElementsUtils {
 
 	public static void delete(final ICompilationUnit compilationUnit) throws CoreException {
 		compilationUnit.delete(true, new NullProgressMonitor());
+		WorkbenchTasks.waitForTasksToComplete(compilationUnit.getJavaProject());
 	}
 
 	public static void delete(final IAnnotation annotation, final boolean useWorkingCopy) throws CoreException {

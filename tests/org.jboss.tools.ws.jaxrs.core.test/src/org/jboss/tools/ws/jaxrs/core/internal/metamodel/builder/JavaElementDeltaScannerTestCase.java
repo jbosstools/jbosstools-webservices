@@ -20,8 +20,6 @@ import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_REMOVED_FROM_CLASSPATH;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_SUPER_TYPES;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_ADDED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_MARKER_REMOVED;
 import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElementDeltaFlag.F_SIGNATURE;
@@ -77,7 +75,6 @@ import org.eclipse.ui.IEditorPart;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -112,13 +109,8 @@ public class JavaElementDeltaScannerTestCase {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
 		project = metamodel.getProject();
-		
 		JBossJaxrsCorePlugin.getDefault().pauseListeners();
 		Assert.assertNotNull("JavaProject not set");
-		// ElementChangedEvent.POST_RECONCILE is the only case where the
-		// CompilationUnitAST is retrieved
-		astRepository.clear();
-		// JBossJaxrsCorePlugin.getDefault().unregisterListeners();
 		JavaCore.addElementChangedListener(elementChangeListener);
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener);
 		javaElementEvents = Mockito.mock(List.class);
@@ -133,8 +125,6 @@ public class JavaElementDeltaScannerTestCase {
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
 	}
 	
-	private final CompilationUnitsRepository astRepository = CompilationUnitsRepository.getInstance();
-
 	private static final boolean PRIMARY_COPY = false;
 
 	private static final boolean WORKING_COPY = true;
@@ -269,12 +259,10 @@ public class JavaElementDeltaScannerTestCase {
 	@Ignore("can't produce the right test conditions here")
 	public void shouldNotifyWhenResourceRemovedInWorkingCopy() throws CoreException {
 		// pre-condition
-		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
+		final ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit().getWorkingCopy(new NullProgressMonitor());
 		compilationUnit.open(new NullProgressMonitor());
-		final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(compilationUnit);
-		assertThat(ast, notNullValue());
-		IEditorPart editorPart = JavaUI.openInEditor(compilationUnit);
+		final IEditorPart editorPart = JavaUI.openInEditor(compilationUnit);
 		JavaUI.revealInEditor(editorPart, (IJavaElement) compilationUnit);
 		// operation
 		compilationUnit.getResource().delete(true, null);

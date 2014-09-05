@@ -125,6 +125,7 @@ public class JaxrsNameBinding extends JaxrsJavaElement<IType> implements IJaxrsN
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaType);
 				annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
 				// Element *MUST* at least have the @NameBinding annotation to be an HTTP Method.
 				// Problems will be reported by validation if other annotations are missing.
@@ -216,11 +217,6 @@ public class JaxrsNameBinding extends JaxrsJavaElement<IType> implements IJaxrsN
 	@Override
 	public String getJavaClassName() {
 		return getJavaElement().getFullyQualifiedName();
-	}
-
-	@Override
-	public String toString() {
-		return "NameBinding [@" + getJavaClassName() + ":" + getNameBindingAnnotation() + "]";
 	}
 
 	@Override

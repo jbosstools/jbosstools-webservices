@@ -107,6 +107,7 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 				if (javaField == null || !javaField.exists() || !javaField.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaField);
 				javaFieldType = JdtUtils.resolveFieldType(javaField, ast);
 				final IType parentType = (IType) javaField.getParent();
 				// lookup parent resource in metamodel
@@ -299,12 +300,6 @@ public class JaxrsResourceField extends JaxrsResourceElement<IField> implements 
 			return EnumElementKind.BEAN_PARAM_FIELD;
 		}
 		return EnumElementKind.UNDEFINED_RESOURCE_FIELD;
-	}
-
-	@Override
-	public String toString() {
-		return "ResourceField '" + getJavaElement().getParent().getElementName() + "."
-			+ getJavaElement().getElementName() + "' | annotations=" + getAnnotations();
 	}
 
 }

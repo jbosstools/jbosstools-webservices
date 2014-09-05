@@ -14,7 +14,6 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
 
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Map;
@@ -178,6 +177,7 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaType);
 				this.annotations = JdtUtils.resolveAllAnnotations(javaType, ast);
 				// Element *MUST* at least have the @HttpMethod annotation to be an HTTP Method.
 				// Problems will be reported by validation if other annotations are missing.
@@ -287,14 +287,6 @@ public class JaxrsHttpMethod extends JaxrsJavaElement<IType> implements IJaxrsHt
 	/** @return the Target Annotation */
 	public Annotation getTargetAnnotation() {
 		return getAnnotation(Target.class.getName());
-	}
-
-	/**
-	 * {@link Inherited}
-	 */
-	@Override
-	public String toString() {
-		return "HttpMethod [@" + getJavaElement().getFullyQualifiedName() + ":" + getHttpMethodAnnotation() + "]";
 	}
 
 	@Override

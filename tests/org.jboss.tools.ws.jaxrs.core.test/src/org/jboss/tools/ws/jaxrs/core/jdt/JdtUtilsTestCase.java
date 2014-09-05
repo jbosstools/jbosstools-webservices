@@ -59,9 +59,8 @@ import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
-import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
-import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
@@ -837,8 +836,6 @@ public class JdtUtilsTestCase {
 		final IMethod method = projectMonitor.resolveMethod(customerType, "getCustomer");
 		final int offset = method.getSourceRange().getOffset() + method.getSourceRange().getLength() - 2;
 		// operation
-		TestLogger.debug("Compilation unit: \n{}", CompilationUnitsRepository.getInstance()
-				.getAST(customerType.getCompilationUnit()));
 		final Annotation foundAnnotation = JdtUtils.resolveAnnotationAt(offset, customerType.getCompilationUnit());
 		// verification
 		assertThat(foundAnnotation, nullValue());

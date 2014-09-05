@@ -144,6 +144,7 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 				if (javaMethod == null || !javaMethod.exists() || !javaMethod.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaMethod);
 				this.parentResource = parentResource;
 				if(parentResource != null) {
 					this.metamodel = parentResource.getMetamodel();
@@ -438,16 +439,14 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 
 	@Override
 	public final EnumElementKind getElementKind() {
-		if (hasMetamodel()) {
-			final Annotation pathAnnotation = getPathAnnotation();
-			final Annotation httpMethodAnnotation = getHttpMethodAnnotation();
-			if (pathAnnotation == null && httpMethodAnnotation != null) {
-				return EnumElementKind.RESOURCE_METHOD;
-			} else if (pathAnnotation != null && httpMethodAnnotation != null) {
-				return EnumElementKind.SUBRESOURCE_METHOD;
-			} else if (pathAnnotation != null && httpMethodAnnotation == null) {
-				return EnumElementKind.SUBRESOURCE_LOCATOR;
-			}
+		final Annotation pathAnnotation = getPathAnnotation();
+		final Annotation httpMethodAnnotation = getHttpMethodAnnotation();
+		if (pathAnnotation == null && httpMethodAnnotation != null) {
+			return EnumElementKind.RESOURCE_METHOD;
+		} else if (pathAnnotation != null && httpMethodAnnotation != null) {
+			return EnumElementKind.SUBRESOURCE_METHOD;
+		} else if (pathAnnotation != null && httpMethodAnnotation == null) {
+			return EnumElementKind.SUBRESOURCE_LOCATOR;
 		}
 		return EnumElementKind.UNDEFINED_RESOURCE_METHOD;
 	}
@@ -695,17 +694,4 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 		return null;
 	}
 	
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return "ResourceMethod '"
-				+ (getParentResource() != null ? getParentResource().getName() : "<No Parent Resource>") + "."
-				+ getJavaElement().getElementName()
-				+ "' " + (getHttpMethodClassName() != null ? getHttpMethodClassName() : "")
-				+ " " + (hasPathTemplate() ? getPathTemplate() : "")
-				+ " (" + getElementKind().toString() + ")";
-	}
-
 }

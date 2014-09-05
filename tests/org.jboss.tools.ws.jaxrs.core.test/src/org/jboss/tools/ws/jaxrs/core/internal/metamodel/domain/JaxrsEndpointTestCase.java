@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.*;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_QUERY_PARAM_ANNOTATION;
 import static org.junit.Assert.assertThat;
@@ -25,6 +25,7 @@ import java.util.Collection;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
@@ -32,7 +33,10 @@ import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
+import org.jboss.tools.ws.jaxrs.core.junitrules.WorkbenchTasks;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.junit.Before;
@@ -50,6 +54,9 @@ public class JaxrsEndpointTestCase {
 
 	private static final boolean WORKING_COPY = true;
 
+	@Rule
+	public TestBanner banner = new TestBanner();
+	
 	@ClassRule
 	public static WorkspaceSetupRule workspaceSetupRule = new WorkspaceSetupRule(
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject");
@@ -59,38 +66,51 @@ public class JaxrsEndpointTestCase {
 			"org.jboss.tools.ws.jaxrs.tests.sampleproject", true);
 
 	private JaxrsMetamodel metamodel = null;
+	
+	private IJavaProject javaProject; 
 
 	@Before
 	public void setup() throws CoreException {
-		metamodel = metamodelMonitor.getMetamodel();
+		this.metamodel = metamodelMonitor.getMetamodel();
+		this.javaProject = metamodel.getJavaProject();
 	}
 
-	private JaxrsResourceMethod getModifiedResourceMethod(final boolean useWorkingCopy) throws CoreException {
+	private JaxrsResourceMethod getResourceMethod() throws CoreException {
+		final String typeName = "org.jboss.tools.ws.jaxrs.sample.services.CustomerResource";
+		final IType resourceType = metamodelMonitor.resolveType(typeName);
+		final IMethod method = metamodelMonitor.resolveMethod(resourceType, "getCustomer");
+		for(IJaxrsElement element : metamodel.findElements(method)) {
+			if(element.getElementKind().getCategory() == EnumElementCategory.RESOURCE_METHOD) {
+				return (JaxrsResourceMethod) element;
+			}
+		}
+		return null;
+	}
+
+	private IMethod modifyJavaMethod(final boolean useWorkingCopy) throws CoreException {
 		final String typeName = "org.jboss.tools.ws.jaxrs.sample.services.CustomerResource";
 		final IType resourceType = metamodelMonitor.resolveType(typeName);
 		final IMethod method = metamodelMonitor.resolveMethod(resourceType, "getCustomer");
 		final String oldContent = "@PathParam(\"id\") Integer id, @Context UriInfo uriInfo";
 		final String newContent = "@PathParam(\"id\") Integer id, @QueryParam(\"queryParam1\") Integer queryParam1, @QueryParam(\"queryParam2\") String queryParam2, @MatrixParam(\"matrixParam1\") Integer matrixParam1, @MatrixParam(\"matrixParam2\") List<String> matrixParam2";
-		replaceFirstOccurrenceOfCode(method, oldContent, newContent, useWorkingCopy);
-		final JaxrsResource resource = metamodel.findResource(resourceType);
-		return resource.getMethods().get(metamodelMonitor.resolveMethod(resourceType, "getCustomer").getHandleIdentifier());
+		return replaceFirstOccurrenceOfCode(method, oldContent, newContent, useWorkingCopy);
 	}
 
-	private IMethod modifyJavaMethodSignature(final JaxrsResourceMethod resourceMethod, final boolean useWorkingCopy)
+	private IMethod remodifyJavaMethod(final IMethod javaMethod)
 			throws CoreException {
-		final IMethod javaMethod = resourceMethod.getJavaElement();
 		final String oldAnnotationContent = "@Path(\"{id}\")";
 		final String newAnnotationContent = "@Path(\"{foo:\\\\d+}/{bar:[a-z]+}\")";
-		replaceFirstOccurrenceOfCode(javaMethod, oldAnnotationContent, newAnnotationContent, useWorkingCopy);
+		final IMethod updatedJavaMethod = replaceFirstOccurrenceOfCode(javaMethod, oldAnnotationContent, newAnnotationContent, javaMethod.getCompilationUnit().isWorkingCopy());
 		final String oldArgsContent = "@PathParam(\"id\") Integer id, @QueryParam(\"queryParam1\") Integer queryParam1, @QueryParam(\"queryParam2\") String queryParam2, @MatrixParam(\"matrixParam1\") Integer matrixParam1, @MatrixParam(\"matrixParam2\") List<String> matrixParam2";
 		final String newArgsContent = "@PathParam(\"foo\") int ident, @PathParam(\"bar\") Char bar, @QueryParam(\"queryParam1\") long queryParam1, @MatrixParam(\"matrixParam1\") short matrixParam1, @MatrixParam(\"matrixParam2\") List<String> matrixParam2, @MatrixParam(\"matrixParam3\") String matrixParam3";
-		return replaceFirstOccurrenceOfCode(javaMethod, oldArgsContent, newArgsContent, useWorkingCopy);
+		return replaceFirstOccurrenceOfCode(updatedJavaMethod, oldArgsContent, newArgsContent, updatedJavaMethod.getCompilationUnit().isWorkingCopy());
 	}
 	
 	@Test
 	public void shouldDisplayEndpointParametersInOrderAtCreationInWorkingCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
+		modifyJavaMethod(WORKING_COPY);
+		final JaxrsResourceMethod resourceMethod = getResourceMethod();
 		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
@@ -103,7 +123,8 @@ public class JaxrsEndpointTestCase {
 	@Test
 	public void shouldDisplayEndpointParametersInOrderAtCreationInPrimaryCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
+		modifyJavaMethod(PRIMARY_COPY);
+		final JaxrsResourceMethod resourceMethod = getResourceMethod();
 		final IJaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
@@ -116,7 +137,8 @@ public class JaxrsEndpointTestCase {
 	@Test
 	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdateInPrimaryCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
+		modifyJavaMethod(PRIMARY_COPY);
+		final JaxrsResourceMethod resourceMethod = getResourceMethod();
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "@GET", "@POST", false);
@@ -127,7 +149,8 @@ public class JaxrsEndpointTestCase {
 	@Test
 	public void shouldDisplayEndpointParametersInOrderAfterHttpMethodUpdateInWorkingCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
+		modifyJavaMethod(WORKING_COPY);
+		final JaxrsResourceMethod resourceMethod = getResourceMethod();
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		// operation
 		replaceFirstOccurrenceOfCode(resourceMethod.getJavaElement(), "@GET", "@POST", false);
@@ -138,14 +161,15 @@ public class JaxrsEndpointTestCase {
 	@Test
 	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdateInWorkingCopy() throws CoreException {
 		// pre-conditions
-		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(WORKING_COPY);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
+		final IMethod modifiedMethod = remodifyJavaMethod(modifyJavaMethod(WORKING_COPY));
+		final JaxrsResourceMethod resourceMethod = getResourceMethod();
 		// operation
-		final IMethod modifiedMethod  = modifyJavaMethodSignature(resourceMethod, WORKING_COPY);
 		resourceMethod.update(modifiedMethod, JdtUtils.parse(modifiedMethod, null));
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		endpoint.update(new Flags(F_PATH_ANNOTATION + F_QUERY_PARAM_ANNOTATION + F_MATRIX_PARAM_ANNOTATION));
-		final String uriPathTemplate = endpoint.getUriPathTemplate();
+		WorkbenchTasks.waitForTasksToComplete(javaProject);
 		// verifications
+		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		assertThat(
 				uriPathTemplate,
 				equalTo("/hello/customers/{foo:\\d+}/{bar:[a-z]+};matrixParam1={short};matrixParam2={List<String>};matrixParam3={String}?queryParam1={long}"));
@@ -153,13 +177,13 @@ public class JaxrsEndpointTestCase {
 
 	@Test
 	public void shouldDisplayEndpointParametersInOrderAfterMethodParametersUpdateInPrimaryCopy() throws CoreException {
-		// pre-conditions
-		final JaxrsResourceMethod resourceMethod = getModifiedResourceMethod(PRIMARY_COPY);
-		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
+		final IMethod modifiedMethod = remodifyJavaMethod(modifyJavaMethod(PRIMARY_COPY));
+		final JaxrsResourceMethod resourceMethod = getResourceMethod();
 		// operation
-		final IMethod modifiedMethod  = modifyJavaMethodSignature(resourceMethod, PRIMARY_COPY);
 		resourceMethod.update(modifiedMethod, JdtUtils.parse(modifiedMethod, null));
+		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		endpoint.update(new Flags(F_PATH_ANNOTATION + F_QUERY_PARAM_ANNOTATION + F_MATRIX_PARAM_ANNOTATION));
+		WorkbenchTasks.waitForTasksToComplete(javaProject);
 		// verifications
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		assertThat(

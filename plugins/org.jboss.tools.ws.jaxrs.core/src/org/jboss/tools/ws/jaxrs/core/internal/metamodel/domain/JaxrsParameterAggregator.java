@@ -120,6 +120,7 @@ public class JaxrsParameterAggregator extends JaxrsJavaElement<IType> implements
 				if (javaType == null || !javaType.exists() || !javaType.isStructureKnown()) {
 					return null;
 				}
+				JdtUtils.makeConsistentIfNecessary(javaType);
 				this.metamodel = metamodel;
 				// do not expect JAX-RS annotations on the type !
 				final Map<String, Annotation> typeAnnotations = JdtUtils.resolveAllAnnotations(javaType, ast);

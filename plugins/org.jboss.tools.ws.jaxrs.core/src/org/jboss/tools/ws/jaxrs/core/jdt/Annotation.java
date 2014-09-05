@@ -13,6 +13,7 @@ package org.jboss.tools.ws.jaxrs.core.jdt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -224,7 +225,25 @@ public class Annotation {
 	 */
 	@Override
 	public String toString() {
-		return "Annotation [" + javaAnnotationName + " " + javaAnnotationElements + "]";
+		final StringBuilder builder = new StringBuilder();
+		builder.append('@').append(getFullyQualifiedName());
+		if(!javaAnnotationElements.isEmpty()) {
+			builder.append('(');
+			for(Iterator<Entry<String, List<String>>> iterator = javaAnnotationElements.entrySet().iterator(); iterator.hasNext();) {
+				final Entry<String, List<String>> entry = iterator.next();
+				builder.append(entry.getKey()).append('=');
+				if(entry.getValue().size() == 1) {
+					builder.append('\"').append(entry.getValue().get(0)).append('\"');
+				} else {
+					builder.append(entry.getValue());
+				}
+				if(iterator.hasNext()) {
+					builder.append(", ");
+				}
+			}
+			builder.append(')');
+		}
+		return builder.toString();
 	}
 
 	/*

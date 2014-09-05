@@ -45,7 +45,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsM
 	 */
 	public UriMappingsContentProvider() {
 		Logger.debug("*** Instantiating the UriMappingsContentProvider ***");
-		JBossJaxrsCorePlugin.addJaxrsMetamodelChangedListener(this);
+		JBossJaxrsCorePlugin.getDefault().addJaxrsMetamodelChangedListener(this);
 	}
 	
 	@Override
@@ -107,7 +107,7 @@ public class UriMappingsContentProvider implements ITreeContentProvider, IJaxrsM
 
 	@Override
 	public void dispose() {
-		JBossJaxrsCorePlugin.removeListener(this);
+		JBossJaxrsCorePlugin.getDefault().removeListener(this);
 		uriPathTemplateCategories = null;
 	}
 

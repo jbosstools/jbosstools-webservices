@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.JobMonitor;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelLocator;
@@ -43,7 +44,9 @@ public class ResourceChangedBuildJob extends Job {
 		super("JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
 		this.javaProject = javaProject;
-		Logger.debug("Initiating a JAX-RS Metamodel build after " + event); //$NON-NLS-1$
+		this.setPriority(Job.BUILD);
+		Logger.debug("Kicking a new ResourceChangedBuildJob (#{}) to process {}", JobMonitor.getJobId(this), event.getDelta());
+		this.addJobChangeListener(new JobMonitor());
 	}
 
 	@Override

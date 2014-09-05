@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +40,7 @@ import java.util.UUID;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ObjectUtils;
@@ -231,6 +233,20 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 	 * Triggers a refresh when changes occurred on one or more elements
 	 * (HttpMethod and/or ResourcMethods) of the endpoint.
 	 * 
+	 * @param changedResourceMethod the {@link JaxrsResourceMethod} that changed
+	 * @param flags flags to qualify the changes that occurred in the given {@link JaxrsResourceElement} 
+	 * @throws CoreException
+	 */
+	public void update(final JaxrsResourceMethod changedResourceMethod, final Flags flags) throws CoreException {
+		updateResourceElement(changedResourceMethod);
+		update(flags);
+	}
+
+	/**
+	 * Triggers a refresh when changes occurred on one or more elements
+	 * (HttpMethod and/or ResourcMethods) of the endpoint.
+	 * 
+	 * @param flags flags to qualify the changes that occurred in the given {@link JaxrsResourceElement} 
 	 * @throws CoreException
 	 */
 	public void update(final Flags flags) throws CoreException {
@@ -238,12 +254,12 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		if (flags.hasValue(F_HTTP_METHOD_ANNOTATION)) {
 			changed = changed || refreshHttpMethod();
 		}
-
+		
 		if (flags.hasValue(F_PATH_ANNOTATION, F_PATH_PARAM_ANNOTATION, F_QUERY_PARAM_ANNOTATION, F_MATRIX_PARAM_ANNOTATION, F_BEAN_PARAM_ANNOTATION, 
 				F_DEFAULT_VALUE_ANNOTATION, F_METHOD_PARAMETERS)) {
 			changed = changed || refreshUriPathTemplate();
 		}
-
+		
 		// look for mediatype capabilities at the method level, then fall back
 		// at the type level, then "any" otherwise
 		if (flags.hasValue(F_CONSUMES_ANNOTATION)) {
@@ -254,6 +270,23 @@ public class JaxrsEndpoint implements IJaxrsEndpoint {
 		}
 		if (changed) {
 			metamodel.update(this);
+		}
+	}
+
+	/**
+	 * Updates the reference to the given {@code changedResourceMethod} using the underlying {@link IJavaElement#getHandleIdentifier()}
+	 * @param changedResourceMethod the {@link JaxrsResourceMethod} that changed
+	 */
+	private void updateResourceElement(final JaxrsResourceMethod changedResourceMethod) {
+		if(changedResourceMethod == null) {
+			return;
+		}
+		for(ListIterator<JaxrsResourceMethod> iterator = this.resourceMethods.listIterator(); iterator.hasNext();) {
+			final JaxrsResourceMethod resourceMethod = iterator.next();
+			if(resourceMethod.getIdentifier().equals(changedResourceMethod.getIdentifier())) {
+				iterator.set(changedResourceMethod); 
+				return;
+			}
 		}
 	}
 

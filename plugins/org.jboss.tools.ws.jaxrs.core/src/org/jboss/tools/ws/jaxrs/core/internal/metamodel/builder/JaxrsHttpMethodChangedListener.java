@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ElementChangedEvent;
@@ -26,7 +27,6 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResourceMeth
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.search.JavaElementsSearcher;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
-import org.jboss.tools.ws.jaxrs.core.jdt.CompilationUnitsRepository;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElementChangedListener;
@@ -64,8 +64,7 @@ public class JaxrsHttpMethodChangedListener implements IJaxrsElementChangedListe
 				final Set<IMethod> affectedMethods = getAffectedMethods(delta);
 				final JavaElementDelta affectedMethodsDelta = new JavaElementDelta(metamodel.getJavaProject(), null, IJavaElementDelta.CHANGED, 0);
 				for(IMethod affectedMethod : affectedMethods) {
-					//FIXME: do we need an intermediate level with methods ?
-					final CompilationUnit ast = CompilationUnitsRepository.getInstance().getAST(affectedMethod.getCompilationUnit());
+					final CompilationUnit ast = JdtUtils.parse(affectedMethod, new NullProgressMonitor());
 					final JavaElementDelta affectedMethodDelta = new JavaElementDelta(affectedMethod, ast, IJavaElementDelta.CHANGED, 0);
 					final Annotation httpMethodAnnotation = JdtUtils.resolveAnnotation(affectedMethod, ast, httpMethod.getJavaClassName());
 					if(httpMethodAnnotation != null) {
@@ -73,8 +72,10 @@ public class JaxrsHttpMethodChangedListener implements IJaxrsElementChangedListe
 						affectedMethodsDelta.addAffectedElementDelta(affectedMethodDelta);
 					}
 				}
-				final JavaElementChangedBuildTask elementChangedBuildTask = new JavaElementChangedBuildTask(new ElementChangedEvent(affectedMethodsDelta, IJavaElementDelta.CHANGED));
-				elementChangedBuildTask.execute(new NullProgressMonitor());
+				final JavaElementChangedBuildJob job = new JavaElementChangedBuildJob(new ElementChangedEvent(affectedMethodsDelta, ElementChangedEvent.POST_CHANGE));
+				final IProject project = metamodel.getProject();
+				job.setRule(project.getWorkspace().getRuleFactory().modifyRule(project));
+				job.schedule();
 			} catch(CoreException e) {
 				Logger.error("Failed to process change after HTTP Method addition/removal", e);
 			}
