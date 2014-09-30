@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
@@ -121,7 +122,7 @@ public class ResourcesUtils {
 	 */
 	public static void delete(IResource resource) throws CoreException {
 		resource.delete(true, new NullProgressMonitor());
-		WorkbenchTasks.waitForTasksToComplete(resource.getProject());
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(resource));
 	}
 
 	/**
@@ -292,4 +293,11 @@ public class ResourcesUtils {
 		file.refreshLocal(IResource.DEPTH_ONE, null);
 	}
 
+	/**
+	 * @return the {@link IWorkspace} associated with the given {@link IResource}
+	 * @param resource the {@link IResource} to process
+	 */
+	public static IWorkspace getWorkspace(final IResource resource) {
+		return resource.getProject().getWorkspace();
+	}
 }

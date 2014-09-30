@@ -1182,4 +1182,5 @@ public class JavaElementDeltaScannerTestCase {
 		// verification
 		verify(resourceEvents, never()).add(new ResourceDelta(project, CHANGED, Flags.NONE));
 	}
+	
 }

@@ -127,19 +127,13 @@ public class JavaElementDeltaScanner {
 				// (renaming, adding/removing params) result in add+remove
 				// events on the given method itself.
 				if(requiresDiffsComputation(flags)) {
-					final Map<String, JavaMethodSignature> diffs = new HashMap<String, JavaMethodSignature>();
 					for(IType type : compilationUnit.getAllTypes()) {
-						for(IMethod method : type.getMethods()) {
-							diffs.put(method.getHandleIdentifier(), JdtUtils.resolveMethodSignature(method, compilationUnitAST));
-						}
-					}
-					
-					for (Entry<String, JavaMethodSignature> diff : diffs.entrySet()) {
-						final IJavaMethodSignature methodSignature = diff.getValue();
-						final JavaElementChangedEvent event = new JavaElementChangedEvent(methodSignature.getJavaMethod(), CHANGED, eventType,
-								compilationUnitAST, new Flags(F_SIGNATURE));
-						if (javaElementChangedEventFilter.apply(event)) {
-							events.add(event);
+						for(IMethod javaMethod : type.getMethods()) {
+							final JavaElementChangedEvent event = new JavaElementChangedEvent(javaMethod, CHANGED, eventType,
+									compilationUnitAST, new Flags(F_SIGNATURE));
+							if (javaElementChangedEventFilter.apply(event)) {
+								events.add(event);
+							}
 						}
 					}
 				}
