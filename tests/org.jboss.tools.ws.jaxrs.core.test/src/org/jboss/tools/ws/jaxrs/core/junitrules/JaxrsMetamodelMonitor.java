@@ -5,6 +5,8 @@ package org.jboss.tools.ws.jaxrs.core.junitrules;
 
 import static org.eclipse.jdt.core.ElementChangedEvent.POST_CHANGE;
 import static org.eclipse.jdt.core.ElementChangedEvent.POST_RECONCILE;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getWorkspace;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.getWorkspace;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.APPLICATION_PATH;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.HTTP_METHOD;
 import static org.junit.Assert.fail;
@@ -60,7 +62,6 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsMetamodelDelta;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
-
 /**
  * @author xcoulon
  *
@@ -212,11 +213,12 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 
 	public void processProject() throws CoreException {
 		metamodel.processProject(new NullProgressMonitor());
-		
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(getJavaProject()));
 	}
 	
 	public void processResourceEvent(final IResource resource, final int deltaKind) throws CoreException {
 		metamodel.processAffectedResources(Arrays.asList(new ResourceDelta(resource, deltaKind, Flags.NONE)), new NullProgressMonitor());
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(resource));
 	}
 	
 	/**
@@ -230,7 +232,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(annotation.getJavaAnnotation(), deltaKind, POST_RECONCILE + POST_CHANGE,
 				JdtUtils.parse(((IMember) annotation.getJavaParent()), new NullProgressMonitor()), Flags.NONE);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
-		WorkbenchTasks.waitForTasksToComplete(annotation.getJavaAnnotation());
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(annotation.getJavaAnnotation()));
 	}
 	
 	/**
@@ -242,6 +244,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 	 */
 	public void processEvent(final IJavaElement element, final int deltaKind) throws CoreException {
 		processEvent(element, deltaKind, Flags.NONE);
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(element));
 	}
 	
 	/**
@@ -255,7 +258,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		final JavaElementChangedEvent delta = new JavaElementChangedEvent(element, deltaKind, POST_RECONCILE + POST_CHANGE, JdtUtils.parse(element,
 				new NullProgressMonitor()), flags);
 		metamodel.processJavaElementChange(delta, new NullProgressMonitor());
-		WorkbenchTasks.waitForTasksToComplete(element);
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(element));
 	}
 	
 	/********************************************************************************************
@@ -275,7 +278,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		// remove the validation builder to avoid blocking during tests
 		ProjectBuilderUtils.uninstallProjectBuilder(getProject(), ProjectBuilderUtils.VALIDATOR_BUILDER_ID);
 		buildProject();		
-		WorkbenchTasks.waitForTasksToComplete(getJavaProject());
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(getJavaProject()));
 		return this.metamodel;
 	}
 

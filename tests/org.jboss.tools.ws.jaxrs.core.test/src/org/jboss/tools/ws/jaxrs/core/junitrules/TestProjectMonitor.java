@@ -2,8 +2,8 @@
  * 
  */
 package org.jboss.tools.ws.jaxrs.core.junitrules;
-
 import static org.hamcrest.Matchers.notNullValue;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.getWorkspace;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -159,7 +159,7 @@ public class TestProjectMonitor extends ExternalResource {
 		project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 		project.build(buildKind, new NullProgressMonitor());
 		Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
-		WorkbenchTasks.waitForTasksToComplete(project);
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(project));
 	}
 
 	/**
@@ -330,7 +330,7 @@ public class TestProjectMonitor extends ExternalResource {
 		ICompilationUnit foocompilationUnit = packageFragment.createCompilationUnit(unitName, contents, true,
 				new NullProgressMonitor());
 		JavaElementsUtils.saveAndClose(foocompilationUnit);
-		WorkbenchTasks.waitForTasksToComplete(javaProject);
+		WorkbenchTasks.waitForTasksToComplete(javaProject.getProject().getWorkspace());
 		return foocompilationUnit;
 	}
 

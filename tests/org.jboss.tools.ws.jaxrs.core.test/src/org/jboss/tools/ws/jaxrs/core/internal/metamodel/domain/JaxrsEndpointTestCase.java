@@ -14,6 +14,7 @@ package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
+import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.getWorkspace;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_MATRIX_PARAM_ANNOTATION;
 import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PATH_ANNOTATION;
@@ -167,7 +168,7 @@ public class JaxrsEndpointTestCase {
 		resourceMethod.update(modifiedMethod, JdtUtils.parse(modifiedMethod, null));
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		endpoint.update(new Flags(F_PATH_ANNOTATION + F_QUERY_PARAM_ANNOTATION + F_MATRIX_PARAM_ANNOTATION));
-		WorkbenchTasks.waitForTasksToComplete(javaProject);
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(javaProject));
 		// verifications
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		assertThat(
@@ -183,7 +184,7 @@ public class JaxrsEndpointTestCase {
 		resourceMethod.update(modifiedMethod, JdtUtils.parse(modifiedMethod, null));
 		final JaxrsEndpoint endpoint = metamodel.findEndpoints(resourceMethod).iterator().next();
 		endpoint.update(new Flags(F_PATH_ANNOTATION + F_QUERY_PARAM_ANNOTATION + F_MATRIX_PARAM_ANNOTATION));
-		WorkbenchTasks.waitForTasksToComplete(javaProject);
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(javaProject));
 		// verifications
 		final String uriPathTemplate = endpoint.getUriPathTemplate();
 		assertThat(

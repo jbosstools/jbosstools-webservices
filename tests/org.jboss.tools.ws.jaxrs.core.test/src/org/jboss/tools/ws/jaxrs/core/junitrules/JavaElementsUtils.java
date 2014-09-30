@@ -23,6 +23,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ILocalVariable;
@@ -409,7 +410,7 @@ public class JavaElementsUtils {
 			// explicitly trigger the project build
 			compilationUnit.getResource().refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
 			compilationUnit.getJavaProject().getProject().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-			WorkbenchTasks.waitForTasksToComplete(compilationUnit.getJavaProject());
+			WorkbenchTasks.waitForTasksToComplete(getWorkspace(compilationUnit));
 		} catch (Exception e) {
 			TestLogger.error("Failed to build project", e);
 		}
@@ -417,7 +418,7 @@ public class JavaElementsUtils {
 
 	public static void delete(final ICompilationUnit compilationUnit) throws CoreException {
 		compilationUnit.delete(true, new NullProgressMonitor());
-		WorkbenchTasks.waitForTasksToComplete(compilationUnit.getJavaProject());
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(compilationUnit));
 	}
 
 	public static void delete(final IAnnotation annotation, final boolean useWorkingCopy) throws CoreException {
@@ -521,6 +522,15 @@ public class JavaElementsUtils {
 		}
 		return null;
 	}
+
+	/**
+	 * @return the {@link IWorkspace} associated with the given {@link IJavaElement}
+	 * @param javaElement the {@link IJavaElement} to process
+	 */
+	public static IWorkspace getWorkspace(final IJavaElement javaElement) {
+		return javaElement.getJavaProject().getProject().getWorkspace();
+	}
+
 
 		
 }
