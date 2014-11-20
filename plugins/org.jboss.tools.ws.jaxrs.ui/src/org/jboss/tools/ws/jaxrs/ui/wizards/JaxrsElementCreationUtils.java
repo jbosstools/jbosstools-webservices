@@ -132,12 +132,12 @@ public class JaxrsElementCreationUtils {
 	}
 
 	/**
-	 * @param annotationFullyQualifiedName
-	 * @return
+	 * @param fullyQualifiedName
+	 * @return the simple name associated with the given fully qualified name
 	 */
-	public static String getSimpleName(final String annotationFullyQualifiedName) {
-		final int i = annotationFullyQualifiedName.lastIndexOf('.');
-		final String annotationSimpleName = annotationFullyQualifiedName.substring(i + 1);
+	public static String getSimpleName(final String fullyQualifiedName) {
+		final int i = fullyQualifiedName.lastIndexOf('.');
+		final String annotationSimpleName = fullyQualifiedName.substring(i + 1);
 		return annotationSimpleName;
 	}
 

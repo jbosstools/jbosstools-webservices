@@ -752,6 +752,10 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 
 	void createMethodStubs(final IType type, final ImportsManager imports, final IProgressMonitor monitor)
 			throws JavaModelException {
+		if(this.targetClass == null || this.targetClass.isEmpty()) {
+			// skipping if the user removed the target class in the wizard page (see JBIDE-18392)
+			return;
+		}
 		final String targetClassSimpleName = getSimpleName(this.targetClass);
 		final String targetClassParamName = targetClassSimpleName.toLowerCase();
 		if(this.targetClass != null && !this.targetClass.isEmpty()) {
