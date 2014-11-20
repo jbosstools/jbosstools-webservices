@@ -213,6 +213,36 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(createdResource.getAllMethods().size(), equalTo(0));
 		assertThat(createdResource.getPathTemplate(), equalTo("/customers"));
 	}
+
+	@Test
+	public void shouldCreateResourceClassWithNoMethodWhenNoTargetClass() throws CoreException, InterruptedException {
+		// given
+		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
+				new NullProgressMonitor());
+		final IStructuredSelection selection = new StructuredSelection(customerType);
+		// when
+		wizardPage.init(selection);
+		wizardPage.setIncludeCreateMethod(true);
+		wizardPage.setIncludeDeleteByIdMethod(true);
+		wizardPage.setIncludeFindByIdMethod(true);
+		wizardPage.setIncludeListAllMethod(true);
+		wizardPage.setIncludeUpdateMethod(true);
+		// remove the target class
+		wizardPage.setTargetClass("");
+		wizardPage.createType(new NullProgressMonitor());
+		// then
+		final IType createdType = wizardPage.getCreatedType();
+		assertThat(createdType, notNullValue());
+		assertThat(createdType.getMethods().length, equalTo(0));
+		// trigger a clean build before asserting the new JAX-RS elements
+		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		// 6 new elements: 1 resource + 5 resource methods
+		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
+		assertThat(createdResource, notNullValue());
+		assertThat(createdResource.getAllMethods().size(), equalTo(0));
+		assertThat(createdResource.getPathTemplate(), equalTo("/customers"));
+	}
 	
 	@Test
 	public void shouldCreateResourceClassWithCreateMethod() throws CoreException, InterruptedException {
