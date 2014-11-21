@@ -145,7 +145,6 @@ public class JaxrsNameBindingValidatorTestCase {
 		final IMarker[] markers = findJaxrsMarkers(customNameBinding);
 		assertThat(markers.length, equalTo(1));
 		assertThat(markers, havePreferenceKey(NAME_BINDING_MISSING_TARGET_ANNOTATION));
-		assertThat(markers[0].getAttribute(IMarker.MESSAGE, ""), not(containsString("{")));
 		for (IJaxrsEndpoint endpoint : metamodel.findEndpoints(customNameBinding)) {
 			assertThat(endpoint.getProblemLevel(), not(equalTo(0)));
 		}
