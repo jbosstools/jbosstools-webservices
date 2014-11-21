@@ -31,7 +31,8 @@ public class JaxrsResourceCreationMessages extends NLS {
 	public static String JaxrsResourceCreationWizardPage_EmptyResourcePath;
 	public static String JaxrsResourceCreationWizardPage_EmptyTargetClass;
 	public static String JaxrsResourceCreationWizardPage_InvalidTargetClass;
-	public static String JaxrsResourceCreationWizardPage_CreateMethodSkeleton;
+	public static String JaxrsResourceCreationWizardPage_CreateMethodSkeleton_complete;
+	public static String JaxrsResourceCreationWizardPage_CreateMethodSkeleton_partial;
 	public static String JaxrsResourceCreationWizardPage_FindByIdMethodSkeleton;
 	public static String JaxrsResourceCreationWizardPage_ListAllMethodSkeleton;
 	public static String JaxrsResourceCreationWizardPage_UpdateMethodSkeleton;

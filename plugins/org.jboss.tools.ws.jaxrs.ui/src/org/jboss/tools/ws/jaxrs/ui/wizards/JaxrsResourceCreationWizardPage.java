@@ -23,6 +23,7 @@ import java.util.Iterator;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IBuffer;
@@ -70,6 +71,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.dialogs.SelectionDialog;
+import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory;
@@ -765,9 +767,8 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 		imports.addImport(JaxrsClassnames.URI_BUILDER);
 		if (isIncludeCreateMethod()) {
 			imports.addImport(JaxrsClassnames.POST);
-			final String contents = NLS.bind(
-					JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_CreateMethodSkeleton, new String[] {
-							targetClassSimpleName, targetClassParamName });
+			// check if a getId() method exists in the target class
+			final String contents = getCreateMethodBody(type, targetClassSimpleName, targetClassParamName);
 			final IMethod createdMethod = type.createMethod(contents, null, true, monitor);
 			if (!this.mediaTypes.isEmpty()) {
 				addAnnotation(createdMethod, JaxrsClassnames.CONSUMES, this.mediaTypes, imports);
@@ -775,6 +776,7 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 			addAnnotation(createdMethod, JaxrsClassnames.POST, null, imports);
 			addMethodComments(createdMethod);
 		}
+			
 		if (isIncludeFindByIdMethod()) {
 			imports.addImport(JaxrsClassnames.GET);
 			imports.addImport(JaxrsClassnames.RESPONSE_STATUS);
@@ -829,6 +831,30 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 			addMethodComments(createdMethod);
 		}
 
+	}
+
+	/**
+	 * Selects and return the method body to use, depending on the target class having a 'getId()' method or not.
+	 * @param type the JAX-RS Resource being generated 
+	 * @param targetClassSimpleName the simple name of the associated target class 
+	 * @param targetClassParamName
+	 * @return
+	 */
+	private String getCreateMethodBody(final IType type, final String targetClassSimpleName, final String targetClassParamName) {
+		try {
+			final IType targetType = JdtUtils.resolveType(targetClass, getJavaProject(), new NullProgressMonitor());
+			final IMethod expectedMethod = targetType.getMethod("getId", new String[0]);
+			if(expectedMethod != null && expectedMethod.exists()) {
+				return NLS.bind(
+						JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_CreateMethodSkeleton_complete, new String[] {
+								targetClassSimpleName, targetClassParamName, type.getElementName(), targetClassSimpleName});
+			}
+		} catch(CoreException e) {
+			Logger.error("Failed to find class '{}' in project's classpath.", e, this.targetClass);
+		}
+		return NLS.bind(
+					JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_CreateMethodSkeleton_partial, new String[] {
+							targetClassSimpleName, targetClassParamName, type.getElementName(), targetClassSimpleName});
 	}
 
 	/**

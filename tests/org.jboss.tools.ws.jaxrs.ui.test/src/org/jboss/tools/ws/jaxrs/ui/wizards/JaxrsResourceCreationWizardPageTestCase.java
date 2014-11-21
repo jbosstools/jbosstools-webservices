@@ -11,11 +11,14 @@
 
 package org.jboss.tools.ws.jaxrs.ui.wizards;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -26,6 +29,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
+import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResource;
@@ -33,6 +37,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriMappingsContentProvider;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory;
+import org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -245,7 +250,7 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	}
 	
 	@Test
-	public void shouldCreateResourceClassWithCreateMethod() throws CoreException, InterruptedException {
+	public void shouldCreateResourceClassWithCreateMethodWhenGetIdMethodExists() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
@@ -275,7 +280,49 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(resourceMethod.getPathTemplate(), nullValue());
 		assertThat(resourceMethod.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
 		assertThat(resourceMethod.getProducedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getJavaElement().getSource(), containsString("UriBuilder.fromResource(CustomerEndpoint.class)"));
+		assertThat(resourceMethod.getJavaElement().getSource(), not(containsString("Response.created(null)")));
+		assertThat(ValidationUtils.findJavaProblems(resourceMethod.getResource()).length, equalTo(0));
 	}
+
+	@Test
+	public void shouldCreateResourceClassWithCreateMethodWhenGetIdMethodNotExists() throws CoreException, InterruptedException {
+		// given
+		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
+				new NullProgressMonitor());
+		JavaElementsUtils.removeMethod(customerType.getCompilationUnit(), "getId", false);
+		final IStructuredSelection selection = new StructuredSelection(customerType);
+		// when
+		wizardPage.init(selection);
+		wizardPage.setIncludeCreateMethod(true);
+		wizardPage.setIncludeDeleteByIdMethod(false);
+		wizardPage.setIncludeFindByIdMethod(false);
+		wizardPage.setIncludeListAllMethod(false);
+		wizardPage.setIncludeUpdateMethod(false);
+		wizardPage.createType(new NullProgressMonitor());
+		// then
+		final IType createdType = wizardPage.getCreatedType();
+		assertThat(createdType, notNullValue());
+		assertThat(createdType.getMethods().length, equalTo(1));
+		// trigger a clean build before asserting the new JAX-RS elements
+		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		// 6 new elements: 1 resource + 5 resource methods
+		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
+		assertThat(createdResource, notNullValue());
+		assertThat(createdResource.getAllMethods().size(), equalTo(1));
+		final IJaxrsResourceMethod resourceMethod = createdResource.getAllMethods().get(0);
+		assertThat(resourceMethod.getName(), equalTo("create"));
+		assertThat(resourceMethod.getHttpMethodClassName(), equalTo(JaxrsClassnames.POST));
+		assertThat(resourceMethod.getPathTemplate(), nullValue());
+		assertThat(resourceMethod.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
+		assertThat(resourceMethod.getProducedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getJavaElement().getSource(), containsString("UriBuilder.fromResource(CustomerEndpoint.class)"));
+		assertThat(resourceMethod.getJavaElement().getSource(), containsString("Response.created(null)"));
+		assertThat(ValidationUtils.findJavaProblems(resourceMethod.getResource()).length, equalTo(0));
+		
+	}
+	
 	@Test
 	public void shouldCreateResourceClassWithDeleteMethod() throws CoreException, InterruptedException {
 		// given
