@@ -30,6 +30,12 @@ import org.jboss.tools.ws.creation.core.commands.RemoveClientJarsCommand;
 import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.core.test.util.JBossWSCreationCoreTestUtils;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceClient;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Grid Qian
@@ -37,9 +43,7 @@ import org.jboss.tools.ws.creation.ui.wsrt.JBossWebServiceClient;
 @SuppressWarnings("restriction")
 public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 
-	public JBossWSClientCommandTest() {
-	}
-
+	@Before
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -50,6 +54,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 		assertTrue(wsdlFile.exists());
 	}
 
+	@Test
 	public void testInitialClientCommand() throws CoreException,
 			ExecutionException {
 		WebServiceClientInfo info = new WebServiceClientInfo();
@@ -65,6 +70,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 		assertEquals("", model.getCustomPackage());
 	}
 
+	@Test
 	public void testClientCodeGenerationCommand() throws ExecutionException {
 		IProject project = fproject.getProject();
 		model.setJavaProject(JavaCore.create(project));
@@ -82,6 +88,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 		assertTrue("failed to generate sample class",project.getFile("src/org/apache/hello_world_soap_http/clientsample/ClientSample.java").exists());
 	}
 
+	@Test
 	public void testRemoveClientJarsCommand() throws ExecutionException {
 		RemoveClientJarsCommand command = new RemoveClientJarsCommand(model);
 		model.setJavaProject(JavaCore.create(fproject.getProject()));
