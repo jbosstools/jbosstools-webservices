@@ -14,6 +14,8 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import junit.framework.TestCase;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -33,7 +35,8 @@ import org.eclipse.wst.server.core.ServerUtil;
 import org.eclipse.wst.server.core.model.ServerDelegate;
 import org.jboss.ide.eclipse.as.core.server.IDeployableServer;
 import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
-import org.jboss.tools.as.test.core.internal.utils.JREUtils;
+import org.jboss.tools.as.test.core.TestConstants;
+import org.jboss.tools.as.test.core.internal.utils.ServerCreationTestUtils;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.test.util.TestProjectProvider;
@@ -42,16 +45,17 @@ import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.jboss.tools.ws.creation.core.test.util.StartupShutdownUtil;
 import org.junit.Before;
 
-public class AbstractJBossWSGenerationTest {
+public class AbstractJBossWSGenerationTest extends TestCase {
 	protected IServer currentServer;
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
 	private String RuntimeName = "testjbosswsruntime";
 	public String wsdlFileName = "hello_world.wsdl";
 	public ServiceModel model;
-	private String JBOSS_AS_42_HOME = ASTest.JBOSS_AS_42_HOME;
+	private String JBOSS_AS_42_HOME = TestConstants.JBOSS_AS_42_HOME;
 	private String JBOSS_WS_HOME = JBOSS_AS_42_HOME;
 	public String wsHomePath;
 	IFacetedProject fproject;
@@ -59,15 +63,15 @@ public class AbstractJBossWSGenerationTest {
 
 	@Before
 	public void setUp() throws Exception{
-		assertNotNull(ASTest.JRE_5_HOME, "No JRE5 property in System");
-		assertTrue("The JRE5 location is not right", new Path(ASTest.JRE_5_HOME).toFile().exists());
+		assertNotNull(TestConstants.JRE_5_HOME, "No JRE5 property in System");
+		assertTrue("The JRE5 location is not right", new Path(TestConstants.JRE_5_HOME).toFile().exists());
 		createWSServer();
 		wsHomePath = getJBossWSHomeFolder().toString();
 		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName,wsHomePath, "", true);
 	}
 	
 	public void createWSServer() throws Exception {
-		currentServer = createServer(IJBossToolingConstants.AS_42, IJBossToolingConstants.SERVER_AS_42, ASTest.JBOSS_AS_42_HOME, DEFAULT_CONFIG,JREUtils.createJRE());		
+		currentServer = ServerCreationTestUtils.createServerWithRuntime(IJBossToolingConstants.AS_42, IJBossToolingConstants.SERVER_AS_42);		
 	}
 
 	public IProject createProject(String prjName) throws CoreException {
@@ -112,9 +116,24 @@ public class AbstractJBossWSGenerationTest {
 		currentServer = copy.save(true, new NullProgressMonitor());
 		ds = (IDeployableServer)currentServer.loadAdapter(IDeployableServer.class, new NullProgressMonitor());
 		ds.setDeployLocationType("server");
-		IStatus status = ServerRuntimeUtils.publish(IServer.PUBLISH_INCREMENTAL,currentServer);
+		IStatus status = publish(IServer.PUBLISH_INCREMENTAL,currentServer);
 		return status;
 	}
+	
+	public static IStatus publish(IServer server) throws CoreException {
+		return publish(IServer.PUBLISH_INCREMENTAL, server);
+	}
+
+	public static IStatus publishFull(IServer server) throws CoreException {
+		return publish(IServer.PUBLISH_FULL, server);
+	}
+
+	public static IStatus publish(int type, IServer server) throws CoreException {
+		IStatus s = server.publish(type, new NullProgressMonitor());
+		JobUtils.waitForIdle(1000);
+		return s;
+	}
+
 	
 	private boolean isServerSupplied() {
 		return false;
@@ -132,6 +151,14 @@ public class AbstractJBossWSGenerationTest {
 			// report
 		}
 		super.tearDown();
+	}
+
+	protected void startup(IServer server) {
+		StartupShutdownUtil.shutdown(server);
+	}
+	
+	protected void shutdown(IServer server) {
+		StartupShutdownUtil.shutdown(server);
 	}
 	
 	private void cleanResouces() throws Exception {

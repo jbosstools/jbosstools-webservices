@@ -10,7 +10,11 @@
  ******************************************************************************/ 
 package org.jboss.tools.ws.creation.core.test.command;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
+
+import junit.framework.TestCase;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
@@ -26,9 +30,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
-
-public class JBossWSClientSampleCreationCommandTest {
+public class JBossWSClientSampleCreationCommandTest extends TestCase {
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
 	IProject prj;
 

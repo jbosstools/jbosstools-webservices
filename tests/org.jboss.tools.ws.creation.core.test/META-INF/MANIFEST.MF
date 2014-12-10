@@ -34,7 +34,8 @@ Require-Bundle: org.eclipse.ui,
  org.jboss.ide.eclipse.as.ui,
  org.jboss.tools.as.test.core,
  org.eclipse.wst.jsdt.web.core;bundle-version="1.0.600",
- org.jboss.ide.eclipse.as.jmx.integration;bundle-version="2.4.100"
+ org.jboss.ide.eclipse.as.jmx.integration;bundle-version="2.4.100",
+ org.eclipse.jdt.launching;bundle-version="3.7.100"
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.creation.core.test,
  org.jboss.tools.ws.creation.core.test.command

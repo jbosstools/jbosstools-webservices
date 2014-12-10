@@ -12,6 +12,8 @@ package org.jboss.tools.ws.creation.core.test.command;
 
 import java.io.File;
 
+import junit.framework.TestCase;
+
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -24,9 +26,8 @@ import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-public class JBossWSMergeWebXMLCommandTest {
+public class JBossWSMergeWebXMLCommandTest extends TestCase {
 
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
 	IProject prj;
