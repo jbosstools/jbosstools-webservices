@@ -12,8 +12,6 @@ package org.jboss.tools.ws.creation.core.test.command;
 
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -24,19 +22,25 @@ import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.test.util.TestProjectProvider;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-public class JBossWSClientSampleCreationCommandTest extends TestCase{
+import static org.junit.Assert.assertTrue;
+
+public class JBossWSClientSampleCreationCommandTest {
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
 	IProject prj;
 
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void setUp() throws Exception {
 		TestProjectProvider provider = new TestProjectProvider(BUNDLE,
 				"/projects/" + "WebTest", "WebTest", true);
 		prj = provider.getProject();
 		JobUtils.delay(3000);
 	}
-	
+
+	@Test
 	public void testJBIDE6175() throws ExecutionException{
 		IResource src = prj.findMember("src");
 		assertTrue("src is there",src.exists());
@@ -47,7 +51,8 @@ public class JBossWSClientSampleCreationCommandTest extends TestCase{
 		assertTrue("No java files in src!",list.isEmpty());
 	}
 
-	protected void tearDown() throws Exception {
+	@After
+	public void tearDown() throws Exception {
 		boolean oldAutoBuilding = ResourcesUtils.setBuildAutomatically(false);
 		Exception last = null;
 		try {
@@ -64,6 +69,5 @@ public class JBossWSClientSampleCreationCommandTest extends TestCase{
 		}
 		if (last != null)
 			throw last;
-		super.tearDown();
 	}
 }

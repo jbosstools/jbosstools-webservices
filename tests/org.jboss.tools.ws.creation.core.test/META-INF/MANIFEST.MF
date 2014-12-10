@@ -32,7 +32,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text,
  org.jboss.ide.eclipse.as.classpath.core,
  org.jboss.ide.eclipse.as.ui,
- org.jboss.ide.eclipse.as.test,
+ org.jboss.tools.as.test.core,
  org.eclipse.wst.jsdt.web.core;bundle-version="1.0.600",
  org.jboss.ide.eclipse.as.jmx.integration;bundle-version="2.4.100"
 Bundle-ActivationPolicy: lazy

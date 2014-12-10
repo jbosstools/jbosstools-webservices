@@ -33,9 +33,7 @@ import org.eclipse.wst.server.core.ServerUtil;
 import org.eclipse.wst.server.core.model.ServerDelegate;
 import org.jboss.ide.eclipse.as.core.server.IDeployableServer;
 import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
-import org.jboss.ide.eclipse.as.test.ASTest;
-import org.jboss.ide.eclipse.as.test.util.ServerRuntimeUtils;
-import org.jboss.ide.eclipse.as.test.util.jdt.JREUtils;
+import org.jboss.tools.as.test.core.internal.utils.JREUtils;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.test.util.TestProjectProvider;
@@ -44,8 +42,9 @@ import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
 import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
+import org.junit.Before;
 
-public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
+public class AbstractJBossWSGenerationTest {
 	protected IServer currentServer;
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
@@ -57,9 +56,9 @@ public class AbstractJBossWSGenerationTest extends ServerRuntimeUtils {
 	public String wsHomePath;
 	IFacetedProject fproject;
 	public IFile wsdlFile;
-	
+
+	@Before
 	public void setUp() throws Exception{
-		super.setUp();
 		assertNotNull(ASTest.JRE_5_HOME, "No JRE5 property in System");
 		assertTrue("The JRE5 location is not right", new Path(ASTest.JRE_5_HOME).toFile().exists());
 		createWSServer();

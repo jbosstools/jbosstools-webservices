@@ -39,17 +39,22 @@ import org.jboss.tools.ws.creation.core.commands.ValidateWSImplCommand;
 import org.jboss.tools.ws.creation.core.messages.JBossWSCreationCoreMessages;
 import org.jboss.tools.ws.creation.core.test.util.JBossWSCreationCoreTestUtils;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 /**
  * @author Grid Qian
  */
 @SuppressWarnings("restriction")
 public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
+
 	private IProject clientProject;
 
-	public JBossWSJavaFirstCommandTest() {
-	}
-
+	@Before
+	@Override
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -63,7 +68,14 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		}
 	}
 	
-
+	@After
+	@Override
+	public void tearDown() throws Exception{
+		undeployWebProject();
+		super.tearDown();
+	}
+	
+	@Test
 	public void testDeployResult() throws ExecutionException, CoreException,IOException {
 		doInitialCommand();
 		doValidateWSImplCommand();
@@ -99,7 +111,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		undeployWebProject();
 	}
 
-	public void doInitialCommand() throws CoreException, ExecutionException {
+	private void doInitialCommand() throws CoreException, ExecutionException {
 		WebServiceInfo info = new WebServiceInfo();
 		info.setImplURL("org.example.www.helloworld.HelloWorld");
 		IWebService ws = new JBossWebService(info);
@@ -111,13 +123,13 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		assertTrue(model.getServiceClasses().get(0).equals("org.example.www.helloworld.HelloWorld"));
 	}
 
-	public void doValidateWSImplCommand() throws ExecutionException {
+	private void doValidateWSImplCommand() throws ExecutionException {
 		ValidateWSImplCommand command = new ValidateWSImplCommand(model);
 		IStatus status = command.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 	}
 
-	public void doJava2WSCommand() throws ExecutionException, CoreException {
+	private void doJava2WSCommand() throws ExecutionException, CoreException {
 		model.setGenWSDL(true);
 		model.setJavaSourceFolder("//JavaFirstTestProject//src");
 		IProject project = fproject.getProject();
@@ -150,9 +162,4 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 		return ((TextConsole) console).getDocument().get().contains(str);
 	}
 	
-	
-	public void tearDown() throws Exception{
-		undeployWebProject();
-		super.tearDown();
-	}
 }

@@ -43,23 +43,34 @@ import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.commands.WSDL2JavaCommand;
 import org.jboss.tools.ws.creation.ui.wsrt.JBossWebService;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 @SuppressWarnings("restriction")
 public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 
-	public JBossWSTopDownCommandTest() {
-	}
-	
+	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-
 		//create jbossws web project
 		fproject = createJBossWSProject("JBossWSTestProject");
 		wsdlFile = fproject.getProject().getFile(wsdlFileName);
 		model = createServiceModel();
 		assertTrue(wsdlFile.exists());
 	}
+
+	@After
+	public void tearDown() throws Exception{
+		undeployWebProject();
+		super.tearDown();
+	}
 	
+	@Test
 	public void testDeployResult() throws ExecutionException, CoreException, IOException{
 		doInitialCommand();		
 		doCodeGenerationCommand();
@@ -83,7 +94,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		conn.getContent();
 	}
 
-	public void doInitialCommand() throws CoreException, ExecutionException{		
+	private void doInitialCommand() throws CoreException, ExecutionException{		
 		WebServiceInfo info = new WebServiceInfo();
 		info.setWsdlURL(wsdlFile.getLocationURI().toString());
 		IWebService ws = new JBossWebService(info); 
@@ -101,7 +112,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 	}
 	
 	
-	public void doCodeGenerationCommand() throws ExecutionException{
+	private void doCodeGenerationCommand() throws ExecutionException{
 		IProject project = fproject.getProject();
 		
 		model.setJavaSourceFolder("//JBossWSTestProject//src");
@@ -126,7 +137,7 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		assertTrue("failed to generate implemenatation class", project.getFile("src/org/apache/hello_world_soap_http/impl/GreeterImpl.java").exists());		
 	}
 	
-	public void doMergeWebXMLCommand() throws ExecutionException{
+	private void doMergeWebXMLCommand() throws ExecutionException{
 		model.setGenerateImplementatoin(true);
 		model.addServiceClasses("org.apache.hello_world_soap_http.impl.GreeterImpl");
 		
@@ -164,8 +175,4 @@ public class JBossWSTopDownCommandTest extends AbstractJBossWSGenerationTest {
 		}	
 	}
 	
-	public void tearDown() throws Exception{
-		undeployWebProject();
-		super.tearDown();
-	}
 }

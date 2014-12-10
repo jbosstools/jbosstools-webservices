@@ -12,31 +12,34 @@ package org.jboss.tools.ws.creation.core.test.command;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.jboss.tools.test.util.TestProjectProvider;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
+import org.jboss.tools.test.util.TestProjectProvider;
 import org.jboss.tools.ws.creation.core.commands.MergeWebXMLCommand;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.utils.JBossWSCreationUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class JBossWSMergeWebXMLCommandTest extends TestCase {
+public class JBossWSMergeWebXMLCommandTest {
 
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
 	IProject prj;
 
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void setUp() throws Exception {
 		TestProjectProvider provider = new TestProjectProvider(BUNDLE,
 				"/projects/" + "WebTest", "WebTest", true);
 		prj = provider.getProject();
 		JobUtils.delay(3000);
 	}
-	
+
+	@Test
 	public void testMergeWebXMLCommand() throws ExecutionException{
 		File file = JBossWSCreationUtils.findFileByPath("web.xml", prj.getLocation().toOSString());
 		assertTrue("For now, no web.xml",file == null);
@@ -51,7 +54,8 @@ public class JBossWSMergeWebXMLCommandTest extends TestCase {
 		assertTrue("For now, web.xml should be there",file != null);
 	}
 
-	protected void tearDown() throws Exception {
+	@After
+	public void tearDown() throws Exception {
 		boolean oldAutoBuilding = ResourcesUtils.setBuildAutomatically(false);
 		Exception last = null;
 		try {
@@ -69,6 +73,5 @@ public class JBossWSMergeWebXMLCommandTest extends TestCase {
 
 		if (last != null)
 			throw last;
-		super.tearDown();
 	}
 }
