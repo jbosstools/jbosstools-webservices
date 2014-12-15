@@ -71,7 +71,7 @@ public class AbstractJBossWSGenerationTest extends TestCase {
 	}
 	
 	public void createWSServer() throws Exception {
-		currentServer = ServerCreationTestUtils.createServerWithRuntime(IJBossToolingConstants.SERVER_AS_42, getClass().getName());		
+		currentServer = ServerCreationTestUtils.createServerWithRuntime(IJBossToolingConstants.SERVER_AS_42, IJBossToolingConstants.SERVER_AS_42);		
 	}
 
 	public IProject createProject(String prjName) throws CoreException {
@@ -154,7 +154,7 @@ public class AbstractJBossWSGenerationTest extends TestCase {
 	}
 
 	protected void startup(IServer server) {
-		StartupShutdownUtil.shutdown(server);
+		StartupShutdownUtil.startup(server);
 	}
 	
 	protected void shutdown(IServer server) {

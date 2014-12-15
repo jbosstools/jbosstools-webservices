@@ -150,7 +150,8 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 			if (console.getName().contains("ClientSample")) {
 				int i = 0;
 				while (i < 30&& !isContainString(console,JBossWSCreationCoreMessages.Client_Sample_Run_Over)) {
-					JBossWSCreationCoreTestUtils.delay(1000);
+					JobUtils.delay(1000);
+					//JBossWSCreationCoreTestUtils.delay(1000);
 					i++;
 				}
 				assertTrue(((TextConsole) console).getDocument().get(),isContainString(console,JBossWSCreationCoreMessages.Client_Sample_Run_Over));
