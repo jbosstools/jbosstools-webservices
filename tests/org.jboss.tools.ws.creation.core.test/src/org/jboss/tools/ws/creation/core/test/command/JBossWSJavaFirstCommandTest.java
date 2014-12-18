@@ -19,17 +19,22 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.TextConsole;
 import org.eclipse.wst.ws.internal.wsrt.IWebService;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceInfo;
 import org.eclipse.wst.ws.internal.wsrt.WebServiceScenario;
+import org.jboss.tools.as.test.core.TestConstants;
+import org.jboss.tools.as.test.core.internal.utils.JREUtils;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.creation.core.commands.InitialCommand;
 import org.jboss.tools.ws.creation.core.commands.Java2WSCommand;
@@ -56,6 +61,7 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 	@Before
 	@Override
 	public void setUp() throws Exception {
+		JREUtils.createJRE(new Path(TestConstants.JRE_5_HOME));
 		super.setUp();
 
 		//create jbossws web project

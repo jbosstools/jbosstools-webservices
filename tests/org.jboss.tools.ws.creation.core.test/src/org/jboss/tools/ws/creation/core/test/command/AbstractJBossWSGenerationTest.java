@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
@@ -36,6 +37,7 @@ import org.eclipse.wst.server.core.model.ServerDelegate;
 import org.jboss.ide.eclipse.as.core.server.IDeployableServer;
 import org.jboss.ide.eclipse.as.core.util.IJBossToolingConstants;
 import org.jboss.tools.as.test.core.TestConstants;
+import org.jboss.tools.as.test.core.internal.utils.JREUtils;
 import org.jboss.tools.as.test.core.internal.utils.ServerCreationTestUtils;
 import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
@@ -65,6 +67,7 @@ public class AbstractJBossWSGenerationTest extends TestCase {
 	public void setUp() throws Exception{
 		assertNotNull(TestConstants.JRE_5_HOME, "No JRE5 property in System");
 		assertTrue("The JRE5 location is not right", new Path(TestConstants.JRE_5_HOME).toFile().exists());
+		JavaRuntime.setDefaultVMInstall(JREUtils.createJRE(new Path(TestConstants.JRE_5_HOME)), new NullProgressMonitor() );
 		createWSServer();
 		wsHomePath = getJBossWSHomeFolder().toString();
 		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName,wsHomePath, "", true);
