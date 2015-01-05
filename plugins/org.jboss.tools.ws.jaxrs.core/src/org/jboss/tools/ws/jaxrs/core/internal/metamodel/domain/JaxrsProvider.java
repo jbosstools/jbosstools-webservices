@@ -11,21 +11,6 @@
 
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain;
 
-import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
-import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
-import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_REQUEST_FILTER;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_RESPONSE_FILTER;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTEXT_RESOLVER;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.ENTITY_READER_INTERCEPTOR;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.ENTITY_WRITER_INTERCEPTOR;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPPER;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
-import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,6 +40,23 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
 
+import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
+import static org.jboss.tools.ws.jaxrs.core.jdt.Annotation.VALUE;
+import static org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta.F_PROVIDER_HIERARCHY;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CLIENT_REQUEST_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CLIENT_RESPONSE_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONSUMES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_REQUEST_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTAINER_RESPONSE_FILTER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.CONTEXT_RESOLVER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.ENTITY_READER_INTERCEPTOR;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.ENTITY_WRITER_INTERCEPTOR;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPPER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
+
 /**
  * <p>
  * JAX-RS Providers fall into 5 categories:
@@ -68,7 +70,7 @@ import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
  * <code>javax.ws.rs.ext.ContextResolver</code></li>
  * <li>Exception Providers: the class must be annotated with
  * <code>javax.ws.rs.ext.ExceptionMapper</code></li>
- * <li>Request/Response Filters: the class must implement <code>javax.ws.rs.container.ContainerRequestFilter</code> and/or <code>javax.ws.rs.container.ContainerResponseFilter</code></li>
+ * <li>Request/Response Filters: the class must implement <code>javax.ws.rs.container.ContainerRequestFilter</code>, <code>javax.ws.rs.container.ContainerResponseFilter</code>, <code>javax.ws.rs.client.ClientRequestFilter</code>, <code>javax.ws.rs.client.ClientResponseFilter</code></li>
  * <li>Entity Interceptor: the class must implement <code>javax.ws.rs.ext.ReaderInterceptor</code> and/or <code>javax.ws.rs.ext.WriterInterceptor</code></li>
  * </ul>
  * </p>
@@ -157,6 +159,8 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		 * <li><code>javax.ws.rs.ext.ExceptionMapper</code></li>
 		 * <li><code>javax.ws.rs.container.ContainerRequestFilter</code></li>
 		 * <li><code>javax.ws.rs.container.ContainerResponseFilter</code></li>
+		 * <li><code>javax.ws.rs.client.ClientRequestFilter</code></li>
+		 * <li><code>javax.ws.rs.client.ClientResponseFilter</code></li>
 		 * <li><code>javax.ws.rs.ext.ReaderInterceptor</code></li>
 		 * <li><code>javax.ws.rs.ext.WriterInterceptor</code></li>
 		 * </ul> 
@@ -239,6 +243,8 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			providerInterfaces.put(CONTEXT_RESOLVER, EnumElementKind.CONTEXT_RESOLVER);
 			providerInterfaces.put(CONTAINER_REQUEST_FILTER, EnumElementKind.CONTAINER_REQUEST_FILTER);
 			providerInterfaces.put(CONTAINER_RESPONSE_FILTER, EnumElementKind.CONTAINER_RESPONSE_FILTER);
+			providerInterfaces.put(CLIENT_REQUEST_FILTER, EnumElementKind.CLIENT_REQUEST_FILTER);
+			providerInterfaces.put(CLIENT_RESPONSE_FILTER, EnumElementKind.CLIENT_RESPONSE_FILTER);
 			providerInterfaces.put(ENTITY_READER_INTERCEPTOR, EnumElementKind.ENTITY_READER_INTERCEPTOR);
 			providerInterfaces.put(ENTITY_WRITER_INTERCEPTOR, EnumElementKind.ENTITY_WRITER_INTERCEPTOR);
 

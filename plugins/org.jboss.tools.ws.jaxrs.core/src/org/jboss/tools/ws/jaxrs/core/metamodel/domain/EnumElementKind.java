@@ -38,6 +38,10 @@ public enum EnumElementKind {
 	CONTAINER_REQUEST_FILTER(EnumElementCategory.PROVIDER),
 	/** A Container Response Filter.*/
 	CONTAINER_RESPONSE_FILTER(EnumElementCategory.PROVIDER),
+	/** A Client Request Filter.*/
+	CLIENT_REQUEST_FILTER(EnumElementCategory.PROVIDER),
+	/** A Client Response Filter.*/
+	CLIENT_RESPONSE_FILTER(EnumElementCategory.PROVIDER),
 	/** A Container Filter (ie, both ContainerRequestFilter and ContainerResponseFilter).*/
 	CONTAINER_FILTER(EnumElementCategory.PROVIDER),
 	/** An Entity Reader Interceptor.*/
