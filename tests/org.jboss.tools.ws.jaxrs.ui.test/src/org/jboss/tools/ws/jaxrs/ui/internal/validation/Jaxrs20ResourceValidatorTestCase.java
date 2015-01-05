@@ -10,14 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.ui.internal.validation;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
-import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
-import static org.junit.Assert.assertThat;
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -37,11 +29,22 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsProvider;
+import org.jboss.tools.ws.jaxrs.ui.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.ui.preferences.JaxrsPreferences;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.findJaxrsMarkers;
+import static org.jboss.tools.ws.jaxrs.ui.internal.validation.ValidationUtils.toSet;
+
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Xi
@@ -329,6 +332,49 @@ public class Jaxrs20ResourceValidatorTestCase {
 		
 		// verifications
 		final IMarker[] markers = findJaxrsMarkers(boatResource);
+		assertThat(markers.length, equalTo(0));
+	}
+	
+	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-18953
+	public void shouldNotReportProblemOnClientRequestFilter() throws ValidationException, CoreException {
+		final ICompilationUnit clientFilterCompilationUnit = metamodelMonitor.createCompilationUnit("ClientFilter.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ClientFilter.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ClientFilter");
+		final IJaxrsProvider clientFilter = metamodel.findProvider(clientFilterCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(clientFilter.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(clientFilter);
+		for(IMarker marker : markers) {
+			TestLogger.debug(" Unexpected marker: {}", marker.getAttribute(IMarker.MESSAGE));
+		}
+		assertThat(markers.length, equalTo(0));
+	}
+	
+	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-18953
+	public void shouldNotReportProblemOnClientResponseFilter() throws ValidationException, CoreException {
+		final ICompilationUnit clientFilterCompilationUnit = metamodelMonitor.createCompilationUnit("ClientFilter.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "ClientFilter.java");
+		ResourcesUtils.replaceAllOccurrencesOfCode(clientFilterCompilationUnit, "ClientRequestFilter", "ClientResponseFilter", false);
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.ClientFilter");
+		final IJaxrsProvider clientFilter = metamodel.findProvider(clientFilterCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(clientFilter.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(clientFilter);
+		for(IMarker marker : markers) {
+			TestLogger.debug(" Unexpected marker: {}", marker.getAttribute(IMarker.MESSAGE));
+		}
 		assertThat(markers.length, equalTo(0));
 	}
 	
