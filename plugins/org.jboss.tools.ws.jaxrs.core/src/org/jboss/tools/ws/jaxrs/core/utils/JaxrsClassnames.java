@@ -53,6 +53,10 @@ public interface JaxrsClassnames {
 	
 	public static final String CONTAINER_RESPONSE_FILTER = "javax.ws.rs.container.ContainerResponseFilter";
 	
+	public static final String CLIENT_REQUEST_FILTER = "javax.ws.rs.client.ClientRequestFilter";
+	
+	public static final String CLIENT_RESPONSE_FILTER = "javax.ws.rs.client.ClientResponseFilter";
+	
 	public static final String ENTITY_READER_INTERCEPTOR = "javax.ws.rs.ext.ReaderInterceptor";
 	
 	public static final String ENTITY_WRITER_INTERCEPTOR = "javax.ws.rs.ext.WriterInterceptor";

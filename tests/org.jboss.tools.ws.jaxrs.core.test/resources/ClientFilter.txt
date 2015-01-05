@@ -1,0 +1,22 @@
+/**
+ * 
+ */
+package org.jboss.tools.ws.jaxrs.sample.services;
+
+import java.io.IOException;
+
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.ClientResponseContext;
+import javax.ws.rs.client.ClientResponseFilter;
+import javax.ws.rs.ext.Provider;
+
+/**
+ * @author xcoulon
+ *
+ */
+@Provider
+public class ClientFilter implements ClientRequestFilter {
+
+
+}
