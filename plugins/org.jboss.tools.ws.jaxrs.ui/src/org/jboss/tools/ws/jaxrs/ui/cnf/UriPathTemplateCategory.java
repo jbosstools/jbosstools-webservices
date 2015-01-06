@@ -111,6 +111,10 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		return javaProject;
 	}
 	
+	/**
+	 * Returns {@code true} if the {@link IJaxrsMetamodel} associated with the {@link IJavaProject} given in the constructor has {@link IJaxrsElement}. Returns {@code false} otherwise (or if there is no {@link IJaxrsMetamodel} for the current {@link IJavaProject}).
+	 * @param element not used (mandatory to implement the {@link ITreeContentProvider#hasChildren(Object)} method.
+	 */
 	@Override
 	public boolean hasChildren(Object element) {
 		try {
@@ -123,7 +127,7 @@ public class UriPathTemplateCategory implements ITreeContentProvider {
 		} catch (CoreException e) {
 			Logger.error("Failed to retrieve JAX-RS Metamodel in project '" + javaProject.getElementName() + "'", e);
 		}
-		return true;
+		return false;
 	}
 
 	/**

@@ -110,6 +110,10 @@ public class JaxrsMetamodelLocator {
 			}
 	
 			final IProject project = javaProject.getProject();
+			if(!project.isAccessible()) {
+				Logger.debug("Returning a null metamodel because the underlying project does not exist or is not opened.");
+				return null;
+			}
 			final JaxrsMetamodel metamodel = (JaxrsMetamodel) project.getSessionProperty(
 					JaxrsMetamodel.METAMODEL_QUALIFIED_NAME);
 			if (metamodel == null && force) {
