@@ -14,6 +14,8 @@ package org.jboss.tools.ws.jaxrs.ui.wizards;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IBuffer;
@@ -32,6 +34,8 @@ import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.web.WebApp;
 import org.eclipse.jst.javaee.web.WebAppDeploymentDescriptor;
 import org.eclipse.jst.javaee.web.WebFactory;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 
 /**
@@ -60,14 +64,23 @@ public class JaxrsElementCreationUtils {
 	public static IPackageFragment getSuggestedPackage(final ICompilationUnit compilationUnit) {
 		final IPackageFragment selectedPackage = (IPackageFragment) compilationUnit
 				.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
+		if(!selectedPackage.isDefaultPackage()) {
+			try {
+				final IPackageFragment parentPackageFragment = selectedPackage.getJavaProject().findPackageFragment(
+						selectedPackage.getPath().removeLastSegments(1));
+				return getSuggestedPackage(parentPackageFragment);
+			} catch (JavaModelException e) {
+				Logger.error("Failed to retrieve parent package for '" + selectedPackage.getElementName() + "'", e);
+			}
+		}
 		return getSuggestedPackage(selectedPackage);
 	}
 
 	/**
 	 * Computes the suggested package fragment from the given package fragment.
 	 * 
-	 * @param compilationUnit
-	 *            the {@link ICompilationUnit} to process
+	 * @param selectedPackage
+	 *            the {@link IPackageFragment} to process
 	 * @return {@link IPackageFragment} the suggested package fragment
 	 */
 	public static IPackageFragment getSuggestedPackage(final IPackageFragment selectedPackage) {
@@ -77,11 +90,48 @@ public class JaxrsElementCreationUtils {
 		if (selectedPackage.isDefaultPackage()) {
 			return selectedSourceFolder.getPackageFragment("rest");
 		} else {
-			final String suggestedPackageName = selectedPackagePath.removeLastSegments(1).append("rest")
+			final String suggestedPackageName = selectedPackagePath.append("rest")
 					.makeRelativeTo(selectedSourceFolder.getPath()).toString().replace("/", ".");
 			return selectedSourceFolder.getPackageFragment(suggestedPackageName);
 		}
 	}
+
+	/**
+	 * Suggests a name for the {@link IJaxrsApplication} based on the content of the given {@code suggestedPackage}: returns 'RestApplication' or if it exists, returns 'RestApplication1', etc.
+	 * @param basePackage the base package
+	 * @return the name of the application
+	 */
+	public static String getSuggestedApplicationTypeName(final IPackageFragment basePackage) {
+		final String defaultTypeName = "RestApplication";
+		try {
+			int i = 1;
+			final String packagePrefix = basePackage.getElementName() + ".";
+			String typeFullyQualifiedName = packagePrefix + defaultTypeName;
+			// try with typeFullyQualifiedName + suffix until no result is found
+			while (basePackage.getJavaProject().findType(typeFullyQualifiedName) != null) {
+				i++;
+				typeFullyQualifiedName = packagePrefix + defaultTypeName + i;
+			}
+			return typeFullyQualifiedName.substring(packagePrefix.length());
+		} catch (JavaModelException e) {
+			Logger.error("Failed to check if project contains type '" + defaultTypeName + "'", e);
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the first {@link IPackageFragmentRoot} in the given {@link IJavaProject}, or {@code null} if none was found.
+	 * @param javaProject
+	 * @return the first {@link IPackageFragmentRoot} or {@code null}
+	 * @throws JavaModelException
+	 */
+	public static IPackageFragmentRoot getFirstPackageFragmentRoot(final IJavaProject javaProject) throws JavaModelException {
+		if (javaProject != null && javaProject.getPackageFragmentRoots().length > 0) {
+			return javaProject.getPackageFragmentRoots()[0];
+		}
+		return null;
+	}
+
 
 	/**
 	 * Adds the given annotation with the given values on the given member, and
@@ -157,6 +207,39 @@ public class JaxrsElementCreationUtils {
 		final WebApp webApp = WebFactory.eINSTANCE.createWebApp();
 		deploymentDescriptor.setWebApp(webApp);
 		return webApp;
+	}
+
+	/**
+	 * Retrieves the top-level package in the given {@link IPackageFragmentRoot} of an {@link IJavaProject}, ie, the deepest {@link IPackageFragment} which has no {@link ICompilationUnit} element.
+	 * @param packageFragmentRoot the base packageFragmentRoot
+	 * @return the top-level {@link IPackageFragment}
+	 * @throws CoreException 
+	 */
+	public static IPackageFragment getProjectTopLevelPackage(final IPackageFragmentRoot packageFragmentRoot) throws CoreException {
+		IFolder currentFolder = (IFolder) packageFragmentRoot.getResource();
+		while(hasUniqueChildFolder(currentFolder)) {
+			currentFolder = (IFolder) currentFolder.members()[0];
+		}
+		if(currentFolder != null) {
+			return (IPackageFragment) packageFragmentRoot.getJavaProject().findPackageFragment(currentFolder.getFullPath());
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Checks if the given {@code parentFolder} contains a single child element and that child element is an {@link IFolder} too.
+	 * @param parentFolder the parent element (a {@link IFolder}) to analyze
+	 * @return {@code true} if the folder contains a unique subfolder and nothing else, {@code false otherwise}.
+	 * @throws CoreException 
+	 */
+	private static boolean hasUniqueChildFolder(final IFolder parentFolder) throws CoreException {
+		final IResource[] childElements = parentFolder.members();
+		if(childElements.length == 1 && childElements[0].getType() == IResource.FOLDER) {
+			return true;
+		}
+		return false;
+			
 	}
 
 }

@@ -11,16 +11,13 @@
 
 package org.jboss.tools.ws.jaxrs.ui.wizards;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-
 import java.util.Collection;
 
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -40,6 +37,12 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+
+import static org.junit.Assert.assertThat;
 
 /**
  * @author xcoulon
@@ -66,6 +69,60 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 	}
 
 	@Test
+	public void shouldInitializeControlsWhenProjectSelected() throws CoreException {
+		// given
+		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
+				new NullProgressMonitor());
+		final IStructuredSelection selection = new StructuredSelection(customerType.getJavaProject());
+		// when
+		wizardPage.init(selection);
+		// then
+		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
+				+ "/src/main/java"));
+		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.rest"));
+		Assert.assertThat(wizardPage.getTypeName(), equalTo("RestApplication"));
+		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
+		Assert.assertThat(wizardPage.isPageComplete(), equalTo(true));
+	}
+
+	@Test
+	public void shouldInitializeControlsWhenPackageFragmentRootSelected() throws CoreException {
+		// given
+		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
+				new NullProgressMonitor());
+		final IStructuredSelection selection = new StructuredSelection(customerType.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT));
+		// when
+		wizardPage.init(selection);
+		// then
+		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
+				+ "/src/main/java"));
+		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.rest"));
+		Assert.assertThat(wizardPage.getTypeName(), equalTo("RestApplication"));
+		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
+		Assert.assertThat(wizardPage.isPageComplete(), equalTo(true));
+	}
+
+	@Test
+	public void shouldInitializeControlsWhenPackageSelected() throws CoreException {
+		// given
+		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource", javaProject,
+				new NullProgressMonitor());
+		final IStructuredSelection selection = new StructuredSelection(customerType.getPackageFragment());
+		// when
+		wizardPage.init(selection);
+		// then
+		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
+				+ "/src/main/java"));
+		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.services"));
+		Assert.assertThat(wizardPage.getTypeName(), equalTo("RestApplication2"));
+		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
+		Assert.assertThat(wizardPage.isPageComplete(), equalTo(true));
+	}
+	
+	@Test
 	public void shouldInitializeControlsWhenCompilationUnitSelected() throws CoreException {
 		// given
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
@@ -77,7 +134,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// then
 		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
 				+ "/src/main/java"));
-		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.rest"));
+		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.domain"));
 		Assert.assertThat(wizardPage.getTypeName(), equalTo("RestApplication"));
 		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
 		Assert.assertThat(wizardPage.isPageComplete(), equalTo(true));
@@ -95,46 +152,10 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// then
 		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
 				+ "/src/main/java"));
-		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.rest"));
-		Assert.assertThat(wizardPage.getTypeName(), equalTo("RestApplication"));
-		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
-		Assert.assertThat(wizardPage.isPageComplete(), equalTo(true));
-	}
-
-	@Test
-	public void shouldInitializeControlsWhenPackageSelected() throws CoreException {
-		// given
-		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
-		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
-		final IStructuredSelection selection = new StructuredSelection(customerType.getPackageFragment());
-		// when
-		wizardPage.init(selection);
-		// then
-		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
-				+ "/src/main/java"));
 		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.domain"));
 		Assert.assertThat(wizardPage.getTypeName(), equalTo("RestApplication"));
 		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
 		Assert.assertThat(wizardPage.isPageComplete(), equalTo(true));
-	}
-
-	@Test
-	public void shouldInitializeControlsWhenSourceFolderSelected() throws CoreException {
-		// given
-		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
-		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
-		final IStructuredSelection selection = new StructuredSelection(customerType.getPackageFragment().getParent());
-		// when
-		wizardPage.init(selection);
-		// then
-		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
-				+ "/src/main/java"));
-		Assert.assertThat(wizardPage.getPackageText(), equalTo(""));
-		Assert.assertThat(wizardPage.getTypeName(), equalTo(""));
-		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
-		Assert.assertThat(wizardPage.isPageComplete(), equalTo(false));
 	}
 
 	@Test
@@ -149,10 +170,10 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// then
 		Assert.assertThat(wizardPage.getPackageFragmentRootText(), equalTo(javaProject.getElementName()
 				+ "/src/main/java"));
-		Assert.assertThat(wizardPage.getPackageText(), equalTo(""));
-		Assert.assertThat(wizardPage.getTypeName(), equalTo(""));
+		Assert.assertThat(wizardPage.getPackageText(), equalTo("org.jboss.tools.ws.jaxrs.sample.rest"));
+		Assert.assertThat(wizardPage.getTypeName(), equalTo("RestApplication"));
 		Assert.assertThat(wizardPage.getApplicationPath(), equalTo("/rest"));
-		Assert.assertThat(wizardPage.isPageComplete(), equalTo(false));
+		Assert.assertThat(wizardPage.isPageComplete(), equalTo(true));
 	}
 
 	@Test
@@ -270,5 +291,53 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		assertThat(createdApplication, nullValue());
 	}
 	
-	
+	@Test
+	public void shouldProposeDefaultApplicationNameWhenSelectingProject() throws CoreException, InterruptedException {
+		// given
+		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
+		for(IJaxrsApplication application : allApplications) {
+			((JaxrsBaseElement) application).remove(Flags.NONE);
+			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+		}
+
+		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		final IStructuredSelection selection = new StructuredSelection(javaProject);
+		// when
+		wizardPage.init(selection);
+		wizardPage.setApplicationMode(JaxrsApplicationCreationWizardPage.APPLICATION_JAVA);
+		wizardPage.createType(new NullProgressMonitor());
+		// then
+		final IType createdType = wizardPage.getCreatedType();
+		assertThat(createdType, notNullValue());
+		// trigger a clean build before asserting the new JAX-RS elements
+		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		// 0 new element: metamodel has no application
+		final IJaxrsApplication createdApplication = metamodel.findApplication();
+		assertThat(createdApplication, notNullValue());
+		assertThat(createdApplication.getJavaClassName(), equalTo("org.jboss.tools.ws.jaxrs.sample.rest.RestApplication"));
+	}
+
+	@Test
+	public void shouldProposeOtherApplicationNameWhenSelectingProject() throws CoreException, InterruptedException {
+		// given
+		final ICompilationUnit restApplication2CompilationUnit = metamodelMonitor.createCompilationUnit(
+				"RestApplication2.txt", "org.jboss.tools.ws.jaxrs.sample.services", "RestApplication2.java");
+		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		final IStructuredSelection selection = new StructuredSelection(
+				restApplication2CompilationUnit.getAncestor(IJavaElement.PACKAGE_FRAGMENT));
+		// when
+		wizardPage.init(selection);
+		wizardPage.setApplicationMode(JaxrsApplicationCreationWizardPage.APPLICATION_JAVA);
+		wizardPage.createType(new NullProgressMonitor());
+		// then
+		final IType createdType = wizardPage.getCreatedType();
+		assertThat(createdType, notNullValue());
+		// trigger a clean build before asserting the new JAX-RS elements
+		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		// 0 new element: metamodel has no application
+		assertThat(createdType, notNullValue());
+		assertThat(createdType.getFullyQualifiedName(),
+				equalTo("org.jboss.tools.ws.jaxrs.sample.services.RestApplication3"));
+	}
+
 }

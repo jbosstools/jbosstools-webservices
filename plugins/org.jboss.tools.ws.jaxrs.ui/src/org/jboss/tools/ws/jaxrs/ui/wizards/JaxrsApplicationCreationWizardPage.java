@@ -10,10 +10,6 @@
  ******************************************************************************/
 
 package org.jboss.tools.ws.jaxrs.ui.wizards;
-
-import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.addAnnotation;
-import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.getSuggestedPackage;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,6 +57,10 @@ import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
+
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.addAnnotation;
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.getProjectTopLevelPackage;
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.*;
 
 /**
  * @author xcoulon
@@ -129,7 +129,6 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 		setTitle(JaxrsApplicationCreationMessages.JaxrsApplicationCreationWizardPage_Title);
 		setDescription(JaxrsApplicationCreationMessages.JaxrsApplicationCreationWizardPage_Description);
 		this.canSkipApplicationCreation = canSkipApplicationCreation;
-
 	}
 
 	@Override
@@ -155,7 +154,11 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	public void setDefaultValues(final IStructuredSelection selection) {
 		setSuperClass(JaxrsClassnames.APPLICATION, false);
 		final IJavaElement selectedJavaElement = getInitialJavaElement(selection);
-		if (selectedJavaElement instanceof IPackageFragment) {
+		if (selectedJavaElement instanceof IJavaProject) {
+			setDefaultValues((IJavaProject) selectedJavaElement);
+		} else if (selectedJavaElement instanceof IPackageFragmentRoot) {
+			setDefaultValues((IPackageFragmentRoot) selectedJavaElement);
+		} else if (selectedJavaElement instanceof IPackageFragment) {
 			setDefaultValues((IPackageFragment) selectedJavaElement);
 		} else if (selectedJavaElement instanceof ICompilationUnit) {
 			setDefaultValues((ICompilationUnit) selectedJavaElement);
@@ -167,21 +170,50 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	}
 
 	/**
+	 * Sets the extra default values from the given 'javaProject' argument. In particular, 
+	 * selects the default package in the first PackageFragmentRoot of the javaProject
+	 * 
+	 * @param javaProject
+	 *            the selected {@link IJavaProject}.
+	 * @throws JavaModelException 
+	 */
+	private void setDefaultValues(final IJavaProject javaProject) {
+		try {
+			final IPackageFragmentRoot firstPackageFragmentRoot = getFirstPackageFragmentRoot(javaProject);
+			setPackageFragmentRoot(firstPackageFragmentRoot, true);
+			final IPackageFragment suggestedPackage = getSuggestedPackage(getProjectTopLevelPackage(firstPackageFragmentRoot));
+			setPackageFragment(suggestedPackage, true);
+			setTypeName(getSuggestedApplicationTypeName(suggestedPackage), true);
+		} catch (CoreException e) {
+			Logger.error(
+					"Failed to retrieve the default package of the first source folder in project '"
+							+ javaProject.getElementName() + "'", e);
+		}
+	}
+
+	/**
+	 * Sets the extra default values from the given 'packageFragmentRoot' argument. In particular, 
+	 * selects the default package to set the default values.
+	 * 
+	 * @param packageFragmentRoot
+	 *            the selected {@link IPackageFragmentRoot}.
+	 * @throws JavaModelException 
+	 */
+	private void setDefaultValues(final IPackageFragmentRoot packageFragmentRoot) {
+		setPackageFragmentRoot(packageFragmentRoot, true);
+		setDefaultValues(packageFragmentRoot.getJavaProject());
+	}
+
+	/**
 	 * Sets the extra default values from the given 'packageFragment' argument
 	 * 
 	 * @param packageFragment
 	 *            the selected {@link IPackageFragment}.
 	 */
 	private void setDefaultValues(final IPackageFragment packageFragment) {
-		final String typeName = "RestApplication";
-		final String typeFullyQualifiedName = getPackageFragment().getElementName() + "." + typeName;
-		try {
-			if (getJavaProject() != null && getJavaProject().findType(typeFullyQualifiedName) == null) {
-				setTypeName(typeName, true);
-			}
-		} catch (JavaModelException e) {
-			Logger.error("Failed to check if project contains type '" + typeName + "'", e);
-		}
+		setPackageFragmentRoot((IPackageFragmentRoot) packageFragment.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT), true);
+		setPackageFragment(packageFragment, true);
+		setTypeName(getSuggestedApplicationTypeName(packageFragment), true);
 	}
 
 	/**
@@ -191,11 +223,10 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	 *            the selected {@link ICompilationUnit}.
 	 */
 	private void setDefaultValues(final ICompilationUnit compilationUnit) {
-		final IPackageFragment selectedPackageFragment = (IPackageFragment) compilationUnit
-				.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
-		final IPackageFragment suggestedPackage = getSuggestedPackage(selectedPackageFragment);
-		setPackageFragment(suggestedPackage, true);
-		setDefaultValues(selectedPackageFragment);
+		setPackageFragmentRoot((IPackageFragmentRoot) compilationUnit.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT), true);
+		final IPackageFragment packageFragment = (IPackageFragment) compilationUnit.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
+		setPackageFragment(packageFragment, true);
+		setTypeName(getSuggestedApplicationTypeName(packageFragment), true);
 	}
 
 	/**
@@ -220,7 +251,7 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 			final IPackageFragmentRoot[] packageFragmentRoots = javaProject.getAllPackageFragmentRoots();
 			for (IPackageFragmentRoot packageFragmentRoot : packageFragmentRoots) {
 				if (packageFragmentRoot.getKind() == IPackageFragmentRoot.K_SOURCE) {
-					setPackageFragmentRoot(packageFragmentRoot, true);
+					setDefaultValues(packageFragmentRoot);
 					break;
 				}
 			}
@@ -228,6 +259,7 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 			Logger.error("Failed to set the default values from project '" + javaProject.getElementName() + "'", e);
 		}
 	}
+
 
 	@Override
 	public void createControl(Composite parent) {
