@@ -16,7 +16,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -194,6 +196,8 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(createdResource, notNullValue());
 		assertThat(createdResource.getAllMethods().size(), equalTo(5));
 		assertThat(createdResource.getPathTemplate(), equalTo("/customers"));
+		assertThat(createdResource.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
+		assertThat(createdResource.getProducedMediaTypes(), hasItems("application/json", "application/xml"));
 	}
 
 	@Test
@@ -217,6 +221,8 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(createdResource, notNullValue());
 		assertThat(createdResource.getAllMethods().size(), equalTo(0));
 		assertThat(createdResource.getPathTemplate(), equalTo("/customers"));
+		assertThat(createdResource.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
+		assertThat(createdResource.getProducedMediaTypes(), hasItems("application/json", "application/xml"));
 	}
 
 	@Test
@@ -278,10 +284,12 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(resourceMethod.getName(), equalTo("create"));
 		assertThat(resourceMethod.getHttpMethodClassName(), equalTo(JaxrsClassnames.POST));
 		assertThat(resourceMethod.getPathTemplate(), nullValue());
-		assertThat(resourceMethod.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
-		assertThat(resourceMethod.getProducedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getConsumedMediaTypes(), empty());
+		assertThat(resourceMethod.getProducedMediaTypes(), empty());
 		assertThat(resourceMethod.getJavaElement().getSource(), containsString("UriBuilder.fromResource(CustomerEndpoint.class)"));
 		assertThat(resourceMethod.getJavaElement().getSource(), not(containsString("Response.created(null)")));
+		assertThat(resourceMethod.getAnnotation(JaxrsClassnames.CONSUMES), nullValue());
+		assertThat(resourceMethod.getAnnotation(JaxrsClassnames.PRODUCES), nullValue());
 		assertThat(ValidationUtils.findJavaProblems(resourceMethod.getResource()).length, equalTo(0));
 	}
 
@@ -315,8 +323,8 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(resourceMethod.getName(), equalTo("create"));
 		assertThat(resourceMethod.getHttpMethodClassName(), equalTo(JaxrsClassnames.POST));
 		assertThat(resourceMethod.getPathTemplate(), nullValue());
-		assertThat(resourceMethod.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
-		assertThat(resourceMethod.getProducedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getConsumedMediaTypes(), empty());
+		assertThat(resourceMethod.getProducedMediaTypes(), empty());
 		assertThat(resourceMethod.getJavaElement().getSource(), containsString("UriBuilder.fromResource(CustomerEndpoint.class)"));
 		assertThat(resourceMethod.getJavaElement().getSource(), containsString("Response.created(null)"));
 		assertThat(ValidationUtils.findJavaProblems(resourceMethod.getResource()).length, equalTo(0));
@@ -352,8 +360,8 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(resourceMethod.getName(), equalTo("deleteById"));
 		assertThat(resourceMethod.getHttpMethodClassName(), equalTo(JaxrsClassnames.DELETE));
 		assertThat(resourceMethod.getPathTemplate(), equalTo("/{id:[0-9][0-9]*}"));
-		assertThat(resourceMethod.getProducedMediaTypes().size(), equalTo(0));
-		assertThat(resourceMethod.getConsumedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getProducedMediaTypes(), empty());
+		assertThat(resourceMethod.getConsumedMediaTypes(), empty());
 	}
 	@Test
 	public void shouldCreateResourceClassWithFindByIdMethod() throws CoreException, InterruptedException {
@@ -380,12 +388,14 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
 		assertThat(createdResource.getAllMethods().size(), equalTo(1));
+		assertThat(createdResource.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
+		assertThat(createdResource.getProducedMediaTypes(), hasItems("application/json", "application/xml"));
 		final IJaxrsResourceMethod resourceMethod = createdResource.getAllMethods().get(0);
 		assertThat(resourceMethod.getName(), equalTo("findById"));
 		assertThat(resourceMethod.getHttpMethodClassName(), equalTo(JaxrsClassnames.GET));
 		assertThat(resourceMethod.getPathTemplate(), equalTo("/{id:[0-9][0-9]*}"));
-		assertThat(resourceMethod.getProducedMediaTypes(), hasItems("application/json", "application/xml"));
-		assertThat(resourceMethod.getConsumedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getProducedMediaTypes(), empty());
+		assertThat(resourceMethod.getConsumedMediaTypes(), empty());
 	}
 	@Test
 	public void shouldCreateResourceClassWithListAllMethod() throws CoreException, InterruptedException {
@@ -416,8 +426,8 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(resourceMethod.getName(), equalTo("listAll"));
 		assertThat(resourceMethod.getHttpMethodClassName(), equalTo(JaxrsClassnames.GET));
 		assertThat(resourceMethod.getPathTemplate(), nullValue());
-		assertThat(resourceMethod.getProducedMediaTypes(), hasItems("application/json", "application/xml"));
-		assertThat(resourceMethod.getConsumedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getProducedMediaTypes(), empty());
+		assertThat(resourceMethod.getConsumedMediaTypes(), empty());
 	}
 	
 	@Test
@@ -449,8 +459,8 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		assertThat(resourceMethod.getName(), equalTo("update"));
 		assertThat(resourceMethod.getHttpMethodClassName(), equalTo(JaxrsClassnames.PUT));
 		assertThat(resourceMethod.getPathTemplate(), equalTo("/{id:[0-9][0-9]*}"));
-		assertThat(resourceMethod.getConsumedMediaTypes(), hasItems("application/json", "application/xml"));
-		assertThat(resourceMethod.getProducedMediaTypes().size(), equalTo(0));
+		assertThat(resourceMethod.getConsumedMediaTypes(), empty());
+		assertThat(resourceMethod.getProducedMediaTypes(), empty());
 	}
 
 }

@@ -744,10 +744,18 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 		// resource is managed by the runtime (the JEE/JAX-RS container)
 		createInheritedMethods(newType, false, true, imports, new SubProgressMonitor(monitor, 1));
 		// adding JAX-RS related annotations on the created type
+		// annotations appear in reverse order of addition call, so dealing with @Consumes and @Produces first
+		if (!this.mediaTypes.isEmpty()) {
+			addAnnotation(newType, JaxrsClassnames.CONSUMES, this.mediaTypes, imports);
+		}
+		if (!this.mediaTypes.isEmpty()) {
+			addAnnotation(newType, JaxrsClassnames.PRODUCES, this.mediaTypes, imports);
+		}
 		addAnnotation(newType, JaxrsClassnames.PATH, Arrays.asList(this.resourcePath), imports);
 		if (getJavaProject() != null && getJavaProject().findType(JaxrsClassnames.REQUEST_SCOPED) != null) {
 			addAnnotation(newType, JaxrsClassnames.REQUEST_SCOPED, null, imports);
 		}
+
 		// now, add the selected method stubs
 		createMethodStubs(newType, imports, new SubProgressMonitor(monitor, 1));
 	}
@@ -770,9 +778,6 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 			// check if a getId() method exists in the target class
 			final String contents = getCreateMethodBody(type, targetClassSimpleName, targetClassParamName);
 			final IMethod createdMethod = type.createMethod(contents, null, true, monitor);
-			if (!this.mediaTypes.isEmpty()) {
-				addAnnotation(createdMethod, JaxrsClassnames.CONSUMES, this.mediaTypes, imports);
-			}
 			addAnnotation(createdMethod, JaxrsClassnames.POST, null, imports);
 			addMethodComments(createdMethod);
 		}
@@ -785,9 +790,6 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 					JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_FindByIdMethodSkeleton, new String[] {
 							targetClassSimpleName, targetClassParamName });
 			final IMethod createdMethod = type.createMethod(contents, null, true, monitor);
-			if (!this.mediaTypes.isEmpty()) {
-				addAnnotation(createdMethod, JaxrsClassnames.PRODUCES, this.mediaTypes, imports);
-			}
 			addAnnotation(createdMethod, JaxrsClassnames.PATH, Arrays.asList("/{id:[0-9][0-9]*}"), imports);
 			addAnnotation(createdMethod, JaxrsClassnames.GET, null, imports);
 			addMethodComments(createdMethod);
@@ -800,9 +802,6 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 					JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_ListAllMethodSkeleton, new String[] {
 							targetClassSimpleName, English.plural(targetClassParamName) });
 			final IMethod createdMethod = type.createMethod(contents, null, true, monitor);
-			if (!this.mediaTypes.isEmpty()) {
-				addAnnotation(createdMethod, JaxrsClassnames.PRODUCES, this.mediaTypes, imports);
-			}
 			addAnnotation(createdMethod, JaxrsClassnames.GET, null, imports);
 			addMethodComments(createdMethod);
 		}
@@ -812,9 +811,6 @@ public class JaxrsResourceCreationWizardPage extends NewClassWizardPage {
 					JaxrsResourceCreationMessages.JaxrsResourceCreationWizardPage_UpdateMethodSkeleton, new String[] {
 							targetClassSimpleName, targetClassParamName });
 			final IMethod createdMethod = type.createMethod(contents, null, true, monitor);
-			if (!this.mediaTypes.isEmpty()) {
-				addAnnotation(createdMethod, JaxrsClassnames.CONSUMES, this.mediaTypes, imports);
-			}
 			addAnnotation(createdMethod, JaxrsClassnames.PATH, Arrays.asList("/{id:[0-9][0-9]*}"), imports);
 			addAnnotation(createdMethod, JaxrsClassnames.PUT, null, imports);
 			addMethodComments(createdMethod);
