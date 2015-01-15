@@ -454,13 +454,21 @@ public final class JdtUtils {
 		case IJavaElement.TYPE:
 			final IType type = (IType) member;
 			if (type.isResolved()) {
-				return ast.findDeclaringNode(type.getKey());
+				final ASTNode typeNode = ast.findDeclaringNode(type.getKey());
+				// return if match found
+				if(typeNode != null) {
+					return typeNode;
+				}
 			}
 			break;
 		case IJavaElement.METHOD:
 			final IMethod method = (IMethod) member;
 			if (method.isResolved()) {
-				return ast.findDeclaringNode(method.getKey());
+				final ASTNode methodNode = ast.findDeclaringNode(method.getKey());
+				// return if match found
+				if(methodNode != null) {
+					return methodNode;
+				}
 			}
 			break;
 		case IJavaElement.FIELD:
@@ -472,12 +480,17 @@ public final class JdtUtils {
 				final ASTNode variableDeclarationFragment = ast
 						.findDeclaringNode(field.getKey());
 				if (variableDeclarationFragment != null) {
-					return variableDeclarationFragment.getParent();
+					final ASTNode fieldNode = variableDeclarationFragment.getParent();
+					if(fieldNode != null) {
+						// return if match found
+						return fieldNode;
+					}
 				}
 			}
 			break;
 		default:
 		}
+		// fallback approach if everything above failed.
 		final NodeFinder finder = new NodeFinder(ast, member.getSourceRange().getOffset(),
 				member.getSourceRange().getLength());
 		return finder.getCoveredNode();
