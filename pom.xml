@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.jboss.tools</groupId>
 		<artifactId>parent</artifactId>
-		<version>4.2.1.Final-SNAPSHOT</version>
+		<version>4.2.3.CR1-SNAPSHOT</version>
 	</parent>
 	<groupId>org.jboss.tools</groupId>
 	<artifactId>ws</artifactId>
 	<name>JBoss Tools - Webservices</name>
-	<version>1.7.2-SNAPSHOT</version>
+	<version>1.7.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<properties>
 		<tycho.scmUrl>scm:git:https://github.com/jbosstools/jbosstools-webservices.git</tycho.scmUrl>
