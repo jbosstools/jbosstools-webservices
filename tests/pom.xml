@@ -18,6 +18,7 @@
 		<module>org.jboss.tools.ws.ui.test</module>
 		<module>org.jboss.tools.ws.jaxrs.core.test</module>
 		<module>org.jboss.tools.ws.jaxrs.ui.test</module>
+		<module>org.jboss.tools.websockets.ui.test</module>
 	</modules>
 </project>
 	

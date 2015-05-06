@@ -16,6 +16,8 @@
 		<module>org.jboss.tools.ws.feature</module>
 		<module>org.jboss.tools.ws.jaxrs.feature</module>
 		<module>org.jboss.tools.ws.test.feature</module>
+		<module>org.jboss.tools.websockets.feature</module>
+		<module>org.jboss.tools.websockets.test.feature</module>
 	</modules>
 </project>
 	

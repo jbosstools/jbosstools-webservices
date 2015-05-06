@@ -20,6 +20,8 @@
 		<module>org.jboss.tools.ws.jaxrs.core</module>
 		<module>org.jboss.tools.ws.jaxrs.ui</module>
 		<module>org.jboss.tools.ws.wise.ui</module>
+		<module>org.jboss.tools.websockets.core</module>
+		<module>org.jboss.tools.websockets.ui</module>
 	</modules>
 </project>
 	

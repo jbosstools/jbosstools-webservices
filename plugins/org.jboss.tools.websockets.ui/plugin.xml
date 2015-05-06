@@ -1,0 +1,17 @@
+<plugin>
+   <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+   		id="websocket_proposals" name="WebSocket Proposals">
+	 <proposalCategory  >
+     </proposalCategory>
+ 	</extension>
+	<extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+   		id="SocketJavaELCompletionProposalComputer" 
+   		name="Socket Java Completion Proposal Computer">
+	   	<javaCompletionProposalComputer
+	      		class="org.jboss.tools.websockets.ui.internal.ca.SocketProposalComputer"
+	      		categoryId="org.jboss.tools.websockets.ui.websocket_proposals"
+	      		activate="true">
+				<partition type="__dftl_partition_content_type"/>
+	   	</javaCompletionProposalComputer>
+	</extension>
+</plugin>

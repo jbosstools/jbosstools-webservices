@@ -11,7 +11,13 @@
 	<feature url="features/org.jboss.tools.ws.jaxrs.feature_0.0.0.jar" id="org.jboss.tools.ws.jaxrs.feature" version="0.0.0">
 		<category name="JBoss Tools ws Nightly Build Update Site"/>
 	</feature>
+	<feature url="features/org.jboss.tools.websockets.feature_0.0.0.jar" id="org.jboss.tools.websockets.feature" version="0.0.0">
+		<category name="JBoss Tools ws Nightly Build Update Site"/>
+	</feature>
 	<feature url="features/org.jboss.tools.ws.test.feature_0.0.0.jar" id="org.jboss.tools.ws.test.feature" version="0.0.0">
+		<category name="JBoss Tools ws Nightly Build Update Site"/>
+	</feature>
+	<feature url="features/org.jboss.tools.websockets.test.feature_0.0.0.jar" id="org.jboss.tools.websockets.test.feature" version="0.0.0">
 		<category name="JBoss Tools ws Nightly Build Update Site"/>
 	</feature>
 	<!-- Sources -->
@@ -22,6 +28,9 @@
 		<category name="JBoss Tools ws Nightly Build Update Site"/>
 	</feature>
 	<feature url="features/org.jboss.tools.ws.test.feature.source_0.0.0.jar" id="org.jboss.tools.ws.test.feature.source" version="0.0.0">
+		<category name="JBoss Tools ws Nightly Build Update Site"/>
+	</feature>
+	<feature url="features/org.jboss.tools.websockets.feature.source_0.0.0.jar" id="org.jboss.tools.websockets.feature.source" version="0.0.0">
 		<category name="JBoss Tools ws Nightly Build Update Site"/>
 	</feature>
 </site>
