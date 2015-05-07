@@ -118,6 +118,12 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 							IStatus errorStatus = StatusUtils.warningStatus(resultInput);
 							status = StatusUtils.warningStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code, new CoreException(errorStatus));
 						}
+						// added to handle JBIDE-13414
+						if (resultInput.indexOf("Failed to invoke") >= 0) { //$NON-NLS-1$
+                            JBossWSCreationCorePlugin.getDefault().logWarning(resultInput);
+                            IStatus errorStatus = StatusUtils.warningStatus(resultInput);
+                            status = StatusUtils.errorStatus(JBossWSCreationCoreMessages.Error_Message_Failed_To_Generate_Code, new CoreException(errorStatus));
+						}
 					}
 				}
 			} catch (InterruptedException e) {
