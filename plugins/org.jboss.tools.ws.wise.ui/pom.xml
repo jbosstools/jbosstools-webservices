@@ -47,6 +47,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
+	      <skip>false</skip>
               <excludeScope>system</excludeScope>
               <outputDirectory>lib</outputDirectory>
               <excludeArtifactIds>xml-resolver,wsdl4j</excludeArtifactIds>
