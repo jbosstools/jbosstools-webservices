@@ -39,14 +39,7 @@ public class SourceType {
 	public static SourceType from(final VariableDeclaration declaration) {
 		final IVariableBinding paramBinding = declaration.resolveBinding();
 		if (paramBinding != null) {
-			final String erasureName = paramBinding.getType().getErasure().getQualifiedName();
-			final IType erasureType = (IType) paramBinding.getType().getErasure().getJavaElement();
-			final List<IType> typeArguments = new ArrayList<IType>();
-			final ISourceRange nameRange = new SourceRange(declaration.getStartPosition(), declaration.getLength());
-			for (ITypeBinding typeArgumentBinding : paramBinding.getType().getTypeArguments()) {
-				typeArguments.add((IType) typeArgumentBinding.getJavaElement());
-			}
-			return new SourceType(erasureName, erasureType, typeArguments, paramBinding.getType().isPrimitive(), nameRange);
+			return from(paramBinding.getType(), declaration.getStartPosition(), declaration.getLength());
 		}
 		return null;
 	}
@@ -77,12 +70,12 @@ public class SourceType {
 			final List<IType> typeArguments = new ArrayList<IType>();
 			final ISourceRange nameRange = new SourceRange(startPosition, length);
 			for (ITypeBinding typeArgumentBinding : typeBinding.getTypeArguments()) {
-				IJavaElement je = typeArgumentBinding.getJavaElement();
-				// For template classes it could be <T> and je above would be instance of
-				// org.eclipse.jdt.internal.core.TypeParameter so instanceof check is required 
+				final IJavaElement javaElement = typeArgumentBinding.getJavaElement();
+				// For template classes it could be <T> and 'javaElement' above would be instance of
+				// org.eclipse.jdt.internal.core.TypeParameter so 'instanceof' check is required 
 				// before converting to IType
-				if (je instanceof IType) {
-					typeArguments.add((IType) je);
+				if (javaElement instanceof IType) {
+					typeArguments.add((IType) javaElement);
 				}
 			}
 			return new SourceType(erasureName, erasureType, typeArguments, typeBinding.isPrimitive(), nameRange);
@@ -154,7 +147,8 @@ public class SourceType {
 			displayNameBuffer.append('<');
 			for (Iterator<IType> typeArgumentsIterator = typeArguments.iterator(); typeArgumentsIterator
 					.hasNext();) {
-				displayNameBuffer.append(typeArgumentsIterator.next().getElementName());
+				final IType typeArgument = typeArgumentsIterator.next();
+				displayNameBuffer.append(typeArgument.getElementName());
 				if (typeArgumentsIterator.hasNext()) {
 					displayNameBuffer.append(',');
 				}

@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -21,11 +22,13 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
+import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsResource;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsElement;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsNameBinding;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsParameterAggregator;
@@ -914,6 +917,22 @@ public class JavaElement20ChangedProcessingTestCase {
 		assertThat(remainingParameterAggregator, notNullValue());
 		assertThat(remainingParameterAggregator.getAllFields().size(), equalTo(0));
 		assertThat(remainingParameterAggregator.getAllProperties().size(), equalTo(0));
+	}
+	
+	//@see https://issues.jboss.org/browse/JBIDE-19734
+	@Test
+	public void shouldNotFailWhenMethodHasWildcardParameters() throws CoreException {
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("CarResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "CarResource.java");
+		assertThat(compilationUnit, notNullValue());
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CarResource");
+		// operation
+		replaceAllOccurrencesOfCode(compilationUnit, "Car car", "Class<?> clazz", false);
+		metamodelMonitor.processEvent(compilationUnit, CHANGED);
+		// verification
+		final IJavaMethodParameter methodParameter = metamodelMonitor.resolveResourceMethod(resource, "create1").getJavaMethodParameters().get(0);
+		assertTrue(methodParameter.getType().getTypeArguments().isEmpty());
 	}
 	
 }

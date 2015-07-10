@@ -42,9 +42,6 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.POST;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.TARGET;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -56,6 +53,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -78,6 +76,7 @@ import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
+import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsElementDelta;
@@ -87,6 +86,11 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ResourceChangedProcessingTestCase {
 
@@ -1851,5 +1855,21 @@ public class ResourceChangedProcessingTestCase {
 		assertThat(getCustomerResourceMethod.getElementKind(), equalTo(EnumElementKind.SUBRESOURCE_LOCATOR));
 	}
 
-	
+	//@see https://issues.jboss.org/browse/JBIDE-19734
+	@Test
+	public void shouldNotFailWhenMethodHasWildcardParameters() throws CoreException {
+		final ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit("CarResource.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services", "CarResource.java");
+		assertThat(compilationUnit, notNullValue());
+		final JaxrsResource resource = metamodelMonitor
+				.createResource("org.jboss.tools.ws.jaxrs.sample.services.CarResource");
+		// operation
+		replaceAllOccurrencesOfCode(compilationUnit, "Car car", "Class<?> clazz", false);
+		metamodelMonitor.processResourceEvent(resource.getResource(), CHANGED);
+		// verification
+		final IJavaMethodParameter methodParameter = metamodelMonitor.resolveResourceMethod(resource, "create1").getJavaMethodParameters().get(0);
+		assertTrue(methodParameter.getType().getTypeArguments().isEmpty());
+	}
+		
+
 }

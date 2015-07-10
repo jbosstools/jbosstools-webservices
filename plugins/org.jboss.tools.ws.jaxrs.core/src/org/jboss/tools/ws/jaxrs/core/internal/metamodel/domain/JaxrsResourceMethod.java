@@ -294,7 +294,9 @@ public class JaxrsResourceMethod extends JaxrsJavaElement<IMethod> implements IJ
 	// TODO: add support for java method thrown exceptions..
 	@Override
 	public void update(final IJavaElement javaElement, final CompilationUnit ast) throws CoreException {
-		if (javaElement == null) {
+		// old javaElement (returned by getJavaElement() will not exist anymore if the underlying Java method
+		// signature changed.
+		if (javaElement == null || !getJavaElement().exists()) { 
 			remove(FlagsUtils.computeElementFlags(this));
 		} else {
 			// NOTE: the given javaElement may be an ICompilationUnit (after

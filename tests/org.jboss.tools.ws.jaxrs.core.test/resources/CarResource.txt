@@ -22,37 +22,37 @@ public class CarResource {
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") Car car) {
+	public Object create1(@PathParam("id") Car car) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCars(@PathParam("id") List<Car> cars) {
+	public Object create2(@PathParam("id") List<Car> cars) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") CarFromString car) {
+	public Object create3(@PathParam("id") CarFromString car) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createsCar(@PathParam("id") Set<CarFromString> cars) {
+	public Object create4(@PathParam("id") Set<CarFromString> cars) {
 		return null;
 	}
 	
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") CarValueOf car) {
+	public Object create5(@PathParam("id") CarValueOf car) {
 		return null;
 	}
 
 	@POST
 	@Path("{type}/{id}") 
-	public Object createCar(@PathParam("id") SortedSet<CarValueOf> cars) {
+	public Object create6(@PathParam("id") SortedSet<CarValueOf> cars) {
 		return null;
 	}
 }
