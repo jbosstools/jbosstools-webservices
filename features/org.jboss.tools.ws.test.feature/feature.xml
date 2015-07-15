@@ -1,29 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<feature id="org.jboss.tools.ws.test.feature" label="%featureName" version="1.8.0.qualifier" provider-name="%featureProvider">
+<feature 
+    id="org.jboss.tools.ws.test.feature"
+    label="%featureName"
+    version="1.8.0.qualifier"
+    provider-name="%featureProvider"
+    license-feature="org.jboss.tools.foundation.license.feature"
+    license-feature-version="0.0.0">
 
-	<description>
-      %description
-   </description>
+    <description>
+       %description
+    </description>
 
-	<copyright>
-      %copyright
-   </copyright>
+    <copyright>
+        %copyright
+    </copyright>
 
-	<license url="%licenseURL">
-      %license
-   </license>
+    <license>
+        %license
+    </license>
 
-   <requires>
-      <import feature="org.eclipse.jst.enterprise_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.jst.web_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.wst.web_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.wst.ws_ui.feature" version="3.3.2" match="compatible"/>
-      <import feature="org.eclipse.wst.xml_ui.feature" version="3.3.2" match="compatible"/>
-   </requires>
+    <requires>
+       <import feature="org.eclipse.jst.enterprise_ui.feature" version="3.3.2" match="compatible"/>
+       <import feature="org.eclipse.jst.web_ui.feature" version="3.3.2" match="compatible"/>
+       <import feature="org.eclipse.wst.web_ui.feature" version="3.3.2" match="compatible"/>
+       <import feature="org.eclipse.wst.ws_ui.feature" version="3.3.2" match="compatible"/>
+       <import feature="org.eclipse.wst.xml_ui.feature" version="3.3.2" match="compatible"/>
+    </requires>
 
-	<plugin id="org.jboss.tools.ws.core.test" download-size="0" install-size="0" version="0.0.0" />
-	<plugin id="org.jboss.tools.ws.creation.core.test" download-size="0" install-size="0" version="0.0.0" />
-	<plugin id="org.jboss.tools.ws.jaxrs.core.test" download-size="0" install-size="0" version="0.0.0" />
-	<plugin id="org.jboss.tools.ws.jaxrs.ui.test" download-size="0" install-size="0" version="0.0.0" />
-	<plugin id="org.jboss.tools.ws.ui.test" download-size="0" install-size="0" version="0.0.0" />
+    <plugin id="org.jboss.tools.ws.core.test" download-size="0" install-size="0" version="0.0.0" />
+    <plugin id="org.jboss.tools.ws.creation.core.test" download-size="0" install-size="0" version="0.0.0" />
+    <plugin id="org.jboss.tools.ws.jaxrs.core.test" download-size="0" install-size="0" version="0.0.0" />
+    <plugin id="org.jboss.tools.ws.jaxrs.ui.test" download-size="0" install-size="0" version="0.0.0" />
+    <plugin id="org.jboss.tools.ws.ui.test" download-size="0" install-size="0" version="0.0.0" />
+
 </feature>
