@@ -20,9 +20,6 @@
       %license
    </license>
 
-   <requires>
-   </requires>
-
    <plugin
          id="org.jboss.tools.websockets.core"
          download-size="0"
