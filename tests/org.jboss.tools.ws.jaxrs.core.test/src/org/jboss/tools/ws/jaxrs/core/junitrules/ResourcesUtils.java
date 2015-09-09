@@ -207,21 +207,8 @@ public class ResourcesUtils {
 		assertNotEquals("Could not find occurrence of" + oldContent + "\nin\n" + content, content.indexOf(oldContent), -1);
 		// operation
 		final String modifiedContent = content.replace(oldContent, newContent);
-		file.delete(true, new NullProgressMonitor());
-		file.create(IOUtils.toInputStream(modifiedContent), true, null);
-		final InputStream contents = file.getContents();
-		final char[] buffer = new char[0x10000];
-		final StringBuilder out = new StringBuilder();
-		final Reader in = new InputStreamReader(contents, "UTF-8");
-		int read;
-		do {
-			read = in.read(buffer, 0, buffer.length);
-			if (read > 0) {
-				out.append(buffer, 0, read);
-			}
-		} while (read >= 0);
-		in.close();
-		TestLogger.debug("Content:\n" + out.toString());
+		file.setContents(IOUtils.toInputStream(modifiedContent), true, false, null);
+		TestLogger.debug("Content:\n" + modifiedContent);
 	}
 
 	/**

@@ -11,27 +11,21 @@
 
 package org.jboss.tools.ws.creation.core.test;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.jboss.tools.ws.creation.core.test.command.JBossWSClientCommandTest;
 import org.jboss.tools.ws.creation.core.test.command.JBossWSClientSampleCreationCommandTest;
 import org.jboss.tools.ws.creation.core.test.command.JBossWSJavaFirstCommandTest;
 import org.jboss.tools.ws.creation.core.test.command.JBossWSMergeWebXMLCommandTest;
 import org.jboss.tools.ws.creation.core.test.command.JBossWSTopDownCommandTest;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-public class JBossWSCreationCoreTestSuite extends TestCase {
-	public static final String PLUGIN_ID = "org.jboss.tools.ws.creation.core.test";
-	public static Test suite ()
-	{
-		TestSuite suite = new TestSuite(JBossWSCreationCoreTestSuite.class.getName());
-		suite.addTestSuite(JBossWSTopDownCommandTest.class);
-		suite.addTestSuite(JBossWSJavaFirstCommandTest.class);
-		suite.addTestSuite(JBossWSClientCommandTest.class);
-		suite.addTestSuite(JBossWSMergeWebXMLCommandTest.class);
-		suite.addTestSuite(JBossWSClientSampleCreationCommandTest.class);
-
-		return suite;
-	}
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+	JBossWSTopDownCommandTest.class,
+	JBossWSJavaFirstCommandTest.class,
+	JBossWSClientCommandTest.class,
+	JBossWSMergeWebXMLCommandTest.class,
+	JBossWSClientSampleCreationCommandTest.class
+})
+public class JBossWSCreationCoreTestSuite {
 }

@@ -14,8 +14,6 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -48,9 +46,15 @@ import org.jboss.tools.ws.core.facet.delegate.IJBossWSFacetDataModelProperties;
 import org.jboss.tools.ws.core.facet.delegate.JBossWSFacetInstallDataModelProvider;
 import org.jboss.tools.ws.creation.core.data.ServiceModel;
 import org.jboss.tools.ws.creation.core.test.util.StartupShutdownUtil;
+import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
-public class AbstractJBossWSGenerationTest extends TestCase {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class AbstractJBossWSGenerationTest {
 	protected IServer currentServer;
 	protected final Set<IResource> resourcesToCleanup = new HashSet<IResource>();
 	static String BUNDLE = "org.jboss.tools.ws.creation.core.test";
@@ -63,8 +67,14 @@ public class AbstractJBossWSGenerationTest extends TestCase {
 	IFacetedProject fproject;
 	public IFile wsdlFile;
 
+	@BeforeClass
+	public static void skipOnMacOS() {
+		final String os = System.getProperty("os.name").toLowerCase();
+		Assume.assumeFalse("Skipping MacOSX/JRE5 combination", os.startsWith("mac os"));
+	}
+
 	@Before
-	public void setUp() throws Exception{
+	public void setUp() throws Exception {
 		assertNotNull(TestConstants.JRE_5_HOME, "No JRE5 property in System");
 		assertTrue("The JRE5 location is not right", new Path(TestConstants.JRE_5_HOME).toFile().exists());
 		JavaRuntime.setDefaultVMInstall(JREUtils.createJRE(new Path(TestConstants.JRE_5_HOME)), new NullProgressMonitor() );
@@ -142,6 +152,7 @@ public class AbstractJBossWSGenerationTest extends TestCase {
 		return false;
 	}
 	
+	@After
 	public void tearDown() throws Exception{
 		cleanResouces();
 		JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
@@ -153,7 +164,6 @@ public class AbstractJBossWSGenerationTest extends TestCase {
 		} catch( CoreException ce ) {
 			// report
 		}
-		super.tearDown();
 	}
 
 	protected void startup(IServer server) {
