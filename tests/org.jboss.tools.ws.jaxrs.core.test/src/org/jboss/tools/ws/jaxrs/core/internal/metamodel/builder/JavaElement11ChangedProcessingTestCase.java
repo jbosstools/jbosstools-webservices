@@ -385,7 +385,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
-		sourceFolder.getResource().delete(true, null);	
+		ResourcesUtils.delete(sourceFolder.getResource());	
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
 		// verification: only 6 Built-in HTTP Methods left in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
@@ -586,7 +586,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
-		sourceFolder.getResource().delete(true, null);
+		ResourcesUtils.delete(sourceFolder.getResource());
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
 		// verification: only 6 Built-in HTTP Methods left in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
@@ -1619,7 +1619,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
-		sourceFolder.getResource().delete(true, null);
+		ResourcesUtils.delete(sourceFolder.getResource());
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
 		// verification: only 6 built-in HTTP Methods left in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
@@ -2584,7 +2584,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
 		final IPackageFragmentRoot sourceFolder = metamodelMonitor.resolvePackageFragmentRoot("src/main/java");
-		sourceFolder.getResource().delete(true, null);
+		ResourcesUtils.delete(sourceFolder.getResource());
 		metamodelMonitor.processEvent(sourceFolder, REMOVED);
 		// verifications: only 6 built-in HTTP Methodsleft in the metamodel
 		assertThat(metamodel.findAllElements().size(), equalTo(6));

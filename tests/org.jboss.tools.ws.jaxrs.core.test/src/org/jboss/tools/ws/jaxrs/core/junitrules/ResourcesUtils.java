@@ -194,6 +194,7 @@ public class ResourcesUtils {
 		final IProject project = resource.getProject();
 		final IFile file = project.getFile(resource.getProjectRelativePath());
 		file.setContents(stream, true, false, null);
+		WorkbenchTasks.waitForTasksToComplete(getWorkspace(resource));
 		if(TestLogger.isDebugEnabled()) {
 			TestLogger.debug("Replaced content:\n" + IOUtils.toString(file.getContents()));
 		}

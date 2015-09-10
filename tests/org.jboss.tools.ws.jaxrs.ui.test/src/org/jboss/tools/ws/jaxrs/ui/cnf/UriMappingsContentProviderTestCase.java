@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +62,7 @@ public class UriMappingsContentProviderTestCase {
 		final UriMappingsContentProvider uriMappingsContentProvider = new UriMappingsContentProvider();
 		final UriPathTemplateCategory uriPathTemplateCategory = new UriPathTemplateCategory(uriMappingsContentProvider, javaProject);
 		// when
-		project.delete(true, null);
+		ResourcesUtils.delete(project);
 		boolean hasChildren = uriMappingsContentProvider.hasChildren(uriPathTemplateCategory);
 		// then
 		Assert.assertThat(hasChildren, equalTo(false));

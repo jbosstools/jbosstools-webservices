@@ -27,6 +27,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
@@ -182,7 +183,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
 			((JaxrsBaseElement) application).remove(Flags.NONE);
-			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(((JaxrsBaseElement) application).getResource());
 		}
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
@@ -210,7 +211,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
 			((JaxrsBaseElement) application).remove(Flags.NONE);
-			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(((JaxrsBaseElement) application).getResource());
 		}
 
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
@@ -241,7 +242,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
 			((JaxrsBaseElement) application).remove(Flags.NONE);
-			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(((JaxrsBaseElement) application).getResource());
 		}
 		metamodelMonitor.replaceDeploymentDescriptorWith("web-3_0-without-servlet-mapping.xml");
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
@@ -270,7 +271,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
 			((JaxrsBaseElement) application).remove(Flags.NONE);
-			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(((JaxrsBaseElement) application).getResource());
 		}
 
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
@@ -297,7 +298,7 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		final Collection<IJaxrsApplication> allApplications = metamodel.findAllApplications();
 		for(IJaxrsApplication application : allApplications) {
 			((JaxrsBaseElement) application).remove(Flags.NONE);
-			((JaxrsBaseElement) application).getResource().delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(((JaxrsBaseElement) application).getResource());
 		}
 
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);

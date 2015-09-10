@@ -58,6 +58,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsWebxmlApplic
 import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
@@ -481,7 +482,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// operation 2: remove second JAX-RS application
 		javaApplication2.remove(Flags.NONE);
 		final IFile app2Resource = (IFile) javaApplication2.getResource();
-		app2Resource.delete(true, new NullProgressMonitor());
+		ResourcesUtils.delete(app2Resource);
 		// then validate again, only the *changed files* (and without reset).
 		// Expect marker on first application to be removed
 		new JaxrsMetamodelValidator().validate(toSet(app2Resource), project, validationHelper, context,
@@ -551,7 +552,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// operation 2: remove JAX-RS application
 		javaApplication.remove(Flags.NONE);
 		final IFile appResource = (IFile) javaApplication.getResource();
-		appResource.delete(true, new NullProgressMonitor());
+		ResourcesUtils.delete(appResource);
 		// then validate again, only the *changed files* (and without reset).
 		// Expect marker on we.xml application definition to be removed
 		new JaxrsMetamodelValidator().validate(toSet(appResource), project, validationHelper, context,
@@ -589,7 +590,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// operation 2: remove web.xml application definition
 		webxmlApplication.remove(Flags.NONE);
 		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
-		webxmlResource.delete(true, new NullProgressMonitor());
+		ResourcesUtils.delete(webxmlResource);
 		// then validate again, only the *changed files* (and without reset).
 		// Expect marker on first application to be removed
 		new JaxrsMetamodelValidator().validate(toSet(webxmlResource), project, validationHelper, context,
@@ -669,7 +670,7 @@ public class JaxrsApplicationValidatorTestCase {
 		// operation 2: remove Web.xml override
 		webxmlApplication.remove(Flags.NONE);
 		final IFile webxmlResource = (IFile) webxmlApplication.getResource();
-		webxmlResource.delete(true, new NullProgressMonitor());
+		ResourcesUtils.delete(webxmlResource);
 		// then validate again, only the *changed files* (and without reset).
 		// Expect marker on both applications to be still there
 		new JaxrsMetamodelValidator().validate(toSet(webxmlResource), project, validationHelper, context,

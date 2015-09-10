@@ -52,6 +52,7 @@ import org.jboss.tools.common.validation.internal.ProjectValidationContext;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
@@ -93,7 +94,8 @@ public class JaxrsHttpMethodValidatorTestCase {
 		project = metamodel.getProject();
 		javaProject = metamodel.getJavaProject();
 		// remove 'org.jboss.tools.ws.jaxrs.sample.services.BazResource' to avoid side effects on this resource which uses the 'FOO' HTTP Method annotation.
-		metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource").getResource().delete(true, null);
+		final IResource bazResource = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.BazResource").getResource();
+		ResourcesUtils.delete(bazResource);
 	}
 	
 	@After

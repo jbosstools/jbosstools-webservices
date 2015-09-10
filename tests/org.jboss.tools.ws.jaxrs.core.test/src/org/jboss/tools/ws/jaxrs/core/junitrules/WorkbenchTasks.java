@@ -110,7 +110,7 @@ public class WorkbenchTasks {
 					project.getLocation(), projectSourcePath);
 			syncFileSystemStructureProvider.ignoreRelativeSourcePaths("target", "bin", ".svn", ".git", ".project",
 					".classpath", ".settings");
-			List<File> filesToRemove = syncFileSystemStructureProvider.getChildren(project.getLocation().toFile());
+			final List<File> filesToRemove = syncFileSystemStructureProvider.getChildren(project.getLocation().toFile());
 			for (File fileToRemove : filesToRemove) {
 				Assert.assertTrue("File not deleted : " + fileToRemove, fileToRemove.delete());
 			}
