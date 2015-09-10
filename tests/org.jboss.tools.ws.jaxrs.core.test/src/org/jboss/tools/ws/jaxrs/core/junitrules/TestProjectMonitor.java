@@ -209,7 +209,7 @@ public class TestProjectMonitor extends ExternalResource {
 	 * @throws CoreException
 	 */
 	public void removePackageFragmentRoot(final String path) throws JavaModelException, CoreException {
-		resolvePackageFragmentRoot(path).getResource().delete(true, null);
+		ResourcesUtils.delete(resolvePackageFragmentRoot(path).getResource());
 	}
 	
 	/**
@@ -223,7 +223,7 @@ public class TestProjectMonitor extends ExternalResource {
 		for(String pathFragment : pathFragments) {
 			path = path.append(pathFragment);
 		}
-		project.findMember(path).delete(true, null);
+		ResourcesUtils.delete(project.findMember(path));
 	}
 	
 	/**
@@ -353,7 +353,7 @@ public class TestProjectMonitor extends ExternalResource {
 	public IFile replaceDeploymentDescriptorWith(final String webxmlReplacementName) throws Exception {
 		IFile webxmlResource = WtpUtils.getWebDeploymentDescriptor(project);
 		if (webxmlResource != null && webxmlReplacementName == null) {
-			webxmlResource.delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(webxmlResource);
 		} else if (webxmlResource == null && webxmlReplacementName == null) {
 			// nothing to do: file does not exist and should be removed ;-)
 			return null;
@@ -375,7 +375,7 @@ public class TestProjectMonitor extends ExternalResource {
 	public IFile replaceDotProjectFileWith(final String dotProjectReplacementName) throws Exception {
 		IFile dotProjectResource = project.getFile(".project");
 		if (dotProjectResource != null && dotProjectReplacementName == null) {
-			dotProjectResource.delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(dotProjectResource);
 		} else if (dotProjectResource == null && dotProjectReplacementName == null) {
 			// nothing to do: file does not exist and should be removed ;-)
 			return null;
@@ -403,8 +403,8 @@ public class TestProjectMonitor extends ExternalResource {
 	 * @throws InvocationTargetException
 	 */
 	public IResource deleteDeploymentDescriptor() throws Exception {
-		IResource webxmlResource = WtpUtils.getWebDeploymentDescriptor(project);
-		webxmlResource.delete(true, new NullProgressMonitor());
+		final IResource webxmlResource = WtpUtils.getWebDeploymentDescriptor(project);
+		ResourcesUtils.delete(webxmlResource);
 		return webxmlResource;
 	}
 	

@@ -73,6 +73,7 @@ import org.jboss.tools.ws.jaxrs.core.jdt.Annotation;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementKind;
@@ -710,7 +711,7 @@ public class ResourceChangedProcessingTestCase {
 				"web-3_0-with-default-servlet-mapping.xml");
 		metamodelMonitor.resetElementChangesNotifications();
 		// operation
-		webxmlResource.delete(true, new NullProgressMonitor());
+		ResourcesUtils.delete(webxmlResource);
 		metamodelMonitor.processResourceEvent(webxmlResource, REMOVED);
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));

@@ -23,7 +23,6 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.junit.Assert;
@@ -94,9 +93,8 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 	 * @throws InterruptedException
 	 */
 	public boolean resync() throws CoreException, InvocationTargetException, InterruptedException {
-		IWorkspace junitWorkspace = ResourcesPlugin.getWorkspace();
-		NullProgressMonitor monitor = new NullProgressMonitor();
-		IPath projectSourcePath = WorkbenchTasks.getProjectSourcePath(projectName);
+		final IWorkspace junitWorkspace = ResourcesPlugin.getWorkspace();
+		final IPath projectSourcePath = WorkbenchTasks.getProjectSourcePath(projectName);
 		
 		if(deltaStack.isEmpty()) {
 			TestLogger.info("Skipping project resource resync' b/c no file changed during the test.");
@@ -109,7 +107,7 @@ public class TestProjectSynchronizator implements IResourceChangeListener, IReso
 			case IResourceDelta.ADDED:
 				// resource was added : needs to be removed
 				TestLogger.trace("Removing " + delta.getResource().getFullPath());
-				delta.getResource().delete(true, monitor);
+				ResourcesUtils.delete(delta.getResource());
 				break;
 			case IResourceDelta.CHANGED:
 			case IResourceDelta.REMOVED:

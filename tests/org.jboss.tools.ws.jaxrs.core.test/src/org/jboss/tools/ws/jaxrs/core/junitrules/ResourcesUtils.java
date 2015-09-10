@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
@@ -32,6 +33,7 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCoreTestPlugin;
+import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.junit.Assert;
@@ -116,13 +118,35 @@ public class ResourcesUtils {
 	}
 
 	/**
-	 * Deletes the IResource and waits for jobs to complete
+	 * Deletes the IResource and waits for jobs to complete. 
+	 * Attempts a fixed number of times before throwing the {@link CoreException} (in case of FS lock or other temporary issue).
 	 * @param resource
 	 * @throws CoreException
+	 * @throws InterruptedException 
 	 */
 	public static void delete(IResource resource) throws CoreException {
-		resource.delete(true, new NullProgressMonitor());
-		WorkbenchTasks.waitForTasksToComplete(getWorkspace(resource));
+		if(resource == null) {
+			return;
+		}
+		final int maxAttempts = 5;
+		for (int i = 1; i <= maxAttempts; i++) {
+			try {
+				resource.delete(true, new NullProgressMonitor());
+				WorkbenchTasks.waitForTasksToComplete(getWorkspace(resource));
+				return;
+			} catch (CoreException e) {
+				Logger.warn("Attempt #" + i + " to remove " + resource.getFullPath().toOSString() + " failed", e);
+				if(i == maxAttempts) {
+					throw e;
+				} else {
+					try {
+						Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+					} catch (InterruptedException e1) {
+						fail("Failed to wait before attempting to delete the resource: " + e.getMessage());
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -166,26 +190,13 @@ public class ResourcesUtils {
 	 * @throws CoreException
 	 * @throws IOException
 	 */
-	public static void replaceContent(IResource resource, InputStream stream) throws CoreException, IOException {
+	public static void replaceContent(final IResource resource, final InputStream stream) throws CoreException, IOException {
 		final IProject project = resource.getProject();
 		final IFile file = project.getFile(resource.getProjectRelativePath());
-		if (file.exists()) {
-			file.delete(true, new NullProgressMonitor());
+		file.setContents(stream, true, false, null);
+		if(TestLogger.isDebugEnabled()) {
+			TestLogger.debug("Replaced content:\n" + IOUtils.toString(file.getContents()));
 		}
-		file.create(stream, true, null);
-		final InputStream contents = file.getContents();
-		final char[] buffer = new char[0x10000];
-		final StringBuilder out = new StringBuilder();
-		final Reader in = new InputStreamReader(contents, "UTF-8");
-		int read;
-		do {
-			read = in.read(buffer, 0, buffer.length);
-			if (read > 0) {
-				out.append(buffer, 0, read);
-			}
-		} while (read >= 0);
-		in.close();
-		TestLogger.debug("Content:\n" + out.toString());
 	}
 
 	/**
@@ -266,18 +277,6 @@ public class ResourcesUtils {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Replace the content of the given {@link IFile} with the given 'newContent'.
-	 * @param file the file whose content should be replaced
-	 * @param newContent the replacement content 
-	 * @throws CoreException 
-	 */
-	public static void replaceContent(final IResource file, String newContent) throws CoreException {
-		file.delete(true, new NullProgressMonitor());
-		((IFile) file).create(IOUtils.toInputStream(newContent), true, null);
-		file.refreshLocal(IResource.DEPTH_ONE, null);
 	}
 
 	/**

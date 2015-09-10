@@ -80,7 +80,7 @@ public class WorkbenchTasks {
 		final IProject project = targetWorkspace.getRoot().getProject(projectName);
 		if (project.exists() && !targetWorkspace.getRoot().getFile(project.getFile(".project").getFullPath()).exists()) {
 			TestLogger.warn("Deleting (with force!) the project as it seems to be in an invalid state...");
-			project.delete(true, new NullProgressMonitor());
+			ResourcesUtils.delete(project);
 		} else if (project.exists() && !project.isOpen()) {
 			project.open(new NullProgressMonitor());
 		}

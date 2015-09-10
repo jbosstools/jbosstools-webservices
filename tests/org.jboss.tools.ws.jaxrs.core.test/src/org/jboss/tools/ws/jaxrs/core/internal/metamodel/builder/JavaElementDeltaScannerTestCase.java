@@ -78,6 +78,7 @@ import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
+import org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.junitrules.WorkspaceSetupRule;
 import org.junit.After;
 import org.junit.Assert;
@@ -265,7 +266,7 @@ public class JavaElementDeltaScannerTestCase {
 		final IEditorPart editorPart = JavaUI.openInEditor(compilationUnit);
 		JavaUI.revealInEditor(editorPart, (IJavaElement) compilationUnit);
 		// operation
-		compilationUnit.getResource().delete(true, null);
+		ResourcesUtils.delete(compilationUnit.getResource());
 		// verifications: 1 time
 		verifyEventNotification(compilationUnit, REMOVED, POST_RECONCILE, Flags.NONE, times(2));
 	}
@@ -276,7 +277,7 @@ public class JavaElementDeltaScannerTestCase {
 		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
 		// operation
-		compilationUnit.getResource().delete(true, null);
+		ResourcesUtils.delete(compilationUnit.getResource());
 		// verifications: 1 time
 		verifyEventNotification(compilationUnit.getResource(), REMOVED, POST_CHANGE, Flags.NONE, times(1));
 	}
