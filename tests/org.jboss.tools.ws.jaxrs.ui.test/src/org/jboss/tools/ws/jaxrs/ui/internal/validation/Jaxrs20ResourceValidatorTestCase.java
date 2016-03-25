@@ -377,5 +377,26 @@ public class Jaxrs20ResourceValidatorTestCase {
 		}
 		assertThat(markers.length, equalTo(0));
 	}
+
+	@Test
+	// @see https://issues.jboss.org/browse/JBIDE-21977
+	public void shouldNotReportProblemOnDynamicFeature() throws ValidationException, CoreException {
+		final ICompilationUnit clientFilterCompilationUnit = metamodelMonitor.createCompilationUnit("CustomDynamicFeature.txt",
+				"org.jboss.tools.ws.jaxrs.sample.services.interceptors", "CustomDynamicFeature.java");
+		metamodelMonitor.createElements("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomDynamicFeature");
+		final IJaxrsProvider clientFilter = metamodel.findProvider(clientFilterCompilationUnit.findPrimaryType());
+		metamodelMonitor.resetElementChangesNotifications();
+		
+		// operation: validate
+		new JaxrsMetamodelValidator().validate(toSet(clientFilter.getResource()), project, validationHelper, context,
+				validatorManager, reporter);
+		
+		// verifications
+		final IMarker[] markers = findJaxrsMarkers(clientFilter);
+		for(IMarker marker : markers) {
+			TestLogger.debug(" Unexpected marker: {}", marker.getAttribute(IMarker.MESSAGE));
+		}
+		assertThat(markers.length, equalTo(0));
+	}
 	
 }

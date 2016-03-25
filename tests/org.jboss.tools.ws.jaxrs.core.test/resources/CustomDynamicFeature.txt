@@ -1,0 +1,15 @@
+package org.jboss.tools.ws.jaxrs.sample.services.interceptors;
+
+import javax.ws.rs.container.DynamicFeature;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.FeatureContext;
+import javax.ws.rs.ext.Provider;
+
+@Provider
+public class CustomDynamicFeature implements DynamicFeature {
+
+	@Override
+	public void configure(ResourceInfo info, FeatureContext context) {
+		
+	}
+}

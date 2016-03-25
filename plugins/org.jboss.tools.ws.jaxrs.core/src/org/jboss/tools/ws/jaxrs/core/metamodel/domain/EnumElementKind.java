@@ -50,6 +50,8 @@ public enum EnumElementKind {
 	ENTITY_WRITER_INTERCEPTOR(EnumElementCategory.PROVIDER),
 	/** An Entity Interceptor (ie, both EntityReaderInterceptor and EntityWriterInterceptor).*/
 	ENTITY_INTERCEPTOR(EnumElementCategory.PROVIDER),
+	/** An Dynamic binding feature.*/
+	DYNAMIC_FEATURE(EnumElementCategory.PROVIDER),
 	/** An Interceptor/Filter Name Binding Annotation.*/
 	NAME_BINDING(EnumElementCategory.NAME_BINDING),
 	/** Undefined Provider. */

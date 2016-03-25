@@ -54,12 +54,13 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.ENTITY_WRITER_
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPPER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DYNAMIC_FEATURE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 
 /**
  * <p>
- * JAX-RS Providers fall into 5 categories:
+ * JAX-RS Providers fall into the following categories:
  * <ul>
  * <li>Entity Providers: the class must implement
  * <code>javax.ws.rs.ext.MessageBodyReader</code> and/or
@@ -72,6 +73,7 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
  * <code>javax.ws.rs.ext.ExceptionMapper</code></li>
  * <li>Request/Response Filters: the class must implement <code>javax.ws.rs.container.ContainerRequestFilter</code>, <code>javax.ws.rs.container.ContainerResponseFilter</code>, <code>javax.ws.rs.client.ClientRequestFilter</code>, <code>javax.ws.rs.client.ClientResponseFilter</code></li>
  * <li>Entity Interceptor: the class must implement <code>javax.ws.rs.ext.ReaderInterceptor</code> and/or <code>javax.ws.rs.ext.WriterInterceptor</code></li>
+ * <li>Dynamic feature: the class must implement the <code>javax.ws.rs.container.DynamicFeature</code> interface.</li>
  * </ul>
  * </p>
  * <p>
@@ -101,8 +103,9 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast);
 		case IJavaElement.TYPE:
 			return new Builder((IType) javaElement, ast);
+		default:
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -122,8 +125,9 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			return new Builder(((ICompilationUnit) javaElement).findPrimaryType(), ast);
 		case IJavaElement.TYPE:
 			return new Builder((IType) javaElement, ast);
+		default:
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -152,7 +156,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 
 		/**
 		 * Creates a <strong>transient</strong> JAX-RS Provider from the given
-		 * SourceType. A valid Provider must be annotated with
+		 * SourceType. A valid Provider must be implement one of the following interfaces:
 		 * <ul>
 		 * <li><code>javax.ws.rs.ext.MessageBodyReader</code></li>
 		 * <li><code>javax.ws.rs.ext.MessageBodyWriter</code></li>
@@ -163,6 +167,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		 * <li><code>javax.ws.rs.client.ClientResponseFilter</code></li>
 		 * <li><code>javax.ws.rs.ext.ReaderInterceptor</code></li>
 		 * <li><code>javax.ws.rs.ext.WriterInterceptor</code></li>
+		 * <li><code>javax.ws.rs.container.DynamicFeature</code></li>
 		 * </ul> 
 		 * 
 		 * @param javaType
@@ -247,6 +252,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			providerInterfaces.put(CLIENT_RESPONSE_FILTER, EnumElementKind.CLIENT_RESPONSE_FILTER);
 			providerInterfaces.put(ENTITY_READER_INTERCEPTOR, EnumElementKind.ENTITY_READER_INTERCEPTOR);
 			providerInterfaces.put(ENTITY_WRITER_INTERCEPTOR, EnumElementKind.ENTITY_WRITER_INTERCEPTOR);
+			providerInterfaces.put(DYNAMIC_FEATURE, EnumElementKind.DYNAMIC_FEATURE);
 
 			final List<IType> providerTypeSuperInterfaces = Arrays.asList(providerTypeHierarchy.getAllSuperInterfaces(providerType));
 			for (Entry<String, EnumElementKind> entry : providerInterfaces.entrySet()) {
@@ -337,6 +343,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 		final boolean isContainerResponseFilter = providedTypes.containsKey(EnumElementKind.CONTAINER_RESPONSE_FILTER);
 		final boolean isEntityReaderInterceptor = providedTypes.containsKey(EnumElementKind.ENTITY_READER_INTERCEPTOR);
 		final boolean isEntityWriterInterceptor = providedTypes.containsKey(EnumElementKind.ENTITY_WRITER_INTERCEPTOR);
+		final boolean isDynamicFeature = providedTypes.containsKey(EnumElementKind.DYNAMIC_FEATURE);
 		if (isMessageBodyReader && isMessageBodyWriter) {
 			return EnumElementKind.ENTITY_MAPPER;
 		} else if (isMessageBodyReader) {
@@ -359,6 +366,8 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			return EnumElementKind.ENTITY_READER_INTERCEPTOR;
 		} else if (isEntityWriterInterceptor) {
 			return EnumElementKind.ENTITY_WRITER_INTERCEPTOR;
+		} else if (isDynamicFeature) {
+			return EnumElementKind.DYNAMIC_FEATURE;
 		}
 		return EnumElementKind.UNDEFINED_PROVIDER;
 	}
