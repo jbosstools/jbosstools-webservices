@@ -61,6 +61,8 @@ public interface JaxrsClassnames {
 	
 	public static final String ENTITY_WRITER_INTERCEPTOR = "javax.ws.rs.ext.WriterInterceptor";
 	
+	public static final String DYNAMIC_FEATURE = "javax.ws.rs.container.DynamicFeature";
+	
 	public static final String NAME_BINDING = "javax.ws.rs.NameBinding";
 	
 	public static final String PRE_MATCHING = "javax.ws.rs.container.PreMatching";
