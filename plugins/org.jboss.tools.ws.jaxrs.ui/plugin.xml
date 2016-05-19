@@ -636,5 +636,16 @@
       </perspectiveExtension>
    </extension>
 
-       
+   <extension
+         point="org.eclipse.ui.ide.projectConfigurators">
+      <projectConfigurator
+            class="org.jboss.tools.ws.jaxrs.ui.internal.importer.JaxRsConfigurator"
+            label="Java EE Jax-RS">
+         <activeWhen>
+            <hasFileRecursively
+                  filename="web.xml">
+            </hasFileRecursively>
+         </activeWhen>
+      </projectConfigurator>
+   </extension>
 </plugin>
