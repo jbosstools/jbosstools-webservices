@@ -340,6 +340,9 @@ public final class JdtUtils {
 			return null;
 		}
 		final ASTNode memberNode = findDeclaringNode(member, ast);
+		if(memberNode == null) {
+			return null;
+		}
 		final List<?> memberModifiers = getNodeModifiers(memberNode);
 		return findAnnotation(memberModifiers, annotationName);
 	}
@@ -371,6 +374,9 @@ public final class JdtUtils {
 		}
 		// for source elements, we need to pass by bindings to resolve annotations fully qualified names.
 		final ASTNode memberNode = findDeclaringNode(member, ast);
+		if(memberNode == null) {
+			return Collections.emptyMap();
+		}
 		final List<?> memberModifiers = getNodeModifiers(memberNode);
 		return findAllAnnotations(memberModifiers);
 
@@ -491,9 +497,13 @@ public final class JdtUtils {
 		default:
 		}
 		// fallback approach if everything above failed.
-		final NodeFinder finder = new NodeFinder(ast, member.getSourceRange().getOffset(),
-				member.getSourceRange().getLength());
-		return finder.getCoveredNode();
+		if(member.exists()) {
+			final NodeFinder finder = new NodeFinder(ast, member.getSourceRange().getOffset(),
+					member.getSourceRange().getLength());
+			return finder.getCoveredNode();
+		}
+		// assume that the element does not exist anymore
+		return null;
 	}
 
 	/**

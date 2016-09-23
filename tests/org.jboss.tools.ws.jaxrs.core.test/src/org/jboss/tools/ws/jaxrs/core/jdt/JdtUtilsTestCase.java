@@ -58,6 +58,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.hamcrest.Matchers;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestBanner;
 import org.jboss.tools.ws.jaxrs.core.junitrules.TestProjectMonitor;
@@ -69,6 +70,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class JdtUtilsTestCase {
 
@@ -420,6 +422,20 @@ public class JdtUtilsTestCase {
 	}
 
 	@Test
+	public void shoudNotResolveSourceTypeAnnotationFromUnknownMember() throws CoreException {
+		// pre-conditions
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		Assert.assertNotNull("SourceType not found", type);
+		final IMember initializerMember = Mockito.mock(IMember.class);
+		Mockito.when(initializerMember.getElementType()).thenReturn(IJavaElement.INITIALIZER);
+		Mockito.when(initializerMember.exists()).thenReturn(false);
+		// operation
+		Annotation javaAnnotation = JdtUtils.resolveAnnotation(initializerMember, JdtUtils.parse(type, progressMonitor), "Path");
+		// verifications
+		assertThat(javaAnnotation, nullValue());
+	}
+	
+	@Test
 	public void shoudResolveAllSourceTypeAnnotations() throws CoreException {
 		// pre-conditions
 		final IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
@@ -433,6 +449,22 @@ public class JdtUtilsTestCase {
 			assertThat(entry.getKey(), equalTo(entry.getValue().getFullyQualifiedName()));
 			assertThat(entry.getValue().getJavaAnnotation(), notNullValue());
 		}
+	}
+	
+	@Test
+	public void shoudNotResolveAnnotationsFromOtherMember() throws CoreException {
+		// pre-conditions
+		IType type = projectMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
+		Assert.assertNotNull("SourceType not found", type);
+		final IMember initializerMember = Mockito.mock(IMember.class);
+		Mockito.when(initializerMember.getElementType()).thenReturn(IJavaElement.INITIALIZER);
+		Mockito.when(initializerMember.exists()).thenReturn(false);
+		// operation
+		final Map<String, Annotation> javaAnnotations = JdtUtils.resolveAllAnnotations(initializerMember,
+				JdtUtils.parse(type, progressMonitor));
+		// verifications
+		assertThat(javaAnnotations, notNullValue());
+		assertThat(javaAnnotations.size(), Matchers.equalTo(0));
 	}
 
 	@Test

@@ -459,10 +459,16 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 		if (matchingElement != null) {
 			switch (deltaKind) {
 			case ADDED:
-				matchingElement.addAnnotation(JdtUtils.resolveAnnotation(javaAnnotation, ast));
+				final Annotation addedAnnotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
+				if(addedAnnotation != null) {
+					matchingElement.addAnnotation(addedAnnotation);
+				}
 				break;
 			case CHANGED:
-				matchingElement.updateAnnotation(JdtUtils.resolveAnnotation(javaAnnotation, ast));
+				final Annotation updatedAnnotation = JdtUtils.resolveAnnotation(javaAnnotation, ast);
+				if(updatedAnnotation != null) {
+					matchingElement.updateAnnotation(updatedAnnotation);
+				}
 				break;
 			case REMOVED:
 				matchingElement.removeAnnotation(javaAnnotation);
