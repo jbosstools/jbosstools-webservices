@@ -1016,7 +1016,7 @@ public final class JdtUtils {
 				.types()) {
 			// ohoh, everything is resolved with bindings :-)
 			ITypeBinding typeBinding = typeDeclaration.resolveBinding();
-			if (typeBinding.getJavaElement().equals(parameterizedType)) {
+			if (typeBinding != null && typeBinding.getJavaElement().equals(parameterizedType)) {
 				// locate the matchGenericType declaration...
 				for (int i = 0; i < pathToParameterizedType.size(); i++) {
 					IType superType = pathToParameterizedType.get(i);
