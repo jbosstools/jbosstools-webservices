@@ -41,3 +41,10 @@ Bundle-ClassPath: .,
  lib/mockito-core-1.9.0-rc1.jar,
  lib/objenesis-1.2.jar
 Export-Package: org.jboss.tools.ws.jaxrs.core.junitrules;x-friends:="org.jboss.tools.ws.jaxrs.ui.test"
+Import-Package: org.apache.lucene.analysis.standard;version="5.4.1",
+ org.apache.lucene.analysis;version="5.4.1",
+ org.apache.lucene.document;version="5.4.1", 
+ org.apache.lucene.index;version="5.4.1",
+ org.apache.lucene.search;version="5.4.1",
+ org.apache.lucene.store;version="5.4.1",
+ org.apache.lucene.util;version="5.4.1"

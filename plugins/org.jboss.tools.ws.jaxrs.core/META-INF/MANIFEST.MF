@@ -40,3 +40,6 @@ Export-Package: org.jboss.tools.ws.jaxrs.core,
  org.jboss.tools.ws.jaxrs.core.validation,
  org.jboss.tools.ws.jaxrs.core.wtp
 Bundle-ClassPath: .
+Import-Package: org.apache.lucene.analysis.standard;version="5.4.1",
+ org.apache.lucene.index;version="5.4.1",
+ org.apache.lucene.store;version="5.4.1"
