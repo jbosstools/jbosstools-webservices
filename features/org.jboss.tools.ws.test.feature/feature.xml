@@ -27,6 +27,7 @@
        <import feature="org.eclipse.wst.xml_ui.feature" version="3.3.2" match="compatible"/>
     </requires>
 
+	<plugin id="org.jboss.tools.ws.reddeer" download-size="0" install-size="0" version="0.0.0" />
     <plugin id="org.jboss.tools.ws.core.test" download-size="0" install-size="0" version="0.0.0" />
     <plugin id="org.jboss.tools.ws.creation.core.test" download-size="0" install-size="0" version="0.0.0" />
     <plugin id="org.jboss.tools.ws.jaxrs.core.test" download-size="0" install-size="0" version="0.0.0" />
