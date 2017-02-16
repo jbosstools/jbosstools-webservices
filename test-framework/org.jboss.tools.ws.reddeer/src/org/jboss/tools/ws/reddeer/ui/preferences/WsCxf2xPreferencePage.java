@@ -14,6 +14,7 @@ import org.jboss.reddeer.jface.preference.PreferencePage;
 import org.jboss.reddeer.swt.api.Table;
 import org.jboss.reddeer.swt.api.TableItem;
 import org.jboss.reddeer.swt.impl.button.PushButton;
+import org.jboss.reddeer.swt.impl.shell.DefaultShell;
 import org.jboss.reddeer.swt.impl.table.DefaultTable;
 import org.jboss.reddeer.swt.impl.text.DefaultText;
 
@@ -39,6 +40,7 @@ public class WsCxf2xPreferencePage extends PreferencePage {
 	 */
 	public void add(String cxfHome) {
 		new PushButton("Add...").click();
+		new DefaultShell("Add CXF Runtime");
 		new DefaultText(0).setText(cxfHome);
 		new PushButton("Finish").click();
 	}

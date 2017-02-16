@@ -64,6 +64,11 @@ public abstract class WebServiceWizardPageBase extends WizardPage {
 		new DefaultHyperlink(
 				new WithMnemonicTextMatcher(StringStartsWith.startsWith("Server runtime:"))
 				).activate();
+		
+		new DefaultShell(new WithMnemonicTextMatcher(AnyOf.anyOf(
+				Is.is("Service Deployment Configuration"), 
+				Is.is("Client Environment Configuration")
+		)));
 		new DefaultTreeItem(new DefaultTree(new DefaultGroup("Server runtime:")), "Existing Servers", name).select();
 		new PushButton("OK").click();
 
