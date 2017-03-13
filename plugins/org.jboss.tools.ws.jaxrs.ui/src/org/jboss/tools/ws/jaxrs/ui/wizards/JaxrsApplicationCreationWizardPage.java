@@ -593,7 +593,10 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	}
 
 	public IFile getWebxmlResource() throws CoreException {
-		return WtpUtils.getWebDeploymentDescriptor(getJavaProject().getProject());
+		if (getJavaProject() != null) {
+			return WtpUtils.getWebDeploymentDescriptor(getJavaProject().getProject());
+		}
+		return null;
 	}
 
 	/**
