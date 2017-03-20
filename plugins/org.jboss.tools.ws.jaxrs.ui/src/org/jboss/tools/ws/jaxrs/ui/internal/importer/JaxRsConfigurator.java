@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2014-2016 Red Hat, Inc. and others. 
+ * Copyright (c) 2014-2017 Red Hat, Inc. and others. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -63,8 +63,12 @@ public class JaxRsConfigurator implements ProjectConfigurator {
 			return false;
 		} finally {
 			try {
-				reader.close();
-				content.close();
+				if (reader != null) {
+				    reader.close();
+				}
+				if (content != null) {
+				    content.close();
+				}
 			} catch (IOException ex) {
 				// annoying exception handling 
 			}
