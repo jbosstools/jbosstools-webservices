@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2012 - 2014 Red Hat, Inc. and others.
+ * Copyright (c) 2012 - 2017 Red Hat, Inc. and others.
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -29,6 +29,7 @@ import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 
 /**
  * @author Alexey Kazakov
+ * @author Jeff Maury
  */
 public class JaxrsSettingsPreferencePage extends SettingsPage {
 
@@ -125,6 +126,7 @@ public class JaxrsSettingsPreferencePage extends SettingsPage {
 				} else {
 					removeJaxrsSupport(project);
 				}
+				initialState = isJaxrsEnabled();
 			}
 		} catch (CoreException e) {
 			Logger.error("Failed to apply changes on JAX-RS settings page", e);
