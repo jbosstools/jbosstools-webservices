@@ -9,6 +9,7 @@
 	</parent>
 	<groupId>org.jboss.tools.ws</groupId>
 	<artifactId>org.jboss.tools.ws.reddeer</artifactId>
+	<version>1.9.100-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
 </project>
