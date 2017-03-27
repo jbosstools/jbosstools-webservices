@@ -5,11 +5,10 @@
 	<parent>
 		<groupId>org.jboss.tools.ws</groupId>
 		<artifactId>test-framework</artifactId>
-		<version>1.9.3-SNAPSHOT</version>
+		<version>1.9.100-SNAPSHOT</version>
 	</parent>
 	<groupId>org.jboss.tools.ws</groupId>
 	<artifactId>org.jboss.tools.ws.reddeer</artifactId>
-	<version>1.9.100-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
 </project>

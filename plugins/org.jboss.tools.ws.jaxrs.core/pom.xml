@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.jboss.tools.ws</groupId>
 		<artifactId>plugins</artifactId>
-		<version>1.9.3-SNAPSHOT</version>
+		<version>1.9.100-SNAPSHOT</version>
 	</parent>
 	<groupId>org.jboss.tools.ws.plugins</groupId>
 	<artifactId>org.jboss.tools.ws.jaxrs.core</artifactId>
