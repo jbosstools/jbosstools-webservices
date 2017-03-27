@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.jaxrs.ui.internal.importer;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,12 +63,20 @@ public class JaxRsConfigurator implements ProjectConfigurator {
 		} catch (Exception ex) {
 			return false;
 		} finally {
-			try {
-				reader.close();
-				content.close();
-			} catch (IOException ex) {
-				// annoying exception handling 
-			}
+			closeResourceCautiously(reader);
+			closeResourceCautiously(content);
+		}
+	}
+	
+	//TODO rewrite this to try-with-resources after migration to Java 7 or higher
+	private void closeResourceCautiously(Closeable resource) {
+		if (resource == null) {
+			return;
+		}
+		try {
+			resource.close();
+		} catch (IOException ex) {
+			// annoying exception handling 
 		}
 	}
 
