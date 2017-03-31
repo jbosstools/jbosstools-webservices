@@ -942,11 +942,14 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 	@SuppressWarnings("unchecked")
 	private <T extends IJaxrsStatus> T searchJaxrsElement(Term... terms) {
 		final String matchingIdentifier = indexationService.searchElement(terms);
-		final T element = (T) this.elements.get(matchingIdentifier);
-		if (element == null) {
-			Logger.traceIndexing("No element matching terms", (Object[]) terms);
+		if(matchingIdentifier != null) {
+			final T element = (T) this.elements.get(matchingIdentifier);
+			if (element == null) {
+				Logger.traceIndexing("No element matching terms", (Object[]) terms);
+			}
+			return element;
 		}
-		return element;
+		return null;
 	}
 
 	/**
@@ -1272,7 +1275,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 			final Term kindTerm = new Term(FIELD_JAVA_APPLICATION, Boolean.TRUE.toString());
 			final String matchingIdentifier = indexationService.searchElement(classNameTerm, categoryTerm, kindTerm);
-			return (JaxrsJavaApplication) elements.get(matchingIdentifier);
+			if(matchingIdentifier != null) {
+				return (JaxrsJavaApplication) elements.get(matchingIdentifier);
+			}
+			return null;
 		} finally {
 			readWriteLock.readLock().unlock();
 		}
@@ -1307,7 +1313,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 			final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
 			final String elementIdentifier = indexationService.searchElement(categoryTerm, kindTerm);
-			return (JaxrsWebxmlApplication) elements.get(elementIdentifier);
+			if(elementIdentifier != null) {
+				return (JaxrsWebxmlApplication) elements.get(elementIdentifier);
+			}
+			return null;
 		} finally {
 			readWriteLock.readLock().unlock();
 		}
@@ -1327,7 +1336,10 @@ public class JaxrsMetamodel implements IJaxrsMetamodel {
 			final Term categoryTerm = new Term(FIELD_TYPE, EnumElementCategory.APPLICATION.toString());
 			final Term kindTerm = new Term(FIELD_WEBXML_APPLICATION, Boolean.TRUE.toString());
 			final String matchingIdentifier = indexationService.searchElement(classNameTerm, categoryTerm, kindTerm);
-			return (JaxrsWebxmlApplication) elements.get(matchingIdentifier);
+			if(matchingIdentifier != null) {
+				return (JaxrsWebxmlApplication) elements.get(matchingIdentifier);
+			}
+			return null;
 		} finally {
 			readWriteLock.readLock().unlock();
 		}

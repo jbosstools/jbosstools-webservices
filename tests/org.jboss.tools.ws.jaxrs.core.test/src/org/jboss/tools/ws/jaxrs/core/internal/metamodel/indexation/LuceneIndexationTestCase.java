@@ -24,17 +24,15 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
@@ -73,8 +71,8 @@ public class LuceneIndexationTestCase {
 	@Before
 	public void setup() throws CoreException, CorruptIndexException, IOException {
 		metamodelMonitor.getMetamodel();
-		analyzer = new StandardAnalyzer(Version.LUCENE_35);
-		config = new IndexWriterConfig(Version.LUCENE_35, analyzer);
+		analyzer = new StandardAnalyzer();
+		config = new IndexWriterConfig(analyzer);
 		index = new RAMDirectory();
 		w = new IndexWriter(index, config);
 		w.commit();
@@ -122,8 +120,8 @@ public class LuceneIndexationTestCase {
 	}
 
 
-	private IJaxrsElement query(String name, String value) throws CorruptIndexException, IOException, ParseException {
-		IndexReader reader = IndexReader.open(index);
+	private IJaxrsElement query(String name, String value) throws CorruptIndexException, IOException {
+		DirectoryReader reader = DirectoryReader.open(index);
 		IndexSearcher searcher = new IndexSearcher(reader);
 		try {
 			final TermQuery termQuery = new TermQuery(new Term("verb", value));
@@ -135,14 +133,12 @@ public class LuceneIndexationTestCase {
 			}
 			return null;
 		} finally {
-			searcher.close();
-
+			//searcher.close();
 		}
 	}
 
 	@Test
-	public void shouldRetrieveJaxrsHttpMethodFromVerb() throws IOException, JavaModelException, CoreException,
-			ParseException {
+	public void shouldRetrieveJaxrsHttpMethodFromVerb() throws IOException, JavaModelException, CoreException {
 		// pre-condition
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
@@ -156,7 +152,7 @@ public class LuceneIndexationTestCase {
 
 	@Test
 	public void shouldRetrieveJaxrsHttpMethodFromVerbAfterUpdate() throws IOException, JavaModelException,
-			CoreException, ParseException {
+			CoreException {
 		// pre-condition
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
@@ -176,7 +172,7 @@ public class LuceneIndexationTestCase {
 
 	@Test
 	public void shouldNotRetrieveJaxrsHttpMethodFromVerbAfterRemoval() throws IOException, JavaModelException,
-			CoreException, ParseException {
+			CoreException {
 		// pre-condition
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);

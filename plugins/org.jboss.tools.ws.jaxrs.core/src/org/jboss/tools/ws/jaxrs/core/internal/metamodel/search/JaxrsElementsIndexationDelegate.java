@@ -22,9 +22,11 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -33,9 +35,11 @@ import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.SimpleCollector;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHitCountCollector;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.RAMDirectory;
@@ -64,11 +68,12 @@ public class JaxrsElementsIndexationDelegate {
 	private final StandardAnalyzer analyzer;
 	private final IndexWriterConfig config;
 	private IndexWriter indexWriter;
-	private IndexReader indexReader;
+	private DirectoryReader indexReader;
 	private IndexSearcher indexSearcher;
 
 	/**
-	 * Default constructor
+	 * Default constructor.
+	 * @param metamodel the metamodel to index
 	 * 
 	 * @throws CoreException
 	 * 
@@ -79,12 +84,13 @@ public class JaxrsElementsIndexationDelegate {
 	public JaxrsElementsIndexationDelegate(final JaxrsMetamodel metamodel) throws CoreException {
 		try {
 			this.metamodel = metamodel;
-			analyzer = new StandardAnalyzer(Version.LUCENE_35);
-			config = new IndexWriterConfig(Version.LUCENE_35, analyzer);
+			analyzer = new StandardAnalyzer();
+			config = new IndexWriterConfig(analyzer);
 			config.setMaxBufferedDeleteTerms(1);
 			index = new RAMDirectory();
 			indexWriter = new IndexWriter(index, config);
-			indexReader = IndexReader.open(indexWriter, true);
+			indexWriter.commit();
+			indexReader = DirectoryReader.open(index);
 			indexSearcher = new IndexSearcher(indexReader);
 		} catch (Exception e) {
 			throw new CoreException(new Status(Status.ERROR, JBossJaxrsCorePlugin.PLUGIN_ID,
@@ -99,7 +105,7 @@ public class JaxrsElementsIndexationDelegate {
 	 * @throws IOException
 	 */
 	public void dispose() throws CorruptIndexException, IOException {
-		indexWriter.close(true);
+		indexWriter.close();
 		index.close();
 	}
 
@@ -253,7 +259,7 @@ public class JaxrsElementsIndexationDelegate {
 	 * single document identifier for an {@link IJaxrsElement}, or null if no
 	 * document matched.
 	 * 
-	 * @param queries
+	 * @param terms the query terms
 	 * @return the document identifier matching the query, or null if no
 	 *         document matched
 	 */
@@ -265,8 +271,13 @@ public class JaxrsElementsIndexationDelegate {
 	private String searchSingle(final Query query, final IndexedObjectType type) {
 		try {
 			final IndexSearcher searcher = getNewIndexSearcherIfNeeded();
-			Logger.traceIndexing("Using IndexReader (current={} / hasDeletions={}) containing {} documents",
-					indexReader.isCurrent(), indexReader.hasDeletions(), indexReader.numDocs());
+			if(searcher == null) {
+				Logger.warn("No index searcher available");
+				return null;
+			}
+
+			Logger.traceIndexing("Using IndexReader (hasDeletions={}) containing {} documents",
+					indexReader.hasDeletions(), indexReader.numDocs());
 			Logger.traceIndexing("Searching single document matching {}", query.toString());
 			final TopDocs result = searcher.search(query, 1);
 			if (result.totalHits >= 1) {
@@ -296,8 +307,12 @@ public class JaxrsElementsIndexationDelegate {
 	public <T> Set<T> searchElements(final Term... terms) {
 		try {
 			final IndexSearcher searcher = getNewIndexSearcherIfNeeded();
-			Logger.traceIndexing("Using IndexReader (current={} / hasDeletions={}) containing {} documents",
-					indexReader.isCurrent(), indexReader.hasDeletions(), indexReader.numDocs());
+			if(searcher == null) {
+				Logger.warn("No index searcher available");
+				return Collections.emptySet();
+			}
+			Logger.traceIndexing("Using IndexReader (hasDeletions={}) containing {} documents",
+					indexReader.hasDeletions(), indexReader.numDocs());
 			final BooleanQuery query = joinTerms(terms);
 			Logger.traceIndexing("Searching documents matching {}", query.toString());
 			final JaxrsElementsCollector<T> collector = new JaxrsElementsCollector<T>();
@@ -324,8 +339,12 @@ public class JaxrsElementsIndexationDelegate {
 		try {
 			Logger.debugIndexing("Searching for Endpoints with using: {}", Arrays.asList(terms));
 			final IndexSearcher searcher = getNewIndexSearcherIfNeeded();
-			Logger.traceIndexing("Using IndexReader (current={} / hasDeletions={}) containing {} documents",
-					indexReader.isCurrent(), indexReader.hasDeletions(), indexReader.numDocs());
+			if(searcher == null) {
+				Logger.warn("No index searcher available");
+				return Collections.emptySet();
+			}
+			Logger.traceIndexing("Using IndexReader (hasDeletions={}) containing {} documents",
+					indexReader.hasDeletions(), indexReader.numDocs());
 			final BooleanQuery query = joinTerms(terms);
 			Logger.traceIndexing("Searching documents matching {}", query.toString());
 			final JaxrsEndpointsCollector collector = new JaxrsEndpointsCollector();
@@ -348,9 +367,13 @@ public class JaxrsElementsIndexationDelegate {
 	 */
 	public int count(final Query query) {
 		try {
-			Logger.traceIndexing("Using IndexReader (current={} / hasDeletions={}) containing {} documents",
-					indexReader.isCurrent(), indexReader.hasDeletions(), indexReader.numDocs());
+			Logger.traceIndexing("Using IndexReader (hasDeletions={}) containing {} documents",
+					indexReader.hasDeletions(), indexReader.numDocs());
 			final IndexSearcher searcher = getNewIndexSearcherIfNeeded();
+			if(searcher == null) {
+				Logger.warn("No index searcher available");
+				return 0;
+			}
 			final TotalHitCountCollector collector = new TotalHitCountCollector();
 			Logger.traceIndexing("Counting documents matching {}...", query.toString());
 			searcher.search(query, collector);
@@ -364,25 +387,30 @@ public class JaxrsElementsIndexationDelegate {
 	}
 
 	private IndexSearcher getNewIndexSearcherIfNeeded() throws IOException {
-		final IndexReader newIndexReader = IndexReader.openIfChanged(indexReader, indexWriter, true);
+		try {
+		final DirectoryReader newIndexReader = DirectoryReader.openIfChanged(indexReader, indexWriter, true);
 		if (newIndexReader != null) {
 			this.indexReader = newIndexReader;
-			Logger.traceIndexing("Reopening IndexReader (current={} / hasDeletions={}) now containing {} documents",
-					indexReader.isCurrent(), indexReader.hasDeletions(), indexReader.numDocs());
+			Logger.traceIndexing("Reopening IndexReader (hasDeletions={}) now containing {} documents",
+					indexReader.hasDeletions(), indexReader.numDocs());
 			this.indexSearcher = new IndexSearcher(indexReader);
 		}
 		return this.indexSearcher;
+		} catch(AlreadyClosedException e) {
+			// ignore this exception
+			return null;
+		}
 	}
 
 	/**
-	 * Document IDs Collector. Collectd the mathcing {@link Document}'s
+	 * Document IDs Collector. Collects the matching {@link Document}'s
 	 * {@code LuceneDocumentFactory#FIELD_IDENTIFIER} {@link Field} in a
 	 * {@link Set} to avoid duplicate results.
 	 * 
 	 * @author xcoulon
 	 * 
 	 */
-	static abstract class AnyResultsCollector<T> extends Collector {
+	static abstract class AnyResultsCollector<T> extends SimpleCollector {
 
 		/** The current Lucene {@link IndexReader}. */
 		private IndexReader indexReader;
@@ -395,26 +423,26 @@ public class JaxrsElementsIndexationDelegate {
 
 		private int docBase;
 
-		public AnyResultsCollector(final Set<T> results) {
-			this.results = results;
+		public AnyResultsCollector() {
+			this.results = new HashSet<T>();
 		}
 		
 		@Override
 		public void setScorer(Scorer scorer) throws IOException {
 		}
-
+		
 		@Override
-		public void setNextReader(IndexReader indexReader, int docBase) throws IOException {
-			this.setIndexReader(indexReader);
-			this.setDocBase(docBase);
+		public boolean needsScores() {
+			return false;
 		}
-
+		
 		@Override
-		public boolean acceptsDocsOutOfOrder() {
-			return true;
+		protected void doSetNextReader(final LeafReaderContext context) throws IOException {
+			this.indexReader = context.reader();
+			this.docBase = context.docBase;
 		}
-
-		public Set<T> getResults() throws CorruptIndexException, IOException {
+		
+		public Set<T> getResults() {
 			return results;
 		}
 
@@ -426,24 +454,10 @@ public class JaxrsElementsIndexationDelegate {
 		}
 
 		/**
-		 * @param indexReader the indexReader to set
-		 */
-		public void setIndexReader(IndexReader indexReader) {
-			this.indexReader = indexReader;
-		}
-
-		/**
 		 * @return the docBase
 		 */
 		public int getDocBase() {
 			return docBase;
-		}
-
-		/**
-		 * @param docBase the docBase to set
-		 */
-		public void setDocBase(int docBase) {
-			this.docBase = docBase;
 		}
 
 	}
@@ -454,15 +468,14 @@ public class JaxrsElementsIndexationDelegate {
 		private final String identifierPrefix;
 
 		public JaxrsElementsCollector() {
-			super(new HashSet<T>());
+			super();
 			this.identifierPrefix = IndexedObjectType.JAX_RS_ELEMENT.getPrefix();
 		}
 		
 		@SuppressWarnings("unchecked")
 		@Override
 		public void collect(int docId) throws IOException {
-			Logger.traceIndexing("  Adding doc#{} (deleted={}) to search results", (getDocBase() + docId),
-					getIndexReader().isDeleted(docId));
+			Logger.traceIndexing("  Adding doc#{} to search results", (getDocBase() + docId));
 			final Document document = getIndexReader().document(docId);
 			final String docIdentifier = document.get(LuceneFields.FIELD_IDENTIFIER);
 			final String docCategory = document.get(LuceneFields.FIELD_TYPE);
@@ -480,14 +493,13 @@ public class JaxrsElementsIndexationDelegate {
 		private final String identifierPrefix;
 		
 		public JaxrsEndpointsCollector() {
-			super(new HashSet<JaxrsEndpoint>());
+			super();
 			this.identifierPrefix = IndexedObjectType.JAX_RS_ENDPOINT.getPrefix();
 		}
 		
 		@Override
 		public void collect(int docId) throws IOException {
-			Logger.traceIndexing("  Adding doc#{} (deleted={}) to search results", (getDocBase() + docId),
-					getIndexReader().isDeleted(docId));
+			Logger.traceIndexing("  Adding doc#{} to search results", (getDocBase() + docId));
 			final Document document = getIndexReader().document(docId);
 			final String docIdentifier = document.get(LuceneFields.FIELD_IDENTIFIER);
 			final String docCategory = document.get(LuceneFields.FIELD_TYPE);
@@ -502,12 +514,11 @@ public class JaxrsElementsIndexationDelegate {
 	class ResourcesCollector extends AnyResultsCollector<IResource> {
 
 		public ResourcesCollector() {
-			super(new HashSet<IResource>());
+			super();
 		}
 		@Override
 		public void collect(int docId) throws IOException {
-			Logger.traceIndexing("  Adding doc#{} (deleted={}) to search results", (getDocBase() + docId),
-					getIndexReader().isDeleted(docId));
+			Logger.traceIndexing("  Adding doc#{} to search results", (getDocBase() + docId));
 			final Document document = getIndexReader().document(docId);
 			final String identifier = document.get(LuceneFields.FIELD_IDENTIFIER);
 			final String resourcePath = document.get(LuceneFields.FIELD_RESOURCE_PATH);
