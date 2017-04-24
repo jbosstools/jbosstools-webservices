@@ -11,6 +11,7 @@
 package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 
 import org.jboss.reddeer.jface.wizard.NewWizardDialog;
+import org.jboss.reddeer.swt.impl.shell.DefaultShell;
 import org.jboss.reddeer.core.condition.ShellWithTextIsActive;
 import org.jboss.reddeer.common.wait.TimePeriod;
 import org.jboss.reddeer.common.wait.WaitUntil;
@@ -33,6 +34,7 @@ public class WebServiceWizard extends NewWizardDialog {
 	@Override
 	public void finish() {
 		handleProgressInformationDialog();
+		new DefaultShell("Web Service");
 		super.finish();
 	}
 
