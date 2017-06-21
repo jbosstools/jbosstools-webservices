@@ -79,6 +79,11 @@ public abstract class WebServiceWizardPageBase extends WizardPage {
 		new DefaultHyperlink(
 				new WithMnemonicTextMatcher(StringStartsWith.startsWith("Web service runtime:"))
 				).activate();
+		
+		new DefaultShell(new WithMnemonicTextMatcher(AnyOf.anyOf(
+				Is.is("Service Deployment Configuration"), 
+				Is.is("Client Environment Configuration")
+		)));
 		Group runtimeGroup = new DefaultGroup("Web service runtime:");
 		new DefaultTreeItem(new DefaultTree(runtimeGroup), name).select();
 		new PushButton("OK").click();
