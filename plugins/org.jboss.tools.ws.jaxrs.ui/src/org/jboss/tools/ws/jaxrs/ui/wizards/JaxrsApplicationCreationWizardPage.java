@@ -10,6 +10,12 @@
  ******************************************************************************/
 
 package org.jboss.tools.ws.jaxrs.ui.wizards;
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.addAnnotation;
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.getFirstPackageFragmentRoot;
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.getProjectTopLevelPackage;
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.getSuggestedApplicationTypeName;
+import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.getSuggestedPackage;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -57,10 +63,6 @@ import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
 import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 import org.jboss.tools.ws.jaxrs.ui.cnf.UriPathTemplateCategory;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
-
-import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.addAnnotation;
-import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.getProjectTopLevelPackage;
-import static org.jboss.tools.ws.jaxrs.ui.wizards.JaxrsElementCreationUtils.*;
 
 /**
  * @author xcoulon
@@ -154,6 +156,13 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	public void setDefaultValues(final IStructuredSelection selection) {
 		setSuperClass(JaxrsClassnames.APPLICATION, false);
 		final IJavaElement selectedJavaElement = getInitialJavaElement(selection);
+		// Temporary fix of the upstream: https://bugs.eclipse.org/bugs/show_bug.cgi?id=517297
+		// For more details also see https://issues.jboss.org/browse/JBIDE-24076
+		if (selectedJavaElement != null && !selectedJavaElement.exists()) {
+			setPackageFragmentRoot(null, true);
+			initTypePage(null);
+			return;
+		}
 		if (selectedJavaElement instanceof IJavaProject) {
 			setDefaultValues((IJavaProject) selectedJavaElement);
 		} else if (selectedJavaElement instanceof IPackageFragmentRoot) {
@@ -336,6 +345,13 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	}
 
 	private void createJavaApplicationControls(Composite composite) {
+		// controls for Java application creation
+		final int nColumns = 4;
+		Composite containerComposite = new Composite(composite, SWT.NONE);
+		GridLayoutFactory.fillDefaults().numColumns(nColumns).applyTo(containerComposite);
+		GridDataFactory.fillDefaults().indent(30, 0).align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(containerComposite);
+		createContainerControls(containerComposite, nColumns);
+		
 		this.createJavaApplicationButton = new Button(composite, SWT.RADIO);
 		this.createJavaApplicationButton
 				.setText(JaxrsApplicationCreationMessages.JaxrsApplicationCreationWizardPage_JavaApplicationCreation);
@@ -343,13 +359,10 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 		GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(false, false)
 				.applyTo(createJavaApplicationButton);
 		this.createJavaApplicationButton.addSelectionListener(onSelectJavaApplication());
-		// controls for Java application creation
-		final int nColumns = 4;
 		javaApplicationControlsContainer = new Composite(composite, SWT.NONE);
 		GridLayoutFactory.fillDefaults().numColumns(nColumns).applyTo(javaApplicationControlsContainer);
 		GridDataFactory.fillDefaults().indent(30, 0).align(SWT.FILL, SWT.CENTER).grab(true, false)
 				.applyTo(javaApplicationControlsContainer);
-		createContainerControls(javaApplicationControlsContainer, nColumns);
 		createPackageControls(javaApplicationControlsContainer, nColumns);
 		createTypeNameControls(javaApplicationControlsContainer, nColumns);
 		//createSuperClassControls(javaApplicationControlsContainer, nColumns);
@@ -381,7 +394,7 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 		if (status.getSeverity() == IStatus.ERROR) {
 			return status;
 		}
-		if (getJavaProject() != null && getSuperClass() != null && !getSuperClass().isEmpty()) {
+		if (getJavaProject() != null && getJavaProject().exists() && getSuperClass() != null && !getSuperClass().isEmpty()) {
 			// check if the selected superclass is a subclass of
 			// 'javax.ws.rs.core.Application'
 			try {
@@ -593,7 +606,10 @@ public class JaxrsApplicationCreationWizardPage extends NewClassWizardPage {
 	}
 
 	public IFile getWebxmlResource() throws CoreException {
-		return WtpUtils.getWebDeploymentDescriptor(getJavaProject().getProject());
+		if (getJavaProject() != null) {
+			return WtpUtils.getWebDeploymentDescriptor(getJavaProject().getProject());
+		}
+		return null;
 	}
 
 	/**
