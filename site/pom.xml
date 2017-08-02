@@ -9,7 +9,9 @@
 	</parent>
 	<groupId>org.jboss.tools.ws</groupId>
 	<artifactId>ws.site</artifactId>
-	<name>ws.site</name>
 	
 	<packaging>eclipse-repository</packaging>
+	<properties>
+		<skipDeployToJBossOrg>false</skipDeployToJBossOrg>
+	</properties>
 </project>
