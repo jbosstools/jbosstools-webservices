@@ -10,6 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
+
 /**
  * Wizard page of {@link WebServiceClientWizard}.
  *
@@ -18,6 +20,10 @@ package org.jboss.tools.ws.reddeer.ui.wizards.wst;
  *
  */
 public class WebServiceClientWizardPage extends WebServiceWizardPageBase {
+
+	public WebServiceClientWizardPage(ReferencedComposite referencedComposite) {
+		super(referencedComposite);
+	}
 
 	/**
 	 * Sets the client project.

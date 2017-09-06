@@ -14,23 +14,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.jboss.reddeer.swt.api.Combo;
-import org.jboss.reddeer.swt.api.Text;
-import org.jboss.reddeer.core.condition.ShellWithTextIsActive;
-import org.jboss.reddeer.core.matcher.WithTextMatcher;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.combo.DefaultCombo;
-import org.jboss.reddeer.swt.impl.list.DefaultList;
-import org.jboss.reddeer.swt.impl.shell.DefaultShell;
-import org.jboss.reddeer.swt.impl.text.DefaultText;
-import org.jboss.reddeer.swt.impl.toolbar.DefaultToolItem;
-import org.jboss.reddeer.swt.keyboard.KeyboardFactory;
-import org.jboss.reddeer.common.wait.TimePeriod;
-import org.jboss.reddeer.common.wait.WaitUntil;
-import org.jboss.reddeer.common.wait.WaitWhile;
-import org.jboss.reddeer.uiforms.api.ExpandableComposite;
-import org.jboss.reddeer.uiforms.impl.expandablecomposite.DefaultExpandableComposite;
-import org.jboss.reddeer.workbench.impl.view.WorkbenchView;
+import org.eclipse.reddeer.swt.api.Combo;
+import org.eclipse.reddeer.swt.api.Text;
+import org.eclipse.reddeer.swt.condition.ShellIsActive;
+import org.eclipse.reddeer.core.matcher.WithTextMatcher;
+import org.eclipse.reddeer.swt.impl.button.PushButton;
+import org.eclipse.reddeer.swt.impl.combo.DefaultCombo;
+import org.eclipse.reddeer.swt.impl.list.DefaultList;
+import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
+import org.eclipse.reddeer.swt.impl.text.DefaultText;
+import org.eclipse.reddeer.swt.impl.toolbar.DefaultToolItem;
+import org.eclipse.reddeer.swt.keyboard.KeyboardFactory;
+import org.eclipse.reddeer.common.wait.TimePeriod;
+import org.eclipse.reddeer.common.wait.WaitUntil;
+import org.eclipse.reddeer.common.wait.WaitWhile;
+import org.eclipse.reddeer.uiforms.api.ExpandableComposite;
+import org.eclipse.reddeer.uiforms.impl.expandablecomposite.DefaultExpandableComposite;
+import org.eclipse.reddeer.workbench.impl.view.WorkbenchView;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
@@ -341,10 +341,10 @@ public class WsTesterView extends WorkbenchView {
 		activate();
 		new DefaultToolItem(JBossWSUIMessages.JAXRSWSTestView2_Go_Tooltip)
 				.click();
-		new WaitUntil(new ShellWithTextIsActive(
+		new WaitUntil(new ShellIsActive(
 				JBossWSUIMessages.JAXRSWSTestView_Invoking_WS_Status),
-				TimePeriod.NORMAL, false);
-		new WaitWhile(new ShellWithTextIsActive(
+				TimePeriod.DEFAULT, false);
+		new WaitWhile(new ShellIsActive(
 				JBossWSUIMessages.JAXRSWSTestView_Invoking_WS_Status),
 				TimePeriod.LONG);
 	}

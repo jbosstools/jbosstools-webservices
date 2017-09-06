@@ -10,7 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.jst.jsp;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
 
 /**
  * JSP File wizard.
@@ -20,8 +20,8 @@ import org.jboss.reddeer.jface.wizard.NewWizardDialog;
  * @author Radoslav Rabara
  *
  */
-public class NewJSPFileWizard extends NewWizardDialog {
+public class NewJSPFileWizard extends NewMenuWizard {
 	public NewJSPFileWizard() {
-		super("Web", "JSP File");
+		super("New JSP File", "Web", "JSP File");
 	}
 }

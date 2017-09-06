@@ -10,12 +10,13 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.preferences;
 
-import org.jboss.reddeer.jface.preference.PreferencePage;
-import org.jboss.reddeer.swt.api.Table;
-import org.jboss.reddeer.swt.api.TableItem;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.table.DefaultTable;
-import org.jboss.reddeer.swt.impl.text.DefaultText;
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
+import org.eclipse.reddeer.jface.preference.PreferencePage;
+import org.eclipse.reddeer.swt.api.Table;
+import org.eclipse.reddeer.swt.api.TableItem;
+import org.eclipse.reddeer.swt.impl.button.PushButton;
+import org.eclipse.reddeer.swt.impl.table.DefaultTable;
+import org.eclipse.reddeer.swt.impl.text.DefaultText;
 
 /**
  * Represents Web Services > CXF 2.x Preferences page in Preferences dialog.
@@ -28,8 +29,8 @@ public class WsCxf2xPreferencePage extends PreferencePage {
 	/**
 	 * Constructs CXF 2.x Preference page
 	 */
-	public WsCxf2xPreferencePage() {
-		super(new String[] {"Web Services", "CXF 2.x Preferences"});
+	public WsCxf2xPreferencePage(ReferencedComposite referencedComposite) {
+		super(referencedComposite, new String[] {"Web Services", "CXF 2.x Preferences"});
 	}
 
 	/**

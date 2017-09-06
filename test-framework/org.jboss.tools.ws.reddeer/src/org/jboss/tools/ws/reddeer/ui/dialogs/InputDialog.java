@@ -10,11 +10,11 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.dialogs;
 
-import org.jboss.reddeer.swt.api.Text;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.shell.DefaultShell;
-import org.jboss.reddeer.swt.impl.text.DefaultText;
-import org.jboss.reddeer.swt.keyboard.KeyboardFactory;
+import org.eclipse.reddeer.swt.api.Text;
+import org.eclipse.reddeer.swt.impl.button.PushButton;
+import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
+import org.eclipse.reddeer.swt.impl.text.DefaultText;
+import org.eclipse.reddeer.swt.keyboard.KeyboardFactory;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 
 /**

@@ -12,9 +12,9 @@ package org.jboss.tools.ws.reddeer.editor;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.core.StringContains;
-import org.jboss.reddeer.swt.keyboard.Keyboard;
-import org.jboss.reddeer.swt.keyboard.KeyboardFactory;
-import org.jboss.reddeer.workbench.impl.editor.TextEditor;
+import org.eclipse.reddeer.swt.keyboard.Keyboard;
+import org.eclipse.reddeer.swt.keyboard.KeyboardFactory;
+import org.eclipse.reddeer.workbench.impl.editor.TextEditor;
 
 public class ExtendedTextEditor extends TextEditor {
 

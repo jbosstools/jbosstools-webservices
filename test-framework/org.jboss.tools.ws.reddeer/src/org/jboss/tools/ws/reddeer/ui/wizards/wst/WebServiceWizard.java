@@ -10,11 +10,11 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
-import org.jboss.reddeer.core.condition.ShellWithTextIsActive;
-import org.jboss.reddeer.common.wait.TimePeriod;
-import org.jboss.reddeer.common.wait.WaitUntil;
-import org.jboss.reddeer.common.wait.WaitWhile;
+import org.eclipse.reddeer.common.wait.TimePeriod;
+import org.eclipse.reddeer.common.wait.WaitUntil;
+import org.eclipse.reddeer.common.wait.WaitWhile;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
+import org.eclipse.reddeer.swt.condition.ShellIsActive;
 
 /**
  * Web Service wizard.
@@ -25,9 +25,9 @@ import org.jboss.reddeer.common.wait.WaitWhile;
  * @see WebServiceFirstWizardPage
  * @see WebServiceSecondWizardPage
  */
-public class WebServiceWizard extends NewWizardDialog {
+public class WebServiceWizard extends NewMenuWizard {
 	public WebServiceWizard() {
-		super("Web Services", "Web Service");
+		super("Web Service", "Web Services", "Web Service");
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class WebServiceWizard extends NewWizardDialog {
 
 	private void handleProgressInformationDialog() {
 		final String title = "Progress Information";
-		new WaitUntil(new ShellWithTextIsActive(title), TimePeriod.SHORT, false);
-		new WaitWhile(new ShellWithTextIsActive(title));
+		new WaitUntil(new ShellIsActive(title), TimePeriod.SHORT, false);
+		new WaitWhile(new ShellIsActive(title));
 	}
 }

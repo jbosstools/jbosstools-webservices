@@ -20,9 +20,9 @@ package org.jboss.tools.ws.reddeer.ui.wizards.jst.servlet;
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-import org.jboss.reddeer.swt.impl.button.CheckBox;
-import org.jboss.reddeer.swt.impl.combo.LabeledCombo;
-import org.jboss.reddeer.swt.impl.text.LabeledText;
+import org.eclipse.reddeer.swt.impl.button.CheckBox;
+import org.eclipse.reddeer.swt.impl.combo.LabeledCombo;
+import org.eclipse.reddeer.swt.impl.text.LabeledText;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 import org.jboss.tools.ws.reddeer.ui.wizards.NewWizardDialogWithAssociatedPerspective;
 

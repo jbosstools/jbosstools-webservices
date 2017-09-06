@@ -10,8 +10,9 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards;
 
-import org.jboss.reddeer.jface.wizard.WizardPage;
-import org.jboss.reddeer.swt.impl.text.LabeledText;
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
+import org.eclipse.reddeer.jface.wizard.WizardPage;
+import org.eclipse.reddeer.swt.impl.text.LabeledText;
 
 /**
  * Represents shared wizard page that is being used in wizards that creates a new
@@ -21,6 +22,10 @@ import org.jboss.reddeer.swt.impl.text.LabeledText;
  *
  */
 public class CreateNewFileWizardPage extends WizardPage {
+
+	public CreateNewFileWizardPage(ReferencedComposite referencedComposite) {
+		super(referencedComposite);
+	}
 
 	/**
 	 * Sets the file name.
