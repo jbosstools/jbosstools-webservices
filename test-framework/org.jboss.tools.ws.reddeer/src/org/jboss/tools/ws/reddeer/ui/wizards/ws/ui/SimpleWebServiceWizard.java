@@ -11,10 +11,10 @@
 
 package org.jboss.tools.ws.reddeer.ui.wizards.ws.ui;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
-import org.jboss.reddeer.swt.impl.button.CheckBox;
-import org.jboss.reddeer.swt.impl.combo.DefaultCombo;
-import org.jboss.reddeer.swt.impl.text.LabeledText;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
+import org.eclipse.reddeer.swt.impl.button.CheckBox;
+import org.eclipse.reddeer.swt.impl.combo.DefaultCombo;
+import org.eclipse.reddeer.swt.impl.text.LabeledText;
 
 /**
  * Simple Web Service wizard.
@@ -24,10 +24,10 @@ import org.jboss.reddeer.swt.impl.text.LabeledText;
  * @author jjankovi
  * @author Radoslav Rabara
  */
-public class SimpleWebServiceWizard extends NewWizardDialog {
+public class SimpleWebServiceWizard extends NewMenuWizard {
 
 	public SimpleWebServiceWizard() {
-		super("Web Services", "Simple Web Service");
+		super("Simple Web Service", "Web Services", "Simple Web Service");
 	}
 
 	public void setProjectName(String projectName) {

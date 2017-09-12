@@ -10,7 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
 import org.jboss.tools.ws.reddeer.ui.wizards.CreateNewFileWizardPage;
 
 /**
@@ -24,8 +24,8 @@ import org.jboss.tools.ws.reddeer.ui.wizards.CreateNewFileWizardPage;
  * @author Radoslav Rabara
  *
  */
-public class NewWsdlFileWizard extends NewWizardDialog {
+public class NewWsdlFileWizard extends NewMenuWizard {
 	public NewWsdlFileWizard() {
-		super("Web Services", "WSDL File");
+		super("New WSDL File", "Web Services", "WSDL File");
 	}
 }

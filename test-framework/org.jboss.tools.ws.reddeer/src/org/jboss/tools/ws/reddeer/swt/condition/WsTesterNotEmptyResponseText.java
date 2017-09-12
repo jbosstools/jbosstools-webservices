@@ -10,7 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.swt.condition;
 
-import org.jboss.reddeer.common.condition.AbstractWaitCondition;
+import org.eclipse.reddeer.common.condition.AbstractWaitCondition;
 import org.jboss.tools.ws.reddeer.ui.tester.views.WsTesterView;
 
 /**

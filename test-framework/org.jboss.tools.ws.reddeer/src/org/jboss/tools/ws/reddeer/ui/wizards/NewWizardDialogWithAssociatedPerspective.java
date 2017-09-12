@@ -10,16 +10,16 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
-import org.jboss.reddeer.core.condition.JobIsRunning;
-import org.jboss.reddeer.core.condition.ShellWithTextIsActive;
-import org.jboss.reddeer.common.condition.WaitCondition;
-import org.jboss.reddeer.swt.impl.button.CheckBox;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.shell.DefaultShell;
-import org.jboss.reddeer.common.wait.TimePeriod;
-import org.jboss.reddeer.common.wait.WaitUntil;
-import org.jboss.reddeer.common.wait.WaitWhile;
+import org.eclipse.reddeer.common.condition.WaitCondition;
+import org.eclipse.reddeer.swt.condition.ShellIsActive;
+import org.eclipse.reddeer.swt.impl.button.CheckBox;
+import org.eclipse.reddeer.swt.impl.button.PushButton;
+import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
+import org.eclipse.reddeer.workbench.core.condition.JobIsRunning;
+import org.eclipse.reddeer.common.wait.TimePeriod;
+import org.eclipse.reddeer.common.wait.WaitUntil;
+import org.eclipse.reddeer.common.wait.WaitWhile;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 
 /**
@@ -31,13 +31,13 @@ import org.jboss.tools.common.reddeer.label.IDELabel;
  * @author Radoslav Rabara
  *
  */
-public abstract class NewWizardDialogWithAssociatedPerspective extends NewWizardDialog {
+public abstract class NewWizardDialogWithAssociatedPerspective extends NewMenuWizard {
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NewWizardDialogWithAssociatedPerspective(String... path) {
-		super(path);
+	public NewWizardDialogWithAssociatedPerspective(String shellText, String... path) {
+		super(shellText, path);
 	}
 
 	/**
@@ -52,14 +52,14 @@ public abstract class NewWizardDialogWithAssociatedPerspective extends NewWizard
 
 		closeOpenAssociatedPerspectiveDialog();
 
-		new WaitWhile(new ShellWithTextIsActive(shellText), TimePeriod.LONG);
+		new WaitWhile(new ShellIsActive(shellText), TimePeriod.LONG);
 		new WaitWhile(new JobIsRunning(), TimePeriod.LONG);
 	}
 
 	private void closeOpenAssociatedPerspectiveDialog() {
-		WaitCondition condition = new ShellWithTextIsActive(
+		WaitCondition condition = new ShellIsActive(
 				IDELabel.Shell.OPEN_ASSOCIATED_PERSPECTIVE);
-		new WaitUntil(condition, TimePeriod.NORMAL, false);
+		new WaitUntil(condition, TimePeriod.DEFAULT, false);
 		if(condition.test()) {
 			CheckBox checkbox = new CheckBox(IDELabel.Shell.REMEMBER_MY_DECISION);
 			if(!checkbox.isChecked()) {

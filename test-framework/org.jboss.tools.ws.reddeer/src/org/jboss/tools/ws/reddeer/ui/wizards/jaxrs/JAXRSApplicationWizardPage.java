@@ -10,13 +10,14 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.jaxrs;
 
-import org.jboss.reddeer.jface.wizard.WizardPage;
-import org.jboss.reddeer.swt.api.Text;
-import org.jboss.reddeer.swt.impl.button.CheckBox;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.button.RadioButton;
-import org.jboss.reddeer.swt.impl.text.DefaultText;
-import org.jboss.reddeer.swt.impl.text.LabeledText;
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
+import org.eclipse.reddeer.jface.wizard.WizardPage;
+import org.eclipse.reddeer.swt.api.Text;
+import org.eclipse.reddeer.swt.impl.button.CheckBox;
+import org.eclipse.reddeer.swt.impl.button.PushButton;
+import org.eclipse.reddeer.swt.impl.button.RadioButton;
+import org.eclipse.reddeer.swt.impl.text.DefaultText;
+import org.eclipse.reddeer.swt.impl.text.LabeledText;
 
 /**
  * First and the only {@link JAXRSApplicationWizard} page.
@@ -29,6 +30,11 @@ import org.jboss.reddeer.swt.impl.text.LabeledText;
  *
  */
 public class JAXRSApplicationWizardPage extends WizardPage {
+	
+	public JAXRSApplicationWizardPage(ReferencedComposite referencedComposite) {
+		super(referencedComposite);
+	}
+
 	/**
 	 * Returns info text ( = info/warning/error)
 	 * @return

@@ -10,7 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.jaxrs;
 
-import org.jboss.reddeer.swt.impl.button.RadioButton;
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
+import org.eclipse.reddeer.swt.impl.button.RadioButton;
 
 /**
  * {@link JAXRSResourceWizard}'s second wizard page
@@ -22,6 +23,11 @@ import org.jboss.reddeer.swt.impl.button.RadioButton;
  *
  */
 public class JAXRSResourceCreateApplicationWizardPage extends JAXRSApplicationWizardPage {
+	
+	public JAXRSResourceCreateApplicationWizardPage(ReferencedComposite referencedComposite) {
+		super(referencedComposite);
+	}
+
 	public void useSkipTheJAXRSApplicationCreation() {
 		new RadioButton(2).click();//"Skip the JAX-RS Application creation"
 	}

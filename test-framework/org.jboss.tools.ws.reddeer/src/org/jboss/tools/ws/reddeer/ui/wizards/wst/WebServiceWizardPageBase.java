@@ -13,23 +13,24 @@ package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 import org.hamcrest.core.AnyOf;
 import org.hamcrest.core.Is;
 import org.hamcrest.core.StringStartsWith;
-import org.jboss.reddeer.core.exception.CoreLayerException;
-import org.jboss.reddeer.core.matcher.WithLabelMatcher;
-import org.jboss.reddeer.core.matcher.WithMnemonicTextMatcher;
-import org.jboss.reddeer.jface.wizard.WizardPage;
-import org.jboss.reddeer.swt.api.Combo;
-import org.jboss.reddeer.swt.api.Group;
-import org.jboss.reddeer.swt.api.Text;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.combo.DefaultCombo;
-import org.jboss.reddeer.swt.impl.combo.LabeledCombo;
-import org.jboss.reddeer.swt.impl.group.DefaultGroup;
-import org.jboss.reddeer.swt.impl.scale.DefaultScale;
-import org.jboss.reddeer.swt.impl.shell.DefaultShell;
-import org.jboss.reddeer.swt.impl.text.DefaultText;
-import org.jboss.reddeer.swt.impl.tree.DefaultTree;
-import org.jboss.reddeer.swt.impl.tree.DefaultTreeItem;
-import org.jboss.reddeer.uiforms.impl.hyperlink.DefaultHyperlink;
+import org.eclipse.reddeer.core.exception.CoreLayerException;
+import org.eclipse.reddeer.core.matcher.WithLabelMatcher;
+import org.eclipse.reddeer.core.matcher.WithMnemonicTextMatcher;
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
+import org.eclipse.reddeer.jface.wizard.WizardPage;
+import org.eclipse.reddeer.swt.api.Combo;
+import org.eclipse.reddeer.swt.api.Group;
+import org.eclipse.reddeer.swt.api.Text;
+import org.eclipse.reddeer.swt.impl.button.PushButton;
+import org.eclipse.reddeer.swt.impl.combo.DefaultCombo;
+import org.eclipse.reddeer.swt.impl.combo.LabeledCombo;
+import org.eclipse.reddeer.swt.impl.group.DefaultGroup;
+import org.eclipse.reddeer.swt.impl.scale.DefaultScale;
+import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
+import org.eclipse.reddeer.swt.impl.text.DefaultText;
+import org.eclipse.reddeer.swt.impl.tree.DefaultTree;
+import org.eclipse.reddeer.swt.impl.tree.DefaultTreeItem;
+import org.eclipse.reddeer.uiforms.impl.hyperlink.DefaultHyperlink;
 
 /**
  * 
@@ -37,7 +38,12 @@ import org.jboss.reddeer.uiforms.impl.hyperlink.DefaultHyperlink;
  *
  */
 public abstract class WebServiceWizardPageBase extends WizardPage {
-    public enum SliderLevel {
+    
+	public WebServiceWizardPageBase(ReferencedComposite referencedComposite) {
+		super(referencedComposite);
+	}
+
+	public enum SliderLevel {
 		TEST, START, INSTALL, DEPLOY, ASSEMBLE, DEVELOP, NO_CLIENT;
 
         @Override

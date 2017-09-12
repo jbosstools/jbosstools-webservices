@@ -22,6 +22,6 @@ import org.jboss.tools.ws.reddeer.ui.wizards.NewWizardDialogWithAssociatedPerspe
  */
 public class EARProjectWizard extends NewWizardDialogWithAssociatedPerspective {
 	public EARProjectWizard() {
-		super("Java EE", "Enterprise Application Project");
+		super("New EAR Application Project", "Java EE", "Enterprise Application Project");
 	}
 }

@@ -12,10 +12,11 @@ package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 
 import org.hamcrest.core.AnyOf;
 import org.hamcrest.core.Is;
-import org.jboss.reddeer.jface.wizard.WizardPage;
-import org.jboss.reddeer.swt.api.Text;
-import org.jboss.reddeer.swt.impl.text.DefaultText;
-import org.jboss.reddeer.core.matcher.WithLabelMatcher;
+import org.eclipse.reddeer.jface.wizard.WizardPage;
+import org.eclipse.reddeer.swt.api.Text;
+import org.eclipse.reddeer.swt.impl.text.DefaultText;
+import org.eclipse.reddeer.core.matcher.WithLabelMatcher;
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
 
 /**
  * Second {@link WebServiceWizard} page.
@@ -25,6 +26,11 @@ import org.jboss.reddeer.core.matcher.WithLabelMatcher;
  *
  */
 public class WebServiceSecondWizardPage extends WizardPage {
+
+	public WebServiceSecondWizardPage(ReferencedComposite referencedComposite) {
+		super(referencedComposite);
+		// TODO Auto-generated constructor stub
+	}
 
 	/**
 	 * Sets package name.

@@ -10,7 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.jaxrs;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
 
 /**
  * JAX-RS Application wizard.
@@ -23,9 +23,9 @@ import org.jboss.reddeer.jface.wizard.NewWizardDialog;
  * @since JBT 4.2.0 Beta2
  * @see http://tools.jboss.org/documentation/whatsnew/jbosstools/4.2.0.Beta2.html#webservices
  */
-public class JAXRSApplicationWizard extends NewWizardDialog {
+public class JAXRSApplicationWizard extends NewMenuWizard {
 	
 	public JAXRSApplicationWizard() {
-		super("Web Services", "JAX-RS Application");
+		super("", "Web Services", "JAX-RS Application");
 	}
 }

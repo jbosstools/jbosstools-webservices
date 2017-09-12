@@ -13,8 +13,9 @@ package org.jboss.tools.ws.reddeer.jaxrs.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.reddeer.eclipse.core.resources.ProjectItem;
-import org.jboss.reddeer.eclipse.jdt.ui.ProjectExplorer;
+import org.eclipse.reddeer.eclipse.core.resources.ProjectItem;
+import org.eclipse.reddeer.eclipse.core.resources.Resource;
+import org.eclipse.reddeer.eclipse.ui.navigator.resources.ProjectExplorer;
 
 /**
  * Represents the JAX-RS Web Services node in Project explorer. Contains several useful method for 
@@ -53,8 +54,8 @@ public class RESTfulWebServicesNode {
 	public List<RESTfulWebService> getWebServices() {
 		explorer.activate();
 		List<RESTfulWebService> webServices = new ArrayList<RESTfulWebService>();
-		for (ProjectItem webServiceProjectItem: projectItem.getChildren()) {
-			webServices.add(new RESTfulWebService(webServiceProjectItem));
+		for (Resource webServiceProjectItem: projectItem.getChildren()) {
+			webServices.add(new RESTfulWebService((ProjectItem) webServiceProjectItem));
 		}
 		return webServices;
 	}

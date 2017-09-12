@@ -12,16 +12,14 @@ package org.jboss.tools.ws.reddeer.ui.dialogs;
 
 import java.util.List;
 
-import org.jboss.reddeer.swt.api.Button;
-import org.jboss.reddeer.swt.api.Shell;
-import org.jboss.reddeer.swt.api.Tree;
-import org.jboss.reddeer.swt.api.TreeItem;
-import org.jboss.reddeer.swt.impl.button.CancelButton;
-import org.jboss.reddeer.swt.impl.button.OkButton;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.shell.DefaultShell;
-import org.jboss.reddeer.swt.impl.text.DefaultText;
-import org.jboss.reddeer.swt.impl.tree.DefaultTree;
+import org.eclipse.reddeer.swt.api.Shell;
+import org.eclipse.reddeer.swt.api.Tree;
+import org.eclipse.reddeer.swt.api.TreeItem;
+import org.eclipse.reddeer.swt.impl.button.CancelButton;
+import org.eclipse.reddeer.swt.impl.button.OkButton;
+import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
+import org.eclipse.reddeer.swt.impl.text.DefaultText;
+import org.eclipse.reddeer.swt.impl.tree.DefaultTree;
 import org.jboss.tools.ws.reddeer.helper.RedDeerHelper;
 
 /**

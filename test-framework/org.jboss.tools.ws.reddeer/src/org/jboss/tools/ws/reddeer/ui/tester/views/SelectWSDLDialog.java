@@ -13,17 +13,17 @@ package org.jboss.tools.ws.reddeer.ui.tester.views;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jboss.reddeer.swt.api.Combo;
-import org.jboss.reddeer.core.condition.ShellWithTextIsActive;
-import org.jboss.reddeer.swt.exception.SWTLayerException;
-import org.jboss.reddeer.common.exception.WaitTimeoutExpiredException;
-import org.jboss.reddeer.swt.impl.button.PushButton;
-import org.jboss.reddeer.swt.impl.combo.LabeledCombo;
-import org.jboss.reddeer.swt.impl.list.DefaultList;
-import org.jboss.reddeer.swt.impl.shell.DefaultShell;
-import org.jboss.reddeer.common.wait.TimePeriod;
-import org.jboss.reddeer.common.wait.WaitUntil;
-import org.jboss.reddeer.common.wait.WaitWhile;
+import org.eclipse.reddeer.swt.api.Combo;
+import org.eclipse.reddeer.swt.condition.ShellIsActive;
+import org.eclipse.reddeer.swt.exception.SWTLayerException;
+import org.eclipse.reddeer.common.exception.WaitTimeoutExpiredException;
+import org.eclipse.reddeer.swt.impl.button.PushButton;
+import org.eclipse.reddeer.swt.impl.combo.LabeledCombo;
+import org.eclipse.reddeer.swt.impl.list.DefaultList;
+import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
+import org.eclipse.reddeer.common.wait.TimePeriod;
+import org.eclipse.reddeer.common.wait.WaitUntil;
+import org.eclipse.reddeer.common.wait.WaitWhile;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 import org.jboss.tools.ws.reddeer.ui.dialogs.InputDialog;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
@@ -142,8 +142,8 @@ public class SelectWSDLDialog extends DefaultShell {
 
 		// workaround for https://issues.jboss.org/browse/JBIDE-14618
 		try {
-			new WaitUntil(new ShellWithTextIsActive("Progress Information"));
-			new WaitWhile(new ShellWithTextIsActive("Progress Information"), TimePeriod.getCustom(24));
+			new WaitUntil(new ShellIsActive("Progress Information"));
+			new WaitWhile(new ShellIsActive("Progress Information"), TimePeriod.getCustom(24));
 		} catch (WaitTimeoutExpiredException sle) {
 			// WISE call was pretty quick - no progress information dialog appears
 		}
@@ -156,10 +156,10 @@ public class SelectWSDLDialog extends DefaultShell {
 			// no WS message replacing - no dialog appeared
 		}
 		
-		new WaitWhile(new ShellWithTextIsActive(TITLE));
+		new WaitWhile(new ShellIsActive(TITLE));
 	}
 
-	private org.jboss.reddeer.swt.api.List getOperationsList() {
+	private org.eclipse.reddeer.swt.api.List getOperationsList() {
 		//Operation:
 		return new DefaultList(JBossWSUIMessages.WSDLBrowseDialog_Operation_Field);
 	}

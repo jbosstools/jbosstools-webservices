@@ -10,11 +10,11 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.ws.ui;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
-import org.jboss.reddeer.swt.api.Combo;
-import org.jboss.reddeer.swt.impl.combo.DefaultCombo;
-import org.jboss.reddeer.swt.impl.group.DefaultGroup;
-import org.jboss.reddeer.swt.impl.text.LabeledText;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
+import org.eclipse.reddeer.swt.api.Combo;
+import org.eclipse.reddeer.swt.impl.combo.DefaultCombo;
+import org.eclipse.reddeer.swt.impl.group.DefaultGroup;
+import org.eclipse.reddeer.swt.impl.text.LabeledText;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
@@ -25,13 +25,13 @@ import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
  * @author jjankovi
  * @author Radoslav Rabara
  */
-public class SampleWebServiceWizard extends NewWizardDialog {
+public class SampleWebServiceWizard extends NewMenuWizard {
 
 	/**
 	 * Constructs Sample Web Service wizard.
 	 */
 	public SampleWebServiceWizard() {
-		super("Web Services", "Create a Sample Web Service");
+		super("Generate a Sample Web Service", "Web Services", "Create a Sample Web Service");
 	}
 
 	/**

@@ -10,7 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 
-import org.jboss.reddeer.jface.wizard.NewWizardDialog;
+import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
 
 /**
  * Web Service Client wizard.<br/>
@@ -22,8 +22,8 @@ import org.jboss.reddeer.jface.wizard.NewWizardDialog;
  * @author Radoslav Rabara
  *
  */
-public class WebServiceClientWizard extends NewWizardDialog {
+public class WebServiceClientWizard extends NewMenuWizard {
 	public WebServiceClientWizard() {
-		super("Web Services", "Web Service Client");
+		super("Web Service Client", "Web Services", "Web Service Client");
 	}
 }

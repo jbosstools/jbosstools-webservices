@@ -10,8 +10,9 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards.wst;
 
-import org.jboss.reddeer.swt.api.Combo;
-import org.jboss.reddeer.swt.impl.combo.LabeledCombo;
+import org.eclipse.reddeer.core.reference.ReferencedComposite;
+import org.eclipse.reddeer.swt.api.Combo;
+import org.eclipse.reddeer.swt.impl.combo.LabeledCombo;
 
 /**
  * First {@link WebServiceWizard} page.
@@ -21,6 +22,10 @@ import org.jboss.reddeer.swt.impl.combo.LabeledCombo;
  *
  */
 public class WebServiceFirstWizardPage extends WebServiceWizardPageBase {
+
+	public WebServiceFirstWizardPage(ReferencedComposite referencedComposite) {
+		super(referencedComposite);
+	}
 
 	/**
 	 * There are two types of web service (top-down and bottom-up)
