@@ -30,6 +30,6 @@ public class WsTesterNotEmptyResponseText extends AbstractWaitCondition {
 
 	@Override
 	public String description() {
-		return "WS Tester View has enoty response message";
+		return "WS Tester View has empty response message";
 	}
 }

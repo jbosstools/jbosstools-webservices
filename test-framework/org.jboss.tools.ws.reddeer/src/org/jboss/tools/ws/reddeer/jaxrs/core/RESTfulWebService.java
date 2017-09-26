@@ -10,7 +10,6 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.jaxrs.core;
 
-
 import org.eclipse.reddeer.eclipse.core.resources.Resource;
 import org.eclipse.reddeer.jface.handler.TreeViewerHandler;
 import org.eclipse.reddeer.swt.api.TreeItem;

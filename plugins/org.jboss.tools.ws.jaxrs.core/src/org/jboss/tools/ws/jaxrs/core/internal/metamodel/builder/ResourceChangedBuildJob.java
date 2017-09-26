@@ -24,7 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -39,13 +39,14 @@ public class ResourceChangedBuildJob extends Job {
 	private final IResourceChangeEvent event;
 
 	private final IJavaProject javaProject;
-	
+
 	public ResourceChangedBuildJob(final IJavaProject javaProject, final IResourceChangeEvent event) {
 		super("JAX-RS Metamodel build..."); //$NON-NLS-1$
 		this.event = event;
 		this.javaProject = javaProject;
 		this.setPriority(Job.BUILD);
-		Logger.debug("Kicking a new ResourceChangedBuildJob (#{}) to process {}", JobMonitor.getJobId(this), event.getDelta());
+		Logger.debug("Kicking a new ResourceChangedBuildJob (#{}) to process {}", JobMonitor.getJobId(this),
+				event.getDelta());
 		this.addJobChangeListener(new JobMonitor());
 	}
 
@@ -56,50 +57,51 @@ public class ResourceChangedBuildJob extends Job {
 		try {
 			progressMonitor.beginTask("Building JAX-RS Metamodel", 3 * SCALE);
 			Logger.debug("Building JAX-RS Metamodel after resource changed...");
-			// extract the relevant delta bound to this built (some resources or entire project)
+			// extract the relevant delta bound to this built (some resources or entire
+			// project)
 			final List<ResourceDelta> affectedResources = extractAffectedResources(event.getDelta(), progressMonitor);
 			progressMonitor.worked(SCALE);
 			if (progressMonitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
-			} 
+			}
 			// compute changes on the JAX-RS Application(s), HttpMethods, Resources, etc.
 			metamodel = JaxrsMetamodelLocator.get(javaProject);
 			if (metamodel == null) {
 				metamodel = JaxrsMetamodelLocator.get(javaProject, true);
-				if(metamodel != null) {
+				if (metamodel != null) {
 					metamodel.processProject(progressMonitor);
 				}
 			} else if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
-					|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD
-					|| metamodel.isInitializing()) {
+					|| event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD || metamodel.isInitializing()) {
 				metamodel.processProject(progressMonitor);
 			} else {
 				metamodel.processAffectedResources(affectedResources, progressMonitor);
 			}
 			return Status.OK_STATUS;
 		} catch (Exception e) {
-			final IStatus status = Logger.error("Failed to (re)build the JAX-RS metamodel for projet " + javaProject.getElementName(), e);
-			if(metamodel != null) {
+			final IStatus status = Logger
+					.error("Failed to (re)build the JAX-RS metamodel for projet " + javaProject.getElementName(), e);
+			if (metamodel != null) {
 				metamodel.setBuildStatus(status);
 			}
 			return status;
 		} finally {
 			long endTime = new Date().getTime();
 			if (Logger.isDebugEnabled()) {
-				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms, ended with status {}.", javaProject
-						.getElementName(), (endTime - startTime), (metamodel != null ? metamodel.getStatus()
-						: "unknown"));
+				Logger.debug("JAX-RS Metamodel for project '{}' built in {} ms, ended with status {}.",
+						javaProject.getElementName(), (endTime - startTime),
+						(metamodel != null ? metamodel.getStatus() : "unknown"));
 			}
 			progressMonitor.done();
 		}
 	}
 
-	private List<ResourceDelta> extractAffectedResources(final IResourceDelta delta, final IProgressMonitor progressMonitor)
-			throws CoreException {
+	private List<ResourceDelta> extractAffectedResources(final IResourceDelta delta,
+			final IProgressMonitor progressMonitor) throws CoreException {
 		final List<ResourceDelta> events = new ArrayList<ResourceDelta>();
 		if (delta != null) {
-			events.addAll(new ResourceDeltaScanner().scanAndFilterEvent(delta, new SubProgressMonitor(progressMonitor,
-					SCALE)));
+			events.addAll(
+					new ResourceDeltaScanner().scanAndFilterEvent(delta, SubMonitor.convert(progressMonitor, SCALE)));
 		} else {
 			events.add(new ResourceDelta(javaProject.getProject(), CHANGED, Flags.NONE));
 		}

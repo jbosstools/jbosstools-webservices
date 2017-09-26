@@ -14,7 +14,6 @@ import org.eclipse.reddeer.swt.api.Text;
 import org.eclipse.reddeer.swt.impl.button.PushButton;
 import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
 import org.eclipse.reddeer.swt.impl.text.DefaultText;
-import org.eclipse.reddeer.swt.keyboard.KeyboardFactory;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 
 /**
@@ -71,16 +70,6 @@ public class InputDialog extends DefaultShell {
 	 */
 	public void setInputText(String text) {
 		inputText().setText(text);
-	}
-
-	/**
-	 * Types the specified <var>text</var> into input text field.
-	 *
-	 * @param text text to be typed
-	 */
-	public void typeInputText(String text) {
-		setInputText("");
-        KeyboardFactory.getKeyboard().type(text);
 	}
 
 	private Text inputText() {

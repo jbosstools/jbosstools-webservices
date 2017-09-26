@@ -18,7 +18,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaElement;
@@ -55,7 +55,7 @@ public class JavaElementChangedBuildJob extends Job {
 			}
 			// scan and filter delta, retrieve a list of java changes
 			final List<JavaElementChangedEvent> affectedJavaElements = new JavaElementDeltaScanner().scanAndFilterEvent(event,
-					new SubProgressMonitor(progressMonitor, SCALE));
+					SubMonitor.convert(progressMonitor, SCALE));
 			if(affectedJavaElements.isEmpty()) {
 				Logger.debug("* No relevant affected element to process *");
 				return Status.OK_STATUS;

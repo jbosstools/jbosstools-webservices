@@ -26,6 +26,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.jboss.tools.usage.event.UsageEvent;
+import org.jboss.tools.usage.event.UsageEventType;
+import org.jboss.tools.usage.event.UsageReporter;
 import org.jboss.tools.ws.jaxrs.ui.internal.utils.Logger;
 import org.osgi.framework.BundleContext;
 
@@ -39,20 +42,27 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 
 	// The shared instance
 	private static JBossJaxrsUIPlugin plugin;
-	
+
 	private ImageRegistry imageRegistry = null;
 
 	private ImageRegistry imageDescriptorRegistry = null;
-	
+
+	// record event of requests submitted with the WS Tester
+	private final UsageEventType requestSubmittedEventType;
+
 	/**
 	 * The constructor
 	 */
 	public JBossJaxrsUIPlugin() {
+		this.requestSubmittedEventType = new UsageEventType(this, "jaxrstester", //$NON-NLS-1$
+				"Request method (GET|POST|PUT|DELETE|OPTIONS)", UsageEventType.HOW_MANY_TIMES_VALUE_DESCRIPTION); //$NON-NLS-1$
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+	 * 
+	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.
+	 * BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
@@ -63,7 +73,9 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
@@ -80,60 +92,62 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 	public static JBossJaxrsUIPlugin getDefault() {
 		return plugin;
 	}
-	
+
 	/**
-	 * Creates an image by loading it from a file in the plugin's images
-	 * directory, and then keeping it in the plugin's image registry for later calls.
+	 * Creates an image by loading it from a file in the plugin's images directory,
+	 * and then keeping it in the plugin's image registry for later calls.
 	 * 
-	 * @param imagePath path to the image, relative to the /icons directory of the plugin
+	 * @param imagePath
+	 *            path to the image, relative to the /icons directory of the plugin
 	 * @return The image object loaded from the image file
 	 */
 	public final ImageDescriptor getImageDescriptor(final String imagePath) {
-		if(imageDescriptorRegistry.get(imagePath) == null) {
+		if (imageDescriptorRegistry.get(imagePath) == null) {
 			imageDescriptorRegistry.put(imagePath, createImageDescriptor(imagePath, 0));
 		}
 		return imageDescriptorRegistry.getDescriptor(imagePath);
 	}
 
 	/**
-	 * Creates an image by loading it from a file in the plugin's images
-	 * directory, and then keeping it in the plugin's image registry for later calls.
+	 * Creates an image by loading it from a file in the plugin's images directory,
+	 * and then keeping it in the plugin's image registry for later calls.
 	 * 
-	 * @param imagePath path to the image, relative to the /icons directory of the plugin
+	 * @param imagePath
+	 *            path to the image, relative to the /icons directory of the plugin
 	 * @return The image object loaded from the image file
 	 */
 	public final Image getImage(final String imagePath) {
 		return getImage(imagePath, 0);
 	}
-	
+
 	/**
-	 * Creates an image by loading it from a file in the plugin's images
-	 * directory, adding a decorator at the bottom left corner of it, and then
-	 * keeping it in the plugin's image registry for later calls.
+	 * Creates an image by loading it from a file in the plugin's images directory,
+	 * adding a decorator at the bottom left corner of it, and then keeping it in
+	 * the plugin's image registry for later calls.
 	 * 
 	 * @param imagePath
-	 *            path to the image, relative to the /icons directory of the
-	 *            plugin
+	 *            path to the image, relative to the /icons directory of the plugin
 	 * @return The image object loaded from the image file
 	 */
 	public final Image getImage(final String imagePath, final int level) {
 		Logger.debug("Loading image {} with decorator level {}", imagePath, level);
-		if(imagePath == null) {
+		if (imagePath == null) {
 			return null;
 		}
 		final String imageKey = imagePath.concat(String.valueOf(level));
-		if(imageRegistry.get(imageKey) == null) {
+		if (imageRegistry.get(imageKey) == null) {
 			final ImageDescriptor imageDescriptor = createImageDescriptor(imagePath, level);
 			imageRegistry.put(imageKey, imageDescriptor.createImage());
 		}
 		return imageRegistry.get(imageKey);
 	}
-	
+
 	/**
 	 * Creates an image descriptor by loading it from a file in the plugin's images
 	 * directory.
 	 * 
-	 * @param imagePath path to the image, relative to the /icons directory of the plugin
+	 * @param imagePath
+	 *            path to the image, relative to the /icons directory of the plugin
 	 * @return The image object loaded from the image file
 	 */
 	public final ImageDescriptor createImageDescriptor(final String imagePath, final int problemLevel) {
@@ -151,20 +165,37 @@ public class JBossJaxrsUIPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Creates an image from the given baseImage with the given decorator at the bottom left corner
+	 * Creates an image from the given baseImage with the given decorator at the
+	 * bottom left corner
+	 * 
 	 * @param baseImage
 	 * @param decoratorId
 	 * @return
 	 * 
-	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=383810 to use PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_DEC_FIELD_ERROR),
-	 * which returns null for now.
+	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=383810 to use
+	 *      PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_DEC_FIELD_ERROR),
+	 *      which returns null for now.
 	 */
-	private ImageDescriptor createDecoratedImageDescriptor(final ImageDescriptor baseImageDescriptor, String decoratorId) {
-		final ImageDescriptor decoratorDescriptor = PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(decoratorId); 
+	private ImageDescriptor createDecoratedImageDescriptor(final ImageDescriptor baseImageDescriptor,
+			String decoratorId) {
+		final ImageDescriptor decoratorDescriptor = PlatformUI.getWorkbench().getSharedImages()
+				.getImageDescriptor(decoratorId);
 		final Image baseImage = baseImageDescriptor.createImage();
-		final DecorationOverlayIcon result = new DecorationOverlayIcon(baseImage, new ImageDescriptor[] { null, null, decoratorDescriptor, null, null },
-				new Point(16, 16));
+		final DecorationOverlayIcon result = new DecorationOverlayIcon(baseImage,
+				new ImageDescriptor[] { null, null, decoratorDescriptor, null, null }, new Point(16, 16));
 		return result;
+	}
+
+	/**
+	 * Counts a request submission with the Web Service Tester, using the given
+	 * {@code method}.
+	 * 
+	 * @param method
+	 *            the request method to track or count.
+	 */
+	public void countRequestSubmitted(final String method) {
+		final UsageEvent requestSubmittedEvent = requestSubmittedEventType.event(method);
+		UsageReporter.getInstance().countEvent(requestSubmittedEvent);
 	}
 
 }

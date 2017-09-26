@@ -2,15 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %PLUGIN_NAME
 Bundle-SymbolicName: org.jboss.tools.websockets.core;singleton:=true
-Bundle-Version: 1.9.102.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-Localization: plugin
 Bundle-Activator: org.jboss.tools.websockets.core.WebsocketsCorePlugin
 Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
  org.eclipse.core.runtime;bundle-version="3.7.0",
- org.eclipse.core.resources;bundle-version="3.7.0",
- org.jboss.tools.foundation.core,
  org.jboss.tools.common.core;bundle-version="3.4.0"
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %PLUGIN_PROVIDER
 Export-Package: org.jboss.tools.websockets.core
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

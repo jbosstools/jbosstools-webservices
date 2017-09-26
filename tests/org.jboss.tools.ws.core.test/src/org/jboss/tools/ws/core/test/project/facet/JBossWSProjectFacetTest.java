@@ -34,14 +34,13 @@ public class JBossWSProjectFacetTest extends TestCase {
 
 	@Override
 	protected void setUp() throws Exception {
-		// TODO Auto-generated method stub
 		super.setUp();
 		wsProj = createFacetedProject("wsFacetTestProject");
 	}
 
 	public void testWSFacet() throws CoreException{
-		wsProj.installProjectFacet(JavaFacet.JAVA_50, null, null);
-		wsProj.installProjectFacet(ProjectFacetsManager.getProjectFacet("jst.web").getVersion("2.5"), null, null);
+		wsProj.installProjectFacet(JavaFacet.VERSION_1_8, null, null);
+		wsProj.installProjectFacet(ProjectFacetsManager.getProjectFacet("jst.web").getVersion("3.1"), null, null);
 		wsProj.installProjectFacet(wsVersion, null, null);
 		assertTrue(wsProj.hasProjectFacet(wsFacet));
 		wsProj.uninstallProjectFacet(wsVersion, null, null);

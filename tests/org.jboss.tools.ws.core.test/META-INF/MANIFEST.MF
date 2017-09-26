@@ -2,21 +2,18 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name.0
 Bundle-SymbolicName: org.jboss.tools.ws.core.test
-Bundle-Version: 1.9.102.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-Activator: org.jboss.tools.ws.core.test.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.junit,
  org.jboss.tools.tests,
- org.jboss.tools.ws.core,
  org.eclipse.core.resources,
  org.eclipse.wst.common.project.facet.core,
  org.eclipse.wst.common.frameworks,
  org.eclipse.ui.ide,
- org.jboss.tools.ws.creation.core,
  org.eclipse.wst.command.env.ui,
  org.eclipse.wst.ws,
- org.jboss.tools.ws.creation.ui,
  org.eclipse.jst.j2ee,
  org.eclipse.jst.j2ee.core,
  org.eclipse.emf.common,
@@ -30,7 +27,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console,
  org.eclipse.jface.text,
  org.jboss.ide.eclipse.as.classpath.core,
- org.eclipse.jst.common.project.facet.core
+ org.eclipse.jst.common.project.facet.core,
+ org.jboss.tools.ws.jaxws.ui,
+ org.jboss.tools.ws.jaxws.core
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.ws.core.test,
  org.jboss.tools.ws.core.test.classpath

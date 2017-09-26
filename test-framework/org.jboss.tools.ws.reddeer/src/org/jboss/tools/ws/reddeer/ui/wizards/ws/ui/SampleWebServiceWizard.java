@@ -15,6 +15,7 @@ import org.eclipse.reddeer.swt.api.Combo;
 import org.eclipse.reddeer.swt.impl.combo.DefaultCombo;
 import org.eclipse.reddeer.swt.impl.group.DefaultGroup;
 import org.eclipse.reddeer.swt.impl.text.LabeledText;
+import org.jboss.tools.ws.jaxws.ui.JBossJAXWSUIMessages;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
@@ -42,7 +43,7 @@ public class SampleWebServiceWizard extends NewMenuWizard {
 	public void setProjectName(String projectName) {
 		Combo c = new DefaultCombo(
 				new DefaultGroup(
-						JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Project_Group));
+						JBossJAXWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Project_Group));
 		c.setSelection(projectName);
 	}
 
@@ -52,7 +53,7 @@ public class SampleWebServiceWizard extends NewMenuWizard {
 	 * @param serviceName name to be set as service name
 	 */
 	public void setServiceName(String serviceName) {
-		setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_ServiceName_Label,
+		setText(JBossJAXWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_ServiceName_Label,
 				serviceName);
 	}
 
@@ -62,7 +63,7 @@ public class SampleWebServiceWizard extends NewMenuWizard {
 	 * @param pkgName name to be set as package name
 	 */
 	public void setPackageName(String pkgName) {
-		setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Package_Label,
+		setText(JBossJAXWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_Package_Label,
 				pkgName);
 	}
 
@@ -72,7 +73,7 @@ public class SampleWebServiceWizard extends NewMenuWizard {
 	 * @param clsName name to be set as class name
 	 */
 	public void setClassName(String clsName) {
-		setText(JBossWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_ClassName_Label,
+		setText(JBossJAXWSUIMessages.JBossWS_GenerateWizard_GenerateWizardPage_ClassName_Label,
 				clsName);
 	}
 
