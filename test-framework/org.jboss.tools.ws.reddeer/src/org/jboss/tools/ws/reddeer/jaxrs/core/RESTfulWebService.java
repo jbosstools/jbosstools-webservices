@@ -10,7 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.jaxrs.core;
 
-import org.eclipse.reddeer.eclipse.core.resources.ProjectItem;
+
+import org.eclipse.reddeer.eclipse.core.resources.Resource;
 import org.eclipse.reddeer.jface.handler.TreeViewerHandler;
 import org.eclipse.reddeer.swt.api.TreeItem;
 
@@ -24,12 +25,12 @@ public class RESTfulWebService {
 
 	private TreeViewerHandler handler = TreeViewerHandler.getInstance();
 	
-	private ProjectItem projectItem;
+	private Resource projectItem;
 	
 	private String httpMethod;
 	private String path;
 	
-	public RESTfulWebService(ProjectItem projectItem) {
+	public RESTfulWebService(Resource projectItem) {
 		this.projectItem = projectItem;
 		
 		TreeItem item = projectItem.getTreeItem();

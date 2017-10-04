@@ -55,7 +55,7 @@ public class RESTfulWebServicesNode {
 		explorer.activate();
 		List<RESTfulWebService> webServices = new ArrayList<RESTfulWebService>();
 		for (Resource webServiceProjectItem: projectItem.getChildren()) {
-			webServices.add(new RESTfulWebService((ProjectItem) webServiceProjectItem));
+			webServices.add(new RESTfulWebService(webServiceProjectItem));
 		}
 		return webServices;
 	}
