@@ -42,7 +42,7 @@ public class DynamicWebProjectWizard extends NewWizardDialogWithAssociatedPerspe
 	 * Constructs Dynamic Web Project wizard.
 	 */
 	public DynamicWebProjectWizard() {
-		super("Web", "Dynamic Web Project");
+		super(WIZARD_TITLE, "Web", "Dynamic Web Project");
 	}
 
 	/**
