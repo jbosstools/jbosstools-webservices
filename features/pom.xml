@@ -19,5 +19,17 @@
 		<module>org.jboss.tools.websockets.feature</module>
 		<module>org.jboss.tools.websockets.test.feature</module>
 	</modules>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho.extras</groupId>
+				<artifactId>tycho-source-feature-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-p2-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>
 	
