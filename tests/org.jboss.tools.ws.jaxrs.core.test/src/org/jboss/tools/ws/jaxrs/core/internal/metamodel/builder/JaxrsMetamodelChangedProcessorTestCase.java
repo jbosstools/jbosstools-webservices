@@ -35,6 +35,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
@@ -52,6 +53,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.JaxrsEndpointDelta;
 import org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -77,6 +79,12 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 	public void setup() throws CoreException {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
+	}
+	
+	@After
+	public void cleanUp() throws CoreException {
+	    ResourcesUtils.deleteProject(javaProject.getElementName());
+	    metamodel.remove();
 	}
 
 	@Test
