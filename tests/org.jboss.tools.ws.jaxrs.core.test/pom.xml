@@ -10,6 +10,8 @@
 	</parent>
 	<groupId>org.jboss.tools.ws.tests</groupId>
 	<artifactId>org.jboss.tools.ws.jaxrs.core.test</artifactId>
+	<version>1.9.102-SNAPSHOT</version>
+
 	<packaging>eclipse-test-plugin</packaging>
 
 	<properties>

@@ -67,25 +67,24 @@ public class ClientSampleCreationCommand extends AbstractDataModelOperation {
 		argsNum = 0;
 		IStatus status = Status.OK_STATUS;
 		IJavaProject project = model.getJavaProject();
-
+		
 		// find web service client classes
 		List<ICompilationUnit> clientUnits = JBossWSCreationUtils
 				.findJavaUnitsByAnnotation(
 						project,
 						JBossWSCreationCoreMessages.WebserviceClient_Annotation,
 						model.getCustomPackage());
-
+		
 		// find web service classes
 		List<ICompilationUnit> serviceUnits = JBossWSCreationUtils
 				.findJavaUnitsByAnnotation(
 						project,
 						JBossWSCreationCoreMessages.Webservice_Annotation,
 						model.getCustomPackage());
-
+		
 		if (clientUnits.size() == 0) {
 			return status;
 		}
-
 		List<String> packageList = new LinkedList<String>();
 		for (ICompilationUnit unit : clientUnits) {
 			if (!packageList.contains(unit.getParent().getElementName())) {

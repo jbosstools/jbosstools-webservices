@@ -83,6 +83,20 @@ public class AbstractJBossWSGenerationTest {
 		JBossWSRuntimeManager.getInstance().addRuntime(RuntimeName,wsHomePath, "", true);
 	}
 	
+	@After
+    public void tearDown() throws Exception{
+        cleanResouces();
+        JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
+        JBossWSRuntimeManager.getInstance().removeRuntime(runtime);
+        shutdown(currentServer);
+        try {
+            if( currentServer != null )
+                currentServer.delete();
+        } catch( CoreException ce ) {
+            // report
+        }
+    }
+	
 	public void createWSServer() throws Exception {
 		currentServer = ServerCreationTestUtils.createServerWithRuntime(IJBossToolingConstants.SERVER_AS_42, IJBossToolingConstants.SERVER_AS_42);		
 	}
@@ -150,20 +164,6 @@ public class AbstractJBossWSGenerationTest {
 	
 	private boolean isServerSupplied() {
 		return false;
-	}
-	
-	@After
-	public void tearDown() throws Exception{
-		cleanResouces();
-		JBossWSRuntime runtime = JBossWSRuntimeManager.getInstance().findRuntimeByName(RuntimeName);
-        JBossWSRuntimeManager.getInstance().removeRuntime(runtime);
-		shutdown(currentServer);
-		try {
-			if( currentServer != null )
-				currentServer.delete();
-		} catch( CoreException ce ) {
-			// report
-		}
 	}
 
 	protected void startup(IServer server) {

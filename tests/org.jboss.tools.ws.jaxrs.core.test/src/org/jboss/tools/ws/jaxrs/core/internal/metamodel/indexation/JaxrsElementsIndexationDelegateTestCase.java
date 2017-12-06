@@ -75,8 +75,9 @@ public class JaxrsElementsIndexationDelegateTestCase {
 	}
 
 	@After
-	public void cleanIndex() throws CorruptIndexException, IOException {
+	public void cleanIndex() throws CorruptIndexException, IOException, CoreException {
 		indexationService.dispose();
+		metamodel.remove();
 	}
 
 	@Test
