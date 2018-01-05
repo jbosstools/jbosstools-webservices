@@ -2,27 +2,21 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %PLUGIN_NAME
 Bundle-SymbolicName: org.jboss.tools.websockets.ui;singleton:=true
-Bundle-Version: 1.9.102.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-Activator: org.jboss.tools.websockets.ui.WebsocketsUIPlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
  org.eclipse.core.runtime;bundle-version="3.7.0",
  org.eclipse.core.resources;bundle-version="3.7.100",
- org.jboss.tools.foundation.ui,
- org.jboss.tools.websockets.core,
- org.eclipse.ui.ide;bundle-version="3.7.0",
+ org.jboss.tools.websockets.core;bundle-version="2.0.0",
  org.eclipse.jface.text,
  org.eclipse.jdt.core;bundle-version="3.7.1",
  org.jboss.tools.common.core,
- org.jboss.tools.common.ui,
- org.eclipse.core.filesystem;bundle-version="1.3.100",
- org.eclipse.core.filesystem;bundle-version="1.3.100",
- org.eclipse.jdt.ui;bundle-version="3.7.1",
- org.eclipse.osgi;bundle-version="3.7.1"
+ org.jboss.tools.common.ui
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.websockets.ui,
  org.jboss.tools.websockets.ui.internal.ca;x-friends:="org.jboss.tools.websockets.ui.test"
 Bundle-Vendor: %PLUGIN_PROVIDER
 Eclipse-RegisterBuddy: org.eclipse.jst.ws.annotations.core
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 

@@ -24,7 +24,6 @@ import org.eclipse.reddeer.swt.impl.list.DefaultList;
 import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
 import org.eclipse.reddeer.swt.impl.text.DefaultText;
 import org.eclipse.reddeer.swt.impl.toolbar.DefaultToolItem;
-import org.eclipse.reddeer.swt.keyboard.KeyboardFactory;
 import org.eclipse.reddeer.common.wait.TimePeriod;
 import org.eclipse.reddeer.common.wait.WaitUntil;
 import org.eclipse.reddeer.common.wait.WaitWhile;
@@ -32,6 +31,8 @@ import org.eclipse.reddeer.uiforms.api.ExpandableComposite;
 import org.eclipse.reddeer.uiforms.impl.expandablecomposite.DefaultExpandableComposite;
 import org.eclipse.reddeer.workbench.impl.view.WorkbenchView;
 import org.jboss.tools.common.reddeer.label.IDELabel;
+import org.jboss.tools.ws.jaxrs.ui.JBossJAXRSUIMessages;
+import org.jboss.tools.ws.jaxws.ui.JBossJAXWSUIMessages;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
 /**
@@ -80,8 +81,7 @@ public class WsTesterView extends WorkbenchView {
 	 * @param url service url
 	 */
 	public void setServiceURL(String url) {
-		getServiceURLCombo().setText("");
-		KeyboardFactory.getKeyboard().type(url);
+		getServiceURLCombo().setText(url);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class WsTesterView extends WorkbenchView {
 	 * @param expanded the new expanded state
 	 */
 	public void setRequestParametersSectionExpansion(boolean expanded) {
-		setSectionExpansion(JBossWSUIMessages.JAXRSWSTestView2_Parameters_Section, expanded);
+		setSectionExpansion(JBossJAXRSUIMessages.JAXRSWSTestView2_Parameters_Section, expanded);
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class WsTesterView extends WorkbenchView {
 	 * @param expanded the new expanded state
 	 */
 	public void setRequestHeadersSectionExpansion(boolean expanded) {
-		setSectionExpansion(JBossWSUIMessages.JAXRSWSTestView2_Headers_Section, expanded);
+		setSectionExpansion(JBossJAXRSUIMessages.JAXRSWSTestView2_Headers_Section, expanded);
 	}
 
 	/**
@@ -190,7 +190,7 @@ public class WsTesterView extends WorkbenchView {
 	private void addRequestArg(WsTesterView.RequestArgType type, String name,
 			String value) {
 		activate();
-		new DefaultText(type.ordinal()).typeText(name + "=" + value);
+		new DefaultText(type.ordinal()).setText(name + "=" + value);
 		new PushButton(type.ordinal(), new WithTextMatcher("Add")).click();
 		new DefaultText(type.ordinal()).setText("");
 	}
@@ -261,7 +261,7 @@ public class WsTesterView extends WorkbenchView {
 		new DefaultList(type.ordinal()).select(oldName + "=" + oldValue);
 		new PushButton(type.ordinal(), new WithTextMatcher("Edit")).click();
 		new DefaultShell("Edit Value");
-		new DefaultText().typeText(newName + "=" + newValue);
+		new DefaultText().setText(newName + "=" + newValue);
 		new PushButton(IDialogConstants.OK_LABEL).click();
 	}
 
@@ -308,7 +308,7 @@ public class WsTesterView extends WorkbenchView {
 
 	private void clearRequestArgs(WsTesterView.RequestArgType type) {
 		activate();
-		new PushButton(type.ordinal(), new WithTextMatcher("Clear All")).click();
+		new PushButton(type.ordinal(), new WithTextMatcher("Remove All")).click();
 	}
 
 	/**
@@ -358,7 +358,7 @@ public class WsTesterView extends WorkbenchView {
 		// change default value of combo box to "JAX-WS" to activate tool bar button
 		setRequestType(RequestType.JAX_WS);
 
-		new DefaultToolItem(JBossWSUIMessages.JAXRSWSTestView2_GetFromWSDL_Tooltip)
+		new DefaultToolItem(JBossJAXWSUIMessages.JAXRSWSTestView2_GetFromWSDL_Tooltip)
 				.click();
 
 		return new SelectWSDLDialog();
@@ -408,8 +408,8 @@ public class WsTesterView extends WorkbenchView {
 	}
 
 	private enum RequestArgType {
-		HEADER(JBossWSUIMessages.JAXRSWSTestView2_Headers_Section),
-		PARAMETER(JBossWSUIMessages.JAXRSWSTestView2_Parameters_Section);
+		HEADER(JBossJAXRSUIMessages.JAXRSWSTestView2_Headers_Section),
+		PARAMETER(JBossJAXRSUIMessages.JAXRSWSTestView2_Parameters_Section);
 
 		private String type;
 

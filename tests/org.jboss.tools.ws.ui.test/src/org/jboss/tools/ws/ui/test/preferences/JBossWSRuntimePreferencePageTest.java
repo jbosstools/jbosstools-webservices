@@ -19,13 +19,13 @@ import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.jboss.tools.test.util.WorkbenchUtils;
-import org.jboss.tools.ws.core.JBossWSCorePlugin;
-import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JBossWSRuntimeListConverter;
-import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
-import org.jboss.tools.ws.core.messages.JBossWSCoreMessages;
-import org.jboss.tools.ws.ui.preferences.JBossWSRuntimeListFieldEditor;
-import org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage;
+import org.jboss.tools.ws.jaxws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.jaxws.core.classpath.JBossWSRuntimeListConverter;
+import org.jboss.tools.ws.jaxws.core.messages.JBossJAXWSCoreMessages;
+import org.jboss.tools.ws.jaxws.ui.JBossJAXWSUIPlugin;
+import org.jboss.tools.ws.jaxws.ui.classpath.JBossWSRuntimeManager;
+import org.jboss.tools.ws.jaxws.ui.preferences.JBossWSRuntimeListFieldEditor;
+import org.jboss.tools.ws.jaxws.ui.preferences.JBossWSRuntimePreferencePage;
 
 import junit.framework.TestCase;
 
@@ -40,7 +40,7 @@ public class JBossWSRuntimePreferencePageTest extends TestCase {
 	public void testShowJBossWSRuntimePreferencePage() {
 
 		PreferenceDialog prefDialog = WorkbenchUtils
-				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage");
+				.createPreferenceDialog("org.jboss.tools.ws.jaxws.ui.preferences.JBossWSRuntimePreferencePage");
 		try {
 			Object object = openPreferencepage(prefDialog);
 			assertTrue(
@@ -63,7 +63,7 @@ public class JBossWSRuntimePreferencePageTest extends TestCase {
 	@SuppressWarnings("unchecked")
 	public void testDisplayJBossWSRuntimePreferencePage() {
 		PreferenceDialog prefDialog = WorkbenchUtils
-				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage");
+				.createPreferenceDialog("org.jboss.tools.ws.jaxws.ui.preferences.JBossWSRuntimePreferencePage");
 		JBossWSRuntimePreferencePage selectedPage = null;
 		try {
 			Object object = openPreferencepage(prefDialog);
@@ -98,7 +98,7 @@ public class JBossWSRuntimePreferencePageTest extends TestCase {
 	public void testSetAndDisplayJBossWSRuntimePreferencePage() {
 		setRuntimeList();
 		PreferenceDialog prefDialog = WorkbenchUtils
-				.createPreferenceDialog("org.jboss.tools.ws.ui.preferences.JBossWSRuntimePreferencePage");
+				.createPreferenceDialog("org.jboss.tools.ws.jaxws.ui.preferences.JBossWSRuntimePreferencePage");
 		JBossWSRuntimePreferencePage selectedPage = null;
 		try {
 			Object object = openPreferencepage(prefDialog);
@@ -127,9 +127,9 @@ public class JBossWSRuntimePreferencePageTest extends TestCase {
 				+ "|default|false|userConfig|true|libraries|" + jbosshome
 				+ "/lib/commons-codec.jar,name|jboss|version|2.0|homeDir|"
 				+ jbosshome + "|default|true|userConfig|false|libraries|";
-		JBossWSCorePlugin.getDefault().getPreferenceStore().setValue(
-				JBossWSCoreMessages.WS_Location, runtime);
-		IPreferenceStore store = JBossWSCorePlugin.getDefault()
+		JBossJAXWSUIPlugin.getDefault().getPreferenceStore().setValue(
+				JBossJAXWSCoreMessages.WS_Location, runtime);
+		IPreferenceStore store = JBossJAXWSUIPlugin.getDefault()
 				.getPreferenceStore();
 		if (store instanceof IPersistentPreferenceStore) {
 			try {
@@ -143,10 +143,10 @@ public class JBossWSRuntimePreferencePageTest extends TestCase {
 	}
 
 	private String getRuntimeList() {
-		IPreferenceStore ps = JBossWSCorePlugin.getDefault()
+		IPreferenceStore ps = JBossJAXWSUIPlugin.getDefault()
 				.getPreferenceStore();
 		String runtimeListString = ps
-				.getString(JBossWSCoreMessages.WS_Location);
+				.getString(JBossJAXWSCoreMessages.WS_Location);
 		return runtimeListString;
 	}
 

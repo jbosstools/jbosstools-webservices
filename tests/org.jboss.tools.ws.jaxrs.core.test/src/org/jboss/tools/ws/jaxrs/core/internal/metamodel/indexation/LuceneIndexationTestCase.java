@@ -23,21 +23,21 @@ import java.util.Map;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.JavaModelException;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaElement;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JaxrsMetamodelMonitor;
@@ -73,8 +73,8 @@ public class LuceneIndexationTestCase {
 	@Before
 	public void setup() throws CoreException, CorruptIndexException, IOException {
 		metamodelMonitor.getMetamodel();
-		analyzer = new StandardAnalyzer(Version.LUCENE_35);
-		config = new IndexWriterConfig(Version.LUCENE_35, analyzer);
+		analyzer = new StandardAnalyzer();
+		config = new IndexWriterConfig(analyzer);
 		index = new RAMDirectory();
 		w = new IndexWriter(index, config);
 		w.commit();
@@ -94,25 +94,22 @@ public class LuceneIndexationTestCase {
 		return elements.get(identifier);
 	}
 
-	private void index(final JaxrsHttpMethod httpMethod) throws IOException {
+	private void index(final JaxrsHttpMethod httpMethod, boolean update) throws IOException {
 		Document doc = new Document();
-		doc.add(new Field("verb", httpMethod.getHttpVerb(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-		doc.add(new Field("javaType", httpMethod.getJavaClassName(), Field.Store.YES,
-				Field.Index.NOT_ANALYZED));
-		doc.add(new Field("handleIdentifier", httpMethod.getJavaElement().getHandleIdentifier(), Field.Store.YES,
-				Field.Index.NOT_ANALYZED));
-		w.addDocument(doc);
-		w.commit();
-	}
-
-	private void updateIndex(final JaxrsHttpMethod httpMethod) throws IOException {
-		Document doc = new Document();
-		doc.add(new Field("verb", httpMethod.getHttpVerb(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-		doc.add(new Field("javaType", httpMethod.getJavaClassName(), Field.Store.YES,
-				Field.Index.NOT_ANALYZED));
-		doc.add(new Field("handleIdentifier", httpMethod.getJavaElement().getHandleIdentifier(), Field.Store.YES,
-				Field.Index.NOT_ANALYZED));
-		w.updateDocument(new Term("handleIdentifier", httpMethod.getJavaElement().getHandleIdentifier()), doc);
+		
+		FieldType storedType = new FieldType();
+		storedType.setStored(true);
+		storedType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+		storedType.setTokenized(false);
+		
+		doc.add(new Field("verb", httpMethod.getHttpVerb(), storedType));
+		doc.add(new Field("javaType", httpMethod.getJavaClassName(), storedType));
+		doc.add(new Field("handleIdentifier", httpMethod.getJavaElement().getHandleIdentifier(), storedType));
+		if(update) {
+			w.updateDocument(new Term("handleIdentifier", httpMethod.getJavaElement().getHandleIdentifier()), doc);
+		} else {
+			w.addDocument(doc);
+		}
 		w.commit();
 	}
 
@@ -122,8 +119,8 @@ public class LuceneIndexationTestCase {
 	}
 
 
-	private IJaxrsElement query(String name, String value) throws CorruptIndexException, IOException, ParseException {
-		IndexReader reader = IndexReader.open(index);
+	private IJaxrsElement query(String name, String value) throws Exception {
+		IndexReader reader = DirectoryReader.open(index);
 		IndexSearcher searcher = new IndexSearcher(reader);
 		try {
 			final TermQuery termQuery = new TermQuery(new Term("verb", value));
@@ -135,38 +132,36 @@ public class LuceneIndexationTestCase {
 			}
 			return null;
 		} finally {
-			searcher.close();
+			reader.close();
 
 		}
 	}
 
 	@Test
-	public void shouldRetrieveJaxrsHttpMethodFromVerb() throws IOException, JavaModelException, CoreException,
-			ParseException {
+	public void shouldRetrieveJaxrsHttpMethodFromVerb() throws Exception {
 		// pre-condition
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
 		// operations
-		index(httpMethod);
+		index(httpMethod, false);
 		final IJaxrsElement result = query("verb", "FOO");
 		// verifications
 		assertThat(result, equalTo((IJaxrsElement) httpMethod));
 	}
 
 	@Test
-	public void shouldRetrieveJaxrsHttpMethodFromVerbAfterUpdate() throws IOException, JavaModelException,
-			CoreException, ParseException {
+	public void shouldRetrieveJaxrsHttpMethodFromVerbAfterUpdate() throws Exception {
 		// pre-condition
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
-		index(httpMethod);
+		index(httpMethod, false);
 		assertThat(query("verb", "FOO"), equalTo((IJaxrsElement) httpMethod));
 		httpMethod.addOrUpdateAnnotation(createAnnotation("javax.ws.rs.HttpMethod", "Bar"));
 		assertThat(httpMethod.getHttpVerb(), equalTo("Bar"));
 		// operations
-		updateIndex(httpMethod);
+		index(httpMethod, true);
 		final IJaxrsElement fooResult = query("verb", "FOO");
 		final IJaxrsElement barResult = query("verb", "Bar");
 		// verifications
@@ -175,13 +170,12 @@ public class LuceneIndexationTestCase {
 	}
 
 	@Test
-	public void shouldNotRetrieveJaxrsHttpMethodFromVerbAfterRemoval() throws IOException, JavaModelException,
-			CoreException, ParseException {
+	public void shouldNotRetrieveJaxrsHttpMethodFromVerbAfterRemoval() throws Exception {
 		// pre-condition
 		final JaxrsHttpMethod httpMethod = metamodelMonitor.createHttpMethod("org.jboss.tools.ws.jaxrs.sample.services.FOO");
 		store(httpMethod);
 		assertThat(httpMethod.getHttpVerb(), equalTo("FOO"));
-		index(httpMethod);
+		index(httpMethod, false);
 		assertThat(query("verb", "FOO"), equalTo((IJaxrsElement) httpMethod));
 		// operations
 		unindex(httpMethod);

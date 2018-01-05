@@ -14,8 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.reddeer.swt.api.Combo;
+import org.eclipse.reddeer.swt.api.Shell;
 import org.eclipse.reddeer.swt.condition.ShellIsActive;
+import org.eclipse.reddeer.swt.condition.ShellIsAvailable;
 import org.eclipse.reddeer.swt.exception.SWTLayerException;
+import org.eclipse.reddeer.common.exception.RedDeerException;
 import org.eclipse.reddeer.common.exception.WaitTimeoutExpiredException;
 import org.eclipse.reddeer.swt.impl.button.PushButton;
 import org.eclipse.reddeer.swt.impl.combo.LabeledCombo;
@@ -25,6 +28,7 @@ import org.eclipse.reddeer.common.wait.TimePeriod;
 import org.eclipse.reddeer.common.wait.WaitUntil;
 import org.eclipse.reddeer.common.wait.WaitWhile;
 import org.jboss.tools.common.reddeer.label.IDELabel;
+import org.jboss.tools.ws.jaxws.ui.JBossJAXWSUIMessages;
 import org.jboss.tools.ws.reddeer.ui.dialogs.InputDialog;
 import org.jboss.tools.ws.ui.messages.JBossWSUIMessages;
 
@@ -46,7 +50,7 @@ public class SelectWSDLDialog extends DefaultShell {
 	 * Constructs Select WSDL dialog.
 	 */
 	public SelectWSDLDialog() {
-		super(JBossWSUIMessages.WSDLBrowseDialog_Dialog_Title);
+		super(JBossJAXWSUIMessages.WSDLBrowseDialog_Dialog_Title);
 		TITLE = this.getText();
 	}
 
@@ -55,7 +59,7 @@ public class SelectWSDLDialog extends DefaultShell {
 	 * this action.
 	 */
 	public void openURL() {
-		new PushButton(JBossWSUIMessages.WSDLBrowseDialog_URL_Browse).click();
+		new PushButton(JBossJAXWSUIMessages.WSDLBrowseDialog_URL_Browse).click();
 	}
 
 	/**
@@ -83,7 +87,7 @@ public class SelectWSDLDialog extends DefaultShell {
 	 */
 	public List<String> getServices() {
 		//Service:
-		return new LabeledCombo(JBossWSUIMessages.WSDLBrowseDialog_Service_Field)
+		return new LabeledCombo(JBossJAXWSUIMessages.WSDLBrowseDialog_Service_Field)
 				.getItems();
 	}
 
@@ -93,7 +97,7 @@ public class SelectWSDLDialog extends DefaultShell {
 	 * @param service service name that will be selected
 	 */
 	public void selectService(String service) {
-		new LabeledCombo(JBossWSUIMessages.WSDLBrowseDialog_Service_Field)
+		new LabeledCombo(JBossJAXWSUIMessages.WSDLBrowseDialog_Service_Field)
 				.setSelection(service);
 	}
 
@@ -103,7 +107,7 @@ public class SelectWSDLDialog extends DefaultShell {
 	 */
 	public List<String> getPorts() {
 		//Port:
-		return new LabeledCombo(JBossWSUIMessages.WSDLBrowseDialog_Port_Field)
+		return new LabeledCombo(JBossJAXWSUIMessages.WSDLBrowseDialog_Port_Field)
 				.getItems();
 	}
 
@@ -114,7 +118,7 @@ public class SelectWSDLDialog extends DefaultShell {
 	 */
 	public void selectPort(String port) {
 		//Service:
-		new LabeledCombo(JBossWSUIMessages.WSDLBrowseDialog_Port_Field)
+		new LabeledCombo(JBossJAXWSUIMessages.WSDLBrowseDialog_Port_Field)
 				.setSelection(port);
 	}
 
@@ -139,32 +143,27 @@ public class SelectWSDLDialog extends DefaultShell {
 	 */
 	public void ok() {
 		new PushButton(IDELabel.Button.OK).click();
-
-		// workaround for https://issues.jboss.org/browse/JBIDE-14618
-		try {
-			new WaitUntil(new ShellIsActive("Progress Information"));
-			new WaitWhile(new ShellIsActive("Progress Information"), TimePeriod.getCustom(24));
-		} catch (WaitTimeoutExpiredException sle) {
-			// WISE call was pretty quick - no progress information dialog appears
-		}
-
+		new WaitWhile(new ShellIsAvailable(this));
+		
 		// when replacing some existing WS message, press OK to confirm
+		Shell incorrectShell = null;
 		try {
-			new DefaultShell("Message May Be Incorrect for Selected WSDL");
-			new PushButton(IDELabel.Button.YES).click();;
-		} catch (SWTLayerException sle) {
+			incorrectShell = new DefaultShell("Message May Be Incorrect for Selected WSDL");
+		} catch (RedDeerException sle) {
 			// no WS message replacing - no dialog appeared
 		}
-		
-		new WaitWhile(new ShellIsActive(TITLE));
+		if(incorrectShell != null) {
+			new PushButton(incorrectShell, IDELabel.Button.YES).click();
+			new WaitWhile(new ShellIsAvailable(incorrectShell));
+		}
 	}
 
 	private org.eclipse.reddeer.swt.api.List getOperationsList() {
 		//Operation:
-		return new DefaultList(JBossWSUIMessages.WSDLBrowseDialog_Operation_Field);
+		return new DefaultList(JBossJAXWSUIMessages.WSDLBrowseDialog_Operation_Field);
 	}
 
 	private Combo getURICombo() {
-		return new LabeledCombo(JBossWSUIMessages.WSDLBrowseDialog_WSDL_URI_Field);
+		return new LabeledCombo(JBossJAXWSUIMessages.WSDLBrowseDialog_WSDL_URI_Field);
 	}
 }

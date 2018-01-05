@@ -26,10 +26,7 @@ import static org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder.IJavaElem
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -43,12 +40,10 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodSignature;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.ConstantUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.jboss.tools.ws.jaxrs.core.jdt.JdtUtils;
-import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJavaMethodSignature;
 
 /**
  * Scans and filters the IJavaElementDelta and IResourceDelta (including their children and annotations) and returns a

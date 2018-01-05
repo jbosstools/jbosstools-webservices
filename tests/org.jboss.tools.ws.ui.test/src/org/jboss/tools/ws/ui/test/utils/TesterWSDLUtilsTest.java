@@ -20,8 +20,8 @@ import javax.wsdl.WSDLException;
 import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.IStatus;
-import org.jboss.tools.ws.ui.utils.SchemaUtils;
-import org.jboss.tools.ws.ui.utils.TesterWSDLUtils;
+import org.jboss.tools.ws.jaxws.ui.schema.SchemaUtils;
+import org.jboss.tools.ws.jaxws.ui.tester.TesterWSDLUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,7 +46,7 @@ public class TesterWSDLUtilsTest extends TestCase {
 
 		def = readWSDL("/jbide6593/original.wsdl");
 		r = TesterWSDLUtils.getNSServiceNameAndMessageNameArray(def, "gsearch_rss", "gsearch_rssSoap", "gsearch_rssSoap", "GetSearchResults");
-		Assert.assertArrayEquals(new String[] {"http://www.ecubicle.net/webservices", "gsearch_rss", "gsearch_rssSoap"}, r);
+		Assert.assertArrayEquals(new String[] {"http://webservices.www.ecubicle.net/", "gsearch_rss", "gsearch_rssSoap"}, r);
 
 		r = TesterWSDLUtils.getNSServiceNameAndMessageNameArray(def, "EchoService", "EchoPort", "EchoPortBinding", "echo");
 		Assert.assertArrayEquals(new String[] {"http://webservices.www.ecubicle.net/", "EchoService", "EchoPort"}, r);

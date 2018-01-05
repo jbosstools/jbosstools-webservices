@@ -10,15 +10,7 @@
  ******************************************************************************/
 package org.jboss.tools.ws.reddeer.ui.wizards;
 
-import org.eclipse.reddeer.common.condition.WaitCondition;
-import org.eclipse.reddeer.swt.condition.ShellIsActive;
-import org.eclipse.reddeer.swt.impl.button.CheckBox;
-import org.eclipse.reddeer.swt.impl.button.PushButton;
-import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
-import org.eclipse.reddeer.workbench.core.condition.JobIsRunning;
 import org.eclipse.reddeer.common.wait.TimePeriod;
-import org.eclipse.reddeer.common.wait.WaitUntil;
-import org.eclipse.reddeer.common.wait.WaitWhile;
 import org.eclipse.reddeer.eclipse.selectionwizard.NewMenuWizard;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 
@@ -46,26 +38,6 @@ public abstract class NewWizardDialogWithAssociatedPerspective extends NewMenuWi
 	 */
 	@Override
 	public void finish() {
-		String shellText = new DefaultShell().getText();
-
-		new PushButton(IDELabel.Button.FINISH).click();
-
-		closeOpenAssociatedPerspectiveDialog();
-
-		new WaitWhile(new ShellIsActive(shellText), TimePeriod.LONG);
-		new WaitWhile(new JobIsRunning(), TimePeriod.LONG);
-	}
-
-	private void closeOpenAssociatedPerspectiveDialog() {
-		WaitCondition condition = new ShellIsActive(
-				IDELabel.Shell.OPEN_ASSOCIATED_PERSPECTIVE);
-		new WaitUntil(condition, TimePeriod.DEFAULT, false);
-		if(condition.test()) {
-			CheckBox checkbox = new CheckBox(IDELabel.Shell.REMEMBER_MY_DECISION);
-			if(!checkbox.isChecked()) {
-				checkbox.click();
-			}
-			new PushButton(IDELabel.Button.NO).click();
-		}
+		super.finish(TimePeriod.LONG);
 	}
 }

@@ -2,13 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JBoss Wise UI Plug-in Wrapper
 Bundle-SymbolicName: org.jboss.tools.ws.wise.ui;singleton:=true
-Bundle-Version: 1.9.102.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-Vendor: JBoss by Red Hat
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- javax.wsdl;bundle-version="1.6.2";visibility:=reexport,
- org.apache.xml.resolver;bundle-version="1.2.0"
+ javax.wsdl;bundle-version="1.6.2"
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib/asm-3.3.1.jar,

@@ -83,7 +83,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 	
 	@After
 	public void cleanUp() throws CoreException {
-	    ResourcesUtils.deleteProject(javaProject.getElementName());
+		ResourcesUtils.deleteProject(javaProject.getElementName());
 	    metamodel.remove();
 	}
 

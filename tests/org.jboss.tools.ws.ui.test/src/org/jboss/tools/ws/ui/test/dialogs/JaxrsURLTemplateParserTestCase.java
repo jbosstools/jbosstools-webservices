@@ -20,9 +20,9 @@ import junit.framework.TestCase;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.jboss.tools.ws.ui.dialogs.EnumParamType;
-import org.jboss.tools.ws.ui.dialogs.URLTemplateParameter;
-import org.jboss.tools.ws.ui.utils.JAXRSPathTemplateParser;
+import org.jboss.tools.ws.jaxrs.ui.cnf.action.JAXRSPathTemplateParser;
+import org.jboss.tools.ws.jaxrs.ui.view.EnumParamType;
+import org.jboss.tools.ws.jaxrs.ui.view.URLTemplateParameter;
 import org.junit.Test;
 
 /**

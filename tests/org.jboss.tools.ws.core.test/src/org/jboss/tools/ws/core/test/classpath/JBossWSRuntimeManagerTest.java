@@ -11,10 +11,9 @@
 
 package org.jboss.tools.ws.core.test.classpath;
 
-import org.jboss.tools.ws.core.classpath.JBossWSRuntime;
-import org.jboss.tools.ws.core.classpath.JBossWSRuntimeManager;
-
 import junit.framework.TestCase;
+import org.jboss.tools.ws.jaxws.core.classpath.JBossWSRuntime;
+import org.jboss.tools.ws.jaxws.ui.classpath.JBossWSRuntimeManager;
 
 /**
  * @author Grid Qian

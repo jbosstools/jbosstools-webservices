@@ -15,20 +15,23 @@ import java.util.Stack;
 
 public class TestHistory {
 	
-	private Stack<TestHistoryEntry> entries = null;
+	private Stack<TestEntry> entries = null;
 	
 	public TestHistory() {
-		entries = new Stack<TestHistoryEntry>();
+		entries = new Stack<TestEntry>();
 	}
 
-	public Stack<TestHistoryEntry> getEntries() {
+	public Stack<TestEntry> getEntries() {
 		return entries;
 	}
 	
-	public TestHistoryEntry findEntryByURL ( String urlStr ) {
-		Iterator<TestHistoryEntry> entryIter = entries.iterator();
+	/**
+	 * @since 2.0
+	 */
+	public TestEntry findEntryByURL ( String urlStr ) {
+		Iterator<TestEntry> entryIter = entries.iterator();
 		while (entryIter.hasNext()) {
-			TestHistoryEntry entry = entryIter.next();
+			TestEntry entry = entryIter.next();
 			if (entry.getUrl().contentEquals(urlStr)) {
 				return entry;
 			}
@@ -36,11 +39,17 @@ public class TestHistory {
 		return null;
 	}
 	
-	public void addEntry (TestHistoryEntry newEntry ) {
+	/**
+	 * @since 2.0
+	 */
+	public void addEntry (TestEntry newEntry ) {
 		this.entries.push(newEntry);
 	}
 	
-	public void replaceEntry ( TestHistoryEntry oldEntry, TestHistoryEntry newEntry) {
+	/**
+	 * @since 2.0
+	 */
+	public void replaceEntry ( TestEntry oldEntry, TestEntry newEntry) {
 		boolean found = entries.remove(oldEntry);
 		if (found) {
 			addEntry(newEntry);
@@ -50,9 +59,9 @@ public class TestHistory {
 	@Override
 	public String toString() {
 		String result = "TestHistory [entries= \n";  //$NON-NLS-1$
-		Iterator<TestHistoryEntry> entryIter = entries.iterator();
+		Iterator<TestEntry> entryIter = entries.iterator();
 		while (entryIter.hasNext()) {
-			TestHistoryEntry entry = entryIter.next();
+			TestEntry entry = entryIter.next();
 			result = result + entry.toString();
 			if (entryIter.hasNext()) {
 				result = result + '\n';
