@@ -1,0 +1,5 @@
+# JBIDE-25665 support name change from org.jboss.tools.ws.feature to org.jboss.tools.ws.jaxws.feature
+update.id = org.jboss.tools.ws.feature.feature.group
+update.range = 0.0.0
+update.severity = 0
+update.description = Update from org.jboss.tools.ws.feature to org.jboss.tools.ws.jaxws.feature (feature renamed)
