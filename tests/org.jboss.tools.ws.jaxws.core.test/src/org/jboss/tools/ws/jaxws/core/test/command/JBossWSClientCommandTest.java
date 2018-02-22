@@ -85,6 +85,7 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 		status = cmdImpl.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 		project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+		project.getWorkspace().save(false, new NullProgressMonitor());
 		assertTrue("failed to generate sample class",
 				project.getFile("src/org/apache/hello_world_soap_http/clientsample/ClientSample.java").exists());
 	}
