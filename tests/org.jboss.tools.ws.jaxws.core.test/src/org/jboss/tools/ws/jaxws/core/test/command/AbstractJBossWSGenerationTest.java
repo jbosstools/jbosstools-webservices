@@ -111,7 +111,10 @@ public class AbstractJBossWSGenerationTest {
 	public IFacetedProject createJBossWSProject(String baseProjectName) throws CoreException {
 		IProject project = createProject(baseProjectName);
 		final IFacetedProject fproj = ProjectFacetsManager.create(project);
-		fproj.installProjectFacet(getJBossWSFacetVersion(),createJBossWSDataModel(isServerSupplied()), null);
+		IProjectFacetVersion jbossProjectFacetVersion = getJBossWSFacetVersion();
+		if (!fproj.hasProjectFacet(jbossProjectFacetVersion)) {
+			fproj.installProjectFacet(jbossProjectFacetVersion,createJBossWSDataModel(isServerSupplied()), null);
+		}
 		assertNotNull(project);
 		this.addResourceToCleanup(project);
 
