@@ -912,7 +912,9 @@ public final class JdtUtils {
 			final List<IType> types = new ArrayList<IType>();
 			final ITypeHierarchy returnTypeHierarchy = JdtUtils.resolveTypeHierarchy(type, type.getJavaProject(),
 					false, new NullProgressMonitor());
-			types.addAll(Arrays.asList(returnTypeHierarchy.getAllSubtypes(type)));
+			if (returnTypeHierarchy != null) {
+				types.addAll(Arrays.asList(returnTypeHierarchy.getAllSubtypes(type)));
+			}
 			types.add(type);
 			return types;
 		} finally {

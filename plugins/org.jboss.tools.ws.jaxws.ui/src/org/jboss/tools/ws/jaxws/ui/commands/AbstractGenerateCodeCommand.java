@@ -150,10 +150,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 	// doesn't set the env variable
 	protected String[] getEnvironmentVariables(IJavaProject javaProject) {
 		String[] env = null;
-		String javaHome = System.getenv(JAVA_HOME);
-		if (javaHome == null || !(new File(javaHome).exists())) {
-			if (javaProject == null || !javaProject.exists())
-				return null;
+		if ((javaProject != null) && javaProject.exists()) {
 			try {
 				if (!javaProject.isOpen()) {
 					javaProject.open(null);
@@ -167,7 +164,7 @@ abstract class AbstractGenerateCodeCommand extends AbstractDataModelOperation {
 		}
 		return env;
 	}
-
+	
 	protected void addCommonArgs(List<String> command, IJavaProject javaProject) throws Exception {
 		String projectRoot = model.getJavaProject().getProject().getLocation().toOSString();
 		command.add("-k"); //$NON-NLS-1$
