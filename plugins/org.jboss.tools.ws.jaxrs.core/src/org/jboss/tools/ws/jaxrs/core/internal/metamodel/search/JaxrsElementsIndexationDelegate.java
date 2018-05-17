@@ -79,8 +79,8 @@ public class JaxrsElementsIndexationDelegate {
 	public JaxrsElementsIndexationDelegate(final JaxrsMetamodel metamodel) throws CoreException {
 		try {
 			this.metamodel = metamodel;
-			analyzer = new StandardAnalyzer(Version.LUCENE_35);
-			config = new IndexWriterConfig(Version.LUCENE_35, analyzer);
+			analyzer = new StandardAnalyzer(Version.LUCENE_71);
+			config = new IndexWriterConfig(Version.LUCENE_71, analyzer);
 			config.setMaxBufferedDeleteTerms(1);
 			index = new RAMDirectory();
 			indexWriter = new IndexWriter(index, config);
