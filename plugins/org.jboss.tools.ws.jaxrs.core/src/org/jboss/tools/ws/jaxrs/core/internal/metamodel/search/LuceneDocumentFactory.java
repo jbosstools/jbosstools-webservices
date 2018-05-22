@@ -41,7 +41,12 @@ import java.util.Map.Entry;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.util.Bits;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
@@ -75,6 +80,12 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsResourceMethod;
  * 
  */
 public class LuceneDocumentFactory {
+	
+	private static final FieldType STORED_NOT_ANALYZED = new FieldType(TextField.TYPE_STORED);
+	
+	static {
+		STORED_NOT_ANALYZED.setTokenized(false);
+	}
 
 	/**
 	 * Returns the Identifier {@link Term} for the given {@link IMarker}.
@@ -284,6 +295,15 @@ public class LuceneDocumentFactory {
 		}
 		return document;
 	}
+	
+	public static boolean isDeleted(IndexReader reader, int docID) {
+		boolean result = false;
+		Bits bits = MultiFields.getLiveDocs(reader);
+		if (bits != null) {
+			result = !bits.get(docID);
+		}
+		return result;
+	}
 
 	/**
 	 * Adds a Field to the given Lucene Document. The generated field will
@@ -301,7 +321,7 @@ public class LuceneDocumentFactory {
 		if (name == null || value == null) {
 			return;
 		}
-		document.add(new Field(name, value, Field.Store.YES, Field.Index.NOT_ANALYZED));
+		document.add(new Field(name, value, STORED_NOT_ANALYZED));
 	}
 
 	/**
@@ -321,7 +341,7 @@ public class LuceneDocumentFactory {
 			return;
 		}
 		for(String value : values) {
-			document.add(new Field(name, value, Field.Store.YES, Field.Index.NOT_ANALYZED));
+			document.add(new Field(name, value, STORED_NOT_ANALYZED));
 		}
 	}
 	
@@ -398,8 +418,7 @@ public class LuceneDocumentFactory {
 	 * @return the document.
 	 */
 	private static Document createParameterAggregatorDocument(final JaxrsParameterAggregator parameterAggregator) {
-		final Document document = createBaseDocument(parameterAggregator);
-		return document;
+		return createBaseDocument(parameterAggregator);
 	}
 	
 	/**
@@ -410,8 +429,7 @@ public class LuceneDocumentFactory {
 	 * @return the document.
 	 */
 	private static Document createParameterAggregatorFieldDocument(final JaxrsParameterAggregatorField parameterAggregatorField) {
-		final Document document = createBaseDocument(parameterAggregatorField);
-		return document;
+		return createBaseDocument(parameterAggregatorField);
 	}
 
 	/**
@@ -482,8 +500,7 @@ public class LuceneDocumentFactory {
 	 * @return the document.
 	 */
 	private static Document createNameBindingDocument(final JaxrsNameBinding nameBinding) {
-		final Document document = createBaseDocument(nameBinding);
-		return document;
+		return createBaseDocument(nameBinding);
 	}
 
 	/**
@@ -513,9 +530,7 @@ public class LuceneDocumentFactory {
 	 * @return the document.
 	 */
 	private static Document createParamConverterProviderDocument(final JaxrsParamConverterProvider paramConverterProvider) {
-		final Document document = createBaseDocument(paramConverterProvider);
-		
-		return document;
+		return createBaseDocument(paramConverterProvider);
 	}
 
 	/**
@@ -526,8 +541,7 @@ public class LuceneDocumentFactory {
 	 * @return the document.
 	 */
 	private static Document createResourceDocument(final JaxrsResource resource) {
-		final Document document = createBaseDocument(resource);
-		return document;
+		return createBaseDocument(resource);
 	}
 
 	/**
@@ -538,8 +552,7 @@ public class LuceneDocumentFactory {
 	 * @return the document.
 	 */
 	private static Document createResourceFieldDocument(final JaxrsResourceField resourceField) {
-		final Document document = createBaseDocument(resourceField);
-		return document;
+		return createBaseDocument(resourceField);
 	}
 
 	/**
@@ -550,8 +563,7 @@ public class LuceneDocumentFactory {
 	 * @return the document.
 	 */
 	private static Document createResourcePropertyDocument(final JaxrsResourceProperty resourceProperty) {
-		final Document document = createBaseDocument(resourceProperty);
-		return document;
+		return createBaseDocument(resourceProperty);
 	}
 	
 	/**
