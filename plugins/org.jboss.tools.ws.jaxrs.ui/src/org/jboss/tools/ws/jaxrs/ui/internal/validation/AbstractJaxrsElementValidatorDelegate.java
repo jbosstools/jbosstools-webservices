@@ -42,7 +42,8 @@ public abstract class AbstractJaxrsElementValidatorDelegate<T extends JaxrsBaseE
 	protected final static List<String> CONTEXT_TYPE_NAMES = new ArrayList<String>(Arrays.asList(
 			"javax.ws.rs.core.HttpHeaders", "javax.ws.rs.core.UriInfo", "javax.ws.rs.core.Request",
 			"javax.servlet.http.HttpServletRequest", "javax.servlet.http.HttpServletResponse",
-			"javax.servlet.ServletConfig", "javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext"));
+			"javax.servlet.ServletConfig", "javax.servlet.ServletContext", "javax.ws.rs.core.SecurityContext",
+			"javax.ws.rs.sse.Sse", "javax.ws.rs.sse.SseEventSink"));
 
 	protected static final Pattern alphaNumPattern = Pattern.compile("[a-zA-Z1-9]([a-zA-Z1-9]|\\.|-|_)*");
 
