@@ -11,6 +11,8 @@
 package org.jboss.tools.ws.jaxws.core.test.command;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.internal.resources.File;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -85,8 +87,9 @@ public class JBossWSClientCommandTest extends AbstractJBossWSGenerationTest {
 		status = cmdImpl.execute(null, null);
 		assertTrue(status.getMessage(), status.isOK());
 		project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-		assertTrue("failed to generate sample class",
-				project.getFile("src/org/apache/hello_world_soap_http/clientsample/ClientSample.java").exists());
+		IFile generatedFile = project.getFile("src/org/apache/hello_world_soap_http/clientsample/ClientSample.java");
+		assertTrue("failed to generate sample class " + ((File)generatedFile).getResourceInfo(false, false),
+				generatedFile.exists());
 	}
 
 	@Test
