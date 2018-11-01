@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %PLUGIN_NAME
 Bundle-SymbolicName: org.jboss.tools.websockets.ui;singleton:=true
-Bundle-Version: 2.0.101.qualifier
+Bundle-Version: 2.0.102.qualifier
 Bundle-Activator: org.jboss.tools.websockets.ui.WebsocketsUIPlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
@@ -12,7 +12,8 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
  org.eclipse.jface.text,
  org.eclipse.jdt.core;bundle-version="3.7.1",
  org.jboss.tools.common.core,
- org.jboss.tools.common.ui
+ org.jboss.tools.common.ui,
+ org.eclipse.jdt.core.manipulation
 Bundle-ActivationPolicy: lazy
 Export-Package: org.jboss.tools.websockets.ui,
  org.jboss.tools.websockets.ui.internal.ca;x-friends:="org.jboss.tools.websockets.ui.test"
