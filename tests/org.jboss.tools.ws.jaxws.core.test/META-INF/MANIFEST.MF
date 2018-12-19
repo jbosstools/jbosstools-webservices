@@ -35,7 +35,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.launching;bundle-version="3.7.100",
  javax.wsdl,
  org.jboss.tools.ws.jaxws.core,
- org.jboss.tools.ws.jaxws.ui
+ org.jboss.tools.ws.jaxws.ui,
+ javax.annotation
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor.0
 Bundle-Localization: plugin
