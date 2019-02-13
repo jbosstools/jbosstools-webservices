@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2012 - 2014 Red Hat, Inc. and others.  
+ * Copyright (c) 2012 - 2019 Red Hat, Inc. and others.  
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -60,6 +60,8 @@ public interface JaxrsClassnames {
 	public static final String ENTITY_READER_INTERCEPTOR = "javax.ws.rs.ext.ReaderInterceptor";
 	
 	public static final String ENTITY_WRITER_INTERCEPTOR = "javax.ws.rs.ext.WriterInterceptor";
+	
+	public static final String FEATURE = "javax.ws.rs.core.Feature";
 	
 	public static final String DYNAMIC_FEATURE = "javax.ws.rs.container.DynamicFeature";
 	

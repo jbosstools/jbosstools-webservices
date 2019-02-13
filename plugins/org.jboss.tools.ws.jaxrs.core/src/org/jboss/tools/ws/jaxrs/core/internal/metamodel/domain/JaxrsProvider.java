@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2008 - 2014 Red Hat, Inc. and others. 
+ * Copyright (c) 2008 - 2019 Red Hat, Inc. and others. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -55,6 +55,7 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.EXCEPTION_MAPP
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_READER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.MESSAGE_BODY_WRITER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DYNAMIC_FEATURE;
+import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.FEATURE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 
@@ -253,6 +254,7 @@ public class JaxrsProvider extends JaxrsJavaElement<IType> implements IJaxrsProv
 			providerInterfaces.put(ENTITY_READER_INTERCEPTOR, EnumElementKind.ENTITY_READER_INTERCEPTOR);
 			providerInterfaces.put(ENTITY_WRITER_INTERCEPTOR, EnumElementKind.ENTITY_WRITER_INTERCEPTOR);
 			providerInterfaces.put(DYNAMIC_FEATURE, EnumElementKind.DYNAMIC_FEATURE);
+			providerInterfaces.put(FEATURE, EnumElementKind.FEATURE);
 
 			final List<IType> providerTypeSuperInterfaces = Arrays.asList(providerTypeHierarchy.getAllSuperInterfaces(providerType));
 			for (Entry<String, EnumElementKind> entry : providerInterfaces.entrySet()) {
