@@ -52,7 +52,7 @@ public class Jaxrs20MetamodelTestCase {
 		for(IJaxrsProvider provider : allProviders) {
 			TestLogger.debug(provider.toString());
 		}
-		assertThat(allProviders.size(), equalTo(5));
+		assertThat(allProviders.size(), equalTo(7));
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class Jaxrs20MetamodelTestCase {
 		for(IJaxrsElement element : allElements) {
 			TestLogger.debug(element.toString());
 		}
-		assertThat(allElements.size(), equalTo(42));
+		assertThat(allElements.size(), equalTo(44));
 	}
 	
 	@Test
