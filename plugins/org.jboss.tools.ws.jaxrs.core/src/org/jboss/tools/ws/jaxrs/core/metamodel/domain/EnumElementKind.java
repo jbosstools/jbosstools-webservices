@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2008 - 2014 Red Hat, Inc. and others. 
+ * Copyright (c) 2008 - 2019 Red Hat, Inc. and others. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -52,6 +52,8 @@ public enum EnumElementKind {
 	ENTITY_INTERCEPTOR(EnumElementCategory.PROVIDER),
 	/** An Dynamic binding feature.*/
 	DYNAMIC_FEATURE(EnumElementCategory.PROVIDER),
+	/** A feature.*/
+	FEATURE(EnumElementCategory.PROVIDER),
 	/** An Interceptor/Filter Name Binding Annotation.*/
 	NAME_BINDING(EnumElementCategory.NAME_BINDING),
 	/** Undefined Provider. */

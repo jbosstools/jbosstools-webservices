@@ -1,5 +1,5 @@
 /******************************************************************************* 
- * Copyright (c) 2013 - 2014 Red Hat, Inc. and others. 
+ * Copyright (c) 2013 - 2019 Red Hat, Inc. and others. 
  * Distributed under license by Red Hat, Inc. All rights reserved. 
  * This program is made available under the terms of the 
  * Eclipse Public License v1.0 which accompanies this distribution, 
@@ -186,6 +186,52 @@ public class Jaxrs20ProviderValidatorTestCase {
 				.createElements("org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomWriterInterceptor");
 		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(
 				"org.jboss.tools.ws.jaxrs.sample.services.interceptors.CustomWriterInterceptor",
+				EnumElementCategory.PROVIDER);
+		deleteJaxrsMarkers(project);
+		metamodelMonitor.resetElementChangesNotifications();
+
+		// operation
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation: no need to report further problems, JDT Validation
+		// already reports compilation errors
+		final IMarker[] markers = findJaxrsMarkers(provider);
+		for (IMarker marker : markers) {
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+					marker.getAttribute(IMarker.MESSAGE));
+		}
+		assertThat(markers.length, equalTo(0));
+	}
+
+	@Test
+	public void shouldNotReportProblemOnFeature() throws CoreException, ValidationException {
+		// preconditions
+		metamodelMonitor
+				.createElements("org.jboss.tools.ws.jaxrs.sample.services.CarFeature");
+		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(
+				"org.jboss.tools.ws.jaxrs.sample.services.CarFeature",
+				EnumElementCategory.PROVIDER);
+		deleteJaxrsMarkers(project);
+		metamodelMonitor.resetElementChangesNotifications();
+
+		// operation
+		new JaxrsMetamodelValidator().validateAll(project, validationHelper, context, validatorManager, reporter);
+		// validation: no need to report further problems, JDT Validation
+		// already reports compilation errors
+		final IMarker[] markers = findJaxrsMarkers(provider);
+		for (IMarker marker : markers) {
+			TestLogger.debug("problem at line {}: {}", marker.getAttribute(IMarker.LINE_NUMBER),
+					marker.getAttribute(IMarker.MESSAGE));
+		}
+		assertThat(markers.length, equalTo(0));
+	}
+
+	@Test
+	public void shouldNotReportProblemOnDynamicFeature() throws CoreException, ValidationException {
+		// preconditions
+		metamodelMonitor
+				.createElements("org.jboss.tools.ws.jaxrs.sample.services.CarDynamicFeature");
+		final JaxrsProvider provider = (JaxrsProvider) metamodel.findElement(
+				"org.jboss.tools.ws.jaxrs.sample.services.CarDynamicFeature",
 				EnumElementCategory.PROVIDER);
 		deleteJaxrsMarkers(project);
 		metamodelMonitor.resetElementChangesNotifications();
