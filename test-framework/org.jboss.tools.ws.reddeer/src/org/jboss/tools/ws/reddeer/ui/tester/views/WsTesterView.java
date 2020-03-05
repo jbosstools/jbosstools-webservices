@@ -14,21 +14,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.reddeer.common.wait.TimePeriod;
+import org.eclipse.reddeer.common.wait.WaitUntil;
+import org.eclipse.reddeer.common.wait.WaitWhile;
+import org.eclipse.reddeer.core.matcher.WithTextMatcher;
 import org.eclipse.reddeer.swt.api.Combo;
 import org.eclipse.reddeer.swt.api.Text;
 import org.eclipse.reddeer.swt.condition.ShellIsActive;
-import org.eclipse.reddeer.core.matcher.WithTextMatcher;
+import org.eclipse.reddeer.swt.impl.button.CheckBox;
 import org.eclipse.reddeer.swt.impl.button.PushButton;
 import org.eclipse.reddeer.swt.impl.combo.DefaultCombo;
 import org.eclipse.reddeer.swt.impl.list.DefaultList;
 import org.eclipse.reddeer.swt.impl.shell.DefaultShell;
 import org.eclipse.reddeer.swt.impl.text.DefaultText;
 import org.eclipse.reddeer.swt.impl.toolbar.DefaultToolItem;
-import org.eclipse.reddeer.common.wait.TimePeriod;
-import org.eclipse.reddeer.common.wait.WaitUntil;
-import org.eclipse.reddeer.common.wait.WaitWhile;
 import org.eclipse.reddeer.uiforms.api.ExpandableComposite;
 import org.eclipse.reddeer.uiforms.impl.expandablecomposite.DefaultExpandableComposite;
+import org.eclipse.reddeer.uiforms.impl.section.DefaultSection;
 import org.eclipse.reddeer.workbench.impl.view.WorkbenchView;
 import org.jboss.tools.common.reddeer.label.IDELabel;
 import org.jboss.tools.ws.jaxrs.ui.JBossJAXRSUIMessages;
@@ -81,7 +83,12 @@ public class WsTesterView extends WorkbenchView {
 	 * @param url service url
 	 */
 	public void setServiceURL(String url) {
+		setServiceURL(url, true);
+	}
+	
+	public void setServiceURL(String url, boolean toggleAuthentication) {
 		getServiceURLCombo().setText(url);
+		toggleBasicAuthentication(toggleAuthentication);
 	}
 
 	/**
@@ -309,6 +316,16 @@ public class WsTesterView extends WorkbenchView {
 	private void clearRequestArgs(WsTesterView.RequestArgType type) {
 		activate();
 		new PushButton(type.ordinal(), new WithTextMatcher("Remove All")).click();
+	}
+	
+	public CheckBox getBasicAuthenticationPrompt() {
+		activate();
+		return new CheckBox(new DefaultSection(JBossWSUIMessages.JAXRSWSTestView2_RequestDetails_Section),
+				new WithTextMatcher(JBossWSUIMessages.JAXRSWSTestView2_Checkbox_Basic_Authentication));
+	}
+	
+	public void toggleBasicAuthentication(boolean checked) {
+		getBasicAuthenticationPrompt().toggle(checked);
 	}
 
 	/**
