@@ -29,7 +29,7 @@ Export-Package: org.jboss.tools.ws.reddeer.helper,
  org.jboss.tools.ws.reddeer.ui.wizards.jst.servlet,
  org.jboss.tools.ws.reddeer.ui.wizards.ws.ui,
  org.jboss.tools.ws.reddeer.ui.wizards.wst
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Eclipse-BundleShape: jar
 Bundle-Localization: plugin
