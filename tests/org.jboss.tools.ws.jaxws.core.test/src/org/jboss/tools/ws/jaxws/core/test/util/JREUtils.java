@@ -38,7 +38,7 @@ public class JREUtils {
 	}
 	
 	public static IVMInstall createJRE() {
-		return createJRE(new Path(TestConstants.JRE_6_HOME));
+		return createJRE(new Path(TestConstants.JRE_8_HOME));
 	}
 
 	/*
