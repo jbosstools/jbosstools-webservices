@@ -24,10 +24,35 @@ jobs:
         java-version: ${{ matrix.java }}
         java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
         architecture: x64
+    - name: maven-settings-xml-action
+      uses: whelk-io/maven-settings-xml-action@v14
+      with:
+        repositories: |
+          [{ 
+            "id": "jboss-releases",
+            "name": "jboss-releases",
+            "url": "https://repository.jboss.org/nexus/content/repositories/releases",
+            "releases": { "enabled": "true" }
+          }, 
+          {
+            "id": "jboss-snapshots-repository",
+            "name": "jboss-snapshots-repository",
+            "url": "https://repository.jboss.org/nexus/content/repositories/snapshots/",
+            "snapshots": { "enabled": "true" }         
+          }]
+        plugin_repositories: |
+          [{ 
+            "id": "jboss-public-repository",
+            "name": "JBoss Public",
+            "url": "https://repository.jboss.org/nexus/content/groups/public-jboss/",
+            "releases": { "enabled": "true" },
+            "snapshots": { "enabled": "false" }
+          }]
     - name: Build/Compile and run unit tests in repo using Maven step
     # We do not have set settings.xml
     # sonar flag are not included - requires adding secrets into repo security
-      run: mvn clean verify -s maven/settings.xml -U -fae -e -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
+      run: mvn clean install -DskipTests=true
+    # run: mvn clean verify -U -fae -e -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
     - name: Archiving test artifacts
       uses: actions/upload-artifact@v2
       with: 
