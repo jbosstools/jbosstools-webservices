@@ -15,7 +15,10 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Git Checkout
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Setup Java ${{ matrix.java }}
       uses: actions/setup-java@v1
       with:
@@ -78,7 +81,7 @@ jobs:
     # sonar flag are not included - requires adding secrets into repo security
       uses: GabrielBB/xvfb-action@v1
       with:
-        run: mvn clean verify -U -fae -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true -DskipTests=true
+        run: mvn clean verify -U -fae -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
     - name: Archiving test artifacts
       uses: actions/upload-artifact@v2
       with: 
