@@ -39,6 +39,20 @@ jobs:
             "name": "jboss-snapshots-repository",
             "url": "https://repository.jboss.org/nexus/content/repositories/snapshots/",
             "snapshots": { "enabled": "true" }         
+          },
+          {
+            "id": "redhat-ga-repository",
+            "name": "Red Hat GA repository",
+            "url": "https://maven.repository.redhat.com/ga/",
+            "releases": { "enabled": "true" },
+            "snapshots": { "enabled": "false" }         
+          },
+          {
+            "id": "redhat-ea-repository",
+            "name": "Red Hat EA repository",
+            "url": "https://maven.repository.redhat.com/earlyaccess/all/",
+            "releases": { "enabled": "true" },
+            "snapshots": { "enabled": "false" }         
           }]
         plugin_repositories: |
           [{ 
@@ -47,11 +61,25 @@ jobs:
             "url": "https://repository.jboss.org/nexus/content/groups/public-jboss/",
             "releases": { "enabled": "true" },
             "snapshots": { "enabled": "false" }
+          },
+          { 
+            "id": "redhat-ga-repository",
+            "name": "Red Hat GA repository",
+            "url": "https://maven.repository.redhat.com/ga/",
+            "releases": { "enabled": "true" },
+            "snapshots": { "enabled": "false" }
+          },
+          { 
+            "id": "redhat-ea-repository",
+            "name": "Red Hat EA repository",
+            "url": "https://maven.repository.redhat.com/earlyaccess/all/",
+            "releases": { "enabled": "true" },
+            "snapshots": { "enabled": "false" }
           }]
     - name: Build/Compile and run unit tests in repo using Maven step
     # We do not have set settings.xml
     # sonar flag are not included - requires adding secrets into repo security
-      run: mvn clean install -DskipTests=true
+      run: mvn clean install -DskipTests=true -B -U
     # run: mvn clean verify -U -fae -e -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
     - name: Archiving test artifacts
       uses: actions/upload-artifact@v2
