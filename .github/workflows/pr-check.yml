@@ -80,13 +80,13 @@ jobs:
     # sonar flag are not included - requires adding secrets into repo security
       uses: GabrielBB/xvfb-action@v1
       with:
-        run: mvn clean verify -U -fae -e -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
+        run: mvn clean verify -U -fae -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
     - name: Archiving test artifacts
       uses: actions/upload-artifact@v2
       with: 
         name: junit-logs
         path: |
-          *tests/*/target/surefire-reports/*.xml
-          */*tests/*/target/surefire-reports/*.xml
-          site/target/buildinfo/*.json
+          *tests/*/target/surefire-reports/
+          */*tests/*/target/surefire-reports/
+          **/*.log
         retention-days: 5
