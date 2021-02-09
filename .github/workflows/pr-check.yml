@@ -76,9 +76,11 @@ jobs:
             "releases": { "enabled": "true" },
             "snapshots": { "enabled": "false" }
           }]
-    - name: Build/Compile and run unit tests in repo using Maven step
+    - name: Build/Compile and run unit tests
     # sonar flag are not included - requires adding secrets into repo security
-      run: mvn clean verify -U -fae -e -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: mvn clean verify -U -fae -e -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
     - name: Archiving test artifacts
       uses: actions/upload-artifact@v2
       with: 
