@@ -86,4 +86,5 @@ jobs:
         path: |
           *tests/*/target/surefire-reports/*.xml
           */*tests/*/target/surefire-reports/*.xml
+          site/target/buildinfo/*.json
         retention-days: 5
