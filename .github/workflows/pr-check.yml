@@ -1,8 +1,6 @@
 name: jbt-pr-check
 
 on:
-  push:
-    branches: [master]
   pull_request:
     branches: [master]
 
@@ -80,7 +78,7 @@ jobs:
     # sonar flag are not included - requires adding secrets into repo security
       uses: GabrielBB/xvfb-action@v1
       with:
-        run: mvn clean verify -U -fae -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true
+        run: mvn clean verify -U -fae -B -DskipITests=true -Dmaven.test.error.ignore=true -Dmaven.test.failure.ignore=true -DskipTests=true
     - name: Archiving test artifacts
       uses: actions/upload-artifact@v2
       with: 
