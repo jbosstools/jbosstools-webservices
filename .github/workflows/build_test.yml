@@ -1,8 +1,6 @@
 name: Build and Test
 
 on:
-  push:
-    branches: [master]
   pull_request:
     branches: [master]
 
@@ -91,4 +89,3 @@ jobs:
           *tests/*/target/surefire-reports/
           */*tests/*/target/surefire-reports/
           **/*.log
-        retention-days: 5
