@@ -502,6 +502,7 @@ public final class JdtUtils {
 					member.getSourceRange().getLength());
 			switch (member.getElementType()) {
 			case IJavaElement.FIELD:
+			case IJavaElement.METHOD:
 				return finder.getCoveredNode();
 			default:
 				return finder.getCoveringNode();
