@@ -16,7 +16,6 @@ import org.eclipse.reddeer.swt.api.Text;
 import org.eclipse.reddeer.swt.impl.button.CheckBox;
 import org.eclipse.reddeer.swt.impl.button.PushButton;
 import org.eclipse.reddeer.swt.impl.button.RadioButton;
-import org.eclipse.reddeer.swt.impl.text.DefaultText;
 import org.eclipse.reddeer.swt.impl.text.LabeledText;
 
 /**
@@ -40,7 +39,7 @@ public class JAXRSApplicationWizardPage extends WizardPage {
 	 * @return
 	 */
 	public String getWizardPageInfoText() {
-		return new DefaultText(5).getText();
+		return ((JAXRSApplicationWizard)referencedComposite).getMessage();
 	}
 	
 	public SubclassOfApplicationWizardPart useSubclassOfApplication() {
