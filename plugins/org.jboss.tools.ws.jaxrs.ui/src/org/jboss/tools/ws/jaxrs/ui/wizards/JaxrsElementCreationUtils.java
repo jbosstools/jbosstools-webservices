@@ -234,6 +234,8 @@ public class JaxrsElementCreationUtils {
 	 * @throws CoreException 
 	 */
 	private static boolean hasUniqueChildFolder(final IFolder parentFolder) throws CoreException {
+		if (parentFolder == null)
+			return false;
 		final IResource[] childElements = parentFolder.members();
 		if(childElements.length == 1 && childElements[0].getType() == IResource.FOLDER) {
 			return true;
