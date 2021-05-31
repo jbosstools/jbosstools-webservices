@@ -15,7 +15,6 @@ import org.eclipse.reddeer.jface.wizard.WizardPage;
 import org.eclipse.reddeer.swt.api.Text;
 import org.eclipse.reddeer.swt.impl.button.CheckBox;
 import org.eclipse.reddeer.swt.impl.button.PushButton;
-import org.eclipse.reddeer.swt.impl.text.DefaultText;
 import org.eclipse.reddeer.swt.impl.text.LabeledText;
 
 /**
@@ -36,7 +35,7 @@ public class JAXRSResourceCreateResourceWizardPage extends WizardPage {
 	 * @return
 	 */
 	public String getWizardPageInfoText() {
-		return new DefaultText(5).getText();
+		return ((JAXRSResourceWizard)referencedComposite).getMessage();
 	}
 
 	// source folder

@@ -58,7 +58,7 @@ public abstract class WebServiceWizardPageBase extends WizardPage {
 	 * Returns warning/error/info text showed on the top of the page.
 	 */
 	public String getInfoText() {
-		return new DefaultText(0).getText();
+		return ((WebServiceClientWizard)referencedComposite).getMessage();
 	}
 
 	public void setSource(String source) {
