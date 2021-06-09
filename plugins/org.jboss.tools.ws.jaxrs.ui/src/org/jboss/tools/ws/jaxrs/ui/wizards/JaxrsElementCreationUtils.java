@@ -18,6 +18,8 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -37,6 +39,7 @@ import org.eclipse.jst.javaee.web.WebFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.Logger;
 import org.jboss.tools.ws.jaxrs.core.metamodel.domain.IJaxrsApplication;
 import org.jboss.tools.ws.jaxrs.core.wtp.WtpUtils;
+import org.jboss.tools.ws.jaxrs.ui.JBossJaxrsUIPlugin;
 
 /**
  * Utility class for JAX-RS elements creation.
@@ -221,10 +224,10 @@ public class JaxrsElementCreationUtils {
 			currentFolder = (IFolder) currentFolder.members()[0];
 		}
 		if(currentFolder != null) {
-			return (IPackageFragment) packageFragmentRoot.getJavaProject().findPackageFragment(currentFolder.getFullPath());
+			return packageFragmentRoot.getJavaProject().findPackageFragment(currentFolder.getFullPath());
 		}
 		
-		return null;
+		throw new CoreException(new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, "Cannot retrieve the currentFolder for the given packageFragmentRoot("+packageFragmentRoot.getElementName()+")."));
 	}
 	
 	/**
@@ -241,7 +244,6 @@ public class JaxrsElementCreationUtils {
 			return true;
 		}
 		return false;
-			
 	}
 
 }
