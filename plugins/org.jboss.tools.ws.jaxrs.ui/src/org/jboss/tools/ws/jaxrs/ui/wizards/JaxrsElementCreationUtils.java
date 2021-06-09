@@ -227,7 +227,7 @@ public class JaxrsElementCreationUtils {
 			return packageFragmentRoot.getJavaProject().findPackageFragment(currentFolder.getFullPath());
 		}
 		
-		throw new CoreException(new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, "Cannot retrieve the currentFolder for the given packageFragmentRoot."));
+		throw new CoreException(new Status(IStatus.ERROR, JBossJaxrsUIPlugin.PLUGIN_ID, "Cannot retrieve the currentFolder for the given packageFragmentRoot("+packageFragmentRoot.getElementName()+")."));
 	}
 	
 	/**
