@@ -32,10 +32,9 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.SimpleCollector;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
@@ -271,7 +270,7 @@ public class JaxrsElementsIndexationDelegate {
 					indexReader.hasDeletions(), indexReader.numDocs());
 			Logger.traceIndexing("Searching single document matching {}", query.toString());
 			final TopDocs result = searcher.search(query, 1);
-			if (result.totalHits >= 1) {
+			if (result.totalHits.value >= 1) {
 				int docIndex = result.scoreDocs[0].doc;
 				final Document doc = searcher.doc(docIndex);
 				final String docIdentifier = doc.get(LuceneFields.FIELD_IDENTIFIER);
@@ -402,18 +401,14 @@ public class JaxrsElementsIndexationDelegate {
 		}
 		
 		@Override
-		public void setScorer(Scorer scorer) throws IOException {
-		}
-
-		@Override
 		public void doSetNextReader(LeafReaderContext context) throws IOException {
 			this.setIndexReader(context.reader());
 			this.setDocBase(context.docBase);
 		}
 
 		@Override
-		public boolean needsScores() {
-			return false;
+		public ScoreMode scoreMode() {
+			return ScoreMode.COMPLETE_NO_SCORES;
 		}
 
 		public Set<T> getResults() throws CorruptIndexException, IOException {

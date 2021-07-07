@@ -125,7 +125,7 @@ public class LuceneIndexationTestCase {
 		try {
 			final TermQuery termQuery = new TermQuery(new Term("verb", value));
 			final TopDocs result = searcher.search(termQuery, 1);
-			if (result.totalHits >= 1) {
+			if (result.totalHits.value >= 1) {
 				int docIndex = result.scoreDocs[0].doc;
 				final Document doc = searcher.doc(docIndex);
 				return retrieve(doc.get("handleIdentifier"));

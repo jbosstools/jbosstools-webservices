@@ -501,11 +501,10 @@ public final class JdtUtils {
 			final NodeFinder finder = new NodeFinder(ast, member.getSourceRange().getOffset(),
 					member.getSourceRange().getLength());
 			switch (member.getElementType()) {
-			case IJavaElement.FIELD:
-			case IJavaElement.METHOD:
-				return finder.getCoveredNode();
+			case IJavaElement.TYPE:
+				return NodeFinder.perform(ast, member.getSourceRange());
 			default:
-				return finder.getCoveringNode();
+				return finder.getCoveredNode();
 			}
 		}
 		// assume that the element does not exist anymore
