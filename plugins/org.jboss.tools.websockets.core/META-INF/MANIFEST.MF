@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %PLUGIN_NAME
 Bundle-SymbolicName: org.jboss.tools.websockets.core;singleton:=true
-Bundle-Version: 2.2.0.qualifier
+Bundle-Version: 2.2.100.qualifier
 Bundle-Localization: plugin
 Bundle-Activator: org.jboss.tools.websockets.core.WebsocketsCorePlugin
 Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
