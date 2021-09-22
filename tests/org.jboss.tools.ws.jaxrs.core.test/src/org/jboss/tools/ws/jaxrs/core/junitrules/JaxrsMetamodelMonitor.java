@@ -277,7 +277,7 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 		ProjectNatureUtils.installProjectNature(getProject(), ProjectNatureUtils.JAXRS_NATURE_ID);
 		// remove the validation builder to avoid blocking during tests
 		ProjectBuilderUtils.uninstallProjectBuilder(getProject(), ProjectBuilderUtils.VALIDATOR_BUILDER_ID);
-		buildProject();		
+		buildProject(new NullProgressMonitor());
 		WorkbenchTasks.waitForTasksToComplete(getWorkspace(getJavaProject()));
 		return this.metamodel;
 	}
@@ -286,8 +286,8 @@ public class JaxrsMetamodelMonitor extends TestProjectMonitor implements IJaxrsM
 	public Set<IJaxrsElement> createElements(final String... classNames) throws CoreException {
 		final Set<IJaxrsElement> elements = new HashSet<IJaxrsElement>();
 		for(String className : classNames) {
-			final IType javaType = JdtUtils.resolveType(className, getJavaProject(), null);
-			elements.addAll(JaxrsElementFactory.createElements(javaType, JdtUtils.parse(javaType, null), metamodel, null));
+			final IType javaType = JdtUtils.resolveType(className, getJavaProject(), new NullProgressMonitor());
+			elements.addAll(JaxrsElementFactory.createElements(javaType, JdtUtils.parse(javaType, new NullProgressMonitor()), metamodel, new NullProgressMonitor()));
 		}
 		return elements;
 	}

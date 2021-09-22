@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IJavaProject;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.configuration.ProjectNatureUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -69,6 +70,7 @@ public class JaxrsMetamodelBuilderTestCase {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
 		project = metamodel.getProject();
+		JobUtils.waitForIdle();
 	}
 
 	@After
@@ -88,8 +90,8 @@ public class JaxrsMetamodelBuilderTestCase {
 		// pre-conditions
 		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
 		// operation: rebuilt the project, including the jaxrs metamodel
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.CLEAN_BUILD);
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.CLEAN_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.FULL_BUILD);
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
@@ -105,8 +107,8 @@ public class JaxrsMetamodelBuilderTestCase {
 		}
 		assertThat(JaxrsMetamodelLocator.get(javaProject), nullValue());
 		// operation
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.CLEAN_BUILD);
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.CLEAN_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.FULL_BUILD);
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
@@ -123,8 +125,8 @@ public class JaxrsMetamodelBuilderTestCase {
 		project.close(new NullProgressMonitor());
 		assertThat(JaxrsMetamodelLocator.get(javaProject), nullValue());
 		// operation
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.CLEAN_BUILD);
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.CLEAN_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.FULL_BUILD);
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, nullValue());
@@ -141,7 +143,7 @@ public class JaxrsMetamodelBuilderTestCase {
 		ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
 		assertFalse(ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID));
 		// operation
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.FULL_BUILD);
 		// verification
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, nullValue());
@@ -158,7 +160,7 @@ public class JaxrsMetamodelBuilderTestCase {
 		ProjectNatureUtils.uninstallProjectNature(project, ProjectNatureUtils.JAXRS_NATURE_ID);
 		assertFalse(ProjectNatureUtils.isProjectNatureInstalled(project, ProjectNatureUtils.JAXRS_NATURE_ID));
 		// operation
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.CLEAN_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.CLEAN_BUILD);
 		final IJaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, nullValue());
 	}
@@ -167,7 +169,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	public void shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithExistingMetamodel() throws CoreException,
 			OperationCanceledException, InterruptedException {
 		// pre-conditions: trigger an initial build to have a delta later (when another build is triggered after the resource creation)
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.FULL_BUILD);
 		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
 		// operation
 		metamodelMonitor.createCompilationUnit("FooResource.txt", "org.jboss.tools.ws.jaxrs.sample.services",
@@ -233,7 +235,7 @@ public class JaxrsMetamodelBuilderTestCase {
 		}
 		metamodelMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
 		// operation: built the project, including the jaxrs metamodel
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.FULL_BUILD);
 		// verification
 		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());
@@ -247,7 +249,7 @@ public class JaxrsMetamodelBuilderTestCase {
 		// pre-conditions
 		metamodelMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
 		// operation: call the JAX-RS builer for the project
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.CLEAN_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(),IncrementalProjectBuilder.CLEAN_BUILD);
 		// verification
 		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());

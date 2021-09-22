@@ -25,6 +25,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
@@ -122,7 +123,7 @@ public class TestProjectMonitor extends ExternalResource {
 			// remove listener before sync' to avoid desync...
 			ResourcesPlugin.getWorkspace().removeResourceChangeListener(synchronizor);
 			if(synchronizor.resync()) {
-				buildProject();
+				buildProject(new NullProgressMonitor());
 			}
 		} catch (CoreException e) {
 			fail(e.getMessage());
@@ -149,16 +150,16 @@ public class TestProjectMonitor extends ExternalResource {
 	 * Java manipulation utility methods (a.k.a., Helpers)
 	 * 
 	 ********************************************************************************************/
-	public void buildProject()
+	public void buildProject(IProgressMonitor monitor)
 			throws CoreException, OperationCanceledException, InterruptedException {
-		buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 	}
 
-	public void buildProject(final int buildKind)
+	public void buildProject(IProgressMonitor monitor, final int buildKind)
 			throws CoreException, OperationCanceledException, InterruptedException {
-		project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-		project.build(buildKind, new NullProgressMonitor());
-		Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+		project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+		project.build(buildKind, monitor);
+		Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, monitor);
 		WorkbenchTasks.waitForTasksToComplete(getWorkspace(project));
 	}
 
@@ -192,8 +193,9 @@ public class TestProjectMonitor extends ExternalResource {
 		IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
 		IClasspathEntry newLibraryEntry = JavaCore.newLibraryEntry(path, null, null);
 		classpathEntries = (IClasspathEntry[]) ArrayUtils.add(classpathEntries, newLibraryEntry);
-		javaProject.setRawClasspath(classpathEntries, new NullProgressMonitor());
-		buildProject();
+		IProgressMonitor monitor = new NullProgressMonitor();
+		javaProject.setRawClasspath(classpathEntries, monitor);
+		buildProject(monitor);
 		for (IPackageFragmentRoot fragment : javaProject.getAllPackageFragmentRoots()) {
 			if (fragment.getRawClasspathEntry().equals(newLibraryEntry)) {
 				return fragment;
@@ -259,8 +261,9 @@ public class TestProjectMonitor extends ExternalResource {
 		}
 		// needs to explicitely reopen the java project after setting the new
 		// classpath entries
-		javaProject.open(new NullProgressMonitor());
-		buildProject();
+		IProgressMonitor monitor = new NullProgressMonitor();
+		javaProject.open(monitor);
+		buildProject(monitor);
 		return fragments;
 	}
 
@@ -280,9 +283,10 @@ public class TestProjectMonitor extends ExternalResource {
 				found = true;
 			}
 		}
-		javaProject.setRawClasspath(classpathEntries, new NullProgressMonitor());
+		IProgressMonitor monitor = new NullProgressMonitor();
+		javaProject.setRawClasspath(classpathEntries, monitor);
 		// refresh/build project
-		buildProject();
+		buildProject(monitor);
 		return found;
 	}
 

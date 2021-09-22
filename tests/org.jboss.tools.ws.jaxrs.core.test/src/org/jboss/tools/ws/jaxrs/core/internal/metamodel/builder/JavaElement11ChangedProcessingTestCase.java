@@ -66,6 +66,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.hamcrest.Matchers;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
@@ -107,6 +108,7 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		assertThat(metamodel, notNullValue());
+		JobUtils.waitForIdle();
 	}
 
 	@Test
