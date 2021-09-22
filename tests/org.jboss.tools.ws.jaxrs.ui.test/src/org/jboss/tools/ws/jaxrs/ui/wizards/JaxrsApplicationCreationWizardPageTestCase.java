@@ -186,18 +186,19 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 			ResourcesUtils.delete(((JaxrsBaseElement) application).getResource());
 		}
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(0));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsApplication createdApplication = metamodel.findApplication();
 		assertThat(createdApplication, notNullValue());
@@ -215,20 +216,21 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		}
 
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
 		wizardPage.setApplicationMode(JaxrsApplicationCreationWizardPage.APPLICATION_WEB_XML);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		//final IResource webxmlResource = wizardPage.getCreatedWebxmlResource();
 		//assertThat(webxmlResource, nullValue());
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, nullValue());
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 1 new element: 1 Java Application 
 		final IJaxrsApplication createdApplication = metamodel.findApplication();
 		assertThat(createdApplication, notNullValue());
@@ -246,18 +248,19 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		}
 		metamodelMonitor.replaceDeploymentDescriptorWith("web-3_0-without-servlet-mapping.xml");
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
 		wizardPage.setApplicationMode(JaxrsApplicationCreationWizardPage.APPLICATION_WEB_XML);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, nullValue());
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 1 new element: 1 web.xml Application 
 		final IJaxrsApplication createdApplication = metamodel.findApplication();
 		assertThat(createdApplication, notNullValue());
@@ -275,18 +278,19 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		}
 
 		final JaxrsApplicationCreationWizardPage wizardPage = new JaxrsApplicationCreationWizardPage(true);
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
 		wizardPage.setApplicationMode(JaxrsApplicationCreationWizardPage.SKIP_APPLICATION);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, nullValue());
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 0 new element: metamodel has no application
 		final IJaxrsApplication createdApplication = metamodel.findApplication();
 		assertThat(createdApplication, nullValue());
@@ -306,12 +310,13 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// when
 		wizardPage.init(selection);
 		wizardPage.setApplicationMode(JaxrsApplicationCreationWizardPage.APPLICATION_JAVA);
-		wizardPage.createType(new NullProgressMonitor());
+		NullProgressMonitor monitor = new NullProgressMonitor();
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 0 new element: metamodel has no application
 		final IJaxrsApplication createdApplication = metamodel.findApplication();
 		assertThat(createdApplication, notNullValue());
@@ -329,12 +334,13 @@ public class JaxrsApplicationCreationWizardPageTestCase {
 		// when
 		wizardPage.init(selection);
 		wizardPage.setApplicationMode(JaxrsApplicationCreationWizardPage.APPLICATION_JAVA);
-		wizardPage.createType(new NullProgressMonitor());
+		NullProgressMonitor monitor = new NullProgressMonitor();
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 0 new element: metamodel has no application
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getFullyQualifiedName(),
