@@ -174,8 +174,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithAllMethods() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
@@ -184,13 +185,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeFindByIdMethod(true);
 		wizardPage.setIncludeListAllMethod(true);
 		wizardPage.setIncludeUpdateMethod(true);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(5));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -204,18 +205,19 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithNoMethod() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(0));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -229,8 +231,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithNoMethodWhenNoTargetClass() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
@@ -241,13 +244,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeUpdateMethod(true);
 		// remove the target class
 		wizardPage.setTargetClass("");
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(0));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -259,8 +262,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithCreateMethodWhenGetIdMethodExists() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
@@ -269,13 +273,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeFindByIdMethod(false);
 		wizardPage.setIncludeListAllMethod(false);
 		wizardPage.setIncludeUpdateMethod(false);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(1));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -297,8 +301,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithCreateMethodWhenGetIdMethodNotExists() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		JavaElementsUtils.removeMethod(customerType.getCompilationUnit(), "getId", false);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
@@ -308,13 +313,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeFindByIdMethod(false);
 		wizardPage.setIncludeListAllMethod(false);
 		wizardPage.setIncludeUpdateMethod(false);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(1));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -335,8 +340,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithDeleteMethod() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
@@ -345,13 +351,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeFindByIdMethod(false);
 		wizardPage.setIncludeListAllMethod(false);
 		wizardPage.setIncludeUpdateMethod(false);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(1));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -367,8 +373,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithFindByIdMethod() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
@@ -377,13 +384,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeFindByIdMethod(true);
 		wizardPage.setIncludeListAllMethod(false);
 		wizardPage.setIncludeUpdateMethod(false);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(1));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -401,8 +408,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithListAllMethod() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
@@ -411,13 +419,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeFindByIdMethod(false);
 		wizardPage.setIncludeListAllMethod(true);
 		wizardPage.setIncludeUpdateMethod(false);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(1));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
@@ -434,8 +442,9 @@ public class JaxrsResourceCreationWizardPageTestCase {
 	public void shouldCreateResourceClassWithUpdateMethod() throws CoreException, InterruptedException {
 		// given
 		final JaxrsResourceCreationWizardPage wizardPage = new JaxrsResourceCreationWizardPage();
+		NullProgressMonitor monitor = new NullProgressMonitor();
 		final IType customerType = JdtUtils.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Customer", javaProject,
-				new NullProgressMonitor());
+				monitor);
 		final IStructuredSelection selection = new StructuredSelection(customerType);
 		// when
 		wizardPage.init(selection);
@@ -444,13 +453,13 @@ public class JaxrsResourceCreationWizardPageTestCase {
 		wizardPage.setIncludeFindByIdMethod(false);
 		wizardPage.setIncludeListAllMethod(false);
 		wizardPage.setIncludeUpdateMethod(true);
-		wizardPage.createType(new NullProgressMonitor());
+		wizardPage.createType(monitor);
 		// then
 		final IType createdType = wizardPage.getCreatedType();
 		assertThat(createdType, notNullValue());
 		assertThat(createdType.getMethods().length, equalTo(1));
 		// trigger a clean build before asserting the new JAX-RS elements
-		metamodelMonitor.buildProject(IncrementalProjectBuilder.FULL_BUILD);
+		metamodelMonitor.buildProject(monitor, IncrementalProjectBuilder.FULL_BUILD);
 		// 6 new elements: 1 resource + 5 resource methods
 		final IJaxrsResource createdResource = (IJaxrsResource) metamodel.findElement(createdType);
 		assertThat(createdResource, notNullValue());
