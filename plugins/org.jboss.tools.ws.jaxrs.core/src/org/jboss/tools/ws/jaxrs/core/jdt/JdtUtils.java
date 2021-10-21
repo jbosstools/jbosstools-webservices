@@ -503,6 +503,7 @@ public final class JdtUtils {
 			switch (member.getElementType()) {
 			case IJavaElement.FIELD:
 			case IJavaElement.METHOD:
+			case IJavaElement.TYPE:
 				return finder.getCoveredNode();
 			default:
 				return finder.getCoveringNode();
