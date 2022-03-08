@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JBoss Wise UI Plug-in Wrapper
 Bundle-SymbolicName: org.jboss.tools.ws.wise.ui;singleton:=true
-Bundle-Version: 2.2.200.qualifier
+Bundle-Version: 2.2.300.qualifier
 Bundle-Vendor: Red Hat
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui,
@@ -59,7 +59,7 @@ Bundle-ClassPath: .,
  lib/stax-api-1.0-2.jar,
  lib/velocity-engine-core-2.3.jar,
  lib/xmlschema-core-2.2.5.jar,
- lib/xstream-1.4.16.jar,
+ lib/xstream-1.4.19.jar,
  lib/jaxb-xjc-2.3.3-b02.jar,
  lib/wise-core-2.2.0.Final.jar,
  lib/wise-core-cxf-2.2.0.Final.jar

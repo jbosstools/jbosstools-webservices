@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.jboss.tools.ws</groupId>
 		<artifactId>plugins</artifactId>
-		<version>2.2.200-SNAPSHOT</version>
+		<version>2.2.300-SNAPSHOT</version>
 	</parent>
 	<artifactId>org.jboss.tools.ws.wise.ui</artifactId>
 
@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>com.thoughtworks.xstream</groupId>
 			<artifactId>xstream</artifactId>
-			<version>1.4.18</version>
+			<version>1.4.19</version>
 		</dependency>
 	</dependencies>
 
