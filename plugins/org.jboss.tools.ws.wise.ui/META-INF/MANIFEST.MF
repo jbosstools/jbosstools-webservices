@@ -59,7 +59,7 @@ Bundle-ClassPath: .,
  lib/stax-api-1.0-2.jar,
  lib/velocity-engine-core-2.3.jar,
  lib/xmlschema-core-2.2.5.jar,
- lib/xstream-1.4.16.jar,
+ lib/xstream-1.4.18.jar,
  lib/jaxb-xjc-2.3.3-b02.jar,
  lib/wise-core-2.2.0.Final.jar,
  lib/wise-core-cxf-2.2.0.Final.jar
