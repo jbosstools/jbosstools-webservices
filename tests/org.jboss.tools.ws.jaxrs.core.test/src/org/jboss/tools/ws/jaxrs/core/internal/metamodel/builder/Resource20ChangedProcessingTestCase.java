@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorField;
@@ -57,6 +58,7 @@ public class Resource20ChangedProcessingTestCase {
 	public void setup() throws CoreException {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
+		JobUtils.waitForIdle();
 	}
 	
 	protected ResourceDelta createResourceDelta(final IResource resource, final int deltaKind) {

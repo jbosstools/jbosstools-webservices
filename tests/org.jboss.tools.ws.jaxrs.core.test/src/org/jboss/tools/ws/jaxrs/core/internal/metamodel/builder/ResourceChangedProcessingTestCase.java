@@ -60,6 +60,7 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -109,6 +110,7 @@ public class ResourceChangedProcessingTestCase {
 	public void setup() throws CoreException {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
+		JobUtils.waitForIdle();
 	}
 	
 	@Test

@@ -34,6 +34,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +65,7 @@ public class JavaElementDeltaFilterTestCase {
 				.getMock();
 		primaryCopy = when(createMock(ICompilationUnit.class, COMPILATION_UNIT).isWorkingCopy()).thenReturn(false)
 				.getMock();
+		JobUtils.waitForIdle();
 	}
 
 	@Test

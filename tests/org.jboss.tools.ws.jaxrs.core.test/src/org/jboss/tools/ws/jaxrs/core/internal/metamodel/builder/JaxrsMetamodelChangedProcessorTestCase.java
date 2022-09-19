@@ -35,6 +35,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.test.util.ResourcesUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsEndpoint;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
@@ -79,6 +80,7 @@ public class JaxrsMetamodelChangedProcessorTestCase {
 	public void setup() throws CoreException {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
+		JobUtils.waitForIdle();
 	}
 	
 	@After

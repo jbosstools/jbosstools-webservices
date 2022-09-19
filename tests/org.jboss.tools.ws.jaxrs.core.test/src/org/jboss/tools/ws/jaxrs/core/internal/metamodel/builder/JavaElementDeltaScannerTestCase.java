@@ -72,6 +72,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IEditorPart;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.utils.TestLogger;
@@ -116,6 +117,7 @@ public class JavaElementDeltaScannerTestCase {
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener);
 		javaElementEvents = Mockito.mock(List.class);
 		resourceEvents = Mockito.mock(List.class);
+		JobUtils.waitForIdle();
 	}
 	
 	@After

@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsElementFactory;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsProvider;
@@ -52,6 +53,7 @@ public class JavaElement20ChangedProcessingTestCase {
 	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		assertThat(metamodel, notNullValue());
+		JobUtils.waitForIdle();
 	}
 
 	private List<IJaxrsElement> createElement(final IType type) throws CoreException, JavaModelException {

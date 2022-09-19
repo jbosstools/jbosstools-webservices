@@ -86,6 +86,7 @@ public class ResourceChangedListenerTestCase {
 		JBossJaxrsCorePlugin.getDefault().getLog().addLogListener(logListener);
 		// operation
 		project.close(new NullProgressMonitor());
+		JBossJaxrsCorePlugin.getDefault().getLog().removeLogListener(logListener);
 		// verifications
 		assertThat(JaxrsMetamodelLocator.get(project), nullValue());
 		assertThat(queue.size(), equalTo(0));
