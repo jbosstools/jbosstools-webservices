@@ -18,7 +18,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.F_CONTENT;
 import static org.eclipse.jdt.core.IJavaElementDelta.F_RESOLVED_CLASSPATH_CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
@@ -51,7 +51,6 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.POST;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.QUERY_PARAM;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.lang.annotation.Target;
@@ -66,7 +65,6 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.hamcrest.Matchers;
-import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JavaMethodParameter;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
@@ -108,7 +106,6 @@ public class JavaElement11ChangedProcessingTestCase {
 	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		assertThat(metamodel, notNullValue());
-		JobUtils.waitForIdle();
 	}
 
 	@Test
@@ -319,7 +316,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.APPLICATION));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), notNullValue());
 		// 6 Built-in HTTP Methods + 1 Application
 		assertThat(metamodel.findAllElements().size(), equalTo(7));
 		assertThat(application.getApplicationPath(), nullValue());
@@ -359,7 +356,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.APPLICATION));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), notNullValue());
 		// 6 Built-in HTTP Methods
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}
@@ -2515,7 +2512,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.PROVIDER));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(CHANGED));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), notNullValue());
 		// 6 built-in HTTP Methods + 1 Provider
 		assertThat(metamodel.findAllElements().size(), equalTo(7));
 	}
@@ -2535,7 +2532,7 @@ public class JavaElement11ChangedProcessingTestCase {
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(),
 				equalTo(EnumElementCategory.PROVIDER));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), notNullValue());
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findAllElements().size(), equalTo(6));
 	}

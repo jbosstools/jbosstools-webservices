@@ -11,12 +11,12 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.createFileFromStream;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceContent;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 
@@ -66,11 +66,10 @@ public class JaxrsMetamodelBuilderTestCase {
 	private IProject project = null;
 	
 	@Before
-	public void setup() throws CoreException {
+	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
 		project = metamodel.getProject();
-		JobUtils.waitForIdle();
 	}
 
 	@After
@@ -81,12 +80,12 @@ public class JaxrsMetamodelBuilderTestCase {
 		if(javaProject !=null && !javaProject.isOpen()) {
 			javaProject.open(new NullProgressMonitor());
 		}
-		
 	}
 	
 	@Test
 	public void shouldFullBuildJaxrsProjectWithExistingMetamodel() throws CoreException, OperationCanceledException,
 			InterruptedException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldFullBuildJaxrsProjectWithExistingMetamodel()");
 		// pre-conditions
 		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
 		// operation: rebuilt the project, including the jaxrs metamodel
@@ -101,6 +100,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldFullBuildJaxrsProjectWithoutExistingMetamodel() throws CoreException, OperationCanceledException,
 			InterruptedException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldFullBuildJaxrsProjectWithoutExistingMetamodel()");
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
 			JaxrsMetamodelLocator.get(javaProject).remove();
@@ -118,6 +118,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldNotBuildMetamodelWhenProjectIsClosed() throws CoreException, OperationCanceledException,
 	InterruptedException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldNotBuildMetamodelWhenProjectIsClosed()");
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
 			JaxrsMetamodelLocator.get(javaProject).remove();
@@ -135,6 +136,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldNotFullBuildNonJaxrsProject() throws CoreException, OperationCanceledException,
 			InterruptedException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldNotFullBuildNonJaxrsProject()");
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
 			JaxrsMetamodelLocator.get(javaProject).remove();
@@ -152,6 +154,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldNotCleanBuildNonJaxrsProject() throws CoreException, OperationCanceledException,
 			InterruptedException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldNotCleanBuildNonJaxrsProject()");
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
 			JaxrsMetamodelLocator.get(javaProject).remove();
@@ -168,6 +171,8 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithExistingMetamodel() throws CoreException,
 			OperationCanceledException, InterruptedException {
+		System.out.println(
+				"JaxrsMetamodelBuilderTestCase.shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithExistingMetamodel()");
 		// pre-conditions: trigger an initial build to have a delta later (when another build is triggered after the resource creation)
 		metamodelMonitor.buildProject(new NullProgressMonitor(), IncrementalProjectBuilder.FULL_BUILD);
 		assertThat(JaxrsMetamodelLocator.get(javaProject), notNullValue());
@@ -183,7 +188,9 @@ public class JaxrsMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithoutExistingMetamodel() throws CoreException,
-			OperationCanceledException, InterruptedException {
+			OperationCanceledException {
+		System.out.println(
+				"JaxrsMetamodelBuilderTestCase.shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithoutExistingMetamodel()");
 		// pre-conditions
 		if (metamodel != null) {
 			metamodel.remove();
@@ -201,6 +208,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	
 	@Test
 	public void shouldDoNothingWhenPackageInfoAdded() throws CoreException, IOException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldDoNothingWhenPackageInfoAdded()");
 		// pre-conditions
 		IFolder folder = javaProject.getProject().getFolder("src/main/java/org/jboss/tools/ws/jaxrs/sample/services");
 		// operation
@@ -214,6 +222,7 @@ public class JaxrsMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldDoNothingWhenPackageInfoChanged() throws CoreException, IOException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldDoNothingWhenPackageInfoChanged()");
 		// pre-conditions
 		JBossJaxrsCorePlugin.getDefault().resumeListeners();
 		IFile pkgInfoFile = javaProject.getProject().getFile("src/main/java/org/jboss/tools/ws/jaxrs/sample/services/package-info.java");
@@ -229,6 +238,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldNotFailBuildingJaxrsProjectWhenMissingLibraries() throws CoreException, OperationCanceledException,
 			InterruptedException {
+		System.out.println("JaxrsMetamodelBuilderTestCase.shouldNotFailBuildingJaxrsProjectWhenMissingLibraries()");
 		// pre-conditions
 		if (JaxrsMetamodelLocator.get(javaProject) != null) {
 			JaxrsMetamodelLocator.get(javaProject).remove();
@@ -246,10 +256,11 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldNotFailRebuildingJaxrsProjectWhenMissingLibraries() throws CoreException, OperationCanceledException,
 	InterruptedException {
+		JobUtils.waitForIdle();
 		// pre-conditions
 		metamodelMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
 		// operation: call the JAX-RS builer for the project
-		metamodelMonitor.buildProject(new NullProgressMonitor(),IncrementalProjectBuilder.CLEAN_BUILD);
+		metamodelMonitor.buildProject(new NullProgressMonitor(),IncrementalProjectBuilder.CLEAN_BUILD);System.out.println("after Build");
 		// verification
 		final JaxrsMetamodel metamodel = JaxrsMetamodelLocator.get(javaProject);
 		assertThat(metamodel, notNullValue());

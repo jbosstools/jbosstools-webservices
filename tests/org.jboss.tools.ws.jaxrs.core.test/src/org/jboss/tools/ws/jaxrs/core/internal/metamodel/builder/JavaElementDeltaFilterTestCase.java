@@ -33,8 +33,6 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
-import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.jdt.Flags;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,36 +63,35 @@ public class JavaElementDeltaFilterTestCase {
 				.getMock();
 		primaryCopy = when(createMock(ICompilationUnit.class, COMPILATION_UNIT).isWorkingCopy()).thenReturn(false)
 				.getMock();
-		JobUtils.waitForIdle();
 	}
 
 	@Test
-	public void shouldAcceptAnyChangeEvent() throws JavaModelException {
+	public void shouldAcceptAnyChangeEvent() {
 		assertTrue("Wrong result", filter.apply(createEvent(workingCopy, REMOVED, POST_RECONCILE, Flags.NONE)));
 		assertTrue("Wrong result", filter.apply(createEvent(primaryCopy, REMOVED, POST_RECONCILE, Flags.NONE)));
 	}
 	
 	@Test
-	public void shouldAcceptPostChangeAndPostReconcileEvents() throws JavaModelException {
+	public void shouldAcceptPostChangeAndPostReconcileEvents() {
 		final IJavaElement element = createMock(IType.class, TYPE, workingCopy);
 		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_CHANGE, Flags.NONE)));
 		assertTrue("Wrong result", filter.apply(createEvent(element, ADDED, POST_RECONCILE, Flags.NONE)));
 	}
 
 	@Test
-	public void shouldAcceptWithValidFlags() throws JavaModelException {
+	public void shouldAcceptWithValidFlags() {
 		final IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
 		assertTrue("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, new Flags(F_PRIMARY_RESOURCE + F_CONTENT))));
 	}
 
 	@Test
-	public void shouldNotAcceptWithIncompleteFlags() throws JavaModelException {
+	public void shouldNotAcceptWithIncompleteFlags() {
 		final IJavaElement element = createMock(ICompilationUnit.class, COMPILATION_UNIT);
 		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, new Flags(F_CONTENT))));
 	}
 
 	@Test
-	public void shouldNotAcceptWithMissingFlags() throws JavaModelException {
+	public void shouldNotAcceptWithMissingFlags() {
 		final IJavaElement element = createMock(IMethod.class, METHOD);
 		assertFalse("Wrong result", filter.apply(createEvent(element, CHANGED, POST_RECONCILE, Flags.NONE)));
 	}

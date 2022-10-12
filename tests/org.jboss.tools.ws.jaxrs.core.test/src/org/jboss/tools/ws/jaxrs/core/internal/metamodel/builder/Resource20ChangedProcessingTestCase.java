@@ -14,11 +14,11 @@ import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils.delete;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceFirstOccurrenceOfCode;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.DEFAULT_VALUE;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.QUERY_PARAM;
-import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregator;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsParameterAggregatorField;
@@ -55,17 +54,16 @@ public class Resource20ChangedProcessingTestCase {
 	private IJavaProject javaProject = null;
 
 	@Before
-	public void setup() throws CoreException {
+	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
-		JobUtils.waitForIdle();
 	}
 	
 	protected ResourceDelta createResourceDelta(final IResource resource, final int deltaKind) {
 		return new ResourceDelta(resource, deltaKind, Flags.NONE);
 	}
 
-	protected void processAffectedResources(final ResourceDelta event) throws CoreException {
+	protected void processAffectedResources(final ResourceDelta event) {
 		metamodel.processAffectedResources(Arrays.asList(event), new NullProgressMonitor());
 	}
 

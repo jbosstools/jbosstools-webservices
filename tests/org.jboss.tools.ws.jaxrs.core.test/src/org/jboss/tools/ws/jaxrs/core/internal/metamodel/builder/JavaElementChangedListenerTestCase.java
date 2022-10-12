@@ -12,14 +12,13 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
-import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.JBossJaxrsCorePlugin;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
 import org.jboss.tools.ws.jaxrs.core.junitrules.JavaElementsUtils;
@@ -45,12 +44,10 @@ public class JavaElementChangedListenerTestCase {
 	
 	private JaxrsMetamodel metamodel = null;
 	
-	@SuppressWarnings("deprecation")
 	@Before
 	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		assertThat(metamodel, notNullValue());
-		JobUtils.waitForIdle();
 	}
 	
 	@Before

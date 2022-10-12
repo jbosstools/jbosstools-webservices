@@ -50,6 +50,7 @@ import static org.junit.Assert.assertTrue;
  * @author Grid Qian
  */
 @SuppressWarnings("restriction")
+@Ignore
 public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 
 	private IProject clientProject;
@@ -77,7 +78,6 @@ public class JBossWSJavaFirstCommandTest extends AbstractJBossWSGenerationTest {
 	}
 	
 	@Test
-	@Ignore
 	public void testDeployResult() throws ExecutionException, CoreException,IOException {
 		doInitialCommand();
 		doValidateWSImplCommand();

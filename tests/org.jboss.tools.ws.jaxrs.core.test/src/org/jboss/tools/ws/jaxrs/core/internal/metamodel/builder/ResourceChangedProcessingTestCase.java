@@ -15,7 +15,7 @@ import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -42,8 +42,10 @@ import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.POST;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PRODUCES;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.PROVIDER;
 import static org.jboss.tools.ws.jaxrs.core.utils.JaxrsClassnames.TARGET;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,7 +62,6 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.jboss.tools.test.util.JobUtils;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsHttpMethod;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsJavaApplication;
 import org.jboss.tools.ws.jaxrs.core.internal.metamodel.domain.JaxrsMetamodel;
@@ -89,11 +90,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 public class ResourceChangedProcessingTestCase {
 
 	@ClassRule
@@ -107,10 +103,9 @@ public class ResourceChangedProcessingTestCase {
 	private IJavaProject javaProject = null;
 
 	@Before
-	public void setup() throws CoreException {
+	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
-		JobUtils.waitForIdle();
 	}
 	
 	@Test
@@ -153,8 +148,7 @@ public class ResourceChangedProcessingTestCase {
 
 	@Test
 	@Ignore("Ignoring for now: removing and creating a new metamodel should be tested in JaxrsMetamodelTestCase")
-	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithoutExistingMetamodel() throws CoreException,
-			IOException {
+	public void shouldAddHttpMethodsAndResourcesWhenAddingSourceFolderWithoutExistingMetamodel() throws CoreException {
 		// pre-conditions
 		// remove the metamodel
 		metamodel.remove();
@@ -313,7 +307,7 @@ public class ResourceChangedProcessingTestCase {
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), notNullValue());
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
@@ -739,7 +733,7 @@ public class ResourceChangedProcessingTestCase {
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.APPLICATION));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), notNullValue());
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
@@ -899,7 +893,7 @@ public class ResourceChangedProcessingTestCase {
 		// verifications
 		assertThat(metamodelMonitor.getElementChanges().size(), equalTo(1));
 		assertThat(metamodelMonitor.getElementChanges().get(0).getElement().getElementKind().getCategory(), equalTo(EnumElementCategory.HTTP_METHOD));
-		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), is(notNullValue()));
+		assertThat(metamodelMonitor.getElementChanges().get(0).getElement(), notNullValue());
 		assertThat(metamodelMonitor.getElementChanges().get(0).getDeltaKind(), equalTo(REMOVED));
 		// 6 built-in HTTP Methods
 		assertThat(metamodel.findElements(javaProject).size(), equalTo(6));
