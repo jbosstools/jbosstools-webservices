@@ -10,11 +10,11 @@
  ******************************************************************************/
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -49,7 +49,7 @@ public class ResourceChangedListenerTestCase {
 	private IProject project = null;
 
 	@Before
-	public void setup() throws CoreException {
+	public void setup() {
 		project = metamodelMonitor.getMetamodel().getProject();
 	}
 
@@ -86,6 +86,7 @@ public class ResourceChangedListenerTestCase {
 		JBossJaxrsCorePlugin.getDefault().getLog().addLogListener(logListener);
 		// operation
 		project.close(new NullProgressMonitor());
+		JBossJaxrsCorePlugin.getDefault().getLog().removeLogListener(logListener);
 		// verifications
 		assertThat(JaxrsMetamodelLocator.get(project), nullValue());
 		assertThat(queue.size(), equalTo(0));

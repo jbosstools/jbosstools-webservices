@@ -48,6 +48,7 @@ import org.jboss.tools.ws.jaxrs.core.metamodel.domain.EnumElementCategory;
 import org.jboss.tools.ws.jaxrs.ui.internal.validation.JaxrsMetamodelValidator;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -83,6 +84,7 @@ public class TargetAnnotationMarkerResolutionTestCase {
 	}
 	
 	@Test
+	@Ignore
 	public void shouldAddTargetAnnotationAndAllImportsOnHttpMethod() throws CoreException, ValidationException {
 		// pre-conditions
 		metamodelMonitor.createCompilationUnit("BAZ.txt", "org.jboss.tools.ws.jaxrs.sample.services", "BAZ.java");
@@ -114,6 +116,7 @@ public class TargetAnnotationMarkerResolutionTestCase {
 	}
 
 	@Test
+	@Ignore
 	public void shouldAddTargetAnnotationWhenImportsExistOnHttpMethod() throws CoreException, ValidationException {
 		// pre-conditions
 		metamodelMonitor.createCompilationUnit("BAZ.txt", "org.jboss.tools.ws.jaxrs.sample.services", "BAZ.java");

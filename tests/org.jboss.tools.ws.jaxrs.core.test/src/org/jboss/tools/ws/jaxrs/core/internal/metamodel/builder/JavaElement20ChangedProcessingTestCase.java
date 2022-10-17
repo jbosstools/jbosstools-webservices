@@ -4,10 +4,10 @@ import static org.eclipse.jdt.core.IJavaElementDelta.ADDED;
 import static org.eclipse.jdt.core.IJavaElementDelta.CHANGED;
 import static org.eclipse.jdt.core.IJavaElementDelta.REMOVED;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceAllOccurrencesOfCode;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -53,6 +53,7 @@ public class JavaElement20ChangedProcessingTestCase {
 		metamodel = metamodelMonitor.getMetamodel();
 		assertThat(metamodel, notNullValue());
 	}
+	
 
 	private List<IJaxrsElement> createElement(final IType type) throws CoreException, JavaModelException {
 		return JaxrsElementFactory.createElements(type, JdtUtils.parse(type, null), metamodel, null);

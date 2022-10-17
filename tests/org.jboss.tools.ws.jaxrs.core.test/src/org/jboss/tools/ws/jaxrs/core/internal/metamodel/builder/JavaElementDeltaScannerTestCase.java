@@ -106,7 +106,7 @@ public class JavaElementDeltaScannerTestCase {
 	
 	@SuppressWarnings("unchecked")
 	@Before
-	public void setup() throws CoreException {
+	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
 		project = metamodel.getProject();
@@ -119,7 +119,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 	
 	@After
-	public void removeAndRestoreListeners() throws CoreException, OperationCanceledException, InterruptedException {
+	public void removeAndRestoreListeners() throws CoreException, OperationCanceledException {
 		project.open(new NullProgressMonitor());
 		javaProject.open(new NullProgressMonitor());
 		JavaCore.removeElementChangedListener(elementChangeListener);
@@ -195,12 +195,12 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	private void verifyEventNotification(final IResource resource, final int deltaKind, final int eventType, final int flags,
-			final VerificationMode numberOfTimes) throws JavaModelException {
+			final VerificationMode numberOfTimes) {
 		verifyEventNotification(resource, deltaKind, eventType, new Flags(flags), numberOfTimes);
 	}
 
 	private void verifyEventNotification(final IResource resource, final int deltaKind, final int eventType, final Flags flags,
-			final VerificationMode numberOfTimes) throws JavaModelException {
+			final VerificationMode numberOfTimes) {
 		TestLogger.info("Verifying method calls..");
 		verify(resourceEvents, numberOfTimes).add(new ResourceDelta(resource, deltaKind, flags));
 	}
@@ -283,7 +283,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeAddedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeAddedInWorkingCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
@@ -295,7 +295,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeAddedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeAddedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource")
 				.getCompilationUnit();
@@ -307,7 +307,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeRemovedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeRemovedInWorkingCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
@@ -317,7 +317,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeRemovedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation
@@ -327,7 +327,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeParameterAddedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeParameterAddedInWorkingCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapperEmptyParameter.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
@@ -341,7 +341,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeParameterAddedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeParameterAddedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapperEmptyParameter.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
@@ -355,7 +355,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeInterfaceAddedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeInterfaceAddedInWorkingCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
@@ -366,7 +366,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeInterfaceAddedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeInterfaceAddedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
@@ -377,7 +377,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeInterfaceRemovedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeInterfaceRemovedInWorkingCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
@@ -388,7 +388,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeInterfaceRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeInterfaceRemovedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
@@ -399,7 +399,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeSuperclassAddedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeSuperclassAddedInWorkingCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
@@ -410,7 +410,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeSuperclassAddedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeSuperclassAddedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.providers.EntityNotFoundExceptionMapper");
 		// operation
@@ -421,7 +421,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeSuperclassRemovedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeSuperclassRemovedInWorkingCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game");
 		// operation
@@ -431,7 +431,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeSuperclassRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeSuperclassRemovedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.domain.Game");
 		// operation
@@ -441,7 +441,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeParameterChangedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeParameterChangedInWorkingCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
@@ -455,7 +455,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeParameterChangedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeParameterChangedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
@@ -469,7 +469,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeParameterRemovedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeParameterRemovedInWorkingCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
@@ -482,7 +482,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeParameterRemovedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeParameterRemovedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		ICompilationUnit compilationUnit = metamodelMonitor.createCompilationUnit(
 				"PersistenceExceptionMapper.txt", "org.jboss.tools.ws.jaxrs.sample.services.providers",
@@ -495,7 +495,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeAnnotationAddedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeAnnotationAddedInWorkingCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
 		// operation
@@ -506,7 +506,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeAnnotationAddedInPrimaryCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeAnnotationAddedInPrimaryCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.PurchaseOrderResource");
 		// operation
@@ -516,7 +516,7 @@ public class JavaElementDeltaScannerTestCase {
 	}
 
 	@Test
-	public void shouldNotifyWhenTypeAnnotationChangedInWorkingCopy() throws CoreException, InterruptedException {
+	public void shouldNotifyWhenTypeAnnotationChangedInWorkingCopy() throws CoreException {
 		// pre-condition
 		IType type = metamodelMonitor.resolveType("org.jboss.tools.ws.jaxrs.sample.services.CustomerResource");
 		// operation

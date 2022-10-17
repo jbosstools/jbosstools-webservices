@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JBoss Wise UI Plug-in Wrapper
 Bundle-SymbolicName: org.jboss.tools.ws.wise.ui;singleton:=true
-Bundle-Version: 2.2.400.qualifier
+Bundle-Version: 2.2.500.qualifier
 Bundle-Vendor: Red Hat
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui,

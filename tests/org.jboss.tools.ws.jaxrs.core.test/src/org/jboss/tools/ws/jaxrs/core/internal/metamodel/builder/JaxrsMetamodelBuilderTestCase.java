@@ -11,12 +11,12 @@
 package org.jboss.tools.ws.jaxrs.core.internal.metamodel.builder;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.createFileFromStream;
 import static org.jboss.tools.ws.jaxrs.core.junitrules.ResourcesUtils.replaceContent;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 
@@ -66,11 +66,10 @@ public class JaxrsMetamodelBuilderTestCase {
 	private IProject project = null;
 	
 	@Before
-	public void setup() throws CoreException {
+	public void setup() {
 		metamodel = metamodelMonitor.getMetamodel();
 		javaProject = metamodel.getJavaProject();
 		project = metamodel.getProject();
-		JobUtils.waitForIdle();
 	}
 
 	@After
@@ -81,7 +80,6 @@ public class JaxrsMetamodelBuilderTestCase {
 		if(javaProject !=null && !javaProject.isOpen()) {
 			javaProject.open(new NullProgressMonitor());
 		}
-		
 	}
 	
 	@Test
@@ -183,7 +181,7 @@ public class JaxrsMetamodelBuilderTestCase {
 
 	@Test
 	public void shouldIncrementalBuildJaxrsProjectAfterResourceCreationWithoutExistingMetamodel() throws CoreException,
-			OperationCanceledException, InterruptedException {
+			OperationCanceledException {
 		// pre-conditions
 		if (metamodel != null) {
 			metamodel.remove();
@@ -246,6 +244,7 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldNotFailRebuildingJaxrsProjectWhenMissingLibraries() throws CoreException, OperationCanceledException,
 	InterruptedException {
+		JobUtils.waitForIdle();
 		// pre-conditions
 		metamodelMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
 		// operation: call the JAX-RS builer for the project
