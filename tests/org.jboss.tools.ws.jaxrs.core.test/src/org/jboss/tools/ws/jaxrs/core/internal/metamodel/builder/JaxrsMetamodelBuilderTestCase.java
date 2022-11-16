@@ -74,12 +74,14 @@ public class JaxrsMetamodelBuilderTestCase {
 
 	@After
 	public void reopenJavaProject() throws CoreException {
+		JobUtils.waitForIdle();
 		if(project !=null && !project.isOpen()) {
 			project.open(new NullProgressMonitor());
 		}
 		if(javaProject !=null && !javaProject.isOpen()) {
 			javaProject.open(new NullProgressMonitor());
 		}
+		JobUtils.waitForIdle();
 	}
 	
 	@Test
@@ -244,7 +246,6 @@ public class JaxrsMetamodelBuilderTestCase {
 	@Test
 	public void shouldNotFailRebuildingJaxrsProjectWhenMissingLibraries() throws CoreException, OperationCanceledException,
 	InterruptedException {
-		JobUtils.waitForIdle();
 		// pre-conditions
 		metamodelMonitor.removeClasspathEntry("jaxrs-api-2.0.1.GA.jar");
 		// operation: call the JAX-RS builer for the project
