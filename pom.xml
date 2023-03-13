@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>ws</artifactId>
 	<name>jbosstools-webservices</name>
-	<version>2.2.500-SNAPSHOT</version>
+	<version>2.2.600-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<properties>
 		<tycho.scmUrl>scm:git:https://github.com/jbosstools/jbosstools-webservices.git</tycho.scmUrl>
